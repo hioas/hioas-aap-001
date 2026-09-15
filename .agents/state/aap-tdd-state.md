@@ -1,5 +1,5 @@
 STATUS: RUNNING
-LEASE: free
+LEASE: free until -
 
 # AAP TDD 推进 · 状态与目标（自驱动循环的单一事实来源）
 
@@ -63,6 +63,39 @@ LEASE: free
 8. cron 会话里 `python -c` / `node -e` / `execute_code` 可能被安全策略拦 → 脚本一律先 `write_file` 落成 `.py`/`.mjs` 再执行。
 
 ## 4. 进度（细表看台账 CSV，这里只留能力组）
+
+🟢 本轮（2026-09-16 01:16~01:40，租约 aap-tdd-run-20260916-0115 → 已释放）· **序号 6「大模型检测报告 · 多维度专业版」（page-6）收口**：
+- **Calicat 侧**：page-6 设计树（425KB，411 图层容器 + 622 文本）+ 截图已抓；`interaction.json` 仍「不存在图层交互数据」→ 交互真源退 PRD 09/17-spec/18-API/21-验收 + 画布 30 页清单。
+  新增探针脚本 `page6-probe.py`（长文本全文 + 容器几何）与 `subtree-6.py`（按 id 导子树取色/取间距），产物 `page-6-probe.txt` / `page-6-subtree.txt`。
+- **这页到底是什么**：顶部（返回 / 「检测报告」/ 右上报告编号 DR-…）· 结论封面卡（图标+「综合检测结论」+通道名 / 40px 综合分 92 + 结论标签「通过」/ 状态四格
+  「7/8 通过项 · 1 项 不可测 · 较高 置信度 · 未触发 一票否决」/ 结论措辞盒 / 信息清单 5 行）· 关键指标卡（核心 6 项，2 列 174×84 子卡）·
+  维度总览卡（六边形雷达 176×176 + 6 轴标签 + 6 行均分条 + 3 项图例）· 全维度明细卡（说明行 + A–G 7 分组 55 项 + 权重说明盒）·
+  风险发现卡（4 条）· 原始证据卡（6 行）· 免责声明卡 · 底部操作条（导出 PDF 126×48 + 填写报价 238×48）；**无 TabBar**。
+- **TDD（3 个用例文件先红 → 到绿；合计 55 例）**：`tests/unit/report-model.spec.ts`(34) · `tests/unit/report-api.spec.ts`(5) ·
+  `tests/pages/report.spec.ts`(16)；红基线 = 3 文件 `Failed to resolve import`（`evidence/red-序号6.txt`，275 条原用例不受影响）；
+  实现 `src/utils/report-model.ts`（视图模型 + 雷达几何 + SVG data-URI）、`src/api/report.ts`、`src/pages/report/index.vue`、`pages.json` 路由、
+  `tests/fixtures/report-fixture.ts`（**设计稿 55 项逐字抄录**作为文案一致性依据）；绿 **329/329 连跑两轮一致**（`evidence/green-序号6.txt`）+ `npm run type-check` **exit 0**。
+- **补红再绿（真实缺口）**：vision 复核发现「雷达 6 轴标签（性能/吞吐/一致性/指纹/计费/安全）没渲染」→ 先补断言（`evidence/red-序号6-雷达轴标签.txt`：
+  `expected [] to deeply equal [...]`）→ 加 `.radar__canvas` + 按设计坐标绝对定位 6 个 label → 复跑 329/329 全绿。
+  **教训：vision 对"少了什么"比 DOM 数字更敏感，反之 DOM 数字对"多了/溢出什么"更敏感——两者都要跑。**
+- **客观证据链**：`build:mp-weixin` 产出 `dist/build/mp-weixin/pages/report/{index.js,index.json,index.wxml,index.wxss}`；
+  430 宽 iframe + 无头 Chrome **两段实测** `evidence/measure-序号6-430宽.json`：phase1/phase2 关键数字**全等** —— `innerWidth 430` · `docScrollWidth 430` ·
+  `docScrollHeight 4886` · 溢出 **0** · 文案缺失 **0**（need 含 80+ 条设计原文）· 指标子卡 6×{174×84 @x36/x220} · 雷达 img 176×176 @x127（src=`data:image/svg+xml;base64,…`）·
+  轴标签 6 个坐标与设计一致 · 均分行 fill 86/84/92/90/94/92% + 色点 #2563EB/#0891B2/#16A34A/#7C3AED/#D97706/#E11D48 · 明细 7 分组 **55 项** ·
+  计分行条 {x194 w162 h6}（与设计完全一致）· 状态胶囊 未申报 #FFFBEB / 仅证据 #F1F5F9 · 一票否决提示盒 #F5F3FF · 底栏 {x16 w398 h72} · 导出 126×48 / 填写报价 238×48 #2563EB；
+  像素墨迹核验顶部带右留白 **16**（仅返回箭头+标题+报告编号 → 无载体页污染）；截图 `logs/screenshots/20260916-0135-序号06-*.png`（顶部/雷达区/明细与风险）。
+- **抓出的真偏差（由数字对比，非 vision）**：①未计分行「名称 150 + 占位 163 + 标签 62 + 间距 16 = 391 > 卡片内宽 358」→ 设计自身横向不自洽（+33），
+  实测该行两个 flex 子项被压缩（名称 135 / 占位 145）且产生 1 处溢出 → 改 `flex-shrink:0` + 占位条 `flex:1`（实测 x194 w130）后**溢出 0**；
+  ②雷达轴标签整块缺失（见上）。
+- **新增工具**：`show-measure6.py`（按 phase + 字段名取数，替代页面专用的 show-measure.py）；载体页 `__measure-report.html`（含 `#sink` 隐藏取数区、
+  溢出元素带 left/w/h/outerHTML、uni-image 内层取 src）；mock `api/v1/reports/DR-1/{index,export}`。
+- ⚠️ 待人类拍板（不阻塞本轮，11 条全部写进台账序号 6 备注）：①设计 7 组 55 项与 09-PRD 的 D1–D8 **编号/口径完全不同**（55 项名在 22 份 PRD 零命中）→ 一律以服务端返回为准；
+  ②一票否决口径冲突（设计「行为指纹 <0.70」vs 09-PRD「D7<40」）；③置信度措辞（设计「较高」vs PRD「高/中/低」）；④18-API 只列路径未列方法 → GET 为推断；
+  ⑤导出响应体无字段级 schema；⑥`duration_text`/`cost_*` 在 18-API 无定义；⑦未计分行设计不自洽（已按零溢出实现）；⑧「一票否决说明」写死挂在 D 组；
+  ⑨雷达轴短名 ≠ 明细分组名（两组文案分别固定）；⑩mp-weixin 无内联 svg → 雷达走 SVG base64 data-URI `<image>`；⑪图标仍为 CSS 形状占位。
+
+⏳ 下一步（下一轮）：台账序号 **7「检测未通过报告 2」**（page-7-2，`/pages/report-failed/index`）——与序号 6 同族的失败态报告，按 §2 八步走；
+可复用 `report-model.ts` 的骨架 + `__measure-report.html` 载体页 + `show-measure6.py` 取数（**记得 build:h5 之后重拷载体页**，且截图后核验顶部墨迹）。
 
 🟢 本轮（2026-09-16 01:00~01:14，租约 aap-tdd-run-20260916-0100 → 已释放）· **序号 5「检测进行中」（page-5-2）收口**：
 - **Calicat 侧**：`cmd /c start` 拉起编辑器后 page-5-2 设计树（129 图层）+ 截图已抓；

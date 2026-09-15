@@ -1,0 +1,187 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-report</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      /* 取数用 <pre> 包在 0 尺寸 overflow:hidden 容器：textContent 可读，但不参与渲染、也不会被 --screenshot 截进图里 */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
+         页面 6：/pages/report/index（检测报告，page-6）
+         两段测量：phase1（首次加载）· phase2（1500ms 后，跨过轮询/异步渲染）→ 关键数字应一致 -->
+    <iframe id="f" src="/index.html#/pages/report/index?reportId=DR-1"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var acc = {}
+      f.addEventListener('load', function () {
+        setTimeout(function () { phase(1) }, 2500)
+        setTimeout(function () { phase(2) }, 4200)
+      })
+
+      function collect(doc, win) {
+        var over = []
+        doc.querySelectorAll('*').forEach(function (el) {
+          var r = el.getBoundingClientRect()
+          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
+            over.push({
+              tag: el.tagName,
+              cls: String(el.className || '').slice(0, 70),
+              left: Math.round(r.x),
+              w: Math.round(r.width),
+              right: Math.round(r.right),
+              html: String(el.outerHTML || '').slice(0, 140)
+            })
+          }
+        })
+        function rect(sel) {
+          var el = doc.querySelector(sel)
+          if (!el) return null
+          var r = el.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+        }
+        function rects(sel) {
+          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) {
+            var r = e.getBoundingClientRect()
+            return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), w: Math.round(r.width), h: Math.round(r.height) }
+          })
+        }
+        function texts(sel) {
+          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return e.textContent.trim() })
+        }
+        function colors(sel) {
+          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return win.getComputedStyle(e).backgroundColor })
+        }
+        function colorOf(sel, prop) {
+          var el = doc.querySelector(sel)
+          return el ? win.getComputedStyle(el)[prop] : null
+        }
+        function textOf(sel) {
+          var e = doc.querySelector(sel)
+          return e ? e.textContent.trim() : null
+        }
+        var text = (doc.body && doc.body.innerText) || ''
+        var need = [
+          '检测报告', 'DR-20240613-0758',
+          '综合检测结论', '华东主线路 · GPT 通道', '92', '通过', '综合评分', '满分 100',
+          '7/8', '通过项', '1 项', '不可测', '较高', '置信度', '未触发', '一票否决',
+          '未发现与宣称模型不一致的迹象（置信度：较高）。接口连通稳定、鉴权有效、模型指纹吻合，可进入报价流程。',
+          '供应商', '星辰云科技（Provider #P-2041）', '凭证', 'sk-••••••••••••••••4f2a',
+          '模型清单', 'gpt-4o · gpt-4o-mini · gpt-3.5-turbo',
+          '检测时间', '2026-07-10 15:32 · 触发方式：提交凭证自动',
+          '耗时 / 成本', '12 分 46 秒 · 预估 $1.86（实际 $1.72）',
+          '关键指标', '核心 6 项实时值', '模型指纹相似度', '高于告警线 0.70', '268', 'P90 620 ms',
+          'RPM 实测 / 申报', '达成 87%', 'TPM 实测', '窗口内主动降速', 'Prompt 缓存', 'cached_tokens 字段可用',
+          '服务可用性', '30 分钟观测窗口',
+          '维度总览', '六大维度均分', '时延与性能', '吞吐与限速', '一致与可靠', '模型指纹', '计量与计费', '安全与合规',
+          '性能', '吞吐', '一致性', '指纹', '计费', '安全',
+          '计入总分', '仅证据', '不可测 / 未申报',
+          '全维度明细', '共 55 项', '46 项计入总分 · 7 项仅证据 · 1 项未申报 · 1 项不可测 · 打分 0–100',
+          'A · 时延与性能', '均分 86 · 9 项', 'A1 TTFT 首 token 延迟', 'P50 268 ms',
+          'D · 模型指纹（核心项）', 'G · 真实源证据（不计分）', '仅证据 · 6 项',
+          '20.42.xx.xx · AS8075 Azure', '未检出 cf-ray', '未申报', '不可测',
+          '关键发现与风险', '4 条', '模型指纹与宣称一致', '数据留存声明缺失（不可测）',
+          '原始证据（节选）', '可导出', 'DNS / ASN', 'usage.prompt_tokens_details.cached_tokens = 1560',
+          '本报告基于抽样检测生成', '报告有效期 30 天，异常可申请复测。',
+          '导出 PDF', '填写报价'
+        ]
+        return {
+          innerWidth: win.innerWidth,
+          docScrollWidth: doc.documentElement.scrollWidth,
+          docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
+          overflowingCount: over.length,
+          overflowing: over.slice(0, 20),
+          missingTexts: need.filter(function (t) { return text.indexOf(t) === -1 }),
+          title: textOf('[data-testid="title"]'),
+          reportNo: textOf('[data-testid="report-no"]'),
+          score: textOf('[data-testid="score"]'),
+          resultChip: textOf('[data-testid="result-chip"]'),
+          statusValues: texts('[data-testid="status-value"]'),
+          statusLabels: texts('[data-testid="status-label"]'),
+          infoLabels: texts('[data-testid="info-label"]'),
+          infoValues: texts('[data-testid="info-value"]'),
+          metricCount: doc.querySelectorAll('[data-testid="metric-label"]').length,
+          metricLabels: texts('[data-testid="metric-label"]'),
+          metricValues: texts('[data-testid="metric-value"]'),
+          metricUnits: Array.prototype.map.call(doc.querySelectorAll('.metric__unit'), function (e) { return e.textContent.trim() }),
+          metricRects: rects('.metric'),
+          metricBg: colorOf('.metric', 'backgroundColor'),
+          radarRect: rect('[data-testid="radar"]'),
+          radarSrcPrefix: (function () {
+            var host = doc.querySelector('[data-testid="radar"]')
+            if (!host) return null
+            var node = host.querySelector('img') || host.querySelector('div') || host
+            var bg = win.getComputedStyle(node).backgroundImage || ''
+            var src = node.getAttribute && node.getAttribute('src')
+            return String(src || bg).slice(0, 40)
+          })(),
+          radarImgTag: (function () {
+            var e = doc.querySelector('[data-testid="radar"]')
+            return e ? e.tagName : null
+          })(),
+          radarLabels: texts('[data-testid="radar-label"]'),
+          radarLabelRects: rects('.radar__label'),
+          dimCount: doc.querySelectorAll('[data-testid="dim-name"]').length,
+          dimNames: texts('[data-testid="dim-name"]'),
+          dimScores: texts('[data-testid="dim-score"]'),
+          dimDotColors: colors('.dim__dot'),
+          dimFillWidths: Array.prototype.map.call(doc.querySelectorAll('.dim__fill'), function (e) { return e.style.width }),
+          dimBarRect: rect('.dim__bar'),
+          legendTexts: texts('[data-testid="legend-text"]'),
+          sectionTitles: texts('[data-testid="section-title"]'),
+          sectionMetas: texts('.group__meta'),
+          itemCount: doc.querySelectorAll('[data-testid="section-item"]').length,
+          itemLabels: texts('[data-testid="item-label"]'),
+          itemMetrics: texts('[data-testid="item-metric"]'),
+          itemScores: texts('[data-testid="item-score"]'),
+          itemPillTexts: texts('[data-testid="item-status"]'),
+          itemPillBgs: colors('.item__pill'),
+          itemBarRect: rect('.item__bar'),
+          itemHolderRect: rect('.item__holder'),
+          itemRowRects: rects('[data-testid="section-item"]').slice(0, 4),
+          detailSummary: textOf('[data-testid="detail-summary"]'),
+          itemCountText: textOf('[data-testid="item-count"]'),
+          findingTitles: texts('[data-testid="finding-title"]'),
+          findingBgs: colors('.finding'),
+          evidenceKeys: texts('[data-testid="evidence-key"]'),
+          evidenceValues: texts('[data-testid="evidence-value"]'),
+          evidenceRowRects: rects('.evidence-row').slice(0, 3),
+          disclaimerTitle: textOf('[data-testid="disclaimer-title"]'),
+          disclaimerText: textOf('[data-testid="disclaimer-text"]'),
+          topbar: rect('.report-page__topbar'),
+          cardRect: rect('.card'),
+          groupNoteRect: rect('.group__note'),
+          groupNoteBg: colorOf('.group__note', 'backgroundColor'),
+          noteBoxRect: rect('.note-box'),
+          actionBar: rect('.action__bar'),
+          exportBtn: rect('[data-testid="export-btn"]'),
+          exportBg: colorOf('[data-testid="export-btn"]', 'backgroundColor'),
+          quoteBtn: rect('[data-testid="quote-btn"]'),
+          quoteBg: colorOf('[data-testid="quote-btn"]', 'backgroundColor'),
+          pageBg: colorOf('.report-page', 'backgroundColor'),
+          topbarBg: colorOf('.report-page__topbar', 'backgroundColor'),
+          userAgent: win.navigator.userAgent
+        }
+      }
+
+      function phase(n) {
+        try {
+          var payload = collect(f.contentDocument, f.contentWindow)
+          acc['phase' + n] = payload
+          if (n === 2) {
+            f.style.height = payload.docScrollHeight + 'px'
+            acc.iframeHeightForShot = payload.docScrollHeight
+          }
+          document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+        } catch (e) {
+          document.getElementById('m').textContent = 'MEASURE_JSON:{"error":"' + e.message + '"}'
+        }
+      }
+    </script>
+  </body>
+</html>

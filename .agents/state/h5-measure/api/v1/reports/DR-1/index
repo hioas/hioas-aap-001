@@ -1,0 +1,163 @@
+{
+  "code": "0",
+  "message": "ok",
+  "data": {
+    "report_no": "DR-20240613-0758",
+    "channel_name": "华东主线路 · GPT 通道",
+    "total_score": 92,
+    "result": "PASS",
+    "confidence": "HIGH",
+    "pass_count": 7,
+    "item_total": 8,
+    "unmeasurable_count": 1,
+    "veto_triggered": false,
+    "verdict": "未发现与宣称模型不一致的迹象（置信度：较高）。接口连通稳定、鉴权有效、模型指纹吻合，可进入报价流程。",
+    "provider_name": "星辰云科技",
+    "provider_code": "P-2041",
+    "api_key_masked": "sk-••••••••••••••••4f2a",
+    "model_list": ["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"],
+    "detected_at": "2026-07-10 15:32",
+    "trigger_type": "提交凭证自动",
+    "duration_text": "12 分 46 秒",
+    "cost_estimate_usd": 1.86,
+    "cost_actual_usd": 1.72,
+    "key_metrics": [
+      { "label": "模型指纹相似度", "value": "0.93", "unit": "余弦", "sub": "高于告警线 0.70", "tone": "success" },
+      { "label": "TTFT 首 token（P50）", "value": "268", "unit": "ms", "sub": "P90 620 ms" },
+      { "label": "RPM 实测 / 申报", "value": "52", "unit": "/ 60", "sub": "达成 87%" },
+      { "label": "TPM 实测", "value": "1.24", "unit": "M/min", "sub": "窗口内主动降速" },
+      { "label": "Prompt 缓存", "value": "命中", "unit": "78%", "sub": "cached_tokens 字段可用" },
+      { "label": "服务可用性", "value": "99.9", "unit": "%", "sub": "30 分钟观测窗口" }
+    ],
+    "sections": [
+      {
+        "code": "A",
+        "name": "时延与性能",
+        "avg": 86,
+        "scored": true,
+        "items": [
+          { "code": "A1", "name": "TTFT 首 token 延迟", "metric": "P50 268 ms", "score": 92 },
+          { "code": "A2", "name": "TTFT 尾延迟", "metric": "P90 620 ms", "score": 88 },
+          { "code": "A3", "name": "TTFT 抖动", "metric": "标准差 ±74 ms", "score": 86 },
+          { "code": "A4", "name": "端到端延迟", "metric": "P50 3.1 s（500 / 256）", "score": 90 },
+          { "code": "A5", "name": "输出吞吐 TPS", "metric": "62 tok/s", "score": 87 },
+          { "code": "A6", "name": "首字节时间 TTFB", "metric": "210 ms", "score": 91 },
+          { "code": "A7", "name": "长上下文时延", "metric": "128K 输入 9.4 s", "score": 78 },
+          { "code": "A8", "name": "高并发时延", "metric": "P95 @30 并发 8.9 s", "score": 74 },
+          { "code": "A9", "name": "时延稳定性", "metric": "变异系数 CV 0.11", "score": 85 }
+        ]
+      },
+      {
+        "code": "B",
+        "name": "吞吐与限速",
+        "avg": 84,
+        "scored": true,
+        "items": [
+          { "code": "B1", "name": "RPM 实测", "metric": "52 / 申报 60", "score": 87 },
+          { "code": "B2", "name": "TPM 实测", "metric": "1.24 M / min", "score": 90 },
+          { "code": "B3", "name": "并发上限", "metric": "实测 48 并发", "score": 82 },
+          { "code": "B4", "name": "429 触发阈值", "metric": "57 req/s", "score": 85 },
+          { "code": "B5", "name": "限速恢复时间", "metric": "1.8 s", "score": 84 },
+          { "code": "B6", "name": "突发容忍", "metric": "1.4× 基线", "score": 80 },
+          { "code": "B7", "name": "队列等待", "metric": "P50 320 ms", "score": 83 },
+          { "code": "B8", "name": "每日配额", "metric": "上游未返回配额字段", "status": "NOT_DECLARED" }
+        ]
+      },
+      {
+        "code": "C",
+        "name": "一致性与可靠性",
+        "avg": 92,
+        "scored": true,
+        "items": [
+          { "code": "C1", "name": "确定性一致性", "metric": "temp=0，8/8 完全一致", "score": 96 },
+          { "code": "C2", "name": "响应文本相似度", "metric": "0.998", "score": 95 },
+          { "code": "C3", "name": "服务错误率", "metric": "5xx 0.12%", "score": 93 },
+          { "code": "C4", "name": "请求超时率", "metric": "0.30%", "score": 90 },
+          { "code": "C5", "name": "自动重试成功率", "metric": "99.6%", "score": 91 },
+          { "code": "C6", "name": "流式截断率", "metric": "0.40%", "score": 88 },
+          { "code": "C7", "name": "服务可用性", "metric": "30 分钟窗口 99.9%", "score": 94 },
+          { "code": "C8", "name": "长连接稳定性", "metric": "零中断 / 零重连", "score": 92 }
+        ]
+      },
+      {
+        "code": "D",
+        "name": "模型指纹（核心项）",
+        "avg": 90,
+        "scored": true,
+        "items": [
+          { "code": "D1", "name": "行为指纹相似度", "metric": "题库回归 0.93 · 权重 0.35", "score": 93 },
+          { "code": "D2", "name": "Tokenizer 指纹", "metric": "偏离 +0.8% · 权重 0.25", "score": 95 },
+          { "code": "D3", "name": "自我认知一致性", "metric": "身份/开发商吻合 · 0.15", "score": 90 },
+          { "code": "D4", "name": "概率指纹", "metric": "logprobs KL 0.14 · 0.15", "score": 86 },
+          { "code": "D5", "name": "上下文能力边界", "metric": "实测 128K 吻合 · 0.10", "score": 92 },
+          { "code": "D6", "name": "知识截止一致性", "metric": "2023-10 吻合", "score": 82 },
+          { "code": "D7", "name": "多语言能力画像", "metric": "多语文本集偏移 +1.2%", "score": 88 },
+          { "code": "D8", "name": "指令遵循一致性", "metric": "0.96", "score": 91 }
+        ]
+      },
+      {
+        "code": "E",
+        "name": "计量与缓存计费",
+        "avg": 94,
+        "scored": true,
+        "items": [
+          { "code": "E1", "name": "Prompt 缓存命中", "metric": "已观测命中", "score": 100 },
+          { "code": "E2", "name": "缓存写入识别", "metric": "5m / 1h TTL 字段可读", "score": 96 },
+          { "code": "E3", "name": "缓存命中率", "metric": "连续两次同 prompt 78%", "score": 90 },
+          { "code": "E4", "name": "usage 字段一致性", "metric": "与协议标准完全一致", "score": 98 },
+          { "code": "E5", "name": "流式用量计数", "metric": "偏差 ±0.2%", "score": 95 },
+          { "code": "E6", "name": "输入 / 输出单价", "metric": "与申报一致 · 无 ratio 转换", "score": 94 },
+          { "code": "E7", "name": "倍率 / 计费口径", "metric": "样例向量模拟求值通过", "score": 92 },
+          { "code": "E8", "name": "预扣与结算一致性", "metric": "预扣 / 实扣无偏差", "score": 90 }
+        ]
+      },
+      {
+        "code": "F",
+        "name": "安全与合规",
+        "avg": 92,
+        "scored": true,
+        "items": [
+          { "code": "F1", "name": "TLS 证书有效性", "metric": "SAN 与端点一致 · 有效期 82 天", "score": 95 },
+          { "code": "F2", "name": "证书签发机构", "metric": "仅作证据，不计入总分", "status": "EVIDENCE_ONLY" },
+          { "code": "F3", "name": "出站 SSRF 防护", "metric": "内网 / 环回 / 元数据地址被拒", "score": 96 },
+          { "code": "F4", "name": "端点归属校验", "metric": "challenge 签名通过", "score": 92 },
+          { "code": "F5", "name": "响应头指纹", "metric": "server / x-request-id 与基线一致", "score": 89 },
+          { "code": "F6", "name": "错误格式指纹", "metric": "OpenAI 标准 error 结构", "score": 90 },
+          { "code": "F7", "name": "数据留存声明", "metric": "上游未返回留存字段", "status": "NOT_MEASURABLE" },
+          { "code": "F8", "name": "内容安全策略", "metric": "抽样 200 条 · 0 命中", "score": 91 }
+        ]
+      },
+      {
+        "code": "G",
+        "name": "真实源证据（不计分）",
+        "avg": null,
+        "scored": false,
+        "items": [
+          { "code": "G1", "name": "出口 IP / ASN", "metric": "网络归属", "value": "20.42.xx.xx · AS8075 Azure" },
+          { "code": "G2", "name": "TLS Subject / SAN", "metric": "证书主体", "value": "CN=*.openai.com" },
+          { "code": "G3", "name": "/v1/models 清单", "metric": "能力清单一致性", "value": "3 个模型与申报一致" },
+          { "code": "G4", "name": "时间 / 语言特征", "metric": "响应本地化特征", "value": "UTC · en-US" },
+          { "code": "G5", "name": "x-request-id 前缀", "metric": "请求追踪格式", "value": "req_（OpenAI 格式）" },
+          { "code": "G6", "name": "边缘节点标识", "metric": "CDN / 边缘指纹", "value": "未检出 cf-ray" }
+        ]
+      }
+    ],
+    "findings": [
+      { "title": "模型指纹与宣称一致", "body": "行为指纹 0.93、Tokenizer 偏离 +0.8%、上下文 128K 吻合，未发现降级迹象。", "tone": "success" },
+      { "title": "长上下文时延偏高（A7 78）", "body": "128K 输入下 P50 9.4 s，低于同类中位；建议对超长上下文场景设置超时与降级策略。", "tone": "warning" },
+      { "title": "高并发能力受限（A8 74 / B3 82）", "body": "30 并发下 P95 8.9 s，实测并发上限 48；建议对外承诺不超过 20 并发。", "tone": "warning" },
+      { "title": "数据留存声明缺失（不可测）", "body": "上游未返回数据留存相关字段，该项不计入总分，建议在合同中单独约定。", "tone": "info" }
+    ],
+    "evidence": [
+      { "key": "DNS / ASN", "value": "api.example-llm.com → 20.42.xx.xx（AS8075 · Microsoft Azure）" },
+      { "key": "TLS 证书", "value": "CN=*.openai.com · Issuer Let's Encrypt R3 · 有效期 82 天" },
+      { "key": "响应头", "value": "server: cloudflare · x-request-id: req_8f2a…c4 · openai-organization 存在" },
+      { "key": "Tokenizer", "value": "cl100k_base 命中率 99.2%（基线 ±2% 容差内）" },
+      { "key": "缓存字段", "value": "usage.prompt_tokens_details.cached_tokens = 1560" },
+      { "key": "错误样本", "value": "429 · Retry-After: 2 · error.type=rate_limit_exceeded" }
+    ],
+    "disclaimer": "本引擎输出的是证据与置信度，不是\"真 / 假\"判决，请勿理解为\"已验证该模型为正品\"。检测结论仅代表检测时点状态，不构成对上游长期稳定性与合规性的担保。报告有效期 30 天，异常可申请复测。",
+    "veto_note": "一票否决项：行为指纹相似度 < 0.70 将直接判定不通过。本项得分按 5 条子证据线加权（行为 0.35 / Tokenizer 0.25 / 自我认知 0.15 / 概率 0.15 / 上下文 0.10）。",
+    "weight_note": "总分 = Σ(检测项得分 × 权重)；默认权重：指纹 0.35、P50 0.15、TTFT/一致性/RPM/TPM/缓存各 0.10；真实源仅证据不计分。置信度：可测子项 ≥4 且一致 → 高。"
+  }
+}
