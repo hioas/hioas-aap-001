@@ -151,6 +151,19 @@ vision 看到的「右侧贴边/缺字」是**截图假象**而非页面缺陷�
   → 每张卡都要回 design.tree.json 看 padding，别用同一个 class 一把梭；这类偏差只能靠 DOM 数字发现
   （vision 对 8px 差异无感）。
 
+## 4.4 大图/矢量图页面的取证补充（2026-09-16 序号 6 检测报告）
+
+- **vision 与 DOM 数字是互补的，缺一不可**：序号 6 实测 vision 先发现「雷达 6 轴标签整块没渲染」（DOM 的 `missingTexts` 因为我没把那 6 个短标签写进 `need` 而漏报）；
+  而横向溢出、flex 子项被压缩这类问题只有 DOM 数字（`overflowingCount`、元素 `left/w`）才看得见。
+  **规矩**：文案完整性清单必须覆盖「设计稿里每一个独立文本图层」（含雷达轴标签这种短词），并对溢出元素打印 `left/w/right/outerHTML`。
+- **mp-weixin 不能渲染内联 `<svg>` 标签**（wxml/wxss 无 svg）。矢量图（雷达/图表）正解 = 把 SVG 字符串编成
+  `data:image/svg+xml;base64,…` 交给 `<image>`（H5 与小程序同源，纯函数可单测：见 `src/utils/report-model.ts` 的 `radarSvg/radarDataUri/base64Ascii`）。
+  取数时注意 uni-app H5 的 `<image>` 渲染成 `<uni-image>`，**src 在子节点上**（`host.querySelector('img')` 或读背景图），读外层元素的 `src` 会得到空串。
+- **设计稿自身的横向自洽性要算一遍**：把卡片内宽（430 − 2×页面边距 − 2×卡片 padding）与子项宽度之和对比。
+  序号 6 的未计分行「150 + 8 + 163 + 8 + 62 = 391 > 358」是设计自身溢出（表现为两个 flex 子项被压缩 + 1 处 `overflowingCount`）；
+  修法 = 固定列 `flex-shrink: 0` + 弹性列 `flex: 1; min-width: 0`，并在台账写明「设计不自洽、实现按零溢出」。
+- 通用取数：`python .agents/state/show-measure6.py <measure.json> phase2 <字段名…>`（按 phase 取指定字段，替代页面专用的 show-measure*.py）。
+
 ## 5. 页面实现顺序与取件
 
 ```bash
