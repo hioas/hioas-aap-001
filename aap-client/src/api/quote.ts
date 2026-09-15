@@ -11,11 +11,17 @@
  *   POST /quotes                创建报价单（主体信息；请求体键见 buildQuotePayload）
  *   POST /quotes/{quoteId}/items 写入勾选的模型明细行（只带 model_name，单价在下一步设置）
  *
- * ⚠️ 18-API 卡片只列路径、未列方法与查询参数 → 方法（GET/DELETE/POST）与字段级 schema 为 REST 语义推断（missing-prd）。
+ * 序号 11（模型定价-详情）新增三条：
+ *   GET /quotes/items/{itemId}          取单个明细行的定价详情（页面入参 itemId）
+ *   GET /quotes/{quoteId}/items         取明细行列表（无 itemId 时的回落入口，取首行）
+ *   PUT /quotes/items/{itemId}          保存定价（设计稿「保存」「保存价格」两处同一动作）
+ *
+ * ⚠️ 18-API 卡片只列路径、未列方法与查询参数 → 方法（GET/DELETE/POST/PUT）与字段级 schema 为 REST 语义推断（missing-prd）。
  * 未接线（留待对应页面，不臆造）：/{quoteId}/submit、/withdraw、/versions、/compile-preview。
  */
 import { http } from './http'
 import type { QuoteListRaw } from '@/utils/quotes-model'
+import type { QuoteItemRaw } from '@/utils/model-pricing-model'
 
 export type { QuoteListRaw, QuoteRowRaw } from '@/utils/quotes-model'
 
@@ -66,6 +72,24 @@ export const quoteApi = {
     return http<unknown>(`${path(quoteId)}/items`, {
       method: 'POST',
       data: payload as unknown as Record<string, unknown>
+    })
+  },
+
+  /** 明细行详情（序号 11 入参 itemId；字段级 schema 未定义 → 容错读取，missing-prd） */
+  getItem(itemId: string) {
+    return http<QuoteItemRaw>(`/quotes/items/${encodeURIComponent(itemId)}`, { method: 'GET' })
+  },
+
+  /** 报价单下的明细行列表（序号 11 无 itemId 时的回落入口） */
+  listItems(quoteId: string) {
+    return http<{ items?: QuoteItemRaw[]; total?: number }>(`${path(quoteId)}/items`, { method: 'GET' })
+  },
+
+  /** 保存单个明细行的定价（设计稿「保存」与「保存价格」同一动作） */
+  saveItem(itemId: string, payload: Record<string, unknown>) {
+    return http<QuoteItemRaw>(`/quotes/items/${encodeURIComponent(itemId)}`, {
+      method: 'PUT',
+      data: payload
     })
   }
 }

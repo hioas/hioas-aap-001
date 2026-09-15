@@ -1,0 +1,285 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-model-pricing</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      /* 取数用 <pre> 包进 0 尺寸 overflow:hidden 容器：textContent 可读，但不渲染、不会被 --screenshot 截进图里 */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
+         页面 11：/pages/model-pricing/index（【报价管理】模型定价-详情，page-11）
+         设计基线（设计截图 rows-gap 量尺 + 设计树算术，见 .agents/state/design-shots/page-11.png · 430x1541）：
+           顶栏 0..98(98.4) · 内容区 padding16 gap14 · 卡1 114..196(82) · 卡2 211..363(153)
+           卡3 378..975(597) · 卡4 989..1448(459) · 底栏 1465..1540(76) · 页高 1541
+           卡 x16 w398 · 价格框 h44 · 媒体列 2 列 gap12 · 规则组 padding12 gap12 r12 bg#F8FAFC
+         phase1 = 首屏（GET /api/v1/quotes/items/qi1）· 整页高度回填 iframe 供截图
+         phase2 = 点顶栏「保存」→ 真实 PUT /api/v1/quotes/items/qi1 → toast（serve.py 日志核对请求行与 body）
+         phase3 = 勾选「缓存读取价格」→ 点底部「保存价格」→ 真实 PUT（body 含 cache_read_price）
+         phase4 = 折叠请求规则（规则组收起 + 折叠提示出现）、新增规则组（#2 出现）、返回（navigateBack）
+         截图另跑 ?noaction=1（交互回放会把 iframe 导航走） -->
+    <iframe id="f" src="/index.html#/pages/model-pricing/index?itemId=qi1"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var acc = {}
+      var reloadSeq = 0
+
+      function all(doc, sel) { return Array.prototype.slice.call(doc.querySelectorAll(sel)) }
+      function rect(doc, sel) {
+        var el = doc.querySelector(sel)
+        if (!el) return null
+        var r = el.getBoundingClientRect()
+        return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+      }
+      function rects(doc, sel) {
+        return all(doc, sel).map(function (e) {
+          var r = e.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), w: Math.round(r.width), h: Math.round(r.height) }
+        })
+      }
+      function texts(doc, sel) { return all(doc, sel).map(function (e) { return e.textContent.trim() }) }
+      function textOf(doc, sel) { var e = doc.querySelector(sel); return e ? e.textContent.trim() : null }
+      function colorOf(doc, win, sel, prop) { var el = doc.querySelector(sel); return el ? win.getComputedStyle(el)[prop] : null }
+      function styleOf(doc, win, sel) {
+        var el = doc.querySelector(sel)
+        if (!el) return null
+        var cs = win.getComputedStyle(el)
+        return { fontSize: cs.fontSize, fontWeight: cs.fontWeight, color: cs.color, lineHeight: cs.lineHeight, display: cs.display, borderRadius: cs.borderRadius, padding: cs.padding, gap: cs.gap, backgroundColor: cs.backgroundColor, boxShadow: cs.boxShadow }
+      }
+      /** uni-app H5 的 <input> 渲染成 <uni-input> 宿主，真实值在内层原生 input 上 */
+      function inputValue(doc, testid) {
+        var host = doc.querySelector('[data-testid="' + testid + '"]')
+        if (!host) return null
+        if (host.tagName === 'INPUT' || host.tagName === 'TEXTAREA') return host.value
+        var inner = host.querySelector('input,textarea')
+        return inner ? inner.value : null
+      }
+      function bgOfIndex(doc, win, sel, index) {
+        var el = all(doc, sel)[index]
+        return el ? win.getComputedStyle(el).backgroundColor : null
+      }
+
+      var needText = [
+        '模型定价', '保存',
+        '1', 'gpt-4o', '始终匹配（默认档位）· 输入 $2.50 输出 $10.00 / 1M token',
+        '档位', 'base', '按 token', '添加计费分支',
+        'Token 价格', '$/1M token',
+        '输入价格', '输出价格', '缓存读取价格', '缓存写入价格', '1 小时缓存写入价格',
+        '媒体定价', '图像输入价格', '图片缓存输入价格', '图像输出价格', '音频输入价格', '音频输出价格',
+        '请求规则计费', '条件满足时，最终价格乘以 X；多条命中的倍率会相乘；小于 1 的值为折扣。',
+        '规则组 #1', '时间', '小时', 'Asia/Shanghai', '大于等于', '值',
+        '新增参数/Header', '新增时间条件', '倍率', '匹配条件时，最终费用 = 基础费用 × 倍率',
+        '新增规则组', '保存价格'
+      ]
+
+      function collect(doc, win) {
+        var over = []
+        all(doc, '*').forEach(function (el) {
+          var r = el.getBoundingClientRect()
+          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
+            over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), left: Math.round(r.x), w: Math.round(r.width), right: Math.round(r.right), html: String(el.outerHTML || '').slice(0, 140) })
+          }
+        })
+        var text = (doc.body && doc.body.innerText) || ''
+        return {
+          innerWidth: win.innerWidth,
+          docScrollWidth: doc.documentElement.scrollWidth,
+          docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
+          overflowingCount: over.length,
+          overflowing: over.slice(0, 12),
+          missingTexts: needText.filter(function (t) { return text.indexOf(t) === -1 }),
+          pageBg: colorOf(doc, win, '.pricing', 'backgroundColor'),
+          page: rect(doc, '.pricing'),
+          nav: rect(doc, '.pricing__nav'),
+          navPad: colorOf(doc, win, '.pricing__nav', 'padding'),
+          navTitles: rect(doc, '.nav__titles'),
+          navTitle: textOf(doc, '[data-testid="nav-title"]'),
+          navTitleStyle: styleOf(doc, win, '.nav__title'),
+          navSubtitle: textOf(doc, '[data-testid="nav-subtitle"]'),
+          navSubtitleStyle: styleOf(doc, win, '.nav__subtitle'),
+          navSave: rect(doc, '[data-testid="save-top"]'),
+          navSaveColor: colorOf(doc, win, '[data-testid="save-top"]', 'color'),
+          bodyPad: colorOf(doc, win, '.pricing__body', 'padding'),
+          bodyGap: colorOf(doc, win, '.pricing__body', 'gap'),
+          cards: rects(doc, '.card'),
+          cardPadding: [colorOf(doc, win, '.card--info', 'padding'), colorOf(doc, win, '.card--price', 'padding')],
+          infoHead: rect(doc, '.info__head'),
+          infoBadge: rect(doc, '.info__badge'),
+          infoBadgeBg: colorOf(doc, win, '.info__badge', 'backgroundColor'),
+          badgeText: textOf(doc, '[data-testid="model-badge"]'),
+          modelName: textOf(doc, '[data-testid="model-name"]'),
+          summary: textOf(doc, '[data-testid="tier-summary"]'),
+          summaryStyle: styleOf(doc, win, '.info__summary'),
+          tierLabel: textOf(doc, '[data-testid="tier-label"]'),
+          tierInput: rect(doc, '.card--mode .box--input'),
+          tierValue: inputValue(doc, 'tier-input'),
+          modeSelect: rect(doc, '[data-testid="mode-select"]'),
+          modeSelectText: textOf(doc, '[data-testid="mode-select"]'),
+          branchBtn: rect(doc, '[data-testid="btn-add-branch"]'),
+          branchRing: colorOf(doc, win, '[data-testid="btn-add-branch"]', 'boxShadow'),
+          branchText: textOf(doc, '.branch__text'),
+          priceHead: rect(doc, '.price__head'),
+          priceTitle: textOf(doc, '[data-testid="token-card-title"]'),
+          unit: rect(doc, '.unit'),
+          unitText: textOf(doc, '[data-testid="unit-label"]'),
+          unitBg: colorOf(doc, win, '.unit', 'backgroundColor'),
+          titleRows: rects(doc, '.price__row'),
+          tokenLabels: rects(doc, '.price__label-row'),
+          tokenBoxes: rects(doc, '.card--price .box--input'),
+          tokenLabelTexts: texts(doc, '[data-testid^="price-label-"]'),
+          checkRects: rects(doc, '.check'),
+          checkOn: all(doc, '.check--on').length,
+          checkOnBg: bgOfIndex(doc, win, '.check', 0),
+          checkOffBg: bgOfIndex(doc, win, '.check', 2),
+          checkOffShadow: (function () { var el = all(doc, '.check')[2]; return el ? win.getComputedStyle(el).boxShadow : null })(),
+          divider: rect(doc, '.divider'),
+          dividerBg: colorOf(doc, win, '.divider', 'backgroundColor'),
+          mediaHead: rect(doc, '.media__head'),
+          mediaTitle: textOf(doc, '[data-testid="media-title"]'),
+          mediaCols: rects(doc, '.media__col'),
+          mediaFields: rects(doc, '.media__col .price__field'),
+          mediaBoxes: rects(doc, '.media__col .box--input'),
+          mediaLabels: texts(doc, '[data-testid^="media-label-"]'),
+          ruleHead: rect(doc, '.rule__head'),
+          ruleTitle: textOf(doc, '[data-testid="rule-card-title"]'),
+          ruleBar: rect(doc, '.rule__bar'),
+          ruleNote: rect(doc, '[data-testid="rule-note"]'),
+          ruleNoteLines: (function () { var el = doc.querySelector('[data-testid="rule-note"]'); return el ? Math.round(el.getBoundingClientRect().height / parseFloat(win.getComputedStyle(el).lineHeight)) : null })(),
+          ruleGroups: rects(doc, '.rule-group'),
+          ruleGroupPadding: colorOf(doc, win, '.rule-group', 'padding'),
+          ruleGroupBg: colorOf(doc, win, '.rule-group', 'backgroundColor'),
+          ruleGroupTitles: texts(doc, '[data-testid^="rule-group-title-"]'),
+          ruleCondBoxes: rects(doc, '.rule-group .box--cond'),
+          ruleActions: rect(doc, '.rule-group__actions'),
+          ruleActionTexts: texts(doc, '.action__text'),
+          ruleMultiplierBox: rect(doc, '.rule-group__row--multi .box--cond'),
+          ruleMultiplierValue: inputValue(doc, 'rule-multiplier-1'),
+          ruleValuePlaceholder: (function () {
+            var host = doc.querySelector('[data-testid="rule-value-1"]')
+            var el = host && (host.tagName === 'INPUT' ? host : host.querySelector('input'))
+            return el ? el.getAttribute('placeholder') : null
+          })(),
+          ruleGroupNote: rect(doc, '[data-testid="rule-group-note-1"]'),
+          ruleAddBtn: rect(doc, '[data-testid="btn-add-group"]'),
+          ruleHintExists: !!doc.querySelector('[data-testid="rule-hint"]'),
+          priceInputs: {
+            input_price: inputValue(doc, 'price-input_price'),
+            output_price: inputValue(doc, 'price-output_price'),
+            cache_read_price: inputValue(doc, 'price-cache_read_price'),
+            cache_write_price: inputValue(doc, 'price-cache_write_price'),
+            cache_write_1h_price: inputValue(doc, 'price-cache_write_1h_price'),
+            image_input_price: inputValue(doc, 'price-image_input_price')
+          },
+          bar: rect(doc, '.pricing__bar'),
+          barBg: colorOf(doc, win, '.pricing__bar', 'backgroundColor'),
+          barPad: colorOf(doc, win, '.pricing__bar', 'padding'),
+          saveBtn: rect(doc, '[data-testid="save-bottom"]'),
+          saveBtnBg: colorOf(doc, win, '[data-testid="save-bottom"]', 'backgroundColor'),
+          saveBtnText: textOf(doc, '.pricing__save-text'),
+          inputCount: all(doc, 'input,textarea').length,
+          tabbarExists: !!doc.querySelector('.tabbar'),
+          userAgent: win.navigator.userAgent
+        }
+      }
+
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
+
+      function collect1() {
+        try {
+          var payload = collect(f.contentDocument, f.contentWindow)
+          f.style.height = payload.docScrollHeight + 'px'
+          acc.iframeHeightForShot = payload.docScrollHeight
+          sink(1, payload)
+          return payload
+        } catch (e) {
+          sink(1, { error: String(e && e.message) })
+          return null
+        }
+      }
+
+      function clickIn(sel) {
+        var doc = f.contentDocument
+        var el = doc.querySelector(sel)
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+      function toastText(doc) {
+        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
+        return el ? el.textContent.trim() : ''
+      }
+      function hashNow() { try { return String(f.contentWindow.location.hash) } catch (e) { return 'ERR:' + e.message } }
+
+      function waitFor(sel, maxTries) {
+        return new Promise(function (resolve) {
+          var n = 0
+          function tick() {
+            n++
+            var ok = false
+            try { ok = !!f.contentDocument.querySelector(sel) } catch (e) { ok = false }
+            if (ok) return resolve('READY(tries=' + n + ')')
+            if (n >= (maxTries || 40)) return resolve('TIMEOUT(tries=' + n + ')')
+            setTimeout(tick, 200)
+          }
+          tick()
+        })
+      }
+
+      async function main() {
+        await waitFor('[data-testid="model-name"]')
+        await sleep(1200)
+        collect1()
+        if (location.search.indexOf('noaction') !== -1) return
+
+        /* phase2：顶栏「保存」→ 真实 PUT /api/v1/quotes/items/qi1 */
+        await sleep(600)
+        var saveTop = clickIn('[data-testid="save-top"]')
+        await sleep(1500)
+        sink(2, { clickedSaveTop: saveTop, toastAfterSaveTop: toastText(f.contentDocument), hash: hashNow() })
+
+        /* phase3：勾选「缓存读取价格」→ 点底部「保存价格」→ 真实 PUT（body 含 cache_read_price） */
+        var toggled = clickIn('[data-testid="check-cache_read_price"]')
+        await sleep(500)
+        var onCount = all(f.contentDocument, '.check--on').length
+        var saveBottom = clickIn('[data-testid="save-bottom"]')
+        await sleep(1500)
+        sink(3, {
+          clickedCheck: toggled,
+          checkOnAfterToggle: onCount,
+          clickedSaveBottom: saveBottom,
+          toastAfterSaveBottom: toastText(f.contentDocument),
+          hash: hashNow()
+        })
+
+        /* phase4：折叠请求规则 / 新增规则组 / 返回 */
+        clickIn('[data-testid="collapse-rule"]')
+        await sleep(400)
+        var collapsed = {
+          groupsVisible: all(f.contentDocument, '.rule-group').length,
+          hintText: textOf(f.contentDocument, '[data-testid="rule-hint"]')
+        }
+        clickIn('[data-testid="collapse-rule"]')
+        await sleep(300)
+        clickIn('[data-testid="btn-add-group"]')
+        await sleep(400)
+        var added = texts(f.contentDocument, '[data-testid^="rule-group-title-"]')
+        var back = clickIn('[data-testid="back"]')
+        await sleep(700)
+        sink(4, { collapsed: collapsed, groupTitlesAfterAdd: added, clickedBack: back, hashAfterBack: hashNow() })
+      }
+
+      main()
+    </script>
+  </body>
+</html>

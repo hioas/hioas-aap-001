@@ -64,6 +64,51 @@ LEASE: free until -
 
 ## 4. 进度（细表看台账 CSV，这里只留能力组）
 
+🟢 本轮（2026-09-16 03:11~03:28，租约 aap-tdd-run-20260916-0311 → 已释放）· **序号 11「模型定价-详情」（page-11）收口**：
+- **Calicat 侧**：`calicat_source.py page` 一次成功（本轮**没有**再需要 `cmd /c start` 拉编辑器）；page-11 设计树（81KB）+ 截图（430×1541，1:1 帧图）已抓；
+  `interaction.json` 仍「不存在图层交互数据」→ 交互真源退 06-PRD 计费编译规则 / 15-数据字典 / 17-spec / 18-API + 设计稿控件语义。
+  **新增可复用工具**：`rows-gap.py <png> <probeX> <refX> [tol] [from] [to]` —— 按行比较「卡内列 vs 页边距列」找**近似同色段**，
+  一把量出所有卡片的 top/height 与间隙（比 `png-bg-runs.py` 抗模糊；本轮据此定死 卡1 114..196(82) / 卡2 211..363(153) / 卡3 378..974 / 卡4 989..1448 / 底栏 1465，间隙一律 14）。
+  另：设计树里**隐藏节点带 `visible:false`**（本页「规则提示」），排查「算术对不上设计总高」时先 grep visible —— 本轮卡4 有 24px 差额就是它在作乱（隐藏节点不参与布局）。
+- **这页到底是什么**：gpt-4o 的报价明细行定价页（设计总高 1541，无 TabBar）：顶栏（返回 /「gpt-4o」18px Bold +「模型定价」10px / 右侧「保存」）·
+  卡1 模型信息（蓝圆序号 1 + 模型名 + 灰 chevron + 摘要「始终匹配（默认档位）· 输入 $2.50 输出 $10.00 / 1M token」）·
+  卡2 计费方式（「档位」标签 + base 输入框 + 「按 token」选择框 + 蓝描边「添加计费分支」）·
+  卡3 Token 价格（标题 + 灰胶囊「$/1M token」；输入/输出/缓存读取/缓存写入/1 小时缓存写入 5 字段两列栅格、行3 单列；
+  1px 分隔线 + 「媒体定价」小节 + 图像列 3 项 / 音频列 2 项）·
+  卡4 请求规则计费（蓝竖条标题 + 说明 + 「规则组 #1」（时间/小时 · Asia/Shanghai/大于等于 · 值 · 新增参数/Header · 新增时间条件 · 倍率 1.0 · 换算说明）+ 删除红标 + 「新增规则组」）·
+  底栏「保存价格」398×48 #2563EB。
+- **TDD（3 切片，逐切片红→绿；新增 60 例）**：`tests/unit/model-pricing-model.spec.ts`(28) · `tests/unit/quote-item-api.spec.ts`(5) ·
+  `tests/pages/model-pricing.spec.ts`(27)；红基线 `evidence/red-序号11-切片1/2/3.txt`（切片1/3 = `Failed to resolve import`，切片2 = `quoteApi.getItem/listItems/saveItem is not a function`）；
+  实现 `src/utils/model-pricing-model.ts`、`src/api/quote.ts`（+getItem/listItems/saveItem）、`src/pages/model-pricing/index.vue`、`pages.json` 路由；
+  **tokens 0 新增**（全部色值命中既有 tokens.scss）；绿 **640/640 连跑两轮一致**（`evidence/green-序号11-轮1/轮2.txt`）+ `npm run type-check` **exit 0**。
+- **由 DOM 数字抓出的真偏差（vision 完全看不出）**：卡3 比设计矮 5px、卡4 之后整体上移 5px —— 根因 = 「单位标签 $/1M token」的 11px 文本行盒
+  我按 `line-height:13.2px`（1.2 倍）写了，而设计里**盒装标签的 11px 行盒是 18px**（`padding 3/8 + 18` → 头高 24）：
+  改前 价格行1 框 top **450**、1h缓存框 top **616**、媒体框 top **747**、页高 **1536**；
+  改后 价格行1 框 top **454**、1h缓存框 **620**、媒体框 **752**、卡3 高 **598**、卡4 top **990**、底栏 top **1464**、页高 **1540**（设计 1541，仅差 1）。
+  **判定法（本轮最值钱）**：用「价格行框实际 y − 卡顶 − padding − 间距」**反推头部高度**（455−378.4−14−14 = 48.6 = 头24 + 标签18 + 7），
+  不要凭「11px 就该 13.2」猜 —— 本页 11px 文本有两种行盒：**盒装标签 18 / fit_content 说明 13.2**（卡4 说明两行 26.4 反证了后者）。
+- **客观证据链**：`build:mp-weixin` 产出 `pages/model-pricing/{index.js,index.json,index.wxml,index.wxss}`（app.json 已注册）；
+  430 宽 iframe + 无头 Chrome **四段实测** `evidence/measure-序号11-run2.json`：`innerWidth 430` · `docScrollWidth 430` · 溢出 **0** ·
+  文案缺失 `['base']`（= 输入框 value，innerText 不含 input.value 的既知假象，已用 `tierValue='base'` 单独断言）·
+  卡 top 114/210/377/990 高 82/153/**598**/459（设计 114.4/211.4/378.4/989 与 82/153/597/459）· 价格行 pitch 83 · 勾选 2 个 bg rgb(37,99,235)、
+  未勾选 ring rgb(203,213,225) · 底栏 1464..1540(76) · 保存价格 x16..414(398×48) · input 11 个 · 无 TabBar；
+  **两次独立测量 85 字段全等**（`evidence/cmp-序号11-两轮.txt`，0 差异）；**像素墨迹核验**（`png-ink.py`）：底栏 runs `[(16,413)]` 与设计**完全一致**、
+  媒体行 `[(44,50),(233,239)]` 与设计**完全一致**、价格行1 边界一致（maxInkX 264 / 右留白 165 相同）、顶部带仅返回箭头+标题+保存（右留白 320，无载体污染）；
+  截图 `logs/screenshots/20260916-0322-序号11-模型定价-h5-430宽.png`（430×1541）；
+  **浏览器内真实交互（phase2/3/4）**：点顶栏「保存」→ serve.py 日志实测 **`PUT /api/v1/quotes/items/qi1`**（body 含 input/output/tier/billing_mode/request_rules 6 键，未勾选字段不出现）→ toast「保存成功」；
+  勾选「缓存读取价格」（checkOn 2→3）→ 点底部「保存价格」→ 真实 `PUT`，body 多出 **`"cache_read_price":0`**（勾选=启用）；
+  折叠「请求规则计费」→ 规则组 0 个 + 设计里 visible=false 的提示「点击展开，配置计费请求规则」渲染出来；「新增规则组」→ `["规则组 #1","规则组 #2"]`；点返回 hash 不变（navigateBack 无栈）。
+- ⚠️ 待人类拍板（不阻塞本轮，15 条全部写进台账序号 11 备注）：①价格字段「启用」勾选无 PRD 字段 → 取「值>0 视为启用」、未勾选省略；②计价方式选项集合零命中 → 只回显不造选项；
+  ③卡1 固定语「始终匹配（默认档位）」为设计常量；④提交键 `tier` 为推断（aap_quote_item 无该列）；⑤媒体 4/5 个键名为推断；⑥新增类按钮 schema 无依据 → 只做本地操作；
+  ⑦请求规则条件枚举与 06-PRD §1.3 不同口径；⑧18-API 只列路径 → GET/PUT 推断；⑨规则组 6 键为设计直译；⑩「值」是设计占位；⑪校验/toast 文案占位（阈值锚定 06-PRD §1.2/§4.2）；
+  ⑫图标 CSS 占位（折叠箭头实测 x387..399 vs 设计 386..393）；⑬价格行3/媒体末行单列留白是设计本意（设计树 价格行3 kids=1、音频列 kids=2）；⑭本页无「编译预览」入口而 18-API 有 → 不接线；
+  ⑮**设计/PRD 冲突**：17-spec 写「请求级加价 R5 本期只在管理端高级模式开放」，而小程序设计稿本页有完整「请求规则计费」卡 → 已按设计实现，等拍板是否下架。
+
+⏳ 下一步（下一轮）：台账序号 **12「报价预览与提交 2」**（page-12-2，`/pages/quote-preview/index`）——本页保存后的报价链路下一页，按 §2 八步走；
+  可复用本轮全部工具链：`rows-gap.py`（量卡边界与间隙）/ `png-ink.py` 同带对账 / `api-11` 式**独立 mock 集** / `__measure-model-pricing.html` 载体模板
+  （**先 grep 设计树 visible:false 再算高度**；**盒装标签的 11px 行盒可能不是 13.2**）。
+
+
 🟢 本轮（2026-09-16 02:51~03:10，租约 aap-tdd-run-20260916-0251 → 已释放）· **序号 10.1「供应商档案 2」（page-10-1-2）收口**：
 - **Calicat 侧**：`calicat_source.py page` 先报「请先在浏览器中打开文件」→ `cmd /c start "" <design-url>` 拉起后正常；
   page-10-1-2 设计树（78KB / 158 节点）+ 截图（430×1414）已抓；`interaction.json` 仍「不存在图层交互数据」→ 交互真源退 PRD 17-spec/18-API + 设计稿控件语义。
@@ -102,9 +147,7 @@ LEASE: free until -
   ⑧上传日期字段未定义 → 取 uploaded_at/created_at；⑨第 3 行分类码取 OTHER；⑩手机号脱敏四处口径不一致 → 服务端 mask 优先、否则按设计格式；⑪空值占位「—」；⑫toast 文案占位；
   ⑬图标 CSS 占位；⑭字号度量差异（胶囊设计 95/实测 91、锁定角标 128/125）；⑮进度条填充设计 259/实测 258。
 
-⏳ 下一步（下一轮）：台账序号 **11「模型定价-详情」**（page-11，`/pages/model-pricing/index`）——序号 9 保存后跳转的落点，按 §2 八步走；
-  可复用本轮全部工具链：`rows-ink.py` / `colors-all.py` / `__measure-profile.html` 载体模板（**轮询就绪再点 + hash 延迟读**）/ `api-10-1-2` 式**独立 mock 集**；
-  **先算「盒子高 = padding×2 + max(文本行盒, 图标行盒=字号×1.5)」再写 CSS**（本轮最大教训）。
+✅ 序号 11 已于 2026-09-16 03:11~03:28 轮完成（见上方本轮块；现为「部分」，15 条待拍板已记台账）。
 
 🟢 本轮（2026-09-16 02:30~02:52，租约 aap-tdd-run-20260916-0230 → 已释放）· **序号 10「供应商档案编辑 2」（page-10-2）收口**：
 - **Calicat 侧**：`calicat_source.py page` 直接可用（无需先拉起浏览器）；page-10-2 设计树（93KB / 172 节点）+ 截图已抓；

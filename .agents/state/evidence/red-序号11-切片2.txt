@@ -1,0 +1,40 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+ [31m❯[39m tests/unit/quote-item-api.spec.ts [2m([22m[2m5 tests[22m[2m | [22m[31m5 failed[39m[2m)[22m[90m 8[2mms[22m[39m
+[31m   [31m×[31m quoteApi.getItem（GET /api/v1/quotes/items/{itemId}）[2m > [22m按明细行 id 取详情 → GET /api/v1/quotes/items/qi1[90m 5[2mms[22m[31m[39m
+[31m     → quoteApi.getItem is not a function[39m
+[31m   [31m×[31m quoteApi.getItem（GET /api/v1/quotes/items/{itemId}）[2m > [22mitemId 做 URL 编码[90m 1[2mms[22m[31m[39m
+[31m     → quoteApi.getItem is not a function[39m
+[31m   [31m×[31m quoteApi.listItems（GET /api/v1/quotes/{quoteId}/items）[2m > [22m取报价单下的明细行（无 itemId 时的回落入口）→ GET /api/v1/quotes/q9/items[90m 1[2mms[22m[31m[39m
+[31m     → quoteApi.listItems is not a function[39m
+[31m   [31m×[31m quoteApi.saveItem（PUT /api/v1/quotes/items/{itemId}）[2m > [22m保存定价 → PUT /api/v1/quotes/items/qi1，请求体为模型给出的键[90m 0[2mms[22m[31m[39m
+[31m     → quoteApi.saveItem is not a function[39m
+[31m   [31m×[31m quoteApi.saveItem（PUT /api/v1/quotes/items/{itemId}）[2m > [22m服务端 E-1403（倍率非法）→ 抛 ApiError 且保留错误码（前端不自行判定）[90m 0[2mms[22m[31m[39m
+[31m     → quoteApi.saveItem is not a function[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 5 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-item-api.spec.ts[2m > [22mquoteApi.getItem（GET /api/v1/quotes/items/{itemId}）[2m > [22m按明细行 id 取详情 → GET /api/v1/quotes/items/qi1
+[31m[1mTypeError[22m: quoteApi.getItem is not a function[39m
+[36m [2m❯[22m tests/unit/quote-item-api.spec.ts:[2m32:32[22m[39m
+    [90m 30| [39m  [34mit[39m([32m'按明细行 id 取详情 → GET /api/v1/quotes/items/qi1'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m 31| [39m    [34mpushResponse[39m({ statusCode[33m:[39m [34m200[39m[33m,[39m data[33m:[39m { code[33m:[39m [32m'0'[39m[33m,[39m message[33m:[39m [32m'ok'[39m[33m,[39m …
+    [90m 32| [39m    [35mconst[39m res [33m=[39m [35mawait[39m quoteApi[33m.[39m[34mgetItem[39m([32m'qi1'[39m)
+    [90m   | [39m                               [31m^[39m
+    [90m 33| [39m    [35mconst[39m options [33m=[39m [34mlastRequest[39m()
+    [90m 34| [39m    [34mexpect[39m(options[33m.[39murl)[33m.[39m[34mtoBe[39m([32m'/api/v1/quotes/items/qi1'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-item-api.spec.ts[2m > [22mquoteApi.getItem（GET /api/v1/quotes/items/{itemId}）[2m > [22mitemId 做 URL 编码
+[31m[1mTypeError[22m: quoteApi.getItem is not a function[39m
+[36m [2m❯[22m tests/unit/quote-item-api.spec.ts:[2m41:20[22m[39m
+    [90m 39| [39m  [34mit[39m([32m'itemId 做 URL 编码'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m 40| [39m    [34mpushResponse[39m({ statusCode[33m:[39m [34m200[39m[33m,[39m data[33m:[39m { code[33m:[39m [32m'0'[39m[33m,[39m message[33m:[39m [32m'ok'[39m[33m,[39m …
+    [90m 41| [39m    [35mawait[39m quoteApi[33m.[39m[34mgetItem[39m([32m'qi/1'[39m)
+    [90m   | [39m                   [31m^[39m
+    [90m 42| [39m    [34mexpect[39m([34mlastRequest[39m()[33m.[39murl)[33m.[39m[34mtoBe[39m([32m'/api/v1/quotes/items/qi%2F1'[39m)
+    [90m 43| [39m  })
+
