@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>diag-messages-title</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <iframe id="f" src="/index.html#/pages/messages/index"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
+      async function main() {
+        for (var i = 0; i < 60; i++) {
+          try { if (f.contentDocument.querySelector('.messages__title')) break } catch (e) {}
+          await sleep(200)
+        }
+        await sleep(1200)
+        var doc = f.contentDocument
+        var win = f.contentWindow
+        var out = { titleMatches: doc.querySelectorAll('.messages__title').length, msgTitleMatches: doc.querySelectorAll('.msg__title').length }
+        Array.prototype.slice.call(doc.querySelectorAll('.messages__title')).forEach(function (el, i) {
+          var cs = win.getComputedStyle(el)
+          var r = el.getBoundingClientRect()
+          out['title' + i] = {
+            tag: el.tagName,
+            cls: el.getAttribute('class'),
+            rect: { x: Math.round(r.x), top: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) },
+            fontSize: cs.fontSize,
+            lineHeight: cs.lineHeight,
+            fontWeight: cs.fontWeight,
+            html: String(el.outerHTML || '').slice(0, 220)
+          }
+        })
+        var mt = doc.querySelector('.msg__title')
+        if (mt) {
+          var cs2 = win.getComputedStyle(mt)
+          out.firstMsgTitle = { tag: mt.tagName, cls: mt.getAttribute('class'), fontSize: cs2.fontSize, lineHeight: cs2.lineHeight, fontWeight: cs2.fontWeight }
+        }
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(out)
+      }
+      main()
+    </script>
+  </body>
+</html>

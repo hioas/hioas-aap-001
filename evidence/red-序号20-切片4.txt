@@ -1,0 +1,174 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+ [31m❯[39m tests/pages/messages-flow.spec.ts [2m([22m[2m13 tests[22m[2m | [22m[31m8 failed[39m[2m)[22m[90m 180[2mms[22m[39m
+[31m   [31m×[31m 序号 20 · 筛选 chip（api）[2m > [22m点「未读」→ GET /notifications 带 unread=true，chip 高亮切换[90m 68[2mms[22m[31m[39m
+[31m     → expected undefined to be 'true' // Object.is equality[39m
+[31m   [31m×[31m 序号 20 · 筛选 chip（api）[2m > [22m点「订单」→ category=ORDER；点「系统」→ category=SYSTEM[90m 13[2mms[22m[31m[39m
+[31m     → expected undefined to be 'ORDER' // Object.is equality[39m
+[31m   [31m×[31m 序号 20 · 「全部已读」（api：逐条 POST /notifications/{id}/read）[2m > [22m对 3 条未读逐一 POST，成功后重新拉列表[90m 13[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ …(3) ][39m
+[31m   [31m×[31m 序号 20 · 「全部已读」（api：逐条 POST /notifications/{id}/read）[2m > [22m标记失败 → toast 提示且不刷新（不假装成功）[90m 8[2mms[22m[31m[39m
+[31m     → expected [] to include '操作失败，请稍后重试'[39m
+[31m   [31m×[31m 序号 20 · 消息卡（api + navigation）[2m > [22m点未读卡 → POST 标记已读 → 按落点跳转（报告页带 reportId）[90m 11[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ '/api/v1/notifications/n1/read' ][39m
+[31m   [31m×[31m 序号 20 · 消息卡（api + navigation）[2m > [22m点未读的合同提醒卡 → 跳合同详情并带 contractId[90m 7[2mms[22m[31m[39m
+[31m     → expected [] to include '/pages/contract/index?contractId=ct1'[39m
+[31m   [31m×[31m 序号 20 · 消息卡（api + navigation）[2m > [22m点已读卡 → 不重复标记（无 POST），但有落点仍跳转[90m 5[2mms[22m[31m[39m
+[31m     → expected [] to include '/pages/contract/index?contractId=ct9'[39m
+[31m   [31m×[31m 序号 20 · 底部 TabBar（navigation）[2m > [22m点「工作台」/「报告」/「报价」→ 各自路由[90m 16[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ '/pages/workbench/index', …(2) ][39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 8 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/messages-flow.spec.ts[2m > [22m序号 20 · 筛选 chip（api）[2m > [22m点「未读」→ GET /notifications 带 unread=true，chip 高亮切换
+[31m[1mAssertionError[22m: expected undefined to be 'true' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"true"
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/pages/messages-flow.spec.ts:[2m64:30[22m[39m
+    [90m 62| [39m    [35mconst[39m last [33m=[39m [34mrequests[39m()[33m.[39m[34mat[39m([33m-[39m[34m1[39m)[33m![39m
+    [90m 63| [39m    [34mexpect[39m(last[33m.[39murl)[33m.[39m[34mtoBe[39m([32m'/api/v1/notifications'[39m)
+    [90m 64| [39m    [34mexpect[39m(last[33m.[39mdata[33m.[39munread)[33m.[39m[34mtoBe[39m([32m'true'[39m)
+    [90m   | [39m                             [31m^[39m
+    [90m 65| [39m    [34mexpect[39m(last[33m.[39mdata[33m.[39mpage)[33m.[39m[34mtoBe[39m([34m1[39m)
+    [90m 66| [39m    [34mexpect[39m(wrapper[33m.[39m[34mfind[39m([32m'.chip--active'[39m)[33m.[39m[34mtext[39m())[33m.[39m[34mtoBe[39m([32m'未读'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/messages-flow.spec.ts[2m > [22m序号 20 · 筛选 chip（api）[2m > [22m点「订单」→ category=ORDER；点「系统」→ category=SYSTEM
+[31m[1mAssertionError[22m: expected undefined to be 'ORDER' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"ORDER"
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/pages/messages-flow.spec.ts:[2m73:46[22m[39m
+    [90m 71| [39m    [34mpushResponse[39m([34mok[39m({ total[33m:[39m [34m1[39m[33m,[39m items[33m:[39m [[33mNOTIFICATIONS[39m[33m.[39mitems[[34m3[39m]] }))
+    [90m 72| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'filter-order'[39m)
+    [90m 73| [39m    [34mexpect[39m([34mrequests[39m()[33m.[39m[34mat[39m([33m-[39m[34m1[39m)[33m![39m[33m.[39mdata[33m.[39mcategory)[33m.[39m[34mtoBe[39m([32m'ORDER'[39m)
+    [90m   | [39m                                             [31m^[39m
+    [90m 74| [39m    [34mpushResponse[39m([34mok[39m({ total[33m:[39m [34m1[39m[33m,[39m items[33m:[39m [[33mNOTIFICATIONS[39m[33m.[39mitems[[34m4[39m]] }))
+    [90m 75| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'filter-system'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/messages-flow.spec.ts[2m > [22m序号 20 · 「全部已读」（api：逐条 POST /notifications/{id}/read）[2m > [22m对 3 条未读逐一 POST，成功后重新拉列表
+[31m[1mAssertionError[22m: expected [] to deeply equal [ …(3) ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [[39m
+[32m-   "/api/v1/notifications/n1/read",[39m
+[32m-   "/api/v1/notifications/n2/read",[39m
+[32m-   "/api/v1/notifications/n3/read",[39m
+[32m- ][39m
+[31m+ Array [][39m
+
+[36m [2m❯[22m tests/pages/messages-flow.spec.ts:[2m108:37[22m[39m
+    [90m106| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'read-all'[39m)
+    [90m107| [39m    [35mconst[39m posts [33m=[39m [34mrequests[39m()[33m.[39m[34mfilter[39m((r) [33m=>[39m r[33m.[39mmethod [33m===[39m [32m'POST'[39m)
+    [90m108| [39m    [34mexpect[39m(posts[33m.[39m[34mmap[39m((p) [33m=>[39m p[33m.[39murl))[33m.[39m[34mtoEqual[39m([
+    [90m   | [39m                                    [31m^[39m
+    [90m109| [39m      [32m'/api/v1/notifications/n1/read'[39m[33m,[39m
+    [90m110| [39m      [32m'/api/v1/notifications/n2/read'[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/messages-flow.spec.ts[2m > [22m序号 20 · 「全部已读」（api：逐条 POST /notifications/{id}/read）[2m > [22m标记失败 → toast 提示且不刷新（不假装成功）
+[31m[1mAssertionError[22m: expected [] to include '操作失败，请稍后重试'[39m
+[36m [2m❯[22m tests/pages/messages-flow.spec.ts:[2m130:86[22m[39m
+    [90m128| [39m    [35mconst[39m before [33m=[39m [34mrequests[39m()[33m.[39mlength
+    [90m129| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'read-all'[39m)
+    [90m130| [39m    [34mexpect[39m([34mgetCalls[39m([32m'showToast'[39m)[33m.[39m[34mmap[39m((c) [33m=>[39m (c[33m.[39margs[[34m0[39m] [35mas[39m { title[33m:[39m str…
+    [90m   | [39m                                                                                     [31m^[39m
+    [90m131| [39m    [90m// 首个 POST 失败即中止：不再继续发剩下的写请求，也不重新拉列表[39m
+    [90m132| [39m    [34mexpect[39m([34mrequests[39m()[33m.[39mlength)[33m.[39m[34mtoBe[39m(before [33m+[39m [34m1[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/messages-flow.spec.ts[2m > [22m序号 20 · 消息卡（api + navigation）[2m > [22m点未读卡 → POST 标记已读 → 按落点跳转（报告页带 reportId）
+[31m[1mAssertionError[22m: expected [] to deeply equal [ '/api/v1/notifications/n1/read' ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [[39m
+[32m-   "/api/v1/notifications/n1/read",[39m
+[32m- ][39m
+[31m+ Array [][39m
+
+[36m [2m❯[22m tests/pages/messages-flow.spec.ts:[2m143:37[22m[39m
+    [90m141| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'message-row'[39m)
+    [90m142| [39m    [35mconst[39m posts [33m=[39m [34mrequests[39m()[33m.[39m[34mfilter[39m((r) [33m=>[39m r[33m.[39mmethod [33m===[39m [32m'POST'[39m)
+    [90m143| [39m    [34mexpect[39m(posts[33m.[39m[34mmap[39m((p) [33m=>[39m p[33m.[39murl))[33m.[39m[34mtoEqual[39m([[32m'/api/v1/notifications/n1[39m…
+    [90m   | [39m                                    [31m^[39m
+    [90m144| [39m    [35mconst[39m nav [33m=[39m [34mgetCalls[39m([32m'navigateTo'[39m)[33m.[39m[34mmap[39m((c) [33m=>[39m (c[33m.[39margs[[34m0[39m] [35mas[39m { url[33m:[39m…
+    [90m145| [39m    [34mexpect[39m(nav)[33m.[39m[34mtoContain[39m([32m'/pages/report/index?reportId=r1'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/messages-flow.spec.ts[2m > [22m序号 20 · 消息卡（api + navigation）[2m > [22m点未读的合同提醒卡 → 跳合同详情并带 contractId
+[31m[1mAssertionError[22m: expected [] to include '/pages/contract/index?contractId=ct1'[39m
+[36m [2m❯[22m tests/pages/messages-flow.spec.ts:[2m155:83[22m[39m
+    [90m153| [39m    [35mawait[39m rows[[34m2[39m][33m.[39m[34mtrigger[39m([32m'tap'[39m)
+    [90m154| [39m    [35mawait[39m [34mflushPromises[39m()
+    [90m155| [39m    [34mexpect[39m([34mgetCalls[39m([32m'navigateTo'[39m)[33m.[39m[34mmap[39m((c) [33m=>[39m (c[33m.[39margs[[34m0[39m] [35mas[39m { url[33m:[39m stri…
+    [90m   | [39m                                                                                  [31m^[39m
+    [90m156| [39m      [32m'/pages/contract/index?contractId=ct1'[39m
+    [90m157| [39m    )
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/messages-flow.spec.ts[2m > [22m序号 20 · 消息卡（api + navigation）[2m > [22m点已读卡 → 不重复标记（无 POST），但有落点仍跳转
+[31m[1mAssertionError[22m: expected [] to include '/pages/contract/index?contractId=ct9'[39m
+[36m [2m❯[22m tests/pages/messages-flow.spec.ts:[2m174:83[22m[39m
+    [90m172| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'message-row'[39m)
+    [90m173| [39m    [34mexpect[39m([34mrequests[39m()[33m.[39mlength)[33m.[39m[34mtoBe[39m(before)
+    [90m174| [39m    [34mexpect[39m([34mgetCalls[39m([32m'navigateTo'[39m)[33m.[39m[34mmap[39m((c) [33m=>[39m (c[33m.[39margs[[34m0[39m] [35mas[39m { url[33m:[39m stri…
+    [90m   | [39m                                                                                  [31m^[39m
+    [90m175| [39m      [32m'/pages/contract/index?contractId=ct9'[39m
+    [90m176| [39m    )
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/messages-flow.spec.ts[2m > [22m序号 20 · 底部 TabBar（navigation）[2m > [22m点「工作台」/「报告」/「报价」→ 各自路由
+[31m[1mAssertionError[22m: expected [] to deeply equal [ '/pages/workbench/index', …(2) ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [[39m
+[32m-   "/pages/workbench/index",[39m
+[32m-   "/pages/report/index",[39m
+[32m-   "/pages/quotes/index",[39m
+[32m- ][39m
+[31m+ Array [][39m
+
+[36m [2m❯[22m tests/pages/messages-flow.spec.ts:[2m198:83[22m[39m
+    [90m196| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'tab-报告'[39m)
+    [90m197| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'tab-报价'[39m)
+    [90m198| [39m    [34mexpect[39m([34mgetCalls[39m([32m'navigateTo'[39m)[33m.[39m[34mmap[39m((c) [33m=>[39m (c[33m.[39margs[[34m0[39m] [35mas[39m { url[33m:[39m stri…
+    [90m   | [39m                                                                                  [31m^[39m
+    [90m199| [39m      [32m'/pages/workbench/index'[39m[33m,[39m
+    [90m200| [39m      [32m'/pages/report/index'[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m8 failed[39m[22m[2m | [22m[1m[32m5 passed[39m[22m[90m (13)[39m
+[2m   Start at [22m 05:21:12
+[2m   Duration [22m 1.77s[2m (transform 402ms, setup 46ms, collect 560ms, tests 180ms, environment 595ms, prepare 106ms)[22m
+

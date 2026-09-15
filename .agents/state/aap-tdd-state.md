@@ -64,6 +64,57 @@ LEASE: free until -
 
 ## 4. 进度（细表看台账 CSV，这里只留能力组）
 
+🟢 本轮（2026-09-16 05:15~05:45，租约 aap-tdd-run-20260916-0515 → 已释放）· **序号 20「站内信列表 2」（page-20-2）收口**：
+- **取件**：`list-pending.py -n 1` 最小未完成 = 20（page-20-2，`/pages/messages/index`，台账「设计否」）；开工前 `git status` 干净、
+  `git log -1` = 05:10 的 15-合同签署提交 → 空闲租约，写成本轮 id + 45 分钟。
+- **Calicat 侧**：`page` 先报「请先在浏览器中打开文件」→ `cmd /c start` 拉起后一次成功；设计树（49KB / 106 节点）+ 截图 **430×760（1:1 帧图）** 已抓；
+  `interaction.json` 仍「不存在图层交互数据」→ 交互真源退 **18-API「Audit/Notification」Tag（/notifications、/notifications/{id}/read）**
+  + 15-数据字典 `aap_notification`（read_at/channel/event_code/biz_type…）+ 设计稿控件语义。
+- **这页到底是什么**：带 TabBar（高亮「我的」）的站内信列表（设计总高 760）：顶部导航 0..86（「消息」20px Bold + 「3 条未读」h22 胶囊 + 「全部已读」）·
+  筛选行 86..140（全部/未读/订单/系统 四 chip h30 r10，选中 #2563EB）· 消息列表区 140..676（5 卡 × 92 + 间隙 12：图标 38×38 r12 五色 / 标题 13px SemiBold +
+  未读红点 9×8 / 摘要 12px / 时间 11px；3 未读 + 2 已读，已读整行降灰 #94A3B8/#CBD5E1）· 底部 TabBar 84（4 项各 104，图标 33 块 + 3 + 文字 16）。
+- **TDD（4 切片，逐切片红→绿；新增 84 例）**：`tests/unit/messages-model.spec.ts`(48) · `tests/unit/notification-api.spec.ts`(9) ·
+  `tests/pages/messages.spec.ts`(14) · `tests/pages/messages-flow.spec.ts`(13)；红基线 `evidence/red-序号20-切片1/2/3.txt`（Failed to resolve import）
+  + `切片4.txt`（**真红 8/13**：`expected '全部' to be '未读'`、`expected [] to deeply equal [ '/api/v1/notifications/n1/read' ]`、
+  `expected [] to contain '/pages/report/index?reportId=r1'`）；绿 **935/935 连跑两轮一致**（`evidence/green-序号20-轮1/轮2.txt`）+ `npm run type-check` **exit 0**；tokens **0 新增**（18 个色值全部命中既有 tokens.scss）。
+- **★ 本轮最值钱的取证教训（已写进 dev SKILL §4.16）**：**取数脚本里同名字段会被后写的键静默覆盖** ——
+  载体页 collect() 里先写 `titleStyle: styleOf('.messages__title')`、后又写 `titleStyle: styleOf('.msg__title')`，
+  于是「顶部标题样式」字段实测读成了**消息行标题**（13px/600），与像素/布局（导航高 86 ⇒ 标题行盒 26）自相矛盾；
+  写 `__diag-messages-title.html` 单独探针才发现真值 **20px / line-height 26 / UNI-TEXT.messages__title**。
+  **规矩：一个测量对象一个键名（navTitleStyle / msgTitleStyle），数字与像素矛盾时先怀疑取数脚本，再怀疑页面。**
+- **相对时间页面的取证套路（新）**：设计文案「10 分钟前 / 2 小时前 / 昨天 18:20 / 3 天前 / 5 天前」是**相对当前时刻**的 →
+  ①mock 用 `.agents/state/gen-mock-20.py` 按**运行时刻**反推 created_at（写死时间戳下次就文案对不上）；
+  ②单测用 `vi.useFakeTimers({ toFake: ['Date'] })` 只冻 Date（不动 setTimeout，`flushPromises` 才能解析）；
+  ③jsdom 把行内 `#RRGGBB` 规范化成 `rgb()` → 断言前用 `rgbOf(hex)` 换算（**改的是测试不是代码**）。
+- **客观证据链**：`build:mp-weixin` 产出 `pages/messages/{index.js,index.json,index.wxml,index.wxss}`（app.json 已注册）；
+  430 宽 iframe + 无头 Chrome 实测 `evidence/measure-序号20-run2.json`：`innerWidth 430` · `docScrollWidth 430` · 页高 **760 = 设计** · 溢出 **0** ·
+  文案缺失 **[]（need 26 条设计原文，含 5 条相对时间）** · 导航 0..86 · 筛选行 86..140 · 列表 140..660 · 卡 **5×92 @152/256/360/464/568**（间隙 12）·
+  图标 38×38 @x32 · 未读点 9×8 ×3 @233/259/181 · TabBar **676..760(84) 固定** · 输入控件 0；
+  **run2/run3 两次独立测量 70 字段全等**（`cmp-measure-runs.py`，0 差异）；**像素对账**（`png-bands v25` 同脚本跑设计与实现）：
+  chip 蓝 98..127 · 卡 153..242/257..346/361..450/465..554/569..658 · 卡间隙 245..254 · TabBar 676..759 **逐段吻合（±1~2 AA）**；
+  `text-rows.py` 12 个文本带 **9 个 0 差**、其余 +1~2；截图 `logs/screenshots/20260916-0525-序号20-站内信列表-h5-430宽.png`（430×760 = 设计尺寸）；
+  顶部带墨迹 runs 仅「消息 + 3 条未读 + 全部已读」（右留白 17，无载体污染）。
+  **浏览器内真实交互回放**：`?scenario=filter` 点「未读」→ `chipBgs` 实测 [灰,蓝,灰,灰]（高亮切换）；
+  `?scenario=readall` 点「全部已读」→ `serve-5263.log` 实测**连续** `POST /api/v1/notifications/n1|n2|n3/read`（无批量接口 → 逐条）；
+  `?scenario=card` 点首条未读卡 → 日志实测 `POST /api/v1/notifications/n1/read` + hash 跳 `#/pages/report/index?reportId=r1`；
+  `?scenario=tab` 点「工作台」→ hash `#/pages/workbench/index`。
+- **新增可复用工具**：`.agents/state/gen-mock-20.py`（按运行时刻生成相对时间 mock；**凡是相对时间/相对日期页面都该这么做**）、
+  `show-m20.py <json> [phase1|cmp|phase2|raw]`、`__measure-messages.html`（含 `?scenario=filter|readall|card|tab` 四个出口回放）。
+- ⚠️ 待人类拍板（不阻塞本轮，15 条全部写进台账序号 20 备注）：①18-API 只列路径 → GET/POST 方法与 `unread`/`category` 参数名是 REST 推断；
+  ②`aap_notification` 无「分类」列 → 「订单/系统」chip 取值集合为推断（前端只透传）；③18-API **无「全部已读」批量接口** → 逐条 `/notifications/{id}/read`（不臆造 read-all）；
+  ④相对时间写法 PRD 零定义 → 派生规则；⑤图标类型 detect/quote/contract/bill/system 由 event_code/biz_type 派生（PRD 无枚举）；
+  ⑥徽标「N 条未读」取自当前列表（无汇总字段，超一页不等价全站）；⑦未读判定 read_at 为空（兼容 readAt/read/is_read）；
+  ⑧卡片落点 biz_type→路由为推断（CONTRACT/REPORT|DETECTION/QUOTE；未知不跳转）；⑨「全部已读」成功无 toast、失败与加载失败文案为占位；
+  ⑩空态「暂无站内信」为占位；⑪图标 CSS 实心圆占位（避开勾选框同形）；⑫TabBar「我的」为当前模块不跳转，/pages/mine/index 属序号 21；
+  ⑬**字号度量残差**：chip 实测 48（设计 49）、徽标 58（设计 59）、消息标题 143（声明 144）—— 每 2 个 CJK 字少 1px（浏览器回退字体 vs 思源黑体），**未写死宽度**；
+  ⑭H5 mock 静态 → 写操作后列表不变（仍显「3 条未读」），真实请求以 serve 日志为准；⑮本页无 query/storage 入口，入口页待序号 21。
+
+⏳ 下一步（下一轮）：台账序号 **21「我的 2」**（page-21-2，`/pages/mine/index`）——**设计尚未抓取**（台账「设计否」），
+  先 `python .agents/state/fetch-design.py page-21-2` 与 `calicat_source.py page --layer-id e537204e-faf7-416b-8669-1347d581490c --page-id page-21-2`，再按 §2 八步走；
+  **它就是本页 TabBar「我的」的目标页（同位帧）→ 先 `cmp-frames.py page-20-2 page-21-2` 判是否同页多帧**，
+  若 TabBar 完全一致优先抽共用组件（12-v2 的 variantFlags 套路）；可复用本轮：`gen-mock-20.py`（相对时间 mock 生成法）、`show-m20.py` 取数脚本式样、
+  `__measure-messages.html` 的 `?scenario=` 多出口回放模板、`cmp-measure-runs.py` 两次独立测量比对。
+
 🟢 本轮（2026-09-16 04:55~05:20，租约 aap-tdd-run-20260916-0455 → 已释放）· **序号 15「合同签署 2」（page-15-2）收口**：
 - **取件**：`list-pending.py` 最小未完成 = 15（page-15-2，/pages/contract/index，台账「设计否」）；开工前 `git status` 干净、
   `git log -1` = 04:50 的 12-v3 提交 → 空闲租约，写成本轮 id + 45 分钟。

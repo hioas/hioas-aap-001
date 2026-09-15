@@ -1,0 +1,292 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-messages</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 760px; border: 0; }
+      /* 取数用 <pre> 包进 0 尺寸 overflow:hidden 容器：textContent 可读，但不渲染、不会被 --screenshot 截进图里 */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
+         页面 20：/pages/messages/index（【合同与通知】站内信列表 2，page-20-2）
+         设计基线（设计截图 1:1 · 430x760 像素量尺 png-bands v25 / h113 / pxdump）：
+           顶部导航 0..86（padding 48/16/12/16 + 内容行 26）· 筛选行 86..140（padding 12/16 + chip 30）
+           消息列表区 140..676（padding-top 12 · 5 卡 × 92 · 4 间隙 × 12）· TabBar 676..760(84)
+           卡内：图标 38x38 r12 · 内容左内边距 12 · 标题行 18 · +4 → 摘要 18 · +4 → 时间 16（= 60）
+                 未读红点 9x8 r4 · chip 高 30 r10 间距 9 · TabBar 4 项各 104（图标 33 + 3 + 文字 16）
+         ?scenario=filter|readall|card|tab 逐个回放出口；不带 scenario（或 noaction）只取 phase1 供截图 -->
+    <iframe id="f" src="/index.html#/pages/messages/index"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var acc = {}
+
+      function all(doc, sel) { return Array.prototype.slice.call(doc.querySelectorAll(sel)) }
+      function rect(doc, sel) {
+        var el = doc.querySelector(sel)
+        if (!el) return null
+        var r = el.getBoundingClientRect()
+        return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+      }
+      function rects(doc, sel) {
+        return all(doc, sel).map(function (e) {
+          var r = e.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), w: Math.round(r.width), h: Math.round(r.height) }
+        })
+      }
+      function texts(doc, sel) { return all(doc, sel).map(function (e) { return e.textContent.trim() }) }
+      function textOf(doc, sel) { var e = doc.querySelector(sel); return e ? e.textContent.trim() : null }
+      function colorOf(doc, win, sel, prop) { var el = doc.querySelector(sel); return el ? win.getComputedStyle(el)[prop] : null }
+      function colorsOf(doc, win, sel, prop) { return all(doc, sel).map(function (e) { return win.getComputedStyle(e)[prop] }) }
+      function styleOf(doc, win, sel) {
+        var el = doc.querySelector(sel)
+        if (!el) return null
+        var cs = win.getComputedStyle(el)
+        return { fontSize: cs.fontSize, fontWeight: cs.fontWeight, color: cs.color, lineHeight: cs.lineHeight, display: cs.display, borderRadius: cs.borderRadius, padding: cs.padding, backgroundColor: cs.backgroundColor, boxShadow: cs.boxShadow, height: cs.height }
+      }
+
+      /** 设计稿里每一个独立文本图层（文案完整性检查清单，逐字抄自 page-20-2 design.tree.json，36 条） */
+      var needText = [
+        '消息', '3 条未读', '全部已读', '全部', '未读', '订单', '系统',
+        '检测报告已生成（通过）', '华东主线路综合评分 92 分，可进入报价流程。', '10 分钟前',
+        '报价单被驳回，请修改后重提', '06 月增量报价：输出价高于市场均价 18%。', '2 小时前',
+        '合同待签署提醒', 'API 接入服务合同请在 06-20 前完成签署。', '昨天 18:20',
+        '6 月账单已出，结算金额 ¥12,860.00', '预计 07-15 打款至绑定对公账户。', '3 天前',
+        '平台系统升级公告', '06-16 02:00–04:00 计费系统维护，期间不影响调用。', '5 天前',
+        '工作台', '报告', '报价', '我的'
+      ]
+
+      /** 从像素量尺得到的设计基线（用于逐项对账） */
+      var DESIGN = {
+        pageH: 760,
+        nav: { top: 0, h: 86 },
+        filters: { top: 86, h: 54 },
+        list: { top: 140, h: 520 },
+        cardTops: [152, 256, 360, 464, 568],
+        cardH: 92,
+        cardGap: 12,
+        chipH: 30,
+        chipW: [49, 49, 49, 49],
+        chipX: [16, 74, 132, 190],
+        iconTopInCard: 16,
+        iconSize: 38,
+        tabbar: { top: 676, h: 84 },
+        tabItemW: 104
+      }
+
+      function collect(doc, win) {
+        var over = []
+        all(doc, '*').forEach(function (el) {
+          var r = el.getBoundingClientRect()
+          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
+            over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), left: Math.round(r.x), w: Math.round(r.width), right: Math.round(r.right), html: String(el.outerHTML || '').slice(0, 140) })
+          }
+        })
+        var text = (doc.body && doc.body.innerText) || ''
+        var cards = rects(doc, '.msg')
+        var chips = rects(doc, '.chip')
+        return {
+          innerWidth: win.innerWidth,
+          docScrollWidth: doc.documentElement.scrollWidth,
+          docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
+          overflowingCount: over.length,
+          overflowing: over.slice(0, 10),
+          missingTexts: needText.filter(function (t) { return text.indexOf(t) === -1 }),
+
+          /* 页面骨架 */
+          page: rect(doc, '.messages'),
+          pageBg: colorOf(doc, win, '.messages', 'backgroundColor'),
+          pagePadBottom: colorOf(doc, win, '.messages', 'paddingBottom'),
+          nav: rect(doc, '.messages__topbar'),
+          navPad: colorOf(doc, win, '.messages__topbar', 'padding'),
+
+          /* 顶部导航 */
+          title: textOf(doc, '.messages__title'),
+          navTitleStyle: styleOf(doc, win, '.messages__title'),
+          badge: rect(doc, '[data-testid="unread-badge"]'),
+          badgeText: textOf(doc, '[data-testid="unread-badge"]'),
+          badgeBg: colorOf(doc, win, '[data-testid="unread-badge"]', 'backgroundColor'),
+          badgeRadius: colorOf(doc, win, '[data-testid="unread-badge"]', 'borderRadius'),
+          badgeTextStyle: styleOf(doc, win, '.messages__badge-text'),
+          readAll: rect(doc, '[data-testid="read-all"]'),
+          readAllText: textOf(doc, '[data-testid="read-all"]'),
+          readAllTextStyle: styleOf(doc, win, '.messages__read-all-text'),
+          readAllIcon: rect(doc, '.messages__read-all-icon'),
+
+          /* 筛选行 */
+          filters: rect(doc, '.messages__filters'),
+          filtersPad: colorOf(doc, win, '.messages__filters', 'padding'),
+          chips: chips,
+          chipTexts: texts(doc, '.chip'),
+          chipBgs: colorsOf(doc, win, '.chip', 'backgroundColor'),
+          chipRadius: colorOf(doc, win, '.chip', 'borderRadius'),
+          chipTextColors: colorsOf(doc, win, '.chip__text', 'color'),
+          chipActiveText: textOf(doc, '.chip--active'),
+
+          /* 消息列表 */
+          list: rect(doc, '.messages__list'),
+          listPad: colorOf(doc, win, '.messages__list', 'padding'),
+          cards: cards,
+          cardPads: colorOf(doc, win, '.msg', 'padding'),
+          cardShadow: styleOf(doc, win, '.msg').boxShadow,
+          cardRadius: colorOf(doc, win, '.msg', 'borderRadius'),
+          cardGaps: cards.slice(1).map(function (c, i) { return c.top - (cards[i].top + cards[i].h) }),
+          rowCount: cards.length,
+          icons: rects(doc, '.msg__icon'),
+          iconBgs: colorsOf(doc, win, '.msg__icon', 'backgroundColor'),
+          iconRadius: colorOf(doc, win, '.msg__icon', 'borderRadius'),
+          glyphs: rects(doc, '.msg__glyph'),
+          glyphBgs: colorsOf(doc, win, '.msg__glyph', 'backgroundColor'),
+          bodyPadLeft: colorOf(doc, win, '.msg__body', 'paddingLeft'),
+          titles: texts(doc, '.msg__title'),
+          titleRects: rects(doc, '.msg__title'),
+          titleColors: colorsOf(doc, win, '.msg__title', 'color'),
+          msgTitleStyle: styleOf(doc, win, '.msg__title'),
+          contents: texts(doc, '.msg__content'),
+          contentRects: rects(doc, '.msg__content'),
+          contentColors: colorsOf(doc, win, '.msg__content', 'color'),
+          contentStyle: styleOf(doc, win, '.msg__content'),
+          times: texts(doc, '.msg__time'),
+          timeRects: rects(doc, '.msg__time'),
+          timeColors: colorsOf(doc, win, '.msg__time', 'color'),
+          timeStyle: styleOf(doc, win, '.msg__time'),
+          dots: rects(doc, '[data-testid="unread-dot"]'),
+          dotBg: colorOf(doc, win, '[data-testid="unread-dot"]', 'backgroundColor'),
+          dotCount: all(doc, '[data-testid="unread-dot"]').length,
+          targets: all(doc, '[data-testid="message-row"]').map(function (e) { return e.getAttribute('data-target') }),
+
+          /* TabBar */
+          tabbar: rect(doc, '.tabbar'),
+          tabbarPad: colorOf(doc, win, '.tabbar', 'padding'),
+          tabbarPos: colorOf(doc, win, '.tabbar', 'position'),
+          tabItems: rects(doc, '.tabbar__item'),
+          tabLabels: texts(doc, '.tabbar__label'),
+          tabLabelColors: colorsOf(doc, win, '.tabbar__label', 'color'),
+          tabGlyphBgs: colorsOf(doc, win, '.tabbar__glyph', 'backgroundColor'),
+          tabActiveLabel: textOf(doc, '.tabbar__label--active'),
+          tabbarCount: all(doc, '.tabbar').length,
+
+          inputCount: all(doc, 'input,textarea').length,
+          userAgent: win.navigator.userAgent
+        }
+      }
+
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
+
+      function collect1() {
+        try {
+          var payload = collect(f.contentDocument, f.contentWindow)
+          f.style.height = payload.docScrollHeight + 'px'
+          acc.iframeHeightForShot = payload.docScrollHeight
+          sink(1, payload)
+          return payload
+        } catch (e) {
+          sink(1, { error: String(e && e.message) })
+          return null
+        }
+      }
+
+      function clickIn(sel) {
+        var doc = f.contentDocument
+        var el = doc.querySelector(sel)
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+      function toastText(doc) {
+        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
+        return el ? el.textContent.trim() : ''
+      }
+      function hashNow() { try { return String(f.contentWindow.location.hash) } catch (e) { return 'ERR:' + e.message } }
+
+      function waitFor(sel, maxTries) {
+        return new Promise(function (resolve) {
+          var n = 0
+          function tick() {
+            n++
+            var ok = false
+            try { ok = !!f.contentDocument.querySelector(sel) } catch (e) { ok = false }
+            if (ok) return resolve('READY(tries=' + n + ')')
+            if (n >= (maxTries || 40)) return resolve('TIMEOUT(tries=' + n + ')')
+            setTimeout(tick, 200)
+          }
+          tick()
+        })
+      }
+
+      function scenario() {
+        var m = location.search.match(/scenario=([a-z]+)/)
+        return m ? m[1] : ''
+      }
+
+      async function main() {
+        await waitFor('[data-testid="message-row"]')
+        await sleep(1500)
+        collect1()
+        var sc = scenario()
+        if (!sc || location.search.indexOf('noaction') !== -1) return
+
+        var doc = f.contentDocument
+        if (sc === 'filter') {
+          var cFilter = clickIn('[data-testid="filter-unread"]')
+          await sleep(1500)
+          sink(2, {
+            scenario: sc,
+            clicked: cFilter,
+            activeChip: textOf(f.contentDocument, '.chip--active'),
+            chipBgs: colorsOf(f.contentDocument, f.contentWindow, '.chip', 'backgroundColor'),
+            rowCount: all(f.contentDocument, '.msg').length,
+            hash: hashNow()
+          })
+          return
+        }
+
+        if (sc === 'readall') {
+          /* 「全部已读」= 逐条 POST /notifications/{id}/read：浏览器侧拿不到请求体（uni 以模块绑定内联），
+             硬证据在 serve.py 访问日志（POST /api/v1/notifications/n{1,2,3}/read）。 */
+          var cAll = clickIn('[data-testid="read-all"]')
+          await sleep(3500)
+          sink(2, {
+            scenario: sc,
+            clicked: cAll,
+            dotsAfter: all(f.contentDocument, '[data-testid="unread-dot"]').length,
+            badgeAfter: textOf(f.contentDocument, '[data-testid="unread-badge"]'),
+            toast: toastText(f.contentDocument),
+            hash: hashNow()
+          })
+          return
+        }
+
+        if (sc === 'card') {
+          var cCard = clickIn('[data-testid="message-row"]')
+          await sleep(2500)
+          sink(2, {
+            scenario: sc,
+            clicked: cCard,
+            toast: toastText(f.contentDocument),
+            hash: hashNow()
+          })
+          return
+        }
+
+        if (sc === 'tab') {
+          var cTab = clickIn('[data-testid="tab-工作台"]')
+          await sleep(1500)
+          sink(2, { scenario: sc, clicked: cTab, hash: hashNow() })
+          return
+        }
+      }
+      main()
+    </script>
+  </body>
+</html>
