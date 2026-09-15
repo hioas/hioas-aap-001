@@ -64,6 +64,39 @@ LEASE: free until -
 
 ## 4. 进度（细表看台账 CSV，这里只留能力组）
 
+🟢 本轮（2026-09-16 01:35~01:52，租约 aap-tdd-run-20260916-0135 → 已释放）· **序号 7「检测未通过报告 2」（page-7-2）收口**：
+- **Calicat 侧**：page-7-2 设计树（62KB，130 节点）+ 截图已抓；`interaction.json` 仍「不存在图层交互数据」→ 交互真源退 PRD 09/17-spec/18-API/13-管理端 + 画布 30 页清单。
+  新增探针 `page7-2-probe.py`（全节点几何/填充/内边距/文字 → `page-7-2-nodes.txt`）。
+- **这页到底是什么**：顶部（返回 /「检测报告」/ 右上「报告编号 DR-…」）· 未通过封面卡（「综合检测结论」+ 通道名 / 38px 综合分 54 + 「综合评分·满分 100」+ 红底「未通过」胶囊 /
+  红色一票否决条 / 结论措辞）· 分项评分总览卡（「分项总览」+ 8 行 D1 连通性 89 · D2 鉴权 12 · D3 模型一致性 55 · D4 上下文 82 · D5 稳定性 61 · D6 计费口径 66 · D7 合规安全 58 · D8 并发压测 0 +
+  灰底权重说明盒）· D2 鉴权有效性 · 详情卡（红描边 + 12 分 + 现象/依据/影响/建议 四行）· 免责声明卡 · 底部白色操作条（导出 PDF 193×44 + 重新提交检测 193×44 #2563EB）；**无 TabBar**、底栏随文档流。
+- **TDD（3 个用例文件先红 → 到绿；新增 39 例）**：`tests/unit/report-failed-model.spec.ts`(20) · `tests/unit/detection-job-api.spec.ts`(3) ·
+  `tests/pages/report-failed.spec.ts`(16)；红基线 = 2 文件 `Failed to resolve import` + `detectionApi.create is not a function`（`evidence/red-序号7.txt`，原 329 条不受影响）；
+  实现 `src/utils/report-failed-model.ts`、`src/pages/report-failed/index.vue`、`pages.json` 路由、`src/api/detection.ts` 新增 `create`（POST /detection-jobs 重测）、
+  `src/api/report.ts` 的 `detail<T>` 泛型化（同一端点两种报告模板）、tokens 3 个新色值；绿 **368/368 连跑两轮一致**（`evidence/green-序号7.txt`）+ `npm run type-check` **exit 0**。
+- **补红再绿（由 DOM 数字抓出的真缺口）**：H5 取数 `missingTexts` 命中「报告编号 DR-20240614-0312」——设计稿顶部右侧是**单个**文本图层（含前缀），页面只渲染了号码；
+  先补断言看红（`evidence/red-序号7-补红-报告编号前缀.txt`：`expected 'DR-…' to be '报告编号 DR-…'`）→ 加 `REPORT_NO_PREFIX` → missingTexts `[]`，report-no 实测宽 **142（设计 143）**。
+- **另两个由 DOM 数字抓出并修掉的真偏差**：①分项总览卡 432px（设计 353）——根因 = uni-app H5 的 `<text>` 是 inline，父级 UNI-VIEW 继承默认 **16px** 字号把行盒撑到 24px（设计行高 14.4）→
+  给 `.dim__score` 加 `display:block` 后行高 14、卡高 **355**；②权重说明盒 72px（设计 60）——同类 inline 行盒撑高（实测文本块 40 vs 设计 36）→ `.weight-box__text{display:block}` 后 **356×60**；
+  ③详情卡四行行距 30（设计 26）→ `.detail__line{display:block}` 后行高 20/行距 26、卡高 165（设计推导 163）；④顶栏 h86（设计 89）→ 返回图标盒按设计 26×28.8 取 29px。
+  修后逐项对齐：顶栏 89 · 封面卡 240（= 设计推导 240 完全一致）· 分项卡 355 · 详情卡 165 · 免责卡 70 · 底栏 80 · 页面总高 1063。
+- **客观证据链**：`build:mp-weixin` 产出 `dist/build/mp-weixin/pages/report-failed/{index.js,index.json,index.wxml,index.wxss}`（app.json 已注册）；
+  430 宽 iframe + 无头 Chrome **四段实测** `evidence/measure-序号7-430宽.json`：phase1/phase2 **74 字段全等**（`evidence/measure-序号7-phase1-vs-phase2.txt`，新脚本 `compare-phases.py`）；
+  `innerWidth 430` · `docScrollWidth 430` · 溢出 **0** · 文案缺失 **0**（need 43 条设计原文）· 分项条底 x138 w231 · 填充 89/12/55/82/61/66/58/0% 取色 绿/红/琥珀；
+  **浏览器内真实交互回放**（carrier phase3/phase4）：点「导出 PDF」→ toast「导出链接已生成，请在浏览器中打开」；点「重新提交检测」→ 真实 `POST /api/v1/detection-jobs body={"credential_id":"c1"}`
+  → iframe 跳到 `#/pages/detecting/index?jobId=j7` 并渲染出「检测进行中」，`serve.py` 日志**连续 21 对** `GET /api/v1/detection-jobs/j7{,/results}`；
+  像素墨迹核验顶部带仅返回箭头+标题+报告编号（右留白 24）· 分项卡右留白 37 · 底栏按钮右留白 16；截图 `logs/screenshots/20260916-0148-序号07-检测未通过报告-h5-430宽.png`（+ 顶部带裁剪图）。
+- **工具修复**：`serve.py` 的写类请求（POST）现在支持 mock（`MOCK/<path>/post`）——否则「重新提交检测」拿不到 job_id，只能靠默认 `{"id":"c1"}`；
+  载体页新增 `?noaction=1` 模式（交互回放会把 iframe 导航走，导致截图截到下一页——本页第一次截图就截成了「检测进行中」，已修）。
+- ⚠️ 待人类拍板（不阻塞本轮，10 条全部写进台账序号 7 备注）：①设计 D1–D8 名与 09-PRD §2 的 D 列表**口径不同**（设计「D2 鉴权」PRD 零命中）→ 以服务端返回为准；
+  ②一票否决维度冲突（设计「D2 鉴权」vs R-20 / 13-管理端「D7<40」）；③配色阈值取 **70/40**（09-PRD pass_score 70 + R-20 否决线 40；与设计样本自洽，未用 80/40）；
+  ④分项条宽设计自身不自洽（6/8 行 ≈ 分值%，D1/D4 偏短）→ 统一按分值%，D8=0 保留 4px 残段；⑤字段级 schema 缺失（verdict/veto_note/dims[].name/detail.lines 无表可依）；
+  ⑥18-API 只列路径未列方法（GET/POST 为推断）；⑦「重新提交检测」= PRD §5 重测（人工点击）→ POST /detection-jobs 只带 credential_id；⑧导出响应体无字段级 schema；
+  ⑨图标仍为 CSS 形状占位；⑩**跨页发现：序号 6 顶部同样缺「报告编号」前缀**（本页已按设计补齐，序号 6 待回炉时一并修）。
+
+⏳ 下一步（下一轮）：台账序号 **8「报价单列表 2」**（page-8-2，`/pages/quotes/index`）——检测链路之后的报价管理首页，按 §2 八步走；
+  可复用 `compare-phases.py` + `extract-measure-json.py` + `serve.py`（POST mock）+ 载体页 `?noaction=1` 截图模式（**记得 build:h5 之后重拷载体页**）。
+
 🟢 本轮（2026-09-16 01:16~01:40，租约 aap-tdd-run-20260916-0115 → 已释放）· **序号 6「大模型检测报告 · 多维度专业版」（page-6）收口**：
 - **Calicat 侧**：page-6 设计树（425KB，411 图层容器 + 622 文本）+ 截图已抓；`interaction.json` 仍「不存在图层交互数据」→ 交互真源退 PRD 09/17-spec/18-API/21-验收 + 画布 30 页清单。
   新增探针脚本 `page6-probe.py`（长文本全文 + 容器几何）与 `subtree-6.py`（按 id 导子树取色/取间距），产物 `page-6-probe.txt` / `page-6-subtree.txt`。

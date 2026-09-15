@@ -1,0 +1,273 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-report-failed</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      /* 取数用 <pre> 包在 0 尺寸 overflow:hidden 容器：textContent 可读，但不参与渲染、也不会被 --screenshot 截进图里 */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
+         页面 7：/pages/report-failed/index（检测未通过报告 2，page-7-2）
+         phase1（首次加载）· phase2（跨 1700ms 后，布局一致性）
+         phase3（点击「导出 PDF」→ 记录 toast）· phase4（点击「重新提交检测」→ 记录跳转） -->
+    <iframe id="f" src="/index.html#/pages/report-failed/index?reportId=DR-7"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var acc = {}
+
+      function collect(doc, win) {
+        var over = []
+        doc.querySelectorAll('*').forEach(function (el) {
+          var r = el.getBoundingClientRect()
+          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
+            over.push({
+              tag: el.tagName,
+              cls: String(el.className || '').slice(0, 70),
+              left: Math.round(r.x),
+              w: Math.round(r.width),
+              right: Math.round(r.right),
+              html: String(el.outerHTML || '').slice(0, 140)
+            })
+          }
+        })
+        function rect(sel) {
+          var el = doc.querySelector(sel)
+          if (!el) return null
+          var r = el.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+        }
+        function rects(sel) {
+          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) {
+            var r = e.getBoundingClientRect()
+            return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), w: Math.round(r.width), h: Math.round(r.height) }
+          })
+        }
+        function texts(sel) {
+          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return e.textContent.trim() })
+        }
+        function colors(sel) {
+          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return win.getComputedStyle(e).backgroundColor })
+        }
+        function colorOf(sel, prop) {
+          var el = doc.querySelector(sel)
+          return el ? win.getComputedStyle(el)[prop] : null
+        }
+        function textOf(sel) {
+          var e = doc.querySelector(sel)
+          return e ? e.textContent.trim() : null
+        }
+        function styleOf(sel, prop) {
+          var e = doc.querySelector(sel)
+          return e ? e.style[prop] : null
+        }
+        var text = (doc.body && doc.body.innerText) || ''
+        /* 设计稿里每一个独立文本图层都要覆盖（含分项行短标签），漏写会漏报（序号 6 教训） */
+        var need = [
+          '检测报告', '报告编号 DR-20240614-0312',
+          '综合检测结论', '华南备线路 · 备用通道', '54', '综合评分', '满分 100', '未通过',
+          '命中一票否决项：D2 鉴权在检测期间返回 401，模型清单存在 1 项无法调用。',
+          '请核对 APIKey 有效期与模型开放范围后重新提交检测；已通过项无需重复准备。',
+          '分项总览',
+          'D1 连通性', '89', 'D2 鉴权', '12', 'D3 模型一致性', '55', 'D4 上下文', '82',
+          'D5 稳定性', '61', 'D6 计费口径', '66', 'D7 合规安全', '58', 'D8 并发压测', '0',
+          'D2 鉴权为关键项，未通过将直接判定为“未通过”；其余分项仅作参考。',
+          'D2 鉴权有效性 · 详情', '12 分',
+          '· 现象：第 3 次探测返回 401 Unauthorized。',
+          '· 依据：APIKey 与 BaseURL 不匹配，或密钥已轮换失效。',
+          '· 影响：无法建立稳定转发链路，暂不可承接业务。',
+          '· 建议：更新 APIKey 后重新提交检测。',
+          '本报告基于抽样检测生成', '未通过结论仅代表检测时点状态，修正后重新检测即可更新结论。',
+          '导出 PDF', '重新提交检测'
+        ]
+        return {
+          innerWidth: win.innerWidth,
+          docScrollWidth: doc.documentElement.scrollWidth,
+          docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
+          overflowingCount: over.length,
+          overflowing: over.slice(0, 20),
+          missingTexts: need.filter(function (t) { return text.indexOf(t) === -1 }),
+          title: textOf('[data-testid="title"]'),
+          reportNo: textOf('[data-testid="report-no"]'),
+          verdictTitle: textOf('[data-testid="verdict-title"]'),
+          channel: textOf('[data-testid="channel"]'),
+          score: textOf('[data-testid="score"]'),
+          scoreLabel: textOf('[data-testid="score-label"]'),
+          scoreMax: textOf('[data-testid="score-max"]'),
+          resultChip: textOf('[data-testid="result-chip"]'),
+          vetoText: textOf('[data-testid="veto-text"]'),
+          verdictText: textOf('[data-testid="verdict-text"]'),
+          dimTitle: textOf('[data-testid="dim-title"]'),
+          dimCount: doc.querySelectorAll('[data-testid="dim-label"]').length,
+          dimLabels: texts('[data-testid="dim-label"]'),
+          dimScores: texts('[data-testid="dim-score"]'),
+          dimFillStyles: Array.prototype.map.call(doc.querySelectorAll('[data-testid="dim-fill"]'), function (e) { return e.style.width }),
+          dimFillRects: rects('[data-testid="dim-fill"]'),
+          dimFillColors: colors('[data-testid="dim-fill"]'),
+          dimScoreColors: Array.prototype.map.call(doc.querySelectorAll('[data-testid="dim-score"]'), function (e) { return win.getComputedStyle(e).color }),
+          dimRowRects: rects('[data-testid="dim-row"]'),
+          dimTrackRect: rect('.dim__track'),
+          dimLabelRect: rect('.dim__label'),
+          dimRowStyles: (function () {
+            function probe(sel) {
+              var e = doc.querySelector(sel)
+              if (!e) return null
+              var cs = win.getComputedStyle(e)
+              var r = e.getBoundingClientRect()
+              return {
+                tag: e.tagName,
+                h: Math.round(r.height),
+                fontSize: cs.fontSize,
+                lineHeight: cs.lineHeight,
+                display: cs.display,
+                paddingLeft: cs.paddingLeft
+              }
+            }
+            return {
+              row: probe('.dim-row'),
+              label: probe('.dim__label'),
+              track: probe('.dim__track'),
+              scoreBox: probe('.dim__score-box'),
+              score: probe('.dim__score'),
+              card: probe('.card--outlined'),
+              body: probe('body')
+            }
+          })(),
+          weightNote: textOf('[data-testid="weight-note"]'),
+          weightTextRect: rect('[data-testid="weight-note"]'),
+          weightTextStyle: (function () {
+            var e = doc.querySelector('[data-testid="weight-note"]')
+            if (!e) return null
+            var cs = win.getComputedStyle(e)
+            var inner = e.querySelector('span') || e.firstElementChild
+            var ics = inner ? win.getComputedStyle(inner) : null
+            return {
+              tag: e.tagName,
+              hostLineHeight: cs.lineHeight,
+              hostFontSize: cs.fontSize,
+              hostHeight: Math.round(e.getBoundingClientRect().height),
+              innerTag: inner ? inner.tagName : null,
+              innerLineHeight: ics ? ics.lineHeight : null
+            }
+          })(),
+          weightBoxRect: rect('.weight-box'),
+          weightBoxBg: colorOf('.weight-box', 'backgroundColor'),
+          detailCard: rect('[data-testid="detail-card"]'),
+          detailCardBorder: colorOf('[data-testid="detail-card"]', 'borderTopColor'),
+          detailTitle: textOf('[data-testid="detail-title"]'),
+          detailScore: textOf('[data-testid="detail-score"]'),
+          detailScoreColor: colorOf('[data-testid="detail-score"]', 'color'),
+          detailLines: texts('[data-testid="detail-line"]'),
+          detailLineRects: rects('.detail__line'),
+          detailHeadRect: rect('.detail__head'),
+          disclaimerTitle: textOf('[data-testid="disclaimer-title"]'),
+          disclaimerText: textOf('[data-testid="disclaimer-text"]'),
+          topbar: rect('.rf-page__topbar'),
+          topbarBg: colorOf('.rf-page__topbar', 'backgroundColor'),
+          backBtn: rect('[data-testid="back-btn"]'),
+          scoreRect: rect('[data-testid="score"]'),
+          scoreColor: colorOf('[data-testid="score"]', 'color'),
+          chipRect: rect('[data-testid="result-chip"]'),
+          chipBg: colorOf('[data-testid="result-chip"]', 'backgroundColor'),
+          chipColor: colorOf('[data-testid="result-chip"]', 'color'),
+          chipTextColor: colorOf('.result-chip__text', 'color'),
+          chipTextRect: rect('.result-chip__text'),
+          reportNoRect: rect('[data-testid="report-no"]'),
+          scoreLabelRect: rect('[data-testid="score-label"]'),
+          scoreMaxRect: rect('[data-testid="score-max"]'),
+          scoreMetaRect: rect('.score__meta'),
+          vetoTextRect: rect('.veto-box__text'),
+          verdictTextRect: rect('.verdict-row__text'),
+          vetoBoxRect: rect('.veto-box'),
+          vetoBoxBg: colorOf('.veto-box', 'backgroundColor'),
+          cardRect: rect('.card'),
+          card2Rect: rect('.card--outlined'),
+          cardBg: colorOf('.card', 'backgroundColor'),
+          disclaimerCardRect: rect('.card--disclaimer'),
+          actionInner: rect('.action__inner'),
+          exportBtn: rect('[data-testid="export-btn"]'),
+          exportBorderColor: colorOf('[data-testid="export-btn"]', 'borderTopColor'),
+          exportBg: colorOf('[data-testid="export-btn"]', 'backgroundColor'),
+          resubmitBtn: rect('[data-testid="resubmit-btn"]'),
+          resubmitBg: colorOf('[data-testid="resubmit-btn"]', 'backgroundColor'),
+          pageBg: colorOf('.rf-page', 'backgroundColor'),
+          glyphCount: doc.querySelectorAll('.glyph').length,
+          tabbarExists: !!doc.querySelector('[data-testid="tabbar"]'),
+          userAgent: win.navigator.userAgent
+        }
+      }
+
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+
+      function phase(n) {
+        try {
+          var payload = collect(f.contentDocument, f.contentWindow)
+          if (n === 2) {
+            f.style.height = payload.docScrollHeight + 'px'
+            acc.iframeHeightForShot = payload.docScrollHeight
+          }
+          sink(n, payload)
+        } catch (e) {
+          sink(n, { error: String(e && e.message) })
+        }
+      }
+
+      /* 交互回放：点真实按钮，读真实效果（toast 文案 / uni-app 路由跳转） */
+      function clickIn(sel) {
+        var doc = f.contentDocument
+        var el = doc.querySelector(sel)
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+
+      function toastText(doc) {
+        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
+        return el ? el.textContent.trim() : ''
+      }
+
+      f.addEventListener('load', function () {
+        var NO_ACTION = location.search.indexOf('noaction') !== -1
+        setTimeout(function () { phase(1) }, 2500)
+        setTimeout(function () { phase(2) }, 4200)
+        if (NO_ACTION) return
+        setTimeout(function () {
+          var clicked = clickIn('[data-testid="export-btn"]')
+          setTimeout(function () {
+            sink(3, {
+              clicked: clicked,
+              toast: toastText(f.contentDocument),
+              exportUrl: acc.phase1 ? acc.phase1.exportBtn : null
+            })
+          }, 900)
+        }, 5000)
+        setTimeout(function () {
+          var clicked = clickIn('[data-testid="resubmit-btn"]')
+          setTimeout(function () {
+            var win = f.contentWindow
+            sink(4, {
+              clicked: clicked,
+              hash: String(win.location.hash),
+              toast: toastText(f.contentDocument),
+              detectingTitle: (function () {
+                var e = f.contentDocument.querySelector('.detecting-page__title')
+                return e ? e.textContent.trim() : null
+              })(),
+              detectingBodyHead: (f.contentDocument.body && f.contentDocument.body.innerText || '').slice(0, 80)
+            })
+          }, 2500)
+        }, 6600)
+      })
+    </script>
+  </body>
+</html>

@@ -70,6 +70,16 @@ class Handler(SimpleHTTPRequestHandler):
         length = int(self.headers.get("Content-Length") or 0)
         payload = self.rfile.read(length).decode("utf-8", "replace") if length else ""
         sys.stderr.write("[serve] %s %s body=%s\n" % (self.command, self.path.split("?", 1)[0], payload[:200]))
+        # 写类请求也支持 mock：MOCK/<path>/post 或 MOCK/<path>.post（便于验证「重新提交检测」返回的 job_id）
+        rel = self.path.split("?", 1)[0].lstrip("/")
+        if rel.startswith("api/"):
+            rel = rel[4:]
+        candidate = os.path.join(MOCK, rel, "post")
+        if not os.path.isfile(candidate):
+            candidate = os.path.join(MOCK, rel + ".post")
+        if os.path.isfile(candidate):
+            self._send_json_file(candidate)
+            return
         body = json.dumps({"code": "0", "message": "ok", "data": {"id": "c1"}}).encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "application/json; charset=utf-8")

@@ -1,0 +1,17 @@
+序号 7 补红基线（真实缺口：顶部「报告编号」前缀）
+命令：cd aap-client && npm test
+说明：H5 取数（measure-序号7-430宽.json phase1）里 missingTexts = ["报告编号 DR-20240614-0312"]，
+      设计稿顶部右侧是**单个**文本图层（含前缀），页面只渲染了号码 → 先补断言看红，再修实现。
+
+---------------- 真实红输出（npm test） ----------------
+→ expected undefined to be '报告编号 ' // Object.is equality
+→ expected 'DR-20240614-0312' to be '报告编号 DR-20240614-0312' // Object.is equality
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯⎯
+ FAIL  tests/pages/report-failed.spec.ts > 序号 7 · 页面：页头与结论封面卡文案与设计稿逐条一致 > 标题「检测报告」+ 报告编号 + 返回按钮
+ FAIL  tests/unit/report-failed-model.spec.ts > 序号 7 · 模型：设计稿原文常量逐条一致（不得改写） > 页头与结论卡文案
+ Test Files  2 failed | 22 passed (24)
+      Tests  2 failed | 366 passed (368)
+---------------- 修法 ----------------
+src/utils/report-failed-model.ts 新增 REPORT_NO_PREFIX = '报告编号 '；
+src/pages/report-failed/index.vue 顶部渲染 {{ REPORT_NO_PREFIX }}{{ model.reportNo }}。
+修后：368/368 连跑两轮一致（evidence/green-序号7.txt），H5 取数 missingTexts = []。

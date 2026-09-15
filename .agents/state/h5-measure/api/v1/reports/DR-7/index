@@ -1,0 +1,36 @@
+{
+  "code": "0",
+  "message": "ok",
+  "data": {
+    "report_no": "DR-20240614-0312",
+    "channel_name": "华南备线路 · 备用通道",
+    "total_score": 54,
+    "result": "FAIL",
+    "veto_triggered": true,
+    "veto_note": "命中一票否决项：D2 鉴权在检测期间返回 401，模型清单存在 1 项无法调用。",
+    "verdict": "请核对 APIKey 有效期与模型开放范围后重新提交检测；已通过项无需重复准备。",
+    "credential_id": "c1",
+    "dims": [
+      { "code": "D1", "name": "连通性", "score": 89 },
+      { "code": "D2", "name": "鉴权", "score": 12 },
+      { "code": "D3", "name": "模型一致性", "score": 55 },
+      { "code": "D4", "name": "上下文", "score": 82 },
+      { "code": "D5", "name": "稳定性", "score": 61 },
+      { "code": "D6", "name": "计费口径", "score": 66 },
+      { "code": "D7", "name": "合规安全", "score": 58 },
+      { "code": "D8", "name": "并发压测", "score": 0 }
+    ],
+    "detail": {
+      "code": "D2",
+      "title": "D2 鉴权有效性 · 详情",
+      "score": 12,
+      "lines": [
+        "· 现象：第 3 次探测返回 401 Unauthorized。",
+        "· 依据：APIKey 与 BaseURL 不匹配，或密钥已轮换失效。",
+        "· 影响：无法建立稳定转发链路，暂不可承接业务。",
+        "· 建议：更新 APIKey 后重新提交检测。"
+      ]
+    },
+    "disclaimer": "未通过结论仅代表检测时点状态，修正后重新检测即可更新结论。"
+  }
+}

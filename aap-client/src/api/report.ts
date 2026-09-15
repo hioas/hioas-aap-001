@@ -20,9 +20,13 @@ export type { ReportExportRaw, ReportRaw } from '@/utils/report-model'
 const path = (reportId: string) => `/reports/${encodeURIComponent(reportId)}`
 
 export const reportApi = {
-  /** 报告详情 */
-  detail(reportId: string) {
-    return http<ReportRaw>(path(reportId), { method: 'GET' })
+  /**
+   * 报告详情。
+   * 泛型参数用于「同一端点、不同报告模板」的场景：序号 7 未通过报告（/pages/report-failed/index）
+   * 复用同一 GET /reports/{reportId}，但视图字段不同 → 以 ReportFailedRaw 消费。
+   */
+  detail<T = ReportRaw>(reportId: string) {
+    return http<T>(path(reportId), { method: 'GET' })
   },
 
   /** 导出（PDF/文件链接由服务端生成） */
