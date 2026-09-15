@@ -1,0 +1,280 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-quote-success</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      /* 取数用 <pre> 包进 0 尺寸 overflow:hidden 容器：textContent 可读，但不渲染、不会被 --screenshot 截进图里 */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
+         页面 12-v3：/pages/quote-form/success（【报价管理】新增报价单-保存成功，page-29）
+         设计基线（设计截图 1:1 · 430x1018 像素量尺，见 .agents/state/design-shots/page-29.png）：
+           顶栏 0..102（padding 48/16/12/16，标题块 42）· 内容区 padding 16/16/20/16 gap 16
+           成功头部卡 118..374(256) · 结果摘要卡 390..640(250) · 带出模型卡 656..788(132) · 提示卡 804..852(48)
+           底栏 872..1018(146)：主按钮 884..932(48) · 次按钮 942..990(48)
+           卡内锚点：单号条 284..346(62, x32..398) · 复制按钮 x314..384 h32 · 摘要行 440/478/516/554/594
+                     环境小标 488..506(h18) · 模型数标 526..544(h18) · 状态标 604..624(h20)
+                     模型标签 x32..96/104..199/207..295（第一行 y708..736）、x32..142/150..259（第二行 y744..772）
+         ?scenario=copy|primary|secondary|close 逐个回放出口；不带 scenario（或 noaction）只取 phase1 供截图 -->
+    <iframe id="f" src="/index.html#/pages/quote-form/success?quoteId=q9"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var acc = {}
+
+      function all(doc, sel) { return Array.prototype.slice.call(doc.querySelectorAll(sel)) }
+      function rect(doc, sel) {
+        var el = doc.querySelector(sel)
+        if (!el) return null
+        var r = el.getBoundingClientRect()
+        return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+      }
+      function rects(doc, sel) {
+        return all(doc, sel).map(function (e) {
+          var r = e.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), w: Math.round(r.width), h: Math.round(r.height) }
+        })
+      }
+      function texts(doc, sel) { return all(doc, sel).map(function (e) { return e.textContent.trim() }) }
+      function textOf(doc, sel) { var e = doc.querySelector(sel); return e ? e.textContent.trim() : null }
+      function colorOf(doc, win, sel, prop) { var el = doc.querySelector(sel); return el ? win.getComputedStyle(el)[prop] : null }
+      function styleOf(doc, win, sel) {
+        var el = doc.querySelector(sel)
+        if (!el) return null
+        var cs = win.getComputedStyle(el)
+        return { fontSize: cs.fontSize, fontWeight: cs.fontWeight, color: cs.color, lineHeight: cs.lineHeight, display: cs.display, borderRadius: cs.borderRadius, padding: cs.padding, backgroundColor: cs.backgroundColor, boxShadow: cs.boxShadow, whiteSpace: cs.whiteSpace }
+      }
+      function bgsOf(doc, win, sel) {
+        return all(doc, sel).map(function (e) { return win.getComputedStyle(e).backgroundColor })
+      }
+
+      /** 设计稿里每一个独立文本图层（文案完整性检查清单，逐字抄自 page-29 design.tree.json） */
+      var needText = [
+        '报价单已创建', '报价单号已自动生成',
+        '报价单创建成功', '已保存基本信息并带出模型清单',
+        '报价单号', 'QT-20240615-0007', '复制',
+        '结果摘要', '报价单名称', '2024Q3 主线路报价', '凭证名称', '生产环境', 'sk-prod-••2f9a',
+        '参与报价模型', '已勾选 3 个', '当前状态', '草稿',
+        '已带出模型', '共 5 个 / 勾选 3 个',
+        'gpt-4o', 'gpt-4o-mini', 'claude-3-5', 'gemini-1.5-pro', 'deepseek-chat',
+        '下一步可为勾选模型设置输入/输出单价，设置完成即可提交审核。',
+        '继续设置模型报价', '返回报价单列表'
+      ]
+
+      function collect(doc, win) {
+        var over = []
+        all(doc, '*').forEach(function (el) {
+          var r = el.getBoundingClientRect()
+          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
+            over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), left: Math.round(r.x), w: Math.round(r.width), right: Math.round(r.right), html: String(el.outerHTML || '').slice(0, 140) })
+          }
+        })
+        var text = (doc.body && doc.body.innerText) || ''
+        return {
+          innerWidth: win.innerWidth,
+          docScrollWidth: doc.documentElement.scrollWidth,
+          docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
+          overflowingCount: over.length,
+          overflowing: over.slice(0, 12),
+          missingTexts: needText.filter(function (t) { return text.indexOf(t) === -1 }),
+          pageBg: colorOf(doc, win, '.qs', 'backgroundColor'),
+          page: rect(doc, '.qs'),
+          nav: rect(doc, '.qs__nav'),
+          navPad: colorOf(doc, win, '.qs__nav', 'padding'),
+          navBack: rect(doc, '[data-testid="back"]'),
+          navClose: rect(doc, '[data-testid="close"]'),
+          navTitle: textOf(doc, '[data-testid="nav-title"]'),
+          navTitleStyle: styleOf(doc, win, '.nav__title'),
+          navSubtitle: textOf(doc, '[data-testid="nav-subtitle"]'),
+          navSubtitleStyle: styleOf(doc, win, '.nav__subtitle'),
+          bodyPad: colorOf(doc, win, '.qs__body', 'padding'),
+          bodyGap: colorOf(doc, win, '.qs__body', 'gap'),
+          successCard: rect(doc, '[data-testid="success-card"]'),
+          successPad: colorOf(doc, win, '.succ', 'padding'),
+          successIcon: rect(doc, '.succ__icon'),
+          successIconBg: colorOf(doc, win, '.succ__icon', 'backgroundColor'),
+          successTitle: rect(doc, '[data-testid="success-title"]'),
+          successTitleStyle: styleOf(doc, win, '.succ__title'),
+          successDesc: rect(doc, '[data-testid="success-desc"]'),
+          noBar: rect(doc, '[data-testid="quote-no-bar"]'),
+          noBarPad: colorOf(doc, win, '.no-bar', 'padding'),
+          noBarBg: colorOf(doc, win, '.no-bar', 'backgroundColor'),
+          noBarRing: styleOf(doc, win, '.no-bar').boxShadow,
+          noBarLabel: rect(doc, '[data-testid="quote-no-label"]'),
+          noBarValue: rect(doc, '[data-testid="quote-no-value"]'),
+          noBarValueText: textOf(doc, '[data-testid="quote-no-value"]'),
+          noBarValueStyle: styleOf(doc, win, '.no-bar__value'),
+          copyBtn: rect(doc, '[data-testid="copy"]'),
+          copyBtnBg: colorOf(doc, win, '.no-bar__copy', 'backgroundColor'),
+          copyText: textOf(doc, '[data-testid="copy"]'),
+          summaryCard: rect(doc, '[data-testid="summary-card"]'),
+          summaryTitle: textOf(doc, '[data-testid="summary-title"]'),
+          summaryHead: rect(doc, '.card__head'),
+          rows: rects(doc, '.srow'),
+          rowNameText: textOf(doc, '[data-testid="row-name"]'),
+          rowCredText: textOf(doc, '[data-testid="row-cred"]'),
+          rowModelsText: textOf(doc, '[data-testid="row-models"]'),
+          rowNoText: textOf(doc, '[data-testid="row-no"]'),
+          rowStatusText: textOf(doc, '[data-testid="row-status"]'),
+          envTag: rect(doc, '.env-chip'),
+          envTagText: textOf(doc, '[data-testid="cred-env-tag"]'),
+          envTagBg: colorOf(doc, win, '.env-chip', 'backgroundColor'),
+          maskText: textOf(doc, '[data-testid="cred-mask"]'),
+          maskStyle: styleOf(doc, win, '[data-testid="cred-mask"]'),
+          countChip: rect(doc, '.count-chip'),
+          countChipText: textOf(doc, '.count-chip__text'),
+          countChipBg: colorOf(doc, win, '.count-chip', 'backgroundColor'),
+          checkIcon: rect(doc, '.ic-check-sm'),
+          checkIconColor: colorOf(doc, win, '.ic-check-sm', 'borderLeftColor'),
+          statusChip: rect(doc, '[data-testid="status-chip"]'),
+          statusChipBox: rect(doc, '.status-chip'),
+          statusChipBg: colorOf(doc, win, '.status-chip', 'backgroundColor'),
+          statusDot: rect(doc, '.status-chip__dot'),
+          statusDotBg: colorOf(doc, win, '.status-chip__dot', 'backgroundColor'),
+          statusText: textOf(doc, '[data-testid="status-chip"]'),
+          modelsCard: rect(doc, '[data-testid="models-card"]'),
+          modelCardTitle: textOf(doc, '[data-testid="model-card-title"]'),
+          modelCount: textOf(doc, '[data-testid="model-count"]'),
+          modelCountStyle: styleOf(doc, win, '.head__count'),
+          tagsWrapPad: colorOf(doc, win, '.tags__wrap', 'padding'),
+          tagsWrap2Pad: colorOf(doc, win, '.tags__wrap--2', 'padding'),
+          tags: rects(doc, '.tag'),
+          tagsText: texts(doc, '.tag__text'),
+          tagsSelected: all(doc, '.tag').map(function (e) { return e.getAttribute('data-selected') }),
+          tagOnBg: colorOf(doc, win, '.tag--on', 'backgroundColor'),
+          tagOffBg: colorOf(doc, win, '.tag--off', 'backgroundColor'),
+          tipCard: rect(doc, '[data-testid="tip-card"]'),
+          tipBg: colorOf(doc, win, '.tip', 'backgroundColor'),
+          tipPad: colorOf(doc, win, '.tip', 'padding'),
+          tipText: rect(doc, '[data-testid="tip"]'),
+          tipTextStyle: styleOf(doc, win, '.tip__text'),
+          bar: rect(doc, '.qs__bar'),
+          barPad: colorOf(doc, win, '.qs__bar', 'padding'),
+          primaryBtn: rect(doc, '[data-testid="btn-primary"]'),
+          primaryBtnBg: colorOf(doc, win, '[data-testid="btn-primary"]', 'backgroundColor'),
+          primaryText: textOf(doc, '[data-testid="btn-primary"]'),
+          secondaryBtn: rect(doc, '[data-testid="btn-secondary"]'),
+          secondaryRing: styleOf(doc, win, '[data-testid="btn-secondary"]').boxShadow,
+          inputCount: all(doc, 'input,textarea').length,
+          tabbarExists: !!doc.querySelector('.tabbar'),
+          userAgent: win.navigator.userAgent
+        }
+      }
+
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
+
+      function collect1() {
+        try {
+          var payload = collect(f.contentDocument, f.contentWindow)
+          f.style.height = payload.docScrollHeight + 'px'
+          acc.iframeHeightForShot = payload.docScrollHeight
+          sink(1, payload)
+          return payload
+        } catch (e) {
+          sink(1, { error: String(e && e.message) })
+          return null
+        }
+      }
+
+      function clickIn(sel) {
+        var doc = f.contentDocument
+        var el = doc.querySelector(sel)
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+      function toastText(doc) {
+        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
+        return el ? el.textContent.trim() : ''
+      }
+      function hashNow() { try { return String(f.contentWindow.location.hash) } catch (e) { return 'ERR:' + e.message } }
+
+      function waitFor(sel, maxTries) {
+        return new Promise(function (resolve) {
+          var n = 0
+          function tick() {
+            n++
+            var ok = false
+            try { ok = !!f.contentDocument.querySelector(sel) } catch (e) { ok = false }
+            if (ok) return resolve('READY(tries=' + n + ')')
+            if (n >= (maxTries || 40)) return resolve('TIMEOUT(tries=' + n + ')')
+            setTimeout(tick, 200)
+          }
+          tick()
+        })
+      }
+
+      function scenario() {
+        var m = location.search.match(/scenario=([a-z]+)/)
+        return m ? m[1] : ''
+      }
+
+      async function main() {
+        await waitFor('[data-testid="success-card"]')
+        await sleep(1200)
+        collect1()
+        var sc = scenario()
+        if (!sc || location.search.indexOf('noaction') !== -1) return
+
+        if (sc === 'copy') {
+          /* 无头 Chrome 里剪贴板读写受权限限制且 click 非可信事件 → 拦在 iframe 内的
+             navigator.clipboard.writeText / document.execCommand('copy') 上记值（uni H5 只走这两条路），
+             仍是真实页面调用链，只是把浏览器剪贴板 API 换成记录器。 */
+          var w = f.contentWindow
+          var rec = ''
+          var execRec = ''
+          try {
+            Object.defineProperty(w.navigator, 'clipboard', {
+              configurable: true,
+              value: { writeText: function (t) { rec = String(t); return Promise.resolve() } }
+            })
+          } catch (e) { rec = 'PATCH_ERR:' + (e && e.message) }
+          try {
+            var origExec = w.document.execCommand.bind(w.document)
+            w.document.execCommand = function (cmd) { execRec += cmd + ';'; return origExec(cmd) }
+          } catch (e) { execRec = 'EXEC_PATCH_ERR' }
+          var clicked = clickIn('[data-testid="copy"]')
+          await sleep(1300)
+          var clip = ''
+          try { clip = await f.contentWindow.navigator.clipboard.readText() } catch (e) { clip = 'READ_ERR' }
+          sink(2, { scenario: sc, clicked: clicked, clipboardWrite: rec, execCommand: execRec, clipboardRead: clip, toast: toastText(f.contentDocument) })
+          return
+        }
+
+        if (sc === 'primary') {
+          var c1 = clickIn('[data-testid="btn-primary"]')
+          await sleep(1500)
+          sink(2, { scenario: sc, clicked: c1, hash: hashNow() })
+          return
+        }
+
+        if (sc === 'secondary' || sc === 'close') {
+          var sel = sc === 'close' ? '[data-testid="close"]' : '[data-testid="btn-secondary"]'
+          var c2 = clickIn(sel)
+          await sleep(1500)
+          sink(2, { scenario: sc, clicked: c2, hash: hashNow() })
+          return
+        }
+
+        if (sc === 'back') {
+          var c3 = clickIn('[data-testid="back"]')
+          await sleep(1200)
+          sink(2, { scenario: sc, clicked: c3, hash: hashNow() })
+          return
+        }
+      }
+      main()
+    </script>
+  </body>
+</html>

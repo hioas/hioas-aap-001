@@ -97,6 +97,17 @@ const uniStub = {
   navigateBack(options: Record<string, unknown> = {}) {
     record('navigateBack', [options])
   },
+  // 序号 12-v3（保存成功页）：关闭 / 返回报价单列表用 reLaunch 清栈
+  reLaunch(options: Record<string, unknown>) {
+    record('reLaunch', [options])
+  },
+  // 序号 12-v3：复制报价单号
+  setClipboardData(options: Record<string, unknown>) {
+    record('setClipboardData', [options])
+    const success = options.success as ((r: unknown) => void) | undefined
+    // uni.setClipboardData 是异步的：用微任务模拟（与 request/showModal 一致）
+    Promise.resolve().then(() => success?.({ errMsg: 'setClipboardData:ok' }))
+  },
   showModal(options: Record<string, unknown>) {
     record('showModal', [options])
     const success = options.success as ((r: unknown) => void) | undefined

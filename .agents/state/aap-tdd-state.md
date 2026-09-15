@@ -64,7 +64,50 @@ LEASE: free until -
 
 ## 4. 进度（细表看台账 CSV，这里只留能力组）
 
-🟢 本轮（2026-09-16 04:10~04:35，租约 aap-tdd-run-20260916-0410 → 已释放）· **序号 12-v2「新增报价单-APIKey 下拉展开」（page-apikey）收口**：
+🟢 本轮（2026-09-16 04:35~05:00，租约 aap-tdd-run-20260916-0435 → 已释放）· **序号 12-v3「新增报价单-保存成功」（page-29）收口**：
+- **取件**：`list-pending.py` 最小未完成 = 12-v3（page-29，/pages/quote-form/success，台账「设计否」）；开工前 `git status` 干净、`git log -1` = 04:31 的 12-v2 提交 → 空闲租约，写成本轮 id + 45 分钟（中途续到 06:05）。
+- **Calicat 侧**：`cmd /c start` 拉起编辑器后 `page` 一次成功；设计树 41KB + 截图 **430×1018（1:1 帧图）** 已抓；`interaction.json` 仍是「不存在图层交互数据」→ 交互真源退 PRD 10/15/17-spec/18-API + 设计稿控件语义。
+  **先用 `cmp-frames.py page-26 page-29` 判同页/异页** → 逐层 diff 显示结构完全不同（成功头部卡 / 结果摘要卡 / 带出模型卡 / 提示卡 vs 步骤卡 / 基本信息卡…）
+  → **不是同页帧，新写页面**（没有套 12-v1/v2 的 variant 机制）。
+- **这页到底是什么**：无 TabBar 的「报价单创建成功」结果页（设计总高 1018）：
+  顶栏（返回 36 圆 /「报价单已创建」18px Bold +「报价单号已自动生成」12px / 关闭 36 圆）·
+  成功头部卡（64 绿圆勾 + 「报价单创建成功」+「已保存基本信息并带出模型清单」+ 单号展示条〔「报价单号」11px + 17px 蓝单号 + 复制按钮 h32 #EFF6FF〕）·
+  结果摘要卡 5 行（报价单名称 / 凭证名称〔环境小标 h18 #EFF6FF + 脱敏 key〕/ 参与报价模型〔「已勾选 N 个」h18 #ECFDF5〕/ 报价单号〔绿勾 + 蓝字〕/ 当前状态〔灰点 7×6 + 「草稿」h20 #F1F5F9〕）·
+  带出模型卡（「已带出模型」+「共 5 个 / 勾选 3 个」+ 两行标签：勾选 3 个蓝底 #EFF6FF / 未勾选 2 个灰底 #F8FAFC）·
+  下一步提示卡（图标 + 「下一步可为勾选模型设置输入/输出单价，设置完成即可提交审核。」#EFF6FF）·
+  底栏「继续设置模型报价」398×48 #2563EB + 「返回报价单列表」398×48 幽灵。
+- **TDD（3 切片 + 1 次补红；新增 37 例）**：`tests/unit/quote-success-model.spec.ts`(20) · `tests/pages/quote-success.spec.ts`(9) · `tests/pages/quote-success-flow.spec.ts`(8)；
+  红基线 `evidence/red-序号12-v3-切片1.txt`（`Failed to resolve import @/utils/quote-success-model`）· `切片2.txt`（同页组件缺失）· `切片3.txt`（**7 条真红**：`expected [] to have a length of 1` / `expected [] to deeply equal ['/pages/model-pricing/index?quoteId=q9']`）；
+  绿 **807/807 连跑两轮一致**（`evidence/green-序号12-v3-轮1/轮2/轮3.txt`）+ `npm run type-check` **exit 0**。
+- **切片3 的红是「先删实现再看红」拿到的**：第一遍把页面连交互一起写完 → 为守铁律，把 5 个 `@tap` 绑定与 5 个 handler 从页面里**删掉**再跑切片3（7 失败）→ 从快照恢复 → 8/8 绿。**新规矩：交互切片也要先看红，别因为「顺手写完了」就跳过。**
+- **由类型门禁抓到的真错**：`npm run type-check` 报 `TS2322: '"void"' is not assignable to type 'QuoteChipKey | "unknown"'`（`SuccessStatus.key` 少了 `'void'`）→ 补红断言 `resolveStatus('VOID')` 后修类型 → exit 0。
+- **由 DOM 数字抓到的真偏差（vision/肉眼完全看不出）**：首轮 摘要卡 **218**（设计 250）、模型卡 **100**（设计 132）、页高 **954**（设计 1018）——
+  根因 = **两张卡片的内边距 16 没写**（`.card` 只给了背景与圆角；`.succ` 自己有 28/16 所以成功卡没露馅），两卡各 -32。修后逐值相等：
+  页高 **1018 = 设计** · 成功头部卡 118..374(256) · 摘要卡 390..640(250) · 模型卡 656..788(132) · 提示卡 804..852(48) · 底栏 872..1018(146)。
+  **判定法：`rects(doc,'.srow')` 逐行量行盒（38/38/38/40/30）比量整卡更快定位「少了 padding 还是少了行」——行对了而卡矮 = 卡片内边距问题。**
+- **客观证据链**：`build:mp-weixin` 产出 `pages/quote-form/{success.js,success.json,success.wxml,success.wxss}`（app.json 已注册 quote-form/success）；
+  430 宽 iframe + 无头 Chrome 实测 `evidence/measure-序号12-v3-run2.json`：`innerWidth 430` · `docScrollWidth 430` · 溢出 **0** · 文案缺失 **[]（need 27 条设计原文）** ·
+  摘要 5 行 440/478/516/554/594 · 环境小标 488..506(h18) · 模型数标 526..544(h18) · 状态标 604..624(h20) + 点 7×6 · 标签两行 708..736 / 744..772（x32/102/203 与 x32/149）·
+  单号条 284..346(62,x32..398) · 复制按钮 x320..384 h32 · 主/次按钮 884..932 / 942..990 · 无 TabBar · 无输入控件；
+  **run2/run3 两次独立测量 86 字段全等**（`cmp-measure-runs.py`，0 差异）；**像素对账**（`text-rows.py` 同脚本跑设计与实现）：结果摘要标题行/名称行/模型数行/状态行/标签两行/主按钮 **10 行 0 差**，其余 ±1~2；
+  `png-ink` 顶部带 runs=[(64,80),(82,99),(102,115),(119,133),(136,152),(154,171)] vs 设计 [(64,80),(82,98),(102,115),(119,132),(136,148),(150,152),(155,170)]（右留白 258 vs 259，无载体污染）· 底栏带 [(16,413)] = 设计；
+  截图 `logs/screenshots/20260916-0455-序号12-v3-保存成功-h5-430宽.png`（430×1018）；修前偏差留证 `evidence/measure-序号12-v3-run1.json`。
+  **浏览器内真实交互（scenario 逐个回放，新增载体页 `__measure-quote-success.html` + 独立 mock 集 `api-12-v3/`）**：
+  copy → iframe 内实测 **`navigator.clipboard.writeText('QT-20240615-0007')`** + toast「报价单号已复制」（`evidence/measure-序号12-v3-copy.json`）·
+  primary → hash **`#/pages/model-pricing/index?quoteId=q9`** · secondary / close → **`#/pages/quotes/index`** · back → hash 不变（navigateBack 无栈）·
+  `serve-5245.log` 实测 **14 次 `GET /api/v1/quotes/q9` + 13 次 `GET /api/v1/credentials/c1`，0 条写请求**（本页只读）。
+- ⚠️ 待人类拍板（不阻塞本轮，12 条全部写进台账序号 12-v3 备注）：①**入口未接线**：画布 page-29 是「保存成功」页，但 12-v1/12-v2 的「保存并继续」现仍直跳模型定价页（= 12-v1 备注④）
+  → 本轮按「不回炉已验收页面」只实现本页（支持 `?quoteId=` / storage 直接进入），**是否改保存落点需拍板**；②18-API 只列路径 → GET 方法与字段名（name/title/quote_name、credential_alias、api_key_mask…）为推断（容错读取）；
+  ③「共 M 个 / 勾选 N 个」两个数字来源未定义（M=model_list 长度或明细行数；N=明细行数或 model_list.selected）；④环境小标「生产环境」在 22 份 PRD 零命中 → 消费 env_tag，缺则不渲染；
+  ⑤凭证别名在本帧无位置 → 仅在脱敏 key 缺失时兜底；⑥关闭/返回列表同落 /pages/quotes/index（reLaunch 清栈）为推断；⑦复制/无单号 toast 文案为占位；
+  ⑧**设计帧自相矛盾**：单号信息固定 155 宽装不下 17px 单号（设计帧末位折行）→ 实现单行渲染；⑨图标 CSS 占位（复制按钮宽 64 vs 设计 70）；⑩状态胶囊复用序号 8 STATUS_META，VOID 走中性灰「作废」。
+
+⏳ 下一步（下一轮）：台账序号 **15「合同签署 2」**（page-15-2，`/pages/contract/index`）——**设计尚未抓取**（台账「设计否」），
+  先 `python .agents/state/fetch-design.py page-15-2` 与 `calicat_source.py page --layer-id <inventory 的 sourceLayerId> --page-id page-15-2`，再按 §2 八步走；
+  可复用本轮：`__measure-quote-success.html` 载体模板（`?scenario=` 逐个回放出口 + `#sink` 隐藏取数区）、`serve.py`（先 `curl` 验 mock 内容）、`cmp-measure-runs.py`（两次独立测量逐字段比对）、
+  `text-rows.py` 同脚本跑设计与实现做像素对账、`png-ink` 顶部/底栏带核验；**新规矩：交互切片也先删实现看红再写**（见本轮切片3）。
+
+🟢 上一轮（2026-09-16 04:10~04:35，租约 aap-tdd-run-20260916-0410 → 已释放）· **序号 12-v2「新增报价单-APIKey 下拉展开」（page-apikey）收口**：
 - **取件**：`list-pending.py` 最小未完成 = 12-v2（page-apikey，/pages/quote-form/apikey）；开工前 `git status` 仅 1 个未跟踪临时文件、`git log -1` = 04:04 的 12-v1 提交 → 空闲租约，写成本轮 id + 45 分钟。
 - **Calicat 侧**：`page` 先报「请先在浏览器中打开文件」→ `cmd /c start "" <design-url>` 拉起后一次成功；设计树（95KB / 108 节点）+ 截图 **430×1129（1:1 帧图）** 已抓；`interaction.json` 仍是「不存在图层交互数据」→ 交互真源退 10-PRD §5.1 / 15-数据字典 / 17-spec / 18-API + 设计稿控件语义。
   **新增可复用工具**：`fetch-design.py <page-id>`（下载设计帧 PNG 到 ASCII 临时路径并打印宽高 —— 之前每轮都要临时写下载脚本）· `cmp-frames.py <pageA> <pageB>`（逐层比对两帧设计树，输出子节点数量/名称差异）·

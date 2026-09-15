@@ -1,0 +1,174 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+ [31m❯[39m tests/pages/quote-success-flow.spec.ts [2m([22m[2m8 tests[22m[2m | [22m[31m7 failed[39m[2m)[22m[90m 156[2mms[22m[39m
+[31m   [31m×[31m 序号 12-v3 · 复制报价单号（client-only）[2m > [22m点「复制」→ setClipboardData(单号) 且 toast「报价单号已复制」[90m 69[2mms[22m[31m[39m
+[31m     → expected [] to have a length of 1 but got +0[39m
+[31m   [31m×[31m 序号 12-v3 · 复制报价单号（client-only）[2m > [22m无单号（无 quoteId 直接进入）→ 不写剪贴板，只提示（不复制空串）[90m 18[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ '暂无可复制的报价单号' ][39m
+[31m   [31m×[31m 序号 12-v3 · 导航（设计稿三个出口）[2m > [22m「继续设置模型报价」→ navigateTo /pages/model-pricing/index?quoteId=q9[90m 14[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ Array(1) ][39m
+[31m   [31m×[31m 序号 12-v3 · 导航（设计稿三个出口）[2m > [22m无 quoteId 时「继续设置模型报价」→ 不带 query 的模型定价页[90m 9[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ '/pages/model-pricing/index' ][39m
+[31m   [31m×[31m 序号 12-v3 · 导航（设计稿三个出口）[2m > [22m「返回报价单列表」→ reLaunch /pages/quotes/index（清栈，不回表单页）[90m 16[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ '/pages/quotes/index' ][39m
+[31m   [31m×[31m 序号 12-v3 · 导航（设计稿三个出口）[2m > [22m关闭（×）→ reLaunch /pages/quotes/index（与「返回报价单列表」同目标）[90m 9[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ '/pages/quotes/index' ][39m
+[31m   [31m×[31m 序号 12-v3 · 导航（设计稿三个出口）[2m > [22m返回（←）→ navigateBack(delta 1)[90m 11[2mms[22m[31m[39m
+[31m     → expected [] to have a length of 1 but got +0[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 7 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-success-flow.spec.ts[2m > [22m序号 12-v3 · 复制报价单号（client-only）[2m > [22m点「复制」→ setClipboardData(单号) 且 toast「报价单号已复制」
+[31m[1mAssertionError[22m: expected [] to have a length of 1 but got +0[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/pages/quote-success-flow.spec.ts:[2m69:19[22m[39m
+    [90m 67| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'copy'[39m)
+    [90m 68| [39m    [35mconst[39m calls [33m=[39m [34mgetCalls[39m([32m'setClipboardData'[39m)
+    [90m 69| [39m    [34mexpect[39m(calls)[33m.[39m[34mtoHaveLength[39m([34m1[39m)
+    [90m   | [39m                  [31m^[39m
+    [90m 70| [39m    [34mexpect[39m((calls[[34m0[39m][33m.[39margs[[34m0[39m] [35mas[39m [33mRecord[39m[33m<[39mstring[33m,[39m unknown[33m>[39m)[33m.[39mdata)[33m.[39m[34mtoBe[39m([32m'Q[39m…
+    [90m 71| [39m    [34mexpect[39m([34mtoasts[39m())[33m.[39m[34mtoEqual[39m([[32m'报价单号已复制'[39m])
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-success-flow.spec.ts[2m > [22m序号 12-v3 · 复制报价单号（client-only）[2m > [22m无单号（无 quoteId 直接进入）→ 不写剪贴板，只提示（不复制空串）
+[31m[1mAssertionError[22m: expected [] to deeply equal [ '暂无可复制的报价单号' ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [[39m
+[32m-   "暂无可复制的报价单号",[39m
+[32m- ][39m
+[31m+ Array [][39m
+
+[36m [2m❯[22m tests/pages/quote-success-flow.spec.ts:[2m79:22[22m[39m
+    [90m 77| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'copy'[39m)
+    [90m 78| [39m    [34mexpect[39m([34mgetCalls[39m([32m'setClipboardData'[39m))[33m.[39m[34mtoHaveLength[39m([34m0[39m)
+    [90m 79| [39m    [34mexpect[39m([34mtoasts[39m())[33m.[39m[34mtoEqual[39m([[32m'暂无可复制的报价单号'[39m])
+    [90m   | [39m                     [31m^[39m
+    [90m 80| [39m  })
+    [90m 81| [39m})
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-success-flow.spec.ts[2m > [22m序号 12-v3 · 导航（设计稿三个出口）[2m > [22m「继续设置模型报价」→ navigateTo /pages/model-pricing/index?quoteId=q9
+[31m[1mAssertionError[22m: expected [] to deeply equal [ Array(1) ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [[39m
+[32m-   "/pages/model-pricing/index?quoteId=q9",[39m
+[32m- ][39m
+[31m+ Array [][39m
+
+[36m [2m❯[22m tests/pages/quote-success-flow.spec.ts:[2m87:23[22m[39m
+    [90m 85| [39m    [35mconst[39m wrapper [33m=[39m [35mawait[39m [34mmountLoaded[39m()
+    [90m 86| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'btn-primary'[39m)
+    [90m 87| [39m    [34mexpect[39m([34mnavUrls[39m())[33m.[39m[34mtoEqual[39m([[32m'/pages/model-pricing/index?quoteId=q9'[39m…
+    [90m   | [39m                      [31m^[39m
+    [90m 88| [39m  })
+    [90m 89| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-success-flow.spec.ts[2m > [22m序号 12-v3 · 导航（设计稿三个出口）[2m > [22m无 quoteId 时「继续设置模型报价」→ 不带 query 的模型定价页
+[31m[1mAssertionError[22m: expected [] to deeply equal [ '/pages/model-pricing/index' ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [[39m
+[32m-   "/pages/model-pricing/index",[39m
+[32m- ][39m
+[31m+ Array [][39m
+
+[36m [2m❯[22m tests/pages/quote-success-flow.spec.ts:[2m94:23[22m[39m
+    [90m 92| [39m    [35mawait[39m [34mflushPromises[39m()
+    [90m 93| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'btn-primary'[39m)
+    [90m 94| [39m    [34mexpect[39m([34mnavUrls[39m())[33m.[39m[34mtoEqual[39m([[32m'/pages/model-pricing/index'[39m])
+    [90m   | [39m                      [31m^[39m
+    [90m 95| [39m  })
+    [90m 96| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-success-flow.spec.ts[2m > [22m序号 12-v3 · 导航（设计稿三个出口）[2m > [22m「返回报价单列表」→ reLaunch /pages/quotes/index（清栈，不回表单页）
+[31m[1mAssertionError[22m: expected [] to deeply equal [ '/pages/quotes/index' ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [[39m
+[32m-   "/pages/quotes/index",[39m
+[32m- ][39m
+[31m+ Array [][39m
+
+[36m [2m❯[22m tests/pages/quote-success-flow.spec.ts:[2m100:28[22m[39m
+    [90m 98| [39m    [35mconst[39m wrapper [33m=[39m [35mawait[39m [34mmountLoaded[39m()
+    [90m 99| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'btn-secondary'[39m)
+    [90m100| [39m    [34mexpect[39m([34mrelaunchUrls[39m())[33m.[39m[34mtoEqual[39m([[32m'/pages/quotes/index'[39m])
+    [90m   | [39m                           [31m^[39m
+    [90m101| [39m  })
+    [90m102| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-success-flow.spec.ts[2m > [22m序号 12-v3 · 导航（设计稿三个出口）[2m > [22m关闭（×）→ reLaunch /pages/quotes/index（与「返回报价单列表」同目标）
+[31m[1mAssertionError[22m: expected [] to deeply equal [ '/pages/quotes/index' ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [[39m
+[32m-   "/pages/quotes/index",[39m
+[32m- ][39m
+[31m+ Array [][39m
+
+[36m [2m❯[22m tests/pages/quote-success-flow.spec.ts:[2m106:28[22m[39m
+    [90m104| [39m    [35mconst[39m wrapper [33m=[39m [35mawait[39m [34mmountLoaded[39m()
+    [90m105| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'close'[39m)
+    [90m106| [39m    [34mexpect[39m([34mrelaunchUrls[39m())[33m.[39m[34mtoEqual[39m([[32m'/pages/quotes/index'[39m])
+    [90m   | [39m                           [31m^[39m
+    [90m107| [39m  })
+    [90m108| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-success-flow.spec.ts[2m > [22m序号 12-v3 · 导航（设计稿三个出口）[2m > [22m返回（←）→ navigateBack(delta 1)
+[31m[1mAssertionError[22m: expected [] to have a length of 1 but got +0[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/pages/quote-success-flow.spec.ts:[2m112:38[22m[39m
+    [90m110| [39m    [35mconst[39m wrapper [33m=[39m [35mawait[39m [34mmountLoaded[39m()
+    [90m111| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'back'[39m)
+    [90m112| [39m    [34mexpect[39m([34mgetCalls[39m([32m'navigateBack'[39m))[33m.[39m[34mtoHaveLength[39m([34m1[39m)
+    [90m   | [39m                                     [31m^[39m
+    [90m113| [39m    [34mexpect[39m(([34mgetCalls[39m([32m'navigateBack'[39m)[[34m0[39m][33m.[39margs[[34m0[39m] [35mas[39m [33mRecord[39m[33m<[39mstring[33m,[39m unkn…
+    [90m114| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m7 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (8)[39m
+[2m   Start at [22m 04:43:22
+[2m   Duration [22m 1.75s[2m (transform 466ms, setup 45ms, collect 652ms, tests 156ms, environment 563ms, prepare 104ms)[22m
+
