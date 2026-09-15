@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html><head>
+    <meta charset="utf-8">
+    <title>measure</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      pre { white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <!-- 用 430px 宽的 iframe 模拟小程序视口，测真实布局溢出（vision 只能猜，这里给数字） -->
+    <iframe id="f" src="/index.html"></iframe>
+    <pre id="m">MEASURE_JSON:{"innerWidth":430,"docScrollWidth":415,"bodyScrollWidth":415,"rects":{".login-page":{"x":0,"w":415,"right":415},".brand":{"x":0,"w":415,"right":415},".card":{"x":16,"w":383,"right":399},".field__box":{"x":36,"w":343,"right":379},".captcha":{"x":294,"w":72,"right":366},".sms-btn":{"x":277,"w":89,"right":366},".submit":{"x":36,"w":343,"right":379},".wechat":{"x":36,"w":343,"right":379},".agree__box":{"x":36,"w":18,"right":54}},"overflowingCount":0,"overflowing":[],"texts":{"captcha":"A7K9","smsBtn":"获取验证码","disclaimer":"本平台仅提供 API 接入检测与报价撮合服务，不对供应商上游资源合法性及稳定性作担保，请如实提交资料。"}}</pre>
+    <script>
+      function collect(doc, win) {
+        const over = []
+        doc.querySelectorAll('*').forEach((el) => {
+          const r = el.getBoundingClientRect()
+          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
+            over.push({
+              tag: el.tagName,
+              cls: String(el.className || '').slice(0, 70),
+              x: Math.round(r.x),
+              right: Math.round(r.right),
+              w: Math.round(r.width)
+            })
+          }
+        })
+        const sel = ['.login-page', '.brand', '.card', '.field__box', '.captcha', '.sms-btn', '.submit', '.wechat', '.agree__box']
+        const rects = {}
+        for (const s of sel) {
+          const el = doc.querySelector(s)
+          if (el) {
+            const r = el.getBoundingClientRect()
+            rects[s] = { x: Math.round(r.x), w: Math.round(r.width), right: Math.round(r.right) }
+          }
+        }
+        return {
+          innerWidth: win.innerWidth,
+          docScrollWidth: doc.documentElement.scrollWidth,
+          bodyScrollWidth: doc.body.scrollWidth,
+          rects,
+          overflowingCount: over.length,
+          overflowing: over.slice(0, 20),
+          texts: {
+            captcha: (doc.querySelector('.captcha__text') || {}).textContent,
+            smsBtn: (doc.querySelector('.sms-btn__text') || {}).textContent,
+            disclaimer: ((doc.querySelector('.disclaimer__body') || {}).textContent || '').slice(0, 60)
+          }
+        }
+      }
+      setTimeout(function () {
+        try {
+          const f = document.getElementById('f')
+          const doc = f.contentDocument
+          const win = f.contentWindow
+          document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(collect(doc, win))
+        } catch (e) {
+          document.getElementById('m').textContent = 'MEASURE_JSON:{"error":"' + e.message + '"}'
+        }
+      }, 4000)
+    </script>
+  
+
+</body></html>
