@@ -137,6 +137,20 @@ vision 看到的「右侧贴边/缺字」是**截图假象**而非页面缺陷�
 4. **`--window-size` 不可靠**（见 4.1 第 1 条）+ 页面可滚动时，430×900 截图只覆盖文档前 900px：
    模型/vision 可能把「折叠区」误判成「被裁掉/被固定栏遮挡」→ 一律用 DOM（`docScrollHeight`、`atBottom` 断言）否定或确认。
 
+### 4.3 轮询型页面（检测进行中类）的取证补充（2026-09-16 序号 5）
+
+- 带轮询的页面，载体页做**两段测量**：`phase1`（首次加载后）与 `phase2`（跨过一次轮询间隔后），
+  两侧关键数字应**全等**——这既是「连跑两轮一致」的可视化版本，也能顺带证明轮询不会破坏布局。
+- 「轮询真的在发请求」不能只靠单测：`serve.py` 会打印每条访问日志，跑完看日志里是否出现**连续成对**
+  的 `GET /api/v1/...`（序号 5 实测成对出现）——这是比 mock 断言更硬的证据。
+- 模板：`.agents/state/h5-measure/__measure-detecting.html`（含 `#sink` 隐藏取数区 + 按 `docScrollHeight`
+  自动设置 iframe 高度，便于整页截图）。
+- **`unwrap-design.py` 的入参是页面 id（如 `page-5-2`），不是 `design.json` 路径** —— 传路径会拼成
+  `.calicat/raw/pages/.calicat/.../design.json/design.json` 直接报错。
+- 设计帧里**同一种卡片的内边距可能不同**（page-5-2 的提示卡片 c960eff4 是 `padding 16/20`，其余卡片是 `20`）
+  → 每张卡都要回 design.tree.json 看 padding，别用同一个 class 一把梭；这类偏差只能靠 DOM 数字发现
+  （vision 对 8px 差异无感）。
+
 ## 5. 页面实现顺序与取件
 
 ```bash

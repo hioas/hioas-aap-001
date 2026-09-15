@@ -64,6 +64,41 @@ LEASE: free
 
 ## 4. 进度（细表看台账 CSV，这里只留能力组）
 
+🟢 本轮（2026-09-16 01:00~01:14，租约 aap-tdd-run-20260916-0100 → 已释放）· **序号 5「检测进行中」（page-5-2）收口**：
+- **Calicat 侧**：`cmd /c start` 拉起编辑器后 page-5-2 设计树（129 图层）+ 截图已抓；
+  `interaction.json` 仍「不存在图层交互数据」→ 交互真源退 PRD 09/14/15/17-spec/18-API + 画布 30 页清单。
+- **这页到底是什么**：顶部（返回 / 「检测进行中」/「进行中」徽章 + 9×7 蓝点）· 总进度卡（「总进度」+「58%」+ 进度条 +
+  「已完成 7 / 12 个检测项」「预计剩余 42 分钟」+ 绿色成本保护块两行）· 分项检测 8 行三态（完成 / 进行中 / 排队中）·
+  提示卡 · 底部「查看历史检测报告」；**无 TabBar**、无固定底栏（底栏在文档流里）。
+- **TDD（3 个用例文件先红 → 到绿）**：`tests/unit/detection-api.spec.ts`(5) · `tests/unit/detecting-model.spec.ts`(12) ·
+  `tests/pages/detecting.spec.ts`(13)；红基线 = 3 个文件 `Failed to resolve import`（`evidence/red-序号5.txt`，
+  原 245 条不受影响）；实现 `src/api/detection.ts`、`src/utils/detecting-model.ts`、`src/pages/detecting/index.vue`、`pages.json` 路由；
+  绿 **275/275 连跑两轮一致**（`evidence/green-序号5.txt`）+ `npm run type-check` **exit 0**。
+  本页 **不需要新增 token**（14 个色值全部命中既有 `tokens.scss`）。
+- **客观证据链**：`build:mp-weixin` 产出 `dist/build/mp-weixin/pages/detecting/{index.js,index.json,index.wxml,index.wxss}`；
+  430 宽 iframe + 无头 Chrome **两段实测**（跨一次 5s 轮询）`evidence/measure-序号5-430宽.json`：
+  `docScrollWidth 430` · 溢出 0 · 文案缺失 0 · 行数 8 · 顶栏 h84 · 卡片 x16 w398 · 进度条 `x36 w358 h10`（轨道 rgb(226,232,240) /
+  填充 rgb(37,99,235) 宽 208 —— 设计 209）· 成本块 h52 bg rgb(236,253,245) · 图标块 32×32 三态色
+  rgb(236,253,245)/rgb(239,246,255)/rgb(248,250,252) · chip h22 文字色 rgb(21,128,61)/rgb(37,99,235)/rgb(100,116,139) ·
+  行间距 12（top 347→655 每行 44）· 提示卡 h68 · 底栏 h84 按钮 398×48 · 页面高 888；**phase1 与 phase2 关键数字全等**；
+  **真实轮询**由 `serve.py` 访问日志证实（连续成对 `GET /api/v1/detection-jobs/j1` + `/results`）；
+  像素墨迹核验顶部带/提示卡/底栏右留白 24/58/150 均未触边（顶部带仅返回箭头+标题+徽章 → 无载体页污染）。
+  截图 `logs/screenshots/20260916-0112-序号05-检测进行中-h5-430宽.png`。
+- **抓出的真偏差（由数字对比，非 vision）**：提示卡片 padding 误用 20（设计 c960eff4 为 **16/20**）→ 卡高 76 修正为 68；
+  `measure-序号5-修前430.json` 与修后对照留证。
+- ⚠️ 待人类拍板（不阻塞本轮，全部写进台账序号 5 备注）：①设计 8 行名（网络连通性…峰值并发压测）在 22 份 PRD **零命中**，
+  09-PRD §2 的 D1–D8 是 TTFT/P50 延迟/一致性/RPM/TPM/缓存命中/模型指纹/真实源 → 行名以服务端 probe_name 为准、缺失回退 PRD 短名；
+  ②设计「已完成 7 / 12 个检测项」与画布 8 行**不自洽** → 进度取服务端 `progress`（missing-prd）否则按条数派生；
+  ③17-spec ProbeStatus（SUCCESS/FAILED/SKIPPED/NOT_MEASURABLE）无 RUNNING/QUEUED，而设计有三态 → 映射字典 + 未覆盖状态原样直显；
+  ④`DetectionJob.status` 三份 PRD 三套枚举（15-数据字典 / 14-领域模型 / 17-spec）；⑤设计无完成/失败态 → 本页不自动跳报告页（待拍板）；
+  ⑥08-PRD 要求本页显示「已消耗 token 与成本」而设计稿无该区块 → 未实现（以设计稿为准）；⑦详情行度量摘要（「已通过 · 236ms」）
+  缺字段级定义（missing-prd）；⑧轮询间隔 5s 为前端取值（PRD 未定义，missing-prd）。
+
+⏳ 下一步（下一轮）：台账序号 **6「大模型检测报告 · 多维度专业版」**（page-6，`/pages/report/index`），按 §2 八步走；
+  测量可复用 `.agents/state/h5-measure/__measure-detecting.html` 模板与 `serve.py`（**记得 build:h5 之后重拷载体页**）。
+
+✅ 已于 2026-09-16 01:00~01:14 轮完成（见最上方本轮块；序号 5 现为「部分」，8 条待拍板已记台账）。
+
 🟢 本轮（2026-09-16 00:45~01:05，租约 aap-tdd-run-20260916-0045 → 已释放）· **序号 4-v1「接入凭证-表单」（page-24）收口**：
 - **取件规则修正**：`list-pending.py` 之前只把 `已验证` 当完成 → 「部分」行（1/2/3/4）每轮都被重新取到，与「别回炉」矛盾。
   已改为 `DONE = {已验证, 部分}`、`阻塞` 单独列出（本轮实测：待取件 17，最小未完成 = **序号 5**）。新增工具：
