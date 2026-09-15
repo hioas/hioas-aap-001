@@ -129,3 +129,12 @@ python .agents/state/gen-ledger.py             # 刷新台账（会保留已有�
 - npm 走 `registry.npmmirror.com`（已全局配置）；GitHub 直连慢，必要时 `export https_proxy=http://127.0.0.1:7897`（Clash Verge）。
 - 本机**未安装微信开发者工具**：小程序验收只到「编译产物存在 + H5 可视化」，
   真机/开发者工具导入由人类执行，汇报里要写清这一点。
+- ⚠️ **类型门禁曾长期空转（已修，2026-09-16）**：`package.json` 装 `typescript 4.9.5` + `vue-tsc 1.8.27`，
+  而 `@vue/tsconfig 0.5.1` 的基座是 TS5 语义（`moduleResolution: "bundler"` + `verbatimModuleSyntax`）。
+  TS4.9 不认 `bundler` → `resolveJsonModule` 直接抛
+  `TS5070: Option '--resolveJsonModule' cannot be specified without 'node' module resolution strategy`，
+  于是 `npm run type-check` **一条真实错误都报不出来**（配置错误先把门禁打断）。
+  **修法**：`tsconfig.json` 显式写 `"moduleResolution": "node"`；随后暴露的两条 `src/api/http.ts` 类型错误
+  按 `uni.request` 的真实类型对齐（uni 的 method 联合**不含 PATCH**；`res.data` 是 `string|AnyObject|ArrayBuffer`，
+  要经 `unknown` 转换）。**后续每页提交前都应跑 `npm run type-check`**，它现在真的会报错。
+  （根治可考虑升到 typescript@5 + vue-tsc@2，但那是依赖变更，需单独评估。）

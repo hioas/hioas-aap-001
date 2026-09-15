@@ -1,0 +1,32 @@
+# GREEN — 修复后 `npm run type-check` 与回归（2026-09-16 00:27，租约 aap-tdd-run-20260916-0025）
+
+修复内容：
+1. `aap-client/tsconfig.json` 增加 `"moduleResolution": "node"`（满足 `resolveJsonModule` 的前置条件）。
+2. `aap-client/src/api/http.ts`：
+   - `RequestOptions.method` 收窄为 `'GET' | 'POST' | 'PUT' | 'DELETE'`（与 `uni.request` 类型一致；PATCH 在 uni 类型里不存在，
+     仓库内亦无任何 PATCH 调用点 —— `rg PATCH src` 仅命中该类型声明本身）。
+   - `res.data` 改为经 `unknown` 的显式转换，并保留下方 `typeof body.code` 的运行时形状校验（行为不变）。
+
+`npm run type-check`：
+```
+> aap-client@0.1.0 type-check
+> vue-tsc --noEmit
+
+TYPECHECK_EXIT=0
+```
+
+回归 `npm test`（**类型修复不改变任何运行时行为**，用全量绿证明）：
+```
+ ✓ tests/unit/api-client.spec.ts (10 tests) 9ms
+ ✓ tests/pages/login.spec.ts (11 tests) 202ms
+ ✓ tests/pages/credentials.spec.ts (20 tests) 412ms
+ ✓ tests/pages/workbench.spec.ts (16 tests) 530ms
+ ✓ tests/unit/format.spec.ts (12 tests) 24ms
+ ✓ tests/unit/cooldown.spec.ts (6 tests) 6ms
+ ✓ tests/unit/validators.spec.ts (22 tests) 6ms
+
+ Test Files  9 passed (9)
+      Tests  129 passed (129)
+```
+
+结论：类型门禁自本轮起可用（此前 TS5070 使其空转），后续每页可把 `npm run type-check` 纳入提交前门禁。
