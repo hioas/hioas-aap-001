@@ -1,0 +1,21 @@
+/**
+ * 用量统计接口 — 依据 18-API设计OpenAPI.md「Usage」Tag
+ * GET /usage/hourly、/usage/summary（前缀 /api/v1）
+ * 响应字段见 src/utils/workbench-model.ts 顶部说明（字段级 schema 未在 18-API 定义，已记台账 missing-prd）。
+ */
+import { http } from './http'
+import type { UsageSummaryRaw } from '@/utils/workbench-model'
+
+export type { UsageModelRaw, UsageSummaryRaw } from '@/utils/workbench-model'
+
+export const usageApi = {
+  /** 本月用量汇总（工作台数据台） */
+  summary(params?: { startHour?: string; endHour?: string }) {
+    return http<UsageSummaryRaw>('/usage/summary', { method: 'GET', data: params })
+  },
+
+  /** 小时用量（对账明细页用，本页不调用） */
+  hourly(params?: Record<string, unknown>) {
+    return http<unknown>('/usage/hourly', { method: 'GET', data: params })
+  }
+}

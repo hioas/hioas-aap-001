@@ -75,6 +75,14 @@ python .agents/state/extract-tokens.py .calicat/raw/pages/<页面ID>/design.tree
 - `interaction.json` 返回 `"不存在图层交互数据"` 时，交互真源退到 PRD（写进台账备注，不要假装抓到了）。
 - 截图 URL 在 `screenshot.json`，用 `vision_analyze` 打开看图（模型看得见像素，别猜）。
 - **画布里的页面层必须在 Calicat 编辑器里打开过**，否则部分工具会返回空。
+- ⚠️ **设计类工具要求「文件已在浏览器中打开」**：`get_canvas_list` / `get_design_page_list` / `get_design_data` /
+  `get_meta_data` / `get_screenshots` 会统一返回 `{"error_message":"请先在浏览器中打开文件"}`（PRD 类工具 `get_prd_list`
+  不受影响）。cron/无头会话里不用找登录态、也不用重新 login，直接拉起默认浏览器打开设计 URL 即可恢复：
+  ```bash
+  export MSYS_NO_PATHCONV=1
+  cmd /c start "" "https://www.calicat.cn/design/<FILE_ID>"   # 打开后约 10~20s，设计类工具即可用
+  ```
+  验证：`calicat tools-call --name get_canvas_list --args '{"file_id":"<FILE_ID>"}'` 返回 `status:"success"`。
 
 ## 4.1 视觉验收：DOM 数字优先，模型描述只作参考
 

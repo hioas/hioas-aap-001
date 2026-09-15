@@ -1,5 +1,5 @@
 STATUS: RUNNING
-LEASE: free
+LEASE: aap-tdd-run-20260915-2347 until 2026-09-16 01:05
 
 # AAP TDD 推进 · 状态与目标（自驱动循环的单一事实来源）
 
@@ -63,6 +63,26 @@ LEASE: free
 8. cron 会话里 `python -c` / `node -e` / `execute_code` 可能被安全策略拦 → 脚本一律先 `write_file` 落成 `.py`/`.mjs` 再执行。
 
 ## 4. 进度（细表看台账 CSV，这里只留能力组）
+
+🟢 本轮（2026-09-15 23:47~2026-09-16 00:10，租约 aap-tdd-run-20260915-2347 → 已释放）· **序号 2「工作台 · 方案B 数据台」收口**：
+- **Calicat 侧**：设计类工具一开始全部报「请先在浏览器中打开文件」→ 定位为**编辑器会话前置条件**（PRD 类工具不受影响）；
+  用 `cmd /c start "" <design-url>` 拉起默认浏览器后恢复，`page-2-b` 设计树 + 截图已抓（`interaction.json` 仍无数据 → 交互退 PRD）。
+- **TDD**：红基线 16 失败/49 通过（`evidence/red-序号2.txt`）；实现 `src/utils/format.ts`、`src/utils/workbench-model.ts`、
+  `src/api/usage.ts`、`src/api/provider.ts`、重写 `src/pages/workbench/index.vue`；绿 **91/91 连跑两轮一致**（`evidence/green-序号2.txt`）。
+- **客观证据链**：`npm run build:mp-weixin` 产出 `dist/build/mp-weixin/pages/workbench/{js,json,wxml,wxss}`；
+  H5 + 无头 Chrome DOM 实测 `evidence/measure-序号2-修后.json`：`docScrollWidth 415 ≤ innerWidth 430`、`overflowingCount 0`、
+  `missingTexts []`、`modelRowCount 4`、数字与接口 mock 一致（3.86B / ¥54,200 / 合计 ¥128,640 · 4 个模型）；
+  截图 `logs/screenshots/20260916-0005-序号02-工作台-h5-修后.png`。
+- **修掉的真缺陷（由数字发现）**：底部 TabBar 原来在文档流里（`tabbarBottom 1128 vs innerHeight 900`）→ 改 `position: fixed` +
+  内容区 `padding-bottom:96px`，复测 `tabbarPinned true`。
+- ⚠️ **再次验证的教训**：`vision_analyze` 对 430 宽截图**继续误报**「顶部圆形头像被右边缘裁切」，
+  DOM 实测 `avatarRight 399 ≤ 430` 予以推翻 → 视觉验收一律以 `__measure.html` 数字为准。
+- ⚠️ 待人类确认（不阻塞本轮）：①`/usage/summary` 与 `/provider/profile` **字段级 schema 未在 18-API 定义**
+  （现按 15-数据字典 usage 域字段名映射，记 `missing-prd`）；②设计稿图例「音频 6%·0.23B + 视频 6%·0.23B」合计 106%（设计内部矛盾，按原样实现）；
+  ③「钱包」在设计画布无对应页面（现为 client-only toast）；④设计稿主色蓝 `#1D4ED8` vs PRD08 深青（沿用序号 1 的按设计实现）。
+
+⏳ 下一步（下一轮）：台账序号 3「凭证列表-有数据」（page-3，`/pages/credentials/index`），按 §2 八步走；
+  可复用 `.agents/state/h5-measure/`（measure 页 + mock 接口）做 DOM 数字验收。
 
 🟢 本轮（2026-09-15 23:20~23:45，租约 aap-tdd-run-20260915-2320 → 已释放）· **循环基础设施 + 序号 1 页面收口**：
 - **Calicat 侧**：CLI 已登录；技能已装进 Hermes（`AppData/Local/hermes/skills/calicat`）；

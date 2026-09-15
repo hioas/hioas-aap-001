@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-workbench</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      pre { white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <!-- 430x900 iframe 模拟小程序视口（内容高于视口）；只给 DOM 数字，不靠 vision 猜 -->
+    <iframe id="f" src="/index.html#/pages/workbench/index"></iframe>
+    <pre id="m">pending</pre>
+    <script>
+      function collect(doc, win) {
+        const over = []
+        doc.querySelectorAll('*').forEach((el) => {
+          const r = el.getBoundingClientRect()
+          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
+            over.push({
+              tag: el.tagName,
+              cls: String(el.className || '').slice(0, 70),
+              x: Math.round(r.x),
+              right: Math.round(r.right),
+              w: Math.round(r.width)
+            })
+          }
+        })
+        function rect(sel) {
+          const el = doc.querySelector(sel)
+          if (!el) return null
+          const r = el.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width) }
+        }
+        const text = (doc.body && doc.body.innerText) || ''
+        const need = [
+          '数据台 · ', '本月词元用量', '总词元', '输入词元', '输出词元', '缓存命中', '图片', '音频',
+          '视频', '调用请求', '缓存命中率', '模型调用量', '按收入贡献排序', '待处理', '全部',
+          '工作台', '报告', '报价', '我的', '评测', '合同', '钱包', '明细', '合计'
+        ]
+        const tabbar = rect('.tabbar')
+        const viewportH = win.innerHeight
+        return {
+          innerWidth: win.innerWidth,
+          innerHeight: viewportH,
+          docScrollWidth: doc.documentElement.scrollWidth,
+          docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
+          overflowingCount: over.length,
+          overflowing: over.slice(0, 20),
+          avatarRight: rect('.avatar') ? rect('.avatar').right : null,
+          todoChevronRight: rect('.todo__chevron') ? rect('.todo__chevron').right : null,
+          tabbarTop: tabbar ? tabbar.top : null,
+          tabbarBottom: tabbar ? tabbar.bottom : null,
+          // 断言：内容高于视口时，底部 TabBar 贴视口底部（±2px）
+          tabbarPinned: tabbar ? Math.abs(tabbar.bottom - viewportH) <= 2 : null,
+          lastCardBottom: rect('.card--todo') ? rect('.card--todo').bottom : null,
+          modelRowCount: doc.querySelectorAll('[data-testid="model-row"]').length,
+          barWidthPx: (function () {
+            const b = doc.querySelector('[data-testid="model-bar"]')
+            return b ? Math.round(b.getBoundingClientRect().width) : null
+          })(),
+          missingTexts: need.filter(function (t) { return text.indexOf(t) === -1 }),
+          numbers: {
+            total: (function () { const e = doc.querySelector('.ring__value'); return e ? e.textContent.trim() : null })(),
+            company: (function () { const e = doc.querySelector('.brand__company'); return e ? e.textContent.trim() : null })(),
+            date: (function () { const e = doc.querySelector('.brand__date'); return e ? e.textContent.trim() : null })(),
+            footer: (function () { const e = doc.querySelector('.model__footer'); return e ? e.textContent.trim() : null })()
+          }
+        }
+      }
+      setTimeout(function () {
+        try {
+          const f = document.getElementById('f')
+          document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(collect(f.contentDocument, f.contentWindow))
+        } catch (e) {
+          document.getElementById('m').textContent = 'MEASURE_JSON:{"error":"' + e.message + '"}'
+        }
+      }, 5000)
+    </script>
+  </body>
+</html>
