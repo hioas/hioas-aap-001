@@ -1,0 +1,41 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+ [31m❯[39m tests/unit/quote-form-model.spec.ts [2m([22m[2m20 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[90m 12[2mms[22m[39m
+[31m   [31m×[31m 序号 12-v1 · 行盒规则（设计 tree 声明 lineHeight 1.2 + 图标行盒 = 字号×1.5）[2m > [22m图标行盒 = 字号 × 1.5（page-10-1-2 实测规则；本页须知标题 18 → 27、底栏说明图标 13 → 19.5）[90m 4[2mms[22m[31m[39m
+[31m     → iconLineBox is not a function[39m
+[31m   [31m×[31m 序号 12-v1 · 行盒规则（设计 tree 声明 lineHeight 1.2 + 图标行盒 = 字号×1.5）[2m > [22m文本行盒 = 字号 × 1.2（本页 design.tree.json 全部文本节点 lineHeight=1.2）[90m 0[2mms[22m[31m[39m
+[31m     → textLineBox is not a function[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-form-model.spec.ts[2m > [22m序号 12-v1 · 行盒规则（设计 tree 声明 lineHeight 1.2 + 图标行盒 = 字号×1.5）[2m > [22m图标行盒 = 字号 × 1.5（page-10-1-2 实测规则；本页须知标题 18 → 27、底栏说明图标 13 → 19.5）
+[31m[1mTypeError[22m: iconLineBox is not a function[39m
+[36m [2m❯[22m tests/unit/quote-form-model.spec.ts:[2m154:12[22m[39m
+    [90m152| [39m[34mdescribe[39m([32m'序号 12-v1 · 行盒规则（设计 tree 声明 lineHeight 1.2 + 图标[39m…
+    [90m153| [39m  [34mit[39m([32m'图标行盒 = 字号 × 1.5（page-10-1-2 实测规则；本页须知标题 18 → 2[39m…
+    [90m154| [39m    [34mexpect[39m([34miconLineBox[39m([34m18[39m))[33m.[39m[34mtoBe[39m([34m27[39m)
+    [90m   | [39m           [31m^[39m
+    [90m155| [39m    [34mexpect[39m([34miconLineBox[39m([34m13[39m))[33m.[39m[34mtoBe[39m([34m19.5[39m)
+    [90m156| [39m    [34mexpect[39m([34miconLineBox[39m([34m15[39m))[33m.[39m[34mtoBe[39m([34m22.5[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-form-model.spec.ts[2m > [22m序号 12-v1 · 行盒规则（设计 tree 声明 lineHeight 1.2 + 图标行盒 = 字号×1.5）[2m > [22m文本行盒 = 字号 × 1.2（本页 design.tree.json 全部文本节点 lineHeight=1.2）
+[31m[1mTypeError[22m: textLineBox is not a function[39m
+[36m [2m❯[22m tests/unit/quote-form-model.spec.ts:[2m160:12[22m[39m
+    [90m158| [39m
+    [90m159| [39m  [34mit[39m([32m'文本行盒 = 字号 × 1.2（本页 design.tree.json 全部文本节点 lineHe[39m…
+    [90m160| [39m    [34mexpect[39m([34mtextLineBox[39m([34m11[39m))[33m.[39m[34mtoBeCloseTo[39m([34m13.2[39m[33m,[39m [34m5[39m)
+    [90m   | [39m           [31m^[39m
+    [90m161| [39m    [34mexpect[39m([34mtextLineBox[39m([34m12[39m))[33m.[39m[34mtoBeCloseTo[39m([34m14.4[39m[33m,[39m [34m5[39m)
+    [90m162| [39m    [34mexpect[39m([34mtextLineBox[39m([34m14[39m))[33m.[39m[34mtoBeCloseTo[39m([34m16.8[39m[33m,[39m [34m5[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m18 passed[39m[22m[90m (20)[39m
+[2m   Start at [22m 03:59:05
+[2m   Duration [22m 966ms[2m (transform 59ms, setup 41ms, collect 68ms, tests 12ms, environment 518ms, prepare 102ms)[22m
+

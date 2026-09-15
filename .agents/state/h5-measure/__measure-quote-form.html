@@ -1,0 +1,277 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-quote-form</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      /* 取数用 <pre> 包进 0 尺寸 overflow:hidden 容器：textContent 可读，但不渲染、不会被 --screenshot 截进图里 */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
+         页面 12-v1：/pages/quote-form/index（【报价管理】新增报价单-初始态，page-26）
+         设计基线（设计截图 1:1 · 430x1238 像素量尺 + 色带反推，见 .agents/state/design-shots/page-26.png）：
+           顶栏 0..101(102) · 内容区 padding 16/16/20/16 gap 16 · 卡 padding16 r16 #FFFFFF
+           步骤卡 118..183(65) · 基本信息卡 199..624(425) · 模型列表卡 640..927(287) · 填写须知卡 943..1102(159)
+           底栏 1120..1237(118, padding 12/16/28/16) · 页高 1238
+           卡内锚点：名称输入框 top 276 h48 · 分隔线 362/493 · 单号只读框 ~407 h48 · 凭证选择框 ~536 h48
+                     空态盒 692..860(168, padding 28/16) · 提示卡 873 起(2 行 11px) · 须知条目 998/1024/1050(第三条两行)
+         phase1 = 首屏（空态，无请求）· 整页高度回填 iframe 供截图
+         phase2 = 点凭证选择框（GET /api/v1/credentials）→ 选 c1（GET /api/v1/credentials/c1）→ 模型行带出、chip 变「已选 N / M」
+         phase3 = 填名称（走内层原生 input）→ 点「保存并继续」→ 真实 POST /api/v1/quotes → toast + 跳模型定价页
+         截图另跑 ?noaction=1（交互回放会把 iframe 导航走） -->
+    <iframe id="f" src="/index.html#/pages/quote-form/index"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var acc = {}
+
+      function all(doc, sel) { return Array.prototype.slice.call(doc.querySelectorAll(sel)) }
+      function rect(doc, sel) {
+        var el = doc.querySelector(sel)
+        if (!el) return null
+        var r = el.getBoundingClientRect()
+        return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+      }
+      function rects(doc, sel) {
+        return all(doc, sel).map(function (e) {
+          var r = e.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), w: Math.round(r.width), h: Math.round(r.height) }
+        })
+      }
+      function texts(doc, sel) { return all(doc, sel).map(function (e) { return e.textContent.trim() }) }
+      function textOf(doc, sel) { var e = doc.querySelector(sel); return e ? e.textContent.trim() : null }
+      function colorOf(doc, win, sel, prop) { var el = doc.querySelector(sel); return el ? win.getComputedStyle(el)[prop] : null }
+      function styleOf(doc, win, sel) {
+        var el = doc.querySelector(sel)
+        if (!el) return null
+        var cs = win.getComputedStyle(el)
+        return { fontSize: cs.fontSize, fontWeight: cs.fontWeight, color: cs.color, lineHeight: cs.lineHeight, display: cs.display, borderRadius: cs.borderRadius, padding: cs.padding, backgroundColor: cs.backgroundColor, boxShadow: cs.boxShadow, maxWidth: cs.maxWidth }
+      }
+      function bgsOf(doc, win, sel) {
+        return all(doc, sel).map(function (e) { return win.getComputedStyle(e).backgroundColor })
+      }
+
+      /** 设计稿里每一个独立文本图层（文案完整性检查清单，逐字抄自 design.tree.json） */
+      var needText = [
+        '新增报价单', '填写基本信息并设置模型报价',
+        '填写信息', '名称 / 密钥 / 单号', '设置报价', '模型定价',
+        '基本信息', '为必填项', '报价单名称', '*',
+        '请输入报价单名称，如：2024Q3 主线路报价', '0/30',
+        '报价单号', '系统生成', '保存后自动生成', 'QT-XXXXXXXX-XXXX',
+        '报价单号由系统按日期与序号规则自动生成，无需手动填写',
+        '凭证名称', '请选择凭证', '选择凭证后，系统将自动带出该凭证下可用的模型列表',
+        '模型列表', '待带出', '尚未加载模型', '请先在上方选择凭证，系统将自动带出可用模型列表',
+        '带出的模型数量与凭证权限相关，可在「我的设置」中管理凭证权限范围。',
+        '填写须知', '报价单名称建议包含季度或用途，便于后续在列表中检索。',
+        '凭证决定可报价的模型范围，选择后模型列表自动刷新。',
+        '首次保存成功后，系统将自动生成报价单号并进入设置报价环节。',
+        '保存成功后系统将自动生成报价单号', '存为草稿', '保存并继续'
+      ]
+
+      function collect(doc, win) {
+        var over = []
+        all(doc, '*').forEach(function (el) {
+          var r = el.getBoundingClientRect()
+          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
+            over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), left: Math.round(r.x), w: Math.round(r.width), right: Math.round(r.right), html: String(el.outerHTML || '').slice(0, 140) })
+          }
+        })
+        var text = (doc.body && doc.body.innerText) || ''
+        return {
+          innerWidth: win.innerWidth,
+          docScrollWidth: doc.documentElement.scrollWidth,
+          docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
+          overflowingCount: over.length,
+          overflowing: over.slice(0, 12),
+          missingTexts: needText.filter(function (t) { return text.indexOf(t) === -1 }),
+          pageBg: colorOf(doc, win, '.qf', 'backgroundColor'),
+          page: rect(doc, '.qf'),
+          nav: rect(doc, '.qf__nav'),
+          navPad: colorOf(doc, win, '.qf__nav', 'padding'),
+          navBack: rect(doc, '[data-testid="back"]'),
+          navTitle: textOf(doc, '[data-testid="nav-title"]'),
+          navTitleStyle: styleOf(doc, win, '.nav__title'),
+          navSubtitleStyle: styleOf(doc, win, '.nav__subtitle'),
+          bodyPad: colorOf(doc, win, '.qf__body', 'padding'),
+          bodyGap: colorOf(doc, win, '.qf__body', 'gap'),
+          stepCard: rect(doc, '.step-card'),
+          stepPad: colorOf(doc, win, '.step-card', 'padding'),
+          steps: rects(doc, '.step'),
+          stepDots: rects(doc, '.step__dot'),
+          stepDotBgs: bgsOf(doc, win, '.step__dot'),
+          stepActive: all(doc, '.step').map(function (e) { return e.getAttribute('data-active') }),
+          stepLine: rect(doc, '.step-line'),
+          stepLineBg: colorOf(doc, win, '.step-line', 'backgroundColor'),
+          cards: rects(doc, '.card'),
+          cardPadding: colorOf(doc, win, '.card', 'padding'),
+          cardTitle: textOf(doc, '[data-testid="card-basic-title"]'),
+          cardHead: rects(doc, '.card__head'),
+          required: rect(doc, '[data-testid="chip-required"]'),
+          nameLabel: rect(doc, '[data-testid="name-label"]'),
+          nameBox: rect(doc, '.input-box'),
+          nameBoxBg: colorOf(doc, win, '.input-box', 'backgroundColor'),
+          nameBoxBorder: colorOf(doc, win, '.input-box', 'border'),
+          nameCounter: rect(doc, '[data-testid="name-count"]'),
+          nameCounterStyle: styleOf(doc, win, '.counter__text'),
+          dividers: rects(doc, '.divider'),
+          quoteNoLabel: rect(doc, '[data-testid="quote-no-label"]'),
+          quoteNoTag: rect(doc, '[data-testid="quote-no-tag"]'),
+          quoteNoTagBg: colorOf(doc, win, '.tag--blue', 'backgroundColor'),
+          quoteNoBox: rect(doc, '[data-testid="quote-no-box"]'),
+          quoteNoBoxBg: colorOf(doc, win, '.readonly-box', 'backgroundColor'),
+          samplePill: rect(doc, '.sample-pill'),
+          samplePillBg: colorOf(doc, win, '.sample-pill', 'backgroundColor'),
+          quoteNoHint: rect(doc, '[data-testid="quote-no-hint"]'),
+          hintStyle: styleOf(doc, win, '.hint__text'),
+          credLabel: rect(doc, '[data-testid="cred-label"]'),
+          credSelect: rect(doc, '[data-testid="cred-select"]'),
+          credKeybox: rect(doc, '.select__keybox'),
+          credKeyboxBg: colorOf(doc, win, '.select__keybox', 'backgroundColor'),
+          credValue: textOf(doc, '[data-testid="cred-value"]'),
+          credValueStyle: styleOf(doc, win, '.select__value'),
+          credHint: rect(doc, '[data-testid="cred-hint"]'),
+          chipModel: rect(doc, '[data-testid="chip-model"]'),
+          chipModelText: textOf(doc, '[data-testid="chip-model"]'),
+          chipModelBg: colorOf(doc, win, '.tag', 'backgroundColor'),
+          empty: rect(doc, '[data-testid="model-empty"]'),
+          emptyPad: colorOf(doc, win, '.empty', 'padding'),
+          emptyBg: colorOf(doc, win, '.empty', 'backgroundColor'),
+          emptyIcon: rect(doc, '.empty__icon'),
+          emptyIconBg: colorOf(doc, win, '.empty__icon', 'backgroundColor'),
+          emptyTitle: rect(doc, '[data-testid="model-empty-title"]'),
+          emptyTitleStyle: styleOf(doc, win, '.empty__title'),
+          emptyDesc: rect(doc, '[data-testid="model-empty-desc"]'),
+          tip: rect(doc, '.tip'),
+          tipBg: colorOf(doc, win, '.tip', 'backgroundColor'),
+          tipPad: colorOf(doc, win, '.tip', 'padding'),
+          tipText: rect(doc, '[data-testid="model-empty-tip"]'),
+          tipTextStyle: styleOf(doc, win, '.tip__text'),
+          noticeTitle: rect(doc, '[data-testid="card-notice-title"]'),
+          noticeDots: rects(doc, '.notice__dot'),
+          noticeTexts: rects(doc, '[data-testid="notice-text"]'),
+          noticeTextStyle: styleOf(doc, win, '.notice__text'),
+          bar: rect(doc, '.qf__bar'),
+          barPad: colorOf(doc, win, '.qf__bar', 'padding'),
+          barHint: rect(doc, '[data-testid="bar-hint"]'),
+          barRow: rect(doc, '.bar__row'),
+          draftBtn: rect(doc, '[data-testid="btn-draft"]'),
+          draftBtnBorder: colorOf(doc, win, '.btn--ghost', 'border'),
+          saveBtn: rect(doc, '[data-testid="btn-save"]'),
+          saveBtnBg: colorOf(doc, win, '[data-testid="btn-save"]', 'backgroundColor'),
+          saveBtnTextStyle: styleOf(doc, win, '.btn__text'),
+          modelRows: rects(doc, '[data-testid^="model-row-"]'),
+          inputCount: all(doc, 'input,textarea').length,
+          tabbarExists: !!doc.querySelector('.tabbar'),
+          userAgent: win.navigator.userAgent
+        }
+      }
+
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
+
+      function collect1() {
+        try {
+          var payload = collect(f.contentDocument, f.contentWindow)
+          f.style.height = payload.docScrollHeight + 'px'
+          acc.iframeHeightForShot = payload.docScrollHeight
+          sink(1, payload)
+          return payload
+        } catch (e) {
+          sink(1, { error: String(e && e.message) })
+          return null
+        }
+      }
+
+      function clickIn(sel) {
+        var doc = f.contentDocument
+        var el = doc.querySelector(sel)
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+      function toastText(doc) {
+        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
+        return el ? el.textContent.trim() : ''
+      }
+      function hashNow() { try { return String(f.contentWindow.location.hash) } catch (e) { return 'ERR:' + e.message } }
+
+      function waitFor(sel, maxTries) {
+        return new Promise(function (resolve) {
+          var n = 0
+          function tick() {
+            n++
+            var ok = false
+            try { ok = !!f.contentDocument.querySelector(sel) } catch (e) { ok = false }
+            if (ok) return resolve('READY(tries=' + n + ')')
+            if (n >= (maxTries || 40)) return resolve('TIMEOUT(tries=' + n + ')')
+            setTimeout(tick, 200)
+          }
+          tick()
+        })
+      }
+
+      /** uni-app H5 的 <input> 渲染成 <uni-input> 宿主 → 必须写内层原生 input 才触发 v-model（见 dev SKILL §4.2） */
+      function typeName(value) {
+        var host = f.contentDocument.querySelector('[data-testid="name-input"]')
+        if (!host) return 'NOT_FOUND'
+        var el = host.tagName === 'INPUT' ? host : host.querySelector('input')
+        if (!el) return 'NO_NATIVE_INPUT'
+        el.focus()
+        el.value = value
+        el.dispatchEvent(new Event('input', { bubbles: true }))
+        return 'TYPED'
+      }
+
+      async function main() {
+        await waitFor('.step-card')
+        await sleep(1200)
+        collect1()
+        if (location.search.indexOf('noaction') !== -1) return
+
+        /* phase2：凭证选择（真实 GET /api/v1/credentials → /credentials/c1）→ 模型行带出 */
+        var openPanel = clickIn('[data-testid="cred-select"]')
+        await waitFor('[data-testid="cred-option-c1"]')
+        var panelVisible = !!f.contentDocument.querySelector('[data-testid="cred-panel"]')
+        var pick = clickIn('[data-testid="cred-option-c1"]')
+        await waitFor('[data-testid="model-row-gpt-4o"]')
+        await sleep(900)
+        sink(2, {
+          clickedSelect: openPanel,
+          panelVisible: panelVisible,
+          clickedOption: pick,
+          chipAfterPick: textOf(f.contentDocument, '[data-testid="chip-model"]'),
+          credValue: textOf(f.contentDocument, '[data-testid="cred-value"]'),
+          modelRows: texts(f.contentDocument, '[data-testid^="model-row-"]'),
+          modelRowCount: all(f.contentDocument, '[data-testid^="model-row-"]').length,
+          emptyStillThere: !!f.contentDocument.querySelector('[data-testid="model-empty"]')
+        })
+
+        /* phase3：填名称 → 保存并继续 → 真实 POST /api/v1/quotes → toast + 跳模型定价页 */
+        var typed = typeName('2024Q3 主线路报价')
+        await sleep(1200)
+        var countText = textOf(f.contentDocument, '[data-testid="name-count"]')
+        var saveClick = clickIn('[data-testid="btn-save"]')
+        await sleep(2200)
+        sink(3, {
+          typed: typed,
+          countAfterType: countText,
+          clickedSave: saveClick,
+          toastAfterSave: toastText(f.contentDocument),
+          hashAfterSave: hashNow(),
+          pricingRendered: !!f.contentDocument.querySelector('[data-testid="pricing-title"], .pricing, .mp')
+        })
+      }
+
+      main()
+    </script>
+  </body>
+</html>

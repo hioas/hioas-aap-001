@@ -64,6 +64,50 @@ LEASE: free until -
 
 ## 4. 进度（细表看台账 CSV，这里只留能力组）
 
+🟢 本轮（2026-09-16 03:50~04:15，租约 aap-tdd-run-20260916-0350 → 已释放）· **序号 12-v1「新增报价单-初始态」（page-26）收口**：
+- **取件**：`list-pending.py` 最小未完成 = 12-v1（page-26，/pages/quote-form/index）；开工前 `git status` 干净、`git log -1` 为上一轮提交（03:48）→ 判空闲租约，写成本轮 id + 45 分钟。
+- **Calicat 侧**：设计树（page-26，02:13 已抓）+ 截图（430×1238，1:1 帧图）直接可用；`interaction.json` 仍「不存在图层交互数据」→
+  交互真源退 10-PRD §5.1 V1/A2 · 15-数据字典 · 17-spec · 18-API + 设计稿控件语义。
+  **新增可复用工具**：`show-qf.py <measure.json> [字段…]`（按字段打印 phase1 + 自动附 phase2/3）· `count-26.py`（打印设计文本层原文与字符数）·
+  **设计像素量尺新套路**：`color-runs.py v <列> blue --from/--to`（按颜色特征）＋ `pxdump.py` 精读边界 → 一次定死「提示条 869..911(43)、空态盒 691..858(164)、卡3 944..1098(155)、底栏 1120..1237(118)」。
+- **这页到底是什么**：无 TabBar、底栏随文档流的新建报价单初始态（设计总高 1238）：顶栏（返回 36 圆 /「新增报价单」18px Bold +「填写基本信息并设置模型报价」12px / 帮助 36 圆）·
+  **步骤卡**（步骤1 蓝圆点 26 + 「填写信息」+「名称 / 密钥 / 单号」；连线；步骤2 灰圆点 +「设置报价」+「模型定价」）·
+  卡1 基本信息（标题行 + 「为必填项」；报价单名称* 输入框 h48 bg #F8FAFC + 清除 + 右侧「0/30」；分隔线；报价单号 + 「系统生成」标 + 只读框 h48 bg #F1F5F9
+  （「保存后自动生成」+ 右侧白底胶囊「QT-XXXXXXXX-XXXX」）+ 说明行；分隔线；凭证名称* 选择框 h48（钥匙底 28×28 r8 + 「请选择凭证」+ chevron）+ 蓝图标说明行）·
+  卡2 模型列表（chip「待带出」+ 空态盒（56 圆图标 + 「尚未加载模型」+ 说明）+ 提示卡「带出的模型数量与凭证权限相关…」）·
+  卡3 填写须知（图标 + 标题 + 三条：1 名称建议 / 2 凭证决定范围 / 3 首次保存成功后…）· 底栏（说明「保存成功后系统将自动生成报价单号」+ 存为草稿 128×48 + 保存并继续 258×48 #2563EB）。
+- **TDD（3 切片 + 1 次补红；新增 49 例）**：`tests/unit/quote-form-model.spec.ts`(20) · `tests/pages/quote-form.spec.ts`(14) · `tests/pages/quote-form-flow.spec.ts`(15)；
+  红基线 `evidence/red-序号12-v1-切片1/2/3.txt`（切片1/2 = `Failed to resolve import`，切片3 = 13 条真实断言失败）＋ 补红 `red-序号12-v1-补红-行盒规则.txt`（`iconLineBox is not a function`）；
+  实现 `src/utils/quote-form-model.ts`（文案常量 + stepsFor + modelChipText + buildQuoteNoBox + validateForSave + buildFormPayload + **iconLineBox/textLineBox**）、
+  `src/pages/quote-form/index.vue`、`pages.json` 路由、tokens **新增 1 个**（#FAFCFF 空态底）；
+  绿 **740/740 连跑两轮一致**（`evidence/green-序号12-v1-轮4/轮5.txt`）+ `npm run type-check` **exit 0**
+  （⚠️ 修前 type-check 真报 `TS2305: MODEL_STATUS_OPTIONAL/SELECTED 不在 quote-form-model` —— vitest 不查类型，**类型门禁抓到了实现错**）。
+- **由 DOM 数字抓出的真偏差（vision 完全看不出）**：①卡2 高 **303**（设计 287）、卡3 **150**（设计 155）、底栏 **115**（设计 118）、页高 **1242**（设计 1238）；
+  根因 = **本页设计树的文本节点 lineHeight 全是 1.2，而我按 1.5 写**（空态说明 18 vs 14.4、提示条文案 16.5 vs 13.2）＋ **两处图标没有按「字号×1.5」包行盒**
+  （须知标题图标 18 → 27、底栏说明图标 13 → 19.5）。修法 = 抽出纯函数 `iconLineBox/textLineBox`（**先补红断言**再实现），模板用 `:style` 绑定；
+  修后逐值对齐：页高 **1237（设计 1238，-1）** · 顶栏 102（=设计）· 步骤卡 118..183(65)（=设计）· 卡1 424（425）· 底栏 1119..1237(118=设计) · 凭证选择框 **536..584（设计 536..584 完全一致）** · 名称框 277（设计 276）。
+- **本轮最值钱的一条判定法（已写进 dev SKILL §4.12）**：**先读设计树每个文本节点的 `lineHeight` 再写 CSS** —— 同一份设计里 11px/12px 文本可能声明 1.2，
+  而图标段落是 1.5；把「一行还是两行」「盒高多少」都建立在设计截图像素（提示条 43 / 空态 164 / 卡3 155）上，而不是自己的换算。
+- **客观证据链**：`build:mp-weixin` 产出 `pages/quote-form/{index.js,index.json,index.wxml,index.wxss}`（app.json 已注册）；
+  430 宽 iframe + 无头 Chrome **四段实测** `evidence/measure-序号12-v1-run3.json`：`innerWidth 430` · `docScrollWidth 430` · 溢出 **0** · 文案缺失 **[]（need 34 条设计原文）** ·
+  卡 199..623(424) / 639..932(293) / 947..1099(152) · 空态盒 691..857(166，设计 164) · 提示条 869..915(46，设计 43) · 须知点 1002/1028/1054（设计 999/1025/1051）·
+  存为草稿 x16..144(128×48) · 保存并继续 x156..414(258×48) · 无 TabBar · 输入控件 1；**run3/run4 两次独立测量 84 字段全等**（`cmp-measure-runs.py`，0 差异）；
+  **像素对账**（`text-rows.py` 同脚本跑设计与实现）：8 行文本 **0 差**（步骤卡 / 基本信息标题行 / 名称标签 / 凭证标签 / 尚未加载模型 / 空态说明 / 底栏说明 / 按钮），其余 ±1~3；
+  `png-ink` 顶部带 runs 右留白 **278 = 设计 278**（无载体污染）· 底栏带右留白 16（设计 16）；截图 `logs/screenshots/20260916-0410-序号12-v1-新增报价单初始态-h5-430宽.png`（430×1237）。
+  **浏览器内真实交互（phase2/phase3）**：点凭证选择框 → serve 日志实测 **`GET /api/v1/credentials?page=1&pageSize=20`** → 候选 2 条；选 c1 → **`GET /api/v1/credentials/c1`**
+  → 模型行 2 条（价格行「输入 $2.50 / 输出 $10.00 / 1M token」）、chip「待带出」→「**已选 1 / 2**」、空态消失；填名称（写内层原生 input）→ 字数 **12/30** → 点「保存并继续」→
+  日志实测 **`POST /api/v1/quotes body={"name":"2024Q3 主线路报价","credential_id":"c1"}`** + **`POST /api/v1/quotes/q9/items body={"items":[{"model_name":"gpt-4o"}]}`**
+  → iframe hash 跳 `#/pages/model-pricing/index?quoteId=q9`（序号 11 路由已渲染）。
+- ⚠️ 待人类拍板（不阻塞本轮，13 条全部写进台账序号 12-v1 备注）：①与序号 9 是否合并同一路由；②本帧无「报价主体」控件 → provider_id 有意不发送；
+  ③18-API 只列路径 → 方法与字段级 schema 为推断；④「保存并继续」落点（模型定价 / page-29 保存成功）待拍板；⑤已带出模型态与 chip 文案复用序号 9 同族帧、工具栏不实现；
+  ⑥校验/toast 文案为占位；⑦**字体度量冲突**：提示条文案设计稿一行（实测 9.9px/字）而浏览器 11px/字必然两行 → 提示条 43→46，是卡2 +6 的唯一来源，需拍板是否改字号/文案；
+  ⑧图标 CSS 占位；⑨帮助按钮 client-only；⑩单号示例格式为常量；⑪空态底 #FAFCFF 新增 token；⑫设计 11/12px 文本 lineHeight=1.2 已按 textLineBox 落地；⑬已带出态无全选入口。
+
+⏳ 下一步（下一轮）：台账序号 **12-v2「新增报价单-APIKey下拉展开」**（page-apikey，`/pages/quote-form/apikey`）——**设计尚未抓取**（台账「设计否」），
+  先按 `.calicat/inventory.json` 取该页 `sourceLayerId` 跑 `calicat_source.py page`，再按 §2 八步走；可复用本轮 `show-qf.py` 式取数脚本、
+  `color-runs.py blue/pxdump.py` 像素量尺、`api-12-v1` 式独立 mock 集（**serve.py 端口先 curl 验一次 mock 内容再用**，本轮 5221 撞上旧实例返回了别的 mock 集）、
+  `__measure-quote-form.html` 载体模板（**先读设计树每个文本节点的 lineHeight 再写 CSS**）。
+
 🟢 本轮（2026-09-16 03:31~04:00，租约 aap-tdd-run-20260916-0331 → 已释放）· **序号 12「报价预览与提交 2」（page-12-2）收口**：
 - **Calicat 侧**：`calicat_source.py page` 报「请先在浏览器中打开文件」→ `cmd /c start "" <design-url>` 拉起后一次成功；
   page-12-2 设计树（58KB / 123 节点）+ 截图（430×1027，1:1 帧图）已抓；`interaction.json` 仍「不存在图层交互数据」→ 交互真源退 10-PRD §3.2/§4.1/§5.1 · 06-PRD §1.2~1.4 · 17-spec · 18-API + 设计稿控件语义。
@@ -99,9 +143,7 @@ LEASE: free until -
   ⑪规则块首块间距设计逐卡不一致（已按 ruleBlockClass 还原）；⑫卡1 未声明 stroke（四卡统一 ring）；⑬提示条按设计声明宽度 316 换两行；
   ⑭vision 误报链接色 + 图标占位；⑮未接线 /withdraw、/versions、/compile-preview。
 
-⏳ 下一步（下一轮）：台账序号 **12-v1「新增报价单-初始态」**（page-26，`/pages/quote-form/index`）——设计树已抓（设计是/交互否），
-  按 §2 八步走；可复用 `api-12` 式独立 mock 集、`__measure-quote-preview.html` 载体模板、`text-rows.py` 逐行对账、`color-runs.py` 量卡边界；
-  **先用卡间描边像素定卡高，再决定卡内盒高**；**新写脚本给原生工具一律用 `E:/…` 绝对路径**（本轮 background serve.py 踩过相对路径 404）。
+✅ 序号 12-v1 已于 2026-09-16 03:50~04:15 轮完成（见最上方本轮块；现为「部分」，13 条待拍板已记台账）。
 
 🟢 本轮（2026-09-16 03:11~03:28，租约 aap-tdd-run-20260916-0311 → 已释放）· **序号 11「模型定价-详情」（page-11）收口**：
 - **Calicat 侧**：`calicat_source.py page` 一次成功（本轮**没有**再需要 `cmd /c start` 拉编辑器）；page-11 设计树（81KB）+ 截图（430×1541，1:1 帧图）已抓；

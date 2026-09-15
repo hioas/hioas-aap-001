@@ -1,0 +1,261 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+ [31m❯[39m tests/pages/quote-form-flow.spec.ts [2m([22m[2m15 tests[22m[2m | [22m[31m13 failed[39m[2m)[22m[90m 164[2mms[22m[39m
+[31m   [31m×[31m 序号 12-v1 · 凭证选择（api）[2m > [22m点选择框 → GET /credentials 开面板并渲染候选项[90m 44[2mms[22m[31m[39m
+[31m     → expected [] to have a length of 1 but got +0[39m
+[31m   [31m×[31m 序号 12-v1 · 凭证选择（api）[2m > [22m选中凭证 → GET /credentials/{id} 带出模型清单，chip 由「待带出」变「已选 1 / 2」[90m 12[2mms[22m[31m[39m
+[31m     → Cannot call trigger on an empty DOMWrapper.[39m
+[31m   [31m×[31m 序号 12-v1 · 凭证选择（api）[2m > [22m详情拉取失败 → toast 服务端 message 且保持空态（不编造模型）[90m 9[2mms[22m[31m[39m
+[31m     → Cannot call trigger on an empty DOMWrapper.[39m
+[31m   [31m×[31m 序号 12-v1 · 凭证选择（api）[2m > [22m勾选模型行 → client-only 切换，chip 计数同步[90m 14[2mms[22m[31m[39m
+[31m     → Cannot call trigger on an empty DOMWrapper.[39m
+[31m   [31m×[31m 序号 12-v1 · 名称输入（client-only）[2m > [22m清除按钮清空名称并归零计数[90m 11[2mms[22m[31m[39m
+[31m     → expected '3/30' to be '0/30' // Object.is equality[39m
+[31m   [31m×[31m 序号 12-v1 · 存为草稿（api，A2 草稿无限暂存 → 不拦截）[2m > [22mPOST /quotes 带 name + credential_id，toast 后返回上一页[90m 5[2mms[22m[31m[39m
+[31m     → Cannot call trigger on an empty DOMWrapper.[39m
+[31m   [31m×[31m 序号 12-v1 · 存为草稿（api，A2 草稿无限暂存 → 不拦截）[2m > [22m空表单也能存草稿（不做必填拦截），请求体为空对象[90m 6[2mms[22m[31m[39m
+[31m     → expected [] to have a length of 1 but got +0[39m
+[31m   [31m×[31m 序号 12-v1 · 保存并继续（api + navigation，10-PRD §5.1 校验）[2m > [22m名称为空 → toast「请输入报价单名称」且不发请求[90m 8[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ '请输入报价单名称' ][39m
+[31m   [31m×[31m 序号 12-v1 · 保存并继续（api + navigation，10-PRD §5.1 校验）[2m > [22m未选凭证 → toast「请选择凭证」且不发请求[90m 7[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ '请选择凭证' ][39m
+[31m   [31m×[31m 序号 12-v1 · 保存并继续（api + navigation，10-PRD §5.1 校验）[2m > [22m未勾选模型 → toast「请至少选择一个模型」（V1 明细行≥1）[90m 10[2mms[22m[31m[39m
+[31m     → Cannot call trigger on an empty DOMWrapper.[39m
+[31m   [31m×[31m 序号 12-v1 · 保存并继续（api + navigation，10-PRD §5.1 校验）[2m > [22m校验通过 → POST /quotes + 明细行，toast 后进入「设置报价」（模型定价页）[90m 10[2mms[22m[31m[39m
+[31m     → Cannot call trigger on an empty DOMWrapper.[39m
+[31m   [31m×[31m 序号 12-v1 · 保存并继续（api + navigation，10-PRD §5.1 校验）[2m > [22m保存失败 → toast 服务端 message，不跳转[90m 4[2mms[22m[31m[39m
+[31m     → Cannot call trigger on an empty DOMWrapper.[39m
+[31m   [31m×[31m 序号 12-v1 · 导航（navigation / client-only）[2m > [22m返回按钮 → navigateBack[90m 4[2mms[22m[31m[39m
+[31m     → expected [] to have a length of 1 but got +0[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 13 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-form-flow.spec.ts[2m > [22m序号 12-v1 · 凭证选择（api）[2m > [22m点选择框 → GET /credentials 开面板并渲染候选项
+[31m[1mAssertionError[22m: expected [] to have a length of 1 but got +0[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/pages/quote-form-flow.spec.ts:[2m80:18[22m[39m
+    [90m 78| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'cred-select'[39m)
+    [90m 79| [39m    [35mconst[39m reqs [33m=[39m [34mrequestsTo[39m([32m'/credentials'[39m)
+    [90m 80| [39m    [34mexpect[39m(reqs)[33m.[39m[34mtoHaveLength[39m([34m1[39m)
+    [90m   | [39m                 [31m^[39m
+    [90m 81| [39m    [34mexpect[39m(reqs[[34m0[39m][33m.[39mmethod)[33m.[39m[34mtoBe[39m([32m'GET'[39m)
+    [90m 82| [39m    [34mexpect[39m([33mString[39m(reqs[[34m0[39m][33m.[39murl))[33m.[39m[34mtoBe[39m([32m'/api/v1/credentials'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/13]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-form-flow.spec.ts[2m > [22m序号 12-v1 · 凭证选择（api）[2m > [22m选中凭证 → GET /credentials/{id} 带出模型清单，chip 由「待带出」变「已选 1 / 2」
+[31m[1mError[22m: Cannot call trigger on an empty DOMWrapper.[39m
+[36m [2m❯[22m Object.get node_modules/@vue/test-utils/dist/vue-test-utils.cjs.js:[2m1479:27[22m[39m
+    [90m1477| [39m                    return () => false;
+    [90m1478| [39m                default:
+    [90m1479| [39m                    throw new Error(`Cannot call ${String(prop)} on an…
+    [90m   | [39m                          [31m^[39m
+    [90m1480| [39m            }
+    [90m1481| [39m        }
+[90m [2m❯[22m tap tests/pages/quote-form-flow.spec.ts:[2m44:49[22m[39m
+[90m [2m❯[22m pickCredential tests/pages/quote-form-flow.spec.ts:[2m71:9[22m[39m
+[90m [2m❯[22m tests/pages/quote-form-flow.spec.ts:[2m89:5[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/13]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-form-flow.spec.ts[2m > [22m序号 12-v1 · 凭证选择（api）[2m > [22m详情拉取失败 → toast 服务端 message 且保持空态（不编造模型）
+[31m[1mError[22m: Cannot call trigger on an empty DOMWrapper.[39m
+[36m [2m❯[22m Object.get node_modules/@vue/test-utils/dist/vue-test-utils.cjs.js:[2m1479:27[22m[39m
+    [90m1477| [39m                    return () => false;
+    [90m1478| [39m                default:
+    [90m1479| [39m                    throw new Error(`Cannot call ${String(prop)} on an…
+    [90m   | [39m                          [31m^[39m
+    [90m1480| [39m            }
+    [90m1481| [39m        }
+[90m [2m❯[22m tap tests/pages/quote-form-flow.spec.ts:[2m44:49[22m[39m
+[90m [2m❯[22m tests/pages/quote-form-flow.spec.ts:[2m103:11[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/13]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-form-flow.spec.ts[2m > [22m序号 12-v1 · 凭证选择（api）[2m > [22m勾选模型行 → client-only 切换，chip 计数同步
+[31m[1mError[22m: Cannot call trigger on an empty DOMWrapper.[39m
+[36m [2m❯[22m Object.get node_modules/@vue/test-utils/dist/vue-test-utils.cjs.js:[2m1479:27[22m[39m
+    [90m1477| [39m                    return () => false;
+    [90m1478| [39m                default:
+    [90m1479| [39m                    throw new Error(`Cannot call ${String(prop)} on an…
+    [90m   | [39m                          [31m^[39m
+    [90m1480| [39m            }
+    [90m1481| [39m        }
+[90m [2m❯[22m tap tests/pages/quote-form-flow.spec.ts:[2m44:49[22m[39m
+[90m [2m❯[22m pickCredential tests/pages/quote-form-flow.spec.ts:[2m71:9[22m[39m
+[90m [2m❯[22m tests/pages/quote-form-flow.spec.ts:[2m111:5[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/13]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-form-flow.spec.ts[2m > [22m序号 12-v1 · 名称输入（client-only）[2m > [22m清除按钮清空名称并归零计数
+[31m[1mAssertionError[22m: expected '3/30' to be '0/30' // Object.is equality[39m
+
+Expected: [32m"[7m0[27m/30"[39m
+Received: [31m"[7m3[27m/30"[39m
+
+[36m [2m❯[22m tests/pages/quote-form-flow.spec.ts:[2m129:63[22m[39m
+    [90m127| [39m    [35mawait[39m wrapper[33m.[39m[34mfind[39m([32m'[data-testid="name-input"]'[39m)[33m.[39m[34msetValue[39m([32m'abc'[39m)
+    [90m128| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'name-clear'[39m)
+    [90m129| [39m    [34mexpect[39m(wrapper[33m.[39m[34mfind[39m([32m'[data-testid="name-count"]'[39m)[33m.[39m[34mtext[39m())[33m.[39m[34mtoBe[39m([32m'0/[39m…
+    [90m   | [39m                                                              [31m^[39m
+    [90m130| [39m  })
+    [90m131| [39m})
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/13]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-form-flow.spec.ts[2m > [22m序号 12-v1 · 存为草稿（api，A2 草稿无限暂存 → 不拦截）[2m > [22mPOST /quotes 带 name + credential_id，toast 后返回上一页
+[31m[1mError[22m: Cannot call trigger on an empty DOMWrapper.[39m
+[36m [2m❯[22m Object.get node_modules/@vue/test-utils/dist/vue-test-utils.cjs.js:[2m1479:27[22m[39m
+    [90m1477| [39m                    return () => false;
+    [90m1478| [39m                default:
+    [90m1479| [39m                    throw new Error(`Cannot call ${String(prop)} on an…
+    [90m   | [39m                          [31m^[39m
+    [90m1480| [39m            }
+    [90m1481| [39m        }
+[90m [2m❯[22m tap tests/pages/quote-form-flow.spec.ts:[2m44:49[22m[39m
+[90m [2m❯[22m pickCredential tests/pages/quote-form-flow.spec.ts:[2m71:9[22m[39m
+[90m [2m❯[22m tests/pages/quote-form-flow.spec.ts:[2m136:5[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/13]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-form-flow.spec.ts[2m > [22m序号 12-v1 · 存为草稿（api，A2 草稿无限暂存 → 不拦截）[2m > [22m空表单也能存草稿（不做必填拦截），请求体为空对象
+[31m[1mAssertionError[22m: expected [] to have a length of 1 but got +0[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/pages/quote-form-flow.spec.ts:[2m154:19[22m[39m
+    [90m152| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'btn-draft'[39m)
+    [90m153| [39m    [35mconst[39m posts [33m=[39m [34mrequestsTo[39m([32m'/quotes'[39m[33m,[39m [32m'POST'[39m)
+    [90m154| [39m    [34mexpect[39m(posts)[33m.[39m[34mtoHaveLength[39m([34m1[39m)
+    [90m   | [39m                  [31m^[39m
+    [90m155| [39m    [34mexpect[39m(posts[[34m0[39m][33m.[39mdata)[33m.[39m[34mtoEqual[39m({})
+    [90m156| [39m    [34mexpect[39m([34mgetCalls[39m([32m'navigateBack'[39m))[33m.[39m[34mtoHaveLength[39m([34m1[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/13]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-form-flow.spec.ts[2m > [22m序号 12-v1 · 保存并继续（api + navigation，10-PRD §5.1 校验）[2m > [22m名称为空 → toast「请输入报价单名称」且不发请求
+[31m[1mAssertionError[22m: expected [] to deeply equal [ '请输入报价单名称' ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [[39m
+[32m-   "请输入报价单名称",[39m
+[32m- ][39m
+[31m+ Array [][39m
+
+[36m [2m❯[22m tests/pages/quote-form-flow.spec.ts:[2m164:22[22m[39m
+    [90m162| [39m    [35mconst[39m wrapper [33m=[39m [34mmountPage[39m()
+    [90m163| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'btn-save'[39m)
+    [90m164| [39m    [34mexpect[39m([34mtoasts[39m())[33m.[39m[34mtoEqual[39m([[32m'请输入报价单名称'[39m])
+    [90m   | [39m                     [31m^[39m
+    [90m165| [39m    [34mexpect[39m([34mrequestsTo[39m([32m'/quotes'[39m))[33m.[39m[34mtoHaveLength[39m([34m0[39m)
+    [90m166| [39m    [34mexpect[39m([34mgetCalls[39m([32m'navigateTo'[39m))[33m.[39m[34mtoHaveLength[39m([34m0[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/13]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-form-flow.spec.ts[2m > [22m序号 12-v1 · 保存并继续（api + navigation，10-PRD §5.1 校验）[2m > [22m未选凭证 → toast「请选择凭证」且不发请求
+[31m[1mAssertionError[22m: expected [] to deeply equal [ '请选择凭证' ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [[39m
+[32m-   "请选择凭证",[39m
+[32m- ][39m
+[31m+ Array [][39m
+
+[36m [2m❯[22m tests/pages/quote-form-flow.spec.ts:[2m173:22[22m[39m
+    [90m171| [39m    [35mawait[39m wrapper[33m.[39m[34mfind[39m([32m'[data-testid="name-input"]'[39m)[33m.[39m[34msetValue[39m([32m'2024Q3 [39m…
+    [90m172| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'btn-save'[39m)
+    [90m173| [39m    [34mexpect[39m([34mtoasts[39m())[33m.[39m[34mtoEqual[39m([[32m'请选择凭证'[39m])
+    [90m   | [39m                     [31m^[39m
+    [90m174| [39m    [34mexpect[39m([34mrequestsTo[39m([32m'/quotes'[39m))[33m.[39m[34mtoHaveLength[39m([34m0[39m)
+    [90m175| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/13]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-form-flow.spec.ts[2m > [22m序号 12-v1 · 保存并继续（api + navigation，10-PRD §5.1 校验）[2m > [22m未勾选模型 → toast「请至少选择一个模型」（V1 明细行≥1）
+[31m[1mError[22m: Cannot call trigger on an empty DOMWrapper.[39m
+[36m [2m❯[22m Object.get node_modules/@vue/test-utils/dist/vue-test-utils.cjs.js:[2m1479:27[22m[39m
+    [90m1477| [39m                    return () => false;
+    [90m1478| [39m                default:
+    [90m1479| [39m                    throw new Error(`Cannot call ${String(prop)} on an…
+    [90m   | [39m                          [31m^[39m
+    [90m1480| [39m            }
+    [90m1481| [39m        }
+[90m [2m❯[22m tap tests/pages/quote-form-flow.spec.ts:[2m44:49[22m[39m
+[90m [2m❯[22m tests/pages/quote-form-flow.spec.ts:[2m183:11[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/13]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-form-flow.spec.ts[2m > [22m序号 12-v1 · 保存并继续（api + navigation，10-PRD §5.1 校验）[2m > [22m校验通过 → POST /quotes + 明细行，toast 后进入「设置报价」（模型定价页）
+[31m[1mError[22m: Cannot call trigger on an empty DOMWrapper.[39m
+[36m [2m❯[22m Object.get node_modules/@vue/test-utils/dist/vue-test-utils.cjs.js:[2m1479:27[22m[39m
+    [90m1477| [39m                    return () => false;
+    [90m1478| [39m                default:
+    [90m1479| [39m                    throw new Error(`Cannot call ${String(prop)} on an…
+    [90m   | [39m                          [31m^[39m
+    [90m1480| [39m            }
+    [90m1481| [39m        }
+[90m [2m❯[22m tap tests/pages/quote-form-flow.spec.ts:[2m44:49[22m[39m
+[90m [2m❯[22m pickCredential tests/pages/quote-form-flow.spec.ts:[2m71:9[22m[39m
+[90m [2m❯[22m tests/pages/quote-form-flow.spec.ts:[2m191:5[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/13]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-form-flow.spec.ts[2m > [22m序号 12-v1 · 保存并继续（api + navigation，10-PRD §5.1 校验）[2m > [22m保存失败 → toast 服务端 message，不跳转
+[31m[1mError[22m: Cannot call trigger on an empty DOMWrapper.[39m
+[36m [2m❯[22m Object.get node_modules/@vue/test-utils/dist/vue-test-utils.cjs.js:[2m1479:27[22m[39m
+    [90m1477| [39m                    return () => false;
+    [90m1478| [39m                default:
+    [90m1479| [39m                    throw new Error(`Cannot call ${String(prop)} on an…
+    [90m   | [39m                          [31m^[39m
+    [90m1480| [39m            }
+    [90m1481| [39m        }
+[90m [2m❯[22m tap tests/pages/quote-form-flow.spec.ts:[2m44:49[22m[39m
+[90m [2m❯[22m pickCredential tests/pages/quote-form-flow.spec.ts:[2m71:9[22m[39m
+[90m [2m❯[22m tests/pages/quote-form-flow.spec.ts:[2m207:5[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/13]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-form-flow.spec.ts[2m > [22m序号 12-v1 · 导航（navigation / client-only）[2m > [22m返回按钮 → navigateBack
+[31m[1mAssertionError[22m: expected [] to have a length of 1 but got +0[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/pages/quote-form-flow.spec.ts:[2m220:38[22m[39m
+    [90m218| [39m    [35mconst[39m wrapper [33m=[39m [34mmountPage[39m()
+    [90m219| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'back'[39m)
+    [90m220| [39m    [34mexpect[39m([34mgetCalls[39m([32m'navigateBack'[39m))[33m.[39m[34mtoHaveLength[39m([34m1[39m)
+    [90m   | [39m                                     [31m^[39m
+    [90m221| [39m  })
+    [90m222| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/13]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m13 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m 03:53:36
+[2m   Duration [22m 1.58s[2m (transform 390ms, setup 38ms, collect 539ms, tests 164ms, environment 509ms, prepare 100ms)[22m
+
