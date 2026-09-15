@@ -1,0 +1,37 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+ [31m❯[39m tests/pages/profile-edit.spec.ts [2m([22m[2m0 test[22m[2m)[22m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/profile-edit.spec.ts[2m [ tests/pages/profile-edit.spec.ts ][22m
+[31m[1mError[22m: [@vue/compiler-sfc] <script setup> cannot contain ES module exports. If you are using a previous version of <script setup>, please consult the updated RFC at https://github.com/vuejs/rfcs/pull/227.
+
+E:/workspaces/hioas/hioas-aap-001/aap-client/src/pages/profile-edit/index.vue
+353|  } from '@/utils/profile-edit-model'
+354|  
+355|  /** 本地草稿键（PRD 无草稿语义 → 只落本地，不臆造服务端字段） */
+   |                                          ^
+356|  export const DRAFT_KEY = 'aap_provider_profile_draft'
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+357|  [39m
+  Plugin: [35mvite:vue[39m
+  File: [36mE:/workspaces/hioas/hioas-aap-001/aap-client/src/pages/profile-edit/index.vue[39m
+[90m [2m❯[22m ScriptCompileContext.error node_modules/@vue/compiler-sfc/dist/compiler-sfc.cjs.js:[2m15575:11[22m[39m
+[90m [2m❯[22m Object.compileScript node_modules/@vue/compiler-sfc/dist/compiler-sfc.cjs.js:[2m20167:11[22m[39m
+[90m [2m❯[22m resolveScript node_modules/@vitejs/plugin-vue/dist/index.cjs:[2m378:37[22m[39m
+[90m [2m❯[22m genScriptCode node_modules/@vitejs/plugin-vue/dist/index.cjs:[2m2687:18[22m[39m
+[90m [2m❯[22m transformMain node_modules/@vitejs/plugin-vue/dist/index.cjs:[2m2458:54[22m[39m
+[90m [2m❯[22m TransformContext.transform node_modules/@vitejs/plugin-vue/dist/index.cjs:[2m3066:16[22m[39m
+[90m [2m❯[22m Object.transform node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m51172:62[22m[39m
+[90m [2m❯[22m loadAndTransform node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m53923:29[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [2mno tests[22m
+[2m   Start at [22m 02:37:07
+[2m   Duration [22m 1.14s[2m (transform 56ms, setup 44ms, collect 0ms, tests 0ms, environment 552ms, prepare 105ms)[22m
+

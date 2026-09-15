@@ -222,6 +222,35 @@ vision 看到的「右侧贴边/缺字」是**截图假象**而非页面缺陷�
   先抓相邻疑似帧（如 page-26「新增报价单-初始态」）并做**文本差集**：`python .agents/state/diff-node-text.py <nodesA.txt> <nodesB.txt>`，
   差集为空才是重复帧；有差异就是不同页面，不要合并实现。
 
+## 4.8 描边在盒内还是盒外 + 表单页取证（2026-09-16 序号 10 供应商档案编辑）
+
+- ⚠️ **设计稿的 `stroke` 有的画在盒外、有的画在盒内 —— 必须对每个盒子单独量，不能一刀切**：
+  page-10-2 实测：①**卡片 / chips / 简介框 = 盒外** —— 卡高 579 = 20 + 内容 + 20（**不含**描边）、chip 声明 `height=40` 而截图可见 **42**；
+  用 CSS `border` 会让盒高 +2 且把**卡内每个字段整体下推 1px**（实测框 top 198 vs 设计 197）。
+  正解 = `box-shadow: 0 0 0 1px <color>`（ring，不参与布局）：改后卡高 **579/345** 与设计逐值相等、页高正好 **1409**。
+  ②**输入框 / 未上传缩略图 = 盒内**（声明 44、可见 42）→ 保留 `border`。
+  判定法：`png-bands.py v <列> <from> <to>` 量同一元素在**中心列**的可见色带高度，与 design.tree.json 声明值比：
+  可见 = 声明 → 描边在盒外；可见 = 声明 − 2 → 描边在盒内。
+- ⚠️ **表单页禁止用 `.field + .field` 这类相邻兄弟选择器做字段间距**：两列行（`.two-col`）里的第二个半栏也是 `.field`，
+  会被加上 `margin-top` → 实测"职务"框比"联系人"框低 **16px**。正解 = `.card > .field, .card > .two-col, .card > .qual-row { margin-top: 16px }`，
+  并把 `.card__head { margin-bottom: 0 }`（否则"卡头 16 + 首字段 16" = 首字段被下推 16）。
+- **卡内头部高度 = 图标字号 × 1.5**：设计 `主体标题行` 声明 `height=fit_content`，图标是 18px 的 paragraph → 实测头部 **27**；
+  若把它当成标题的 18 写死，卡内所有字段会整体上移 9px（page-10-2 实测差值）。**规矩：设计里 fit_content 的行盒按「最大子项的 1.5 倍行高」估，再用像素量尺校正。**
+- **字符计数控件（`48/200`）必须按真实字数渲染**：page-10-2 设计写「48/200」而示例文本只有 40 字（设计自身不自洽）→
+  渲染 `len(text)/max`，并把设计原值写进台账备注。`python .agents/state/count-text.py "<文本>"` 可量设计文本长度。
+- **结构差异 vision 先发现、像素带确认**：第一版把设计的「必传」(红底) 与「已上传」(绿底) **合并成一个角标**，DOM 数字（文案/尺寸/溢出）全都正常，
+  只有 vision 描述"标签后有绿色对勾 + 绿色文字「必传 已上传」"暴露了它；随后用 `png-bands.py h <y> <from> <to>` 在设计截图同一行量出两个色带
+  （红 #FEF2F2 x157..191、绿 #ECFDF5 x202..261）坐实。**规矩：角标/标签这类"一个还是两个"的结构问题，vision 描述 + 横向量色带双确认。**
+- **同一个接口在不同设计帧里样例值不同时，用独立 mock 集隔离**：page-9 与 page-10-2 都读 `/provider/profile`，但设计里的公司名分别是
+  「上海徽石科技国外」「云智科技有限公司」→ 新 mock 放 `.agents/state/h5-measure/api-<序号>/v1/...`，`serve.py` 的第二个参数指过去即可，
+  不要改既有 `api/`（否则历史证据不可复现）。
+- **H5 版「连跑两轮一致」= 两次独立 dump 比同一 phase**：`python .agents/state/cmp-measure-runs.py <a.json> <b.json> phase1`
+  （载体页的 phase2 若只装交互结果、不含全量 collect，就不能用 `compare-phases.py` 比 phase1/phase2）。
+- 新增工具：`count-text.py`（量文本长度）、`grep-dump.py <dump> <关键字>`（在 dump-dom 里抓上下文，排查 uni H5 真实 DOM 结构）、
+  `show-measure10.py <json> <phase|cmp> …`（按 phase 取数 / 比两 phase）、`cmp-measure-runs.py`（两次独立测量逐字段比对）。
+- **uni-app H5 的 `placeholder` 是渲染成文本层的**（会进 `innerText`），不在内层原生 `input` 的 `placeholder` 属性上 →
+  文案完整性检查可直接把占位文案写进 `need` 列表。（序号 10 实测：`placeholderAttr=null`、`placeholderInText=true`。）
+
 ## 5. 页面实现顺序与取件
 
 ```bash

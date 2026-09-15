@@ -64,6 +64,48 @@ LEASE: free until -
 
 ## 4. 进度（细表看台账 CSV，这里只留能力组）
 
+🟢 本轮（2026-09-16 02:30~02:52，租约 aap-tdd-run-20260916-0230 → 已释放）· **序号 10「供应商档案编辑 2」（page-10-2）收口**：
+- **Calicat 侧**：`calicat_source.py page` 直接可用（无需先拉起浏览器）；page-10-2 设计树（93KB / 172 节点）+ 截图已抓；
+  `interaction.json` 仍「不存在图层交互数据」→ 交互真源退 PRD 15/17-spec/18-API + 设计稿控件语义。
+  **新增可复用工具**：`count-text.py`（量设计文本长度，核对字符计数控件）、`grep-dump.py`（dump-dom 里抓上下文，排查 uni H5 真实 DOM）、
+  `show-measure10.py`（按 phase 取数 / cmp 两 phase）、`cmp-measure-runs.py`（**两次独立测量的同一 phase 逐字段比对** = H5 版「连跑两轮一致」）。
+- **这页到底是什么**：顶栏（返回 /「编辑主体档案」17px Bold / 右侧「72%」完整度胶囊 r12 #EFF6FF）· 卡1 主体信息（企业名称*/USCC*+绿勾/供应商类型* 三 chip〔原厂·渠道商·中转商，渠道商选中〕/
+  所在地区* 省+市两个选择框/详细地址*/官网〔占位「请输入企业官网地址」〕）· 卡2 联系信息（联系人*+职务、手机号*+邮箱 两列；公司简介 + 右上计数）·
+  卡3 资质文件（右上「支持 JPG/PNG/PDF，≤10MB」；三行固定：营业执照〔必传+已上传**双角标**+文件名+删除+查看〕/上游授权书〔条件必传+「点击上传，仅支持单个文件」〕/其他选传资质〔描述〕）·
+  底栏「保存草稿」156×48 + 「保存」自适应×48 #2563EB；**无 TabBar**，设计总高 1409。
+- **TDD（3 切片逐切片红→绿 + 1 次补红；新增 61 例）**：`tests/unit/profile-edit-model.spec.ts`(29) · `tests/unit/provider-profile-api.spec.ts`(7) ·
+  `tests/pages/profile-edit.spec.ts`(25)；红基线 `evidence/red-序号10-切片1/2/3.txt`（切片2 = `providerApi.saveProfile is not a function`）；
+  实现 `src/utils/profile-edit-model.ts`、`src/api/provider.ts`（+saveProfile/qualifications/uploadQualification/removeQualification、补全档案字段）、
+  `src/pages/profile-edit/index.vue`、`pages.json` 路由；**tokens 0 新增**（19 个色值全部命中既有 tokens.scss）；
+  绿 **532/532 连跑两轮一致**（`evidence/green-序号10-轮1/轮2.txt`）+ `npm run type-check` **exit 0**。
+  3 处失败是我自己测试写错（`attributes('value')` 读不到 v-model 的 DOM 属性、字符串长度数错），按真实行为改断言后才绿。
+- **由设计截图像素量尺定死的几何（design.tree.json 的几何算不出卡高）**：顶栏 **96** · 卡1 **108..687(579)** · 卡2 **698..1042(345)** · 卡3 **1057..1308(251)** ·
+  底栏 **1324..1408(84)** · 页高 **1409**；卡内头部 **27**（= 图标 18px 段落的 1.5 行高，不是标题的 18）· 字段 = 标签 18 + 8 + 框 44 · 字段/卡间距 16/12；
+  框位 197/283 · chips 369..409 · 地区 451..495 · 537..581 · 623..667 · 卡2 787/872 · 简介框 957..1021 · 资质行 1119/1181/1243（各 46）。
+- **★ 本轮最值钱的一条规矩（已写入 dev SKILL §4.8）：设计稿的 stroke 有的画在盒外、有的画在盒内，必须逐个量**——
+  ①**卡片 / chips / 简介框 = 盒外**：卡高 579 = 20 + 内容 + 20（不含描边）、chip 声明 40 而可见 42 → 用 `border` 会多占 2px 并把**卡内每个字段整体下推 1px**；
+  改用 `box-shadow: 0 0 0 1px`（ring）后卡高 579/345 与设计**逐值相等**、页高正好 1409。
+  ②输入框 / 未上传缩略图 = 盒内（声明 44 可见 42）→ 保留 `border`。
+  ③`.field + .field` 这类相邻选择器会把**两列行里的第二个半栏**也加上 margin-top（实测职务框 top +16）→ 必须写 `.card > .field`，并把卡头 margin-bottom 归零（否则首字段双份 16）。
+- **vision 与 DOM 数字再次互补**：本轮 vision 唯一抓到的是**结构错**——设计的「必传」是红底角标、「已上传」是绿底独立角标（两枚），我第一版合并成一枚「必传 已上传」；
+  回设计截图横向量色带证实（红 #FEF2F2 x157..191、绿 #ECFDF5 x202..261）→ 先补红断言（`evidence/red-序号10-补红-双角标.txt`）再拆成两枚；
+  修后实现 y=1132 行色带 **155..190 红 / 200..253 绿**（对设计 ±1~6px，差在字体度量）。
+- **客观证据链**：`build:mp-weixin` 产出 `pages/profile-edit/{js,json,wxml,wxss}`（app.json 已注册）；430 宽 iframe + 无头 Chrome 实测 `evidence/measure-序号10-430宽.json`：
+  `docScrollWidth 430` · 溢出 **0** · 设计文案缺失 **[]** · 输入值缺失 **[]** · 占位渲染 ✓ · 页高 **1409（=设计）** · 卡 h579/345/253 · 资质行 1119/1181/1243 · 底栏 1325..1409 · 无 TabBar；
+  **两轮独立测量 85 字段全等**（`cmp-measure-runs.py`，0 差异）；截图 `logs/screenshots/20260916-0247-序号10-*.png`（430×1409）+ `png-bands v 26` 与设计逐段吻合 + 顶部带墨迹右留白 281（无载体污染）；
+  **浏览器内真实交互**：类型 chip 切换 ✓ · 简介 → `5/200` ✓ · 清空企业名称点保存 → toast「请输入企业名称」且无写请求 ✓ · 保存草稿 → 本地 draft 落盘 ✓ ·
+  保存 → serve 日志实测 **`PUT /api/v1/provider/profile`**（body 含 12 个数据字典字段）→ toast「保存成功」+ 完整度 72%→78%（取自响应）✓ ·
+  删除资质 → 真实 `uni-modal`（删除资质文件 / 确认删除该资质文件？删除后不可恢复。/ 取消·确定）→ 确认 → 日志实测 **`DELETE /api/v1/provider/qualifications/q1`** → toast「已删除」→ 重新 GET 列表 ✓。
+  **新增独立 mock 集** `.agents/state/h5-measure/api-10-2/`（不与既有 `api/` 混用：同一 `/provider/profile` 在两个设计帧里公司名样例不同，不能共用一个 fixture）。
+- ⚠️ 待人类拍板（不阻塞本轮，14 条全部写进台账序号 10 备注）：①省市/地址/官网/职务/简介/完整度零命中 → 字段名与归属推断；②18-API 只列路径 → 方法推断；
+  ③资质分类码与 aap_provider_qualification 字段级 schema 无定义；④无文件上传接口 → 只登记元数据；⑤「保存草稿」PRD 无草稿语义 → 本地草稿；
+  ⑥保存后跳转目标无依据 → 停留本页；⑦「查看」无接口 → client-only 占位；⑧校验/toast/弹窗文案无稿 → 占位；⑨占位文案多为推断；
+  ⑩设计计数 48/200 与 40 字不自洽 → 按真实长度；⑪类型→industry_category 映射顺序推断；⑫原生 region picker 交互仅单测覆盖；⑬图标 CSS 占位；⑭删除后 mock 固定返回未删数据。
+
+⏳ 下一步（下一轮）：台账序号 **10.1「供应商档案 2」**（page-10-1-2，`/pages/profile/index`）——本页保存/返回的落点，按 §2 八步走；
+  可复用本轮全部工具链：`api-10-2` 式**独立 mock 集**、`__measure-profile-edit.html` 载体模板、`cmp-measure-runs.py` + `show-measure10.py`、`png-bands` 反推盒边界；
+  **先量 stroke 在盒内还是盒外再写 CSS**（本轮最大教训）。
+
 🟢 本轮（2026-09-16 02:10~02:30，租约 aap-tdd-run-20260916-0210 → 已释放）· **序号 9「模型报价设置/新增报价单」（page-9）收口**：
 - **Calicat 侧**：`get_canvas_list` 直接可用（未再需要 `cmd /c start`）；page-9 设计树（79KB / 159 节点）+ 截图已抓；
   `interaction.json` 仍「不存在图层交互数据」→ 交互真源退 PRD 10/17-spec/18-API + 画布页码。

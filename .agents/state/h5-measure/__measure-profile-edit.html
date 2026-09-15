@@ -1,0 +1,355 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-profile-edit</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      /* 取数用 <pre> 包进 0 尺寸 overflow:hidden 容器：textContent 可读，但不渲染、不会被 --screenshot 截进图里 */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
+         页面 10：/pages/profile-edit/index（【档案与凭证】供应商档案编辑，page-10-2）
+         设计基线（设计截图像素量尺，见 .agents/state/design-shots/page-10-2.png）：
+           顶栏 0..95（96）· 卡1 108..687 · 卡2 698..1042 · 卡3 1057..1308 · 底栏 1324..1408 · 页高 1409
+           卡内头部 27 · 字段 = 标签 18 + 8 + 框 44 · 字段间距 16 · 卡间距 12 · 底栏 padding 12/16/24/16
+           框位（设计实测）：197/283 · chips 369..409 · 地区 451..495 · 537..581 · 623..667
+                             卡2 框 787/872 · 简介框 957..1021 · 资质行 1119/1181/1243（各 46）
+         phase1 = 首屏（GET profile + GET qualifications）
+         phase2 = 点「原厂」chip + 填简介（真实 DOM 事件）
+         phase3 = 清空企业名称 → 点保存（校验拦截）→ 点保存草稿（本地草稿）
+         phase4 = 恢复企业名称 → 点保存（真实 PUT）→ 删资质行（uni-modal 二次确认）
+         截图另跑 ?noaction=1（交互回放会把 iframe 导航/弹窗走掉） -->
+    <iframe id="f" src="/index.html#/pages/profile-edit/index"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var acc = {}
+
+      function all(doc, sel) { return Array.prototype.slice.call(doc.querySelectorAll(sel)) }
+      function rect(doc, sel) {
+        var el = doc.querySelector(sel)
+        if (!el) return null
+        var r = el.getBoundingClientRect()
+        return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+      }
+      function rects(doc, sel) {
+        return all(doc, sel).map(function (e) {
+          var r = e.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), w: Math.round(r.width), h: Math.round(r.height) }
+        })
+      }
+      function texts(doc, sel) { return all(doc, sel).map(function (e) { return e.textContent.trim() }) }
+      function colorOf(doc, win, sel, prop) {
+        var el = doc.querySelector(sel)
+        return el ? win.getComputedStyle(el)[prop] : null
+      }
+      function textOf(doc, sel) {
+        var e = doc.querySelector(sel)
+        return e ? e.textContent.trim() : null
+      }
+      function styleOf(doc, win, sel) {
+        var el = doc.querySelector(sel)
+        if (!el) return null
+        var cs = win.getComputedStyle(el)
+        return { fontSize: cs.fontSize, fontWeight: cs.fontWeight, color: cs.color, lineHeight: cs.lineHeight, display: cs.display, borderRadius: cs.borderRadius, padding: cs.padding, borderTopColor: cs.borderTopColor, backgroundColor: cs.backgroundColor }
+      }
+      /* uni-app H5：<input>/<textarea> 渲染为 <uni-input>/<uni-textarea> 宿主 + 内层原生控件 */
+      function valueOf(doc, testid) {
+        var host = doc.querySelector('[data-testid="' + testid + '"]')
+        if (!host) return null
+        var inner = host.tagName === 'INPUT' || host.tagName === 'TEXTAREA' ? host : host.querySelector('input,textarea')
+        return inner ? inner.value : null
+      }
+      function badgeBg(doc, win, index) {
+        var el = all(doc, '[data-testid="qual-badge"]')[index]
+        return el ? win.getComputedStyle(el).backgroundColor : null
+      }
+
+      var needText = [
+        '编辑主体档案', '72%',
+        '主体信息', '企业名称 *', '统一社会信用代码 *', '供应商类型 *', '所在地区 *', '详细地址 *', '官网',
+        '原厂', '渠道商', '中转商', '浙江省', '杭州市',
+        '联系信息', '联系人 *', '职务', '手机号 *', '邮箱', '公司简介',
+        '资质文件', '支持 JPG/PNG/PDF，≤10MB',
+        '营业执照', '必传', '已上传', '营业执照-云智科技.jpg',
+        '上游授权书', '条件必传', '点击上传，仅支持单个文件',
+        '其他选传资质', '增值电信业务许可证、等保备案等',
+        '保存草稿', '保存'
+      ]
+      /* 输入框/文本域的值不进 innerText（既知假象）→ 单独按 input.value 核对 */
+      var needValues = [
+        '云智科技有限公司', '91330106MA2XXXXX8B', '西湖区文三路 199 号 A 座 18F',
+        '李明', '商务负责人', '13800006621', 'liming@yunzhi.com',
+        '专注大模型 API 分销与聚合，覆盖华东区域客户，具备 3 年上游资源整合经验。'
+      ]
+
+      function collect(doc, win) {
+        var over = []
+        all(doc, '*').forEach(function (el) {
+          var r = el.getBoundingClientRect()
+          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
+            over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), left: Math.round(r.x), w: Math.round(r.width), right: Math.round(r.right), html: String(el.outerHTML || '').slice(0, 140) })
+          }
+        })
+        var text = (doc.body && doc.body.innerText) || ''
+        var values = ['company-input', 'uscc-input', 'address-input', 'website-input', 'contact-input', 'title-input', 'phone-input', 'email-input', 'intro-input'].map(function (id) { return valueOf(doc, id) })
+        return {
+          innerWidth: win.innerWidth,
+          docScrollWidth: doc.documentElement.scrollWidth,
+          docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
+          overflowingCount: over.length,
+          overflowing: over.slice(0, 12),
+          missingTexts: needText.filter(function (t) { return text.indexOf(t) === -1 }),
+          missingValues: needValues.filter(function (v) { return values.indexOf(v) === -1 }),
+          /* 占位文案：uni-app H5 可能把 placeholder 放在内层原生控件属性上，也可能渲染成占位层 → 两种都取 */
+          placeholderAttr: (function () {
+            var el = doc.querySelector('[data-testid="website-input"]')
+            var inner = el ? (el.tagName === 'INPUT' ? el : el.querySelector('input')) : null
+            return inner ? inner.getAttribute('placeholder') : null
+          })(),
+          placeholderInText: text.indexOf('请输入企业官网地址') !== -1,
+          pageBg: colorOf(doc, win, '.profile-edit', 'backgroundColor'),
+          page: rect(doc, '.profile-edit'),
+          topbar: rect(doc, '.topbar'),
+          topbarBg: colorOf(doc, win, '.topbar', 'backgroundColor'),
+          topbarPad: colorOf(doc, win, '.topbar', 'padding'),
+          topbarRow: rect(doc, '.topbar__row'),
+          title: textOf(doc, '[data-testid="page-title"]'),
+          titleStyle: styleOf(doc, win, '.topbar__title'),
+          backBtn: rect(doc, '[data-testid="back-btn"]'),
+          chipText: textOf(doc, '[data-testid="completeness-chip"]'),
+          chip: rect(doc, '[data-testid="completeness-chip"]'),
+          chipBg: colorOf(doc, win, '[data-testid="completeness-chip"]', 'backgroundColor'),
+          chipTextColor: colorOf(doc, win, '.completeness__text', 'color'),
+          chipTextStyle: styleOf(doc, win, '.completeness__text'),
+          cards: rects(doc, '.card'),
+          cardStyle: styleOf(doc, win, '.card'),
+          cardHeads: rects(doc, '.card__head'),
+          cardTitles: texts(doc, '.card__title'),
+          labels: texts(doc, '.field__label'),
+          counter: textOf(doc, '[data-testid="intro-counter"]'),
+          fieldBoxes: rects(doc, '.field__box'),
+          companyBox: rect(doc, '[data-testid="field-company"] .field__box'),
+          usccBox: rect(doc, '[data-testid="field-uscc"] .field__box'),
+          usccOk: rect(doc, '[data-testid="uscc-ok"]'),
+          usccOkColor: colorOf(doc, win, '.glyph--check', 'borderBottomColor'),
+          industryChips: rects(doc, '[data-testid="industry-chip"]'),
+          industryChecked: all(doc, '[data-testid="industry-chip"]').map(function (e) { return e.getAttribute('data-checked') }),
+          industryChipTexts: texts(doc, '.type-chip__text'),
+          chipCheckedBg: colorOf(doc, win, '.type-chip--checked', 'backgroundColor'),
+          chipUncheckedBg: (function () {
+            var el = all(doc, '[data-testid="industry-chip"]').filter(function (e) { return e.getAttribute('data-checked') === 'false' })[0]
+            return el ? win.getComputedStyle(el).backgroundColor : null
+          })(),
+          chipUncheckedRing: (function () {
+            var el = all(doc, '[data-testid="industry-chip"]').filter(function (e) { return e.getAttribute('data-checked') === 'false' })[0]
+            return el ? win.getComputedStyle(el).boxShadow : null
+          })(),
+          chipCheckedRing: colorOf(doc, win, '.type-chip--checked', 'boxShadow'),
+          cardRing: colorOf(doc, win, '.card', 'boxShadow'),
+          introRing: colorOf(doc, win, '.intro-box', 'boxShadow'),
+          boxBorder: colorOf(doc, win, '.field__box', 'borderTopColor'),
+          thumbEmptyBorder: colorOf(doc, win, '.qual-row__thumb--empty', 'borderTopColor'),
+          thumbFilledBg: colorOf(doc, win, '.qual-row__thumb', 'backgroundColor'),
+          regionBoxes: rects(doc, '.field__box--half'),
+          province: textOf(doc, '[data-testid="province-value"]'),
+          city: textOf(doc, '[data-testid="city-value"]'),
+          regionPicker: rect(doc, '[data-testid="region-picker"]'),
+          addressBox: rect(doc, '[data-testid="field-address"] .field__box'),
+          websiteBox: rect(doc, '[data-testid="field-website"] .field__box'),
+          boxStyle: styleOf(doc, win, '.field__box'),
+          inputStyle: styleOf(doc, win, '.field__input'),
+          labelStyle: styleOf(doc, win, '.field__label'),
+          twoCols: rects(doc, '.two-col'),
+          contactBox: rect(doc, '[data-testid="field-contact"] .field__box'),
+          phoneBox: rect(doc, '[data-testid="field-phone"] .field__box'),
+          introBox: rect(doc, '.intro-box'),
+          introStyle: styleOf(doc, win, '.intro-box'),
+          introTextareaStyle: styleOf(doc, win, '.intro-box__textarea'),
+          qualRows: rects(doc, '[data-testid="qual-row"]'),
+          qualThumbs: rects(doc, '.qual-row__thumb'),
+          qualNames: texts(doc, '[data-testid="qual-name"]'),
+          qualBadges: texts(doc, '[data-testid="qual-badge"]'),
+          qualBadgeRects: rects(doc, '[data-testid="qual-badge"]'),
+          qualBadgeBg: [badgeBg(doc, win, 0), badgeBg(doc, win, 1), badgeBg(doc, win, 2)],
+          qualFile: textOf(doc, '[data-testid="qual-file"]'),
+          qualFileColor: colorOf(doc, win, '[data-testid="qual-file"]', 'color'),
+          qualHint: textOf(doc, '[data-testid="qual-hint"]'),
+          qualDesc: textOf(doc, '[data-testid="qual-desc"]'),
+          qualDel: rect(doc, '[data-testid="qual-del-0"]'),
+          qualView: rect(doc, '[data-testid="qual-view-0"]'),
+          barWrap: rect(doc, '.bar-wrap'),
+          bar: rect(doc, '.bar'),
+          barBg: colorOf(doc, win, '.bar', 'backgroundColor'),
+          barStyle: styleOf(doc, win, '.bar'),
+          barPinned: (function () {
+            var el = doc.querySelector('.bar')
+            if (!el) return null
+            return Math.abs(el.getBoundingClientRect().bottom - Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight)) < 2
+          })(),
+          draftBtn: rect(doc, '[data-testid="btn-draft"]'),
+          draftBorder: colorOf(doc, win, '[data-testid="btn-draft"]', 'borderTopColor'),
+          draftTextColor: colorOf(doc, win, '[data-testid="btn-draft"]', 'color'),
+          saveBtn: rect(doc, '[data-testid="btn-save"]'),
+          saveBg: colorOf(doc, win, '[data-testid="btn-save"]', 'backgroundColor'),
+          tabbarExists: !!doc.querySelector('.tabbar'),
+          values: values,
+          userAgent: win.navigator.userAgent
+        }
+      }
+
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+
+      function phase(n) {
+        try {
+          var payload = collect(f.contentDocument, f.contentWindow)
+          if (n === 1 || n === 2) {
+            f.style.height = payload.docScrollHeight + 'px'
+            acc.iframeHeightForShot = payload.docScrollHeight
+          }
+          sink(n, payload)
+        } catch (e) {
+          sink(n, { error: String(e && e.message) })
+        }
+      }
+
+      function clickIn(sel) {
+        var doc = f.contentDocument
+        var el = doc.querySelector(sel)
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+
+      function clickAll(sel, index) {
+        var doc = f.contentDocument
+        var el = all(doc, sel)[index]
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+
+      /* ⚠️ 必须写内层原生控件：data-testid 落在 <uni-input>/<uni-textarea> 宿主上，
+         给宿主设 .value + 派发 input 不触发 v-model（序号 9 实测），且 uni 侧有 ~1s 延迟 */
+      function fillField(testid, value) {
+        var host = f.contentDocument.querySelector('[data-testid="' + testid + '"]')
+        var el = host ? (host.tagName === 'INPUT' || host.tagName === 'TEXTAREA' ? host : host.querySelector('input,textarea')) : null
+        if (!el) return 'NOT_FOUND'
+        el.focus()
+        el.value = value
+        el.dispatchEvent(new Event('input', { bubbles: true }))
+        return 'FILLED'
+      }
+
+      function toastText(doc) {
+        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
+        return el ? el.textContent.trim() : ''
+      }
+
+      function checkedStates() {
+        return all(f.contentDocument, '[data-testid="industry-chip"]').map(function (e) { return e.getAttribute('data-checked') })
+      }
+
+      f.addEventListener('load', function () {
+        var NO_ACTION = location.search.indexOf('noaction') !== -1
+        setTimeout(function () { phase(1) }, 2200)
+        if (NO_ACTION) return
+
+        /* phase2：类型 chip 选中切换 + 简介输入（真实 DOM 事件） */
+        setTimeout(function () {
+          var clickedOrigin = clickAll('[data-testid="industry-chip"]', 0)
+          setTimeout(function () {
+            var afterOrigin = checkedStates()
+            clickAll('[data-testid="industry-chip"]', 1)
+            setTimeout(function () {
+              var afterBack = checkedStates()
+              fillField('intro-input', '专注大模型')
+              setTimeout(function () {
+                sink(2, {
+                  clickedOrigin: clickedOrigin,
+                  checkedAfterOrigin: afterOrigin,
+                  checkedAfterBack: afterBack,
+                  introCounter: textOf(f.contentDocument, '[data-testid="intro-counter"]'),
+                  introValue: valueOf(f.contentDocument, 'intro-input'),
+                  province: textOf(f.contentDocument, '[data-testid="province-value"]'),
+                  hash: String(f.contentWindow.location.hash)
+                })
+              }, 1200)
+            }, 400)
+          }, 400)
+        }, 3200)
+
+        /* phase3：清空企业名称 → 保存被校验拦截；再点保存草稿（本地草稿 storage） */
+        setTimeout(function () {
+          fillField('company-input', '')
+          setTimeout(function () {
+            var before = all(f.contentDocument, 'uni-toast').length
+            var clicked = clickIn('[data-testid="btn-save"]')
+            setTimeout(function () {
+              var validateToast = toastText(f.contentDocument)
+              clickIn('[data-testid="btn-draft"]')
+              setTimeout(function () {
+                var draftToast = toastText(f.contentDocument)
+                var raw = ''
+                try { raw = f.contentWindow.localStorage.getItem('aap_provider_profile_draft') || '' } catch (e) { raw = 'ERR:' + e.message }
+                sink(3, {
+                  clickedSave: clicked,
+                  toastsBefore: before,
+                  validateToast: validateToast,
+                  draftToast: draftToast,
+                  draftRaw: raw.slice(0, 300),
+                  hash: String(f.contentWindow.location.hash)
+                })
+              }, 1500)
+            }, 1500)
+          }, 900)
+        }, 5600)
+
+        /* phase4：恢复企业名称 → 真实 PUT 保存 → 删资质（uni-modal 二次确认 → DELETE） */
+        setTimeout(function () {
+          fillField('company-input', '云智科技有限公司')
+          setTimeout(function () {
+            clickIn('[data-testid="btn-save"]')
+            setTimeout(function () {
+              var saveToast = toastText(f.contentDocument)
+              var chipAfter = textOf(f.contentDocument, '[data-testid="completeness-chip"]')
+              clickIn('[data-testid="qual-del-0"]')
+              setTimeout(function () {
+                var doc = f.contentDocument
+                var modal = doc.querySelector('.uni-modal')
+                var modalText = modal ? modal.textContent.replace(/\s+/g, ' ').trim() : ''
+                var btns = all(doc, '.uni-modal__btn').map(function (b) { return b.textContent.trim() })
+                var confirmed = clickIn('.uni-modal__btn_primary')
+                setTimeout(function () {
+                  sink(4, {
+                    saveToast: saveToast,
+                    chipAfterSave: chipAfter,
+                    modalExists: !!modal,
+                    modalText: modalText,
+                    modalButtons: btns,
+                    confirmClicked: confirmed,
+                    toastAfterDelete: toastText(f.contentDocument),
+                    qualRowsAfterDelete: all(f.contentDocument, '[data-testid="qual-row"]').length,
+                    qualFileAfterDelete: textOf(f.contentDocument, '[data-testid="qual-file"]'),
+                    hash: String(f.contentWindow.location.hash)
+                  })
+                }, 1600)
+              }, 900)
+            }, 1800)
+          }, 1000)
+        }, 8600)
+      })
+    </script>
+  </body>
+</html>
