@@ -1,0 +1,83 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+ [31m❯[39m tests/unit/quote-create-api.spec.ts [2m([22m[2m5 tests[22m[2m | [22m[31m5 failed[39m[2m)[22m[90m 30[2mms[22m[39m
+[31m   [31m×[31m quoteApi.create（POST /api/v1/quotes）[2m > [22m创建一个报价单 → POST /api/v1/quotes，请求体为视图模型给出的键[90m 27[2mms[22m[31m[39m
+[31m     → quoteApi.create is not a function[39m
+[31m   [31m×[31m quoteApi.create（POST /api/v1/quotes）[2m > [22m带 token 时附带 Authorization（与既有接口一致）[90m 1[2mms[22m[31m[39m
+[31m     → quoteApi.create is not a function[39m
+[31m   [31m×[31m quoteApi.create（POST /api/v1/quotes）[2m > [22m服务端 E-1602（未通过检测报报价）→ 抛 ApiError 且保留错误码[90m 0[2mms[22m[31m[39m
+[31m     → quoteApi.create is not a function[39m
+[31m   [31m×[31m quoteApi.setItems（POST /api/v1/quotes/{quoteId}/items）[2m > [22m写入勾选的模型明细行 → POST /api/v1/quotes/q9/items[90m 0[2mms[22m[31m[39m
+[31m     → quoteApi.setItems is not a function[39m
+[31m   [31m×[31m quoteApi.setItems（POST /api/v1/quotes/{quoteId}/items）[2m > [22mquoteId 做 URL 编码（防注入到路径）[90m 0[2mms[22m[31m[39m
+[31m     → quoteApi.setItems is not a function[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 5 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-create-api.spec.ts[2m > [22mquoteApi.create（POST /api/v1/quotes）[2m > [22m创建一个报价单 → POST /api/v1/quotes，请求体为视图模型给出的键
+[31m[1mTypeError[22m: quoteApi.create is not a function[39m
+[36m [2m❯[22m tests/unit/quote-create-api.spec.ts:[2m26:32[22m[39m
+    [90m 24| [39m  [34mit[39m([32m'创建一个报价单 → POST /api/v1/quotes，请求体为视图模型给出的键'[39m[33m,[39m…
+    [90m 25| [39m    [34mpushResponse[39m({ statusCode[33m:[39m [34m200[39m[33m,[39m data[33m:[39m { code[33m:[39m [32m'0'[39m[33m,[39m message[33m:[39m [32m'ok'[39m[33m,[39m …
+    [90m 26| [39m    [35mconst[39m res [33m=[39m [35mawait[39m quoteApi[33m.[39m[34mcreate[39m({ name[33m:[39m [32m'2024Q3 主线路报价'[39m[33m,[39m pro…
+    [90m   | [39m                               [31m^[39m
+    [90m 27| [39m    [35mconst[39m options [33m=[39m [34mlastRequest[39m()
+    [90m 28| [39m    [34mexpect[39m(options[33m.[39murl)[33m.[39m[34mtoBe[39m([32m'/api/v1/quotes'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-create-api.spec.ts[2m > [22mquoteApi.create（POST /api/v1/quotes）[2m > [22m带 token 时附带 Authorization（与既有接口一致）
+[31m[1mTypeError[22m: quoteApi.create is not a function[39m
+[36m [2m❯[22m tests/unit/quote-create-api.spec.ts:[2m37:20[22m[39m
+    [90m 35| [39m    storage[33m.[39m[35mset[39m([33mTOKEN_KEY[39m[33m,[39m [32m'tk-9'[39m)
+    [90m 36| [39m    [34mpushResponse[39m({ statusCode[33m:[39m [34m200[39m[33m,[39m data[33m:[39m { code[33m:[39m [32m'0'[39m[33m,[39m message[33m:[39m [32m'ok'[39m[33m,[39m …
+    [90m 37| [39m    [35mawait[39m quoteApi[33m.[39m[34mcreate[39m({ name[33m:[39m [32m'a'[39m })
+    [90m   | [39m                   [31m^[39m
+    [90m 38| [39m    [35mconst[39m header [33m=[39m [34mlastRequest[39m()[33m.[39mheader [35mas[39m [33mRecord[39m[33m<[39mstring[33m,[39m string[33m>[39m
+    [90m 39| [39m    [34mexpect[39m(header[33m.[39m[33mAuthorization[39m)[33m.[39m[34mtoBe[39m([32m'Bearer tk-9'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-create-api.spec.ts[2m > [22mquoteApi.create（POST /api/v1/quotes）[2m > [22m服务端 E-1602（未通过检测报报价）→ 抛 ApiError 且保留错误码
+[31m[1mTypeError[22m: quoteApi.create is not a function[39m
+[36m [2m❯[22m tests/unit/quote-create-api.spec.ts:[2m47:27[22m[39m
+    [90m 45| [39m      data[33m:[39m { code[33m:[39m [32m'E-1602'[39m[33m,[39m message[33m:[39m [32m'未通过检测的凭证不可报价'[39m[33m,[39m dat…
+    [90m 46| [39m    })
+    [90m 47| [39m    [35mawait[39m [34mexpect[39m(quoteApi[33m.[39m[34mcreate[39m({ name[33m:[39m [32m'a'[39m }))[33m.[39mrejects[33m.[39m[34mtoBeInstanceO[39m…
+    [90m   | [39m                          [31m^[39m
+    [90m 48| [39m    [35mawait[39m [34mexpect[39m(quoteApi[33m.[39m[34mcreate[39m({ name[33m:[39m [32m'a'[39m }))[33m.[39mrejects[33m.[39m[34mtoMatchObject[39m…
+    [90m 49| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-create-api.spec.ts[2m > [22mquoteApi.setItems（POST /api/v1/quotes/{quoteId}/items）[2m > [22m写入勾选的模型明细行 → POST /api/v1/quotes/q9/items
+[31m[1mTypeError[22m: quoteApi.setItems is not a function[39m
+[36m [2m❯[22m tests/unit/quote-create-api.spec.ts:[2m57:20[22m[39m
+    [90m 55| [39m  [34mit[39m([32m'写入勾选的模型明细行 → POST /api/v1/quotes/q9/items'[39m[33m,[39m [35masync[39m () [33m=[39m…
+    [90m 56| [39m    [34mpushResponse[39m({ statusCode[33m:[39m [34m200[39m[33m,[39m data[33m:[39m { code[33m:[39m [32m'0'[39m[33m,[39m message[33m:[39m [32m'ok'[39m[33m,[39m …
+    [90m 57| [39m    [35mawait[39m quoteApi[33m.[39m[34msetItems[39m([32m'q9'[39m[33m,[39m { items[33m:[39m [{ model_name[33m:[39m [32m'gpt-4o'[39m }] …
+    [90m   | [39m                   [31m^[39m
+    [90m 58| [39m    [35mconst[39m options [33m=[39m [34mlastRequest[39m()
+    [90m 59| [39m    [34mexpect[39m(options[33m.[39murl)[33m.[39m[34mtoBe[39m([32m'/api/v1/quotes/q9/items'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-create-api.spec.ts[2m > [22mquoteApi.setItems（POST /api/v1/quotes/{quoteId}/items）[2m > [22mquoteId 做 URL 编码（防注入到路径）
+[31m[1mTypeError[22m: quoteApi.setItems is not a function[39m
+[36m [2m❯[22m tests/unit/quote-create-api.spec.ts:[2m66:20[22m[39m
+    [90m 64| [39m  [34mit[39m([32m'quoteId 做 URL 编码（防注入到路径）'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m 65| [39m    [34mpushResponse[39m({ statusCode[33m:[39m [34m200[39m[33m,[39m data[33m:[39m { code[33m:[39m [32m'0'[39m[33m,[39m message[33m:[39m [32m'ok'[39m[33m,[39m …
+    [90m 66| [39m    [35mawait[39m quoteApi[33m.[39m[34msetItems[39m([32m'q/9'[39m[33m,[39m { items[33m:[39m [] })
+    [90m   | [39m                   [31m^[39m
+    [90m 67| [39m    [34mexpect[39m([34mlastRequest[39m()[33m.[39murl)[33m.[39m[34mtoBe[39m([32m'/api/v1/quotes/q%2F9/items'[39m)
+    [90m 68| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m5 failed[39m[22m[90m (5)[39m
+[2m   Start at [22m 02:14:57
+[2m   Duration [22m 1.04s[2m (transform 58ms, setup 43ms, collect 58ms, tests 30ms, environment 543ms, prepare 115ms)[22m
+

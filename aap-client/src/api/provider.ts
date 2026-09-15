@@ -11,6 +11,11 @@ export interface ProviderProfile {
   companyName?: string
   providerCode?: string
   status?: string
+  /** 供应商主体（15-数据字典 aap_provider）：序号 9 报价主体用（字段名 snake_case 与数据字典一致） */
+  id?: string
+  provider_id?: string
+  company_name?: string
+  unified_social_credit_code?: string
 }
 
 export const providerApi = {

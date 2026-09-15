@@ -64,6 +64,46 @@ LEASE: free until -
 
 ## 4. 进度（细表看台账 CSV，这里只留能力组）
 
+🟢 本轮（2026-09-16 02:10~02:30，租约 aap-tdd-run-20260916-0210 → 已释放）· **序号 9「模型报价设置/新增报价单」（page-9）收口**：
+- **Calicat 侧**：`get_canvas_list` 直接可用（未再需要 `cmd /c start`）；page-9 设计树（79KB / 159 节点）+ 截图已抓；
+  `interaction.json` 仍「不存在图层交互数据」→ 交互真源退 PRD 10/17-spec/18-API + 画布页码。
+  **顺手核对同名疑点**：page-26「新增报价单-初始态」是**独立帧**（step 条/报价单号「系统生成」/空态提示），
+  与 page-9（已填态 + 模型列表）文本差集不同 → 不是重复页；新脚本 `diff-node-text.py <nodesA> <nodesB>` 做差集。
+- **这页到底是什么**：顶栏（返回 /「新增报价单」18px Bold /「填写基本信息并设置模型报价」12px / 帮助按钮）·
+  卡1 报价主体（chip「去新增」+ 主体公司选择框〔公司名 13px SemiBold + 统一社会信用代码 11px〕+ 红星说明）·
+  卡2 基本信息（chip「已完善」+ 报价单名称输入 + 「12/30」字数 + 凭证选择框〔别名 + 脱敏 key〕+ 绿字「已自动带出该凭证下 5 个可用模型」）·
+  卡3 模型列表（chip「已选 3 / 5」+ 工具栏「全选模型 / 按凭证实时带出」+ 5 模型行〔勾选框 / 名称 14px SemiBold / 厂商标 / 「输入 $2.50 / 输出 $10.00 / 1M token」/ 状态标 已选|可选 / chevron〕+ 底部计价说明）·
+  卡4 蓝色提示卡 · 底栏「存为草稿」(128×48) + 「保存」(fill×48 #2563EB)；**无 TabBar**，设计总高 1211。
+- **TDD（3 切片，逐切片红→绿；新增 47 例）**：`tests/unit/quote-setup-model.spec.ts`(18) · `tests/unit/quote-create-api.spec.ts`(5) ·
+  `tests/pages/quote-setup.spec.ts`(24)；红基线 `evidence/red-序号9-切片1/2/3.txt`（切片2 = `quoteApi.create/setItems is not a function`）；
+  实现 `src/utils/quote-setup-model.ts`、`src/api/quote.ts`（+create/setItems）、`src/pages/quote-models/index.vue`、`pages.json` 路由、
+  `src/api/provider.ts` 补 aap_provider 字段、tokens **新增 3 个**（#F0F0F0 / #189A47 / #777777）；
+  绿 **471/471 连跑两轮一致**（`evidence/green-序号9.txt`）+ `npm run type-check` **exit 0**。
+- **由设计像素反推抓出的真偏差（vision 完全看不出）**：卡1 少了设计 `5f243d40` 的 **padding-top 8** → 主体选择框实测 top 170（设计 178）、卡高 140（设计 ~148）：
+  补 `.field__inner{padding-top:8px}` 后 **top 178 = 设计 178**、卡高 148、页高 1202（设计 1211，余下 -9 = 工具栏 40 vs 设计推导 37 + 文本行盒取整）。
+  新工具 `png-bg-runs.py <png> <x> [hex] [minLen]`（沿列找**页面底色色带** = 卡间隙，用来反推卡片边界；比 png-bands 直接读整列更抗文字墨迹）。
+- **客观证据链**：`build:mp-weixin` 产出 `pages/quote-models/{js,json,wxml,wxss}`（app.json 已注册）；
+  430 宽 iframe + 无头 Chrome **四段实测** `evidence/measure-序号9-430宽.json`（dump 留证）：`docScrollWidth 430` · 溢出 **0** ·
+  文案缺失 **[]（need 44 条设计文本，含 5 条价格模板与提示卡换行）** · 卡 h 148/280/434 @top 118/282/578（设计与 118/578 完全一致）·
+  模型行 5×{x32 w366 h58} · 底栏 h98 固定 · 无 TabBar；
+  **浏览器内真实交互**：勾第 4 行 → `已选 4 / 5`；全选 → `5 / 5`；再全选 → `0 / 5`；填名称 → `12/30`；
+  点「保存」→ serve.py 日志实测 **`POST /api/v1/quotes body={name,provider_id,credential_id}`** + **`POST /api/v1/quotes/q9/items body={items:[{model_name}]}`** → toast「保存成功」；
+  截图 `logs/screenshots/20260916-0225-序号09-模型报价设置-h5-430宽.png`（430×1202）+ png-ink 核验顶/底带（右留白 30/16，无载体污染）。
+- **平台坑（新，已写进 `.agents/skills/dev/SKILL.md` §4.2）**：**载体页给 uni-app H5 的 `<input>` 填值必须写「内层原生 input」**——
+  `data-testid` 落在 **`<uni-input>` 宿主**上，给宿主设 `.value` + 派发 input **不触发 v-model**（实测字数一直 `0/30`、保存被「请输入报价单名称」拦住）；
+  正解 = `host.querySelector('input')` 再派发 input 事件，且 uni 侧更新有 **~1s 延迟**（实测 1s 后才出现 `12/30`）。
+- ⚠️ 待人类拍板（不阻塞本轮，11 条全部写进台账序号 9 备注）：①画布页名写「…-列表」但帧内容是「新增报价单」已填态，
+  与序号 12-v1 `/pages/quote-form/index`（初始态）是否合并同一路由待拍板；②「报价单名称」PRD/数据字典**无对应列** → 提交体用 `name`（推断）；
+  ③18-API 只列路径 → POST /quotes、/quotes/{id}/items 方法与字段级 schema 为推断；④18-API 无「我的公司」列表接口 → 「下拉」退化为单主体（profile）；
+  ⑤`credential_id` 不在 aap_quote（全 PRD 零命中）→ 关联字段为推断；⑥模型参考价无接口依据 → 取 model_list 的 price，缺失不渲染价格行；
+  ⑦设计「13/30」与 12 字示例不自洽 → 按真实长度；⑧「已选/可选」判定来源未定义 → 取 selected 标记；⑨保存后跳 `/pages/model-pricing/index?quoteId=` 为推断（该页未实现，H5 hash 不变）；
+  ⑩toast 与校验文案无设计稿 → 占位；⑪图标仍为 CSS 形状占位。
+
+⏳ 下一步（下一轮）：台账序号 **10「供应商档案编辑 2」**（page-10-2，`/pages/profile-edit/index`）——本页「去新增」正是跳它，
+按 §2 八步走；可复用本轮全部工具链：`serve.py`（含 POST/DELETE mock）、`__measure-quote-setup.html` 载体模板、
+`png-bg-runs.py` 反推卡片边界、**注意验证表单填值要走内层原生 input**（宿主 uni-input 设 value 无效）。
+（序号 1~9 均已实现并留证，状态「部分」= 登记了等人类拍板的缺口，**不要回炉**。）
+
 🟢 本轮（2026-09-16 01:55~02:15，租约 aap-tdd-run-20260916-0155 → 已释放）· **序号 8「报价单列表 2」（page-8-2）收口**：
 - **Calicat 侧**：`get_design_page_list` 直接可用（未再需要先 `cmd /c start` 拉编辑器）；page-8-2 设计树（113KB / 240 节点）+ 截图已抓；
   `interaction.json` 仍「不存在图层交互数据」→ 交互真源退 PRD 10/17-spec/18-API + 画布页码。

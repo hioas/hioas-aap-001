@@ -133,6 +133,10 @@ vision 看到的「右侧贴边/缺字」是**截图假象**而非页面缺陷�
    规矩：取数前先 `wc -c` 看 dump 字节数（几百字节 = 404 页），异常就重取。
 2. **无头 Chrome 复用同一个 `--user-data-dir` 会偶发不产出 dump** → 每次用一个新目录（`chrome-measure-$$`）。
 3. **uni-app H5 把 `<input>` 渲染成 `<uni-input>` 包装元素**，`el.value` 是 undefined；取值要读内层原生 `input.value`。
+   ⚠️ **2026-09-16 补（序号 9 实测，最坑）**：`data-testid` 放在 `<input>` 上时**落在 `<uni-input>` 宿主元素**上。
+   载体页给宿主 `el.value = '…'` + `dispatchEvent(new Event('input'))` **完全不触发 v-model**（实测字数一直 `0/30`、保存被「请输入报价单名称」拦住 → 会误判成页面缺陷）。
+   正解 = 先取宿主再进内层：`host = doc.querySelector('uni-input[data-testid="x"]'); el = host.querySelector('input')`，
+   `el.focus(); el.value = '…'; el.dispatchEvent(new Event('input', { bubbles: true }))`；**且 uni 侧更新有 ~1s 延迟**（1s 后才出现 `12/30`，取数时间点要留够）。
    同理 `innerText` **不含 input 的值** → 文案完整性检查里会把表单值误报为「缺失」（既知假象，需单独断言 input.value）。
 4. **`--window-size` 不可靠**（见 4.1 第 1 条）+ 页面可滚动时，430×900 截图只覆盖文档前 900px：
    模型/vision 可能把「折叠区」误判成「被裁掉/被固定栏遮挡」→ 一律用 DOM（`docScrollHeight`、`atBottom` 断言）否定或确认。
@@ -205,6 +209,18 @@ vision 看到的「右侧贴边/缺字」是**截图假象**而非页面缺陷�
   vision 报成红色 #FF4D4F。规矩：颜色断言一律回设计树取 `fontFill/fills`，vision 只用于"层级/留白"这类主观判断。
 - **设计帧自身越界也要记**：顶部「新建报价」按钮在设计里位于 x343..440（宽 97，超出 430 画面 10px），
   与同帧声明的 `padding-right 16` 不自洽 → 实现按「页面零溢出」右对齐 16，并把差异写进台账备注（不静默照抄越界）。
+
+## 4.7 表单页取证 + 从设计截图反推卡片边界（2026-09-16 序号 9 模型报价设置）
+
+- **设计稿的「多层 padding」要在实现里逐层落**：page-9 报价主体卡 无字段标签行，但选择框前仍有一层 `padding-top 8` 的容器（设计 5f243d40）→
+  漏掉后主体选择框 top 实测 170（设计 **178**）、卡高 140（设计 ~148）。**规矩：卡片内每个直接子块都要回 design.tree.json 数一遍 padding**，
+  只按「同族卡片长得一样」会稳定差 8px（此类偏差只有 DOM 数字能抓，vision 与像素比对都很难看出来）。
+- **从设计截图反推卡片边界**：用 `python .agents/state/png-bg-runs.py <png> <x> "#f5f7fb" 3` —— 沿列扫描**页面底色色带**（= 卡片之间的间距/页边距），
+  比 `png-bands.py` 直接读整列更抗文字墨迹（卡中央的列会被文字打断成碎片）。注意**别选卡边缘的列**（x=22 会被 16px 圆角吃掉首尾各 6px，把 16 的间距读成 8）。
+  得到「导航结束 102 / 卡1 118..268 / 卡2 285..562 / 卡3 578..」这类硬边界后，再与 DOM 的 `cardRects` 逐条对账。
+- **判重同名/疑似重复帧**：画布页名与帧内容可能不一致（page-9 名为「…-列表」、内容却是「新增报价单」已填态）。
+  先抓相邻疑似帧（如 page-26「新增报价单-初始态」）并做**文本差集**：`python .agents/state/diff-node-text.py <nodesA.txt> <nodesB.txt>`，
+  差集为空才是重复帧；有差异就是不同页面，不要合并实现。
 
 ## 5. 页面实现顺序与取件
 

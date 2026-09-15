@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>diag-name-input</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <iframe id="f" src="/index.html#/pages/quote-models/index"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var out = {}
+      function q(sel) { return f.contentDocument.querySelector(sel) }
+      function count() { var e = q('[data-testid="name-count"]'); return e ? e.textContent.trim() : null }
+      function chain(el) {
+        var tags = []
+        var cur = el
+        while (cur && tags.length < 6) { tags.push(cur.tagName + (cur.className ? '.' + String(cur.className).split(' ')[0] : '')); cur = cur.parentElement }
+        return tags
+      }
+      function fillA() {
+        var el = q('[data-testid="name-input"]')
+        out.tagOfTestidTarget = el ? el.tagName : null
+        out.parentChain = el ? chain(el) : null
+        out.outerHtml = el ? String(el.outerHTML).slice(0, 400) : null
+        if (!el) return
+        el.focus()
+        el.value = '2024Q3 主线路报价'
+        el.dispatchEvent(new Event('input', { bubbles: true }))
+        out.afterA = count()
+      }
+      function fillB() {
+        var el = q('[data-testid="name-input"]')
+        var host = el.closest('uni-input') || el.parentElement
+        out.hostTag = host ? host.tagName : null
+        host.dispatchEvent(new Event('input', { bubbles: true }))
+        out.afterB = count()
+      }
+      function fillC() {
+        var el = q('[data-testid="name-input"]')
+        el.dispatchEvent(new Event('change', { bubbles: true }))
+        out.afterC = count()
+      }
+      function fillD() {
+        var el = q('[data-testid="name-input"]')
+        el.focus()
+        el.select()
+        var ok = false
+        try { ok = f.contentDocument.execCommand('insertText', false, '2024Q3 主线路报价') } catch (e) { ok = String(e) }
+        out.execCommand = ok
+        setTimeout(function () { out.afterD = count() }, 300)
+      }
+      function fillE() {
+        var host = q('uni-input[data-testid="name-input"]')
+        var el = host ? host.querySelector('input') : null
+        out.innerTag = el ? el.tagName + '.' + el.className : null
+        if (!el) return
+        el.focus()
+        el.value = '2024Q3 主线路报价'
+        el.dispatchEvent(new Event('input', { bubbles: true }))
+        out.afterE = count()
+      }
+      function dump() { document.getElementById('m').textContent = 'DIAG_JSON:' + JSON.stringify(out) }
+
+      f.addEventListener('load', function () {
+        setTimeout(function () { fillA(); dump() }, 2200)
+        setTimeout(function () { fillB(); dump() }, 3000)
+        setTimeout(function () { fillE(); dump() }, 3600)
+        setTimeout(function () { out.afterE_late = count(); dump() }, 4600)
+        setTimeout(function () { out.nameValueLate = (q('uni-input[data-testid="name-input"] input') || {}).value; dump() }, 5400)
+      })
+    </script>
+  </body>
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html><head>
+    <meta charset="utf-8">
+    <title>measure-quote-setup</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      /* 取数用 <pre> 包在 0 尺寸 overflow:hidden 容器：textContent 可读，但不参与渲染、也不会被 --screenshot 截进图里 */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
+         页面 9：/pages/quote-models/index（【报价管理】模型报价设置，page-9）
+         phase1（首次加载：主体公司 + 凭证列表）· phase2（选凭证 c1 后：模型行/计数/说明）
+         phase3（点第 4 行 gemini-1.5-pro → 计数变化；填名称 → 字数提示）
+         phase4（点「保存」→ 真实 POST /quotes + POST /quotes/q9/items，请求见 serve.py 日志）
+         设计基线（page-9 设计树/截图）：顶栏 padding[48,16,12,16] · 内容区 padding[16,16,20,16] gap16 ·
+           卡 padding16 r16 · 选择框/输入框 48 · 模型行 padding[12,0] · 底栏 padding[12,16,28,16] · 页面高 1211 -->
+    <iframe id="f" src="/index.html#/pages/quote-models/index" style="height: 1202px;"></iframe>
+    <div id="sink"><pre id="m">MEASURE_JSON:{"phase1":{"innerWidth":430,"docScrollWidth":430,"docScrollHeight":900,"overflowingCount":0,"overflowing":[],"missingTexts":["华东主线路 · GPT 通道","sk-prod-••••••••2f9a","已自动带出该凭证下 5 个可用模型","gpt-4o","gpt-4o-mini","claude-3-5-sonnet","gemini-1.5-pro","deepseek-chat","OpenAI","Anthropic","Google","DeepSeek","输入 $2.50 / 输出 $10.00 / 1M token","输入 $0.15 / 输出 $0.60 / 1M token","输入 $3.00 / 输出 $15.00 / 1M token","输入 $1.25 / 输出 $5.00 / 1M token","输入 $0.14 / 输出 $0.28 / 1M token","可选"],"pageBg":"rgb(245, 247, 251)","nav":{"x":0,"top":0,"right":430,"bottom":102,"w":430,"h":102},"navBg":"rgb(255, 255, 255)","title":"新增报价单","titleStyle":{"fontSize":"18px","fontWeight":"700","color":"rgb(15, 23, 42)","lineHeight":"24px","display":"block","whiteSpace":"pre-line"},"subtitle":"填写基本信息并设置模型报价","subtitleStyle":{"fontSize":"12px","fontWeight":"400","color":"rgb(148, 163, 184)","lineHeight":"18px","display":"block","whiteSpace":"pre-line"},"back":{"x":16,"top":51,"right":52,"bottom":87,"w":36,"h":36},"backBg":"rgb(241, 245, 249)","help":{"x":378,"top":51,"right":414,"bottom":87,"w":36,"h":36},"body":{"x":0,"top":102,"right":430,"bottom":802,"w":430,"h":700},"bodyStyle":{"fontSize":"16px","fontWeight":"400","color":"rgb(0, 0, 0)","lineHeight":"normal","display":"flex","whiteSpace":"normal"},"cards":[{"x":16,"top":118,"right":414,"w":398,"h":148},{"x":16,"top":282,"right":414,"w":398,"h":254},{"x":16,"top":552,"right":414,"w":398,"h":144}],"cardPad":{"padding":"16px","radius":"16px","bg":"rgb(255, 255, 255)"},"cardTitles":["报价主体","基本信息","模型列表"],"cardTitleStyle":{"fontSize":"15px","fontWeight":"700","color":"rgb(15, 23, 42)","lineHeight":"20px","display":"block","whiteSpace":"pre-line"},"chips":[{"x":338,"top":134,"right":398,"w":60,"h":20},{"x":337,"top":298,"right":398,"w":61,"h":20},{"x":335,"top":568,"right":398,"w":63,"h":20}],"chipLabels":["去新增","已完善","已选 0 / 0"],"chipNeutralBg":"rgb(240, 240, 240)","chipNeutralLabelColor":"rgb(24, 154, 71)","chipSuccessBg":"rgb(236, 253, 245)","chipInfoBg":"rgb(239, 246, 255)","modelCountText":"已选 0 / 0","subjectHint":"*下拉选择主体公司，可在我的公司中新增","subjectHintColor":"rgb(119, 119, 119)","subjectStarColor":"rgb(239, 68, 68)","subjectSelect":{"x":32,"top":178,"right":398,"bottom":226,"w":366,"h":48},"subjectSelectBorder":"rgb(37, 99, 235)","subjectValue":"上海徽石科技国外","subjectCode":"91330106MA2XXXXX8B","subjectValueStyle":{"fontSize":"13px","fontWeight":"600","color":"rgb(15, 23, 42)","lineHeight":"17px","display":"block","whiteSpace":"nowrap"},"nameLabel":"报价单名称","inputBox":{"x":32,"top":360,"right":398,"bottom":408,"w":366,"h":48},"inputBorder":"rgb(226, 232, 240)","nameCountText":"0/30","nameCountColor":"rgb(148, 163, 184)","credSelect":{"x":32,"top":472,"right":398,"bottom":520,"w":366,"h":48},"credValue":"请选择凭证","credMask":null,"credHint":null,"credHintColor":null,"toolbar":{"x":32,"top":600,"right":398,"bottom":640,"w":366,"h":40},"toolbarBg":"rgb(248, 250, 252)","selectAllText":"全选模型","sourceHintText":"按凭证实时带出","modelRows":[],"modelRowCount":0,"modelNames":[],"modelVendors":[],"modelVendorRects":[],"modelVendorBg":null,"modelPrices":[],"modelStatuses":[],"modelStatusRects":[],"modelStatusBg":[],"modelStatusColors":[],"modelStatusStyle":null,"modelNote":"价格均以 $/1M token 计价，勾选后可在下一步设置单价","tip":{"x":16,"top":712,"right":414,"bottom":768,"w":398,"h":56},"tipBg":"rgb(239, 246, 255)","tipText":"模型列表随凭证变化自动刷新，切换凭证将重置当前勾选状态，请确认后再保存。","tipTextColor":"rgb(29, 78, 216)","tipTextStyle":{"fontSize":"11px","fontWeight":"400","color":"rgb(29, 78, 216)","lineHeight":"16px","display":"block","whiteSpace":"pre-line"},"bar":{"x":0,"top":802,"right":430,"bottom":900,"w":430,"h":98},"barInner":{"x":16,"top":814,"right":414,"bottom":872,"w":398,"h":58},"barPinned":true,"draftBtn":{"x":16,"top":824,"right":144,"bottom":872,"w":128,"h":48},"draftBorder":"rgb(226, 232, 240)","draftTextColor":"rgb(100, 116, 139)","saveBtn":{"x":156,"top":824,"right":414,"bottom":872,"w":258,"h":48},"saveBg":"rgb(37, 99, 235)","tabbarExists":false,"userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36"},"iframeHeightForShot":1202,"phase2":{"innerWidth":430,"docScrollWidth":430,"docScrollHeight":1202,"overflowingCount":0,"overflowing":[],"missingTexts":[],"pageBg":"rgb(245, 247, 251)","nav":{"x":0,"top":0,"right":430,"bottom":102,"w":430,"h":102},"navBg":"rgb(255, 255, 255)","title":"新增报价单","titleStyle":{"fontSize":"18px","fontWeight":"700","color":"rgb(15, 23, 42)","lineHeight":"24px","display":"block","whiteSpace":"pre-line"},"subtitle":"填写基本信息并设置模型报价","subtitleStyle":{"fontSize":"12px","fontWeight":"400","color":"rgb(148, 163, 184)","lineHeight":"18px","display":"block","whiteSpace":"pre-line"},"back":{"x":16,"top":51,"right":52,"bottom":87,"w":36,"h":36},"backBg":"rgb(241, 245, 249)","help":{"x":378,"top":51,"right":414,"bottom":87,"w":36,"h":36},"body":{"x":0,"top":102,"right":430,"bottom":1104,"w":430,"h":1002},"bodyStyle":{"fontSize":"16px","fontWeight":"400","color":"rgb(0, 0, 0)","lineHeight":"normal","display":"flex","whiteSpace":"normal"},"cards":[{"x":16,"top":118,"right":414,"w":398,"h":148},{"x":16,"top":282,"right":414,"w":398,"h":280},{"x":16,"top":578,"right":414,"w":398,"h":434}],"cardPad":{"padding":"16px","radius":"16px","bg":"rgb(255, 255, 255)"},"cardTitles":["报价主体","基本信息","模型列表"],"cardTitleStyle":{"fontSize":"15px","fontWeight":"700","color":"rgb(15, 23, 42)","lineHeight":"20px","display":"block","whiteSpace":"pre-line"},"chips":[{"x":338,"top":134,"right":398,"w":60,"h":20},{"x":337,"top":298,"right":398,"w":61,"h":20},{"x":335,"top":594,"right":398,"w":63,"h":20},{"x":342,"top":697,"right":378,"w":36,"h":20},{"x":342,"top":755,"right":378,"w":36,"h":20},{"x":342,"top":813,"right":378,"w":36,"h":20},{"x":342,"top":871,"right":378,"w":36,"h":20},{"x":342,"top":929,"right":378,"w":36,"h":20}],"chipLabels":["去新增","已完善","已选 3 / 5"],"chipNeutralBg":"rgb(240, 240, 240)","chipNeutralLabelColor":"rgb(24, 154, 71)","chipSuccessBg":"rgb(236, 253, 245)","chipInfoBg":"rgb(239, 246, 255)","modelCountText":"已选 3 / 5","subjectHint":"*下拉选择主体公司，可在我的公司中新增","subjectHintColor":"rgb(119, 119, 119)","subjectStarColor":"rgb(239, 68, 68)","subjectSelect":{"x":32,"top":178,"right":398,"bottom":226,"w":366,"h":48},"subjectSelectBorder":"rgb(37, 99, 235)","subjectValue":"上海徽石科技国外","subjectCode":"91330106MA2XXXXX8B","subjectValueStyle":{"fontSize":"13px","fontWeight":"600","color":"rgb(15, 23, 42)","lineHeight":"17px","display":"block","whiteSpace":"nowrap"},"nameLabel":"报价单名称","inputBox":{"x":32,"top":360,"right":398,"bottom":408,"w":366,"h":48},"inputBorder":"rgb(226, 232, 240)","nameCountText":"12/30","nameCountColor":"rgb(148, 163, 184)","credSelect":{"x":32,"top":472,"right":398,"bottom":520,"w":366,"h":48},"credValue":"华东主线路 · GPT 通道","credMask":"sk-prod-••••••••2f9a","credHint":"已自动带出该凭证下 5 个可用模型","credHintColor":"rgb(22, 163, 74)","toolbar":{"x":32,"top":626,"right":398,"bottom":666,"w":366,"h":40},"toolbarBg":"rgb(248, 250, 252)","selectAllText":"全选模型","sourceHintText":"按凭证实时带出","modelRows":[{"x":32,"top":678,"right":398,"w":366,"h":58},{"x":32,"top":736,"right":398,"w":366,"h":58},{"x":32,"top":794,"right":398,"w":366,"h":58},{"x":32,"top":852,"right":398,"w":366,"h":58},{"x":32,"top":910,"right":398,"w":366,"h":58}],"modelRowCount":5,"modelNames":["gpt-4o","gpt-4o-mini","claude-3-5-sonnet","gemini-1.5-pro","deepseek-chat"],"modelVendors":["OpenAI","OpenAI","Anthropic","Google","DeepSeek"],"modelVendorRects":[{"x":116,"top":691,"right":160,"w":44,"h":16},{"x":153,"top":749,"right":196,"w":44,"h":16},{"x":198,"top":807,"right":252,"w":54,"h":16},{"x":174,"top":865,"right":217,"w":42,"h":16},{"x":172,"top":923,"right":227,"w":55,"h":16}],"modelVendorBg":"rgb(241, 245, 249)","modelPrices":["输入 $2.50 / 输出 $10.00 / 1M token","输入 $0.15 / 输出 $0.60 / 1M token","输入 $3.00 / 输出 $15.00 / 1M token","输入 $1.25 / 输出 $5.00 / 1M token","输入 $0.14 / 输出 $0.28 / 1M token"],"modelStatuses":["已选","已选","已选","可选","可选"],"modelStatusRects":[{"x":342,"top":697,"right":378,"w":36,"h":20},{"x":342,"top":755,"right":378,"w":36,"h":20},{"x":342,"top":813,"right":378,"w":36,"h":20},{"x":342,"top":871,"right":378,"w":36,"h":20},{"x":342,"top":929,"right":378,"w":36,"h":20}],"modelStatusBg":["rgb(236, 253, 245)","rgb(236, 253, 245)","rgb(236, 253, 245)","rgb(241, 245, 249)","rgb(241, 245, 249)"],"modelStatusColors":["rgb(22, 163, 74)","rgb(22, 163, 74)","rgb(22, 163, 74)","rgb(148, 163, 184)","rgb(148, 163, 184)"],"modelStatusStyle":{"fontSize":"10px","fontWeight":"600","color":"rgb(22, 163, 74)","lineHeight":"normal","display":"block","whiteSpace":"pre-line"},"modelNote":"价格均以 $/1M token 计价，勾选后可在下一步设置单价","tip":{"x":16,"top":1028,"right":414,"bottom":1084,"w":398,"h":56},"tipBg":"rgb(239, 246, 255)","tipText":"模型列表随凭证变化自动刷新，切换凭证将重置当前勾选状态，请确认后再保存。","tipTextColor":"rgb(29, 78, 216)","tipTextStyle":{"fontSize":"11px","fontWeight":"400","color":"rgb(29, 78, 216)","lineHeight":"16px","display":"block","whiteSpace":"pre-line"},"bar":{"x":0,"top":1104,"right":430,"bottom":1202,"w":430,"h":98},"barInner":{"x":16,"top":1116,"right":414,"bottom":1174,"w":398,"h":58},"barPinned":false,"draftBtn":{"x":16,"top":1126,"right":144,"bottom":1174,"w":128,"h":48},"draftBorder":"rgb(226, 232, 240)","draftTextColor":"rgb(100, 116, 139)","saveBtn":{"x":156,"top":1126,"right":414,"bottom":1174,"w":258,"h":48},"saveBg":"rgb(37, 99, 235)","tabbarExists":false,"userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36"},"phase3":{"toggleClicked":"CLICKED","countAfterToggle":"已选 4 / 5","statusAfterToggle":"已选","countAfterSelectAll":"已选 5 / 5","countAfterUnselectAll":"已选 0 / 5","nameCount":"12/30","hash":"#/pages/quote-models/index"},"phase4":{"saveClicked":"CLICKED","toast":"保存成功","hash":"#/pages/quote-models/index","savedCountText":"已选 1 / 5"}}</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var acc = {}
+
+      function collect(doc, win) {
+        function all(sel) { return Array.prototype.slice.call(doc.querySelectorAll(sel)) }
+        function rect(sel) {
+          var el = doc.querySelector(sel)
+          if (!el) return null
+          var r = el.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+        }
+        function rects(sel) {
+          return all(sel).map(function (e) {
+            var r = e.getBoundingClientRect()
+            return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), w: Math.round(r.width), h: Math.round(r.height) }
+          })
+        }
+        function texts(sel) { return all(sel).map(function (e) { return e.textContent.trim() }) }
+        function colors(sel) { return all(sel).map(function (e) { return win.getComputedStyle(e).backgroundColor }) }
+        function colorOf(sel, prop) {
+          var el = doc.querySelector(sel)
+          return el ? win.getComputedStyle(el)[prop] : null
+        }
+        function textOf(sel) {
+          var e = doc.querySelector(sel)
+          return e ? e.textContent.trim() : null
+        }
+        function styleOf(sel) {
+          var el = doc.querySelector(sel)
+          if (!el) return null
+          var cs = win.getComputedStyle(el)
+          return { fontSize: cs.fontSize, fontWeight: cs.fontWeight, color: cs.color, lineHeight: cs.lineHeight, display: cs.display, whiteSpace: cs.whiteSpace }
+        }
+        var over = []
+        all('*').forEach(function (el) {
+          var r = el.getBoundingClientRect()
+          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
+            over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), left: Math.round(r.x), w: Math.round(r.width), right: Math.round(r.right), html: String(el.outerHTML || '').slice(0, 140) })
+          }
+        })
+        var text = (doc.body && doc.body.innerText) || ''
+        /* 设计稿里每一个独立文本图层都要覆盖（漏写会漏报 —— 序号 6 教训） */
+        var need = [
+          '新增报价单', '填写基本信息并设置模型报价',
+          '报价主体', '去新增', '下拉选择主体公司，可在我的公司中新增',
+          '上海徽石科技国外', '91330106MA2XXXXX8B',
+          '基本信息', '已完善', '报价单名称', '凭证名称',
+          '华东主线路 · GPT 通道', 'sk-prod-••••••••2f9a',
+          '已自动带出该凭证下 5 个可用模型',
+          '模型列表', '全选模型', '按凭证实时带出',
+          'gpt-4o', 'gpt-4o-mini', 'claude-3-5-sonnet', 'gemini-1.5-pro', 'deepseek-chat',
+          'OpenAI', 'Anthropic', 'Google', 'DeepSeek',
+          '输入 $2.50 / 输出 $10.00 / 1M token', '输入 $0.15 / 输出 $0.60 / 1M token',
+          '输入 $3.00 / 输出 $15.00 / 1M token', '输入 $1.25 / 输出 $5.00 / 1M token',
+          '输入 $0.14 / 输出 $0.28 / 1M token',
+          '已选', '可选',
+          '价格均以 $/1M token 计价，勾选后可在下一步设置单价',
+          '模型列表随凭证变化自动刷新，切换凭证将重置当前勾选状态，',
+          '请确认后再保存。', '存为草稿', '保存'
+        ]
+        return {
+          innerWidth: win.innerWidth,
+          docScrollWidth: doc.documentElement.scrollWidth,
+          docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
+          overflowingCount: over.length,
+          overflowing: over.slice(0, 20),
+          missingTexts: need.filter(function (t) { return text.indexOf(t) === -1 }),
+          pageBg: colorOf('.setup', 'backgroundColor'),
+          nav: rect('.setup__nav'),
+          navBg: colorOf('.setup__nav', 'backgroundColor'),
+          title: textOf('.setup__title'),
+          titleStyle: styleOf('.setup__title'),
+          subtitle: textOf('.setup__subtitle'),
+          subtitleStyle: styleOf('.setup__subtitle'),
+          back: rect('.nav__back'),
+          backBg: colorOf('.nav__back', 'backgroundColor'),
+          help: rect('.nav__help'),
+          body: rect('.setup__body'),
+          bodyStyle: styleOf('.setup__body'),
+          cards: rects('.card'),
+          cardPad: (function () {
+            var el = doc.querySelector('.card')
+            if (!el) return null
+            var cs = win.getComputedStyle(el)
+            return { padding: cs.padding, radius: cs.borderRadius, bg: cs.backgroundColor }
+          })(),
+          cardTitles: texts('.card__title'),
+          cardTitleStyle: styleOf('.card__title'),
+          chips: rects('.chip'),
+          chipLabels: texts('.chip__label'),
+          chipNeutralBg: colorOf('.chip--neutral', 'backgroundColor'),
+          chipNeutralLabelColor: colorOf('.chip__label--green', 'color'),
+          chipSuccessBg: colorOf('.chip--success', 'backgroundColor'),
+          chipInfoBg: colorOf('.chip--info', 'backgroundColor'),
+          modelCountText: textOf('[data-testid="chip-model-count"]'),
+          subjectHint: textOf('[data-testid="subject-hint"]'),
+          subjectHintColor: colorOf('.hint__text', 'color'),
+          subjectStarColor: colorOf('.hint__star', 'color'),
+          subjectSelect: rect('[data-testid="subject-select"]'),
+          subjectSelectBorder: colorOf('.select--active', 'borderTopColor'),
+          subjectValue: textOf('[data-testid="subject-value"]'),
+          subjectCode: textOf('.select__sub'),
+          subjectValueStyle: styleOf('.select__name'),
+          nameLabel: textOf('.label__text'),
+          inputBox: rect('.input-box'),
+          inputBorder: colorOf('.input-box', 'borderTopColor'),
+          nameValue: (function () {
+            var el = doc.querySelector('[data-testid="name-input"]')
+            return el ? el.value : null
+          })(),
+          nameCountText: textOf('[data-testid="name-count"]'),
+          nameCountColor: colorOf('.counter__text', 'color'),
+          credSelect: rect('[data-testid="cred-select"]'),
+          credValue: textOf('[data-testid="cred-value"]'),
+          credMask: textOf('[data-testid="cred-select"] .select__sub'),
+          credHint: textOf('[data-testid="cred-hint"]'),
+          credHintColor: colorOf('.hint__text--success', 'color'),
+          toolbar: rect('.toolbar'),
+          toolbarBg: colorOf('.toolbar', 'backgroundColor'),
+          selectAllText: textOf('[data-testid="select-all"]'),
+          sourceHintText: textOf('[data-testid="source-hint"]'),
+          modelRows: rects('[data-testid^="model-row-"]'),
+          modelRowCount: all('[data-testid^="model-row-"]').length,
+          modelNames: texts('.model__name'),
+          modelVendors: texts('.model__vendor-text'),
+          modelVendorRects: rects('.model__vendor'),
+          modelVendorBg: colorOf('.model__vendor', 'backgroundColor'),
+          modelPrices: texts('.model__price'),
+          modelStatuses: texts('.model__status'),
+          modelStatusRects: rects('.chip--pill'),
+          modelStatusBg: colors('.chip--pill'),
+          modelStatusColors: all('.model__status').map(function (e) { return win.getComputedStyle(e).color }),
+          modelStatusStyle: styleOf('.model__status'),
+          modelNote: textOf('[data-testid="model-note"]'),
+          tip: rect('.tip'),
+          tipBg: colorOf('.tip', 'backgroundColor'),
+          tipText: textOf('[data-testid="tip-text"]'),
+          tipTextColor: colorOf('.tip__text', 'color'),
+          tipTextStyle: styleOf('.tip__text'),
+          bar: rect('.setup__bar'),
+          barInner: rect('.setup__bar-inner'),
+          barPinned: (function () {
+            var el = doc.querySelector('.setup__bar')
+            if (!el) return null
+            var r = el.getBoundingClientRect()
+            return Math.abs(r.bottom - win.innerHeight) < 2
+          })(),
+          draftBtn: rect('[data-testid="btn-draft"]'),
+          draftBorder: colorOf('[data-testid="btn-draft"]', 'borderTopColor'),
+          draftTextColor: colorOf('[data-testid="btn-draft"]', 'color'),
+          saveBtn: rect('[data-testid="btn-save"]'),
+          saveBg: colorOf('[data-testid="btn-save"]', 'backgroundColor'),
+          tabbarExists: !!doc.querySelector('.tabbar'),
+          userAgent: win.navigator.userAgent
+        }
+      }
+
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+
+      function phase(n) {
+        try {
+          var payload = collect(f.contentDocument, f.contentWindow)
+          if (n === 2) {
+            f.style.height = payload.docScrollHeight + 'px'
+            acc.iframeHeightForShot = payload.docScrollHeight
+          }
+          sink(n, payload)
+        } catch (e) {
+          sink(n, { error: String(e && e.message) })
+        }
+      }
+
+      function clickIn(sel) {
+        var doc = f.contentDocument
+        var el = doc.querySelector(sel)
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+
+      function fillName(value) {
+        /* ⚠️ uni-app H5：<input> 渲染为 <uni-input> 宿主 + 内层原生 input；
+           data-testid 落在宿主上，直接设宿主 .value 不触发 v-model（实测 0/30）。
+           必须写内层原生 input 并派发 input 事件，且 uni 侧更新有 ~1s 延迟（实测 12/30 才出现）。 */
+        var host = f.contentDocument.querySelector('uni-input[data-testid="name-input"]')
+        var el = host ? host.querySelector('input') : null
+        if (!el) return 'NOT_FOUND'
+        el.focus()
+        el.value = value
+        el.dispatchEvent(new Event('input', { bubbles: true }))
+        return 'FILLED'
+      }
+
+      function toastText(doc) {
+        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
+        return el ? el.textContent.trim() : ''
+      }
+
+      f.addEventListener('load', function () {
+        var NO_ACTION = location.search.indexOf('noaction') !== -1
+        setTimeout(function () { phase(1) }, 2200)
+        /* 选凭证 c1（真实请求 → serve.py 日志出现 GET /api/v1/credentials/c1） */
+        setTimeout(function () {
+          clickIn('[data-testid="cred-select"]')
+          setTimeout(function () { clickIn('[data-testid="cred-option-c1"]') }, 300)
+        }, 3200)
+        setTimeout(function () { fillName('2024Q3 主线路报价') }, 4200)
+        setTimeout(function () { phase(2) }, 5600)
+        if (NO_ACTION) return
+        /* phase3：点第 4 行 gemini-1.5-pro → 计数 4/5；再点全选 → 5/5；再点全选 → 0/5；恢复设计态 3/5 */
+        setTimeout(function () {
+          var c1 = clickIn('[data-testid="model-row-gemini-1.5-pro"]')
+          setTimeout(function () {
+            var doc = f.contentDocument
+            var afterToggle = (doc.querySelector('[data-testid="chip-model-count"]') || {}).textContent
+            var statusAfter = (doc.querySelectorAll('.model__status')[3] || {}).textContent
+            clickIn('[data-testid="select-all"]')
+            setTimeout(function () {
+              var afterAll = (f.contentDocument.querySelector('[data-testid="chip-model-count"]') || {}).textContent
+              clickIn('[data-testid="select-all"]')
+              setTimeout(function () {
+                var afterNone = (f.contentDocument.querySelector('[data-testid="chip-model-count"]') || {}).textContent
+                clickIn('[data-testid="model-row-gpt-4o"]')
+                setTimeout(function () {
+                  sink(3, {
+                    toggleClicked: c1,
+                    countAfterToggle: (afterToggle || '').trim(),
+                    statusAfterToggle: (statusAfter || '').trim(),
+                    countAfterSelectAll: (afterAll || '').trim(),
+                    countAfterUnselectAll: (afterNone || '').trim(),
+                    nameValue: (f.contentDocument.querySelector('[data-testid="name-input"]') || {}).value,
+                    nameCount: (f.contentDocument.querySelector('[data-testid="name-count"]') || {}).textContent,
+                    hash: String(f.contentWindow.location.hash)
+                  })
+                }, 400)
+              }, 400)
+            }, 400)
+          }, 500)
+        }, 6200)
+        /* phase4：点「保存」→ 真实 POST /quotes + POST /quotes/q9/items（见 serve.py 日志）→ toast + 跳转 */
+        setTimeout(function () {
+          var clicked = clickIn('[data-testid="btn-save"]')
+          setTimeout(function () {
+            var doc = f.contentDocument
+            sink(4, {
+              saveClicked: clicked,
+              toast: toastText(doc),
+              hash: String(f.contentWindow.location.hash),
+              savedCountText: (doc.querySelector('[data-testid="chip-model-count"]') || {}).textContent
+            })
+          }, 2000)
+        }, 9200)
+      })
+    </script>
+  
+
+</body></html>
