@@ -1,0 +1,318 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-settings</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 797px; border: 0; }
+      /* 取数 <pre> 包进 0 尺寸 overflow:hidden：textContent 可读但不渲染、不会被 --screenshot 截进图（SKILL §4.1） */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
+         页面 23：/pages/settings/index（【工作台与我的】我的设置 2，page-23-2）
+         设计基线（设计帧 1:1 · 430x797 · col-bands x390 / text-rows / ink-x / rows-gap）：
+           顶部导航 0..95(96 · 白底 padding 48/16/12/16 · 标题 17px Bold · 返回图标行盒 36)
+           账号信息卡 108..330(223 · padding 20 r18 **无描边**) · 12
+             标题行 27（图标 18 → 行盒 27）· 首行 padding-top 16 · 行高 30 · 标签列 87 · 分隔 12+1+12
+             锚点：分隔线 y213 / y268 · 行文本墨迹 180..191 / 235..246 / 290..301 · chevron 墨迹 x382..385
+           通知设置卡 343..518(176 · padding 20 r18 ring #EEF2F7) · 12
+             标题行 27 · 行高 34（13px 行盒 18 + 11px 行盒 16）· 分隔 y452 · 开关 x348..394 h26（钮 22×20）
+           功能入口卡 532..717(186 · padding 8/20 r18 ring) · 12
+             3 行 × 56（12 + 图标盒 32 + 12）· 分隔 y596 / y653 · 图标盒 x36..68 · 标签 x78 · chevron 盒 372..394
+           底部说明 718..797(80 · padding 24/0 · 两行 11px 行盒 16 居中)
+         触发方式必须用 waitFor 轮询（iframe onload 会因监听注册过晚而错过）；
+         取数标记必须是 MEASURE_JSON:（extract-measure-json.py 的正则前缀）。
+         ?scenario=back|identity|legal|account|toggle|logout|logout-cancel 逐个回放出口；
+         ?noaction=1 / shot=1 只取 phase1（供截图） -->
+    <iframe id="f" src="/index.html#/pages/settings/index"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var acc = {}
+
+      function all(d, sel) { return Array.prototype.slice.call(d.querySelectorAll(sel)) }
+      function rect(d, sel) {
+        var el = d.querySelector(sel)
+        if (!el) return null
+        var r = el.getBoundingClientRect()
+        return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+      }
+      function rects(d, sel) {
+        return all(d, sel).map(function (e) {
+          var r = e.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), w: Math.round(r.width), h: Math.round(r.height) }
+        })
+      }
+      function texts(d, sel) { return all(d, sel).map(function (e) { return e.textContent.trim() }) }
+      function textOf(d, sel) { var e = d.querySelector(sel); return e ? e.textContent.trim() : null }
+      function styleOf(d, w, sel) {
+        var el = d.querySelector(sel)
+        if (!el) return null
+        var cs = w.getComputedStyle(el)
+        return { fontSize: cs.fontSize, fontWeight: cs.fontWeight, color: cs.color, lineHeight: cs.lineHeight, display: cs.display, height: cs.height, width: cs.width, background: cs.backgroundColor, boxShadow: cs.boxShadow, borderRadius: cs.borderRadius }
+      }
+      function stylesOf(d, w, sel, prop) { return all(d, sel).map(function (e) { return w.getComputedStyle(e)[prop] }) }
+
+      /** 设计稿里每一个独立文本图层（逐字抄自 page-23-2 design.tree.json，19 条） */
+      var needText = [
+        '账号与设置',
+        '账号信息', '手机号', '138 **** 6621', '微信绑定', '已绑定', '登录安全', '已开启短信二次校验',
+        '通知设置', '短信通知', '审核结果、账单与合同提醒', '微信订阅消息', '检测进度与用量周报', '已授权',
+        '实名与主体信息', '服务协议与隐私政策', '退出登录',
+        '云算接入平台 v1.4.2', '© 2024 保留所有权利'
+      ]
+
+      function collect() {
+        var doc = f.contentDocument
+        var win = f.contentWindow
+        var de = doc.documentElement
+        var out = {}
+        out.page = 'settings'
+        out.innerWidth = win.innerWidth
+        out.docScrollWidth = de.scrollWidth
+        out.docScrollHeight = de.scrollHeight
+        var overflowing = all(doc, '*').filter(function (e) {
+          var r = e.getBoundingClientRect()
+          return r.width > 0 && (r.right > win.innerWidth + 0.5 || r.left < -0.5)
+        })
+        out.overflowingCount = overflowing.length
+        out.overflowing = overflowing.slice(0, 6).map(function (e) {
+          var r = e.getBoundingClientRect()
+          return { cls: String(e.className), left: Math.round(r.left), right: Math.round(r.right), w: Math.round(r.width), tag: e.tagName, html: String(e.outerHTML).slice(0, 160) }
+        })
+        var body = doc.body.innerText
+        out.missingTexts = needText.filter(function (t) { return body.indexOf(t) < 0 })
+        out.needTextCount = needText.length
+
+        /* 顶部导航 */
+        out.navRect = rect(doc, '.nav')
+        out.navStyle = styleOf(doc, win, '.nav')
+        out.navBackRect = rect(doc, '.nav__back')
+        out.navTitleRect = rect(doc, '.nav__title')
+        out.navTitleStyle = styleOf(doc, win, '.nav__title')
+        out.navTitleText = textOf(doc, '[data-testid="settings-title"]')
+
+        /* 账号信息卡 */
+        out.accountCard = rect(doc, '.card--account')
+        out.accountCardStyle = styleOf(doc, win, '.card--account')
+        out.accountHeadRect = rect(doc, '.card--account .card__head')
+        out.accountTitleRect = rect(doc, '[data-testid="account-title"]')
+        out.accountTitleStyle = styleOf(doc, win, '[data-testid="account-title"]')
+        out.accountIconWrapRect = rect(doc, '.card--account .card__icon-wrap')
+        out.accountRows = rects(doc, '[data-testid="account-row"]')
+        out.accountLabels = texts(doc, '[data-testid="account-label"]')
+        out.accountValues = all(doc, '[data-testid="account-row"]').map(function (r) {
+          var pill = r.querySelector('[data-testid="account-pill"]')
+          return pill ? pill.textContent.trim() : (r.querySelector('[data-testid="account-value"]') || { textContent: '' }).textContent.trim()
+        })
+        out.accountRowLabels = rects(doc, '[data-testid="account-label"]')
+        out.accountLabelStyle = styleOf(doc, win, '.row__label')
+        out.accountValueStyle = styleOf(doc, win, '.row__value')
+        out.accountSeps = rects(doc, '.card--account .row__sep')
+        out.accountPills = rects(doc, '[data-testid="account-pill"]')
+        out.accountPillStyle = styleOf(doc, win, '[data-testid="account-pill"]')
+        out.accountPillTextStyle = styleOf(doc, win, '.row__pill-text')
+        out.accountChevrons = rects(doc, '[data-testid="account-chevron"]')
+        out.accountChevronCount = all(doc, '[data-testid="account-chevron"]').length
+        out.accountTargets = all(doc, '[data-testid="account-row"]').map(function (e) { return e.getAttribute('data-target') })
+
+        /* 通知设置卡 */
+        out.notifyCard = rect(doc, '.card--notify')
+        out.notifyCardStyle = styleOf(doc, win, '.card--notify')
+        out.notifyHeadRect = rect(doc, '.card--notify .card__head')
+        out.notifyTitleText = textOf(doc, '[data-testid="notify-title"]')
+        out.notifyRows = rects(doc, '[data-testid="notify-row"]')
+        out.notifyRowKeys = all(doc, '[data-testid="notify-row"]').map(function (e) { return e.getAttribute('data-key') })
+        out.notifyTitles = texts(doc, '[data-testid="notify-row-title"]')
+        out.notifyDescs = texts(doc, '[data-testid="notify-row-desc"]')
+        out.notifyTitleStyle = styleOf(doc, win, '.nrow__title')
+        out.notifyDescStyle = styleOf(doc, win, '.nrow__desc')
+        out.notifySepRect = rect(doc, '.card--notify .row__sep')
+        out.smsSwitchRect = rect(doc, '[data-testid="sms-switch"]')
+        out.smsSwitchStyle = styleOf(doc, win, '.switch')
+        out.smsSwitchDataOn = (doc.querySelector('[data-testid="sms-switch"]') || { getAttribute: function () { return null } }).getAttribute('data-on')
+        out.switchKnobRect = rect(doc, '.switch__knob')
+        out.subscribeBadgeRect = rect(doc, '[data-testid="subscribe-badge"]')
+        out.subscribeBadgeText = textOf(doc, '[data-testid="subscribe-badge"]')
+
+        /* 功能入口卡 */
+        out.entryCard = rect(doc, '.card--entries')
+        out.entryCardStyle = styleOf(doc, win, '.card--entries')
+        out.entryRows = rects(doc, '[data-testid^="row-"]')
+        out.entryLabels = texts(doc, '[data-testid="entry-label"]')
+        out.entryTones = all(doc, '[data-testid^="row-"]').map(function (e) { return e.getAttribute('data-tone') })
+        out.entryLabelStyle = styleOf(doc, win, '.erow__label')
+        out.entryLabelColors = stylesOf(doc, win, '.erow__label', 'color')
+        out.entryIconRects = rects(doc, '[data-testid="entry-icon"]')
+        out.entryIconBgs = stylesOf(doc, win, '[data-testid="entry-icon"]', 'backgroundColor')
+        out.entryIconColors = stylesOf(doc, win, '[data-testid="entry-icon"]', 'color')
+        out.entrySepRects = rects(doc, '[data-testid="entry-sep"]')
+        out.entrySepCount = all(doc, '[data-testid="entry-sep"]').length
+
+        /* 底部说明 */
+        out.footerRect = rect(doc, '.footer')
+        out.footerStyle = styleOf(doc, win, '.footer')
+        out.footerVersionText = textOf(doc, '[data-testid="footer-version"]')
+        out.footerCopyrightText = textOf(doc, '[data-testid="footer-copyright"]')
+        out.footerVersionRect = rect(doc, '[data-testid="footer-version"]')
+        out.footerCopyrightRect = rect(doc, '[data-testid="footer-copyright"]')
+        out.footerVersionStyle = styleOf(doc, win, '.footer__version')
+        out.footerCopyrightStyle = styleOf(doc, win, '.footer__copyright')
+
+        /* 反例断言：无 TabBar、无输入控件、三卡结构、无多余区块 */
+        out.inputCount = all(doc, 'input,textarea').length
+        out.tabbarExists = !!doc.querySelector('[data-testid^="tab-"]')
+        out.cardCount = all(doc, '.card').length
+        out.accountRowCount = all(doc, '[data-testid="account-row"]').length
+        out.notifyRowCount = all(doc, '[data-testid="notify-row"]').length
+        out.entryRowCount = all(doc, '[data-testid^="row-"]').length
+        out.switchCount = all(doc, '[data-testid="sms-switch"]').length
+        out.userAgent = win.navigator.userAgent
+        out.hash = String(win.location.hash)
+        return out
+      }
+
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
+      function clickIn(sel) {
+        var doc = f.contentDocument
+        var el = doc.querySelector(sel)
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+      function clickAllIn(sel) {
+        var doc = f.contentDocument
+        var els = all(doc, sel)
+        for (var i = 0; i < els.length; i++) {
+          if (els[i].getBoundingClientRect().width > 0) {
+            var ev = doc.createEvent('MouseEvents')
+            ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+            els[i].dispatchEvent(ev)
+            return 'CLICKED:' + String(els[i].className).slice(0, 60)
+          }
+        }
+        return 'NOT_FOUND'
+      }
+      function modalProbe(doc) {
+        var host = doc.querySelector('uni-modal, .uni-modal, [class*="uni-modal"]')
+        if (!host) return { exists: false }
+        return {
+          exists: true,
+          text: host.textContent.replace(/\s+/g, ' ').trim().slice(0, 120),
+          buttons: all(host, '.uni-modal__btn, [class*="modal__btn"]').map(function (e) { return e.textContent.trim() })
+        }
+      }
+      function toastText(doc) {
+        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
+        return el ? el.textContent.trim() : ''
+      }
+      function hashNow() { try { return String(f.contentWindow.location.hash) } catch (e) { return 'ERR:' + e.message } }
+      function waitFor(sel, maxTries) {
+        return new Promise(function (resolve) {
+          var n = 0
+          function tick() {
+            n++
+            var ok = false
+            try { ok = !!f.contentDocument.querySelector(sel) } catch (e) { ok = false }
+            if (ok) return resolve('READY(tries=' + n + ')')
+            if (n >= (maxTries || 40)) return resolve('TIMEOUT(tries=' + n + ')')
+            setTimeout(tick, 200)
+          }
+          tick()
+        })
+      }
+      function scenario() {
+        var m = location.search.match(/scenario=([a-zA-Z-]+)/)
+        return m ? m[1] : ''
+      }
+
+      async function main() {
+        await waitFor('[data-testid="account-title"]')
+        await sleep(1800)
+        try {
+          var payload = collect()
+          f.style.height = payload.docScrollHeight + 'px'
+          payload.iframeHeightForShot = payload.docScrollHeight
+          sink(1, payload)
+        } catch (e) {
+          sink(1, { error: String(e && e.message) })
+          return
+        }
+        var sc = scenario()
+        if (!sc || location.search.indexOf('noaction') !== -1 || location.search.indexOf('shot=1') !== -1) return
+
+        if (sc === 'back') {
+          var cB = clickIn('[data-testid="settings-back"]')
+          await sleep(1500)
+          sink(2, { scenario: sc, clicked: cB, hash: hashNow(), toast: toastText(f.contentDocument) })
+          return
+        }
+
+        if (sc === 'identity') {
+          var cI = clickIn('[data-testid="row-identity"]')
+          await sleep(1500)
+          sink(2, { scenario: sc, clicked: cI, hash: hashNow() })
+          return
+        }
+
+        if (sc === 'legal') {
+          var cL = clickIn('[data-testid="row-legal"]')
+          await sleep(1500)
+          sink(2, { scenario: sc, clicked: cL, hash: hashNow(), toast: toastText(f.contentDocument) })
+          return
+        }
+
+        if (sc === 'account') {
+          var cA = clickIn('[data-testid="account-row"]')
+          await sleep(1500)
+          sink(2, { scenario: sc, clicked: cA, hash: hashNow(), toast: toastText(f.contentDocument) })
+          return
+        }
+
+        if (sc === 'toggle') {
+          var before = collect()
+          var cT = clickIn('[data-testid="sms-switch"]')
+          await sleep(1200)
+          var after = collect()
+          sink(2, {
+            scenario: sc,
+            clicked: cT,
+            before: before.smsSwitchDataOn,
+            after: after.smsSwitchDataOn,
+            afterSwitchBg: after.smsSwitchStyle && after.smsSwitchStyle.background,
+            requestHint: '看 serve 日志：只应有 1 条 GET /api/v1/auth/me，无写请求'
+          })
+          return
+        }
+
+        if (sc === 'logout' || sc === 'logout-cancel') {
+          var cO = clickIn('[data-testid="row-logout"]')
+          await sleep(1200)
+          var modal = modalProbe(f.contentDocument)
+          var answer = sc === 'logout' ? clickAllIn('.uni-modal__btn:last-child, [class*="modal__btn"]:last-child') : clickAllIn('.uni-modal__btn:first-child, [class*="modal__btn"]:first-child')
+          await sleep(2000)
+          sink(2, {
+            scenario: sc,
+            clicked: cO,
+            modal: modal,
+            answered: answer,
+            hash: hashNow(),
+            toast: toastText(f.contentDocument),
+            requestHint: 'logout 场景：serve 日志应出现 POST /api/v1/auth/logout；cancel 场景不应出现'
+          })
+          return
+        }
+      }
+      main()
+    </script>
+  </body>
+</html>

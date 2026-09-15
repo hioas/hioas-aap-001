@@ -1,0 +1,149 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+ [31m❯[39m tests/pages/settings-flow.spec.ts [2m([22m[2m13 tests[22m[2m | [22m[31m7 failed[39m[2m)[22m[90m 137[2mms[22m[39m
+[31m   [31m×[31m 序号 23 · 返回（navigation）[2m > [22m点返回 → navigateBack（本页无 TabBar，由「我的」进入）[90m 46[2mms[22m[31m[39m
+[31m     → expected +0 to be 1 // Object.is equality[39m
+[31m   [31m×[31m 序号 23 · 功能入口卡（navigation / api）[2m > [22m点「实名与主体信息」→ navigateTo /pages/profile/index（序号 10.1 已实现）[90m 11[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ '/pages/profile/index' ][39m
+[31m   [31m×[31m 序号 23 · 短信通知开关（client-only：只改本地态，不发请求）[2m > [22m点开关 → data-on 由 true 变 false，且 0 个写请求（18-API 无 /settings 端点）[90m 9[2mms[22m[31m[39m
+[31m     → expected 'true' to be 'false' // Object.is equality[39m
+[31m   [31m×[31m 序号 23 · 退出登录（api：POST /auth/logout）[2m > [22m点「退出登录」先弹二次确认（标题 / 正文为占位文案）[90m 5[2mms[22m[31m[39m
+[31m     → Cannot read properties of undefined (reading 'args')[39m
+[31m   [31m×[31m 序号 23 · 退出登录（api：POST /auth/logout）[2m > [22m确认后 → POST /api/v1/auth/logout → 清本地 token → reLaunch 登录页[90m 7[2mms[22m[31m[39m
+[31m     → expected [] to have a length of 1 but got +0[39m
+[31m   [31m×[31m 序号 23 · 退出登录（api：POST /auth/logout）[2m > [22m退出失败（服务端 500）→ 提示占位文案，但仍清 token 并回登录页（本地会话必清）[90m 5[2mms[22m[31m[39m
+[31m     → expected [] to include '退出登录失败，请稍后重试'[39m
+[31m   [31m×[31m 序号 23 · 退出登录（api：POST /auth/logout）[2m > [22m单次点击只触发一次登出（不重复发 POST）[90m 4[2mms[22m[31m[39m
+[31m     → expected +0 to be 1 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 7 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/settings-flow.spec.ts[2m > [22m序号 23 · 返回（navigation）[2m > [22m点返回 → navigateBack（本页无 TabBar，由「我的」进入）
+[31m[1mAssertionError[22m: expected +0 to be 1 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/pages/settings-flow.spec.ts:[2m44:45[22m[39m
+    [90m 42| [39m    [35mconst[39m wrapper [33m=[39m [35mawait[39m [34mmountPage[39m()
+    [90m 43| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'settings-back'[39m)
+    [90m 44| [39m    [34mexpect[39m([34mgetCalls[39m([32m'navigateBack'[39m)[33m.[39mlength)[33m.[39m[34mtoBe[39m([34m1[39m)
+    [90m   | [39m                                            [31m^[39m
+    [90m 45| [39m  })
+    [90m 46| [39m})
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/settings-flow.spec.ts[2m > [22m序号 23 · 功能入口卡（navigation / api）[2m > [22m点「实名与主体信息」→ navigateTo /pages/profile/index（序号 10.1 已实现）
+[31m[1mAssertionError[22m: expected [] to deeply equal [ '/pages/profile/index' ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [[39m
+[32m-   "/pages/profile/index",[39m
+[32m- ][39m
+[31m+ Array [][39m
+
+[36m [2m❯[22m tests/pages/settings-flow.spec.ts:[2m52:23[22m[39m
+    [90m 50| [39m    [35mconst[39m wrapper [33m=[39m [35mawait[39m [34mmountPage[39m()
+    [90m 51| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'row-identity'[39m)
+    [90m 52| [39m    [34mexpect[39m([34mnavUrls[39m())[33m.[39m[34mtoEqual[39m([[32m'/pages/profile/index'[39m])
+    [90m   | [39m                      [31m^[39m
+    [90m 53| [39m  })
+    [90m 54| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/settings-flow.spec.ts[2m > [22m序号 23 · 短信通知开关（client-only：只改本地态，不发请求）[2m > [22m点开关 → data-on 由 true 变 false，且 0 个写请求（18-API 无 /settings 端点）
+[31m[1mAssertionError[22m: expected 'true' to be 'false' // Object.is equality[39m
+
+Expected: [32m"[7mfals[27me"[39m
+Received: [31m"[7mtru[27me"[39m
+
+[36m [2m❯[22m tests/pages/settings-flow.spec.ts:[2m75:78[22m[39m
+    [90m 73| [39m    [34mexpect[39m(wrapper[33m.[39m[34mfind[39m([32m'[data-testid="sms-switch"]'[39m)[33m.[39m[34mattributes[39m([32m'data[39m…
+    [90m 74| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'sms-switch'[39m)
+    [90m 75| [39m    [34mexpect[39m(wrapper[33m.[39m[34mfind[39m([32m'[data-testid="sms-switch"]'[39m)[33m.[39m[34mattributes[39m([32m'data[39m…
+    [90m   | [39m                                                                             [31m^[39m
+    [90m 76| [39m    [34mexpect[39m([34mwriteRequests[39m()[33m.[39mlength)[33m.[39m[34mtoBe[39m([34m0[39m)
+    [90m 77| [39m    [34mexpect[39m([34mgetCalls[39m([32m'request'[39m)[33m.[39mlength)[33m.[39m[34mtoBe[39m([34m1[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/settings-flow.spec.ts[2m > [22m序号 23 · 退出登录（api：POST /auth/logout）[2m > [22m点「退出登录」先弹二次确认（标题 / 正文为占位文案）
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading 'args')[39m
+[36m [2m❯[22m tests/pages/settings-flow.spec.ts:[2m100:42[22m[39m
+    [90m 98| [39m    [35mconst[39m wrapper [33m=[39m [35mawait[39m [34mmountPage[39m()
+    [90m 99| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'row-logout'[39m)
+    [90m100| [39m    [35mconst[39m modal [33m=[39m [34mgetCalls[39m([32m'showModal'[39m)[[34m0[39m][33m.[39margs[[34m0[39m] [35mas[39m [33mRecord[39m[33m<[39mstring[33m,[39m u…
+    [90m   | [39m                                         [31m^[39m
+    [90m101| [39m    [34mexpect[39m(modal[33m.[39mtitle)[33m.[39m[34mtoBe[39m([33mLOGOUT_CONFIRM_TITLE[39m)
+    [90m102| [39m    [34mexpect[39m(modal[33m.[39mcontent)[33m.[39m[34mtoBe[39m([33mLOGOUT_CONFIRM_CONTENT[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/settings-flow.spec.ts[2m > [22m序号 23 · 退出登录（api：POST /auth/logout）[2m > [22m确认后 → POST /api/v1/auth/logout → 清本地 token → reLaunch 登录页
+[31m[1mAssertionError[22m: expected [] to have a length of 1 but got +0[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/pages/settings-flow.spec.ts:[2m114:19[22m[39m
+    [90m112| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'row-logout'[39m)
+    [90m113| [39m    [35mconst[39m posts [33m=[39m [34mwriteRequests[39m()
+    [90m114| [39m    [34mexpect[39m(posts)[33m.[39m[34mtoHaveLength[39m([34m1[39m)
+    [90m   | [39m                  [31m^[39m
+    [90m115| [39m    [34mexpect[39m((posts[[34m0[39m][33m.[39margs[[34m0[39m] [35mas[39m [33mRecord[39m[33m<[39mstring[33m,[39m unknown[33m>[39m)[33m.[39murl)[33m.[39m[34mtoBe[39m([32m'/a[39m…
+    [90m116| [39m    [34mexpect[39m((posts[[34m0[39m][33m.[39margs[[34m0[39m] [35mas[39m [33mRecord[39m[33m<[39mstring[33m,[39m unknown[33m>[39m)[33m.[39mmethod)[33m.[39m[34mtoBe[39m(…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/settings-flow.spec.ts[2m > [22m序号 23 · 退出登录（api：POST /auth/logout）[2m > [22m退出失败（服务端 500）→ 提示占位文案，但仍清 token 并回登录页（本地会话必清）
+[31m[1mAssertionError[22m: expected [] to include '退出登录失败，请稍后重试'[39m
+[36m [2m❯[22m tests/pages/settings-flow.spec.ts:[2m138:19[22m[39m
+    [90m136| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'row-logout'[39m)
+    [90m137| [39m    [35mconst[39m toast [33m=[39m [34mgetCalls[39m([32m'showToast'[39m)[33m.[39m[34mmap[39m((c) [33m=>[39m (c[33m.[39margs[[34m0[39m] [35mas[39m [33mRecor[39m…
+    [90m138| [39m    [34mexpect[39m(toast)[33m.[39m[34mtoContain[39m([33mLOGOUT_FAIL_TEXT[39m)
+    [90m   | [39m                  [31m^[39m
+    [90m139| [39m    [34mexpect[39m(storage[33m.[39m[35mget[39m([32m'aap_token'[39m))[33m.[39m[34mtoBeUndefined[39m()
+    [90m140| [39m    [34mexpect[39m([34mrelaunchUrls[39m())[33m.[39m[34mtoEqual[39m([[32m'/pages/login/index'[39m])
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/settings-flow.spec.ts[2m > [22m序号 23 · 退出登录（api：POST /auth/logout）[2m > [22m单次点击只触发一次登出（不重复发 POST）
+[31m[1mAssertionError[22m: expected +0 to be 1 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/pages/settings-flow.spec.ts:[2m148:36[22m[39m
+    [90m146| [39m    [34msetModalAnswer[39m([35mtrue[39m)
+    [90m147| [39m    [35mawait[39m [34mtap[39m(wrapper[33m,[39m [32m'row-logout'[39m)
+    [90m148| [39m    [34mexpect[39m([34mwriteRequests[39m()[33m.[39mlength)[33m.[39m[34mtoBe[39m([34m1[39m)
+    [90m   | [39m                                   [31m^[39m
+    [90m149| [39m  })
+    [90m150| [39m})
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m7 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (13)[39m
+[2m   Start at [22m 06:16:02
+[2m   Duration [22m 1.60s[2m (transform 409ms, setup 46ms, collect 571ms, tests 137ms, environment 505ms, prepare 118ms)[22m
+

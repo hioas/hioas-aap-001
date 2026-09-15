@@ -1,4 +1,4 @@
-STATUS: RUNNING
+STATUS: DONE: 画布「报价端·小程序」全部页面（序号 1~23，含 12-v1/v2/v3 等帧）均已实现并留证，台账待取件 0
 LEASE: free until -
 
 # AAP TDD 推进 · 状态与目标（自驱动循环的单一事实来源）
@@ -64,7 +64,62 @@ LEASE: free until -
 
 ## 4. 进度（细表看台账 CSV，这里只留能力组）
 
-🟢 本轮（2026-09-16 05:50~06:15，租约 aap-tdd-run-20260916-0550 → 已释放）· **序号 22「我的与用量概览 2」（page-22-2）收口**：
+🎉 **目标完成（2026-09-16 06:10~06:40，租约 aap-tdd-run-20260916-0610 → 已释放）· 序号 23「我的设置 2」（page-23-2）收口 —— 台账待取件 0，画布小程序端全部页面做完**：
+- **取件**：`list-pending.py -n 1` 最小未完成 = 23（page-23-2，`/pages/settings/index`，台账「设计否」）；开工前 `git status` 干净、
+  `git log -1` = 06:05 的 22-用量概览提交 → 空闲租约，写成本轮 id + 45 分钟（本轮约 30 分钟完成）。
+- **Calicat 侧**：`calicat_source.py page` **一次成功**（无需 `cmd /c start` 拉编辑器）；设计树（42KB / 93 节点）+ 截图 **430×797（1:1 帧图）** 已抓；
+  `interaction.json` 仍「不存在图层交互数据」→ 交互真源退 18-API「Auth」Tag（GET /auth/me、POST /auth/logout）+ 设计稿控件语义。
+- **这页到底是什么**：无 TabBar 的「账号与设置」页（设计总高 797）：顶部导航 96（返回 26 /「账号与设置」17px Bold）·
+  账号信息卡 **108..331(223) padding 20 r18 无描边**（标题行 27〔图标 18 → 行盒 27 + 6 +「账号信息」14px SemiBold〕+
+  手机号行〔padding-top 16 · 行高 30 · **标签列固定 87** ·「手机号 / 138 **** 6621」+ chevron〕+ 分隔 12/1/12 +
+  微信绑定行〔绿胶囊 h22 r11 #ECFDF5「已绑定」〕+ 分隔 + 登录安全行「已开启短信二次校验」）·
+  通知设置卡 343..519(176) r18 ring（标题行 27 + 短信开关行〔说明 13px/11px 两行 = 行盒 18+16 + 开关 **46×26 r13**，钮 22×20〕+
+  分隔 y452 + 微信订阅消息行〔副文案 + 绿胶囊「已授权」〕）· 功能入口卡 531..717(186) padding 8/20（3 行 × 56 = 12+32+12，
+  图标盒 32×32 r10 三色底 #EFF6FF/#F1F5F9/#FEF2F2，分隔 y595/y652，退出登录红字 #DC2626）· 底部说明 717..797(80)（两行 11px 行盒 16 居中）。
+- **TDD（3 切片，逐切片红→绿；新增 48 例）**：`tests/unit/settings-model.spec.ts`(21) · `tests/pages/settings.spec.ts`(14) ·
+  `tests/pages/settings-flow.spec.ts`(13)；红基线 `evidence/red-序号23-切片1/2.txt`（`Failed to resolve import @/utils/settings-model` /
+  `@/pages/settings/index.vue`）+ `切片3.txt`/`切片3-复现.txt`（**真红 7/13**：navigateBack 未触发 / 实名入口未跳转 / 开关 data-on 不变 /
+  showModal 未弹出 / POST 未发出 / reLaunch 未触发）；绿 **1141/1141 连跑两轮一致**（`evidence/green-序号23-轮1/轮2.txt`）+
+  `npm run type-check` **exit 0**（`evidence/typecheck-序号23.txt`）；tokens **0 新增**（16 个色值全部命中既有 tokens.scss）。
+- **★ 本轮最值钱的教训（工具真缺陷，已写进 dev SKILL §4.19）**：**`strip-page-handlers.py` 的快照名只用 basename → 跨页互相覆盖** ——
+  序号 22 的快照 `%TEMP%/index-stripped-bak.vue` 与序号 23 的同名，`restore` 把**上一页的 usage 页面**覆盖进了 settings 页面（13 例全红）。
+  修法：①快照名含页面相对路径（`aap_client_src_pages_settings_index_vue.bak.vue`）+ 同名 `.src` 侧车记录归属，restore 前校验不匹配即拒绝；
+  ②绑定清单从硬编码改为正则 `\s+@(?:tap|change)(?:\.\w+)?="[^"]*"`（任意新页直接可用）。
+  **通用规矩：任何「按 basename 存临时快照」的脚本，在单目录多页（index.vue）仓库里都会静默串页。**
+- **由类型门禁抓到的真错**：`TS2352: Conversion of type 'MeResult' to type 'SettingsRaw' may be a mistake`（`/auth/me` 字段级 schema 缺失 →
+  需要 `as unknown as SettingsRaw` 的容错读取）→ 修后 exit 0。**`npm run type-check` 每页必跑，它真的会报错。**
+- **客观证据链**：`build:mp-weixin` 产出 `pages/settings/{index.js,index.json,index.wxml,index.wxss}`（pages.json 已注册）；
+  430 宽 iframe + 无头 Chrome 实测 `evidence/measure-序号23-run1/run2.json`：`innerWidth 430` · `docScrollWidth 430` · 页高 **797 = 设计** · 溢出 **0** ·
+  文案缺失 **[]（need 19 条设计原文）** · 导航 0..96 · 账号卡 **108..331(223)** 标题行 128..155(27) 行 **171/226/281**(h30) 分隔 **y213/y268**（= 设计逐值）·
+  胶囊 123..190 chevron 盒 372..394 · 通知卡 **343..519(176)** 行 406/465(h34) 分隔 **y452** 开关 **348..394×410..436(46×26)** 钮 368..390×413..433 ·
+  入口卡 **531..717(186)** 行 539/596/653(h56) 分隔 **y595/y652** 图标 **x36..68(32×32)** · 底部说明 717..797(80) · 输入控件 0 · cardCount 3 · 无 TabBar；
+  **run1/run2 两次独立测量 78 字段全等**（`cmp-measure-runs.py`，0 差异）；**像素对账**（`text-rows.py` 同脚本跑设计与实现）12 行文本 3 行 0 差、
+  其余 ±1~2；`png-ink` 顶部带实现 maxInkX **137 / 右留白 292 = 设计**（无载体污染）· 底部带 167..263 vs 设计 166..262；
+  截图 `logs/screenshots/20260916-0625-序号23-我的设置-h5-430宽.png`（430×797 = 设计尺寸，vision 复核「无缺失 / 无裁切 / 无重叠」）；
+  **浏览器内真实交互回放** `evidence/measure-序号23-{back,identity,legal,account,toggle,logout,logout-cancel}.json`：
+  返回 → hash 不变（无栈）· **实名与主体信息 → hash `#/pages/profile/index`**（serve 日志同时出现 profile 页真实取数）·
+  服务协议与隐私政策 / 账号行 → hash 不变、无 toast、无新请求 · 开关 → `data-on` true→false 且背景 `rgb(203,213,225)`（关态中性色）·
+  **退出登录 → 真实 `uni-modal`（「退出登录 / 确认退出当前账号？退出后需重新登录。/ 取消·确定」）→ 点确定 → hash `#/`（= 登录页，pages.json 首页）**·
+  点取消 → hash 仍为 `#/pages/settings/index`；`serve-5287.log` 实测 **POST /api/v1/auth/logout 仅 1 次且 body 为空**（只在 logout 场景出现，
+  cancel 场景 0 次），除登出外 **0 写请求**。
+- **新增可复用资产**：`.agents/state/ink-x.py <png> <y> [x0] [x1] [thresh] [gap]`（**按行列出墨迹 x 区间** —— 一次拿到行内每个文本/图标的横向位置与宽度，
+  本轮靠它定死「标签列 87 → 值列起点 x123、入口标签 x78、chevron 墨迹 382..385」）· `.agents/state/show-s23.py`（本页取数打印器）·
+  `h5-measure/__measure-settings.html`（含 7 个 `?scenario=` 出口 + 真实 uni-modal 探针 `modalProbe()` + 开关前后态对比）·
+  `h5-measure/api-23/`（独立 mock：`v1/auth/me`、`v1/auth/logout.post`）。
+- ⚠️ 待人类拍板（不阻塞本轮，15 条全部写进台账序号 23 备注）：①18-API 只列路径 → GET/POST 为 REST 推断；
+  ②`/auth/me` **字段级 schema 未定义** → 手机号/微信绑定/二次校验/订阅全部容错读取，缺字段渲染「—」不冒充状态；
+  ③**手机号脱敏格式冲突**（18-API `138****8888` vs 设计 `138 **** 6621`）→ 服务端带 `*` 原样直出、客户端派生按设计帧；
+  ④**通知设置（短信开关 / 微信订阅）22 份 PRD 零命中 + 18-API 无 /settings 端点** → 开关为 client-only 本地态（不发请求，missing-prd/阻塞），
+  初值取设计常量（开）、关态色 #CBD5E1 占位；⑤**手机号 / 微信绑定 / 登录安全三行 chevron 无落点**（画布 30 页无对应页）→ 不跳转不提示；
+  ⑥服务协议与隐私政策无画布页 + PRD 无外链 → 无落点；⑦二次确认弹窗文案占位；⑧退出登录落点（reLaunch 登录页）PRD 无定义 → 推断，
+  失败仍清 token 回登录页（已用钉死用例覆盖）；⑨登录安全两态 / 未绑定 / 未授权文案为派生；⑩账号信息卡无描边（设计树未声明 stroke）；
+  ⑪图标 CSS 占位；⑫CJK 度量残差（胶囊 67 vs 68、版权行 105 vs 104）；⑬静态 mock 不随参数变化，真实请求以 serve 日志为准；
+  ⑭快照串页工具缺陷（已修）；⑮`as unknown as` 容错读取为字段级 schema 缺失的权宜（待 18-API 补 schema）。
+
+✅ **后续若继续推进**：画布「报价端·小程序」已无未取件页（待取件 0）；剩余可做的是**管理端 PC 7 页**（台账外）与 15 条待拍板缺口的回填，
+  以及把「交互真源缺失（22/22 页 interaction.json 均无数据）」这条长期缺口交给人类处理。**本循环目标已完成，cron 可暂停（本轮会话无 cronjob 管理工具，已在简报中说明）。**
+
+🟢 上一轮（2026-09-16 05:50~06:15，租约 aap-tdd-run-20260916-0550 → 已释放）· **序号 22「我的与用量概览 2」（page-22-2）收口**：
 - **取件**：`list-pending.py -n 1` 最小未完成 = 22（page-22-2，`/pages/usage/index`，台账「设计否」）；开工前 `git status` 干净、
   `git log -1` = 05:48 的 21-我的页提交 → 空闲租约，写成本轮 id + 45 分钟。
 - **Calicat 侧**：`calicat_source.py page` 报「请先在浏览器中打开文件」→ `cmd /c start` 拉起后一次成功；
@@ -118,11 +173,7 @@ LEASE: free until -
   ⑦**「查看逐日 / 逐模型明细」画布 30 页无明细页** → 无落点（不跳转/不弹 toast/不臆造路由），是否新增明细页待拍板；
   ⑧末位日期标签设计帧自行左移 8px、实现不左移；⑨图标 CSS 占位；⑩新增色值仅 #22C55E 且放在模型常量里（未入 tokens.scss）。
 
-⏳ 下一步（下一轮）：台账序号 **23「我的设置 2」**（page-23-2，`/pages/settings/index`）——**设计尚未抓取**（台账「设计否」），也是**最后一页**；
-  先 `python .agents/state/find-inv.py page-23-2` 取 `sourceLayerId` 后跑 `calicat_source.py page`，再按 §2 八步走；
-  可复用本轮：`strip-page-handlers.py`、`run-shot-generic.sh`、`gen-mocks-22.py` 式独立 mock 集、`show-diag.py`（溢出探针）、
-  `src/utils/base64.ts`、`__measure-usage.html` 模板（**触发必须 waitFor 轮询、标记必须 MEASURE_JSON:**）、
-  以及「先量帧再写 CSS」的像素量尺三件套（rows-gap / text-rows / png-ink）；**行盒比例按本帧量尺校准，别跨帧套用**。
+✅ 序号 23 已于 2026-09-16 06:10~06:40 轮完成（见最上方「目标完成」块）—— 它是**最后一页**，本轮后台账待取件 0。
 
 🟢 上一轮（2026-09-16 05:30~06:05，租约 aap-tdd-run-20260916-0530 → 已释放）· **序号 21「我的 2」（page-21-2）收口**：
 - **取件**：`list-pending.py -n 1` 最小未完成 = 21（page-21-2，`/pages/mine/index`，台账「设计否」）；开工前 `git status` 干净、
