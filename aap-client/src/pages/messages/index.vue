@@ -69,28 +69,9 @@
       </view>
     </view>
 
-    <!-- 底部 TabBar（design c02e59d8：padding 8/0/24 · 4 项各 104 宽 · 图标 33 块 + 3 + 文字 16 = 84） -->
-    <view class="tabbar">
-      <view
-        v-for="tab in TABS"
-        :key="tab.label"
-        class="tabbar__item"
-        :data-testid="`tab-${tab.label}`"
-        @tap="onTabTap(tab)"
-      >
-        <view class="tabbar__icon">
-          <view
-            class="tabbar__glyph"
-            :style="{ background: tab.label === ACTIVE_TAB ? TAB_ACTIVE_COLOR : TAB_COLOR }"
-            aria-hidden="true"
-          />
-        </view>
-        <view class="tabbar__gap" />
-        <text class="tabbar__label" :class="{ 'tabbar__label--active': tab.label === ACTIVE_TAB }">
-          {{ tab.label }}
-        </text>
-      </view>
-    </view>
+    <!-- 底部 TabBar（design c02e59d8：padding 8/0/24 · 4 项各 104 · 图标 33 + 3 + 文字 16 = 84）
+         序号 21 起抽为共享组件 src/components/app-tab-bar/AppTabBar.vue（本帧高亮色 #007AFF） -->
+    <AppTabBar active-color="#007AFF" />
   </view>
 </template>
 
@@ -108,14 +89,13 @@
  *   TabBar = navigation（我的 = 本模块，不跳转）
  */
 import { computed, onMounted, ref } from 'vue'
+import AppTabBar from '@/components/app-tab-bar/AppTabBar.vue'
 import { notificationApi } from '@/api/notification'
 import {
-  ACTIVE_TAB,
   DEFAULT_FILTER,
   FILTERS,
   PAGE_TITLE,
   READ_ALL_TEXT,
-  TABS,
   buildMessageQuery,
   buildMessagesModel,
   type MessageFilterKey,
@@ -124,10 +104,6 @@ import {
 } from '@/utils/messages-model'
 
 const PAGE_SIZE = 20
-
-/** 设计帧取色（TabBar 高亮 / 常规） */
-const TAB_ACTIVE_COLOR = '#007AFF'
-const TAB_COLOR = '#94A3B8'
 
 /** 失败提示文案：设计稿无 toast 稿 → 占位（已记台账序号 20） */
 const LOAD_FAIL_TEXT = '数据加载失败，请稍后重试'
@@ -181,11 +157,7 @@ async function onRowTap(row: MessageRow) {
   if (row.target) uni.navigateTo({ url: row.target })
 }
 
-/** TabBar：当前模块（我的）不跳转；目标页未实现时由 uni 侧降级（台账已记） */
-function onTabTap(tab: { label: string; url: string }) {
-  if (tab.label === ACTIVE_TAB || !tab.url) return
-  uni.navigateTo({ url: tab.url })
-}
+/** TabBar 已抽为共享组件（src/components/app-tab-bar/AppTabBar.vue，本帧高亮 #007AFF） */
 
 onMounted(load)
 </script>
@@ -441,58 +413,5 @@ onMounted(load)
   color: $color-text-placeholder;
 }
 
-/* 底部 TabBar（design c02e59d8） */
-.tabbar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  max-width: 430px;
-  margin: 0 auto;
-  height: 84px;
-  box-sizing: border-box;
-  background: $color-bg-card;
-  padding: 8px 0 24px 0;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.tabbar__item {
-  width: 104px;
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.tabbar__icon {
-  height: 33px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.tabbar__glyph {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-}
-
-.tabbar__gap {
-  height: 3px;
-}
-
-.tabbar__label {
-  font-size: $font-2xs;
-  color: $color-text-placeholder;
-  line-height: 16px;
-}
-
-.tabbar__label--active {
-  color: #007aff;
-  font-weight: 600;
-}
+/* 底部 TabBar 样式随共享组件（src/components/app-tab-bar/AppTabBar.vue）—— 页面不再各写一套 */
 </style>

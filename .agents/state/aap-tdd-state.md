@@ -64,7 +64,63 @@ LEASE: free until -
 
 ## 4. 进度（细表看台账 CSV，这里只留能力组）
 
-🟢 本轮（2026-09-16 05:15~05:45，租约 aap-tdd-run-20260916-0515 → 已释放）· **序号 20「站内信列表 2」（page-20-2）收口**：
+🟢 本轮（2026-09-16 05:30~06:05，租约 aap-tdd-run-20260916-0530 → 已释放）· **序号 21「我的 2」（page-21-2）收口**：
+- **取件**：`list-pending.py -n 1` 最小未完成 = 21（page-21-2，`/pages/mine/index`，台账「设计否」）；开工前 `git status` 干净、
+  `git log -1` = 05:27 的 20-站内信列表提交 → 空闲租约，写成本轮 id + 45 分钟。
+- **Calicat 侧**：本轮 `calicat_source.py page` **一次成功**（无需 `cmd /c start` 拉编辑器）；设计树（66KB）+ 截图 **430×990（1:1 帧图）** 已抓；
+  `interaction.json` 仍「不存在图层交互数据」→ 交互真源退 18-API 七个只读端点 + 设计稿控件语义。
+  **先 `cmp-frames.py page-20-2 page-21-2`** → 子节点名完全不同（用户头部/我的钱包卡/我的报价入口卡/主体与证照卡）→ **不是同页帧，新写页面**。
+- **这页到底是什么**：`我的页`（设计总高 990 = 头部 128 + 12 + 钱包卡 192 + 12 + 报价入口卡 299 + 12 + 主体与证照卡 235 + 16 + TabBar 84）：
+  用户头部（#1D4ED8 padding 48/16/24/16 · 头像 56 r28 · 「云智科技有限公司」18px 白 · 「渠道商」白底 chip h22 r11 · 「已认证」#DBEAFE chip + 绿点 9×7）·
+  我的钱包卡（「我的钱包」14px + chevron · 「可提现余额」11px + **¥12,860.00** 24px ExtraBold · 「提现」h38 r10 #2563EB · 「待结算 ¥3,240」｜竖分隔 2×32｜「累计结算 ¥86,420」）·
+  报价入口卡 5 行 h56（我的报价单 3 个 / 检测报告 2 份 / 我的合同 待签署 1 / 用量与对账 / 我的消息 待阅读 3；图标 32 r10 五色）·
+  主体与证照卡 4 行 h54（主体档案 100% 绿胶囊 / 接入凭证 3 条 / 结算账户 已绑定 / 账号与设置；图标无底色 20×27）· 底部 TabBar 84（高亮「我的」#2563EB）。
+- **TDD（5 切片，逐切片红→绿；新增 107 例）**：`tests/unit/mine-model.spec.ts`(46) · `tests/unit/mine-api.spec.ts`(10) ·
+  `tests/components/app-tab-bar.spec.ts`(12) · `tests/pages/mine.spec.ts`(24) · `tests/pages/mine-flow.spec.ts`(15)；
+  红基线 `evidence/red-序号21-切片1/2/3/4.txt`（4 个 `Failed to resolve import`）
+  + `切片5.txt`（**真红 10/15**：`expected [] to deeply equal [ '/pages/quotes/index' ]` × 8 落点 + 提现 toast + TabBar 跳转）；
+  绿 **1042/1042 连跑两轮一致**（`evidence/green-序号21-轮1/轮2.txt`）+ `npm run type-check` **exit 0**（`evidence/typecheck-序号21.txt`）。
+- **★ 结构性决定：把 TabBar 抽成共享组件**（两帧同一版式、只有高亮色不同）→ 新增 `src/components/app-tab-bar/AppTabBar.vue`
+  + `src/utils/app-tab-bar-model.ts`（TAB_ITEMS/ACTIVE_TAB/取色/落点纯函数）+ `src/utils/routes.ts`（路由常量单一来源）；
+  **一次性迁移已验收的序号 20**（`messages/index.vue` 删除自有 TabBar 副本与 `onTabTap`，`activeColor="#007AFF"`）——
+  messages 三套用例 75 例（含 4 条 TabBar 点击）全绿 = 无回归证据；`build:mp-weixin` 实测 **`components/app-tab-bar/AppTabBar.wxss` 已产出**（§4.13 的必查项）。
+- **切片 5 的「先看红」做法（可复用）**：交互切片写完页面后才补测试会一跑就绿 → 用 `.agents/state/strip-mine-handlers.py strip|restore`
+  **临时删掉 `@tap` 绑定与 handler** 跑出真红（10/15 失败）再恢复；脚本常驻，后续页面直接复用。
+- **由单测红/绿抓出的真实修正**：①我的测试把「无值行」写成会渲染 `.row__value` → 与「不渲染值节点」自相矛盾，改成逐行 `valueOf()`（值或胶囊）；
+  ②`bg('profile')`/胶囊颜色断言假设了内联样式，而设计常量走 CSS 类 → 颜色证据改由 H5 computed-style 承担（单测只断结构），**改的是测试不是代码**。
+- **客观证据链**：`build:mp-weixin` 产出 `pages/mine/{index.js,index.json,index.wxml,index.wxss}` + `components/app-tab-bar/AppTabBar.{js,json,wxml,wxss}`（app.json 已注册）；
+  430 宽 iframe + 无头 Chrome 实测 `evidence/measure-序号21-run1/run2.json`：`innerWidth 430` · `docScrollWidth 430` · 溢出 **0** · 页高 **990 = 设计** ·
+  文案缺失 **[]（need 31 条设计原文）** · 头部 0..128 · 钱包卡 **140 .. 高 192** · 报价卡 **344..643 高 299**（5 行 h56，分隔 **408/465/522**）·
+  证照卡 **655..890 高 235**（4 行 h54，分隔 **717/772/827**）· TabBar **906..990(84)** · 图标 32×32 @x36 · 行文字 @x78 · 值右边界 368 ·
+  chevron 盒 372..394 · 提现按钮 336..394(h38) · 竖分隔 x214(2×32) · 胶囊 326..368(h20) · 输入控件 0 · 分隔线 6（3+3）；
+  **run1/run2 两次独立测量 73 字段全等**（`cmp-measure-runs.py`，0 差异）；**像素对账**（`text-rows.py` 同脚本跑设计与实现）：
+  16 个文本带 12 个 0~1 差、其余 ±2（图标占位块 16 高 vs 设计墨迹 13~15）；`col-bands.py` 实现/设计同判 卡 140..331 / 344..642 / 655..889 / TabBar 906..989；
+  截图 `logs/screenshots/20260916-0557-序号21-我的页-h5-430宽.png`（430×990 = 设计尺寸）；
+  **浏览器内真实交互回放**（`__measure-mine.html` 的 `?scenario=` 多出口）：点「提现」→ 真实 toast「提现功能暂未开放」且 hash 不变 ·
+  点「我的报价单」→ hash **`#/pages/quotes/index`** · TabBar「工作台」→ **`#/pages/workbench/index`** · TabBar「我的」→ hash 不变；
+  `serve-5257.log` 实测 **7 条只读 GET**（`/provider/profile`、`/payments`、`/quotes?page=1&pageSize=1`、`/reports…`、`/contracts?…status=PENDING_SIGN`、`/credentials…`、`/notifications?…unread=true`），**0 写请求**。
+- **★ 本轮最值钱的一条取证教训（写进 dev SKILL §4.17）**：**载体页的取数触发不能靠 iframe `onload`**——
+  监听器注册晚于 iframe 加载完成时 `load` 永远不触发，`<pre id="m">` 停在 `pending`，`extract-measure-json.py` 只报 `NO_MEASURE_JSON`；
+  正解 = 沿用序号 20 的 **`waitFor(选择器)` 轮询 + `await sleep`** 再 collect；另注意取数标记必须是 **`MEASURE_JSON:`**（extractor 的正则前缀，
+  写成 `MEASURE_JSON_START…` 会让脚本静默找不到）。
+- **新增可复用工具/资产**：`.agents/state/h5-measure/__measure-mine.html`（含 `?scenario=withdraw|row-quotes|tab-workbench|tab-mine` 四个出口 + shot=1 截图模式）、
+  `.agents/state/gen-mocks-21.py`（按设计帧数值生成独立 mock 集 `api-21/`）、`.agents/state/strip-mine-handlers.py`（交互切片「先看红」）、
+  `.agents/state/row-runs.py`（**按行输出颜色游程** → 一次定位行内每个元素的 x 区间与越界，本轮靠它发现设计帧「我的消息」行越界）。
+- ⚠️ 待人类拍板（不阻塞本轮，15 条全部写进台账序号 21 备注）：①**设计/PRD 冲突**：设计稿「提现」vs 02-PRD「资金结算/提现走线下」+ 18-API 无提现端点；
+  ②钱包三金额 PRD 零命中 → /payments 汇总字段容错读取（字段名推断）；③各入口计数无汇总接口 → 列表接口 pageSize=1 取 total；
+  ④「待签署 1」= /contracts?status=PENDING_SIGN 的 total，CREATED 是否合并计数待拍板；⑤「已认证」PRD 零命中 → verified 布尔优先、次 status=PUBLISHED；
+  ⑥「结算账户/已绑定」PRD 零命中且画布无页面 → 无落点（不跳转）；⑦检测报告/我的合同落点为详情页（画布无列表页）；⑧用量与对账/账号与设置落序号 22/23 未实现页；
+  ⑨**设计帧第 4/5 行之间无分隔线**（设计树 kids 只有 横分隔1~3）→ 按设计实现；⑩**设计帧自相矛盾**：「我的消息」行的值+chevron 在导出图里被推到 x416..429
+  （越出卡片右边界 414）→ 实现按零溢出右对齐；⑪图标为 CSS 形状占位（16×16 贴近设计墨迹，非真实图标）；⑫卡片描边用 ring（盒外 1px，可见描边比设计外移 1px）；
+  ⑬toast 文案为占位；⑭CJK 度量残差（提现按钮 -1、胶囊 43 vs 44、TabBar 项 x 累计 -2）；⑮**共享 TabBar 迁移改了序号 20 的页面文件**（能力升级，非回炉内容）。
+
+⏳ 下一步（下一轮）：台账序号 **22「我的与用量概览 2」**（page-22-2，`/pages/usage/index`）——**设计尚未抓取**（台账「设计否」），
+  先 `python .agents/state/fetch-design.py page-22-2` 与 `python .agents/state/find-inv.py page-22-2` 取 `sourceLayerId` 后跑 `calicat_source.py page`，再按 §2 八步走；
+  **它就是本轮「用量与对账」行的落点**；接口真源 = 18-API「Usage」Tag（`/usage/hourly`、`/usage/summary`，序号 2 工作台已用过 summary 口径）；
+  可复用本轮：`__measure-mine.html` 模板（**触发必须用 waitFor 轮询、标记必须写 `MEASURE_JSON:`**）、`gen-mocks-21.py` 式独立 mock 集、
+  `strip-mine-handlers.py` 式交互切片取证、`row-runs.py`（行内元素定位）、`cmp-measure-runs.py`、`text-rows.py`、共享 TabBar 组件与 `src/utils/routes.ts`。
+
+🟢 上一轮（2026-09-16 05:15~05:45，租约 aap-tdd-run-20260916-0515 → 已释放）· **序号 20「站内信列表 2」（page-20-2）收口**：
 - **取件**：`list-pending.py -n 1` 最小未完成 = 20（page-20-2，`/pages/messages/index`，台账「设计否」）；开工前 `git status` 干净、
   `git log -1` = 05:10 的 15-合同签署提交 → 空闲租约，写成本轮 id + 45 分钟。
 - **Calicat 侧**：`page` 先报「请先在浏览器中打开文件」→ `cmd /c start` 拉起后一次成功；设计树（49KB / 106 节点）+ 截图 **430×760（1:1 帧图）** 已抓；
@@ -109,11 +165,7 @@ LEASE: free until -
   ⑬**字号度量残差**：chip 实测 48（设计 49）、徽标 58（设计 59）、消息标题 143（声明 144）—— 每 2 个 CJK 字少 1px（浏览器回退字体 vs 思源黑体），**未写死宽度**；
   ⑭H5 mock 静态 → 写操作后列表不变（仍显「3 条未读」），真实请求以 serve 日志为准；⑮本页无 query/storage 入口，入口页待序号 21。
 
-⏳ 下一步（下一轮）：台账序号 **21「我的 2」**（page-21-2，`/pages/mine/index`）——**设计尚未抓取**（台账「设计否」），
-  先 `python .agents/state/fetch-design.py page-21-2` 与 `calicat_source.py page --layer-id e537204e-faf7-416b-8669-1347d581490c --page-id page-21-2`，再按 §2 八步走；
-  **它就是本页 TabBar「我的」的目标页（同位帧）→ 先 `cmp-frames.py page-20-2 page-21-2` 判是否同页多帧**，
-  若 TabBar 完全一致优先抽共用组件（12-v2 的 variantFlags 套路）；可复用本轮：`gen-mock-20.py`（相对时间 mock 生成法）、`show-m20.py` 取数脚本式样、
-  `__measure-messages.html` 的 `?scenario=` 多出口回放模板、`cmp-measure-runs.py` 两次独立测量比对。
+✅ 序号 21 已于 2026-09-16 05:30~06:05 轮完成（见最上方本轮块）；共享 TabBar 组件与路由常量已在其间抽出，序号 22/23 直接复用。
 
 🟢 本轮（2026-09-16 04:55~05:20，租约 aap-tdd-run-20260916-0455 → 已释放）· **序号 15「合同签署 2」（page-15-2）收口**：
 - **取件**：`list-pending.py` 最小未完成 = 15（page-15-2，/pages/contract/index，台账「设计否」）；开工前 `git status` 干净、

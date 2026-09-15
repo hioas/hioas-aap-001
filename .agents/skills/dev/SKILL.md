@@ -450,6 +450,31 @@ vision 看到的「右侧贴边/缺字」是**截图假象**而非页面缺陷�
 - **TabBar 的高亮项可能是「别的模块」**：page-20-2（/pages/messages/index）高亮的是「我的」→ 点当前高亮项**不跳转**，
   其余项各落自己的路由（目标页未实现时登记台账，不在本轮补页面）。
 
+## 4.17 共享组件抽取 + 载体页触发/标记（2026-09-16 序号 21 我的页）
+
+- ⚠️ **载体页的取数触发不能靠 iframe `onload`**：`f.addEventListener('load', …)` 在 iframe 已经开始（甚至完成）加载后才注册时
+  `load` 永远不触发 → `collect()` 不跑、`<pre id="m">` 停在 `pending`，`--dump-dom` 里只有 pending（`extract-measure-json.py` 报 `NO_MEASURE_JSON`，
+  dump 大小看起来还很正常）。正解 = 沿用序号 20 的 **`waitFor(选择器)` 轮询（200ms × 40）+ `await sleep(1500~1800)` 再 collect**，
+  并且把取数标记写成 **`MEASURE_JSON:`**（`extract-measure-json.py` 的正则前缀是 `MEASURE_JSON:`；
+  写成 `MEASURE_JSON_START…MEASURE_JSON_END` 会让脚本静默找不到，**只有把标记串断言进取数流程才不会白跑一轮**）。
+- **同一设计块出现在两页时抽共享组件**（不要每页复制）：page-20-2 / page-21-2 的底部 TabBar 版式完全相同（padding 8/0/24 · 4 项各 104 · 图标 33 + 3 + 文字 16 = 84），
+  只有高亮色不同（#007AFF vs #2563EB）→ `src/components/app-tab-bar/AppTabBar.vue` + `activeColor` prop；
+  路由常量统一放 `src/utils/routes.ts`（页面/模型/组件共用，避免字符串漂移）。
+  **迁移已验收页面时用它的既有用例当回归网**（本轮 messages 三套 75 例全绿 = 无回归证据），并**务必确认小程序产物里组件 wxss 已产出**
+  （`ls dist/build/mp-weixin/components/**/`：本轮 AppTabBar.wxss 687B）—— 页面自身的 wxss 里已经没有这段样式，缺了就是裸奔。
+- **交互切片「先看红」的固定手法**：页面写完再补交互测试必然一跑就绿（等于测试后写）。把「删掉 `@tap` 绑定与 handler」做成常驻脚本
+  （`.agents/state/strip-mine-handlers.py strip|restore`，先 `cp` 快照到 `$LOCALAPPDATA/Temp/`）→ 跑出真红（本轮 10/15 失败、
+  `expected [] to deeply equal [ '/pages/quotes/index' ]`）→ restore → 绿。比手工删改更不容易漏。
+- **`row-runs.py <png> <y> [x0] [x1] [minLen]`**（新增）：按行输出**颜色游程（RLE）**，一次拿到行内每个元素的 x 区间 → 定位越界最快。
+  本轮靠它对账 5 行的值/chevron 位置，发现**设计帧自身越界**：page-21-2「我的消息」行的值+chevron 被推到 x416..429（卡片右边界 414、页面 430），
+  其它 4 行 chevron 都在 382..384 → 按「实现零溢出」右对齐并在台账登记（同 §4.6「设计自身越界要记」）。
+- **只读页的颜色证据分两层写**：设计常量（如提现按钮底、绿胶囊底/字）落 CSS 类 → **单测只断结构**（元素/文案/class），
+  颜色交给 H5 `getComputedStyle`（`stylesOf()`）与像素量尺；只有**行级数据驱动**的颜色（如各行图标底色/值色）才用内联 `:style` 并由单测断言。
+  混着断会写出「假设了内联样式的假断言」。
+- **图标 CSS 占位要压到设计墨迹量级**：占位块若按容器尺寸画实心（如证照卡 20×27 全填）→ 像素对账时文本带高 27 vs 设计 13~16，
+  视觉上会被读成图片位。正解 = 包裹层保持设计声明尺寸（20×27 / 32×32），**内层占位形状取 16×16**、
+  颜色用 `:style="{ color: … }"` + CSS `background: currentColor`（单测仍可断内联色）。
+
 ## 5. 页面实现顺序与取件
 
 ```bash

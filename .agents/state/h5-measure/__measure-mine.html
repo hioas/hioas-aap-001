@@ -1,0 +1,248 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-mine</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 990px; border: 0; }
+      /* 取数 <pre> 包进 0 尺寸 overflow:hidden：textContent 可读但不渲染、不会被 --screenshot 截进图（SKILL §4.1） */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
+         页面 21：/pages/mine/index（【工作台与我的】我的页 2，page-21-2）
+         设计基线（设计帧 1:1 · 430x990 · 像素量尺 col-bands x30 / rows-ink / png-ink band）：
+           用户头部 0..127(128 · padding 48/16/24/16 · #1D4ED8) · 12
+           钱包卡 140..331(192 · padding 20 · r18 · ring #EEF2F7) · 12
+           报价入口卡 344..642(299 · padding 8/20 · 5 行 × 56 + 横分隔 3 × 1) · 12
+           主体与证照卡 655..889(235 · padding 8/20 · 4 行 × 54 + 横分隔 3 × 1) · 16
+           底部 TabBar 906..989(84 · fixed)
+           卡内锚点：图标 32×32 @x36 · 行文字 @x78 · 值右边界 368 · chevron 盒右边界 394 ·
+                    提现按钮 x335..394(h38) · 竖分隔 x215(2×32) · 胶囊 h20
+         ?scenario=withdraw|row-quotes|tab-workbench|tab-mine 逐个回放出口；shot=1 / noaction 只取 phase1（供截图）
+         ⚠️ 触发方式必须用 waitFor 轮询（iframe onload 会因监听注册过晚而错过 → 取数脚本静默拿到 pending） -->
+    <iframe id="f" src="/index.html#/pages/mine/index"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var acc = {}
+
+      function all(d, sel) { return Array.prototype.slice.call(d.querySelectorAll(sel)) }
+      function rect(d, sel) {
+        var el = d.querySelector(sel)
+        if (!el) return null
+        var r = el.getBoundingClientRect()
+        return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+      }
+      function rects(d, sel) {
+        return all(d, sel).map(function (e) {
+          var r = e.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), w: Math.round(r.width), h: Math.round(r.height) }
+        })
+      }
+      function texts(d, sel) { return all(d, sel).map(function (e) { return e.textContent.trim() }) }
+      function textOf(d, sel) { var e = d.querySelector(sel); return e ? e.textContent.trim() : null }
+      function colorOf(d, w, sel, prop) { var el = d.querySelector(sel); return el ? w.getComputedStyle(el)[prop] : null }
+      function styleOf(d, w, sel) {
+        var el = d.querySelector(sel)
+        if (!el) return null
+        var cs = w.getComputedStyle(el)
+        return { fontSize: cs.fontSize, fontWeight: cs.fontWeight, color: cs.color, lineHeight: cs.lineHeight, display: cs.display, height: cs.height, width: cs.width, background: cs.backgroundColor, boxShadow: cs.boxShadow, borderRadius: cs.borderRadius }
+      }
+      function stylesOf(d, w, sel, prop) { return all(d, sel).map(function (e) { return w.getComputedStyle(e)[prop] }) }
+
+      /** 设计稿里每一个独立文本图层（逐字抄自 page-21-2 design.tree.json，31 条） */
+      var needText = [
+        '云智科技有限公司', '渠道商', '已认证',
+        '我的钱包', '可提现余额', '¥12,860.00', '提现', '待结算', '¥3,240', '累计结算', '¥86,420',
+        '我的报价单', '3 个', '检测报告', '2 份', '我的合同', '待签署 1', '用量与对账', '我的消息', '待阅读 3',
+        '主体档案', '100%', '接入凭证', '3 条', '结算账户', '已绑定', '账号与设置',
+        '工作台', '报告', '报价', '我的'
+      ]
+
+      function collect() {
+        var doc = f.contentDocument
+        var win = f.contentWindow
+        var de = doc.documentElement
+        var out = {}
+        out.innerWidth = win.innerWidth
+        out.docScrollWidth = de.scrollWidth
+        out.docScrollHeight = de.scrollHeight
+        var overflowing = all(doc, '*').filter(function (e) {
+          var r = e.getBoundingClientRect()
+          return r.width > 0 && (r.right > win.innerWidth + 0.5 || r.left < -0.5)
+        })
+        out.overflowingCount = overflowing.length
+        out.overflowing = overflowing.slice(0, 6).map(function (e) {
+          var r = e.getBoundingClientRect()
+          return { cls: String(e.className), left: Math.round(r.left), right: Math.round(r.right), w: Math.round(r.width), tag: e.tagName }
+        })
+        var body = doc.body.innerText
+        out.missingTexts = needText.filter(function (t) { return body.indexOf(t) < 0 })
+        out.needTextCount = needText.length
+
+        out.rowTargets = all(doc, '[data-testid^="row-"]').map(function (e) { return e.getAttribute('data-testid') })
+        out.rowLabels = texts(doc, '.row__label')
+        out.rowValues = texts(doc, '.row__value')
+        out.rowPillTexts = texts(doc, '.row__pill-text')
+        out.tabLabels = texts(doc, '.tabbar__label')
+        out.inputCount = all(doc, 'input,textarea').length
+        out.sepCount = all(doc, '.row__sep').length
+        out.entrySepCount = all(doc, '.card--entries .row__sep').length
+        out.recordSepCount = all(doc, '.card--records .row__sep').length
+
+        out.head = rect(doc, '.head')
+        out.headStyle = styleOf(doc, win, '.head')
+        out.avatar = rect(doc, '.head__avatar')
+        out.companyStyle = styleOf(doc, win, '.head__company')
+        out.typeRect = rect(doc, '.head__type')
+        out.typeStyle = styleOf(doc, win, '.head__type')
+        out.typeTextStyle = styleOf(doc, win, '.head__type-text')
+        out.verifiedRect = rect(doc, '.head__verified')
+        out.verifiedStyle = styleOf(doc, win, '.head__verified')
+        out.verifiedTextStyle = styleOf(doc, win, '.head__verified-text')
+        out.dotRect = rect(doc, '.head__dot')
+        out.dotStyle = styleOf(doc, win, '.head__dot')
+
+        out.walletCard = rect(doc, '.card--wallet')
+        out.walletCardStyle = styleOf(doc, win, '.card--wallet')
+        out.walletTitleRect = rect(doc, '.wallet__title-row')
+        out.walletTitleStyle = styleOf(doc, win, '.wallet__title')
+        out.balanceRect = rect(doc, '.wallet__balance')
+        out.amountStyle = styleOf(doc, win, '.wallet__amount')
+        out.labelStyle = styleOf(doc, win, '.wallet__label')
+        out.withdrawRect = rect(doc, '.withdraw')
+        out.withdrawStyle = styleOf(doc, win, '.withdraw')
+        out.withdrawTextStyle = styleOf(doc, win, '.withdraw__text')
+        out.detailRowRect = rect(doc, '.wallet__detail-row')
+        out.dividerRect = rect(doc, '.wallet__divider')
+        out.dividerStyle = styleOf(doc, win, '.wallet__divider')
+        out.subAmountStyle = styleOf(doc, win, '.wallet__sub-amount')
+
+        out.entriesCard = rect(doc, '.card--entries')
+        out.recordsCard = rect(doc, '.card--records')
+        out.entryRowRects = rects(doc, '.card--entries .row')
+        out.recordRowRects = rects(doc, '.card--records .row')
+        out.entrySepRects = rects(doc, '.card--entries .row__sep')
+        out.recordSepRects = rects(doc, '.card--records .row__sep')
+        out.entryIconRects = rects(doc, '.card--entries .row__icon')
+        out.recordIconCount = all(doc, '.card--records .row__icon').length
+        out.iconBgs = stylesOf(doc, win, '.card--entries .row__icon', 'backgroundColor')
+        out.recordGlyphRects = rects(doc, '.card--records .row__glyph')
+        out.recordGlyphStyle = styleOf(doc, win, '.card--records .row__glyph')
+        out.rowValueStyles = stylesOf(doc, win, '.row__value', 'color')
+        out.rowLabelStyle = styleOf(doc, win, '.row__label')
+        out.pillRect = rect(doc, '.row__pill')
+        out.pillStyle = styleOf(doc, win, '.row__pill')
+        out.pillTextStyle = styleOf(doc, win, '.row__pill-text')
+        out.chevronRect = rect(doc, '.chevron')
+        out.chevronCount = all(doc, '.chevron').length
+        out.profileValueIsPill = !!doc.querySelector('[data-testid="row-profile"] .row__pill')
+        out.usageValueExists = !!doc.querySelector('[data-testid="row-usage"] .row__value')
+        out.settingsValueExists = !!doc.querySelector('[data-testid="row-settings"] .row__value')
+
+        out.tabbarRect = rect(doc, '.tabbar')
+        out.tabbarItemRects = rects(doc, '.tabbar__item')
+        out.tabbarActiveText = textOf(doc, '.tabbar__label--active')
+        out.tabbarActiveStyle = styleOf(doc, win, '.tabbar__label--active')
+        out.tabbarInactiveStyle = styleOf(doc, win, '.tabbar__label:not(.tabbar__label--active)')
+        out.companyText = textOf(doc, '[data-testid="mine-company"]')
+        out.walletAvailableText = textOf(doc, '[data-testid="wallet-available"]')
+        out.walletPendingText = textOf(doc, '[data-testid="wallet-pending"]')
+        out.walletSettledText = textOf(doc, '[data-testid="wallet-settled"]')
+        out.userAgent = win.navigator.userAgent
+        out.hash = String(win.location.hash)
+        return out
+      }
+
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
+
+      function clickIn(sel) {
+        var doc = f.contentDocument
+        var el = doc.querySelector(sel)
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+      function toastText(doc) {
+        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
+        return el ? el.textContent.trim() : ''
+      }
+      function hashNow() { try { return String(f.contentWindow.location.hash) } catch (e) { return 'ERR:' + e.message } }
+
+      function waitFor(sel, maxTries) {
+        return new Promise(function (resolve) {
+          var n = 0
+          function tick() {
+            n++
+            var ok = false
+            try { ok = !!f.contentDocument.querySelector(sel) } catch (e) { ok = false }
+            if (ok) return resolve('READY(tries=' + n + ')')
+            if (n >= (maxTries || 40)) return resolve('TIMEOUT(tries=' + n + ')')
+            setTimeout(tick, 200)
+          }
+          tick()
+        })
+      }
+
+      function scenario() {
+        var m = location.search.match(/scenario=([a-zA-Z-]+)/)
+        return m ? m[1] : ''
+      }
+
+      async function main() {
+        await waitFor('[data-testid="row-quotes"]')
+        await sleep(1800)
+        var payload
+        try {
+          payload = collect()
+          f.style.height = payload.docScrollHeight + 'px'
+          payload.iframeHeightForShot = payload.docScrollHeight
+          sink(1, payload)
+        } catch (e) {
+          sink(1, { error: String(e && e.message) })
+          return
+        }
+        var sc = scenario()
+        if (!sc || location.search.indexOf('noaction') !== -1 || location.search.indexOf('shot=1') !== -1) return
+
+        if (sc === 'withdraw') {
+          var cW = clickIn('[data-testid="wallet-withdraw"]')
+          await sleep(1200)
+          sink(2, { scenario: sc, clicked: cW, toast: toastText(f.contentDocument), hash: hashNow(), getCount: 0 })
+          return
+        }
+
+        if (sc === 'row-quotes') {
+          var cR = clickIn('[data-testid="row-quotes"]')
+          await sleep(1500)
+          sink(2, { scenario: sc, clicked: cR, hash: hashNow() })
+          return
+        }
+
+        if (sc === 'tab-workbench') {
+          var cT = clickIn('[data-testid="tab-工作台"]')
+          await sleep(1500)
+          sink(2, { scenario: sc, clicked: cT, hash: hashNow() })
+          return
+        }
+
+        if (sc === 'tab-mine') {
+          var cM = clickIn('[data-testid="tab-我的"]')
+          await sleep(1500)
+          sink(2, { scenario: sc, clicked: cM, hash: hashNow() })
+          return
+        }
+      }
+      main()
+    </script>
+  </body>
+</html>

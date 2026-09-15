@@ -22,13 +22,18 @@ export const PAGE_TITLE = '消息'
 /** 右上按钮（design TEXT=全部已读） */
 export const READ_ALL_TEXT = '全部已读'
 
-/** 路由常量 */
-export const MESSAGES_PAGE = '/pages/messages/index'
-export const WORKBENCH_PAGE = '/pages/workbench/index'
-export const REPORT_PAGE = '/pages/report/index'
-export const QUOTES_PAGE = '/pages/quotes/index'
-export const CONTRACT_PAGE = '/pages/contract/index'
-export const MINE_PAGE = '/pages/mine/index'
+/** 路由常量（序号 21 起统一由 src/utils/routes.ts 提供，避免每页各写一套） */
+import { CONTRACT_PAGE, QUOTES_PAGE, REPORT_PAGE } from './routes'
+
+export {
+  CONTRACT_PAGE,
+  LOGIN_PAGE,
+  MESSAGES_PAGE,
+  MINE_PAGE,
+  QUOTES_PAGE,
+  REPORT_PAGE,
+  WORKBENCH_PAGE
+} from './routes'
 
 /** 站内信内的单条（字段名容错：18-API 无字段级 schema） */
 export interface MessageRaw {
@@ -70,16 +75,8 @@ export const FILTERS: { key: MessageFilterKey; label: string }[] = [
 /** 默认选中 chip（design 筛选全部 fills=rgba(37,99,235,1)） */
 export const DEFAULT_FILTER: MessageFilterKey = 'all'
 
-/** 底部 TabBar 4 项（design：Tab工作台/Tab报告 2/Tab报价/Tab我的） */
-export const TABS: { label: string; url: string }[] = [
-  { label: '工作台', url: WORKBENCH_PAGE },
-  { label: '报告', url: REPORT_PAGE },
-  { label: '报价', url: QUOTES_PAGE },
-  { label: '我的', url: MINE_PAGE }
-]
-
-/** 高亮 Tab（design：Tab我的 图标与文字 rgba(0,122,255,1)） */
-export const ACTIVE_TAB = '我的'
+/** 底部 TabBar 4 项与高亮项（序号 21 起由共享模型 src/utils/app-tab-bar-model.ts 提供） */
+export { ACTIVE_TAB, TAB_ITEMS as TABS } from './app-tab-bar-model'
 
 /** 图标底色 / 字形色（design 5 条消息逐值） */
 export const MESSAGE_ICON_META: Record<MessageKind, { bg: string; color: string }> = {
