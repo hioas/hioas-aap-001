@@ -86,7 +86,17 @@ python .agents/state/extract-tokens.py .calicat/raw/pages/<页面ID>/design.tree
 
 ## 4.1 视觉验收：DOM 数字优先，模型描述只作参考
 
-`vision_analyze` 对 430 宽的小程序截图**会误报"右侧被裁切"**（实测两次，均被 DOM 数据推翻）。
+`vision_analyze` 对 430 宽的小程序截图**会误报"右侧被裁切"**（实测三次，均被 DOM 数据推翻）。
+⚠️ **2026-09-16 补：截图本身也可能真的被裁**——headless Chrome **不认 `--window-size`**
+（实测 `--window-size=430,944` 时页面 `innerWidth=500`），此时直接对应用 URL 截图，得到的是「500 宽布局裁出 430 像素」的假图，
+vision 看到的「右侧贴边/缺字」是**截图假象**而非页面缺陷。因此截图必须走确定性路径：
+
+1. 用 430 宽 iframe 载体页（`.agents/state/h5-measure/__measure.html`）+ `--hide-scrollbars`
+   （hide-scrollbars 同时让 iframe 内容宽度 = 430，与小程序一致），先把载体页拷进 `dist/build/h5`；
+2. 截图后按 iframe 矩形裁剪：`python .agents/state/png-crop.py <in.png> <out.png> 0,0,430,900`；
+3. 用**像素级墨迹核验**确认没有内容越界：`python .agents/state/png-ink.py <out.png> "band=280,146,430,172"`
+   会打印每条墨迹的 x 区间与右侧留白；右留白 20px = 与设计稿页边距一致。
+   若墨迹触到最后一列（留白 0），先怀疑截图尺寸（第 1 条），再怀疑布局溢出。
 视觉验收固定两步：
 
 1. 把 `dist/build/h5/__measure.html`（iframe 固定 430 宽 + `getBoundingClientRect` 统计）放进构建产物，

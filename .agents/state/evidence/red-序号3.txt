@@ -1,0 +1,74 @@
+
+> aap-client@0.1.0 test
+> vitest run
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+ [31m❯[39m tests/unit/credential-api.spec.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m tests/pages/credentials.spec.ts [2m([22m[2m0 test[22m[2m)[22m
+ [32m✓[39m tests/unit/usage-api.spec.ts [2m([22m[2m14 tests[22m[2m)[22m[90m 17[2mms[22m[39m
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+ [32m✓[39m tests/unit/api-client.spec.ts [2m([22m[2m10 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+ [32m✓[39m tests/unit/format.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[90m 26[2mms[22m[39m
+ [32m✓[39m tests/unit/cooldown.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m tests/pages/login.spec.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 546[2mms[22m[39m
+ [32m✓[39m tests/pages/workbench.spec.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 1514[2mms[22m[39m
+   [33m[2m✓[22m[39m 页面 2 · 结构与设计稿一致[2m > [22m顶部栏日期为「数据台 · YYYY-MM-DD」（design: 数据台 · 2024-06-14） [33m307[2mms[22m[39m
+ [32m✓[39m tests/unit/validators.spec.ts [2m([22m[2m22 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/credentials.spec.ts[2m [ tests/pages/credentials.spec.ts ][22m
+[31m[1mError[22m: Failed to resolve import "@/pages/credentials/index.vue" from "tests/pages/credentials.spec.ts". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mE:/workspaces/hioas/hioas-aap-001/aap-client/tests/pages/credentials.spec.ts[39m:11:28
+[33m  1  |  import { describe, expect, it } from "vitest";
+  2  |  import { flushPromises, mount } from "@vue/test-utils";
+  3  |  import CredentialsPage from "@/pages/credentials/index.vue";
+     |                               ^
+  4  |  import { getCalls, pushResponse, setNextResponse } from "../setup";
+  5  |  const ok = (data) => ({ statusCode: 200, data: { code: "0", message: "ok", data } });[39m
+[90m [2m❯[22m formatError node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m50863:46[22m[39m
+[90m [2m❯[22m TransformContext.error node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m50857:19[22m[39m
+[90m [2m❯[22m normalizeUrl node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m66092:33[22m[39m
+[90m [2m❯[22m node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m66247:47[22m[39m
+[90m [2m❯[22m TransformContext.transform node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m66168:13[22m[39m
+[90m [2m❯[22m Object.transform node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m51172:30[22m[39m
+[90m [2m❯[22m loadAndTransform node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m53923:29[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/credential-api.spec.ts[2m [ tests/unit/credential-api.spec.ts ][22m
+[31m[1mError[22m: Failed to resolve import "@/api/credential" from "tests/unit/credential-api.spec.ts". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mE:/workspaces/hioas/hioas-aap-001/aap-client/tests/unit/credential-api.spec.ts[39m:12:30
+[33m  1  |  import { describe, expect, it } from "vitest";
+  2  |  import { ApiError } from "@/api/http";
+  3  |  import { credentialApi } from "@/api/credential";
+     |                                 ^
+  4  |  import {
+  5  |    CREDENTIAL_STATUS_META,[39m
+[90m [2m❯[22m formatError node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m50863:46[22m[39m
+[90m [2m❯[22m TransformContext.error node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m50857:19[22m[39m
+[90m [2m❯[22m normalizeUrl node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m66092:33[22m[39m
+[90m [2m❯[22m node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m66247:47[22m[39m
+[90m [2m❯[22m TransformContext.transform node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m66168:13[22m[39m
+[90m [2m❯[22m Object.transform node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m51172:30[22m[39m
+[90m [2m❯[22m loadAndTransform node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m53923:29[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m7 passed[39m[22m[90m (9)[39m
+[2m      Tests [22m [1m[32m91 passed[39m[22m[90m (91)[39m
+[2m   Start at [22m 00:14:07
+[2m   Duration [22m 8.46s[2m (transform 1.91s, setup 1.74s, collect 4.18s, tests 2.12s, environment 23.77s, prepare 2.84s)[22m
+

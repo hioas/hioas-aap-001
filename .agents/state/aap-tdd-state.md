@@ -64,6 +64,30 @@ LEASE: free
 
 ## 4. 进度（细表看台账 CSV，这里只留能力组）
 
+🟢 本轮（2026-09-16 00:10~00:24，租约 aap-tdd-run-20260916-0010 → 已释放）· **序号 3「凭证列表-有数据」收口**：
+- **Calicat 侧**：设计类工具报「请先在浏览器中打开文件」→ `cmd /c start "" <design-url>` 拉起后恢复；page-3 设计树 + 截图已抓
+  （`interaction.json` 仍无数据 → 交互退 PRD + 画布 30 页清单）。
+- **TDD**：红基线 2 个用例文件 `Failed to resolve import`（91 通过，`evidence/red-序号3.txt`）；实现
+  `src/utils/credentials-model.ts`、`src/api/credential.ts`、`src/pages/credentials/index.vue`、`src/pages.json` 路由、tokens 4 个新色值；
+  绿 **129/129 连跑两轮一致**（`evidence/green-序号3.txt`）。
+- **客观证据链**：`npm run build:mp-weixin` 产出 `dist/build/mp-weixin/pages/credentials/{js,json,wxml,wxss}`；
+  430 宽 iframe + 无头 Chrome DOM 实测 `evidence/measure-序号3-无滚动条430.json`：`innerWidth 430` · `docScrollWidth 430` · 溢出 `0` ·
+  文案缺失 `[]` · chip `待检测3/检测中2/不通过1/通过4` · 10 行 / 报告 5 条 · 列宽 `226/48/42/42` · `tabbarPinned true` ·
+  滚到底 `cardFullyAboveTabbar true`；像素墨迹核验「共 10 条」四字完整（右留白 20px）；
+  截图 `logs/screenshots/20260916-0022-序号03-凭证列表-h5-430宽.png`。
+- ⚠️ **新踩的平台坑（已写进 `.agents/skills/dev/SKILL.md` §4.1）**：headless Chrome **不认 `--window-size`**
+  （实测传 `430,944` 时 `innerWidth=500`）→ 直接对应用截图会得到「右边被裁掉」的**假象**（vision 也会跟着误报）；
+  正解 = 用 430 宽 iframe 载体页截图 + 像素裁剪（`.agents/state/png-crop.py`），并用 `png-ink.py` 核验墨迹右边界。
+- ⚠️ 待人类确认（不阻塞本轮）：①`GET /credentials` 字段级 schema 未定义（missing-prd）；②设计 4 态 vs 09-PRD R-25 五分支的对应由服务端派生；
+  ③状态统计计数取自当前列表（接口未定义汇总字段）；④「报告」路由映射（通过→`/pages/report/index`、不通过→`/pages/report-failed/index`）为推断；
+  ⑤空态文案「暂无接入凭证」为占位。
+- ⚠️ **既有缺陷（非本轮引入）**：`npm run type-check`（vue-tsc）报 `TS5070: Option '--resolveJsonModule' cannot be specified without 'node' module resolution strategy`
+  —— `aap-client/tsconfig.json` 自序号 1 提交后未再改动（`git log` 可证），修法 = 加 `"moduleResolution": "node"` 或去掉 `resolveJsonModule`；
+  为守「一页一提交」本轮未动它，**下一轮开工前顺手修掉并单独提交**，让类型门禁重新可用。
+
+⏳ 下一步（下一轮）：台账序号 4「提交接入凭证 2」（page-4-2，`/pages/credential-submit/index`），按 §2 八步走；
+  截图一律走「430 宽 iframe 载体页 + 裁剪」这条确定性路径。
+
 🟢 本轮（2026-09-15 23:47~2026-09-16 00:10，租约 aap-tdd-run-20260915-2347 → 已释放）· **序号 2「工作台 · 方案B 数据台」收口**：
 - **Calicat 侧**：设计类工具一开始全部报「请先在浏览器中打开文件」→ 定位为**编辑器会话前置条件**（PRD 类工具不受影响）；
   用 `cmd /c start "" <design-url>` 拉起默认浏览器后恢复，`page-2-b` 设计树 + 截图已抓（`interaction.json` 仍无数据 → 交互退 PRD）。
