@@ -164,6 +164,24 @@ vision 看到的「右侧贴边/缺字」是**截图假象**而非页面缺陷�
   修法 = 固定列 `flex-shrink: 0` + 弹性列 `flex: 1; min-width: 0`，并在台账写明「设计不自洽、实现按零溢出」。
 - 通用取数：`python .agents/state/show-measure6.py <measure.json> phase2 <字段名…>`（按 phase 取指定字段，替代页面专用的 show-measure*.py）。
 
+## 4.5 uni-app H5 行盒陷阱 + 取数脚本（2026-09-16 序号 7 检测未通过报告）
+
+- ⚠️ **`<text>` 在 H5 是 inline（UNI-TEXT），非 flex 容器里行盒由父级撑**：父级 UNI-VIEW 继承 uni 默认 **16px** 字号，
+  行盒 ≈24px，实测 `分项行高 24（设计 14.4）`、`说明盒 72（设计 60）`、`详情行 24（设计 20）`、`文本块 40（设计 36）`。
+  **规矩：设计稿给了明确行高/盒高的文本，样式里一律补 `display: block`**（或让其父级是 flex，flex 子项会被块级化）；
+  改完必须回 measure 复核，这类偏差 **vision 完全看不出来**，只有 DOM 数字能抓（序号 7 一次抓出 4 处，卡片高度差最大 79px）。
+- **报告编号类「前缀 + 值」**：设计稿里常是**单个**文本图层（如「报告编号 DR-20240614-0312」）→ 必须连前缀一起渲染，
+  否则 H5 取数的 `missingTexts` 会命中（序号 6 历史欠账，序号 7 已按设计补齐）。
+- **写类接口也要能 mock**：`serve.py` 现在支持 `MOCK/<path>/post`（如 `.agents/state/h5-measure/api/v1/detection-jobs/post`），
+  否则 POST 一律回 `{"id":"c1"}`，验证「重新提交检测」拿不到真实 job_id。
+- **截图与交互回放必须分开跑**：交互回放会点按钮把 iframe 导航走（序号 7 点「重新提交检测」→ 跳检测页），
+  同一份载体页再截图就会**截成下一页**（第一次截图截成了「检测进行中」，墨迹/vision 都对不上本页数字）。
+  载体页用 `?noaction=1` 跳过点击阶段；截图走 noaction，交互结论（toast / hash 跳转）写进 measure JSON 的 phase3/phase4。
+- 新增脚本：`extract-measure-json.py`（dump-dom → measure JSON）、`compare-phases.py`（两个 phase 逐字段比对，
+  "连跑两轮一致"的 H5 版本）、`png-size.py`（PNG 宽高自检，确认截图尺寸真的是 430 宽）。
+- **卡片高度要拿设计推导值对账**：把设计各子块高度相加（padding + 文本行高 + 子块间距）与 DOM 实测比，
+  序号 7 封面卡 240 = 设计推导 240（完全一致）才能说明前 4 处行盒偏差已修净。
+
 ## 5. 页面实现顺序与取件
 
 ```bash
