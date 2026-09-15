@@ -252,6 +252,33 @@ vision 看到的「右侧贴边/缺字」是**截图假象**而非页面缺陷�
 - **uni-app H5 的 `placeholder` 是渲染成文本层的**（会进 `innerText`），不在内层原生 `input` 的 `placeholder` 属性上 →
   文案完整性检查可直接把占位文案写进 `need` 列表。（序号 10 实测：`placeholderAttr=null`、`placeholderInText=true`。）
 
+## 4.9 图标占位的行盒 + 取证脚本的两处静默失败（2026-09-16 序号 10.1 供应商档案）
+
+- ⚠️ **图标「字号 × 1.5」不只是卡片头部，所有图标所在的行盒都是**：设计稿里 `paragraph fontSize=18 fontFamily=remixicon`
+  的行盒 = **27**（18 × 1.5），不是 18。page-10-1-2 的「主体锁定提示」盒高 **51 = 12 + 27 + 12**，
+  只画一个 18 高的 CSS 形状 → 实测 42（矮 9px），并且**卡2 之后的整页元素全部上移 9px**
+  （简介框 890 vs 设计 899、资质缩略图 1049 vs 1058、底栏 1321 vs 1330、页高 1409 vs 1414）。
+  正解 = 给图标套一个 `height: 27px; display:flex; align-items:center` 的包裹层（宽取设计声明的 20），
+  盒子高度立刻逐值相等。**判定法：盒子高度 = padding×2 + max(文本行盒, 图标行盒=字号×1.5)**，
+  两边都算一遍再写 CSS；这类偏差 vision 完全看不出，只有 DOM 数字/像素带能抓。
+- ⚠️ **无头 Chrome 会「静默不写文件」**：同一份 `--screenshot` / `--dump-dom` 命令偶发不产出文件，
+  而 shell 的 `>` 重定向**已经截断了旧文件**时更难分辨。规矩：跑完先看**文件 mtime + 字节数 + 一个只有新版本才有的标记串**
+  （本轮用 `noteIconBox`）——三者都新才是真证据；只比字节数会被「上一轮的输出」骗过（本轮踩过：dump 字节数与上一轮完全相同）。
+- ⚠️ **`--screenshot=<中文路径>` 会被 MSYS→Windows 参数转码搞坏，Chrome 静默不落盘**：
+  截图一律先写到纯 ASCII 临时路径（`C:/Users/<user>/AppData/Local/Temp/xxx.png`）再用 `mv` 改成中文名。
+- 新增脚本：
+  - `rows-ink.py <png> <x0> <y0> <x1> <y1> [bghex] [tol]` —— 在横向区间内逐行找墨迹行，一把量出**一列字段/文本行的 y 区间**
+    （本轮用它定死「字段 pitch 54、类型行 pitch 64、资质行 1058/1122/1186」）。
+  - `colors-all.py <design.tree.json> [tokens.scss]` —— 列出**全部**颜色（`fills` + `fontFill` + `stroke.fills`）并标 OK/NEW，
+    一次确定「本页要新增哪些 token」（`extract-tokens.py` 只看 `fills`，会漏掉 `fontFill`，别用它做 token 决策）。
+  - `serve.py` 的访问日志是「真实请求」的唯一硬证据：本轮 `PUT /api/v1/provider/profile` 的 body 直接从日志取；
+    启动时**必须把 stderr 重定向到文件**（`python serve.py ... > serve-<port>.log 2>&1`），否则日志随进程消失。
+- **H5 版的页面交互回放必须「等就绪再点」**：一次性 `iframe.src` 重载后固定 `sleep` 会踩空（本轮 phase3 前三次点击全部 `NOT_FOUND`，
+  只有最后一次成功）。正解 = 轮询等待目标元素出现（200ms × 最多 40 次）再点，**hash 也要延迟 700~900ms 再读**
+  （uni 的 router 更新是异步的，在 `click` 后立刻读 hash 会拿到旧值、误判成「没跳转」）。
+- **只读页也可能有「保存」**：page-10-1-2 是只读档案页却有「保存 + 去补全资质」。不要因为「没有输入框」就把它归成 client-only——
+  先找同族页面的写接口（本轮用序号 10 的 `PUT /provider/profile`）并**在台账写明语义缺口**，再实现。
+
 ## 5. 页面实现顺序与取件
 
 ```bash

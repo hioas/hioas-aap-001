@@ -1,0 +1,314 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-profile</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      /* 取数用 <pre> 包进 0 尺寸 overflow:hidden 容器：textContent 可读，但不渲染、不会被 --screenshot 截进图里 */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
+         页面 10.1：/pages/profile/index（【档案与凭证】供应商档案，page-10-1-2）
+         设计基线（设计截图像素量尺，见 .agents/state/design-shots/page-10-1-2.png · 430x1414）：
+           顶栏 0..95(96) · 卡1 108..265(158，无描边 + 投影 0/6/20) · 卡2 278..690(413) ·
+           卡3 703..981(279) · 卡4 995..1313(319) · 底栏 1330..1413(84) · 页高 1414
+           卡 x16 w398 · 胶囊 top 54 h24(x319..413) · 进度填充 top 160 h10 w259 ·
+           闸门提示 186..245(60) · 锁定角标 top 301 h22 · 类型 chip top 473 h24 ·
+           简介框 899..962(64) · 资质缩略图 48x48 @1058/1122/1186 · 行1 角标 x345..394 h20 ·
+           上传按钮 1250..1293(44) · 底栏按钮 保存 x16..208(193) / 去补全资质 x221..413(193)
+         phase1 = 首屏（GET profile + GET qualifications）· 整页高度回填 iframe 供截图
+         phase2 = 点「保存」→ 真实 PUT /api/v1/provider/profile → toast + 完整度刷新
+         phase3 = 四个跳转入口逐个回放（每次 reload 后**轮询等待页面就绪**再点；hash 延迟 900ms 再读）
+         phase4 = 返回箭头（navigateBack）
+         截图另跑 ?noaction=1（交互回放会把 iframe 导航走） -->
+    <iframe id="f" src="/index.html#/pages/profile/index"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var acc = {}
+      var reloadSeq = 0
+
+      function all(doc, sel) { return Array.prototype.slice.call(doc.querySelectorAll(sel)) }
+      function rect(doc, sel) {
+        var el = doc.querySelector(sel)
+        if (!el) return null
+        var r = el.getBoundingClientRect()
+        return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+      }
+      function rects(doc, sel) {
+        return all(doc, sel).map(function (e) {
+          var r = e.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), w: Math.round(r.width), h: Math.round(r.height) }
+        })
+      }
+      function texts(doc, sel) { return all(doc, sel).map(function (e) { return e.textContent.trim() }) }
+      function textOf(doc, sel) {
+        var e = doc.querySelector(sel)
+        return e ? e.textContent.trim() : null
+      }
+      function colorOf(doc, win, sel, prop) {
+        var el = doc.querySelector(sel)
+        return el ? win.getComputedStyle(el)[prop] : null
+      }
+      function styleOf(doc, win, sel) {
+        var el = doc.querySelector(sel)
+        if (!el) return null
+        var cs = win.getComputedStyle(el)
+        return { fontSize: cs.fontSize, fontWeight: cs.fontWeight, color: cs.color, lineHeight: cs.lineHeight, display: cs.display, borderRadius: cs.borderRadius, padding: cs.padding, backgroundColor: cs.backgroundColor, boxShadow: cs.boxShadow, textAlign: cs.textAlign }
+      }
+      function badgeBg(doc, win, index) {
+        var el = all(doc, '[data-testid="qual-badge"]')[index]
+        return el ? win.getComputedStyle(el).backgroundColor : null
+      }
+      function badgeColor(doc, win, index) {
+        var el = all(doc, '[data-testid="qual-badge"]')[index]
+        if (!el) return null
+        var inner = el.querySelector('text') || el.firstElementChild
+        return inner ? win.getComputedStyle(inner).color : null
+      }
+
+      var needText = [
+        '主体档案', '完整度 72%',
+        '档案完整度', '72%', '档案完整度达到 100% 后，才可发起报价审核。当前还缺 2 项资质文件。',
+        '主体信息', '已认证 · 不可编辑',
+        '企业名称', '云智科技有限公司', '统一社会信用代码', '91330106MA2XXXXX8B',
+        '供应商类型', '渠道商', '所在地区', '浙江 · 杭州',
+        '详细地址', '西湖区文三路 199 号 A 座 18F', '官网', 'www.yunzhi-tech.com',
+        '主体信息已完成企业认证，如需修改请联系平台运营。',
+        '联系信息', '编辑', '联系人', '李明', '职务', '商务负责人', '手机号', '138 **** 6621',
+        '邮箱', 'liming@yunzhi.com', '公司简介',
+        '专注大模型 API 分销与聚合，覆盖华东区域客户，具备 3 年上游资源整合经验。',
+        '资质文件', '管理',
+        '营业执照', '已上传 · 2024-06-10', '已通过',
+        '上游授权书', '未上传', '条件必传',
+        '增值电信业务许可证', '选传 · 可后续补充',
+        '上传新资质', '保存', '去补全资质'
+      ]
+
+      function collect(doc, win) {
+        var over = []
+        all(doc, '*').forEach(function (el) {
+          var r = el.getBoundingClientRect()
+          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
+            over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), left: Math.round(r.x), w: Math.round(r.width), right: Math.round(r.right), html: String(el.outerHTML || '').slice(0, 140) })
+          }
+        })
+        var text = (doc.body && doc.body.innerText) || ''
+        return {
+          innerWidth: win.innerWidth,
+          docScrollWidth: doc.documentElement.scrollWidth,
+          docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
+          overflowingCount: over.length,
+          overflowing: over.slice(0, 12),
+          missingTexts: needText.filter(function (t) { return text.indexOf(t) === -1 }),
+          pageBg: colorOf(doc, win, '.profile', 'backgroundColor'),
+          page: rect(doc, '.profile'),
+          topbar: rect(doc, '.topbar'),
+          topbarBg: colorOf(doc, win, '.topbar', 'backgroundColor'),
+          topbarPad: colorOf(doc, win, '.topbar', 'padding'),
+          topbarRow: rect(doc, '.topbar__row'),
+          title: textOf(doc, '[data-testid="page-title"]'),
+          titleStyle: styleOf(doc, win, '.topbar__title'),
+          backBtn: rect(doc, '[data-testid="back-btn"]'),
+          pill: rect(doc, '[data-testid="completeness-pill"]'),
+          pillText: textOf(doc, '[data-testid="completeness-pill"]'),
+          pillBg: colorOf(doc, win, '[data-testid="completeness-pill"]', 'backgroundColor'),
+          pillTextStyle: styleOf(doc, win, '.completeness__text'),
+          cards: rects(doc, '.card'),
+          cardRing: colorOf(doc, win, '.card--ring', 'boxShadow'),
+          cardShadow: colorOf(doc, win, '.card--shadow', 'boxShadow'),
+          cardPadding: colorOf(doc, win, '.card', 'padding'),
+          cardRadius: colorOf(doc, win, '.card', 'borderRadius'),
+          cardHeads: rects(doc, '.card__head'),
+          cardTitles: texts(doc, '.card__title'),
+          headLine: rect(doc, '.head-line'),
+          percent: textOf(doc, '[data-testid="completeness-percent"]'),
+          percentStyle: styleOf(doc, win, '.head-line__percent'),
+          progress: rect(doc, '.progress'),
+          progressBg: colorOf(doc, win, '.progress', 'backgroundColor'),
+          barFill: rect(doc, '[data-testid="completeness-bar"]'),
+          barFillBg: colorOf(doc, win, '[data-testid="completeness-bar"]', 'backgroundColor'),
+          gate: rect(doc, '.gate'),
+          gateBg: colorOf(doc, win, '.gate', 'backgroundColor'),
+          gateText: textOf(doc, '[data-testid="gate-hint"]'),
+          gateTextStyle: styleOf(doc, win, '.gate__text'),
+          lockBadge: rect(doc, '[data-testid="lock-badge"]'),
+          lockBadgeText: textOf(doc, '[data-testid="lock-badge"]'),
+          lockBadgeBg: colorOf(doc, win, '[data-testid="lock-badge"]', 'backgroundColor'),
+          lockBadgeTextStyle: styleOf(doc, win, '.lock-badge__text'),
+          labels: texts(doc, '[data-testid="field-label"]'),
+          labelStyle: styleOf(doc, win, '.field__label'),
+          valueStyle: styleOf(doc, win, '.field__value'),
+          company: textOf(doc, '[data-testid="v-company"]'),
+          uscc: textOf(doc, '[data-testid="v-uscc"]'),
+          industry: textOf(doc, '[data-testid="v-industry"]'),
+          region: textOf(doc, '[data-testid="v-region"]'),
+          address: textOf(doc, '[data-testid="v-address"]'),
+          website: textOf(doc, '[data-testid="v-website"]'),
+          websiteColor: colorOf(doc, win, '[data-testid="v-website"]', 'color'),
+          companyColor: colorOf(doc, win, '[data-testid="v-company"]', 'color'),
+          typeChip: rect(doc, '.type-chip'),
+          typeChipBg: colorOf(doc, win, '.type-chip', 'backgroundColor'),
+          typeChipTextStyle: styleOf(doc, win, '.type-chip__text'),
+          rowCols: rects(doc, '.row__col'),
+          note: rect(doc, '.note'),
+          noteBg: colorOf(doc, win, '.note', 'backgroundColor'),
+          noteText: textOf(doc, '[data-testid="note-basic"]'),
+          noteTextStyle: styleOf(doc, win, '.note__text'),
+          noteIconBox: rect(doc, '.note__icon'),
+          gateIconBox: rect(doc, '.gate__icon'),
+          twoCols: rects(doc, '.two-col'),
+          contact: textOf(doc, '[data-testid="v-contact"]'),
+          contactTitle: textOf(doc, '[data-testid="v-title"]'),
+          phone: textOf(doc, '[data-testid="v-phone"]'),
+          email: textOf(doc, '[data-testid="v-email"]'),
+          introBox: rect(doc, '.intro-box'),
+          introBoxBg: colorOf(doc, win, '.intro-box', 'backgroundColor'),
+          introText: textOf(doc, '[data-testid="v-intro"]'),
+          introTextStyle: styleOf(doc, win, '.intro-box__text'),
+          qualRows: rects(doc, '[data-testid="qual-row"]'),
+          qualThumbs: rects(doc, '.qual-row__thumb'),
+          qualNames: texts(doc, '[data-testid="qual-name"]'),
+          qualSubtitles: texts(doc, '[data-testid="qual-subtitle"]'),
+          qualBadges: texts(doc, '[data-testid="qual-badge"]'),
+          qualBadgeRects: rects(doc, '[data-testid="qual-badge"]'),
+          qualBadgeBg: [badgeBg(doc, win, 0), badgeBg(doc, win, 1)],
+          qualBadgeColor: [badgeColor(doc, win, 0), badgeColor(doc, win, 1)],
+          qualChevron: rect(doc, '[data-testid="qual-chevron"]'),
+          thumbMutedBg: colorOf(doc, win, '.qual-row__thumb--muted', 'backgroundColor'),
+          uploadBtn: rect(doc, '[data-testid="btn-upload"]'),
+          uploadBorder: colorOf(doc, win, '[data-testid="btn-upload"]', 'borderTopColor'),
+          uploadTextStyle: styleOf(doc, win, '.btn-upload__text'),
+          barWrap: rect(doc, '.bar-wrap'),
+          bar: rect(doc, '.bar'),
+          barBg: colorOf(doc, win, '.bar', 'backgroundColor'),
+          barPad: colorOf(doc, win, '.bar', 'padding'),
+          saveBtn: rect(doc, '[data-testid="btn-save"]'),
+          saveBorder: colorOf(doc, win, '[data-testid="btn-save"]', 'borderTopColor'),
+          saveTextColor: colorOf(doc, win, '.btn--ghost__text', 'color'),
+          completeBtn: rect(doc, '[data-testid="btn-complete"]'),
+          completeBg: colorOf(doc, win, '[data-testid="btn-complete"]', 'backgroundColor'),
+          inputCount: all(doc, 'input,textarea').length,
+          tabbarExists: !!doc.querySelector('.tabbar'),
+          userAgent: win.navigator.userAgent
+        }
+      }
+
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+
+      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
+
+      function collect1() {
+        try {
+          var payload = collect(f.contentDocument, f.contentWindow)
+          f.style.height = payload.docScrollHeight + 'px'
+          acc.iframeHeightForShot = payload.docScrollHeight
+          sink(1, payload)
+          return payload
+        } catch (e) {
+          sink(1, { error: String(e && e.message) })
+          return null
+        }
+      }
+
+      function clickIn(sel) {
+        var doc = f.contentDocument
+        var el = doc.querySelector(sel)
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+
+      function toastText(doc) {
+        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
+        return el ? el.textContent.trim() : ''
+      }
+
+      function hashNow() {
+        try { return String(f.contentWindow.location.hash) } catch (e) { return 'ERR:' + e.message }
+      }
+
+      /** 轮询等待页面渲染出目标元素（uni H5 路由是异步的，固定 sleep 会踩空） */
+      function waitFor(sel, maxTries) {
+        return new Promise(function (resolve) {
+          var n = 0
+          function tick() {
+            n++
+            var ok = false
+            try { ok = !!f.contentDocument.querySelector(sel) } catch (e) { ok = false }
+            if (ok) return resolve('READY(tries=' + n + ')')
+            if (n >= (maxTries || 40)) return resolve('TIMEOUT(tries=' + n + ')')
+            setTimeout(tick, 200)
+          }
+          tick()
+        })
+      }
+
+      function reload() {
+        return new Promise(function (resolve) {
+          reloadSeq += 1
+          f.onload = function () { f.onload = null; resolve('LOADED') }
+          f.src = '/index.html?r=' + reloadSeq + '#/pages/profile/index'
+        })
+      }
+
+      /** 回放单个控件：reload → 等就绪 → 点 → 延迟读 hash/toast */
+      function replay(testid, delay) {
+        var sel = '[data-testid="' + testid + '"]'
+        return reload()
+          .then(function () { return waitFor(sel) })
+          .then(function (ready) {
+            var clicked = clickIn(sel)
+            return sleep(delay || 900).then(function () {
+              return { ready: ready, clicked: clicked, hashAfter: hashNow(), toastAfter: toastText(f.contentDocument) }
+            })
+          })
+      }
+
+      async function main() {
+        await waitFor('[data-testid="page-title"]')
+        await sleep(1200)
+        collect1()
+        if (location.search.indexOf('noaction') !== -1) return
+
+        /* phase2：点「保存」→ 真实 PUT /api/v1/provider/profile（serve.py 日志核对）→ toast + 完整度刷新 */
+        await sleep(600)
+        var saveClicked = clickIn('[data-testid="btn-save"]')
+        await sleep(1500)
+        sink(2, {
+          clickedSave: saveClicked,
+          toastAfterSave: toastText(f.contentDocument),
+          pillAfterSave: textOf(f.contentDocument, '[data-testid="completeness-pill"]'),
+          percentAfterSave: textOf(f.contentDocument, '[data-testid="completeness-percent"]'),
+          barWidthAfterSave: (function () {
+            var el = f.contentDocument.querySelector('[data-testid="completeness-bar"]')
+            return el ? el.getAttribute('style') : null
+          })(),
+          hash: hashNow()
+        })
+
+        /* phase3：四个跳转入口逐个回放（每次 reload，避免一次 navigateTo 之后页面已卸载） */
+        var out = {}
+        out.edit = await replay('action-edit')
+        out.manage = await replay('action-manage')
+        out.upload = await replay('btn-upload')
+        out.complete = await replay('btn-complete')
+        sink(3, out)
+
+        /* phase4：返回箭头 → navigateBack */
+        sink(4, await replay('back-btn'))
+      }
+
+      main()
+    </script>
+  </body>
+</html>
