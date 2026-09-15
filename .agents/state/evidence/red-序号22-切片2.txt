@@ -1,0 +1,20 @@
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/usage-api.spec.ts[2m > [22m序号 22 · usageApi.overview · 月份维度（GET /api/v1/usage/summary）[2m > [22m响应体原样返回（逐日 / 模型占比 / 成本构成等容错字段）
+[31m[1mTypeError[22m: usageApi.overview is not a function[39m
+[36m [2m❯[22m tests/unit/usage-api.spec.ts:[2m208:32[22m[39m
+    [90m206| [39m      })
+    [90m207| [39m    )
+    [90m208| [39m    [35mconst[39m res [33m=[39m [35mawait[39m usageApi[33m.[39m[34moverview[39m({ month[33m:[39m [32m'2024-06'[39m })
+    [90m   | [39m                               [31m^[39m
+    [90m209| [39m    [34mexpect[39m(res[33m.[39mrequest_count)[33m.[39m[34mtoBe[39m([34m1_240_000[39m)
+    [90m210| [39m    [34mexpect[39m(res[33m.[39mdaily[33m?.[39m[[34m0[39m][33m.[39mstat_date)[33m.[39m[34mtoBe[39m([32m'2024-06-08'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m15 passed[39m[22m[90m (18)[39m
+[2m   Start at [22m 05:56:50
+[2m   Duration [22m 996ms[2m (transform 67ms, setup 45ms, collect 102ms, tests 15ms, environment 512ms, prepare 95ms)[22m
+

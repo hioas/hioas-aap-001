@@ -1,0 +1,30 @@
+    [90m 67| [39m    [35mawait[39m [34mflushPromises[39m()
+    [90m 68| [39m
+    [90m 69| [39m    [34mexpect[39m([34mgetCalls[39m([32m'request'[39m))[33m.[39m[34mtoHaveLength[39m([34m2[39m)
+    [90m   | [39m                                [31m^[39m
+    [90m 70| [39m    [34mexpect[39m(([34mreq[39m([34m1[39m)[33m.[39mdata [35mas[39m [33mRecord[39m[33m<[39mstring[33m,[39m unknown[33m>[39m)[33m.[39mmonth)[33m.[39m[34mtoBe[39m([32m'2024-[39m…
+    [90m 71| [39m    [34mexpect[39m(wrapper[33m.[39m[34mfind[39m([32m'[data-testid="month-value"]'[39m)[33m.[39m[34mtext[39m())[33m.[39m[34mtoBe[39m([32m'2[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/usage-flow.spec.ts[2m > [22m序号 22 · ② 月份选择 = client-only + 重新取数[2m > [22m新月份取数失败 → 保留原胶囊月份 + 占位提示，不编造数字
+[31m[1mAssertionError[22m: expected '1.24M' to be '—' // Object.is equality[39m
+
+Expected: [32m"—"[39m
+Received: [31m"1.24M"[39m
+
+[36m [2m❯[22m tests/pages/usage-flow.spec.ts:[2m88:63[22m[39m
+    [90m 86| [39m    [35mawait[39m wrapper[33m.[39m[34mfind[39m([32m'[data-testid="month-picker"]'[39m)[33m.[39m[34mtrigger[39m([32m'change[39m…
+    [90m 87| [39m    [35mawait[39m [34mflushPromises[39m()
+    [90m 88| [39m    [34mexpect[39m(wrapper[33m.[39m[34mfind[39m([32m'[data-testid="tile-value"]'[39m)[33m.[39m[34mtext[39m())[33m.[39m[34mtoBe[39m([32m'—'[39m)
+    [90m   | [39m                                                              [31m^[39m
+    [90m 89| [39m    [35mconst[39m toast [33m=[39m [34mgetCalls[39m([32m'showToast'[39m)[[34m0[39m][33m.[39margs[[34m0[39m] [35mas[39m [33mRecord[39m[33m<[39mstring[33m,[39m u…
+    [90m 90| [39m    [34mexpect[39m(toast[33m.[39mtitle)[33m.[39m[34mtoBe[39m([32m'数据加载失败，请稍后重试'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (5)[39m
+[2m   Start at [22m 05:59:01
+[2m   Duration [22m 1.58s[2m (transform 404ms, setup 46ms, collect 546ms, tests 150ms, environment 519ms, prepare 109ms)[22m
+

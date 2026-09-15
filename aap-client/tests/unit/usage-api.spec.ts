@@ -168,3 +168,59 @@ describe('buildWorkbenchModel · 缺失/空数据不崩且不编造', () => {
     expect(m.footerText).toBe('合计 —')
   })
 })
+
+/**
+ * 序号 22【工作台与我的】我的与用量概览（page-22-2 · /pages/usage/index）— 切片 2：接口层
+ *
+ * 同一「Usage」Tag 的 /usage/summary 在序号 22 多出一个月份维度 → 新增 usageApi.overview（month 参数）。
+ * ⚠️ 18-API 只列路径未列查询参数 → month 为 REST 语义推断（已记台账 missing-prd）。
+ */
+describe('序号 22 · usageApi.overview · 月份维度（GET /api/v1/usage/summary）', () => {
+  const req = (index = 0) => getCalls('request')[index].args[0] as Record<string, unknown>
+
+  it('路径 /api/v1/usage/summary + 方法 GET + month 参数', async () => {
+    pushResponse(ok({}))
+    await usageApi.overview({ month: '2024-06' })
+    expect(req().url).toBe('/api/v1/usage/summary')
+    expect(req().method).toBe('GET')
+    expect(req().data).toMatchObject({ month: '2024-06' })
+  })
+
+  it('不传月份时不带多余查询键（是否回落当前月由页面决定）', async () => {
+    pushResponse(ok({}))
+    await usageApi.overview()
+    const data = (req().data ?? {}) as Record<string, unknown>
+    expect(data.month).toBeUndefined()
+  })
+
+  it('响应体原样返回（逐日 / 模型占比 / 成本构成等容错字段）', async () => {
+    pushResponse(
+      ok({
+        month: '2024-06',
+        request_count: 1_240_000,
+        total_tokens: 3_860_000_000,
+        amount_total: 12_860,
+        daily: [{ stat_date: '2024-06-08', total_tokens: 23_000_000 }],
+        models: [{ model_name: 'gpt-4o-mini', share: 42 }],
+        cost: { input: 4_120, output: 8_240, platform_fee: 500, total: 12_860 }
+      })
+    )
+    const res = await usageApi.overview({ month: '2024-06' })
+    expect(res.request_count).toBe(1_240_000)
+    expect(res.daily?.[0].stat_date).toBe('2024-06-08')
+    expect(res.models?.[0].share).toBe(42)
+    expect(res.cost?.total).toBe(12_860)
+  })
+
+  it('既有 summary/hourly 不受影响（同一 api 对象）', async () => {
+    pushResponse(ok({ total_tokens: 1 }))
+    await usageApi.summary({ startHour: '2024-06-01T00:00:00Z' })
+    expect(req(0).url).toBe('/api/v1/usage/summary')
+    expect(req(0).data).toMatchObject({ startHour: '2024-06-01T00:00:00Z' })
+
+    pushResponse(ok({ items: [] }))
+    await usageApi.hourly({ page: 1 })
+    expect(req(1).url).toBe('/api/v1/usage/hourly')
+    expect(req(1).method).toBe('GET')
+  })
+})

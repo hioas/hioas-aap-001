@@ -64,7 +64,67 @@ LEASE: free until -
 
 ## 4. 进度（细表看台账 CSV，这里只留能力组）
 
-🟢 本轮（2026-09-16 05:30~06:05，租约 aap-tdd-run-20260916-0530 → 已释放）· **序号 21「我的 2」（page-21-2）收口**：
+🟢 本轮（2026-09-16 05:50~06:15，租约 aap-tdd-run-20260916-0550 → 已释放）· **序号 22「我的与用量概览 2」（page-22-2）收口**：
+- **取件**：`list-pending.py -n 1` 最小未完成 = 22（page-22-2，`/pages/usage/index`，台账「设计否」）；开工前 `git status` 干净、
+  `git log -1` = 05:48 的 21-我的页提交 → 空闲租约，写成本轮 id + 45 分钟。
+- **Calicat 侧**：`calicat_source.py page` 报「请先在浏览器中打开文件」→ `cmd /c start` 拉起后一次成功；
+  设计树（70KB / 135 节点）+ 截图 **430×1138（1:1 帧图）** 已抓；`interaction.json` 仍「不存在图层交互数据」
+  → 交互真源退 18-API「Usage」Tag（/usage/summary、/usage/hourly）+ 设计稿控件语义。
+- **这页到底是什么**：无 TabBar 的「用量概览」只读页（设计总高 1138）：顶部导航 96（返回 26 / 「用量概览」17px Bold /
+  月份胶囊 h30 r10 #F1F5F9「2024-06」）· 本月汇总卡 108..336（四宫格 72×2 行 gap 9：#EFF6FF/1.24M 请求数、
+  #ECFDF5/3.86B Token、#FFF7ED/¥12,860 费用、#FAF5FF/¥2,140 较上月节省）· 近 7 日用量趋势卡 348..570
+  （标题行 20 + 图例「Token（亿）」+ 图 150：4 条网格线 + 面积 #BFDBFE 35% + 折线 3px #2563EB + 6 点 r4 + 末点 r5 #1D4ED8 + 7 个日期标签）·
+  模型用量分布卡 582..766（4 行 h18：名称 131 + 轨道 h10 r5 #F1F5F9 + 42/31/21/6% 与条色 #2563EB/#22C55E/#F59E0B/#94A3B8）·
+  成本构成卡 778..985（3 行 h18 + 合计行 h41 r10 #F8FAFC，合计 ¥12,860 14px ExtraBold #1D4ED8）·
+  明细入口卡 997..1057（「查看逐日 / 逐模型明细」）· 底部说明 1057..1138（两行 11px）。
+- **TDD（4 切片，逐切片红→绿；新增 51 例）**：`tests/unit/usage-model.spec.ts`(27) · `tests/unit/usage-api.spec.ts` 序号22 段(4) ·
+  `tests/pages/usage.spec.ts`(15) · `tests/pages/usage-flow.spec.ts`(5)；红基线 `evidence/red-序号22-切片1/2/3.txt`
+  （Failed to resolve import / `usageApi.overview is not a function`）+ `切片4.txt`/`切片4-摘要.txt`
+  （**真红 3/5**：navigateBack 未触发 / 第二次请求未发生 / 新月份失败未走占位）；
+  绿 **1093/1093 连跑两轮一致**（`evidence/green-序号22-轮1/轮2.txt`）+ `npm run type-check` **exit 0**。
+- **★ 新工具：`strip-page-handlers.py strip|restore <页面路径>`**（把序号 21 的 strip-mine-handlers 泛化成任意页面）——
+  交互切片「先看红」的常驻手法，本轮靠它拿到切片 4 的真红。
+- **★ 本轮最值钱的判定法（写进 dev SKILL §4.18）：`overflowingCount > 0` 先怀疑 UI 组件内部结构，再怀疑页面** ——
+  本轮实测 2 个溢出元素是 **uni-picker 的内部空 `<div>`**（宽 100000 / 716，父级 `overflow:hidden` 裁掉），
+  `docScrollWidth 430 = innerWidth` 说明页面自身零溢出；`__diag-usage-overflow.html` 逐元素 outerHTML 30 秒定位。
+  另：**行盒比例不能跨帧套用** —— §4.12 记的是 page-26「11/12px 文本 lineHeight 1.2」，而本帧 fit_content 文本行盒
+  一律 = 字号 × 1.5（12px→18 由行 pitch 30 = 18+12 与墨迹反推证实，14px→21 由合计行 41 = 10+21+10 证实）→
+  **每帧都要用像素量尺（rows-gap / text-rows / png-ink）校准行盒，别套上一页的结论**。
+- **由像素量尺抓出并修掉的真偏差**：①月份胶囊 99 宽（设计 115）→ 日历图标外盒取设计声明 17、chevron 外盒 18 后 **113**；
+  ②返回箭头墨迹 20..27（设计 20..36）→ 折角放大到 11×11 后 **20..30**（仍为 CSS 占位，与 remixicon 带尾箭头不同形，已登记）。
+- **客观证据链**：`build:mp-weixin` 产出 `pages/usage/{index.js,index.json,index.wxml,index.wxss}`（app.json 已注册）；
+  430 宽 iframe + 无头 Chrome 实测 `evidence/measure-序号22-run1/run2/run3.json`：`innerWidth 430` · `docScrollWidth 430` ·
+  页高 **1138 = 设计** · 文案缺失 **[]（need 41 条设计原文）** · 卡 108..336 / 348..570 / 582..766 / 778..985 / 997..1057 ·
+  合计行 924..965(41) · 底部说明 1057..1137 · 轨道 x167..360 · 填充 81/60/41/12px = 42/31/21/6% · 输入控件 0 · 无 TabBar；
+  **run1/run2 两次独立测量 78 字段全等**（`cmp-measure-runs.py`，唯一差异＝uni-picker 内部空 div 的 left 浮动值）；
+  **像素对账**（`text-rows.py` 同脚本跑设计与实现）**21 行文本全部 ±1~2px、其中 6 行 0 差**；
+  `rows-gap` 卡片边界与设计逐值吻合（卡间隙 336..346 / 571..580 / 767..776 / 合计行 925..963 / 986..995 / 底部 1058..1137）；
+  `png-ink` 顶部带实现 [(20,30),(54,121),(315,326),(335,379),(387,399)] vs 设计 [(20,36),(54,120),(312,324),(333,377),(388,396)]（右留白 30 vs 33，无载体污染）·
+  底部带 [(36,129),(328,393)] vs 设计 [(37,129),(326,391)]；截图 `logs/screenshots/20260916-0607-序号22-用量概览-h5-430宽.png`（430×1138 = 设计尺寸）；
+  **浏览器内真实交互回放** `evidence/measure-序号22-{back,month,detail}.json`：返回 → hash 不变（无栈）·
+  点月份胶囊 → **真实 uni-picker 覆盖层**（`uni-picker-action-confirm`）→ `serve-5271.log` 实测第二次
+  **`GET /api/v1/usage/summary?month=2024-06`**（首屏为 `?month=2026-09`）· 明细入口 → hash 不变、无 toast、无新请求；
+  **131 条请求全为 GET，0 写请求**。
+- **新增可复用资产**：`.agents/state/strip-page-handlers.py`（任意页面交互切片取证）· `.agents/state/run-shot-generic.sh`
+  （通用截图：载体页 + 430 宽 + png-crop）· `.agents/state/gen-mocks-22.py` + `h5-measure/api-22/`（独立 mock 集）·
+  `h5-measure/__measure-usage.html`（含 `?scenario=back|month|detail` 三个出口 + 41 条设计原文清单）·
+  `h5-measure/__diag-usage-overflow.html` + `show-diag.py`（溢出元素逐元素 outerHTML 探针）·
+  `src/utils/base64.ts`（**把 report-model 里的 base64Ascii 抽成公共工具**，雷达图与趋势图共用；report-model 改 re-export，
+  33 例回归网全绿 = 无回归）。
+- ⚠️ 待人类拍板（不阻塞本轮，15 条全部写进台账序号 22 备注）：①**占比条设计自身不自洽**：设计填充宽 = 百分比 × 卡片外层宽 398
+  而轨道实际 192（42% 会画成 87%）→ 实现按「百分比 × 轨道宽」（与序号 6 同口径），是否照抄设计待拍板；②month 参数为 REST 推断；
+  ③逐日/模型占比/成本构成字段名全部为推断（18-API 无字段级 schema）；④「较上月节省」PRD 零命中（PRD 11 §4 只有「环比」）；
+  ⑤「平台服务费（8%）」PRD 零命中 → 费率随服务端走、缺省设计常量 8%；⑥纵轴刻度无定义 → 按峰值取 nice 上限；
+  ⑦**「查看逐日 / 逐模型明细」画布 30 页无明细页** → 无落点（不跳转/不弹 toast/不臆造路由），是否新增明细页待拍板；
+  ⑧末位日期标签设计帧自行左移 8px、实现不左移；⑨图标 CSS 占位；⑩新增色值仅 #22C55E 且放在模型常量里（未入 tokens.scss）。
+
+⏳ 下一步（下一轮）：台账序号 **23「我的设置 2」**（page-23-2，`/pages/settings/index`）——**设计尚未抓取**（台账「设计否」），也是**最后一页**；
+  先 `python .agents/state/find-inv.py page-23-2` 取 `sourceLayerId` 后跑 `calicat_source.py page`，再按 §2 八步走；
+  可复用本轮：`strip-page-handlers.py`、`run-shot-generic.sh`、`gen-mocks-22.py` 式独立 mock 集、`show-diag.py`（溢出探针）、
+  `src/utils/base64.ts`、`__measure-usage.html` 模板（**触发必须 waitFor 轮询、标记必须 MEASURE_JSON:**）、
+  以及「先量帧再写 CSS」的像素量尺三件套（rows-gap / text-rows / png-ink）；**行盒比例按本帧量尺校准，别跨帧套用**。
+
+🟢 上一轮（2026-09-16 05:30~06:05，租约 aap-tdd-run-20260916-0530 → 已释放）· **序号 21「我的 2」（page-21-2）收口**：
 - **取件**：`list-pending.py -n 1` 最小未完成 = 21（page-21-2，`/pages/mine/index`，台账「设计否」）；开工前 `git status` 干净、
   `git log -1` = 05:27 的 20-站内信列表提交 → 空闲租约，写成本轮 id + 45 分钟。
 - **Calicat 侧**：本轮 `calicat_source.py page` **一次成功**（无需 `cmd /c start` 拉编辑器）；设计树（66KB）+ 截图 **430×990（1:1 帧图）** 已抓；

@@ -475,6 +475,36 @@ vision 看到的「右侧贴边/缺字」是**截图假象**而非页面缺陷�
   视觉上会被读成图片位。正解 = 包裹层保持设计声明尺寸（20×27 / 32×32），**内层占位形状取 16×16**、
   颜色用 `:style="{ color: … }"` + CSS `background: currentColor`（单测仍可断内联色）。
 
+## 4.18 UI 组件内部溢出 + 行盒比例不可跨帧套用（2026-09-16 序号 22 用量概览）
+
+- ⚠️ **`overflowingCount > 0` 时先怀疑「UI 组件内部结构」，再怀疑页面样式**：序号 22 实测 2 个溢出元素是 **uni-picker 的内部空 `<div>`**
+  （宽 100000 / 716、`left` 随组件内部状态浮动，父级 `overflow:hidden` 已裁掉），而 `docScrollWidth 430 == innerWidth`、页面内容零溢出。
+  正解 = 探针脚本逐元素打印 `outerHTML` + 父级 `overflow`（`.agents/state/h5-measure/__diag-usage-overflow.html` + `show-diag.py` 打印器），
+  30 秒就能区分「组件内部」与「页面缺陷」。**两条独立结论要分开写**：①页面自身零溢出（`docScrollWidth == innerWidth`）；
+  ②`overflowingCount` 的非零值来自第三方组件内部（附 outerHTML 证据）。
+- ⚠️ **行盒比例不能跨帧套用 —— 每帧都要用像素量尺校准**：本仓库已有两种结论：
+  page-26「11/12px 文本 `lineHeight:1.2` → 13.2/14.4」与 page-22-2「fit_content 文本行盒 = 字号 × 1.5（12px→18、14px→21）」。
+  序号 22 的判定过程：模型行 pitch **30** = 行盒 18 + 行距 12（若按 14.4 则 26.4，与墨迹 642..654 落在盒外的矛盾）；
+  合计行 **41** = padding 10 + max(12px→18, 14px→21) + 10。**做法：先用 `rows-gap`/`text-rows`/`png-ink` 量出盒边界与行 pitch，
+  再反推行盒，最后写 CSS**；不要把上一页的结论直接搬过来（这类偏差 vision 完全看不出）。
+- **原生 `picker` 的真实交互回放（可复用）**：uni-app H5 的 `<picker>` 点开后出现覆盖层
+  （`uni-picker-container` / `uni-picker-action-confirm`），在载体页里 `clickIn('[data-testid="month-picker"]')` → 再点
+  `[class*="confirm"]` 即可走真实确认链路；**证据看 `serve.py` 访问日志里是否出现第二次带新参数的 GET**
+  （序号 22 实测 `?month=2026-09` → `?month=2024-06`）。静态 mock 不随参数变化时，只认请求行，别把「数据没变」当页面缺陷。
+- **交互切片「先看红」的通用手法**：`.agents/state/strip-page-handlers.py strip|restore <页面相对路径>`
+  （把 `@tap/@change` 绑定整批摘掉 → 跑出真红 → restore）。注意：**「无落点」类断言（点击不跳转/不弹 toast）在摘绑定时也会通过**，
+  属正常的 policy 断言；切片仍应至少有 1 条因缺绑定而真红的用例，并在证据文件里写清哪几条是真红。
+- **画布无目标的入口不要臆造路由**：序号 22「查看逐日 / 逐模型明细」在画布 30 页里没有对应明细页（18-API 只有 `/usage/hourly` 数据接口）
+  → 实现为 no-op，**不跳转、不弹占位 toast、不编造路由常量**，并在台账写明待拍板；交互测试用「无副作用」断言把它钉死。
+- **进度条/占比条要先算设计的自洽性**：序号 22 设计帧填充宽 = 百分比 × **卡片外层宽 398**（42%→167、31%→125…），
+  而轨道实际只有 192 → 照抄会把 42% 画成 87%。实现按「百分比 × 轨道宽」（与序号 6「分项条宽按分值%」同口径），
+  像素差异写进台账待拍板。**判定法：把轨道实宽与填充声明值相除，再与标签百分比比，差得离谱就是设计算错基准。**
+- **跨页复用的纯工具要抽公共模块**：趋势图与雷达图都要把 SVG 编成 data-URI → `src/utils/base64.ts`（`base64Ascii`），
+  `report-model.ts` 改为 `export { base64Ascii } from './base64'`（**注意 re-export 不会给本文件引入局部绑定**，
+  同文件内仍在用的必须同时 `import { base64Ascii } from './base64'`，否则运行时报 `base64Ascii is not defined`——
+  序号 22 实测被 report 的 33 例回归网抓到）。
+- **通用截图脚本**：`.agents/state/run-shot-generic.sh <载体页> <输出名> <高度> <端口> [query]`（430 宽 iframe + png-crop + ASCII 临时路径改名）。
+
 ## 5. 页面实现顺序与取件
 
 ```bash

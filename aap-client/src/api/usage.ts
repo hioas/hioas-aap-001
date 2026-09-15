@@ -5,8 +5,10 @@
  */
 import { http } from './http'
 import type { UsageSummaryRaw } from '@/utils/workbench-model'
+import type { UsageOverviewRaw } from '@/utils/usage-model'
 
 export type { UsageModelRaw, UsageSummaryRaw } from '@/utils/workbench-model'
+export type { UsageOverviewRaw, UsageDailyRaw, UsageModelShareRaw, UsageCostRaw } from '@/utils/usage-model'
 
 export const usageApi = {
   /** 本月用量汇总（工作台数据台） */
@@ -14,7 +16,16 @@ export const usageApi = {
     return http<UsageSummaryRaw>('/usage/summary', { method: 'GET', data: params })
   },
 
-  /** 小时用量（对账明细页用，本页不调用） */
+  /**
+   * 用量概览页（序号 22 /pages/usage/index）：同一 /usage/summary 端点 + 月份维度。
+   * 逐日趋势 / 模型占比 / 成本构成均从该响应消费（18-API 无独立端点）。
+   * ⚠️ month 查询参数为 REST 语义推断（18-API 未列参数）→ 台账 missing-prd。
+   */
+  overview(params?: { month?: string }) {
+    return http<UsageOverviewRaw>('/usage/summary', { method: 'GET', data: params })
+  },
+
+  /** 小时用量（「查看逐日 / 逐模型明细」的数据源；画布无明细页 → 本页不调用） */
   hourly(params?: Record<string, unknown>) {
     return http<unknown>('/usage/hourly', { method: 'GET', data: params })
   }

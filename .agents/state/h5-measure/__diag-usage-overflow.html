@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>diag-usage-overflow</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 1138px; border: 0; }
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 单点探针：溢出元素到底是谁（uni-picker 内部滚动容器 vs 页面内容）——SKILL §4.16「先怀疑取数脚本再怀疑页面」 -->
+    <iframe id="f" src="/index.html#/pages/usage/index"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      function waitFor(sel, maxTries) {
+        return new Promise(function (resolve) {
+          var n = 0
+          function tick() {
+            n++
+            var ok = false
+            try { ok = !!f.contentDocument.querySelector(sel) } catch (e) { ok = false }
+            if (ok) return resolve('READY')
+            if (n >= (maxTries || 40)) return resolve('TIMEOUT')
+            setTimeout(tick, 200)
+          }
+          tick()
+        })
+      }
+      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
+      ;(async function () {
+        await waitFor('[data-testid="month-value"]')
+        await sleep(1800)
+        var doc = f.contentDocument
+        var win = f.contentWindow
+        var all = Array.prototype.slice.call(doc.querySelectorAll('*'))
+        var rows = all
+          .filter(function (e) {
+            var r = e.getBoundingClientRect()
+            return r.width > 0 && (r.right > win.innerWidth + 0.5 || r.left < -0.5)
+          })
+          .map(function (e) {
+            var r = e.getBoundingClientRect()
+            var parent = e.parentElement
+            return {
+              tag: e.tagName,
+              cls: String(e.className).slice(0, 60),
+              testid: e.getAttribute('data-testid'),
+              left: Math.round(r.left),
+              right: Math.round(r.right),
+              w: Math.round(r.width),
+              parent: parent ? parent.tagName + '.' + String(parent.className).slice(0, 40) : '',
+              parentOverflow: parent ? win.getComputedStyle(parent).overflow : '',
+              html: String(e.outerHTML).replace(/\s+/g, ' ').slice(0, 160)
+            }
+          })
+        document.getElementById('m').textContent =
+          'MEASURE_JSON:' +
+          JSON.stringify({
+            phase1: {
+              innerWidth: win.innerWidth,
+              docScrollWidth: doc.documentElement.scrollWidth,
+              count: rows.length,
+              rows: rows,
+              pickerHostHtml: String(
+                (doc.querySelector('[data-testid="month-picker"]') || {}).outerHTML || ''
+              )
+                .replace(/\s+/g, ' ')
+                .slice(0, 400)
+            }
+          })
+      })()
+    </script>
+  </body>
+</html>

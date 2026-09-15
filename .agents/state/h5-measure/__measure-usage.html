@@ -1,0 +1,293 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-usage</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 1138px; border: 0; }
+      /* 取数 <pre> 包进 0 尺寸 overflow:hidden：textContent 可读但不渲染、不会被 --screenshot 截进图（SKILL §4.1） */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
+         页面 22：/pages/usage/index（【工作台与我的】我的与用量概览 2，page-22-2）
+         设计基线（设计帧 1:1 · 430x1138 · col-bands x215 / rows-ink / row-runs / png-ink band）：
+           顶部导航 0..95(96 · 白底 padding 48/16/12/16 · 标题 17px · 月份 pill h30 r10)
+           本月汇总卡 108..335(228 · padding 20/16 r18 无描边) · 12
+           近 7 日用量趋势卡 348..569(222 · padding 20 r18 ring) · 12
+           模型用量分布卡 582..765(184 · 4 行 h18 行距 12) · 12
+           成本构成卡 778..984(207 · 3 行 h18 + 合计行 924..964(h41) r10 #F8FAFC) · 12
+           明细入口卡 997..1056(60 · padding 16/20) · 底部说明 1057..1137(padding 24/0/24/0)
+           卡内锚点：轨道 x168..359(h10 r5 #F1F5F9) · 名称列 131 宽 · 百分比右边界 394
+         触发方式必须用 waitFor 轮询（iframe onload 会因监听注册过晚而错过）；
+         取数标记必须是 MEASURE_JSON:（extract-measure-json.py 的正则前缀）。
+         ?scenario=back|month|detail 逐个回放出口；?noaction=1 / shot=1 只取 phase1（供截图） -->
+    <iframe id="f" src="/index.html#/pages/usage/index"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var acc = {}
+
+      function all(d, sel) { return Array.prototype.slice.call(d.querySelectorAll(sel)) }
+      function rect(d, sel) {
+        var el = d.querySelector(sel)
+        if (!el) return null
+        var r = el.getBoundingClientRect()
+        return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+      }
+      function rects(d, sel) {
+        return all(d, sel).map(function (e) {
+          var r = e.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), w: Math.round(r.width), h: Math.round(r.height) }
+        })
+      }
+      function texts(d, sel) { return all(d, sel).map(function (e) { return e.textContent.trim() }) }
+      function textOf(d, sel) { var e = d.querySelector(sel); return e ? e.textContent.trim() : null }
+      function styleOf(d, w, sel) {
+        var el = d.querySelector(sel)
+        if (!el) return null
+        var cs = w.getComputedStyle(el)
+        return { fontSize: cs.fontSize, fontWeight: cs.fontWeight, color: cs.color, lineHeight: cs.lineHeight, display: cs.display, height: cs.height, width: cs.width, background: cs.backgroundColor, boxShadow: cs.boxShadow, borderRadius: cs.borderRadius }
+      }
+      function stylesOf(d, w, sel, prop) { return all(d, sel).map(function (e) { return w.getComputedStyle(e)[prop] }) }
+
+      /** 设计稿里每一个独立文本图层（逐字抄自 page-22-2 design.tree.json，28 条） */
+      var needText = [
+        '用量概览', '2024-06',
+        '本月汇总', '1.24M', '请求数', '3.86B', 'Token', '¥12,860', '费用', '¥2,140', '较上月节省',
+        '近 7 日用量趋势', 'Token（亿）',
+        '6-08', '6-09', '6-10', '6-11', '6-12', '6-13', '6-14',
+        '模型用量分布', 'gpt-4o-mini', '42%', 'claude-3-5-sonnet', '31%', 'gpt-4o', '21%', '其他', '6%',
+        '成本构成', '输入 Token 成本', '¥4,120', '输出 Token 成本', '¥8,240', '平台服务费（8%）', '¥500', '合计', '¥12,860',
+        '查看逐日 / 逐模型明细',
+        '数据每小时更新一次，最终以结算账单为准', '更新时间：2024-06-14 16:20'
+      ]
+
+      function chartSrc(d) {
+        var host = d.querySelector('[data-testid="trend-chart"]')
+        if (!host) return null
+        var inner = host.querySelector('img')
+        var src = (inner && inner.getAttribute('src')) || host.getAttribute('src') || ''
+        return src.slice(0, 40)
+      }
+
+      function collect() {
+        var doc = f.contentDocument
+        var win = f.contentWindow
+        var de = doc.documentElement
+        var out = {}
+        out.innerWidth = win.innerWidth
+        out.docScrollWidth = de.scrollWidth
+        out.docScrollHeight = de.scrollHeight
+        var overflowing = all(doc, '*').filter(function (e) {
+          var r = e.getBoundingClientRect()
+          return r.width > 0 && (r.right > win.innerWidth + 0.5 || r.left < -0.5)
+        })
+        out.overflowingCount = overflowing.length
+        out.overflowing = overflowing.slice(0, 6).map(function (e) {
+          var r = e.getBoundingClientRect()
+          return { cls: String(e.className), left: Math.round(r.left), right: Math.round(r.right), w: Math.round(r.width), tag: e.tagName }
+        })
+        var body = doc.body.innerText
+        out.missingTexts = needText.filter(function (t) { return body.indexOf(t) < 0 })
+        out.needTextCount = needText.length
+
+        /* 顶部导航 */
+        out.navRect = rect(doc, '.nav')
+        out.navStyle = styleOf(doc, win, '.nav')
+        out.navTitleStyle = styleOf(doc, win, '.nav__title')
+        out.backRect = rect(doc, '.nav__back')
+        out.monthRect = rect(doc, '.month')
+        out.monthStyle = styleOf(doc, win, '.month')
+        out.monthValueStyle = styleOf(doc, win, '.month__value')
+        out.monthText = textOf(doc, '[data-testid="month-value"]')
+
+        /* 本月汇总卡 */
+        out.summaryCard = rect(doc, '.card--summary')
+        out.summaryCardStyle = styleOf(doc, win, '.card--summary')
+        out.summaryTitleStyle = styleOf(doc, win, '[data-testid="summary-title"]')
+        out.tileRects = rects(doc, '.tile')
+        out.tileBgs = stylesOf(doc, win, '.tile', 'backgroundColor')
+        out.tileValues = texts(doc, '[data-testid="tile-value"]')
+        out.tileLabels = texts(doc, '[data-testid="tile-label"]')
+        out.tileValueColors = stylesOf(doc, win, '[data-testid="tile-value"]', 'color')
+        out.tileValueStyle = styleOf(doc, win, '[data-testid="tile-value"]')
+        out.tileLabelStyle = styleOf(doc, win, '[data-testid="tile-label"]')
+        out.tilesFirstRect = rect(doc, '.tiles--first')
+        out.tilesSecondRect = rect(doc, '.tiles--second')
+
+        /* 趋势卡 */
+        out.trendCard = rect(doc, '.card--trend')
+        out.trendCardStyle = styleOf(doc, win, '.card--trend')
+        out.trendHeadStyle = styleOf(doc, win, '.card__head')
+        out.trendTitleStyle = styleOf(doc, win, '[data-testid="trend-title"]')
+        out.legendTextStyle = styleOf(doc, win, '.legend__text')
+        out.legendDotRect = rect(doc, '.legend__dot')
+        out.legendDotStyle = styleOf(doc, win, '.legend__dot')
+        out.trendRect = rect(doc, '.trend')
+        out.trendImgRect = rect(doc, '.trend__img')
+        out.trendChartSrc = chartSrc(doc)
+        out.trendLabels = texts(doc, '[data-testid="trend-label"]')
+        out.trendLabelRects = rects(doc, '.trend__label')
+        out.trendLabelStyle = styleOf(doc, win, '.trend__label')
+        out.trendEmptyExists = !!doc.querySelector('[data-testid="trend-empty"]')
+
+        /* 模型用量卡 */
+        out.modelCard = rect(doc, '.card--models')
+        out.modelCardStyle = styleOf(doc, win, '.card--models')
+        out.modelTitleStyle = styleOf(doc, win, '[data-testid="model-title"]')
+        out.modelRowRects = rects(doc, '.mrow')
+        out.modelNames = texts(doc, '[data-testid="model-name"]')
+        out.modelPercents = texts(doc, '[data-testid="model-percent"]')
+        out.modelNameStyle = styleOf(doc, win, '.mrow__name')
+        out.modelTrackRects = rects(doc, '.mrow__track')
+        out.modelTrackStyle = styleOf(doc, win, '.mrow__track')
+        out.modelFillRects = rects(doc, '.mrow__fill')
+        out.modelFillColors = stylesOf(doc, win, '.mrow__fill', 'backgroundColor')
+        out.modelFillWidths = stylesOf(doc, win, '.mrow__fill', 'width')
+        out.modelPctWrapStyle = styleOf(doc, win, '.mrow__pct-wrap')
+        out.modelPctStyle = styleOf(doc, win, '.mrow__pct')
+
+        /* 成本构成卡 */
+        out.costCard = rect(doc, '.card--cost')
+        out.costCardStyle = styleOf(doc, win, '.card--cost')
+        out.costRowRects = rects(doc, '.crow')
+        out.costLabels = texts(doc, '[data-testid="cost-label"]')
+        out.costValues = texts(doc, '[data-testid="cost-value"]')
+        out.costTotalRect = rect(doc, '.cost-total')
+        out.costTotalStyle = styleOf(doc, win, '.cost-total')
+        out.costTotalLabelStyle = styleOf(doc, win, '.cost-total__label')
+        out.costTotalValueStyle = styleOf(doc, win, '.cost-total__value')
+
+        /* 明细入口 + 底部说明 */
+        out.detailRect = rect(doc, '.card--detail')
+        out.detailStyle = styleOf(doc, win, '.card--detail')
+        out.detailText = textOf(doc, '.detail__text')
+        out.detailTextStyle = styleOf(doc, win, '.detail__text')
+        out.detailIconWrapRect = rect(doc, '.detail__icon-wrap')
+        out.detailChevronWrapRect = rect(doc, '.detail__chevron-wrap')
+        out.footerRect = rect(doc, '.footer')
+        out.footerStyle = styleOf(doc, win, '.footer')
+        out.footerNoteStyle = styleOf(doc, win, '.footer__note')
+        out.footerUpdatedStyle = styleOf(doc, win, '.footer__updated')
+
+        /* 反例断言：本页只读、无 TabBar、无多余区块 */
+        out.inputCount = all(doc, 'input,textarea').length
+        out.tabbarExists = !!doc.querySelector('[data-testid^="tab-"]')
+        out.cardCount = all(doc, '.card').length
+        out.pickerExists = !!doc.querySelector('[data-testid="month-picker"]')
+        out.userAgent = win.navigator.userAgent
+        out.hash = String(win.location.hash)
+        return out
+      }
+
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
+      function clickIn(sel) {
+        var doc = f.contentDocument
+        var el = doc.querySelector(sel)
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+      function toastText(doc) {
+        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
+        return el ? el.textContent.trim() : ''
+      }
+      function hashNow() { try { return String(f.contentWindow.location.hash) } catch (e) { return 'ERR:' + e.message } }
+      function waitFor(sel, maxTries) {
+        return new Promise(function (resolve) {
+          var n = 0
+          function tick() {
+            n++
+            var ok = false
+            try { ok = !!f.contentDocument.querySelector(sel) } catch (e) { ok = false }
+            if (ok) return resolve('READY(tries=' + n + ')')
+            if (n >= (maxTries || 40)) return resolve('TIMEOUT(tries=' + n + ')')
+            setTimeout(tick, 200)
+          }
+          tick()
+        })
+      }
+      function scenario() {
+        var m = location.search.match(/scenario=([a-zA-Z-]+)/)
+        return m ? m[1] : ''
+      }
+      /** uni H5 的 picker 覆盖层（点开后再点「确定」）——类名探针，找不到就回 NO_PICKER_OVERLAY */
+      function pickerProbe(doc) {
+        var containers = all(doc, '[class*="picker"]')
+        return containers.slice(0, 8).map(function (e) { return { tag: e.tagName, cls: String(e.className) } })
+      }
+      function clickOverlayConfirm(doc) {
+        var cands = all(doc, '[class*="confirm"], [class*="ok"]')
+        for (var i = 0; i < cands.length; i++) {
+          var el = cands[i]
+          if (el.getBoundingClientRect().width > 0) {
+            var ev = doc.createEvent('MouseEvents')
+            ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+            el.dispatchEvent(ev)
+            return 'CONFIRMED:' + String(el.className)
+          }
+        }
+        return 'NO_CONFIRM'
+      }
+
+      async function main() {
+        await waitFor('[data-testid="month-value"]')
+        await sleep(1800)
+        try {
+          var payload = collect()
+          f.style.height = payload.docScrollHeight + 'px'
+          payload.iframeHeightForShot = payload.docScrollHeight
+          sink(1, payload)
+        } catch (e) {
+          sink(1, { error: String(e && e.message) })
+          return
+        }
+        var sc = scenario()
+        if (!sc || location.search.indexOf('noaction') !== -1 || location.search.indexOf('shot=1') !== -1) return
+
+        if (sc === 'back') {
+          var cB = clickIn('[data-testid="usage-back"]')
+          await sleep(1500)
+          sink(2, { scenario: sc, clicked: cB, hash: hashNow(), toast: toastText(f.contentDocument) })
+          return
+        }
+
+        if (sc === 'month') {
+          var cM = clickIn('[data-testid="month-picker"]')
+          await sleep(1500)
+          var overlay = pickerProbe(f.contentDocument)
+          var confirm = clickOverlayConfirm(f.contentDocument)
+          await sleep(2000)
+          var after = collect()
+          sink(2, {
+            scenario: sc,
+            clickedHost: cM,
+            overlay: overlay,
+            confirm: confirm,
+            monthAfter: after.monthText,
+            tileAfter: after.tileValues,
+            requestHint: '看 serve 日志里是否出现第二次 GET /api/v1/usage/summary?month=…'
+          })
+          return
+        }
+
+        if (sc === 'detail') {
+          var cD = clickIn('[data-testid="detail-entry"]')
+          await sleep(1500)
+          sink(2, { scenario: sc, clicked: cD, hash: hashNow(), toast: toastText(f.contentDocument), hashUnchanged: hashNow() === '#/pages/usage/index' })
+          return
+        }
+      }
+      main()
+    </script>
+  </body>
+</html>
