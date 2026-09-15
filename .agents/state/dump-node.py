@@ -1,7 +1,12 @@
 import json, sys
 
-tree = json.load(open(".calicat/raw/pages/page-3/design.tree.json", encoding="utf-8"))
-want = set(sys.argv[1:])
+page = "page-4-2"
+args = sys.argv[1:]
+if args and args[0].startswith("--page="):
+    page = args[0].split("=", 1)[1]
+    args = args[1:]
+tree = json.load(open(".calicat/raw/pages/%s/design.tree.json" % page, encoding="utf-8"))
+want = set(args)
 
 
 def walk(n):

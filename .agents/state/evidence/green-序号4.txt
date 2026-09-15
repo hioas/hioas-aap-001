@@ -1,0 +1,69 @@
+# GREEN 证据 — 序号 4【检测验真】提交接入凭证 2（page-4-2）
+# 2026-09-16 00:40~00:45 · 租约 aap-tdd-run-20260916-0025
+
+## 1. 测试：连跑两轮全绿（顺序、数量完全一致）
+```
+=== 第1轮 ===  Test Files  12 passed (12)   Tests  187 passed (187)
+=== 第2轮 ===  Test Files  12 passed (12)   Tests  187 passed (187)
+```
+本轮新增/变更用例：
+- tests/unit/credential-form-model.spec.ts（28）：规格文案/厂商分组/勾选态与「已选 N 个」/R-04 URL 规范化/协议前置校验/请求体构建
+- tests/unit/credential-submit-api.spec.ts（7）：GET·PUT·POST 三个路径的方法与请求体、E-1104/E-1201/E-1301 服务端文案透传、E-2001
+- tests/pages/credential-submit.spec.ts（23）：设计稿文案逐条、勾选联动、APIKey 编辑态、保存/提交路径与跳转、前置校验拦截、脱敏值单行结构
+
+## 2. 类型门禁（上一轮修复后本轮起真正生效）
+```
+> vue-tsc --noEmit      （无输出）→ exit 0
+```
+
+## 3. 小程序编译证明
+`npm run build:mp-weixin` → DONE Build complete.
+```
+-rw-r--r--  3415  dist/build/mp-weixin/pages/credential-submit/index.js
+-rw-r--r--   102  dist/build/mp-weixin/pages/credential-submit/index.json
+-rw-r--r--  4832  dist/build/mp-weixin/pages/credential-submit/index.wxml
+-rw-r--r--  6520  dist/build/mp-weixin/pages/credential-submit/index.wxss
+```
+（index.wxss 6520 = 含 tokens 编译后的样式；index.wxml 4832 = 去掉争抢 flex 的 spacer 之后的产物。）
+⚠️ 本机未安装微信开发者工具 → 真机/开发者工具导入验收留给人类。
+
+## 4. H5 + 430 宽 iframe DOM 实测（`.agents/state/evidence/measure-序号4-修后430.json`）
+```
+innerWidth 430 · docScrollWidth 430 · overflowingCount 0        ← 无横向溢出
+docScrollHeight 1011（页面可滚动，视口 900）
+aliasValue "华东主线路 · GPT 通道" · baseUrlValue "https://api.example-llm.com/v1"
+apiKeyMaskText ["sk-••••••••••••••••4f2a"]
+titleText ["接入凭证"] · primaryChipText ["主凭证"] · configuredChipText ["已配置"]
+cardLabels ["凭证名称","BaseURL","APIKey","模型清单"] · cardCount 4
+selectedCountText ["已选 3 个"] · vendorGroupCount 2 · modelRowCount 5 · checkedCount 3
+catalogMoreText ["仅展示 2 个厂商，查看更多厂商 ›"] · saveBtnText ["保存草稿"] · submitBtnText ["提交检测"]
+configuredChipBg rgb(236,253,245) · configuredTextColor rgb(21,128,61)
+securityNoteBg rgb(255,251,235) · securityNoteColor rgb(146,64,14)
+checkedBoxBg rgb(37,99,235) · uncheckedBoxBorder rgb(203,213,225) · saveBtnBorder rgb(203,213,225)
+bodyBg rgb(248,250,252) · topbarBg rgb(255,255,255) · topbarPaddingTop 48px
+bar {x:0, top:816, right:430, bottom:900, w:430, h:84} · barPinned true
+ghostBtn {x:16, w:156, h:48} · submitBtnRect {x:184, w:230, h:48}   ← 16 + 156 + 12 = 184（设计 padding-left 12）
+topbarRect {h:84}（设计 48+24+12） · firstCard {x:16, w:398, top:96}（设计 表单区 padding 12/16）
+firstInputBox {h:46} · firstVendor {x:37, w:356} · firstCheckBox {18,18}
+atBottom {lastCardBottom:792, barTop:816, lastCardFullyAboveBar:true}   ← 滚到底不被固定操作条遮挡
+apikeyMaskHeight 17（修前 34 · lineHeight 16.8 → 单行） · apikeyMaskRect w 286（修前 143）
+emojiInText false（PRD08 禁 emoji）
+```
+`missingTexts` 仅剩两项 `华东主线路 · GPT 通道` / `https://api.example-llm.com/v1`：这是取数脚本的既知假象——
+`innerText` 不含 `<input>` 的 value；两值已由 aliasValue / baseUrlValue 单独断言为设计稿原文。
+
+## 5. 像素级墨迹核验（截图裁剪后 430×900）
+截图：`logs/screenshots/20260916-0039-序号04-提交接入凭证-h5-430宽.png`（430 宽 iframe 载体页 + --hide-scrollbars + png-crop 0,0,430,900）
+```
+顶部标题 y=[40,72)   runs=[(22,30)返回, (52,119)「接入凭证」, (374,405)「主凭证」]  maxInkX=405 右留白=24
+脱敏行   y=[470,500) runs=[(70,88)sk-, (94..307)16 个圆点, (313,340)4f2a, (361,375)编辑图标]  maxInkX=375 右留白=54   ← 单行
+底部按钮 y=[825,880) runs=[(66,121)「保存草稿」, (184,413)提交检测按钮]  maxInkX=413 右留白=16
+```
+⚠️ 字体度量差异（非布局缺陷，记录待人类定夺）：系统字体（Noto Sans SC）的「•」墨迹比设计稿字体小，
+故脱敏值的圆点视觉上比设计稿细；`sk-` 与 `4f2a` 的墨迹位置正确、单行、未触边。
+
+## 6. vision 复核（只用于人眼层，冲突时以第 4/5 节数字为准）
+第一版截图 vision 报「脱敏值像被换成两行 / 模型清单第 5 行被固定栏裁掉」：
+- 前者被 DOM 数字证实为真实缺陷（34px = 两行）→ 已修（现 17px 单行），复看通过；
+- 后者被拒绝：modelRowCount=5、atBottom.lastCardFullyAboveBar=true → 属「截图只截取 1011 高文档的前 900px」的折叠区，
+  非裁切缺陷。

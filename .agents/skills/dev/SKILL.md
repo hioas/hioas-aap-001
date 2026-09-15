@@ -103,13 +103,29 @@ vision 看到的「右侧贴边/缺字」是**截图假象**而非页面缺陷�
    用无头 Chrome 取数：
 
    ```bash
-   "/c/Program Files/Google/Chrome/Application/chrome.exe" --headless=new --disable-gpu --no-sandbox \
-     --virtual-time-budget=12000 --user-data-dir="$LOCALAPPDATA/Temp/chrome-measure" \
+   "/c/Program Files/Google/Chrome/Application/chrome.exe" --headless=new --disable-gpu --no-sandbox --hide-scrollbars \
+     --virtual-time-budget=25000 --user-data-dir="$LOCALAPPDATA/Temp/chrome-measure-$$" \
      --dump-dom "http://127.0.0.1:<port>/__measure.html" > "$LOCALAPPDATA/Temp/measure.html"
    ```
 
    看三个数：`docScrollWidth <= innerWidth`、`overflowingCount == 0`、关键文案完整。
 2. `vision_analyze` 只用于"人眼感受"层判断（层级、留白、色彩关系），与步骤 1 冲突时**以数字为准**。
+
+### 4.2 测量/取证流水线（2026-09-16 起，踩过的四个坑）
+
+本地起服务：`python .agents/state/h5-measure/serve.py aap-client/dist/build/h5 .agents/state/h5-measure/api 5199`
+（静态托管 + `/api/v1/**` JSON mock：**先查目录再查文件**，所以 `/api/v1/credentials` 与 `/api/v1/credentials/{id}`
+可以同时 mock —— 纯静态文件做不到「同名文件与子路径共存」；非 GET 返回 `{"code":"0"}` 并打印方法/路径）。
+
+坑与规矩：
+1. **`npm run build:h5` 会清空 `dist/build/h5`** → `__measure*.html` 必须在每次 build:h5 **之后**重新拷进产物目录；
+   否则 Chrome 拿到 404 页，取数脚本会**静默读到上一轮 JSON**（等于拿旧数据当新证据）。
+   规矩：取数前先 `wc -c` 看 dump 字节数（几百字节 = 404 页），异常就重取。
+2. **无头 Chrome 复用同一个 `--user-data-dir` 会偶发不产出 dump** → 每次用一个新目录（`chrome-measure-$$`）。
+3. **uni-app H5 把 `<input>` 渲染成 `<uni-input>` 包装元素**，`el.value` 是 undefined；取值要读内层原生 `input.value`。
+   同理 `innerText` **不含 input 的值** → 文案完整性检查里会把表单值误报为「缺失」（既知假象，需单独断言 input.value）。
+4. **`--window-size` 不可靠**（见 4.1 第 1 条）+ 页面可滚动时，430×900 截图只覆盖文档前 900px：
+   模型/vision 可能把「折叠区」误判成「被裁掉/被固定栏遮挡」→ 一律用 DOM（`docScrollHeight`、`atBottom` 断言）否定或确认。
 
 ## 5. 页面实现顺序与取件
 

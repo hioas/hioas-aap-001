@@ -60,6 +60,42 @@ def load_existing():
         return {r["页面ID"]: r for r in csv.DictReader(f)}
 
 
+def interaction_captured(pid):
+    """交互是否真的抓到了：文件存在 ≠ 有数据。
+
+    `calicat_source.py page` 总会写 interaction.json，内容为 {result:"不存在图层交互数据", status:"success"}
+    时其实一个字都没有 —— 这时台账必须记「否」（并在备注写清交互真源退到 PRD），
+    否则会误导后续轮次以为交互已抓、跳过 get_interaction_design_data。
+    """
+    path = os.path.join(ROOT, ".calicat", "raw", "pages", pid, "interaction.json")
+    if not os.path.exists(path):
+        return False
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        return False
+    if isinstance(data, dict) and "不存在图层交互数据" in str(data.get("result", "")):
+        return False
+    return bool(data)
+
+
+def screenshot_of(pid, fallback):
+    """截图列优先用页面自己的 screenshot.json 里的 COS URL（inventory 里可能是本地路径）。"""
+    path = os.path.join(ROOT, ".calicat", "raw", "pages", pid, "screenshot.json")
+    if os.path.exists(path):
+        try:
+            with open(path, encoding="utf-8") as f:
+                data = json.load(f)
+            result = data.get("result") if isinstance(data, dict) else None
+            urls = json.loads(result) if isinstance(result, str) else result
+            if isinstance(urls, list) and urls:
+                return urls[0]
+        except Exception:
+            pass
+    return fallback
+
+
 def build():
     pages = load_pages()
     existing = load_existing()
@@ -77,8 +113,8 @@ def build():
             "模块": module,
             "目标路由": route,
             "设计抓取": "是" if p.get("designCaptured") else "否",
-            "交互抓取": "是" if p.get("interactionCaptured") else "否",
-            "截图": p.get("screenshot") or "",
+            "交互抓取": "是" if interaction_captured(pid) else "否",
+            "截图": screenshot_of(pid, p.get("screenshot") or ""),
             "用例(证据)": old.get("用例(证据)", ""),
             "状态": old.get("状态", "未做"),
             "备注": old.get("备注", ""),

@@ -27,7 +27,7 @@ def walk(node, depth=0):
     for k in ("width", "height", "x", "y"):
         if k in node:
             parts.append(f"{k}={fmt(node[k])}")
-    for k in ("fills", "strokes", "strokeWidth", "cornerRadius", "radius", "padding", "gap",
+    for k in ("fills", "strokes", "stroke", "strokeWidth", "fontFill", "cornerRadius", "radius", "padding", "gap",
               "layout", "alignItems", "justifyContent", "opacity", "clip", "borderRadius"):
         if k in node:
             parts.append(f"{k}={fmt(node[k])}")

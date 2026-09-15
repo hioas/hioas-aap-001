@@ -1,0 +1,175 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-submit</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      pre { white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <!-- 430x900 iframe 模拟小程序视口；只给 DOM 数字，不靠 vision 猜
+         页面 4：/pages/credential-submit/index ，凭证 id 走 uni storage 兜底（同源 localStorage 互通） -->
+    <iframe id="f" src="about:blank"></iframe>
+    <pre id="m">pending</pre>
+    <script>
+      var PAGE = '/index.html#/pages/credential-submit/index?id=c1'
+      var f = document.getElementById('f')
+      var prepared = false
+
+      f.addEventListener('load', function () {
+        if (!prepared) {
+          prepared = true
+          try {
+            f.contentWindow.uni.setStorageSync('aap_credential_id', 'c1')
+            f.contentWindow.location.hash = '#/pages/credential-submit/index'
+            f.contentWindow.location.reload()
+            return
+          } catch (e) {
+            /* storage 注入失败则直接用带 query 的地址继续 */
+          }
+        }
+        setTimeout(measure, 4000)
+      })
+      f.src = PAGE
+
+      function collect(doc, win) {
+        var over = []
+        doc.querySelectorAll('*').forEach(function (el) {
+          var r = el.getBoundingClientRect()
+          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
+            over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), right: Math.round(r.right) })
+          }
+        })
+        function rect(sel) {
+          var el = doc.querySelector(sel)
+          if (!el) return null
+          var r = el.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+        }
+        function texts(sel) {
+          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return e.textContent.trim() })
+        }
+        function colors(sel) {
+          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return win.getComputedStyle(e).backgroundColor })
+        }
+        function styleOf(sel, prop) {
+          var el = doc.querySelector(sel)
+          return el ? win.getComputedStyle(el)[prop] : null
+        }
+        var text = (doc.body && doc.body.innerText) || ''
+        var need = [
+          '接入凭证', '主凭证',
+          '凭证名称', '华东主线路 · GPT 通道', '建议 6–24 字',
+          'BaseURL', 'https://api.example-llm.com/v1',
+          '凭证仅用于平台检测与转发调用，全程加密存储，不会对外泄露。',
+          'APIKey', '已配置', 'sk-••••••••••••••••4f2a', '如已轮换密钥，请在此更新后重新检测',
+          '模型清单', '已选 3 个', '按厂商勾选，自动生成本次接入检测清单',
+          'OpenAI', 'gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo', '128K · 500 RPM', '16K · 200 RPM',
+          'Anthropic', 'claude-3-5-sonnet', 'claude-3-opus', '200K · 300 RPM', '200K · 120 RPM',
+          '仅展示 2 个厂商，查看更多厂商 ›',
+          '保存草稿', '提交检测'
+        ]
+        function inputValue(sel) {
+          // uni-app H5 会把 <input> 渲染成 <uni-input> 包装元素，真实值在内层原生 input 上
+          var el = doc.querySelector(sel)
+          if (!el) return null
+          if (typeof el.value === 'string' && el.value !== '') return el.value
+          var inner = el.querySelector('input, textarea')
+          return inner ? inner.value : (typeof el.value === 'string' ? el.value : null)
+        }
+        var bar = rect('.submit-bar')
+        var card = rect('.card')
+        var viewportH = win.innerHeight
+        var snapshot = {
+          innerWidth: win.innerWidth,
+          innerHeight: viewportH,
+          docScrollWidth: doc.documentElement.scrollWidth,
+          docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
+          overflowingCount: over.length,
+          overflowing: over.slice(0, 20),
+          missingTexts: need.filter(function (t) { return text.indexOf(t) === -1 }),
+          bodyBg: styleOf('.submit-page', 'backgroundColor'),
+          topbarBg: styleOf('.submit-page__topbar', 'backgroundColor'),
+          topbarPaddingTop: styleOf('.submit-page__topbar', 'paddingTop'),
+          titleText: texts('.submit-page__title'),
+          primaryChipText: texts('.chip--primary'),
+          configuredChipText: texts('.chip--success'),
+          configuredChipBg: styleOf('.chip--success', 'backgroundColor'),
+          configuredTextColor: styleOf('.chip__text--success', 'color'),
+          aliasValue: inputValue('[data-testid="alias-input"]'),
+          baseUrlValue: inputValue('[data-testid="baseurl-input"]'),
+          apiKeyMaskText: texts('[data-testid="apikey-mask"]'),
+          securityNoteText: texts('[data-testid="security-note"]'),
+          securityNoteBg: styleOf('.note', 'backgroundColor'),
+          securityNoteColor: styleOf('.note__text', 'color'),
+          cardLabels: texts('.card__label'),
+          cardCount: doc.querySelectorAll('.card').length,
+          selectedCountText: texts('[data-testid="selected-count"]'),
+          vendorGroupCount: doc.querySelectorAll('[data-testid="vendor-group"]').length,
+          modelRowCount: doc.querySelectorAll('[data-testid="model-row"]').length,
+          checkedCount: doc.querySelectorAll('.model-row__box--checked').length,
+          checkedBoxBg: styleOf('.model-row__box--checked', 'backgroundColor'),
+          uncheckedBoxBorder: styleOf('.model-row__box:not(.model-row__box--checked)', 'borderTopColor'),
+          catalogMoreText: texts('[data-testid="catalog-more"]'),
+          saveBtnText: texts('[data-testid="save-btn"]'),
+          saveBtnBorder: styleOf('.submit-bar__ghost', 'borderTopColor'),
+          submitBtnText: texts('[data-testid="submit-btn"]'),
+          submitBtnBg: styleOf('[data-testid="submit-btn"]', 'backgroundColor'),
+          bar: bar,
+          barPinned: bar ? Math.abs(bar.bottom - viewportH) <= 2 : null,
+          barHeight: bar ? bar.h : null,
+          firstCard: card,
+          cardW: card ? card.w : null,
+          firstModelRow: rect('[data-testid="model-row"]'),
+          apikeyMaskRect: rect('[data-testid="apikey-mask"]'),
+          apikeyMaskHeight: (function () { var e = doc.querySelector('[data-testid="apikey-mask"]'); return e ? Math.round(e.getBoundingClientRect().height) : null })(),
+          apikeyMaskLineHeight: styleOf('[data-testid="apikey-mask"]', 'lineHeight'),
+          apikeyMaskFontSize: styleOf('[data-testid="apikey-mask"]', 'fontSize'),
+          apikeyMaskFontFamily: styleOf('[data-testid="apikey-mask"]', 'fontFamily'),
+          apikeyMaskText_: texts('[data-testid="apikey-mask"]'),
+          cardRects: Array.prototype.map.call(doc.querySelectorAll('.card'), function (e) {
+            var r = e.getBoundingClientRect()
+            return { top: Math.round(r.top), bottom: Math.round(r.bottom), h: Math.round(r.height) }
+          }),
+          barTopAbs: bar ? bar.top : null,
+          firstInputBox: rect('.input-box'),
+          firstVendor: rect('.vendor'),
+          firstCheckBox: rect('.model-row__box'),
+          ghostBtn: rect('[data-testid="save-btn"]'),
+          submitBtnRect: rect('[data-testid="submit-btn"]'),
+          topbarRect: rect('.submit-page__topbar'),
+          glyphCount: doc.querySelectorAll('.glyph').length,
+          emojiInText: /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(text)
+        }
+        // 固定操作条是否遮挡内容：滚到底后再取一次
+        win.scrollTo(0, 1e6)
+        var last = doc.querySelectorAll('.card')
+        var lastCard = last.length ? last[last.length - 1].getBoundingClientRect() : null
+        var barAtBottom = doc.querySelector('.submit-bar').getBoundingClientRect()
+        snapshot.scrollYMax = win.scrollY
+        snapshot.atBottom = {
+          lastCardBottom: lastCard ? Math.round(lastCard.bottom) : null,
+          barTop: Math.round(barAtBottom.top),
+          lastCardFullyAboveBar: lastCard ? Math.round(lastCard.bottom) <= Math.round(barAtBottom.top) + 1 : null
+        }
+        win.scrollTo(0, 0)
+        return snapshot
+      }
+
+      function measure() {
+        try {
+          var payload = collect(f.contentDocument, f.contentWindow)
+          var fr = f.getBoundingClientRect()
+          payload.iframeRect = { x: Math.round(fr.x), y: Math.round(fr.y), w: Math.round(fr.width), h: Math.round(fr.height) }
+          payload.outerInnerWidth = window.innerWidth
+          document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(payload)
+        } catch (e) {
+          document.getElementById('m').textContent = 'MEASURE_JSON:{"error":"' + e.message + '"}'
+        }
+      }
+    </script>
+  </body>
+</html>

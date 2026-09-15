@@ -1,0 +1,61 @@
+# RED 基线 — 序号 4【检测验真】提交接入凭证 2（page-4-2）
+# 2026-09-16 00:30~00:40 · 租约 aap-tdd-run-20260916-0025 · 全部为「先写测试后写实现」的真实首次失败输出
+
+## 切片 1：视图模型 src/utils/credential-form-model.ts（tests/unit/credential-form-model.spec.ts）
+命令：npx vitest run tests/unit/credential-form-model.spec.ts
+```
+ ❯ tests/unit/credential-form-model.spec.ts (0 test)
+ FAIL  tests/unit/credential-form-model.spec.ts [ tests/unit/credential-form-model.spec.ts ]
+Error: Failed to resolve import "@/utils/credential-form-model" from "tests/unit/credential-form-model.spec.ts". Does the file exist?
+  Plugin: vite:import-analysis
+ Test Files  1 failed (1)
+      Tests  no tests
+```
+（失败原因正确：实现文件尚不存在 → 不是拼写/环境错误。）
+
+## 切片 2：接口接线 src/api/credential.ts（tests/unit/credential-submit-api.spec.ts）
+```
+ × credentialApi.detail · GET /credentials/{id} > 路径带 id、方法 GET、带 Bearer token 19ms
+   → credentialApi.detail is not a function
+ × credentialApi.detail · GET /credentials/{id} > id 会做 URL 编码（不拼接注入字符）
+   → credentialApi.detail is not a function
+ × credentialApi.save · PUT /credentials/{id} > 方法 PUT，请求体原样透传（含 base_url 与 model_list）
+   → credentialApi.save is not a function
+ × credentialApi.save · PUT /credentials/{id} > 重复凭证（E-1104）→ 抛 ApiError 且保留服务端 message
+   → credentialApi.save is not a function
+ × credentialApi.precheck · POST /credentials/{id}/precheck > 方法 POST，路径为 /precheck
+   → credentialApi.precheck is not a function
+ × credentialApi.precheck · POST /credentials/{id}/precheck > SSRF 拒绝（E-1201）/ 检测互斥（E-1301）→ ApiError 携带服务端文案
+   → credentialApi.precheck is not a function
+ × credentialApi.precheck · POST /credentials/{id}/precheck > 网络失败 → E-2001
+   → credentialApi.precheck is not a function
+ Failed Tests 7
+```
+（与上轮补齐的 18-API 路径一一对应：/credentials/{id}、/{id}/precheck —— 未新增任何臆造路径。）
+
+## 切片 3：页面 src/pages/credential-submit/index.vue（tests/pages/credential-submit.spec.ts）
+```
+ FAIL  tests/pages/credential-submit.spec.ts [ tests/pages/credential-submit.spec.ts ]
+Error: Failed to resolve import "@/pages/credential-submit/index.vue" from "tests/pages/credential-submit.spec.ts". Does the file exist?
+ Test Files  1 failed (1)
+      Tests  no tests
+```
+
+## 切片 4：由「DOM 数字」发现的真实缺陷 —— 脱敏值被压成两行（度量证据）
+先有体检数字：`.agents/state/evidence/measure-序号4.json`
+```
+apikeyMaskHeight      34      ← 两行（lineHeight 16.8px × 2）
+apikeyMaskLineHeight  "16.8px"
+apikeyMaskRect        {"x": 70, "top": 468, "right": 213, "bottom": 502, "w": 143}
+```
+（根因：脱敏框里 `.input-box__value{flex:1}` 与 `.input-box__spacer{flex:1}` 争抢同一份自由空间，
+脱敏值只拿到 143px → 换行；设计稿该文本节点自然宽 273px、单行、输入框高 46px。）
+
+随后补写会红的断言（先把结构根因固化成用例）：
+```
+ × 页面 4 · 交互（勾选联动 / 客户端私有交互） > 脱敏框内不再有与脱敏值争抢 flex 的 spacer（否则 430 宽下脱敏值被压成两行）
+     → expected <view data-v-d00f23c5 …(1)></view> to have a length of +0 but got 1
+ Test Files  1 failed (1)
+      Tests  1 failed | 22 passed (23)
+```
+（以上四条红基线之后各自实现到绿。）
