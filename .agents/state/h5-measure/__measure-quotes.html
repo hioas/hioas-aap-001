@@ -1,0 +1,249 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-quotes</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      /* 取数用 <pre> 包在 0 尺寸 overflow:hidden 容器：textContent 可读，但不参与渲染、也不会被 --screenshot 截进图里 */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
+         页面 8：/pages/quotes/index（报价单列表 2，page-8-2）
+         phase1（首次加载）· phase2（+1700ms 后，布局一致性 = 「连跑两轮」的 H5 版）
+         phase3（点「已驳回」chip → 记录 chip 高亮/行数；真实请求见 serve.py 日志 status=REJECTED）
+         phase4（点卡1「删除」→ 弹窗确认 → 真实 DELETE + toast；请求见 serve.py 日志）
+         设计基线（page-8-2 像素色带量得）：顶栏 90 · 筛选行 54 · 卡 178 高 / 间距 12 · 操作行 60 · TabBar 84 · 页高 1206 -->
+    <iframe id="f" src="/index.html#/pages/quotes/index"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var acc = {}
+
+      function collect(doc, win) {
+        function all(sel) { return Array.prototype.slice.call(doc.querySelectorAll(sel)) }
+        function rect(sel) {
+          var el = doc.querySelector(sel)
+          if (!el) return null
+          var r = el.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+        }
+        function rects(sel) {
+          return all(sel).map(function (e) {
+            var r = e.getBoundingClientRect()
+            return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), w: Math.round(r.width), h: Math.round(r.height) }
+          })
+        }
+        function texts(sel) { return all(sel).map(function (e) { return e.textContent.trim() }) }
+        function colors(sel) { return all(sel).map(function (e) { return win.getComputedStyle(e).backgroundColor }) }
+        function colorOf(sel, prop) {
+          var el = doc.querySelector(sel)
+          return el ? win.getComputedStyle(el)[prop] : null
+        }
+        function textOf(sel) {
+          var e = doc.querySelector(sel)
+          return e ? e.textContent.trim() : null
+        }
+        function styleOf(sel, prop) {
+          var e = doc.querySelector(sel)
+          return e ? e.style[prop] : null
+        }
+        var over = []
+        all('*').forEach(function (el) {
+          var r = el.getBoundingClientRect()
+          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
+            over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), left: Math.round(r.x), w: Math.round(r.width), right: Math.round(r.right), html: String(el.outerHTML || '').slice(0, 140) })
+          }
+        })
+        var text = (doc.body && doc.body.innerText) || ''
+        /* 设计稿里每一个独立文本图层都要覆盖（漏写会漏报 —— 序号 6 教训） */
+        var need = [
+          '报价单', '新建报价',
+          '全部', '草稿', '已提交', '已驳回', '待签署', '已完成',
+          '2024Q3 主线路报价', '报价单号', 'QT-20240615-0007',
+          '2 个模型 · CNY · 更新于 06-14 15:20',
+          '报价', '预览', '签署', '合同', '删除',
+          '工作台', '报告', '我的'
+        ]
+        return {
+          innerWidth: win.innerWidth,
+          docScrollWidth: doc.documentElement.scrollWidth,
+          docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
+          overflowingCount: over.length,
+          overflowing: over.slice(0, 20),
+          missingTexts: need.filter(function (t) { return text.indexOf(t) === -1 }),
+          pageBg: colorOf('.quotes', 'backgroundColor'),
+          title: textOf('.quotes__title'),
+          titleRect: rect('.quotes__title'),
+          titleStyle: (function () {
+            var cs = win.getComputedStyle(doc.querySelector('.quotes__title'))
+            return { fontSize: cs.fontSize, fontWeight: cs.fontWeight, color: cs.color, lineHeight: cs.lineHeight }
+          })(),
+          topbar: rect('.quotes__topbar'),
+          topbarBg: colorOf('.quotes__topbar', 'backgroundColor'),
+          newBtn: rect('[data-testid="new-quote"]'),
+          newBtnBg: colorOf('[data-testid="new-quote"]', 'backgroundColor'),
+          newBtnText: textOf('.quotes__new-text'),
+          newBtnTextStyle: (function () {
+            var el = doc.querySelector('.quotes__new-text')
+            var cs = win.getComputedStyle(el)
+            return { fontSize: cs.fontSize, color: cs.color }
+          })(),
+          filtersRect: rect('.quotes__filters'),
+          filterLabels: texts('.filter-chip__label'),
+          filterRects: rects('.filter-chip'),
+          filterActive: textOf('.filter-chip--active'),
+          filterActiveBg: colorOf('.filter-chip--active', 'backgroundColor'),
+          filterActiveLabelColor: colorOf('.filter-chip--active .filter-chip__label', 'color'),
+          filterIdleBg: colorOf('.filter-chip:not(.filter-chip--active)', 'backgroundColor'),
+          filterIdleLabelColor: colorOf('.filter-chip:not(.filter-chip--active) .filter-chip__label', 'color'),
+          listRect: rect('.quotes__list'),
+          cardCount: all('[data-testid="quote-card"]').length,
+          cardRects: rects('[data-testid="quote-card"]'),
+          cardBg: colorOf('.quote-card', 'backgroundColor'),
+          cardBorder: colorOf('.quote-card', 'borderTopColor'),
+          cardRadius: colorOf('.quote-card', 'borderRadius'),
+          cardTitles: texts('.quote-card__title'),
+          statusLabels: texts('.quote-card__status-text'),
+          statusRects: rects('.quote-card__status'),
+          statusBg: colors('.quote-card__status'),
+          statusDotColors: colors('.quote-card__status-dot'),
+          statusTextColors: all('.quote-card__status-text').map(function (e) { return win.getComputedStyle(e).color }),
+          statusTextStyle: (function () {
+            var cs = win.getComputedStyle(doc.querySelector('.quote-card__status-text'))
+            return { fontSize: cs.fontSize, display: cs.display, lineHeight: cs.lineHeight }
+          })(),
+          noLabel: textOf('.quote-card__no-label'),
+          noLabelStyle: (function () {
+            var cs = win.getComputedStyle(doc.querySelector('.quote-card__no-label'))
+            return { fontSize: cs.fontSize, color: cs.color, fontWeight: cs.fontWeight }
+          })(),
+          noValues: texts('.quote-card__no-value'),
+          noValueRects: rects('.quote-card__no-value'),
+          noRowRects: rects('.quote-card__no-row'),
+          metaTexts: texts('.quote-card__meta-text'),
+          metaRects: rects('.quote-card__meta-text'),
+          metaStyle: (function () {
+            var cs = win.getComputedStyle(doc.querySelector('.quote-card__meta-text'))
+            return { fontSize: cs.fontSize, color: cs.color, lineHeight: cs.lineHeight, display: cs.display }
+          })(),
+          actionsRect: rect('.quote-card__actions'),
+          actionsRects: rects('.quote-card__actions'),
+          actionLabels: texts('.quote-action__label'),
+          actionLabelsByCard: all('[data-testid="quote-card"]').map(function (c) {
+            return Array.prototype.map.call(c.querySelectorAll('.quote-action__label'), function (l) { return l.textContent.trim() })
+          }),
+          actionRects: rects('.quote-action'),
+          actionLabelColor: colorOf('.quote-action__label', 'color'),
+          actionLabelStyle: (function () {
+            var el = doc.querySelector('.quote-action__label')
+            var cs = win.getComputedStyle(el)
+            return { fontSize: cs.fontSize, fontWeight: cs.fontWeight, display: cs.display }
+          })(),
+          tabs: texts('[data-testid^="tab-"]'),
+          tabbar: rect('.tabbar'),
+          tabbarBg: colorOf('.tabbar', 'backgroundColor'),
+          tabItemRects: rects('.tabbar__item'),
+          tabActive: textOf('.tabbar__label--active'),
+          tabActiveColor: colorOf('.tabbar__label--active', 'color'),
+          emptyExists: !!doc.querySelector('[data-testid="quotes-empty"]'),
+          glyphCount: doc.querySelectorAll('.glyph').length,
+          userAgent: win.navigator.userAgent
+        }
+      }
+
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+
+      function phase(n) {
+        try {
+          var payload = collect(f.contentDocument, f.contentWindow)
+          if (n === 2) {
+            f.style.height = payload.docScrollHeight + 'px'
+            acc.iframeHeightForShot = payload.docScrollHeight
+          }
+          sink(n, payload)
+        } catch (e) {
+          sink(n, { error: String(e && e.message) })
+        }
+      }
+
+      function clickIn(sel) {
+        var doc = f.contentDocument
+        var el = doc.querySelector(sel)
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+
+      function toastText(doc) {
+        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
+        return el ? el.textContent.trim() : ''
+      }
+
+      f.addEventListener('load', function () {
+        var NO_ACTION = location.search.indexOf('noaction') !== -1
+        setTimeout(function () { phase(1) }, 2500)
+        setTimeout(function () { phase(2) }, 4200)
+        if (NO_ACTION) return
+        /* phase3：切「已驳回」chip（真实请求 → serve.py 日志出现 status=REJECTED） */
+        setTimeout(function () {
+          var clicked = clickIn('[data-testid="filter-rejected"]')
+          setTimeout(function () {
+            var doc = f.contentDocument
+            sink(3, {
+              clicked: clicked,
+              activeChip: (function () {
+                var e = doc.querySelector('.filter-chip--active')
+                return e ? e.textContent.trim() : null
+              })(),
+              activeChipBg: (function () {
+                var e = doc.querySelector('.filter-chip--active')
+                return e ? f.contentWindow.getComputedStyle(e).backgroundColor : null
+              })(),
+              cardCount: doc.querySelectorAll('[data-testid="quote-card"]').length,
+              firstCardTitle: (function () {
+                var e = doc.querySelector('.quote-card__title')
+                return e ? e.textContent.trim() : null
+              })()
+            })
+          }, 1400)
+        }, 5000)
+        /* phase4：点卡1「删除」→ uni.showModal 二次确认 → 真实 DELETE + toast */
+        setTimeout(function () {
+          clickIn('[data-testid="filter-all"]')
+          var clicked = clickIn('[data-testid="action-delete-q1"]')
+          setTimeout(function () {
+            var doc = f.contentDocument
+            var modal = doc.querySelector('.uni-modal')
+            var html = modal ? modal.outerHTML.slice(0, 400) : ''
+            var modalText = modal ? modal.textContent.replace(/\s+/g, ' ').trim() : ''
+            var btns = Array.prototype.map.call(doc.querySelectorAll('.uni-modal__btn'), function (b) { return b.textContent.trim() })
+            var confirmSel = '.uni-modal__btn_primary'
+            var confirmed = clickIn(confirmSel)
+            setTimeout(function () {
+              sink(4, {
+                clickedDelete: clicked,
+                modalExists: !!modal,
+                modalText: modalText,
+                modalButtons: btns,
+                confirmClicked: confirmed,
+                modalHtmlHead: html.slice(0, 160),
+                toastAfterDelete: toastText(f.contentDocument),
+                cardCountAfterDelete: f.contentDocument.querySelectorAll('[data-testid="quote-card"]').length,
+                hash: String(f.contentWindow.location.hash)
+              })
+            }, 1500)
+          }, 900)
+        }, 7000)
+      })
+    </script>
+  </body>
+</html>

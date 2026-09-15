@@ -25,6 +25,13 @@ export interface MockResponse {
 let queue: MockResponse[] = []
 let last: MockResponse = { statusCode: 200, data: { code: '0', message: 'ok', data: {} } }
 
+/** uni.showModal 的「确认/取消」答案（页面类交互会用，如序号 8 删除二次确认） */
+let modalAnswer = true
+
+export function setModalAnswer(confirm: boolean) {
+  modalAnswer = confirm
+}
+
 export function pushResponse(r: MockResponse) {
   queue.push(r)
 }
@@ -37,6 +44,7 @@ export function resetUniMock() {
   calls.length = 0
   queue = []
   last = { statusCode: 200, data: { code: '0', message: 'ok', data: {} } }
+  modalAnswer = true
   storage.clear()
 }
 
@@ -88,6 +96,13 @@ const uniStub = {
   },
   navigateBack(options: Record<string, unknown> = {}) {
     record('navigateBack', [options])
+  },
+  showModal(options: Record<string, unknown>) {
+    record('showModal', [options])
+    const success = options.success as ((r: unknown) => void) | undefined
+    // uni.showModal 是异步的：用微任务模拟（与 request 一致）
+    Promise.resolve().then(() => success?.({ confirm: modalAnswer, cancel: !modalAnswer }))
+    return { abort: vi.fn() }
   },
   setStorageSync(key: string, value: string) {
     record('setStorageSync', [key, value])

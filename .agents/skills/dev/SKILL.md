@@ -182,6 +182,30 @@ vision 看到的「右侧贴边/缺字」是**截图假象**而非页面缺陷�
 - **卡片高度要拿设计推导值对账**：把设计各子块高度相加（padding + 文本行高 + 子块间距）与 DOM 实测比，
   序号 7 封面卡 240 = 设计推导 240（完全一致）才能说明前 4 处行盒偏差已修净。
 
+## 4.6 设计稿尺寸的「像素量尺」+ 列表页取证（2026-09-16 序号 8 报价单列表）
+
+- **design.tree.json 的几何不可全信，设计截图才是硬证据**：page-8-2 的设计树写「卡片列表 gap=12 / 操作行 padding=[16,0,16,0] 且 height=60」，
+  单看声明算不出卡高（自算 175/155 两个版本都不对）。正解 = 用设计截图量色带：
+  ```bash
+  python .agents/state/png-bands.py <design.png> v 215 0 1206     # 沿中列 → 卡盒/间距/栏高
+  python .agents/state/png-bands.py <design.png> h 292 0 430      # 沿横排 → 元素 x 位置与宽度
+  ```
+  page-8-2 实测：卡盒 **178**（含 1px 描边）· 卡间距 **12** · 操作行 **60** · TabBar **84** · 页高 **1206** ——
+  这才让 DOM 实测的 177/12/60/84 有得对账（差 1px 可解释，差 20px 就是实现错）。**注意量卡盒要选卡片中央的列**（x=215），
+  选 x=20 会被 16px 圆角吃掉首尾各 6px，把 178 误读成 166。
+- **列表页「真实请求」比 mock 断言更硬**：载体页 phase3/phase4 点真实 chip / 真实「删除」按钮，
+  再用 `serve.py` 的访问日志核对请求行（本轮实测 `GET /api/v1/quotes?page=1&pageSize=10&status=REJECTED` 与 `DELETE /api/v1/quotes/q1`）。
+- **`serve.py` 现在按方法名找 mock**（`MOCK/<path>/<method>`，并保留 `post` 兼容）+ 已实现 `do_DELETE`：
+  否则 DELETE/PUT 拿不到 mock 响应、日志里也不出现（列表页「删除后刷新」这类流程必须有它才能验）。
+- **`uni.showModal` 需要自己打桩**（`tests/setup.ts` 已加）：`setModalAnswer(false)` 可测「取消路径」；
+  桩走 `Promise.resolve().then(...)` 与 `uni.request` 一致，页面里必须 `await` 之后的异步逻辑才不会与桩竞态。
+- **测试 mock 队列要按真实调用顺序 push**：`pushResponse` 是队列，页面「删除 → 重新拉列表」会连续消费两个响应，
+  只 push 一个会把 DELETE 的响应吃掉、断言拿到空数据（本轮踩过：`cardCount 0`）。
+- **vision 对颜色/位置会报错，design.tree.json 才是真源**：page-8-2 的「删除」在设计里是**蓝色 #2563EB**（与其它操作同色），
+  vision 报成红色 #FF4D4F。规矩：颜色断言一律回设计树取 `fontFill/fills`，vision 只用于"层级/留白"这类主观判断。
+- **设计帧自身越界也要记**：顶部「新建报价」按钮在设计里位于 x343..440（宽 97，超出 430 画面 10px），
+  与同帧声明的 `padding-right 16` 不自洽 → 实现按「页面零溢出」右对齐 16，并把差异写进台账备注（不静默照抄越界）。
+
 ## 5. 页面实现顺序与取件
 
 ```bash

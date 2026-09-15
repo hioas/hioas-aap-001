@@ -64,6 +64,34 @@ LEASE: free until -
 
 ## 4. 进度（细表看台账 CSV，这里只留能力组）
 
+🟢 本轮（2026-09-16 01:55~02:15，租约 aap-tdd-run-20260916-0155 → 已释放）· **序号 8「报价单列表 2」（page-8-2）收口**：
+- **Calicat 侧**：`get_design_page_list` 直接可用（未再需要先 `cmd /c start` 拉编辑器）；page-8-2 设计树（113KB / 240 节点）+ 截图已抓；
+  `interaction.json` 仍「不存在图层交互数据」→ 交互真源退 PRD 10/17-spec/18-API + 画布页码。
+  **新增可复用工具**：`node-probe.py <page-id>`（通用设计树几何探针，替代每页写一个 probe）、
+  `png-bands.py <png> v|h <idx> [from] [to]`（沿列/行量同色色带 = 从**设计截图像素**反推真实盒子尺寸；本轮靠它定死「卡高 178、间距 12、操作行 60、TabBar 84、页高 1206」）。
+- **这页到底是什么**：顶部导航（「报价单」20px SemiBold + 右侧「+ 新建报价」97×30 r10 #2563EB）· 筛选行 6 chip（全部/草稿/已提交/已驳回/待签署/已完成；active #2563EB 白字 / inactive #F1F5F9+#64748B，高 30 r10 间距 9）·
+  5 张报价卡（标题 15px SemiBold / 状态胶囊 h22 r11 dot8×6 / 「报价单号」13px #334155 + 单号 10px #94A3B8 / 元信息「2 个模型 · CNY · 更新于 06-14 15:20」/ 操作行 60 高、链接 40 高**左对齐** x36/112/188(/264)）·
+  逐卡操作不同（待签署多「签署」、已完成多「合同」；**「删除」在设计稿里也是蓝 #2563EB 而不是红色** —— vision 报成红色，以 design.tree.json 为准）· 底部 TabBar 84 高、4 项各 104 宽。
+- **TDD（3 切片，逐切片红→绿；新增 56 例）**：`tests/unit/quotes-model.spec.ts`(24) · `tests/unit/quote-api.spec.ts`(8) · `tests/pages/quotes.spec.ts`(24)；
+  红基线逐切片留证 `evidence/red-序号8-切片1/2/3.txt`（Failed to resolve import，原 368 条不受影响）；
+  实现 `src/utils/quotes-model.ts`、`src/api/quote.ts`、`src/pages/quotes/index.vue`、`pages.json` 路由、tokens **0 新增**（色值全部命中既有 tokens）；
+  绿 **424/424 连跑两轮一致** + `npm run type-check` **exit 0** + `build:mp-weixin` 产出 `pages/quotes/{js,json,wxml,wxss}`（app.json 已注册）。
+  测试基建：`tests/setup.ts` 新增 `uni.showModal` 桩 + `setModalAnswer()`（删除二次确认要用；桩走微任务，与 request 一致）。
+- **客观证据链（DOM 数字 vs 设计像素带逐项对账）**：430 宽 iframe + 无头 Chrome 四段实测 `evidence/measure-序号8-430宽.json`：
+  phase1/phase2 **60 字段全等**；`innerWidth 430` · `docScrollWidth 430` · 溢出 **0** · 文案缺失 **0**（need = 设计稿 20 条独立文本图层）· 顶栏 **90**（设计 90）· 筛选行 **54**（设计 54）·
+  6 chip x16/73/130/199/268/337 高 30；卡 5 张 `x16 w398 h177` top 156/345/534/724/913（设计 156/346/536/726/916、卡高 178 → -1px）· 卡间距 **12**（设计 12）·
+  状态胶囊 h22 right 393（设计 394），5 态 bg/dot/text 取色与设计逐值一致（含设计独有的 #FF9500）· 操作行 **h60**、链接 `h40 x37/113/189/265 w64`（设计 x36/112/188/264 w64）·
+  TabBar **h84** 固定、`tab x0/109/217/326 w104`（设计 0/108.7/217.3/326）；**像素墨迹核验**（`png-ink.py`）：顶部带 runs `{(16,75),(326,413)}` 右留白 16（无载体页污染）、
+  卡1操作行带 runs `45..244` 与设计量得的 `45..244` **完全吻合**；截图 `logs/screenshots/20260916-0208-序号08-报价单列表-h5-430宽.png`（430×1198，vision 复核与 DOM 数字一致）。
+- **浏览器内真实交互回放（phase3/phase4，比 mock 断言更硬）**：点「已驳回」chip → chip 高亮 + `serve.py` 访问日志实测 `GET /api/v1/quotes?page=1&pageSize=10&status=REJECTED`；
+  点卡1「删除」→ 真实 `uni-modal`（「删除报价单 / 确认删除该报价单？删除后不可恢复。/ 取消 · 删除」）→ 确认 → 日志实测 `DELETE /api/v1/quotes/q1` → toast「已删除」→ 再 GET 列表。
+- **工具修复**：`serve.py` ①新增 `do_DELETE`；②写类 mock 从「只找 `post`」改为按方法名找（`MOCK/<path>/<method>`）→ DELETE 才能真正 mock（否则拿不到响应体、日志里也看不到）。
+- ⚠️ 待人类拍板（不阻塞实现，10 条全部写进台账序号 8 备注）：①6 个 chip 与 QuoteStatus 不是一一对应（设计无「审核中」→ 现把 REVIEWING/IN_REVIEW/UNDER_REVIEW 归入「已提交」，取 `status=SUBMITTED,REVIEWING`；「待签署/已完成」是合同阶段口径）；
+  ②18-API 只列路径未列方法/参数 → GET/DELETE 与 `status` 参数名及取值集合为推断；③卡片标题在 PRD Quote 无字段（**不拿单号冒充标题**，缺失用占位符）；④「N 个模型」计数来源未定义（item_count→items.length）；
+  ⑤「更新于」字段未列（用 updated_at，MM-DD HH:mm 不做时区换算）；⑥币种冲突（PRD 写 USD、设计样例 CNY → 原样展示服务端值）；⑦设计无 PRD §4.1 的 提交/撤回/作废 动作，「删除」= DELETE 与「作废 VOID」口径差异待拍板；
+  ⑧删除弹窗文案设计无稿 → 占位；⑨空态「暂无报价单」→ 占位；⑩**设计自身越界**：顶部「新建报价」按钮实际 x343..440（宽 97）超出 430 画面 10px、与本帧声明的 padding-right 16 不自洽 → 按「页面零溢出」实现为右对齐 16（实测 x326..414）。
+
+
 🟢 本轮（2026-09-16 01:35~01:52，租约 aap-tdd-run-20260916-0135 → 已释放）· **序号 7「检测未通过报告 2」（page-7-2）收口**：
 - **Calicat 侧**：page-7-2 设计树（62KB，130 节点）+ 截图已抓；`interaction.json` 仍「不存在图层交互数据」→ 交互真源退 PRD 09/17-spec/18-API/13-管理端 + 画布 30 页清单。
   新增探针 `page7-2-probe.py`（全节点几何/填充/内边距/文字 → `page-7-2-nodes.txt`）。
@@ -309,6 +337,8 @@ LEASE: free until -
 - 项目根：`E:\workspaces\hioas\hioas-aap-001`（远端 https://github.com/hioas/hioas-aap-001）
 - 客户端：`cd aap-client`；`npm test`（vitest run）；`npm run build:mp-weixin`；`npm run build:h5`；`npm run dev:h5`
 - 台账统计：`python .agents/state/gen-ledger.py`
+- 设计树探针：`python .agents/state/node-probe.py <page-id>`（产出 `.agents/state/<page-id>-nodes.txt`，含几何/填充/内边距/文字）
+- 设计截图像素量尺：`python .agents/state/png-bands.py <png> v|h <idx> [from] [to]`（同色色带 = 盒子边界；定卡高/间距/栏高最硬的依据）
 - 台账取件：`python .agents/state/list-pending.py`（按序号列出未完成页面）
 - Calicat CLI：`calicat status` / `calicat tools-call --name get_screenshots --args '{...}'`；
   技能脚本目录 `C:/Users/laitz/AppData/Local/hermes/skills/calicat/scripts/`
