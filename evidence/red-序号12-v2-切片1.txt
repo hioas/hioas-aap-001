@@ -1,0 +1,160 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+ [31m❯[39m tests/unit/quote-form-variant.spec.ts [2m([22m[2m10 tests[22m[2m | [22m[31m10 failed[39m[2m)[22m[90m 12[2mms[22m[39m
+[31m   [31m×[31m 序号 12-v2 · 设计稿原文（逐字取自 page-apikey design.tree.json）[2m > [22m面板底部操作 / 推荐标 / 环境标 / 空态说明 / 目标路由[90m 7[2mms[22m[31m[39m
+[31m     → expected undefined to be '前往「我的设置」新建凭证' // Object.is equality[39m
+[31m   [31m×[31m 序号 12-v2 · variantFlags（同页两帧的差异开关）[2m > [22minitial 帧（page-26）：面板收起 · 有步骤卡 · 有空态提示卡 · 空态说明带 pt6[90m 1[2mms[22m[31m[39m
+[31m     → variantFlags is not a function[39m
+[31m   [31m×[31m 序号 12-v2 · variantFlags（同页两帧的差异开关）[2m > [22mexpanded 帧（page-apikey）：面板展开 · 无步骤卡 · 无空态提示卡 · 空态说明不套包裹层[90m 0[2mms[22m[31m[39m
+[31m     → variantFlags is not a function[39m
+[31m   [31m×[31m 序号 12-v2 · 下拉选项视图模型[2m > [22m模型数文案：设计稿「12 个模型」[90m 0[2mms[22m[31m[39m
+[31m     → modelCountText is not a function[39m
+[31m   [31m×[31m 序号 12-v2 · 下拉选项视图模型[2m > [22m副行 = 脱敏 key · 模型数（设计稿「sk-prod-••••••••2f9a · 12 个模型」）[90m 0[2mms[22m[31m[39m
+[31m     → credSubText is not a function[39m
+[31m   [31m×[31m 序号 12-v2 · 下拉选项视图模型[2m > [22m副行缺一半时不编造：只有 key 就只渲染 key，只有模型数就只渲染模型数，都没有则空[90m 0[2mms[22m[31m[39m
+[31m     → credSubText is not a function[39m
+[31m   [31m×[31m 序号 12-v2 · 下拉选项视图模型[2m > [22m候选项：别名 / 脱敏 key / 模型数 / 环境标 / 推荐标（字段名取 15-数据字典 + 17-spec，缺失不臆造）[90m 0[2mms[22m[31m[39m
+[31m     → buildCredOptions is not a function[39m
+[31m   [31m×[31m 序号 12-v2 · 下拉选项视图模型[2m > [22m17-spec 命名（api_key_masked / is_primary）与 15-数据字典命名（api_key_mask / primary_flag）都认[90m 0[2mms[22m[31m[39m
+[31m     → buildCredOptions is not a function or its return value is not iterable[39m
+[31m   [31m×[31m 序号 12-v2 · 下拉选项视图模型[2m > [22m环境标「沙箱/专用」PRD 零命中 → 服务端不给字段就不渲染（不臆造）[90m 0[2mms[22m[31m[39m
+[31m     → buildCredOptions is not a function or its return value is not iterable[39m
+[31m   [31m×[31m 序号 12-v2 · 下拉选项视图模型[2m > [22m容错：无 id 的项丢弃 · 缺 alias 退化为 id · 空响应 → [][90m 0[2mms[22m[31m[39m
+[31m     → buildCredOptions is not a function[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 10 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-form-variant.spec.ts[2m > [22m序号 12-v2 · 设计稿原文（逐字取自 page-apikey design.tree.json）[2m > [22m面板底部操作 / 推荐标 / 环境标 / 空态说明 / 目标路由
+[31m[1mAssertionError[22m: expected undefined to be '前往「我的设置」新建凭证' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"前往「我的设置」新建凭证"
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/unit/quote-form-variant.spec.ts:[2m38:32[22m[39m
+    [90m 36| [39m[34mdescribe[39m([32m'序号 12-v2 · 设计稿原文（逐字取自 page-apikey design.tree.js[39m…
+    [90m 37| [39m  [34mit[39m([32m'面板底部操作 / 推荐标 / 环境标 / 空态说明 / 目标路由'[39m[33m,[39m () [33m=>[39m {
+    [90m 38| [39m    [34mexpect[39m([33mCRED_CREATE_ACTION[39m)[33m.[39m[34mtoBe[39m([32m'前往「我的设置」新建凭证'[39m)
+    [90m   | [39m                               [31m^[39m
+    [90m 39| [39m    [34mexpect[39m([33mCRED_RECOMMENDED[39m)[33m.[39m[34mtoBe[39m([32m'常用'[39m)
+    [90m 40| [39m    [34mexpect[39m([33mCRED_OPTION_TAG_SANDBOX[39m)[33m.[39m[34mtoBe[39m([32m'沙箱'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-form-variant.spec.ts[2m > [22m序号 12-v2 · variantFlags（同页两帧的差异开关）[2m > [22minitial 帧（page-26）：面板收起 · 有步骤卡 · 有空态提示卡 · 空态说明带 pt6
+[31m[1mTypeError[22m: variantFlags is not a function[39m
+[36m [2m❯[22m tests/unit/quote-form-variant.spec.ts:[2m51:12[22m[39m
+    [90m 49| [39m[34mdescribe[39m([32m'序号 12-v2 · variantFlags（同页两帧的差异开关）'[39m[33m,[39m () [33m=>[39m {
+    [90m 50| [39m  [34mit[39m([32m'initial 帧（page-26）：面板收起 · 有步骤卡 · 有空态提示卡 · 空态[39m…
+    [90m 51| [39m    [34mexpect[39m([34mvariantFlags[39m([33mVARIANT_INITIAL[39m))[33m.[39m[34mtoEqual[39m({
+    [90m   | [39m           [31m^[39m
+    [90m 52| [39m      panelOpen[33m:[39m [35mfalse[39m[33m,[39m
+    [90m 53| [39m      showSteps[33m:[39m [35mtrue[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-form-variant.spec.ts[2m > [22m序号 12-v2 · variantFlags（同页两帧的差异开关）[2m > [22mexpanded 帧（page-apikey）：面板展开 · 无步骤卡 · 无空态提示卡 · 空态说明不套包裹层
+[31m[1mTypeError[22m: variantFlags is not a function[39m
+[36m [2m❯[22m tests/unit/quote-form-variant.spec.ts:[2m61:12[22m[39m
+    [90m 59| [39m
+    [90m 60| [39m  [34mit[39m([32m'expanded 帧（page-apikey）：面板展开 · 无步骤卡 · 无空态提示卡 ·[39m…
+    [90m 61| [39m    [34mexpect[39m([34mvariantFlags[39m([33mVARIANT_EXPANDED[39m))[33m.[39m[34mtoEqual[39m({
+    [90m   | [39m           [31m^[39m
+    [90m 62| [39m      panelOpen[33m:[39m [35mtrue[39m[33m,[39m
+    [90m 63| [39m      showSteps[33m:[39m [35mfalse[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-form-variant.spec.ts[2m > [22m序号 12-v2 · 下拉选项视图模型[2m > [22m模型数文案：设计稿「12 个模型」
+[31m[1mTypeError[22m: modelCountText is not a function[39m
+[36m [2m❯[22m tests/unit/quote-form-variant.spec.ts:[2m73:12[22m[39m
+    [90m 71| [39m[34mdescribe[39m([32m'序号 12-v2 · 下拉选项视图模型'[39m[33m,[39m () [33m=>[39m {
+    [90m 72| [39m  [34mit[39m([32m'模型数文案：设计稿「12 个模型」'[39m[33m,[39m () [33m=>[39m {
+    [90m 73| [39m    [34mexpect[39m([34mmodelCountText[39m([34m12[39m))[33m.[39m[34mtoBe[39m([32m'12 个模型'[39m)
+    [90m   | [39m           [31m^[39m
+    [90m 74| [39m    [34mexpect[39m([34mmodelCountText[39m([34m0[39m))[33m.[39m[34mtoBe[39m([32m'0 个模型'[39m)
+    [90m 75| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-form-variant.spec.ts[2m > [22m序号 12-v2 · 下拉选项视图模型[2m > [22m副行 = 脱敏 key · 模型数（设计稿「sk-prod-••••••••2f9a · 12 个模型」）
+[31m[1mTypeError[22m: credSubText is not a function[39m
+[36m [2m❯[22m tests/unit/quote-form-variant.spec.ts:[2m78:12[22m[39m
+    [90m 76| [39m
+    [90m 77| [39m  [34mit[39m([32m'副行 = 脱敏 key · 模型数（设计稿「sk-prod-••••••••2f9a · 12 个模[39m…
+    [90m 78| [39m    [34mexpect[39m([34mcredSubText[39m([32m'sk-prod-••••••••2f9a'[39m[33m,[39m [32m'12 个模型'[39m))[33m.[39m[34mtoBe[39m([32m'sk-[39m…
+    [90m   | [39m           [31m^[39m
+    [90m 79| [39m    [34mexpect[39m([34mcredSubText[39m([32m'sk-test-••••••••7b31'[39m[33m,[39m [32m'8 个模型'[39m))[33m.[39m[34mtoBe[39m([32m'sk-t[39m…
+    [90m 80| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/10]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-form-variant.spec.ts[2m > [22m序号 12-v2 · 下拉选项视图模型[2m > [22m副行缺一半时不编造：只有 key 就只渲染 key，只有模型数就只渲染模型数，都没有则空
+[31m[1mTypeError[22m: credSubText is not a function[39m
+[36m [2m❯[22m tests/unit/quote-form-variant.spec.ts:[2m83:12[22m[39m
+    [90m 81| [39m
+    [90m 82| [39m  [34mit[39m([32m'副行缺一半时不编造：只有 key 就只渲染 key，只有模型数就只渲染模[39m…
+    [90m 83| [39m    [34mexpect[39m([34mcredSubText[39m([32m'sk-a***5678'[39m[33m,[39m [32m''[39m))[33m.[39m[34mtoBe[39m([32m'sk-a***5678'[39m)
+    [90m   | [39m           [31m^[39m
+    [90m 84| [39m    [34mexpect[39m([34mcredSubText[39m([32m''[39m[33m,[39m [32m'3 个模型'[39m))[33m.[39m[34mtoBe[39m([32m'3 个模型'[39m)
+    [90m 85| [39m    [34mexpect[39m([34mcredSubText[39m([32m''[39m[33m,[39m [32m''[39m))[33m.[39m[34mtoBe[39m([32m''[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/10]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-form-variant.spec.ts[2m > [22m序号 12-v2 · 下拉选项视图模型[2m > [22m候选项：别名 / 脱敏 key / 模型数 / 环境标 / 推荐标（字段名取 15-数据字典 + 17-spec，缺失不臆造）
+[31m[1mTypeError[22m: buildCredOptions is not a function[39m
+[36m [2m❯[22m tests/unit/quote-form-variant.spec.ts:[2m89:18[22m[39m
+    [90m 87| [39m
+    [90m 88| [39m  [34mit[39m([32m'候选项：别名 / 脱敏 key / 模型数 / 环境标 / 推荐标（字段名取 15-[39m…
+    [90m 89| [39m    [35mconst[39m opts [33m=[39m [34mbuildCredOptions[39m([
+    [90m   | [39m                 [31m^[39m
+    [90m 90| [39m      {
+    [90m 91| [39m        id[33m:[39m [32m'c1'[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/10]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-form-variant.spec.ts[2m > [22m序号 12-v2 · 下拉选项视图模型[2m > [22m17-spec 命名（api_key_masked / is_primary）与 15-数据字典命名（api_key_mask / primary_flag）都认
+[31m[1mTypeError[22m: buildCredOptions is not a function or its return value is not iterable[39m
+[36m [2m❯[22m tests/unit/quote-form-variant.spec.ts:[2m126:20[22m[39m
+    [90m124| [39m
+    [90m125| [39m  [34mit[39m([32m'17-spec 命名（api_key_masked / is_primary）与 15-数据字典命名（a[39m…
+    [90m126| [39m    [35mconst[39m [a[33m,[39m b] [33m=[39m [34mbuildCredOptions[39m([
+    [90m   | [39m                   [31m^[39m
+    [90m127| [39m      { id[33m:[39m [32m'x'[39m[33m,[39m alias[33m:[39m [32m'X'[39m[33m,[39m api_key_masked[33m:[39m [32m'sk-x***1'[39m[33m,[39m primary_flag[33m:[39m…
+    [90m128| [39m      { id[33m:[39m [32m'y'[39m[33m,[39m alias[33m:[39m [32m'Y'[39m[33m,[39m api_key_mask[33m:[39m [32m'sk-y***2'[39m }
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/10]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-form-variant.spec.ts[2m > [22m序号 12-v2 · 下拉选项视图模型[2m > [22m环境标「沙箱/专用」PRD 零命中 → 服务端不给字段就不渲染（不臆造）
+[31m[1mTypeError[22m: buildCredOptions is not a function or its return value is not iterable[39m
+[36m [2m❯[22m tests/unit/quote-form-variant.spec.ts:[2m138:17[22m[39m
+    [90m136| [39m
+    [90m137| [39m  [34mit[39m([32m'环境标「沙箱/专用」PRD 零命中 → 服务端不给字段就不渲染（不臆造）[39m…
+    [90m138| [39m    [35mconst[39m [a] [33m=[39m [34mbuildCredOptions[39m([{ id[33m:[39m [32m'x'[39m[33m,[39m alias[33m:[39m [32m'X'[39m[33m,[39m model_list[33m:[39m […
+    [90m   | [39m                [31m^[39m
+    [90m139| [39m    [34mexpect[39m(a[33m.[39menvTag)[33m.[39m[34mtoBe[39m([32m''[39m)
+    [90m140| [39m    [34mexpect[39m(a[33m.[39msubText)[33m.[39m[34mtoBe[39m([32m'0 个模型'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/10]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-form-variant.spec.ts[2m > [22m序号 12-v2 · 下拉选项视图模型[2m > [22m容错：无 id 的项丢弃 · 缺 alias 退化为 id · 空响应 → []
+[31m[1mTypeError[22m: buildCredOptions is not a function[39m
+[36m [2m❯[22m tests/unit/quote-form-variant.spec.ts:[2m144:12[22m[39m
+    [90m142| [39m
+    [90m143| [39m  [34mit[39m([32m'容错：无 id 的项丢弃 · 缺 alias 退化为 id · 空响应 → []'[39m[33m,[39m () [33m=>[39m {
+    [90m144| [39m    [34mexpect[39m([34mbuildCredOptions[39m([{ alias[33m:[39m [32m'没有 id'[39m }]))[33m.[39m[34mtoEqual[39m([])
+    [90m   | [39m           [31m^[39m
+    [90m145| [39m    [35mconst[39m [only] [33m=[39m [34mbuildCredOptions[39m([{ id[33m:[39m [32m'z'[39m }])
+    [90m146| [39m    [34mexpect[39m(only[33m.[39malias)[33m.[39m[34mtoBe[39m([32m'z'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/10]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m10 failed[39m[22m[90m (10)[39m
+[2m   Start at [22m 04:16:10
+[2m   Duration [22m 1.39s[2m (transform 67ms, setup 49ms, collect 73ms, tests 12ms, environment 622ms, prepare 146ms)[22m
+

@@ -64,6 +64,55 @@ LEASE: free until -
 
 ## 4. 进度（细表看台账 CSV，这里只留能力组）
 
+🟢 本轮（2026-09-16 04:10~04:35，租约 aap-tdd-run-20260916-0410 → 已释放）· **序号 12-v2「新增报价单-APIKey 下拉展开」（page-apikey）收口**：
+- **取件**：`list-pending.py` 最小未完成 = 12-v2（page-apikey，/pages/quote-form/apikey）；开工前 `git status` 仅 1 个未跟踪临时文件、`git log -1` = 04:04 的 12-v1 提交 → 空闲租约，写成本轮 id + 45 分钟。
+- **Calicat 侧**：`page` 先报「请先在浏览器中打开文件」→ `cmd /c start "" <design-url>` 拉起后一次成功；设计树（95KB / 108 节点）+ 截图 **430×1129（1:1 帧图）** 已抓；`interaction.json` 仍是「不存在图层交互数据」→ 交互真源退 10-PRD §5.1 / 15-数据字典 / 17-spec / 18-API + 设计稿控件语义。
+  **新增可复用工具**：`fetch-design.py <page-id>`（下载设计帧 PNG 到 ASCII 临时路径并打印宽高 —— 之前每轮都要临时写下载脚本）· `cmp-frames.py <pageA> <pageB>`（逐层比对两帧设计树，输出子节点数量/名称差异）·
+  `tree-names.py <page-id> [起始节点名] [深度]`（打印某节点开始的名称层级）· `pad-of.py <page-id> <节点名>`（打印某节点父链上的 padding —— 本轮据此定死「凭证说明包裹层 page-26=6 / page-apikey=10」）·
+  `node-tree-raw.py <page-id> <id前缀>`（按 id 打印子树；**设计树用 `children` 不是 `kids`**，中文参数在本机 MSYS 会被转码 → 一律走 id 前缀或 `\uXXXX`）· `show-a12v2.py`（本页取数）。
+- **这页到底是什么**：page-26（12-v1）**同一页的「凭证下拉展开态」帧**（设计帧 430×1129，无 TabBar）：
+  顶栏（返回 /「新增报价单」18px Bold +「填写基本信息并设置模型报价」/ 帮助）· **无步骤卡** · 基本信息卡（**无「为必填项」标**；
+  报价单名称* h48 框 + 字数；分隔线；报价单号 +「系统生成」标 + 只读框（**无说明行**）；分隔线；凭证名称* → **展开态选择框**（h48 r[12,12,0,0] 描边 #2563EB + 钥匙底 28×28 +「请选择凭证」+ 上箭头）
+  **紧贴**下拉面板（padding 6 r[0,0,12,12] 同色描边）：三行候选项（图标 34×34 r10 + 名称 14px SemiBold + 推荐标「常用」h16 r8 #2563EB + 脱敏副行「sk-prod-••••••••2f9a · 12 个模型」11px #94A3B8；右侧已选=对勾 / 未选=环境标「沙箱」「专用」h20 r10 #F1F5F9）
+  + 分隔线 + 底部操作「前往「我的设置」新建凭证」12px Medium #2563EB）· 凭证说明（wrapper pt10）· 模型列表卡（chip「待带出」+ 空态盒 158 高，**无提示卡**）
+  · 底栏（说明 + 存为草稿 128×48 + 保存并继续 258×48 #2563EB）。
+- **本轮最大结构性决定**：**12-v1/12-v2 是同页两帧 → 抽成共用视图** `src/components/quote-form/QuoteFormView.vue`（新增 `variant` prop + 纯函数 `variantFlags(variant)`）；
+  `pages/quote-form/index.vue`（variant=initial）与新增 `pages/quote-form/apikey.vue`（variant=expanded）都只是 5 行薄壳 → **12-v1 的 740 例全绿**、无重复实现。
+- **TDD（3 切片 + 2 次补红；新增 38 例）**：`tests/unit/quote-form-variant.spec.ts`(16) · `tests/pages/quote-form-apikey.spec.ts`(13) · `tests/pages/quote-form-apikey-flow.spec.ts`(9)；
+  红基线 `evidence/red-序号12-v2-切片1.txt`（`buildCredOptions is not a function`）· `切片2/3.txt`（`Failed to resolve import @/pages/quote-form/apikey.vue`）；
+  **补红①** `red-序号12-v2-补红-帧级结构.txt`（variantFlags 少 3 个开关 + `「为必填项」expected true to be false`）→ **补红②** `red-序号12-v2-补红2-凭证说明间距.txt`（少 credHintGap）；
+  绿 **770/770 连跑两轮一致**（`green-序号12-v2-轮1/轮2.txt`，轮3 复跑仍 770）+ `npm run type-check` **exit 0**。
+- **★ 本轮最值钱的判定法（已写进 dev SKILL 待补）**：**同页多帧必须以「设计树逐层 diff」为准，不能只看文案差集** ——
+  page-26 与 page-apikey 的文案差集只暴露了步骤卡/空态说明等，**逐层比对子节点才发现还有 3 处「少了什么」**：
+  ①基本信息卡标题行少「必填提示」（kids 5→4）；②字段-报价单号少 `container{单号说明}`（3→2 kids）；③内容区少「填写须知卡」。
+  首轮实现只删了步骤卡 → DOM 实测第三张卡 top 1019、页高 1308（设计 1129）才暴露；**帧级差异要全部落成 variantFlags 开关并逐条断言**。
+- **本轮第二值钱的判定法**：**同一元素在不同帧的间距可能不同，要逐帧读设计树的 padding** —— 「凭证说明」包裹层 page-26 = **6** / page-apikey = **10**
+  （`pad-of.py` 实测），差 4px 会顺着卡片一路传到底栏（实测凭证说明 709 → 713、模型卡 762、页高 1121 → 1125）。
+- **由 DOM 数字抓出的真偏差（vision 完全看不出）**：①首轮多渲染 3 块（见上，页高 1308 → 修后 1116）；②面板底部操作行 33 高（设计 42.5）= 图标没按「字号×1.5」包行盒且文案行盒 14.4 →
+  包 22.5 行盒后 **面板 217 → 223（设计 224）、页高 1116 → 1121**；③空态盒 160 → **158（= 设计）**：把 `.empty` 的 `border` 换成 **ring（box-shadow）**（§4.8 描边在盒外规则），**这一改动同时让 12-v1 的空态盒 166 → 164（= 该帧设计）**。
+- **客观证据链**：`build:mp-weixin` 产出 `pages/quote-form/{index,apikey}.{js,json,wxml}` + **`components/quote-form/QuoteFormView.{js,json,wxml,wxss}`**（app.json 已注册 quote-form/apikey；**样式随组件 wxss 产出，13.5KB** —— 抽组件后必须确认这一步，否则小程序会裸奔）；
+  430 宽 iframe + 无头 Chrome **四段实测** `evidence/measure-序号12-v2-run7.json`：`innerWidth 430` · `docScrollWidth 430` · 溢出 **0** · 文案缺失 **[]（need 32 条本帧原文）** ·
+  页高 **1125（设计 1129，-4 = 0.35%）** · 卡 118..746(628，设计 630) / 762..988(226，设计 224) · 凭证选择框 **433..481（设计 432..480，+1）** · 面板 **481..703(223，设计 224)** ·
+  选项行 3×54 @487/541/595（设计 54/55/55）· 推荐标 499..515 · 环境标 558..578 / 612..632（设计 558..576 / 613..631）· 空态盒 **158 = 设计** · 底栏 1001..1125(118) ·
+  存为草稿 x16..144(128×48) / 保存并继续 x156..414(258×48) · 无 TabBar · `stepCardCount/requiredCount/quoteNoHintCount/tipCount/noticeCardCount` **全 0**（帧级差异的硬断言）；
+  **run7 与 run8 两次独立测量 85 字段全等**（`cmp-measure-runs.py`，0 差异）；**像素对账**（`text-rows.py` 同脚本跑设计与实现）：
+  名称标签 173..184 **0 差** · 选择框下边框 480 **0 差** · 面板下边框 -2 · 字数 +1 · 单号标签 +2 · 凭证标签 +2（面板以下累积 -6~-8，已登记残差）；
+  `png-ink` 顶部带 runs=[(64,98),(100,116),(118,135),(138,151)] 右留白 **278 = 设计 278**（无载体污染）· 底栏带右留白 16（设计 16）；截图 `logs/screenshots/20260916-0430-序号12-v2-新增报价单下拉展开-h5-430宽.png`（430×1125）。
+  **浏览器内真实交互（phase2/3/4）**：点候选项 c2 → serve 日志实测 **`GET /api/v1/credentials/c2`** → 面板收起、选择框「测试环境密钥」、chip「已选 1 / 2」、模型行 2 条；
+  再展开 → **c2 行 `data-selected=true` + 选中底 rgb(239,246,255) + 图标底 rgb(37,99,235) + 对勾 @364..380**、其余行「专用」环境标；点「前往「我的设置」新建凭证」→ **hash 不变**（目标 /pages/settings/index 未实现）；
+  填名称（内层原生 input）→「12/30」→ 点「保存并继续」→ 日志实测 **`POST /api/v1/quotes body={"name":"2024Q3 主线路报价","credential_id":"c2"}`** + **`POST /api/v1/quotes/q9/items`** → toast「保存成功」→ hash 跳 `#/pages/model-pricing/index?quoteId=q9`。
+  **新增独立 mock 集** `.agents/state/h5-measure/api-12-v2/`（3 条凭证 = 12/8/5 个模型 + env_tag/is_primary，逐字复刻设计帧；`serve.py` 换端口后先 `curl` 验 mock 再用）。
+- ⚠️ 待人类拍板（不阻塞本轮，12 条全部写进台账序号 12-v2 备注）：①与 12-v1 是否合并同一路由；②帧级差异 5 处按帧实现（是否统一）；
+  ③设计帧自相矛盾（占位 + 首项画成选中态）→ 按真实选择驱动；④环境标「沙箱/专用」与推荐标「常用」22 份 PRD 零命中 → 消费服务端字段，缺则不渲染；
+  ⑤脱敏 key 原样展示（两种字段命名都认）；⑥「N 个模型」取 model_list 长度；⑦「前往「我的设置」新建凭证」落序号 23（未实现，hash 不变）；
+  ⑧残差登记（页高 -4：选择框 +1 / 面板 -1 / 模型卡 +2（卡头 20 vs 18，改动会波及 12-v1 已对齐锚点）/ 底栏 -2）；⑨名称框设计示例态不预填；
+  ⑩图标 CSS 占位（候选项改实心圆避免被误读成复选框）；⑪帮助按钮 client-only；⑫接口方法为 REST 推断、字段级 schema missing-prd。
+
+⏳ 下一步（下一轮）：台账序号 **12-v3「新增报价单-保存成功」**（page-29，`/pages/quote-form/success`）——**设计尚未抓取**（台账「设计否」），
+  先 `python .agents/state/fetch-design.py page-29` 与 `calicat_source.py page --layer-id <inventory 里的 sourceLayerId> --page-id page-29`，
+  再按 §2 八步走；可复用本轮：`cmp-frames.py`（**先与 page-26/page-apikey 逐层 diff，别只看文案**）、`pad-of.py`（逐帧读间距）、`fetch-design.py`、`show-a12v2.py` 式取数脚本、
+  共用视图 `QuoteFormView.vue` 的 variant 机制（若 page-29 仍是同页帧，优先加开关而不是新写一页）。
+
 🟢 本轮（2026-09-16 03:50~04:15，租约 aap-tdd-run-20260916-0350 → 已释放）· **序号 12-v1「新增报价单-初始态」（page-26）收口**：
 - **取件**：`list-pending.py` 最小未完成 = 12-v1（page-26，/pages/quote-form/index）；开工前 `git status` 干净、`git log -1` 为上一轮提交（03:48）→ 判空闲租约，写成本轮 id + 45 分钟。
 - **Calicat 侧**：设计树（page-26，02:13 已抓）+ 截图（430×1238，1:1 帧图）直接可用；`interaction.json` 仍「不存在图层交互数据」→

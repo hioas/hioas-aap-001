@@ -166,3 +166,156 @@ export function buildFormPayload(state: QuoteFormInitialState): Record<string, u
   if (state.credentialId) body.credential_id = state.credentialId
   return body
 }
+
+/* ═══════════════ 序号 12-v2【报价管理】新增报价单-APIKey 下拉展开（page-apikey）追加 ═══════════════
+ *
+ * 设计真源：.calicat/raw/pages/page-apikey/design.tree.json（430 宽 · 设计帧 430x1129 · 无 TabBar）
+ *   凭证选择框-展开态：h48 r[12,12,0,0] 白底描边 0.8 #2563EB（钥匙底 28×28 r8 #EFF6FF + 「请选择凭证」14px #94A3B8 + chevron 20px #2563EB）
+ *   下拉选项面板：padding 6 r[0,0,12,12] 白底描边 0.8 #2563EB（**紧贴选择框下沿，无间距**）
+ *     选项行 padding[10,12,10,12] r10；选中行底 #EFF6FF + 右侧对勾 18px #2563EB
+ *       选项图标 34×34 r10（选中 #2563EB 白图标 / 未选 #F1F5F9 #64748B 图标）
+ *       选项信息：名称行（名称 14px SemiBold #0F172A + 推荐标 h16 r8 #2563EB〔9px 白字「常用」〕）
+ *                 + 副行 11px #94A3B8 h16（「sk-prod-••••••••2f9a · 12 个模型」）
+ *       未选中行右侧：环境标 h20 r10 #F1F5F9（10px Medium #64748B，「沙箱」/「专用」）
+ *     分隔线（wrapper pt4）· 底部操作（wrapper pt4，padding[8,12,8,12] 居中 gap8：图标 15px + 「前往「我的设置」新建凭证」12px Medium #2563EB）
+ *   凭证说明（wrapper pt10）：图标 12px #2563EB + 文案 11px #64748B
+ *   模型列表卡：chip「待带出」+ 空态（padding 28/16 + 图标 56 + pt12 标题 h20 + 说明 12px；本帧说明**不套 pt6 包裹层** → 158 高）
+ *   本帧**无步骤卡**、**无空态提示卡**、名称框为设计示例填写态（值为设计样例）
+ *
+ * ⚠️ 与 page-26（12-v1）的帧级差异（**不静默统一**，已写台账序号 12-v2 备注待拍板）：
+ *   1) 步骤卡：page-26 有 / page-apikey 无 → 本页按帧实现（variantFlags.showSteps）
+ *   2) 空态提示卡：page-26 有「带出的模型数量与凭证权限相关…」/ page-apikey 无 → 按帧实现
+ *   3) 空态说明文案：page-26「请先在上方选择凭证，系统将自动带出可用模型列表」/ page-apikey「选择凭证后将自动带出可用模型」
+ *   4) 空态说明包裹层：page-26 pt6（盒 164）/ page-apikey pt0（盒 158）
+ *   5) 设计帧自相矛盾：选择框显示占位「请选择凭证」，首选项却画成选中态（底 #EFF6FF + 对勾）→
+ *      实现按**真实选择驱动**高亮/对勾（未选凭证时不出现），把帧内矛盾写台账，不照抄矛盾像素。
+ *
+ * 交互真源：interaction.json =「不存在图层交互数据」→ 交互退 PRD 10/15/17-spec/18-API + 设计稿控件语义
+ *   候选项 = api(GET /credentials，18-API Credential Tag) · 选中 = api(GET /credentials/{id} 带出模型清单)
+ *   前往「我的设置」新建凭证 = navigation('/pages/settings/index')（画布第 23 页「我的设置」，台账序号 23 **未实现**）
+ *
+ * ⚠️ 未定义/缺口（逐条写台账，均不臆造）：
+ *   1) 「沙箱」「专用」（环境标）与「常用」（推荐标）在 22 份 PRD **零命中** → 分别消费服务端 env_tag /
+ *      is_primary(或 primary_flag)，缺字段不渲染（不拿别名或状态猜）。
+ *   2) 脱敏 key 原样展示服务端值（api_key_mask / 17-spec 的 api_key_masked），不做本地二次脱敏
+ *      （脱敏口径四处不一致是既有缺口，本页不新造一种）。
+ *   3) 候选项的「N 个模型」取 model_list 长度（aap_credential.model_list）；字段缺失时不渲染该段。
+ *   4) 本帧名称框为设计示例值「2024Q3 主线路报价」/「13/30」（实际 12 字，设计自身不自洽）→
+ *      页面不预填（无数据来源），字数按真实长度渲染（0/30）。
+ */
+
+/** 同页两帧（page-26 初始态 / page-apikey 下拉展开态）的差异开关真源 */
+export type QuoteFormVariant = 'initial' | 'expanded'
+export const VARIANT_INITIAL: QuoteFormVariant = 'initial'
+export const VARIANT_EXPANDED: QuoteFormVariant = 'expanded'
+
+/** 设计稿原文（page-apikey design.tree.json，逐字；禁止改写） */
+export const CRED_CREATE_ACTION = '前往「我的设置」新建凭证'
+export const CRED_RECOMMENDED = '常用'
+export const CRED_OPTION_TAG_SANDBOX = '沙箱'
+export const CRED_OPTION_TAG_SPECIAL = '专用'
+export const MODEL_EMPTY_DESC_SHORT = '选择凭证后将自动带出可用模型'
+
+/** 画布第 23 页「我的设置」目标路由（台账序号 23，尚未实现 → H5 实测 hash 不变，见台账） */
+export const SETTINGS_PAGE = '/pages/settings/index'
+
+export interface QuoteFormVariantFlags {
+  /** 进页面即展开凭证下拉面板（page-apikey 帧） */
+  panelOpen: boolean
+  showSteps: boolean
+  /** 「为必填项」标（page-26 有 / page-apikey 无） */
+  showRequired: boolean
+  /** 单号说明行「报价单号由系统按日期与序号规则自动生成，无需手动填写」（page-26 有 / page-apikey 无） */
+  showQuoteNoHint: boolean
+  showEmptyTip: boolean
+  /** 填写须知卡（page-26 有 / page-apikey 无） */
+  showNotice: boolean
+  /** 空态说明包裹层 padding-top（page-26 = 6 → 盒 164；page-apikey = 0 → 盒 158） */
+  emptyDescGap: number
+  /** 凭证说明包裹层 padding-top（page-26 = 6 / page-apikey = 10，设计树逐帧不同） */
+  credHintGap: number
+  emptyDesc: string
+}
+
+export function variantFlags(variant: QuoteFormVariant): QuoteFormVariantFlags {
+  if (variant === VARIANT_EXPANDED) {
+    return {
+      panelOpen: true,
+      showSteps: false,
+      showRequired: false,
+      showQuoteNoHint: false,
+      showEmptyTip: false,
+      showNotice: false,
+      emptyDescGap: 0,
+      credHintGap: 10,
+      emptyDesc: MODEL_EMPTY_DESC_SHORT
+    }
+  }
+  return {
+    panelOpen: false,
+    showSteps: true,
+    showRequired: true,
+    showQuoteNoHint: true,
+    showEmptyTip: true,
+    showNotice: true,
+    emptyDescGap: 6,
+    credHintGap: 6,
+    emptyDesc: MODEL_EMPTY_DESC
+  }
+}
+
+/** 下拉候选项原始形态（字段名取 15-数据字典 aap_credential + 17-spec Credential；字段级 schema missing-prd） */
+export interface CredOptionRaw {
+  id?: string
+  alias?: string
+  api_key_mask?: string
+  /** 17-spec Credential.api_key_masked */
+  api_key_masked?: string
+  /** 17-spec Credential.is_primary */
+  is_primary?: boolean
+  /** 15-数据字典 aap_credential.primary_flag */
+  primary_flag?: boolean
+  model_list?: unknown[] | null
+  /** 环境标（「沙箱」/「专用」）：PRD 零命中 → 服务端不给就不渲染（missing-prd） */
+  env_tag?: string
+}
+
+export interface CredOption {
+  id: string
+  alias: string
+  maskText: string
+  /** 副行 = 脱敏 key · N 个模型（缺一半只渲染另一半） */
+  subText: string
+  envTag: string
+  recommended: boolean
+}
+
+/** 「N 个模型」（设计稿原文格式） */
+export function modelCountText(count: number): string {
+  return `${count} 个模型`
+}
+
+/** 候选项副行：脱敏 key 与模型数都缺 → 空串（不渲染副行，行高随之收窄） */
+export function credSubText(maskText: string, countText: string): string {
+  return [maskText, countText].filter((s) => !!s).join(' · ')
+}
+
+/** 凭证列表 → 下拉候选项视图模型（无 id 项丢弃；缺 alias 退化为 id；不臆造环境标/推荐标） */
+export function buildCredOptions(items?: CredOptionRaw[] | null): CredOption[] {
+  if (!Array.isArray(items)) return []
+  return items
+    .filter((it) => !!it && !!it.id)
+    .map((it) => {
+      const id = String(it.id)
+      const maskText = String(it.api_key_mask ?? it.api_key_masked ?? '')
+      const countText = Array.isArray(it.model_list) ? modelCountText(it.model_list.length) : ''
+      return {
+        id,
+        alias: String(it.alias ?? id),
+        maskText,
+        subText: credSubText(maskText, countText),
+        envTag: String(it.env_tag ?? ''),
+        recommended: it.is_primary === true || it.primary_flag === true
+      }
+    })
+}

@@ -1,0 +1,97 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+ [31m❯[39m tests/unit/quote-form-variant.spec.ts [2m([22m[2m10 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[90m 15[2mms[22m[39m
+[31m   [31m×[31m 序号 12-v2 · variantFlags（同页两帧的差异开关）[2m > [22minitial 帧（page-26）：面板收起 · 有步骤卡/必填标/单号说明/空态提示卡/填写须知卡 · 空态说明带 pt6[90m 8[2mms[22m[31m[39m
+[31m     → expected { panelOpen: false, …(4) } to deeply equal { panelOpen: false, …(7) }[39m
+[31m   [31m×[31m 序号 12-v2 · variantFlags（同页两帧的差异开关）[2m > [22mexpanded 帧（page-apikey）：面板展开 · 且本帧无步骤卡/必填标/单号说明/空态提示卡/填写须知卡[90m 1[2mms[22m[31m[39m
+[31m     → expected { panelOpen: true, …(4) } to deeply equal { panelOpen: true, …(7) }[39m
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+ [31m❯[39m tests/pages/quote-form-apikey.spec.ts [2m([22m[2m11 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[90m 151[2mms[22m[39m
+[31m   [31m×[31m 序号 12-v2 · 页面骨架（帧级结构：无步骤卡 / 无空态提示卡）[2m > [22m本帧设计稿无「为必填项」标、无单号说明行、无填写须知卡（逐层比对两帧设计树）[90m 15[2mms[22m[31m[39m
+[31m     → expected true to be false // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 3 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-form-apikey.spec.ts[2m > [22m序号 12-v2 · 页面骨架（帧级结构：无步骤卡 / 无空态提示卡）[2m > [22m本帧设计稿无「为必填项」标、无单号说明行、无填写须知卡（逐层比对两帧设计树）
+[31m[1mAssertionError[22m: expected true to be false // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+[36m [2m❯[22m tests/pages/quote-form-apikey.spec.ts:[2m98:68[22m[39m
+    [90m 96| [39m  [34mit[39m([32m'本帧设计稿无「为必填项」标、无单号说明行、无填写须知卡（逐层比对[39m…
+    [90m 97| [39m    [35mconst[39m wrapper [33m=[39m [35mawait[39m [34mmountPage[39m()
+    [90m 98| [39m    [34mexpect[39m(wrapper[33m.[39m[34mfind[39m([32m'[data-testid="chip-required"]'[39m)[33m.[39m[34mexists[39m())[33m.[39m[34mtoB[39m…
+    [90m   | [39m                                                                   [31m^[39m
+    [90m 99| [39m    [34mexpect[39m(wrapper[33m.[39m[34mfind[39m([32m'[data-testid="quote-no-hint"]'[39m)[33m.[39m[34mexists[39m())[33m.[39m[34mtoB[39m…
+    [90m100| [39m    [34mexpect[39m(wrapper[33m.[39m[34mfind[39m([32m'[data-testid="card-notice"]'[39m)[33m.[39m[34mexists[39m())[33m.[39m[34mtoBe[39m(…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-form-variant.spec.ts[2m > [22m序号 12-v2 · variantFlags（同页两帧的差异开关）[2m > [22minitial 帧（page-26）：面板收起 · 有步骤卡/必填标/单号说明/空态提示卡/填写须知卡 · 空态说明带 pt6
+[31m[1mAssertionError[22m: expected { panelOpen: false, …(4) } to deeply equal { panelOpen: false, …(7) }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[2m    "emptyDesc": "请先在上方选择凭证，系统将自动带出可用模型列表",[22m
+[2m    "emptyDescGap": 6,[22m
+[2m    "panelOpen": false,[22m
+[2m    "showEmptyTip": true,[22m
+[32m-   "showNotice": true,[39m
+[32m-   "showQuoteNoHint": true,[39m
+[32m-   "showRequired": true,[39m
+[2m    "showSteps": true,[22m
+[2m  }[22m
+
+[36m [2m❯[22m tests/unit/quote-form-variant.spec.ts:[2m51:43[22m[39m
+    [90m 49| [39m[34mdescribe[39m([32m'序号 12-v2 · variantFlags（同页两帧的差异开关）'[39m[33m,[39m () [33m=>[39m {
+    [90m 50| [39m  [34mit[39m([32m'initial 帧（page-26）：面板收起 · 有步骤卡/必填标/单号说明/空态[39m…
+    [90m 51| [39m    [34mexpect[39m([34mvariantFlags[39m([33mVARIANT_INITIAL[39m))[33m.[39m[34mtoEqual[39m({
+    [90m   | [39m                                          [31m^[39m
+    [90m 52| [39m      panelOpen[33m:[39m [35mfalse[39m[33m,[39m
+    [90m 53| [39m      showSteps[33m:[39m [35mtrue[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-form-variant.spec.ts[2m > [22m序号 12-v2 · variantFlags（同页两帧的差异开关）[2m > [22mexpanded 帧（page-apikey）：面板展开 · 且本帧无步骤卡/必填标/单号说明/空态提示卡/填写须知卡
+[31m[1mAssertionError[22m: expected { panelOpen: true, …(4) } to deeply equal { panelOpen: true, …(7) }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[2m    "emptyDesc": "选择凭证后将自动带出可用模型",[22m
+[2m    "emptyDescGap": 0,[22m
+[2m    "panelOpen": true,[22m
+[2m    "showEmptyTip": false,[22m
+[32m-   "showNotice": false,[39m
+[32m-   "showQuoteNoHint": false,[39m
+[32m-   "showRequired": false,[39m
+[2m    "showSteps": false,[22m
+[2m  }[22m
+
+[36m [2m❯[22m tests/unit/quote-form-variant.spec.ts:[2m64:44[22m[39m
+    [90m 62| [39m
+    [90m 63| [39m  [34mit[39m([32m'expanded 帧（page-apikey）：面板展开 · 且本帧无步骤卡/必填标/单[39m…
+    [90m 64| [39m    [34mexpect[39m([34mvariantFlags[39m([33mVARIANT_EXPANDED[39m))[33m.[39m[34mtoEqual[39m({
+    [90m   | [39m                                           [31m^[39m
+    [90m 65| [39m      panelOpen[33m:[39m [35mtrue[39m[33m,[39m
+    [90m 66| [39m      showSteps[33m:[39m [35mfalse[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m18 passed[39m[22m[90m (21)[39m
+[2m   Start at [22m 04:22:25
+[2m   Duration [22m 1.85s[2m (transform 673ms, setup 79ms, collect 881ms, tests 166ms, environment 1.06s, prepare 194ms)[22m
+

@@ -1,0 +1,17 @@
+feat(aap-client): 12-v2-新增报价单APIKey下拉展开 凭证下拉展开态页（严格 TDD · 同页两帧抽共用视图）
+
+- 12-v1(page-26)/12-v2(page-apikey) 是同页两帧 → 抽 src/components/quote-form/QuoteFormView.vue
+  （variant prop + 纯函数 variantFlags），index.vue / apikey.vue 各 5 行薄壳；12-v1 的 740 例全绿
+- 帧级差异按帧实现并逐条断言：无步骤卡 / 无「为必填项」/ 无单号说明行 / 无空态提示卡 / 无填写须知卡
+  （cmp-frames.py 逐层 diff 设计树才发现的 3 处「少了什么」）；空态说明文案与包裹层 pt0/6、凭证说明 pt10/6
+- 凭证下拉面板按设计 566c12d1 还原：紧贴选择框（r[12,12,0,0]+[0,0,12,12] 同色描边）、padding 6、
+  选项行 padding 10/12 r10（选中底 #EFF6FF + 对勾）、图标 34×34 r10、推荐标「常用」h16 r8、
+  脱敏副行「sk-… · N 个模型」、环境标「沙箱/专用」h20 r10、分隔线 + 底部操作「前往「我的设置」新建凭证」
+- 候选项数据 = GET /credentials（buildCredOptions：env_tag/is_primary/api_key_mask|masked，缺字段不渲染）
+- 空态盒描边改 ring（box-shadow）→ 本帧 158、12-v1 帧 164，两帧同时命中设计值
+- TDD：tests/unit/quote-form-variant.spec.ts(16) + tests/pages/quote-form-apikey.spec.ts(13)
+  + tests/pages/quote-form-apikey-flow.spec.ts(9)；3 切片红基线 + 2 次补红（帧级结构 / credHintGap）
+  绿 770/770 连跑两轮一致 + type-check exit 0 + build:mp-weixin（含组件 wxss）
+  H5 四段实测：溢出 0 · 文案缺失 [] · 页高 1125（设计 1129，-4）· 选择框 433..481（设计 432..480）
+  · 面板 481..703(223，设计 224) · 两次独立测量 85 字段全等 · 真实交互日志见 evidence/serve-序号12-v2.log
+- 12 条待人类拍板缺口写进台账序号 12-v2 备注（不臆造、不静默统一帧级差异）
