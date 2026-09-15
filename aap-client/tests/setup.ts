@@ -108,6 +108,21 @@ const uniStub = {
     // uni.setClipboardData 是异步的：用微任务模拟（与 request/showModal 一致）
     Promise.resolve().then(() => success?.({ errMsg: 'setClipboardData:ok' }))
   },
+  // 序号 15（合同签署）：PDF 下载 → downloadFile + openDocument
+  downloadFile(options: Record<string, unknown>) {
+    record('downloadFile', [options])
+    const success = options.success as ((r: unknown) => void) | undefined
+    Promise.resolve().then(() =>
+      success?.({ statusCode: 200, tempFilePath: '/tmp/x.pdf', errMsg: 'downloadFile:ok' })
+    )
+    return { abort: vi.fn() }
+  },
+  openDocument(options: Record<string, unknown>) {
+    record('openDocument', [options])
+    const success = options.success as ((r: unknown) => void) | undefined
+    Promise.resolve().then(() => success?.({ errMsg: 'openDocument:ok' }))
+    return { abort: vi.fn() }
+  },
   showModal(options: Record<string, unknown>) {
     record('showModal', [options])
     const success = options.success as ((r: unknown) => void) | undefined

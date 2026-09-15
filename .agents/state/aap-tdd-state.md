@@ -64,7 +64,54 @@ LEASE: free until -
 
 ## 4. 进度（细表看台账 CSV，这里只留能力组）
 
-🟢 本轮（2026-09-16 04:35~05:00，租约 aap-tdd-run-20260916-0435 → 已释放）· **序号 12-v3「新增报价单-保存成功」（page-29）收口**：
+🟢 本轮（2026-09-16 04:55~05:20，租约 aap-tdd-run-20260916-0455 → 已释放）· **序号 15「合同签署 2」（page-15-2）收口**：
+- **取件**：`list-pending.py` 最小未完成 = 15（page-15-2，/pages/contract/index，台账「设计否」）；开工前 `git status` 干净、
+  `git log -1` = 04:50 的 12-v3 提交 → 空闲租约，写成本轮 id + 45 分钟。
+- **Calicat 侧**：`page` 先报「请先在浏览器中打开文件」→ `cmd /c start` 拉起后一次成功；设计树（56KB / 117 节点）+ 截图 **430×1231（1:1 帧图）** 已抓；
+  `interaction.json` 仍「不存在图层交互数据」→ 交互真源退 10-PRD §4.2 状态机 / 17-spec R-41 / 18-API「Contract」Tag + 设计稿控件语义。
+- **这页到底是什么**：无 TabBar 的只读「合同签署」详情页（设计总高 1231）：顶栏（返回 /「合同签署」17px Bold / 右「编号 CT-2024-0613-008」11px）·
+  合同状态卡（46 琥珀圆角图标 +「API 接入服务合同」15px SemiBold +「待签署」h22 琥珀标 +「请在 2024-06-20 前完成签署，逾期将自动作废」）·
+  电子签提示卡（白底描边 + 蓝盾 +「本合同采用电子签章，签署后即时生效并具备法律效力。」）· 合同基本信息 4 行 · 费用与分成 3 行（值右对齐 Bold）·
+  关键条款 4 条 · 签署信息 3 行 · 签署记录 2 条（绿点「平台方已盖章」+ 琥珀点「等待供应商签署」）· 底栏（PDF 126×48 描边 + 去签署 260×48 #2563EB）。
+- **新增可复用工具与判定法**：`col-bands.py <png> <x> [from] [to]`（逐像素分类 W/B/S/X → **一次拿到全部卡片边界**；
+  本页状态卡有柔和投影，`rows-gap` 会把 12px 卡距读成 13px 描边色带）· 设计树声明的 height 逐块加即得卡高，且
+  **字段行实测 18 = 12px 文本的 1.5 倍**（`lineHeight:1.2` 只作用于文本盒；图标段落仍是 fontSize×1.5=27）·
+  **图标盒宽必须取设计声明值 20/26**（本轮唯一真偏差：提示卡文案盒 x50 / 墨迹 58，设计 x56 / 墨迹 64 —— 页高、卡片 rect、`missingTexts` 全对，只有横向 rect 抓得到）。
+- **TDD（4 切片，逐切片红→绿；新增 44 例）**：`tests/unit/contract-model.spec.ts`(19) · `tests/unit/contract-api.spec.ts`(5) ·
+  `tests/pages/contract.spec.ts`(11) · `tests/pages/contract-flow.spec.ts`(9)；红基线 `evidence/red-序号15-切片1/2/3.txt`（Failed to resolve import）
+  + `切片4.txt`（**真红 8/9**：`expected [] to deeply equal [ { delta: 1 } ]`、downloadFile 未调用、showModal 未弹出）；
+  绿 **851/851 连跑两轮一致**（`evidence/green-序号15-轮1/轮2.txt`）+ `npm run type-check` **exit 0**；tokens **0 新增**（15 个色值全部命中既有 tokens.scss）。
+- **一处「改的是测试不是代码」**：`pushResponse` 是 FIFO，`mountLoaded()` 已 push 一次详情响应，我在「签署被拒」用例里又手工 push 一次 →
+  POST 吃掉详情响应、断言读到 `['签署申请已提交','状态非法流转']`；删掉多余 push 后 9/9 绿（实现无缺陷，规则已记 SKILL §4.15）。
+- **客观证据链**：`build:mp-weixin` 产出 `pages/contract/{index.js,index.json,index.wxml,index.wxss}`（app.json 已注册）；
+  430 宽 iframe + 无头 Chrome 实测 `evidence/measure-序号15-run2.json`：`innerWidth 430` · `docScrollWidth 430` · 页高 **1231 = 设计** · 溢出 **0** ·
+  文案缺失 **[]（need 42 条设计原文）** · **7 张卡 top/height 与像素量尺基线逐值 0 差**（108/206/269/465/631/809/975 → 86/51/184/154/166/154/156）·
+  底栏 1147..1231(84) · 字段行 pitch 30 · 条款行 pitch 26 · 记录行 1031/1077 · 记录点 11×10 + 色 rgb(22,163,74)/rgb(245,158,11) · 输入控件 0 · 无 TabBar；
+  **run2/run3 两次独立测量 83 字段全等**（`cmp-measure-runs.py`，0 差异）；**像素对账**（`text-rows.py` 同脚本跑设计与实现）：27 行文本 **16 行 0 差**、其余 ±1~2；
+  顶部带墨迹 runs=[(21,29),(54,70),(72,86),(88,121),(299,308)…(396,413)]（右留白 16，无载体污染）· 底栏带 [(57,70),(80,86),(88,95),(97,103),(154,413)]；
+  截图 `logs/screenshots/20260916-0515-序号15-合同签署-h5-430宽.png`（430×1231 = 设计尺寸）；修前偏差留证 `evidence/measure-序号15-run1.json`。
+  **浏览器内真实交互回放**：`?scenario=sign` → 真实 `uni-modal`（「确认签署 / 确认对当前合同发起签署？ / 取消 确定」）→ 点确定 →
+  日志实测 **`POST /api/v1/contracts/c1/sign`（body 空 —— 18-API 无请求体 schema）** → toast「签署申请已提交」→ **`GET /api/v1/contracts/c1` 重载**；
+  `?scenario=pdf` → 日志实测 **`GET /api/v1/contracts/c1/file` 200 → `GET /files/CT-2024-0613-008.pdf` 200**（真实下载、无错误 toast）；
+  `?scenario=back` → hash 不变（navigateBack 无栈）。
+- **★ 本轮最值钱的取证教训（已写进 SKILL §4.15）**：**uni-app H5 构建把 uni API 以「模块绑定」内联**
+  （页面 chunk `import{…N as downloadFile…}from index-*.js`）→ 给 `window.uni.downloadFile` 打桩**打不到真实调用链**
+  （patch 确实生效、却一次都没被调用，toast 反而是「合同文件获取失败」）；正解 = **让 mock 返回可达的本地 URL + 用 serve.py 访问日志取证**。
+  另实测 H5 的 `window.uni` 上**没有** downloadFile/openDocument（`__diag-uni.html`）→「浏览器里跑通」≠「API 存在」，两条证据分开写。
+- ⚠️ 待人类拍板（不阻塞本轮，14 条全部写进台账序号 15 备注）：①**设计/PRD 冲突**：设计帧「电子签章 / 短信验证码签署 / 去签署」 vs
+  10-PRD §4.2 + 17-spec R-41 + 数据字典 Contract(sign_channel=OFFLINE)「合同线下、线上电子签一期不做」→ 本轮按设计稿实现，是否下架待拍板；
+  ②18-API 只列路径 → GET/POST 方法与 `/sign` 归属为 REST 推断；③详情字段名容错读取（字段级 schema 未定义）；④状态胶囊中文标签为派生（PRD 只有英文状态机）；
+  ⑤记录 tone 字段未定义 → 缺省 pending（琥珀）；⑥手机号脱敏三处口径不一致 → 服务端 masked 优先；⑦`/file` 响应无 schema → url/file_url 兼容、缺失只 toast；
+  ⑧toast/弹窗文案占位（弹窗按钮用平台默认）；⑨「编号 」前缀连渲染（同序号 7 教训）；⑩状态卡柔和投影为近似值（设计树读不到投影参数）；
+  ⑪图标 CSS 占位；⑫只读页无输入控件/无 TabBar，入口未接线（`?contractId=` / storage `aap_contract_id` 直进）；
+  ⑬签署方式取服务端 sign_method、缺失退 sign_channel；⑭uni H5 取证规则见 SKILL §4.15。
+
+⏳ 下一步（下一轮）：台账序号 **20「站内信列表 2」**（page-20-2，`/pages/messages/index`）——**设计尚未抓取**（台账「设计否」），
+  先 `python .agents/state/fetch-design.py page-20-2` 与 `calicat_source.py page --layer-id <inventory 的 sourceLayerId> --page-id page-20-2`，再按 §2 八步走；
+  可复用本轮：`col-bands.py`（一次拿全部卡片边界）、`__measure-contract.html` 载体模板（`?scenario=` 逐个回放 + 真实请求取证 + `apiProbe`）、
+  `api-15` 式独立 mock 集、`cmp-measure-runs.py`、`text-rows.py` 像素对账；**新规矩：uni API 的浏览器取证走「可达 URL + serve 日志」，别打 window.uni 的桩**（SKILL §4.15）。
+
+🟢 上一轮（2026-09-16 04:35~05:00，租约 aap-tdd-run-20260916-0435 → 已释放）· **序号 12-v3「新增报价单-保存成功」（page-29）收口**：
 - **取件**：`list-pending.py` 最小未完成 = 12-v3（page-29，/pages/quote-form/success，台账「设计否」）；开工前 `git status` 干净、`git log -1` = 04:31 的 12-v2 提交 → 空闲租约，写成本轮 id + 45 分钟（中途续到 06:05）。
 - **Calicat 侧**：`cmd /c start` 拉起编辑器后 `page` 一次成功；设计树 41KB + 截图 **430×1018（1:1 帧图）** 已抓；`interaction.json` 仍是「不存在图层交互数据」→ 交互真源退 PRD 10/15/17-spec/18-API + 设计稿控件语义。
   **先用 `cmp-frames.py page-26 page-29` 判同页/异页** → 逐层 diff 显示结构完全不同（成功头部卡 / 结果摘要卡 / 带出模型卡 / 提示卡 vs 步骤卡 / 基本信息卡…）

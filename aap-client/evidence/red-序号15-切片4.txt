@@ -1,0 +1,25 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+ [31m❯[39m tests/pages/contract-flow.spec.ts [2m([22m[2m9 tests[22m[2m | [22m[31m8 failed[39m[2m)[22m[90m 152[2mms[22m[39m
+[31m   [31m×[31m 序号 15 · 返回[2m > [22m点返回 → navigateBack（delta 1）[90m 82[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ { delta: 1 } ][39m
+[31m   [31m×[31m 序号 15 · 下载 PDF[2m > [22m有合同 id → 先 GET /contracts/c1/file，拿到 url 再 uni.downloadFile + openDocument[90m 11[2mms[22m[31m[39m
+[31m     → expected [ '/api/v1/contracts/c1' ] to deeply equal [ '/api/v1/contracts/c1', …(1) ][39m
+[31m   [31m×[31m 序号 15 · 下载 PDF[2m > [22m服务端未给 url → toast「合同文件尚未生成」，不调 downloadFile（不编造地址）[90m 11[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ '合同文件尚未生成' ][39m
+[31m   [31m×[31m 序号 15 · 下载 PDF[2m > [22m文件接口失败 → toast 服务端 message[90m 12[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ '文件服务不可用' ][39m
+[31m   [31m×[31m 序号 15 · 下载 PDF[2m > [22m无合同 id → 点 PDF 只 toast，不发请求[90m 7[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ '合同文件尚未生成' ][39m
+[31m   [31m×[31m 序号 15 · 去签署[2m > [22m确认弹窗通过 → POST /contracts/c1/sign → toast + 重新拉详情[90m 9[2mms[22m[31m[39m
+[31m     → Cannot read properties of undefined (reading 'title')[39m
+[31m   [31m×[31m 序号 15 · 去签署[2m > [22m签署被拒（E-1601 状态非法流转）→ toast 服务端 message，状态保持[90m 5[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ '状态非法流转' ][39m
+[31m   [31m×[31m 序号 15 · 去签署[2m > [22m无合同 id → 点去签署只 toast，不弹窗、不发请求[90m 5[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ undefined ][39m

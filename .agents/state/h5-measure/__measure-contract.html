@@ -1,0 +1,297 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-contract</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      /* 取数用 <pre> 包进 0 尺寸 overflow:hidden 容器：textContent 可读，但不渲染、不会被 --screenshot 截进图里 */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
+         页面 15：/pages/contract/index（【合同与通知】合同签署 2，page-15-2）
+         设计基线（设计截图 1:1 · 430x1231 像素量尺 col-bands.py x=215 + png-bg-runs）：
+           顶栏 0..96（padding 48/16/12/16 + 图标行盒 36）· 内容区 padding 12/16/0/16
+           卡1 合同状态卡 108..194(86, 无 stroke + 柔和投影) · 卡2 电子签提示卡 206..257(51)
+           卡3 合同基本信息 269..453(184) · 卡4 费用与分成 465..619(154) · 卡5 关键条款 631..797(166)
+           卡6 签署信息 809..963(154) · 卡7 签署记录 975..1131(156) · 底栏 1147..1231(84)
+           卡内锚点：状态标题行 22 · 期限行 16 · 字段行 pitch 30(首 16) · 条款行 pitch 26(首 8)
+                     记录行 pitch 46(首 16) · 记录点 11x10 · PDF 按钮 x16..142 h48 · 去签署 x154..414 h48
+         ?scenario=pdf|sign|back 逐个回放出口；不带 scenario（或 noaction）只取 phase1 供截图 -->
+    <iframe id="f" src="/index.html#/pages/contract/index?contractId=c1"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var acc = {}
+
+      function all(doc, sel) { return Array.prototype.slice.call(doc.querySelectorAll(sel)) }
+      function rect(doc, sel) {
+        var el = doc.querySelector(sel)
+        if (!el) return null
+        var r = el.getBoundingClientRect()
+        return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+      }
+      function rects(doc, sel) {
+        return all(doc, sel).map(function (e) {
+          var r = e.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), w: Math.round(r.width), h: Math.round(r.height) }
+        })
+      }
+      function texts(doc, sel) { return all(doc, sel).map(function (e) { return e.textContent.trim() }) }
+      function textOf(doc, sel) { var e = doc.querySelector(sel); return e ? e.textContent.trim() : null }
+      function colorOf(doc, win, sel, prop) { var el = doc.querySelector(sel); return el ? win.getComputedStyle(el)[prop] : null }
+      function styleOf(doc, win, sel) {
+        var el = doc.querySelector(sel)
+        if (!el) return null
+        var cs = win.getComputedStyle(el)
+        return { fontSize: cs.fontSize, fontWeight: cs.fontWeight, color: cs.color, lineHeight: cs.lineHeight, display: cs.display, borderRadius: cs.borderRadius, padding: cs.padding, backgroundColor: cs.backgroundColor, boxShadow: cs.boxShadow, height: cs.height }
+      }
+      function bgsOf(doc, win, sel) {
+        return all(doc, sel).map(function (e) { return win.getComputedStyle(e).backgroundColor })
+      }
+
+      /** 设计稿里每一个独立文本图层（文案完整性检查清单，逐字抄自 page-15-2 design.tree.json，42 条可见文本） */
+      var needText = [
+        '合同签署', '编号 CT-2024-0613-008',
+        'API 接入服务合同', '待签署', '请在 2024-06-20 前完成签署，逾期将自动作废',
+        '本合同采用电子签章，签署后即时生效并具备法律效力。',
+        '合同基本信息', '供应商', '云智科技有限公司', '合作模式', 'API 转售（非独家）',
+        '生效期', '2024-07-01 至 2025-06-30', '结算账期', '月结 · 次月 15 日',
+        '费用与分成', '平台服务费率', '8%', '结算币种', 'CNY', '最低结算额', '¥1,000.00',
+        '关键条款', '1. 供应商须保证上游接口的合法来源与稳定可用。',
+        '2. 平台按实际用量结算，价格以审核通过的报价单为准。',
+        '3. 若月度可用率低于 99%，平台有权下调报价或终止合作。',
+        '4. 合同期内价格调整需双方确认后生效。',
+        '签署信息', '签署人', '李明（商务负责人）', '手机号', '138 **** 6621', '签署方式', '短信验证码签署',
+        '签署记录', '平台方已盖章', '2024-06-13 09:12', '等待供应商签署', '请尽快完成，逾期作废',
+        'PDF', '去签署'
+      ]
+
+      /** 从像素量尺得到的设计基线（用于 phase1 逐项对账） */
+      var DESIGN = {
+        pageH: 1231,
+        nav: { top: 0, h: 96 },
+        cardTops: [108, 206, 269, 465, 631, 809, 975],
+        cardHeights: [86, 51, 184, 154, 166, 154, 156],
+        bar: { top: 1147, h: 84 }
+      }
+
+      function collect(doc, win) {
+        var over = []
+        all(doc, '*').forEach(function (el) {
+          var r = el.getBoundingClientRect()
+          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
+            over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), left: Math.round(r.x), w: Math.round(r.width), right: Math.round(r.right), html: String(el.outerHTML || '').slice(0, 140) })
+          }
+        })
+        var text = (doc.body && doc.body.innerText) || ''
+        var cards = rects(doc, '.card')
+        return {
+          innerWidth: win.innerWidth,
+          docScrollWidth: doc.documentElement.scrollWidth,
+          docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
+          overflowingCount: over.length,
+          overflowing: over.slice(0, 12),
+          missingTexts: needText.filter(function (t) { return text.indexOf(t) === -1 }),
+          designDelta: {
+            pageH: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight) - DESIGN.pageH,
+            cardTops: cards.map(function (c, i) { return c.top - DESIGN.cardTops[i] }),
+            cardHeights: cards.map(function (c, i) { return c.h - DESIGN.cardHeights[i] })
+          },
+          pageBg: colorOf(doc, win, '.ct', 'backgroundColor'),
+          page: rect(doc, '.ct'),
+          nav: rect(doc, '.ct__nav'),
+          navPad: colorOf(doc, win, '.ct__nav', 'padding'),
+          navBack: rect(doc, '[data-testid="back"]'),
+          navTitle: textOf(doc, '[data-testid="nav-title"]'),
+          navTitleStyle: styleOf(doc, win, '.nav__title'),
+          navNo: rect(doc, '[data-testid="nav-no"]'),
+          navNoText: textOf(doc, '[data-testid="nav-no"]'),
+          navNoStyle: styleOf(doc, win, '.nav__no'),
+          bodyPad: colorOf(doc, win, '.ct__body', 'padding'),
+          cards: cards,
+          statusCard: rect(doc, '[data-testid="card-status"]'),
+          statusCardShadow: styleOf(doc, win, '.card--status').boxShadow,
+          statusIcon: rect(doc, '.status__icon'),
+          statusIconBg: colorOf(doc, win, '.status__icon', 'backgroundColor'),
+          statusRow: rect(doc, '.status__row'),
+          statusTitle: textOf(doc, '[data-testid="status-title"]'),
+          statusTitleStyle: styleOf(doc, win, '.status__title'),
+          statusChip: rect(doc, '.status-chip'),
+          statusChipBg: colorOf(doc, win, '.status-chip', 'backgroundColor'),
+          statusChipText: textOf(doc, '[data-testid="status-chip"]'),
+          statusChipTextColor: colorOf(doc, win, '.status-chip__text', 'color'),
+          deadline: rect(doc, '[data-testid="deadline"]'),
+          deadlineText: textOf(doc, '[data-testid="deadline"]'),
+          deadlineStyle: styleOf(doc, win, '.status__deadline'),
+          tipCard: rect(doc, '[data-testid="tip-card"]'),
+          tipPad: colorOf(doc, win, '.card--tip', 'padding'),
+          tipRing: styleOf(doc, win, '.card--tip').boxShadow,
+          tipText: rect(doc, '[data-testid="tip"]'),
+          tipIcon: rect(doc, '.card--tip .icon-line'),
+          backIcon: rect(doc, '.nav__back .icon-line'),
+          pdfIcon: rect(doc, '[data-testid="btn-pdf"] .icon-line'),
+          pdfTextRect: rect(doc, '.btn__text'),
+          signIcon: rect(doc, '[data-testid="btn-sign"] .icon-line'),
+          signTextRect: rect(doc, '.btn__text--light'),
+          tipTextStyle: styleOf(doc, win, '.tip__text'),
+          basicCard: rect(doc, '[data-testid="card-basic"]'),
+          basicRows: rects(doc, '.card--basic .crow'),
+          basicRowTexts: texts(doc, '.card--basic .crow'),
+          basicLabelStyle: styleOf(doc, win, '.card--basic .crow__label'),
+          basicValueStyle: styleOf(doc, win, '.card--basic .crow__value'),
+          feeCard: rect(doc, '[data-testid="card-fee"]'),
+          feeRows: rects(doc, '.card--fee .crow'),
+          feeRowTexts: texts(doc, '.card--fee .crow'),
+          feeValueRight: all(doc, '.card--fee .crow__value').map(function (e) { return Math.round(e.getBoundingClientRect().right) }),
+          feeValueStyle: styleOf(doc, win, '.card--fee .crow__value'),
+          termsCard: rect(doc, '[data-testid="card-terms"]'),
+          clauses: rects(doc, '.clause'),
+          clauseTexts: texts(doc, '.clause'),
+          clauseStyle: styleOf(doc, win, '.clause__text'),
+          signCard: rect(doc, '[data-testid="card-sign"]'),
+          signRows: rects(doc, '.card--sign .crow'),
+          signRowTexts: texts(doc, '.card--sign .crow'),
+          recordsCard: rect(doc, '[data-testid="card-records"]'),
+          records: rects(doc, '.record'),
+          recordTexts: texts(doc, '.record'),
+          dots: rects(doc, '.record__dot'),
+          dotTones: all(doc, '.record__dot').map(function (e) { return e.getAttribute('data-tone') }),
+          dotBgs: bgsOf(doc, win, '.record__dot'),
+          recordTitleStyle: styleOf(doc, win, '.record__title'),
+          recordTimeStyle: styleOf(doc, win, '.record__time'),
+          barWrap: rect(doc, '.ct__bar-wrap'),
+          bar: rect(doc, '.ct__bar'),
+          barPad: colorOf(doc, win, '.ct__bar', 'padding'),
+          pdfBtn: rect(doc, '[data-testid="btn-pdf"]'),
+          pdfRing: styleOf(doc, win, '[data-testid="btn-pdf"]').boxShadow,
+          pdfText: textOf(doc, '[data-testid="btn-pdf"]'),
+          pdfTextStyle: styleOf(doc, win, '.btn__text'),
+          signBtn: rect(doc, '[data-testid="btn-sign"]'),
+          signBtnBg: colorOf(doc, win, '[data-testid="btn-sign"]', 'backgroundColor'),
+          signText: textOf(doc, '[data-testid="btn-sign"]'),
+          signTextStyle: styleOf(doc, win, '.btn__text--light'),
+          cardCount: all(doc, '.card').length,
+          inputCount: all(doc, 'input,textarea').length,
+          tabbarExists: !!doc.querySelector('.tabbar'),
+          userAgent: win.navigator.userAgent
+        }
+      }
+
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
+
+      function collect1() {
+        try {
+          var payload = collect(f.contentDocument, f.contentWindow)
+          f.style.height = payload.docScrollHeight + 'px'
+          acc.iframeHeightForShot = payload.docScrollHeight
+          sink(1, payload)
+          return payload
+        } catch (e) {
+          sink(1, { error: String(e && e.message) })
+          return null
+        }
+      }
+
+      function clickIn(sel) {
+        var doc = f.contentDocument
+        var el = doc.querySelector(sel)
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+      function toastText(doc) {
+        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
+        return el ? el.textContent.trim() : ''
+      }
+      function hashNow() { try { return String(f.contentWindow.location.hash) } catch (e) { return 'ERR:' + e.message } }
+
+      function waitFor(sel, maxTries) {
+        return new Promise(function (resolve) {
+          var n = 0
+          function tick() {
+            n++
+            var ok = false
+            try { ok = !!f.contentDocument.querySelector(sel) } catch (e) { ok = false }
+            if (ok) return resolve('READY(tries=' + n + ')')
+            if (n >= (maxTries || 40)) return resolve('TIMEOUT(tries=' + n + ')')
+            setTimeout(tick, 200)
+          }
+          tick()
+        })
+      }
+
+      function scenario() {
+        var m = location.search.match(/scenario=([a-z]+)/)
+        return m ? m[1] : ''
+      }
+
+      async function main() {
+        await waitFor('[data-testid="card-records"]')
+        await sleep(1200)
+        collect1()
+        var sc = scenario()
+        if (!sc || location.search.indexOf('noaction') !== -1) return
+
+        if (sc === 'pdf') {
+          /* ⚠️ 实测结论（本轮新增）：uni-app **H5 构建把 uni API 以「模块绑定」方式内联**
+             （页面 chunk 顶部 `import{…N as downloadFile, …$ as openDocument}from"index-*.js"`），
+             因此给它打桩只有 `window.uni` 生效、**打不到真实调用链**（上一轮尝试即因此失败）。
+             正解 = 让 mock 返回**可达的本地 URL**（http://127.0.0.1:5251/files/CT-2024-0613-008.pdf），
+             让 uni H5 真实的 downloadFile 去取 → 用 serve.py 访问日志作为「真的下载了」的硬证据。 */
+          var w = f.contentWindow
+          var apiProbe = {
+            windowUniDownloadFile: typeof (w.uni && w.uni.downloadFile),
+            windowUniOpenDocument: typeof (w.uni && w.uni.openDocument)
+          }
+          var cPdf = clickIn('[data-testid="btn-pdf"]')
+          await sleep(2500)
+          sink(2, { scenario: sc, clicked: cPdf, apiProbe: apiProbe, toast: toastText(f.contentDocument), hash: hashNow() })
+          return
+        }
+
+        if (sc === 'sign') {
+          var cSign = clickIn('[data-testid="btn-sign"]')
+          await sleep(600)
+          var doc = f.contentDocument
+          var modal = doc.querySelector('uni-modal, .uni-modal')
+          var modalText = modal ? modal.textContent.replace(/\s+/g, ' ').trim() : ''
+          var confirmBtn = doc.querySelector('.uni-modal__btn_primary, .uni-modal__btn:last-child')
+          var confirmed = 'NO_CONFIRM_BTN'
+          if (confirmBtn) {
+            var ev2 = doc.createEvent('MouseEvents')
+            ev2.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+            confirmBtn.dispatchEvent(ev2)
+            confirmed = 'CONFIRMED'
+          }
+          await sleep(500)
+          var toastAfter = toastText(doc)
+          await sleep(1500)
+          sink(2, {
+            scenario: sc, clicked: cSign, confirmed: confirmed, modalText: modalText,
+            toast: toastAfter, hash: hashNow(),
+            statusChip: textOf(doc, '[data-testid="status-chip"]')
+          })
+          return
+        }
+
+        if (sc === 'back') {
+          var cBack = clickIn('[data-testid="back"]')
+          await sleep(1200)
+          sink(2, { scenario: sc, clicked: cBack, hash: hashNow() })
+          return
+        }
+      }
+      main()
+    </script>
+  </body>
+</html>
