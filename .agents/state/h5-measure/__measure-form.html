@@ -1,0 +1,169 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-form</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      /* 1120 高 = 覆盖整页（docScrollHeight≈1079），便于整页截图 */
+      iframe { width: 430px; height: 1120px; border: 0; }
+      /* 取数用的 <pre> 包在 0 尺寸 overflow:hidden 容器里：textContent 仍可读，但不参与渲染（负坐标 off-screen 会被截进图里） */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 430x900 iframe 模拟小程序视口；只给 DOM 数字，不靠 vision 猜
+         页面 4-v1：/pages/credential-submit/form（准入表单变体，page-24）
+         两段测量：①空态（真初始化态）②给 uni.chooseFile 打桩并点上传区 → 已上传文件态（与设计稿示例态一致） -->
+    <iframe id="f" src="/index.html#/pages/credential-submit/form"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      f.addEventListener('load', function () {
+        setTimeout(phase1, 3000)
+      })
+
+      function collect(doc, win) {
+        var over = []
+        doc.querySelectorAll('*').forEach(function (el) {
+          var r = el.getBoundingClientRect()
+          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
+            over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), right: Math.round(r.right) })
+          }
+        })
+        function rect(sel) {
+          var el = doc.querySelector(sel)
+          if (!el) return null
+          var r = el.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+        }
+        function texts(sel) {
+          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return e.textContent.trim() })
+        }
+        function colors(sel) {
+          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return win.getComputedStyle(e).backgroundColor })
+        }
+        function styleOf(sel, prop) {
+          var el = doc.querySelector(sel)
+          return el ? win.getComputedStyle(el)[prop] : null
+        }
+        function attrOf(sel, attr) {
+          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return e.getAttribute(attr) })
+        }
+        var text = (doc.body && doc.body.innerText) || ''
+        var need = [
+          '接入凭证', '填写客户信息并提交检测',
+          '基本信息', '客户名称', '统一社会信用代码', '联系人', '联系电话',
+          '检测类型', '基础检测', '深度检测', '合规检测',
+          '凭证资料', '支持 jpg / png / pdf', '点击上传凭证文件', '单个文件不超过 10MB',
+          '备注', '提交接入', '提交后系统将自动发起检测，预计 5 分钟内完成'
+        ]
+        var cards = Array.prototype.map.call(doc.querySelectorAll('.card'), function (e) {
+          var r = e.getBoundingClientRect()
+          return { top: Math.round(r.top), bottom: Math.round(r.bottom), h: Math.round(r.height), w: Math.round(r.width) }
+        })
+        var submit = rect('[data-testid="submit-btn"]')
+        return {
+          innerWidth: win.innerWidth,
+          innerHeight: win.innerHeight,
+          docScrollWidth: doc.documentElement.scrollWidth,
+          docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
+          overflowingCount: over.length,
+          overflowing: over.slice(0, 20),
+          missingTexts: need.filter(function (t) { return text.indexOf(t) === -1 }),
+          titleText: texts('[data-testid="page-title"]'),
+          subtitleText: texts('[data-testid="page-subtitle"]'),
+          sectionTitles: texts('[data-testid="section-title"]'),
+          fieldLabels: texts('[data-testid="field-label"]'),
+          starCount: doc.querySelectorAll('[data-testid="field-star"]').length,
+          starColor: styleOf('.field__star', 'color'),
+          nativePlaceholders: attrOf('input, textarea', 'placeholder'),
+          placeholderTexts: texts('.input-box__placeholder'),
+          inputBoxRect: rect('.input-box'),
+          inputBoxBg: styleOf('.input-box', 'backgroundColor'),
+          inputBoxBorder: styleOf('.input-box', 'borderTopColor'),
+          inputBoxRadius: styleOf('.input-box', 'borderTopLeftRadius'),
+          cardCount: cards.length,
+          cards: cards,
+          cardGap: styleOf('.card--basic', 'rowGap'),
+          cardShadow: styleOf('.card', 'boxShadow'),
+          cardRadius: styleOf('.card', 'borderTopLeftRadius'),
+          typeChips: texts('[data-testid="type-chip"]'),
+          chipChecked: attrOf('[data-testid="type-chip"]', 'data-checked'),
+          chipBg: colors('[data-testid="type-chip"]'),
+          chipTextColors: Array.prototype.map.call(doc.querySelectorAll('.type-chip__text'), function (e) { return win.getComputedStyle(e).color }),
+          chipRect: rect('[data-testid="type-chip"]'),
+          uploadTipText: texts('[data-testid="upload-tip"]'),
+          uploadMainText: texts('[data-testid="upload-main"]'),
+          uploadLimitText: texts('[data-testid="upload-limit"]'),
+          uploadRect: rect('[data-testid="upload-box"]'),
+          uploadBorderStyle: styleOf('[data-testid="upload-box"]', 'borderTopStyle'),
+          uploadBorderColor: styleOf('[data-testid="upload-box"]', 'borderTopColor'),
+          uploadIconRect: rect('.upload__icon'),
+          uploadIconBg: styleOf('.upload__icon', 'backgroundColor'),
+          fileRowCount: doc.querySelectorAll('[data-testid="file-row"]').length,
+          fileNameText: texts('[data-testid="file-name"]'),
+          fileSizeText: texts('[data-testid="file-size"]'),
+          fileRowRect: rect('[data-testid="file-row"]'),
+          fileDelRect: rect('[data-testid="file-del-0"]'),
+          remarkBoxRect: rect('.remark-box'),
+          remarkBoxBg: styleOf('.remark-box', 'backgroundColor'),
+          remarkBoxBorder: styleOf('.remark-box', 'borderTopColor'),
+          submitBtnText: texts('[data-testid="submit-btn"]'),
+          submitBtnRect: submit,
+          submitBtnBg: styleOf('[data-testid="submit-btn"]', 'backgroundColor'),
+          submitBtnShadow: styleOf('[data-testid="submit-btn"]', 'boxShadow'),
+          submitBelowDocTop: submit ? Math.round(submit.top) : null,
+          footnoteText: texts('[data-testid="submit-footnote"]'),
+          footnoteFontSize: styleOf('.footnote__text', 'fontSize'),
+          topbarRect: rect('.access-form__topbar'),
+          topbarBg: styleOf('.access-form__topbar', 'backgroundColor'),
+          pageBg: styleOf('.access-form', 'backgroundColor'),
+          contentPadding: styleOf('.access-form__content', 'padding'),
+          contentGap: styleOf('.access-form__content', 'rowGap'),
+          hasTabbar: doc.querySelectorAll('.tabbar').length,
+          glyphCount: doc.querySelectorAll('.glyph').length,
+          emojiInText: /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(text)
+        }
+      }
+
+      var out = {}
+      function flush(label) {
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(out)
+        void label
+      }
+
+      function phase1() {
+        try {
+          out.empty = collect(f.contentDocument, f.contentWindow)
+          var fr = f.getBoundingClientRect()
+          out.iframeRect = { x: Math.round(fr.x), y: Math.round(fr.y), w: Math.round(fr.width), h: Math.round(fr.height) }
+          out.outerInnerWidth = window.innerWidth
+        } catch (e) {
+          out.empty = { error: e.message }
+        }
+        // 打桩 uni.chooseFile（H5 路径）并点击上传区 → 走真实 onPickFile 代码路径
+        try {
+          var w = f.contentWindow
+          w.uni.chooseFile = function (options) {
+            options.success({ tempFiles: [{ path: '营业执照扫描件.pdf', name: '营业执照扫描件.pdf', size: 2516582 }] })
+          }
+          var box = f.contentDocument.querySelector('[data-testid="upload-box"]')
+          box.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: w }))
+        } catch (e) {
+          out.injectError = e.message
+        }
+        setTimeout(phase2, 2500)
+      }
+
+      function phase2() {
+        try {
+          out.filled = collect(f.contentDocument, f.contentWindow)
+        } catch (e) {
+          out.filled = { error: e.message }
+        }
+        flush('done')
+      }
+    </script>
+  </body>
+</html>

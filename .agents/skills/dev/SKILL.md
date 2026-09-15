@@ -73,6 +73,8 @@ python .agents/state/extract-tokens.py .calicat/raw/pages/<页面ID>/design.tree
 ```
 
 - `interaction.json` 返回 `"不存在图层交互数据"` 时，交互真源退到 PRD（写进台账备注，不要假装抓到了）。
+  ⚠️ 但 `.calicat/inventory.json` 里的 `interactionCaptured` 是工具的「抓过就算」标记：page-24 实测该字段为 `true`，
+  而 `interaction.json` 内容仍是「不存在图层交互数据」→ **一律以 interaction.json 的内容判定**（`gen-ledger.py` 已按内容判定并显示「交互已抓 0/22」）。
 - 截图 URL 在 `screenshot.json`，用 `vision_analyze` 打开看图（模型看得见像素，别猜）。
 - **画布里的页面层必须在 Calicat 编辑器里打开过**，否则部分工具会返回空。
 - ⚠️ **设计类工具要求「文件已在浏览器中打开」**：`get_canvas_list` / `get_design_page_list` / `get_design_data` /
@@ -110,6 +112,14 @@ vision 看到的「右侧贴边/缺字」是**截图假象**而非页面缺陷�
 
    看三个数：`docScrollWidth <= innerWidth`、`overflowingCount == 0`、关键文案完整。
 2. `vision_analyze` 只用于"人眼感受"层判断（层级、留白、色彩关系），与步骤 1 冲突时**以数字为准**。
+
+⚠️ **2026-09-16 补（序号 4-v1 实测）**：载体页里取数的 `<pre id="m">` **不能靠 `left:-9999px` 藏**——
+无头 `--screenshot` 会把页外内容也截进来（实测截进了整段 MEASURE_JSON 文本，vision 报成"顶部黑色 JSON 调试条"的**假象**，
+而只看 DOM 数字完全发现不了）。正解：把 `<pre>` 包进 `#sink { width:0; height:0; overflow:hidden }`（textContent 仍可读）。
+**规矩：每次截图后必须用 `png-ink.py "<out.png>" "band=0,0,430,60"` 核验顶部带**（底部同理）——
+正常只有返回箭头/标题/按钮几个 run；出现满行密集 run 就是载体页污染或内容越界，先修载体再谈页面。
+整页截图：把 iframe 高度设成 `docScrollHeight`（如 1120）再 `--window-size=430,1120`。
+两段测量模板见 `.agents/state/h5-measure/__measure-form.html`（空态 + 给 `uni.chooseFile` 打桩后点上传区，走真实 `onPickFile`）。
 
 ### 4.2 测量/取证流水线（2026-09-16 起，踩过的四个坑）
 

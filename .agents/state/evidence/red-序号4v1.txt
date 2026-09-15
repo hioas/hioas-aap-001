@@ -1,0 +1,40 @@
+  2  |  import { ApiError } from "@/api/http";
+  3  |  import { accessApplicationApi } from "@/api/access-application";
+     |                                        ^
+  4  |  import { getCalls, pushResponse } from "../setup";
+  5  |  const ok = (data) => ({ statusCode: 200, data: { code: "0", message: "ok", data } });[39m
+[90m [2m❯[22m formatError node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m50863:46[22m[39m
+[90m [2m❯[22m TransformContext.error node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m50857:19[22m[39m
+[90m [2m❯[22m normalizeUrl node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m66092:33[22m[39m
+[90m [2m❯[22m node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m66247:47[22m[39m
+[90m [2m❯[22m TransformContext.transform node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m66168:13[22m[39m
+[90m [2m❯[22m Object.transform node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m51172:30[22m[39m
+[90m [2m❯[22m loadAndTransform node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m53923:29[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/access-application-model.spec.ts[2m [ tests/unit/access-application-model.spec.ts ][22m
+[31m[1mError[22m: Failed to resolve import "@/utils/access-application-model" from "tests/unit/access-application-model.spec.ts". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mE:/workspaces/hioas/hioas-aap-001/aap-client/tests/unit/access-application-model.spec.ts[39m:62:7
+[33m  43 |    validateAccessApplication,
+  44 |    validateFile
+  45 |  } from "@/utils/access-application-model";
+     |          ^
+  46 |  const MB = 1024 * 1024;
+  47 |  describe("文案常量 === 设计稿原文（不得改写）", () => {[39m
+[90m [2m❯[22m formatError node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m50863:46[22m[39m
+[90m [2m❯[22m TransformContext.error node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m50857:19[22m[39m
+[90m [2m❯[22m normalizeUrl node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m66092:33[22m[39m
+[90m [2m❯[22m node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m66247:47[22m[39m
+[90m [2m❯[22m TransformContext.transform node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m66168:13[22m[39m
+[90m [2m❯[22m Object.transform node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m51172:30[22m[39m
+[90m [2m❯[22m loadAndTransform node_modules/vite/dist/node/chunks/dep-whKeNLxG.js:[2m53923:29[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m12 passed[39m[22m[90m (15)[39m
+[2m      Tests [22m [1m[32m187 passed[39m[22m[90m (187)[39m
+[2m   Start at [22m 00:51:06
+[2m   Duration [22m 4.17s[2m (transform 1.18s, setup 244ms, collect 2.33s, tests 1.40s, environment 10.00s, prepare 1.70s)[22m
+

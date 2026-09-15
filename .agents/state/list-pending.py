@@ -13,7 +13,10 @@ import os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 LEDGER = os.path.join(ROOT, ".agents", "state", "aap-feature-status.csv")
-DONE = {"已验证"}
+# 已验证 = 做完且无缺口；部分 = 已实现并留证、仅剩「等人类拍板」的缺口 → 都不得重复取件。
+# 只有 未做/进行中 才计入取件（阻塞 单独列出，等人解除后再取）。
+DONE = {"已验证", "部分"}
+BLOCKED = {"阻塞"}
 
 
 def seq_key(seq):
@@ -33,9 +36,12 @@ def main():
         rows = [r for r in csv.DictReader(f)]
     rows.sort(key=lambda r: seq_key(r["序号"]))
 
-    pending = [r for r in rows if r["状态"] not in DONE]
-    done = len(rows) - len(pending)
-    print(f"台账 {len(rows)} 行 · 已验证 {done} · 未完成 {len(pending)}")
+    pending = [r for r in rows if r["状态"] not in DONE and r["状态"] not in BLOCKED]
+    blocked = [r for r in rows if r["状态"] in BLOCKED]
+    done = len([r for r in rows if r["状态"] in DONE])
+    print(f"台账 {len(rows)} 行 · 已验证/部分 {done} · 阻塞 {len(blocked)} · 待取件 {len(pending)}")
+    if blocked:
+        print("  阻塞（等人解除，不取件）：" + "、".join(f"{r['序号']} {r['页面ID']}" for r in blocked))
     show = pending if a.all else pending[: a.n]
     for r in show:
         print(f"{r['序号']:>6} | {r['状态']:<4} | 设计{r['设计抓取']} 交互{r['交互抓取']} | "

@@ -64,6 +64,37 @@ LEASE: free
 
 ## 4. 进度（细表看台账 CSV，这里只留能力组）
 
+🟢 本轮（2026-09-16 00:45~01:05，租约 aap-tdd-run-20260916-0045 → 已释放）· **序号 4-v1「接入凭证-表单」（page-24）收口**：
+- **取件规则修正**：`list-pending.py` 之前只把 `已验证` 当完成 → 「部分」行（1/2/3/4）每轮都被重新取到，与「别回炉」矛盾。
+  已改为 `DONE = {已验证, 部分}`、`阻塞` 单独列出（本轮实测：待取件 17，最小未完成 = **序号 5**）。新增工具：
+  `set-ledger-from-json.py`（台账字段值走 JSON，躲开 bash 里中文/逗号/`$` 的引号地狱）、`show-measure.py`（两段式 measure 取数并支持 `empty|filled`）。
+- **设计侧**：page-24 设计树（78 图层）+ 截图已抓；`interaction.json` 仍「不存在图层交互数据」→ 交互真源退 PRD + 画布 30 页清单。
+- **这页到底是什么**（此前只有「准入表单变体」一句）：文案为「接入凭证 / 填写客户信息并提交检测」+ 客户名称*/统一社会信用代码*/
+  联系人/联系电话 / 检测类型（基础·深度·合规）/ 凭证资料（营业执照 jpg·png·pdf ≤10MB 虚线框）/ 备注 / 提交接入。
+  字段与 15-数据字典 `aap_provider` 一一对上（company_name / unified_social_credit_code / contact_name / contact_phone_*），
+  资质对应 17-spec `qualification_files`；手机号规则复用 R-01。
+- **TDD（3 个用例文件先红 → 到绿）**：`tests/unit/access-application-model.spec.ts`(31) · `tests/unit/access-application-api.spec.ts`(5) ·
+  `tests/pages/credential-submit-form.spec.ts`(22)；红基线 = 3 个文件 `Failed to resolve import`（`evidence/red-序号4v1.txt`，原 187 条不受影响）；
+  实现 `src/utils/access-application-model.ts`、`src/api/access-application.ts`、`src/pages/credential-submit/form.vue`、`pages.json` 路由；
+  绿 **245/245 连跑两轮一致**（`evidence/green-序号4v1.txt`）+ `npm run type-check` **exit 0**。
+- **客观证据链**：`build:mp-weixin` 产出 `dist/build/mp-weixin/pages/credential-submit/form.{js,json,wxml,wxss}`；
+  430 宽 iframe + 无头 Chrome **两段实测** `evidence/measure-序号4v1-430宽.json`：空态 `docScrollWidth 430` · 溢出 0 · 文案缺失 0 · 必填星号 2 ·
+  chip 选中 `#2563EB` · 上传区 `dashed rgb(203,213,225)` · 输入框 44 高 · 备注框 52 高 · 提交按钮 390×48@x20 · 无 TabBar；
+  已上传文件态（**在真实浏览器里给 `uni.chooseFile` 打桩后点上传区，走真实 `onPickFile`**）→ 文件行「营业执照扫描件.pdf / 2.4 MB」· 溢出 0。
+  像素墨迹核验右留白 30/35/49/20 均未触边；截图 `logs/screenshots/20260916-0100-序号4v1-接入凭证表单-h5-430宽.png`。
+- **抓出的真缺陷（工具层）**：`__measure*.html` 用 `left:-9999px` 把取数 `<pre>` 移出视口 → **无头 `--screenshot` 把页外内容也截进去了**，
+  vision 看到「顶部黑色 JSON 调试条」（只看 DOM 数字发现不了）。修法：包进 `#sink{width:0;height:0;overflow:hidden}`，
+  并用 `png-ink band=0,0,430,60` 复验顶部带（修前满行密集墨迹 → 修后仅返回箭头/标题/扫描按钮）。**已写进 `.agents/skills/dev/SKILL.md` §4.1**。
+- ⚠️ 待人类拍板（不阻塞本轮，全部写进台账序号 4-v1 备注）：①「基础检测/深度检测/合规检测」在 22 份 PRD **零命中**、18-API 无入参
+  → 只做 UI 选中态、**不进提交体**（有用例钉死）；②「备注」在 `aap_provider` 无对应列 → 同样不进提交体；③**18-API 无文件上传接口**
+  （仅 Contract 有 `/contracts/{id}/file`）→ 只登记 file_name/file_size，**文件本体没上传**；④**18-API 无 provider 主体写接口**
+  →「企业信息随申请体一起提交」的接口归属是推断（本页最大阻塞项）；⑤18-API 卡片只列路径未列方法 → POST 为 REST 语义推断；
+  ⑥统一社会信用代码字符集（GB 32100-2015）未定义 → 只校验 18 位字母数字；⑦设计「客户名称」框是已填值、无占位 → 占位文案为推断；
+  ⑧设计整页高 1137 vs 实测 1079（差额 = 设计示例态的文件行 +66 与画布底部留白，非布局缺陷）。
+
+⏳ 下一步（下一轮）：台账序号 **5「检测进行中」**（page-5-2，`/pages/detecting/index`）——它正是序号 4 / 4-v1 提交后的跳转目标，
+按 §2 八步走；可复用 `serve.py` 与 `__measure-form.html` 的两段测量模板（**记得 build:h5 之后重拷载体页，且截图后核验顶部墨迹**）。
+
 🟢 本轮（2026-09-16 00:25~00:47，租约 aap-tdd-run-20260916-0025 → 已释放）· **类型门禁修复 + 序号 4「提交接入凭证 2」收口**：
 - **先修类型门禁（独立提交 `62b61d2`）**：上一轮记的 `TS5070` 根因是 `typescript 4.9.5` 撞上 `@vue/tsconfig 0.5.1` 的 TS5 语义
   （`moduleResolution: bundler`）→ vue-tsc 一条真实错误都报不出来。修法：tsconfig 显式 `moduleResolution: node`；
@@ -102,6 +133,7 @@ LEASE: free
 ⏳ 下一步（下一轮）：台账序号 **4-v1「接入凭证-表单」（page-24，`/pages/credential-submit/form`）**——与本轮同族的「新建」空态表单，
 按 §2 八步走；可直接复用 `credential-form-model.ts` 与 `.agents/state/h5-measure/serve.py`（记得 build:h5 之后重拷载体页）。
 （序号 1/2/3/4 均已实现并留证，状态为「部分」是因为登记了等人类拍板的缺口，不要重复回炉。）
+✅ 已于 2026-09-16 00:45~01:05 轮完成（见上方本轮块；序号 4-v1 现为「部分」，待人类拍板的 8 条已记台账）。
 
 🟢 本轮（2026-09-16 00:10~00:24，租约 aap-tdd-run-20260916-0010 → 已释放）· **序号 3「凭证列表-有数据」收口**：
 - **Calicat 侧**：设计类工具报「请先在浏览器中打开文件」→ `cmd /c start "" <design-url>` 拉起后恢复；page-3 设计树 + 截图已抓
