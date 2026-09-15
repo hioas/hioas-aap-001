@@ -1,5 +1,5 @@
 STATUS: RUNNING
-LEASE: aap-tdd-run-20260915-2347 until 2026-09-16 01:05
+LEASE: free
 
 # AAP TDD 推进 · 状态与目标（自驱动循环的单一事实来源）
 
