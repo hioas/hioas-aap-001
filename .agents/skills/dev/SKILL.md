@@ -247,7 +247,8 @@ vision 看到的「右侧贴边/缺字」是**截图假象**而非页面缺陷�
 - **H5 版「连跑两轮一致」= 两次独立 dump 比同一 phase**：`python .agents/state/cmp-measure-runs.py <a.json> <b.json> phase1`
   （载体页的 phase2 若只装交互结果、不含全量 collect，就不能用 `compare-phases.py` 比 phase1/phase2）。
 - 新增工具：`count-text.py`（量文本长度）、`grep-dump.py <dump> <关键字>`（在 dump-dom 里抓上下文，排查 uni H5 真实 DOM 结构）、
-  `show-measure10.py <json> <phase|cmp> …`（按 phase 取数 / 比两 phase）、`cmp-measure-runs.py`（两次独立测量逐字段比对）。
+  `show-measure10.py <json> <phase|cmp> …`（按 phase 取数 / 比两 phase）、`cmp-measure-runs.py`（两次独立测量逐字段比对）、
+  `kill-port.py <端口>`（收尾结束测量用 mock 服务；cron 里 `taskkill /F` 会被安全策略拦，故用 ctypes TerminateProcess）。
 - **uni-app H5 的 `placeholder` 是渲染成文本层的**（会进 `innerText`），不在内层原生 `input` 的 `placeholder` 属性上 →
   文案完整性检查可直接把占位文案写进 `need` 列表。（序号 10 实测：`placeholderAttr=null`、`placeholderInText=true`。）
 
