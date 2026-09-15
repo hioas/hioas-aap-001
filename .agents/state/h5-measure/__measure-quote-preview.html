@@ -1,0 +1,241 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-quote-preview</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      /* 取数用 <pre> 包进 0 尺寸 overflow:hidden 容器：textContent 可读，但不渲染、不会被 --screenshot 截进图里 */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
+         页面 12：/pages/quote-preview/index（【报价管理】报价预览与提交 2，page-12-2）
+         设计基线（设计截图 430x1027 像素量尺 + 卡片整高反推，见 .agents/state/design-shots/page-12-2-design.png）：
+           顶栏 0..96 · 内容区 padding 12/16/0/16 · 卡间距 12 · 卡 padding 20 r16 stroke 1px #EEF2F7
+           卡1 108..381(273) · 卡2 392..612(220) · 卡3 624..788(164) · 确认卡 800..927(127) · 底栏 943..1027(84) · 页高 1027
+           卡内：头行 26 · 基础价行 padding-top 12 高 34（标签 12 + 值 22）· 规则行 44（padding 10 + 内容 24）
+                （首个规则块 padding-top 12、其后 8）· 标签胶囊 h20 r10 · 提示条 h53
+         phase1 = 首屏（GET /api/v1/quotes/q7）· 整页高度回填 iframe 供截图
+         phase2 = 点「返回编辑」（navigateBack 无栈 → hash 不变）+ 取消勾选后点「提交报价」→ 提示且**不发提交请求**
+         phase3 = 重新勾选 → 点「提交报价」→ 真实 POST /api/v1/quotes/q7/submit → toast + 跳报价单列表
+         截图另跑 ?noaction=1（交互回放会把 iframe 导航走） -->
+    <iframe id="f" src="/index.html#/pages/quote-preview/index?quoteId=q7"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var acc = {}
+
+      function all(doc, sel) { return Array.prototype.slice.call(doc.querySelectorAll(sel)) }
+      function rect(doc, sel) {
+        var el = doc.querySelector(sel)
+        if (!el) return null
+        var r = el.getBoundingClientRect()
+        return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+      }
+      function rects(doc, sel) {
+        return all(doc, sel).map(function (e) {
+          var r = e.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), w: Math.round(r.width), h: Math.round(r.height) }
+        })
+      }
+      function texts(doc, sel) { return all(doc, sel).map(function (e) { return e.textContent.trim() }) }
+      function textOf(doc, sel) { var e = doc.querySelector(sel); return e ? e.textContent.trim() : null }
+      function colorOf(doc, win, sel, prop) { var el = doc.querySelector(sel); return el ? win.getComputedStyle(el)[prop] : null }
+      function styleOf(doc, win, sel) {
+        var el = doc.querySelector(sel)
+        if (!el) return null
+        var cs = win.getComputedStyle(el)
+        return { fontSize: cs.fontSize, fontWeight: cs.fontWeight, color: cs.color, lineHeight: cs.lineHeight, display: cs.display, borderRadius: cs.borderRadius, padding: cs.padding, backgroundColor: cs.backgroundColor, boxShadow: cs.boxShadow }
+      }
+      function bgsOf(doc, win, sel) {
+        return all(doc, sel).map(function (e) { return win.getComputedStyle(e).backgroundColor })
+      }
+
+      /** 设计稿里每一个独立文本图层（文案完整性检查清单，逐字抄自 design.tree.json） */
+      var needText = [
+        '报价预览',
+        'gpt-4o-mini', '时段价 + 阶梯价', '输入', '¥1.2', '输出', '¥3.6', '缓存读', '¥0.6',
+        '高峰 09:00–12:00 / 18:00–22:00 上浮 1.2 倍，其余时段 0.85 倍',
+        '3 档阶梯：0–100万 / 100–500万 / 500万以上',
+        '请求规则计费：命中条件时按倍率计费，多条命中相乘',
+        'claude-3-5-sonnet', '阶梯价', '输入', '¥2.0', '输出', '¥8.0', '缓存读', '¥0.2',
+        '3 档阶梯已启用，末档覆盖至不限量',
+        'gpt-4o', '仅基础价', '输入', '¥4.0', '输出', '¥12.0', '缓存写', '¥5.0',
+        '我确认以上价格真实有效，并同意《报价服务条款》',
+        '提交后进入运营审核，审核通过将自动编译计费表达式并同步渠道。',
+        '返回编辑', '提交报价'
+      ]
+
+      function collect(doc, win) {
+        var over = []
+        all(doc, '*').forEach(function (el) {
+          var r = el.getBoundingClientRect()
+          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
+            over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), left: Math.round(r.x), w: Math.round(r.width), right: Math.round(r.right), html: String(el.outerHTML || '').slice(0, 140) })
+          }
+        })
+        var text = (doc.body && doc.body.innerText) || ''
+        return {
+          innerWidth: win.innerWidth,
+          docScrollWidth: doc.documentElement.scrollWidth,
+          docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
+          overflowingCount: over.length,
+          overflowing: over.slice(0, 12),
+          missingTexts: needText.filter(function (t) { return text.indexOf(t) === -1 }),
+          pageBg: colorOf(doc, win, '.preview', 'backgroundColor'),
+          page: rect(doc, '.preview'),
+          nav: rect(doc, '.preview__nav'),
+          navPad: colorOf(doc, win, '.preview__nav', 'padding'),
+          navBack: rect(doc, '.nav__back'),
+          navTitle: textOf(doc, '[data-testid="nav-title"]'),
+          navTitleStyle: styleOf(doc, win, '.nav__title'),
+          bodyPad: colorOf(doc, win, '.preview__body', 'padding'),
+          cards: rects(doc, '.card'),
+          cardPadding: colorOf(doc, win, '.card', 'padding'),
+          cardRing: colorOf(doc, win, '.card', 'boxShadow'),
+          heads: rects(doc, '.card__head'),
+          headName: texts(doc, '.head__name'),
+          headNameStyle: styleOf(doc, win, '.head__name'),
+          tags: rects(doc, '.tag'),
+          tagTexts: texts(doc, '[data-testid="model-tag"]'),
+          tagBgs: bgsOf(doc, win, '.tag'),
+          tagTones: all(doc, '[data-testid="model-tag"]').map(function (e) { return e.getAttribute('data-tone') }),
+          priceRows: rects(doc, '.prices'),
+          priceLabels: texts(doc, '[data-testid="price-label"]'),
+          priceValues: texts(doc, '[data-testid="price-value"]'),
+          priceCols: rects(doc, '.prices__col'),
+          priceLabelStyle: styleOf(doc, win, '.prices__label'),
+          priceValueStyle: styleOf(doc, win, '.prices__value'),
+          rules: rects(doc, '.rule'),
+          ruleBg: colorOf(doc, win, '.rule', 'backgroundColor'),
+          rulePad: colorOf(doc, win, '.rule', 'padding'),
+          ruleTexts: texts(doc, '[data-testid="rule-line"]'),
+          ruleTextStyle: styleOf(doc, win, '.rule__text'),
+          confirmRow: rect(doc, '.confirm'),
+          check: rect(doc, '[data-testid="confirm-check"]'),
+          checkChecked: (function () { var e = doc.querySelector('[data-testid="confirm-check"]'); return e ? e.getAttribute('data-checked') : null })(),
+          checkBg: colorOf(doc, win, '.check--on', 'backgroundColor'),
+          confirmText: textOf(doc, '[data-testid="confirm-text"]'),
+          confirmStyle: styleOf(doc, win, '.confirm__text'),
+          hint: rect(doc, '.hint'),
+          hintBg: colorOf(doc, win, '.hint', 'backgroundColor'),
+          hintPad: colorOf(doc, win, '.hint', 'padding'),
+          hintText: textOf(doc, '[data-testid="submit-hint"]'),
+          hintStyle: styleOf(doc, win, '.hint__text'),
+          hintTextHeight: (function () { var e = doc.querySelector('[data-testid="submit-hint"]'); return e ? Math.round(e.getBoundingClientRect().height) : null })(),
+          hintMaxWidth: colorOf(doc, win, '.hint__text', 'maxWidth'),
+          barWrapPad: colorOf(doc, win, '.preview__bar-wrap', 'padding'),
+          bar: rect(doc, '.preview__bar'),
+          barPad: colorOf(doc, win, '.preview__bar', 'padding'),
+          barBg: colorOf(doc, win, '.preview__bar', 'backgroundColor'),
+          ghostBtn: rect(doc, '[data-testid="btn-back-edit"]'),
+          ghostText: textOf(doc, '[data-testid="btn-back-edit"]'),
+          ghostStyle: styleOf(doc, win, '.bar__ghost'),
+          submitBtn: rect(doc, '[data-testid="btn-submit"]'),
+          submitText: textOf(doc, '[data-testid="btn-submit"]'),
+          submitBg: colorOf(doc, win, '[data-testid="btn-submit"]', 'backgroundColor'),
+          submitTextStyle: styleOf(doc, win, '.bar__main-text'),
+          cardCount: all(doc, '[data-testid="model-card"]').length,
+          inputCount: all(doc, 'input,textarea').length,
+          tabbarExists: !!doc.querySelector('.tabbar'),
+          userAgent: win.navigator.userAgent
+        }
+      }
+
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
+
+      function collect1() {
+        try {
+          var payload = collect(f.contentDocument, f.contentWindow)
+          f.style.height = payload.docScrollHeight + 'px'
+          acc.iframeHeightForShot = payload.docScrollHeight
+          sink(1, payload)
+          return payload
+        } catch (e) {
+          sink(1, { error: String(e && e.message) })
+          return null
+        }
+      }
+
+      function clickIn(sel) {
+        var doc = f.contentDocument
+        var el = doc.querySelector(sel)
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+      function toastText(doc) {
+        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
+        return el ? el.textContent.trim() : ''
+      }
+      function hashNow() { try { return String(f.contentWindow.location.hash) } catch (e) { return 'ERR:' + e.message } }
+
+      function waitFor(sel, maxTries) {
+        return new Promise(function (resolve) {
+          var n = 0
+          function tick() {
+            n++
+            var ok = false
+            try { ok = !!f.contentDocument.querySelector(sel) } catch (e) { ok = false }
+            if (ok) return resolve('READY(tries=' + n + ')')
+            if (n >= (maxTries || 40)) return resolve('TIMEOUT(tries=' + n + ')')
+            setTimeout(tick, 200)
+          }
+          tick()
+        })
+      }
+
+      async function main() {
+        await waitFor('[data-testid="model-name"]')
+        await sleep(1200)
+        collect1()
+        if (location.search.indexOf('noaction') !== -1) return
+
+        /* phase2：「返回编辑」（无栈 navigateBack）+ 取消勾选后提交 → 有提示、无提交请求 */
+        var backClick = clickIn('[data-testid="btn-back-edit"]')
+        await sleep(700)
+        var hashAfterBack = hashNow()
+        var toggled = clickIn('[data-testid="confirm-check"]')
+        await sleep(400)
+        var checkedAfterToggle = (function () {
+          var e = f.contentDocument.querySelector('[data-testid="confirm-check"]')
+          return e ? e.getAttribute('data-checked') : null
+        })()
+        var submitClickBlocked = clickIn('[data-testid="btn-submit"]')
+        await sleep(1200)
+        sink(2, {
+          clickedBack: backClick,
+          hashAfterBack: hashAfterBack,
+          clickedCheck: toggled,
+          checkAfterToggle: checkedAfterToggle,
+          clickedSubmit: submitClickBlocked,
+          toastAfterBlockedSubmit: toastText(f.contentDocument),
+          hashAfterBlockedSubmit: hashNow()
+        })
+
+        /* phase3：重新勾选 → 提交 → 真实 POST /api/v1/quotes/q7/submit → toast + 跳列表 */
+        clickIn('[data-testid="confirm-check"]')
+        await sleep(400)
+        var submitClick = clickIn('[data-testid="btn-submit"]')
+        await sleep(2000)
+        sink(3, {
+          clickedSubmit: submitClick,
+          toastAfterSubmit: toastText(f.contentDocument),
+          hashAfterSubmit: hashNow(),
+          listRendered: !!f.contentDocument.querySelector('[data-testid="new-quote"]')
+        })
+      }
+
+      main()
+    </script>
+  </body>
+</html>

@@ -1,0 +1,83 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+ [31m❯[39m tests/unit/quote-submit-api.spec.ts [2m([22m[2m5 tests[22m[2m | [22m[31m5 failed[39m[2m)[22m[90m 8[2mms[22m[39m
+[31m   [31m×[31m quoteApi.detail（GET /api/v1/quotes/{quoteId}）[2m > [22m取报价单详情（含明细行）→ GET /api/v1/quotes/q7[90m 5[2mms[22m[31m[39m
+[31m     → quoteApi.detail is not a function[39m
+[31m   [31m×[31m quoteApi.detail（GET /api/v1/quotes/{quoteId}）[2m > [22mquoteId 做 URL 编码[90m 0[2mms[22m[31m[39m
+[31m     → quoteApi.detail is not a function[39m
+[31m   [31m×[31m quoteApi.submit（POST /api/v1/quotes/{quoteId}/submit）[2m > [22m提交报价单 → POST /api/v1/quotes/q7/submit，且**不带请求体**（无 schema 依据）[90m 0[2mms[22m[31m[39m
+[31m     → quoteApi.submit is not a function[39m
+[31m   [31m×[31m quoteApi.submit（POST /api/v1/quotes/{quoteId}/submit）[2m > [22mquoteId 做 URL 编码[90m 0[2mms[22m[31m[39m
+[31m     → quoteApi.submit is not a function[39m
+[31m   [31m×[31m quoteApi.submit（POST /api/v1/quotes/{quoteId}/submit）[2m > [22m服务端 E-1601（状态非法流转）→ 抛 ApiError 且保留错误码（前端不自行判定状态）[90m 0[2mms[22m[31m[39m
+[31m     → quoteApi.submit is not a function[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 5 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-submit-api.spec.ts[2m > [22mquoteApi.detail（GET /api/v1/quotes/{quoteId}）[2m > [22m取报价单详情（含明细行）→ GET /api/v1/quotes/q7
+[31m[1mTypeError[22m: quoteApi.detail is not a function[39m
+[36m [2m❯[22m tests/unit/quote-submit-api.spec.ts:[2m28:32[22m[39m
+    [90m 26| [39m      data[33m:[39m { code[33m:[39m [32m'0'[39m[33m,[39m message[33m:[39m [32m'ok'[39m[33m,[39m data[33m:[39m { quote_id[33m:[39m [32m'q7'[39m[33m,[39m status…
+    [90m 27| [39m    })
+    [90m 28| [39m    [35mconst[39m res [33m=[39m [35mawait[39m quoteApi[33m.[39m[34mdetail[39m([32m'q7'[39m)
+    [90m   | [39m                               [31m^[39m
+    [90m 29| [39m    [35mconst[39m options [33m=[39m [34mlastRequest[39m()
+    [90m 30| [39m    [34mexpect[39m(options[33m.[39murl)[33m.[39m[34mtoBe[39m([32m'/api/v1/quotes/q7'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-submit-api.spec.ts[2m > [22mquoteApi.detail（GET /api/v1/quotes/{quoteId}）[2m > [22mquoteId 做 URL 编码
+[31m[1mTypeError[22m: quoteApi.detail is not a function[39m
+[36m [2m❯[22m tests/unit/quote-submit-api.spec.ts:[2m37:20[22m[39m
+    [90m 35| [39m  [34mit[39m([32m'quoteId 做 URL 编码'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m 36| [39m    [34mpushResponse[39m({ statusCode[33m:[39m [34m200[39m[33m,[39m data[33m:[39m { code[33m:[39m [32m'0'[39m[33m,[39m message[33m:[39m [32m'ok'[39m[33m,[39m …
+    [90m 37| [39m    [35mawait[39m quoteApi[33m.[39m[34mdetail[39m([32m'q/7'[39m)
+    [90m   | [39m                   [31m^[39m
+    [90m 38| [39m    [34mexpect[39m([34mlastRequest[39m()[33m.[39murl)[33m.[39m[34mtoBe[39m([32m'/api/v1/quotes/q%2F7'[39m)
+    [90m 39| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-submit-api.spec.ts[2m > [22mquoteApi.submit（POST /api/v1/quotes/{quoteId}/submit）[2m > [22m提交报价单 → POST /api/v1/quotes/q7/submit，且**不带请求体**（无 schema 依据）
+[31m[1mTypeError[22m: quoteApi.submit is not a function[39m
+[36m [2m❯[22m tests/unit/quote-submit-api.spec.ts:[2m50:32[22m[39m
+    [90m 48| [39m      data[33m:[39m { code[33m:[39m [32m'0'[39m[33m,[39m message[33m:[39m [32m'ok'[39m[33m,[39m data[33m:[39m { quote_id[33m:[39m [32m'q7'[39m[33m,[39m status…
+    [90m 49| [39m    })
+    [90m 50| [39m    [35mconst[39m res [33m=[39m [35mawait[39m quoteApi[33m.[39m[34msubmit[39m([32m'q7'[39m)
+    [90m   | [39m                               [31m^[39m
+    [90m 51| [39m    [35mconst[39m options [33m=[39m [34mlastRequest[39m()
+    [90m 52| [39m    [34mexpect[39m(options[33m.[39murl)[33m.[39m[34mtoBe[39m([32m'/api/v1/quotes/q7/submit'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-submit-api.spec.ts[2m > [22mquoteApi.submit（POST /api/v1/quotes/{quoteId}/submit）[2m > [22mquoteId 做 URL 编码
+[31m[1mTypeError[22m: quoteApi.submit is not a function[39m
+[36m [2m❯[22m tests/unit/quote-submit-api.spec.ts:[2m60:20[22m[39m
+    [90m 58| [39m  [34mit[39m([32m'quoteId 做 URL 编码'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m 59| [39m    [34mpushResponse[39m({ statusCode[33m:[39m [34m200[39m[33m,[39m data[33m:[39m { code[33m:[39m [32m'0'[39m[33m,[39m message[33m:[39m [32m'ok'[39m[33m,[39m …
+    [90m 60| [39m    [35mawait[39m quoteApi[33m.[39m[34msubmit[39m([32m'q/7'[39m)
+    [90m   | [39m                   [31m^[39m
+    [90m 61| [39m    [34mexpect[39m([34mlastRequest[39m()[33m.[39murl)[33m.[39m[34mtoBe[39m([32m'/api/v1/quotes/q%2F7/submit'[39m)
+    [90m 62| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-submit-api.spec.ts[2m > [22mquoteApi.submit（POST /api/v1/quotes/{quoteId}/submit）[2m > [22m服务端 E-1601（状态非法流转）→ 抛 ApiError 且保留错误码（前端不自行判定状态）
+[31m[1mTypeError[22m: quoteApi.submit is not a function[39m
+[36m [2m❯[22m tests/unit/quote-submit-api.spec.ts:[2m66:30[22m[39m
+    [90m 64| [39m  [34mit[39m([32m'服务端 E-1601（状态非法流转）→ 抛 ApiError 且保留错误码（前端不[39m…
+    [90m 65| [39m    [34mpushResponse[39m({ statusCode[33m:[39m [34m200[39m[33m,[39m data[33m:[39m { code[33m:[39m [32m'E-1601'[39m[33m,[39m message[33m:[39m [32m'[39m…
+    [90m 66| [39m    [35mconst[39m pending [33m=[39m quoteApi[33m.[39m[34msubmit[39m([32m'q7'[39m)
+    [90m   | [39m                             [31m^[39m
+    [90m 67| [39m    [35mawait[39m [34mexpect[39m(pending)[33m.[39mrejects[33m.[39m[34mtoBeInstanceOf[39m([33mApiError[39m)
+    [90m 68| [39m    [35mawait[39m [34mexpect[39m(pending)[33m.[39mrejects[33m.[39m[34mtoMatchObject[39m({ code[33m:[39m [32m'E-1601'[39m })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m5 failed[39m[22m[90m (5)[39m
+[2m   Start at [22m 03:39:00
+[2m   Duration [22m 958ms[2m (transform 54ms, setup 42ms, collect 79ms, tests 8ms, environment 512ms, prepare 104ms)[22m
+

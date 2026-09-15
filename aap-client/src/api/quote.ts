@@ -16,12 +16,17 @@
  *   GET /quotes/{quoteId}/items         取明细行列表（无 itemId 时的回落入口，取首行）
  *   PUT /quotes/items/{itemId}          保存定价（设计稿「保存」「保存价格」两处同一动作）
  *
- * ⚠️ 18-API 卡片只列路径、未列方法与查询参数 → 方法（GET/DELETE/POST/PUT）与字段级 schema 为 REST 语义推断（missing-prd）。
- * 未接线（留待对应页面，不臆造）：/{quoteId}/submit、/withdraw、/versions、/compile-preview。
+ * 序号 12（报价预览与提交）新增两条：
+ *   GET  /quotes/{quoteId}               报价预览取数（报价单 + 明细行）
+ *   POST /quotes/{quoteId}/submit        提交报价进入运营审核（10-PRD §4.1 DRAFT→SUBMITTED；**无请求体 schema** → 不发字段）
+ *
+ * ⚠️ 18-API 卡片只列路径、未列方法与查询参数/请求体 → 方法（GET/DELETE/POST/PUT）、查询参数与请求体均为
+ *    REST 语义推断（missing-prd）。未接线（留待对应页面，不臆造）：/withdraw、/versions、/compile-preview。
  */
 import { http } from './http'
 import type { QuoteListRaw } from '@/utils/quotes-model'
 import type { QuoteItemRaw } from '@/utils/model-pricing-model'
+import type { QuoteDetailLike } from '@/utils/quote-preview-model'
 
 export type { QuoteListRaw, QuoteRowRaw } from '@/utils/quotes-model'
 
@@ -91,5 +96,19 @@ export const quoteApi = {
       method: 'PUT',
       data: payload
     })
+  },
+
+  /** 报价单详情（序号 12 报价预览取数：报价单 + 明细行；字段级 schema 未定义 → 容错读取，missing-prd） */
+  detail(quoteId: string) {
+    return http<QuoteDetailLike>(path(quoteId), { method: 'GET' })
+  },
+
+  /**
+   * 提交报价进入运营审核（序号 12 设计稿「提交报价」）
+   * 10-PRD §4.1：DRAFT→SUBMITTED（服务端做 V1–V17 全量校验，前端只做「有明细 + 已确认」门禁）；
+   * 18-API 未定义请求体 → 不发送任何字段。
+   */
+  submit(quoteId: string) {
+    return http<QuoteDetailLike>(`${path(quoteId)}/submit`, { method: 'POST' })
   }
 }

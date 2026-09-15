@@ -1,0 +1,64 @@
+{
+  "code": "0",
+  "message": "ok",
+  "data": {
+    "quote_id": "q7",
+    "quote_no": "Q20240614000007",
+    "status": "DRAFT",
+    "currency": "CNY",
+    "items": [
+      {
+        "item_id": "qi1",
+        "model_name": "gpt-4o-mini",
+        "input_price": 1.2,
+        "output_price": 3.6,
+        "cache_read_price": 0.6,
+        "price_time_rules": {
+          "tz": "Asia/Shanghai",
+          "weekday_scope": "ALL",
+          "peak_ranges": [
+            { "start": "09:00", "end": "12:00" },
+            { "start": "18:00", "end": "22:00" }
+          ],
+          "peak_multiplier": 1.2,
+          "offpeak_multiplier": 0.85
+        },
+        "price_tier_rules": {
+          "tier_field": "len",
+          "price_strategy": "OVERRIDE",
+          "tiers": [
+            { "min": 0, "max": 1000000, "label": "0–100万" },
+            { "min": 1000000, "max": 5000000, "label": "100–500万" },
+            { "min": 5000000, "max": null, "label": "500万以上" }
+          ]
+        },
+        "request_rules": [{ "when": "header('anthropic-beta') has 'fast-mode'", "multiplier": 6 }]
+      },
+      {
+        "item_id": "qi2",
+        "model_name": "claude-3-5-sonnet",
+        "input_price": 2,
+        "output_price": 8,
+        "cache_read_price": 0.2,
+        "price_tier_rules": {
+          "tier_field": "len",
+          "price_strategy": "OVERRIDE",
+          "tiers": [
+            { "min": 0, "max": null },
+            { "min": 0, "max": null },
+            { "min": 0, "max": null }
+          ]
+        },
+        "request_rules": [{ "multiplier": 2 }]
+      },
+      {
+        "item_id": "qi3",
+        "model_name": "gpt-4o",
+        "input_price": 4,
+        "output_price": 12,
+        "cache_write_price": 5,
+        "request_rules": [{ "multiplier": 6 }]
+      }
+    ]
+  }
+}

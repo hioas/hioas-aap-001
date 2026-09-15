@@ -1,0 +1,55 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+ [31m❯[39m tests/unit/quote-preview-model.spec.ts [2m([22m[2m30 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[90m 15[2mms[22m[39m
+[31m   [31m×[31m ruleBlockClass：规则块间距（设计逐卡如此）[2m > [22m多条规则 → 首个规则块 padding-top 12（卡1/卡2 设计如此）[90m 4[2mms[22m[31m[39m
+[31m     → ruleBlockClass is not defined[39m
+[31m   [31m×[31m ruleBlockClass：规则块间距（设计逐卡如此）[2m > [22m多条规则 → 其后规则块 padding-top 8[90m 0[2mms[22m[31m[39m
+[31m     → ruleBlockClass is not defined[39m
+[31m   [31m×[31m ruleBlockClass：规则块间距（设计逐卡如此）[2m > [22m只有一条规则 → 用 8（设计卡3 的唯一规则行 wrapper padding-top=8，与卡1/卡2 首个规则行 12 不一致）[90m 0[2mms[22m[31m[39m
+[31m     → ruleBlockClass is not defined[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 3 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-preview-model.spec.ts[2m > [22mruleBlockClass：规则块间距（设计逐卡如此）[2m > [22m多条规则 → 首个规则块 padding-top 12（卡1/卡2 设计如此）
+[31m[1mReferenceError[22m: ruleBlockClass is not defined[39m
+[36m [2m❯[22m tests/unit/quote-preview-model.spec.ts:[2m253:5[22m[39m
+    [90m251| [39m[34mdescribe[39m([32m'ruleBlockClass：规则块间距（设计逐卡如此）'[39m[33m,[39m () [33m=>[39m {
+    [90m252| [39m  [34mit[39m([32m'多条规则 → 首个规则块 padding-top 12（卡1/卡2 设计如此）'[39m[33m,[39m () [33m=>[39m…
+    [90m253| [39m    [34mexpect[39m([34mruleBlockClass[39m([34m0[39m[33m,[39m [34m3[39m))[33m.[39m[34mtoBe[39m([32m'card__block--first'[39m)
+    [90m   | [39m    [31m^[39m
+    [90m254| [39m    [34mexpect[39m([34mruleBlockClass[39m([34m0[39m[33m,[39m [34m2[39m))[33m.[39m[34mtoBe[39m([32m'card__block--first'[39m)
+    [90m255| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-preview-model.spec.ts[2m > [22mruleBlockClass：规则块间距（设计逐卡如此）[2m > [22m多条规则 → 其后规则块 padding-top 8
+[31m[1mReferenceError[22m: ruleBlockClass is not defined[39m
+[36m [2m❯[22m tests/unit/quote-preview-model.spec.ts:[2m258:5[22m[39m
+    [90m256| [39m
+    [90m257| [39m  [34mit[39m([32m'多条规则 → 其后规则块 padding-top 8'[39m[33m,[39m () [33m=>[39m {
+    [90m258| [39m    [34mexpect[39m([34mruleBlockClass[39m([34m1[39m[33m,[39m [34m3[39m))[33m.[39m[34mtoBe[39m([32m'card__block--tight'[39m)
+    [90m   | [39m    [31m^[39m
+    [90m259| [39m    [34mexpect[39m([34mruleBlockClass[39m([34m2[39m[33m,[39m [34m3[39m))[33m.[39m[34mtoBe[39m([32m'card__block--tight'[39m)
+    [90m260| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-preview-model.spec.ts[2m > [22mruleBlockClass：规则块间距（设计逐卡如此）[2m > [22m只有一条规则 → 用 8（设计卡3 的唯一规则行 wrapper padding-top=8，与卡1/卡2 首个规则行 12 不一致）
+[31m[1mReferenceError[22m: ruleBlockClass is not defined[39m
+[36m [2m❯[22m tests/unit/quote-preview-model.spec.ts:[2m263:5[22m[39m
+    [90m261| [39m
+    [90m262| [39m  [34mit[39m([32m'只有一条规则 → 用 8（设计卡3 的唯一规则行 wrapper padding-top=8[39m…
+    [90m263| [39m    [34mexpect[39m([34mruleBlockClass[39m([34m0[39m[33m,[39m [34m1[39m))[33m.[39m[34mtoBe[39m([32m'card__block--tight'[39m)
+    [90m   | [39m    [31m^[39m
+    [90m264| [39m  })
+    [90m265| [39m})
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m27 passed[39m[22m[90m (30)[39m
+[2m   Start at [22m 03:44:16
+[2m   Duration [22m 1.24s[2m (transform 67ms, setup 43ms, collect 78ms, tests 15ms, environment 642ms, prepare 117ms)[22m
+

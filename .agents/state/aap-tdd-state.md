@@ -64,6 +64,45 @@ LEASE: free until -
 
 ## 4. 进度（细表看台账 CSV，这里只留能力组）
 
+🟢 本轮（2026-09-16 03:31~04:00，租约 aap-tdd-run-20260916-0331 → 已释放）· **序号 12「报价预览与提交 2」（page-12-2）收口**：
+- **Calicat 侧**：`calicat_source.py page` 报「请先在浏览器中打开文件」→ `cmd /c start "" <design-url>` 拉起后一次成功；
+  page-12-2 设计树（58KB / 123 节点）+ 截图（430×1027，1:1 帧图）已抓；`interaction.json` 仍「不存在图层交互数据」→ 交互真源退 10-PRD §3.2/§4.1/§5.1 · 06-PRD §1.2~1.4 · 17-spec · 18-API + 设计稿控件语义。
+  **新增可复用工具**：`text-rows.py`（按行统计墨迹 → 一把列出整页文本行 y 区间，设计/实现同脚本逐行对账）、`color-runs.py`（按颜色特征找色段）、
+  `node-raw.py`（单节点完整原始 JSON → 确认 `padding=[top,right,bottom,left]` 语义）、`geom.py`、`pxdump.py`、`find-tint.py`、`white-runs.py`。
+- **这页到底是什么**：gpt-4o-mini / claude-3-5-sonnet / gpt-4o 三个模型的报价预览页（设计总高 1027，无 TabBar）：
+  顶栏（返回 /「报价预览」17px Bold，无副标题）· 三张逐模型卡（头行 图标+模型名 14px SemiBold + 右上标签胶囊〔时段价 + 阶梯价 蓝 / 阶梯价 绿 / 仅基础价 灰〕；
+  三列价格〔输入/输出 + 缓存读或缓存写〕；规则行〔时段价行·琥珀图标 / 阶梯价行·蓝 / 请求规则行·蓝，文案 11px〕）· 确认提交卡（蓝底白勾勾选框 + 「我确认以上价格真实有效，并同意《报价服务条款》」+ 琥珀提示条两行）· 白底操作条（返回编辑 156×48 描边 + 提交报价 230×48 #2563EB）。
+- **TDD（3 切片 + 1 次补红；新增 51 例）**：`tests/unit/quote-preview-model.spec.ts`(30) · `tests/unit/quote-submit-api.spec.ts`(5) · `tests/pages/quote-preview.spec.ts`(16)；
+  红基线 `evidence/red-序号12-切片1/2/3.txt`（切片1/3 = `Failed to resolve import`，切片2 = `quoteApi.detail/submit is not a function`）；
+  实现 `src/utils/quote-preview-model.ts`、`src/api/quote.ts`（+detail/submit）、`src/pages/quote-preview/index.vue`、`pages.json` 路由；
+  **tokens 0 新增**（17 个色值全部命中既有 tokens.scss）；绿 **691/691 连跑两轮一致**（`evidence/green-序号12-轮1/轮2.txt`）+ `npm run type-check` **exit 0**。
+- **由 DOM 数字抓出的真偏差（vision 完全看不出）**：卡3 实测高 **168**（设计 164）、整页 **1031**（设计 1027）——
+  根因 = 卡3 只有**一条**规则行，而设计里它唯一规则块的 wrapper `padding-top` 是 **8**（卡1/卡2 的首块才是 12）。
+  修法 = 抽出纯函数 `ruleBlockClass(index, count)`，**先补红断言**（`evidence/red-序号12-补红-规则块间距.txt`：`ruleBlockClass is not defined`）再改；
+  修后逐值对齐：卡 108/392/624/800 高 **272/220/164/127** · 底栏 **943..1027(84)** · 页高 **1027 = 设计**。
+- **本轮最值钱的一条判定法**：**卡片高度对账以「卡间 1px 描边像素」为准，不是算术** —— 设计稿 `#EEF2F7` 描边在截图上留下清晰暗像素行
+  （612/624/800/926），一次定死卡2 220 / 卡3 164 / 确认卡 127；而设计树声明的「价格标签 16 + 值 22 = 38」会算出卡2 224（与描边矛盾）→ **取 34**，差值写进台账。
+  另：`padding=[a,b,c,d]` 是 Figma 的 top/right/bottom/left（`[0,0,0,6]` 是左内边距）。
+- **客观证据链**：`build:mp-weixin` 产出 `pages/quote-preview/{index.js,index.json,index.wxml,index.wxss}`（app.json 已注册）；
+  430 宽 iframe + 无头 Chrome **四段实测** `evidence/measure-序号12-run2.json`：`innerWidth 430` · `docScrollWidth 430` · 溢出 **0** ·
+  文案缺失 **[]（need 32 条设计原文，含三个模型名与 9 个价格值）** · 卡 x16 w398 · 头行 h26 · 价格行 h34 · 规则行 h44（卡1 212/264/316，pitch 52）·
+  标签底 `#EFF6FF/#ECFDF5/#F1F5F9` · 勾选盒 18×18 `rgb(37,99,235)` + `data-checked=true` · 提示条 854..907(53) bg `#FFFBEB` maxWidth 316 · 
+  返回编辑 x16..172 · 提交报价 x184..414(230×48)；**run2 与 run3 两次独立测量 62 字段全等**（`cmp-measure-runs.py`，0 差异）；
+  **像素对账**（`text-rows.py` 同脚本跑设计与实现）：20 行文本卡边界/底栏 **0 差**，卡内文本 -3~-5（设计 PNG 自身抗锯齿偏移），
+  `png-ink` 顶部带右留白 314（无载体污染）、底部带 `(66,79)(81,121)(184,413)` 与设计 `(66,78)(80,92)(94,106)(108,120)(184,413)` **完全吻合**；
+  截图 `logs/screenshots/20260916-0346-序号12-报价预览-h5-430宽.png`（430×1027 = 设计尺寸）。
+  **浏览器内真实交互（phase2/phase3）**：点「返回编辑」→ hash **不变**（navigateBack 无栈）· 取消勾选 → 点「提交报价」→ toast **「请先确认报价条款」**、
+  serve 日志**无 POST**；重新勾选 → 点「提交报价」→ 真实 **`POST /api/v1/quotes/q7/submit`（body 为空 —— 18-API 无请求体 schema）** → 跳 `#/pages/quotes/index`（列表页渲染）。
+- ⚠️ 待人类拍板（不阻塞本轮，15 条全部写进台账序号 12 备注）：①18-API `/submit` 无请求体 schema → 不发字段；②标签文案与三底色为派生推断；
+  ③第三列取缓存读/缓存写、1 小时缓存写不展示；④规则行文案为派生（有 label 用「N 档阶梯：label / label」、无 label 用设计卡2 措辞）；⑤请求规则行为设计常量；
+  ⑥勾选默认已勾选；⑦toast 文案占位；⑧提交成功跳报价单列表为推断；⑨返回编辑 = navigateBack；⑩设计声明 价格行 38 vs 卡高只允许 34；
+  ⑪规则块首块间距设计逐卡不一致（已按 ruleBlockClass 还原）；⑫卡1 未声明 stroke（四卡统一 ring）；⑬提示条按设计声明宽度 316 换两行；
+  ⑭vision 误报链接色 + 图标占位；⑮未接线 /withdraw、/versions、/compile-preview。
+
+⏳ 下一步（下一轮）：台账序号 **12-v1「新增报价单-初始态」**（page-26，`/pages/quote-form/index`）——设计树已抓（设计是/交互否），
+  按 §2 八步走；可复用 `api-12` 式独立 mock 集、`__measure-quote-preview.html` 载体模板、`text-rows.py` 逐行对账、`color-runs.py` 量卡边界；
+  **先用卡间描边像素定卡高，再决定卡内盒高**；**新写脚本给原生工具一律用 `E:/…` 绝对路径**（本轮 background serve.py 踩过相对路径 404）。
+
 🟢 本轮（2026-09-16 03:11~03:28，租约 aap-tdd-run-20260916-0311 → 已释放）· **序号 11「模型定价-详情」（page-11）收口**：
 - **Calicat 侧**：`calicat_source.py page` 一次成功（本轮**没有**再需要 `cmd /c start` 拉编辑器）；page-11 设计树（81KB）+ 截图（430×1541，1:1 帧图）已抓；
   `interaction.json` 仍「不存在图层交互数据」→ 交互真源退 06-PRD 计费编译规则 / 15-数据字典 / 17-spec / 18-API + 设计稿控件语义。
