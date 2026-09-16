@@ -1,4 +1,4 @@
-STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 2026-09-16 09:38（160 条 checks · 偏差 15→0）· 序号 4 已完成 2026-09-16 09:55（212 条 · 45→0）· 序号 4-v1 已完成 2026-09-16 10:20（249 条 · 78→0，整页 1079→1137 与设计 PNG 逐带相同）· 序号 5 已完成 2026-09-16 10:42（237 条 · 95→0，整页 900→934 = 设计帧高，9 类偏差）→ 下一轮开工做 序号 6**（`page-6`「大模型检测报告 · 多维度专业版」→ `/pages/report/index`，载体页 `__measure-report.html`，mock 目录 `api`；对照表 `python .agents/state/survey-harness-routes.py`） ②队列 1 逐页复核（6~23 行的 checks 维度待补） ③队列 7（uni-picker 溢出口径） ④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。历史流水归档在 `aap-notes-archive-2026-09-16.md`，**不要每轮读**。
+STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 09:38（160 条 · 15→0）· 序号 4 已完成 09:55（212 条 · 45→0）· 序号 4-v1 已完成 10:20（249 条 · 78→0）· 序号 5 已完成 10:42（237 条 · 95→0）· 序号 6 已完成 2026-09-16 11:5x（221 条 · 45→0，docH 4886→5343 = 设计帧高 5342，报告 `evidence/review-序号6-checks-报告.md`）→ 下一轮开工做 序号 7**（`page-7-2`「检测未通过报告」→ `/pages/report-failed/index`，载体页 `__measure-report-failed.html`，mock 目录 `api`；对照表 `python .agents/state/survey-harness-routes.py`） ②队列 1 逐页复核（7~23 行的 checks 维度待补） ③队列 7（uni-picker 溢出口径） ④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。历史流水归档在 `aap-notes-archive-2026-09-16.md`，**不要每轮读**。
 LEASE: free until -
 
 # AAP TDD 推进 · 状态与目标（自驱动循环的单一事实来源）
@@ -314,6 +314,30 @@ LEASE: free until -
   ⑪**流程自纠**：本轮开工时 §0 租约是 `free`，但**没有即时写成本轮 id 再开工**（缺了一步），收尾时它仍是 `free` —— 本 job 每 5 分钟触发而本轮做了约 20 分钟，理论上存在并发窗口；
      下轮起恢复「开工先写租约、提交后改回 free」的动作（若人类把周期调长可忽略）。
 
+- 2026-09-16 11:16（cron 轮 `aap-tdd-run-20260916-1050`）· **队列 8 第 5 页：序号 6「大模型检测报告 · 多维度专业版」载体页补「设计期望值 checks」维度（221 条 · 偏差 45→0）+ 11 类设计偏差修复 + 整页对齐设计帧 5342**：
+  ①**改名**：未执行 —— 队列 0 已被决策 D6 挂起（`hioas-*` 是仓库名约定，勿再重试），按「人类决策 > prompt」处理。
+  ②**设计帧重抓（人工指令 C）**：`python E:/agent/aap-tools/recapture-all.py` → **22 帧全 SAME**，其中 `page-6` design.json 633742→633742 **逐字节相同** → 画布当前状态 = 实现所依据版本，**无漂移**。
+  ③**TDD 红→绿（本轮主交付）**：`__measure-report.html` 由 191 行旧体例重写为 430 宽 iframe + **221 条 checks**；
+     红基线（`git stash push -- aap-client/src/pages/report/index.vue` 复现修复前代码、同一份探针两轮）**45/219**（`evidence/red-序号6-checks-设计期望值偏差.txt`）→ 绿 **0/221**（`green-序号6-checks-设计期望值.txt`），
+     两轮独立测量 **24/24 字段全等**（`cmp-measure-runs.py`），`overflowingCount 0` · `missingTexts None` · `docScrollWidth 430`。
+     `docScrollHeight` **4886 → 5343**（设计帧高 5342）；`cardTops [105,533,896,1425,4402,4824,5122]` vs 设计 `[105,533,896,1425,4400,4822,5120]`（前 4 张完全对齐）。
+  ④**期望值口径**：声明值（`.calicat/raw/pages/page-6/design.tree.json` + 新增 `tree-view.py`）+ 设计 PNG（430×5342）色带/行带实测（新增 `png-cardmap.py`/`png-textbands.py`）。
+     本页定标：**图标字形行框 = 字号×1.5**（22→33 顶部栏 · 16→24 封面图标 · 18→27 措辞盒图标）；**标题行框**：15px Bold→20 · 40px Black→44 · 19px ExtraBold 值行→24 · 13px Bold 组标题→18 · 10.5px 说明→16；
+     **明细卡结构模型**：组高 = 16 + 18(标题行) + 14(标题→列表) + n×29 + (n−1)×14，分组之间 16，权重说明盒前 16，指纹提示在 D 组标题行之后（两侧各 14）。
+  ⑤**修掉 11 类偏差**（清单见台账序号 6 行 / `review-序号6-checks-报告.md` §3）：顶部栏 84→93 · 封面卡补 `drop_shadow(0,6,20,rgba(15,23,42,.06))` · 5 张卡+底栏描边 `border`→`box-shadow: 0 0 0 .8px #eef2f7` ·
+     封面卡标题 15px/600 → **12px/500/#64748B**（design 625f2248）· 综合分 600/1.2 → **900/44px** · 通过标签 #ECFDF5/400 → **#F0FDF4/700**（新增 token `$color-success-weak-2`）·
+     措辞盒图标盒 14×14 → **20×27** · 补 1px 分隔线 + 信息清单 margin 16 · 关键指标卡补 5×14 色条 + 值行高 28（**子卡 85 / 行距 95 / 卡高 351**）·
+     维度「分」列 13→**32 宽右对齐**、均分行高 16 · 明细条目间隔 8→**14**、组标题行 18、分组间隔 16、指纹提示/权重说明盒行框 16、5 处字重（Bold 700 / Medium 500）。
+  ⑥**像素对账**：新增 `cmp-bands-6-design-vs-impl.py`（±容差结构带逐条匹配 + 分区间位移概况）→ ±10：内容列 **142/142 命中**、条形列 **115/121**（6 条未命中经判读为设计 PNG 自身 AA/阴影带）；
+     位移分区：y0..1000 中位 0 · y1425..4400（明细卡内）中位 +5（min −8 max +9）· y4400.. 中位 +2。**残留已定位**：明细卡内部条目整体 +8、到 G 组收敛 +2，系 H5 回退字体在明细说明(11px)/指纹提示(10.5px)两处换行与墨迹差异（同族于其它页记录），非页面缺陷。
+  ⑦**交互相有牙齿**：`?scenario=actions` 两轮 → 点「导出 PDF」serve 实收 `GET /reports/DR-1/export 200` 且 `hashUnchangedAfterExport true`（toast「导出链接已生成，请在浏览器中打开」）、点「填写报价」→ `#/pages/quote-models/index`（用户拍板口径）；
+     无场景轮实收 **1 行**（仅 `GET /reports/DR-1`）—— 无多余请求。
+  ⑧**质量门**：`npm test` **1168/1168 · 72 files 连跑两轮**（11:11 / 11:15）· `type-check` exit 0 · `build:mp-weixin` DONE（`pages/report/index.{js,json,wxml,wxss}` 四件套，wxss 含 `font-weight:800/900`、`line-height:16px/24px`、`box-shadow:0 0 0 .8px`）· `build:h5` DONE ·
+     整页 430 宽截图 `logs/screenshots/20260916-序06-检测报告-checks轮-h5-430宽.png`（同件入 `.agents/state/evidence/`）。
+  ⑨**本轮新增工具**（写进 §5.3）：`tree-view.py` / `png-cardmap.py` / `png-textbands.py` / `png-sample.py` / `cmp-bands-6-design-vs-impl.py` / `shot-6.sh`；
+     并修掉探针自身 3 处口径（`chk()` 数值直通、`sel@@N` 取第 N 个匹配、`rectField` 由 key 末段决定字段）。
+  ⑩**下轮开工第一件事**：队列 8 的 **序号 7**（`page-7-2`「检测未通过报告」→ `/pages/report-failed/index`，载体页 `__measure-report-failed.html`，mock 目录 `api`）。
+
 ## 5. 关键命令（照抄可用）
 
 - 项目根：`E:\workspaces\hioas\hioas-aap-001`（远端 https://github.com/hioas/hioas-aap-001）
@@ -390,3 +414,31 @@ LEASE: free until -
   Chrome 与 Figma 的阴影衰减步长不同（±3px 内），像素对账会把渐变台阶行列为差异 —— 判读时看**关键结构行**是否命中，不要逐行追究阴影。
 - ⚠️ **H5 回退字体的墨迹与设计字体不同**：同为 12px，设计字体在行框内的 ink 偏低约 4px（本页提示卡文案）→ 用 `align-self:center` 把 ink 对齐到设计位置。
   这类差异 checks 探针量不到（它只测盒子），**只能靠像素对账发现**。
+
+### 5.3 本轮（10:50 轮 · 序号 6）新增的工具与口径
+
+- **设计树紧凑视图**：`python .agents/state/tree-view.py <page-id> [--types frame|all] [--min-depth N] [--max-depth N] [--match 子串] [--text-max N]`
+  —— 每行带 `id=<前 8 位>`、几何/内边距/圆角/fills/stroke/**effects**/layout/fontSize/fontFamily/文案；判「声明值」的第一入口
+  （比 `node-probe.py` 多打印 stroke/effects/圆角与 id，`--match` 定位单个节点）。
+- **PNG 区块图**：`python .agents/state/png-cardmap.py <png> --x 30 [--bg F8FAFC] [--minrun 2]`
+  —— 按指定列输出「等于页面底色 / 不等于」的区段（判卡片上下边界）。⚠️ 卡片带 `drop_shadow` 时**卡片之间的 12px 间隙会被两张卡的阴影染色**，
+  在 `--x` 选在卡片外缘时会与卡片连通成一段 → 判边界要挑「卡片内、避开文字」的列，或改用 `png-textbands.py`。
+- **行墨迹带**：`python .agents/state/png-textbands.py <png> <x0> <y0> <x1> <y1> [--minink 3] [--gap 1]`
+  —— 逐行统计「与**该行主色**不同的像素数」，≥minink 的连续行带 = 一条文案/一个条目（行距、行高、条目数的硬依据）。
+  ⚠️ 整行同色（卡片间隙/页面底色）不会被记为 ink —— 这正是不受阴影干扰的原因；`png-bands.py` 判「同色带」、`png-textbands.py` 判「文字带」，两者互补。
+- **逐点取样**：`python .agents/state/png-sample.py <png> --x 8 --step 250`（带 alpha；用于判断「颜色异常是页面还是导出图」）。
+- ⚠️ **Chrome `--screenshot` 产出的是 RGB（colorType 2）PNG，设计导出是 RGBA** → PNG 读取器必须同时支持 3/4 通道；转换时必须保留「未转换的 RGB 行」给下一行做 Up/Paeth 反滤波（`png-cardmap.read_png` 已修）。
+- **像素结构带对账**：`python .agents/state/cmp-bands-6-design-vs-impl.py <设计PNG> <实现PNG> <out.txt> [容差=3]`
+  —— 逐列取「ink 带起点」，设计每个起点在实现里 ±容差 内找同起点；另打分区间（y 0..1000 / 1000..1425 / 1425..4400 / 4400..）的位移 min/max/中位 → **一眼区分「整体平移」与「局部漂移」**。
+- **整页 430 宽截图**：`bash .agents/state/shot-6.sh`（`--window-size=430,5400`；ASCII 临时名 → cp 成中文名，见 §5 的 Chrome 中文路径坑）。
+- **载体页探针语法与陷阱**（本页踩到并修）：
+  - 选择器取「第 N 个匹配」用 `sel@@N`（`.card@@1 .card__title-row` = 第 2 张卡的标题行）；**CSS 里 `.card#1` 非法**，探针的 `splitSel()` 会把非法的 `#N` 归一化成 `@@N`。
+  - `chkR()` 比较哪个字段由 **key 末段**决定（`.h/.w/.x/.right/.top/.bottom`），否则 `got` 会变成整个 rect 对象而永远失败。
+  - `chk()` 必须**数值直通**：computed 的 `fontWeight` 是字符串 `"700"`，want 写数字 `700` → 不归一化就报假失败。
+  - `declared()`（读 CSSOM 声明值）只按**类名**匹配；`.card--cover` 这类覆盖规则会让同一元素有两条 `.card*` 规则 → **带覆盖的元素要判 computed 值**，只对 `0.8px` 这种「used 值被取整」的描边判声明值。
+- **本页记录的设计模型（可直接复用于同族长页）**：
+  - 图标字形行框 = `fontSize × 1.5`（22→33 · 16→24 · 18→27）。
+  - 文本行框：40px Black→44 · 19px ExtraBold 值行→24 · 15px Bold 标题→20 · 13px Bold 组标题→18 · 12px→18 · 11px→16 · 10.5px→16。
+  - `stroke{align:center,thickness:0.8}` → `box-shadow: 0 0 0 .8px <color>`；`effects.drop_shadow(0,6,20,c)` → `box-shadow: 0 6px 20px c`（`border` 会占布局、把内容宽挤掉 2px）。
+  - 明细类长列表：行高 29（12px 标签 16 + 10px 副标 13）+ 行间隔 14；组标题行 18 + 组内 14；**分组之间 16**；组前提示盒/文末说明盒行框 16。
+  - **同一页里同名类可以有不同字号/字重**（结论封面卡标题 12px/500 vs 其余卡 15px/700）→ 探针必须按「卡 + 类」分别断言，不能只断言第一个 `.card__title`。

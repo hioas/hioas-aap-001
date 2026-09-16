@@ -12,43 +12,132 @@
   </head>
   <body>
     <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
-         页面 6：/pages/report/index（检测报告，page-6）
-         两段测量：phase1（首次加载）· phase2（1500ms 后，跨过轮询/异步渲染）→ 关键数字应一致 -->
+         页面 6：/pages/report/index（检测报告，page-6 · 帧 layer_id 0f0755e4-b7c6-41c1-bebf-0969c536b163）
+         phase1（加载后 2500ms）· phase2（4200ms）→ 关键数字应一致
+         设计期望值（want）两类来源：
+           (a) 声明值：.calicat/raw/pages/page-6/design.tree.json（下列注释里带 design id 的节点）
+           (b) fit_content 行的真实高度：设计截图 PNG 色带实测（430×5342）
+               PNG: https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/2099910139278049280/canvas/image/2099910139278049280.png
+               复现命令（仓库根）：
+                 curl -s -o "$LOCALAPPDATA/Temp/design6.png" <上面的 URL>
+                 python .agents/state/png-cardmap.py "$LOCALAPPDATA/Temp/design6.png" --x 30 --minrun 2   # 卡片/区块边界
+                 python .agents/state/png-textbands.py "$LOCALAPPDATA/Temp/design6.png" 36 <y0> 394 <y1> # 文案/条目行带
+                 python .agents/state/png-bands.py "$LOCALAPPDATA/Temp/design6.png" v 200 <y0> <y1>     # 明细条（判行距）
+               实测骨架（设计帧高 5342）：顶部栏 93 · 结论卡 105..521(416) · 关键指标卡 533..884(351) ·
+               维度总览卡 896..1413(518) · 明细卡 1425..4388(2962) · 风险卡 4400..4810(410) ·
+               证据卡 4822..5108(287) · 免责卡 5120..5229(109) · 底部块 5245..5317 + 24
+               明细条目行距 43（行高 29 + 间隔 14）· 分组标题行 18 + 组内间隔 14 · 组间额外 17 -->
     <iframe id="f" src="/index.html#/pages/report/index?reportId=DR-1"></iframe>
     <div id="sink"><pre id="m">pending</pre></div>
     <script>
       var f = document.getElementById('f')
       var acc = {}
+      var SCENARIO = (location.search.match(/scenario=([a-z]+)/) || [])[1] || ''
       f.addEventListener('load', function () {
         setTimeout(function () { phase(1) }, 2500)
         setTimeout(function () { phase(2) }, 4200)
+        if (SCENARIO === 'actions') setTimeout(function () { actions() }, 5000)
       })
 
+      /* 选择器语法：`sel@@N` = 该选择器的第 N 个匹配（也接受 CSS 里非法的 `sel#N` 写法，先归一化成 @@N）。
+         `A@@N B C` = 在第 N 个 A 里查 B C。 */
+      function splitSel(sel) {
+        var s = String(sel).replace(/#(\d+)(?=\s|$)/g, '@@$1')
+        var i = s.indexOf('@@')
+        if (i === -1) return { base: s, n: 0, tail: '' }
+        var head = s.slice(0, i)
+        var rest = s.slice(i + 2).split(/\s+/)
+        return { base: head.trim(), n: Number(rest[0]), tail: rest.slice(1).join(' ') }
+      }
+
       function collect(doc, win) {
-        var over = []
-        doc.querySelectorAll('*').forEach(function (el) {
-          var r = el.getBoundingClientRect()
-          /* 不计入 uni-app 自身的测量元素：<image mode="widthFix"> 会挂 uni-resize-sensor，
-             它内部两个空 div 的宽度是 100000 / 352 且位置靠负值滚动技巧量测，偶发被算成「右溢出」；
-             实测 docScrollWidth 恒为 430=innerWidth，无可见溢出（见 .agents/state/evidence/review-序号diag-report-run*.json）。 */
-          if (el.closest && el.closest('uni-resize-sensor')) return
-          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
-            over.push({
-              tag: el.tagName,
-              cls: String(el.className || '').slice(0, 70),
-              left: Math.round(r.x),
-              w: Math.round(r.width),
-              right: Math.round(r.right),
-              html: String(el.outerHTML || '').slice(0, 140)
-            })
-          }
-        })
-        function rect(sel) {
-          var el = doc.querySelector(sel)
-          if (!el) return null
-          var r = el.getBoundingClientRect()
-          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+        var fails = []
+        var checks = 0
+        function norm(v) {
+          if (typeof v === 'number') return v
+          var s = String(v == null ? '' : v).trim()
+          if (/^-?\d+(\.\d+)?px$/.test(s)) return Number(s.replace('px', ''))
+          return s
         }
+        function normColor(s) {
+          var m = String(s || '').match(/rgba?\(([^)]+)\)/)
+          if (!m) return String(s || '')
+          var p = m[1].split(',').map(function (t) { return Number(t.trim()) })
+          var a = p.length > 3 ? p[3] : 1
+          return a === 1 ? 'rgb(' + p[0] + ', ' + p[1] + ', ' + p[2] + ')' : 'rgba(' + p.join(', ') + ')'
+        }
+        function declared(sel, prop) {
+          /* CSSOM 声明值（非 used 值）：Chrome 会把 0.8px 报成 1px，所以判声明值 */
+          var sp = splitSel(sel)
+          var target = el(sel)
+          if (!target) return null
+          for (var i = 0; i < doc.styleSheets.length; i++) {
+            var rules
+            try { rules = doc.styleSheets[i].cssRules } catch (e) { continue }
+            for (var j = 0; j < rules.length; j++) {
+              var r = rules[j]
+              if (!r.selectorText || r.selectorText.indexOf('[') === 0) continue
+              var sels = r.selectorText.split(',').map(function (s) { return s.trim().replace(/\[data-v-[^\]]+\]/g, '') })
+              if (sels.indexOf(sp.base) === -1) continue
+              var v = r.style && r.style[prop]
+              if (v) return v
+            }
+          }
+          return null
+        }
+        function normDecl(s) { return String(s || '').replace(/\s+/g, ' ').trim() }
+        function el(sel) {
+          var sp = splitSel(sel)
+          if (!sp.n && !sp.tail) return doc.querySelector(sp.base)
+          var roots = doc.querySelectorAll(sp.base)
+          var root = roots[sp.n]
+          if (!root) return null
+          return sp.tail ? root.querySelector(sp.tail) : root
+        }
+        function rect(sel) {
+          var e = el(sel)
+          if (!e) return null
+          var r = e.getBoundingClientRect()
+          return {
+            x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right),
+            bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height)
+          }
+        }
+        function css(sel, prop) {
+          var e = el(sel)
+          if (!e) return null
+          var v = win.getComputedStyle(e)[prop]
+          return prop.toLowerCase().indexOf('color') >= 0 ? normColor(v) : norm(v)
+        }
+        function chk(key, got, want, tol) {
+          checks++
+          var t = tol == null ? 0 : tol
+          var g = norm(got)
+          var w = norm(want)
+          /* 数值型比较：computed 的 fontWeight 是字符串 "700"，want 写的是数字 700 */
+          var gn = typeof g === 'number' ? g : (typeof g === 'string' && /^-?\d+(\.\d+)?$/.test(g) ? Number(g) : null)
+          var wn = typeof w === 'number' ? w : (typeof w === 'string' && /^-?\d+(\.\d+)?$/.test(w) ? Number(w) : null)
+          var ok
+          if (gn !== null && wn !== null) ok = Math.abs(gn - wn) <= t
+          else ok = g === w
+          if (!ok) fails.push({ k: key, got: got, want: want })
+          return got
+        }
+        /* chkR 的字段由 key 末段决定：.h/.w/.x[N]/.right/.top/.bottom（与调用处写成 xxx.h 一致） */
+        function rectField(sel, key) {
+          var r = rect(sel)
+          if (!r) return null
+          var f = String(key).split('.').pop()
+          if (/^x\d*$/.test(f)) return r.x
+          if (f === 'right') return r.right
+          if (f === 'top') return r.top
+          if (f === 'bottom') return r.bottom
+          if (f === 'w' || f === 'width') return r.w
+          if (f === 'h' || f === 'height') return r.h
+          return r
+        }
+        function chkR(key, sel, want, tol) { return chk(key, rectField(sel, key), want, tol) }
+        function chkC(key, sel, prop, want, tol) { return chk(key, css(sel, prop), want, tol) }
         function rects(sel) {
           return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) {
             var r = e.getBoundingClientRect()
@@ -59,16 +148,279 @@
           return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return e.textContent.trim() })
         }
         function colors(sel) {
-          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return win.getComputedStyle(e).backgroundColor })
+          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return normColor(win.getComputedStyle(e).backgroundColor) })
         }
         function colorOf(sel, prop) {
-          var el = doc.querySelector(sel)
-          return el ? win.getComputedStyle(el)[prop] : null
+          var e = el(sel)
+          return e ? normColor(win.getComputedStyle(e)[prop]) : null
         }
         function textOf(sel) {
-          var e = doc.querySelector(sel)
+          var e = el(sel)
           return e ? e.textContent.trim() : null
         }
+
+        /* ---------- 顶部栏（design 顶部导航 b362b5a2 · padding[48,16,12,16]） ---------- */
+        chkR('topbar.h', '.report-page__topbar', 93, 1)
+        chkC('topbar.padTop', '.report-page__topbar', 'paddingTop', 48)
+        chkC('topbar.padLeft', '.report-page__topbar', 'paddingLeft', 16)
+        chkC('topbar.padBottom', '.report-page__topbar', 'paddingBottom', 12)
+        chkC('topbar.bg', '.report-page__topbar', 'backgroundColor', 'rgb(255, 255, 255)')
+        chkR('topbar.icon.w', '.report-page__icon-btn', 24)
+        chkR('topbar.icon.h', '.report-page__icon-btn', 33) /* remixicon 22px 行框 = 22×1.5 */
+        chkC('topbar.title.fs', '.report-page__title', 'fontSize', 17)
+        chkC('topbar.title.fw', '.report-page__title', 'fontWeight', 700)
+        chkC('topbar.title.color', '.report-page__title', 'color', 'rgb(15, 23, 42)')
+        chkC('topbar.title.marginLeft', '.report-page__title', 'marginLeft', 12)
+        chkC('topbar.no.fs', '.report-page__no', 'fontSize', 11)
+        chkC('topbar.no.color', '.report-page__no', 'color', 'rgb(148, 163, 184)')
+
+        /* ---------- 结论封面卡（design 4e855266 · padding20 r18 · drop_shadow[0,6,20,rgba(15,23,42,.06)]） ---------- */
+        chkR('card1.h', '.card#0', 416, 2)
+        chkR('card1.w', '.card#0', 398, 1)
+        chkR('card1.x', '.card#0', 16, 1)
+        chkC('card1.radius', '.card#0', 'borderRadius', 18)
+        chkC('card1.padding', '.card#0', 'paddingTop', 20)
+        chkC('card1.bg', '.card#0', 'backgroundColor', 'rgb(255, 255, 255)')
+        chk('card1.shadow', css('.card#0', 'boxShadow'), 'rgba(15, 23, 42, 0.06) 0px 6px 20px 0px',
+          0) /* 封面卡是唯一带 drop_shadow 的卡（其余为 0.8 描边）→ 判 computed 值 */
+        chkR('card1.mark.w', '.card__mark', 18)
+        chkR('card1.mark.h', '.card__mark', 24) /* remixicon 16px 行框 = 16×1.5 */
+        chkC('card1.title.fs', '.card__title', 'fontSize', 12)
+        chkC('card1.title.fw', '.card__title', 'fontWeight', 500)
+        chkC('card1.title.color', '.card__title', 'color', 'rgb(100, 116, 139)')
+        chkC('card1.channel.fs', '.card__sub', 'fontSize', 11)
+        chkC('card1.channel.color', '.card__sub', 'color', 'rgb(148, 163, 184)')
+        chkC('card1.score.fs', '.score', 'fontSize', 40)
+        chkC('card1.score.fw', '.score', 'fontWeight', 900)
+        chkC('card1.score.color', '.score', 'color', 'rgb(22, 163, 74)')
+        chkR('card1.scoreMeta.line.h', '.score__meta-text', 17) /* 说明1/说明2 height=17 */
+        chkC('card1.scoreMeta.fs', '.score__meta-text', 'fontSize', 12)
+        chkC('card1.scoreMeta.color', '.score__meta-text', 'color', 'rgb(148, 163, 184)')
+        chkR('card1.chip.h', '.result-chip', 28)
+        chkC('card1.chip.radius', '.result-chip', 'borderRadius', 14)
+        chkC('card1.chip.padX', '.result-chip', 'paddingLeft', 12)
+        chkC('card1.chip.bg', '.result-chip', 'backgroundColor', 'rgb(240, 253, 244)')
+        chkC('card1.chip.text.fs', '.result-chip__text', 'fontSize', 12)
+        chkC('card1.chip.text.fw', '.result-chip__text', 'fontWeight', 700)
+        chkC('card1.chip.text.color', '.result-chip__text', 'color', 'rgb(21, 128, 61)')
+        chkC('card1.status.padTop', '.status-grid', 'paddingTop', 16)
+        chkR('card1.status.cell.w', '.status-cell', 90)
+        chkC('card1.status.value.fs', '.status-cell__value', 'fontSize', 15)
+        chkC('card1.status.value.fw', '.status-cell__value', 'fontWeight', 700)
+        chkC('card1.status.value.lh', '.status-cell__value', 'lineHeight', 20)
+        chkC('card1.status.label.fs', '.status-cell__label', 'fontSize', 10)
+        chkC('card1.status.label.lh', '.status-cell__label', 'lineHeight', 15)
+        chkC('card1.status.label.color', '.status-cell__label', 'color', 'rgb(148, 163, 184)')
+        chkC('card1.verdict.pad', '.verdict-box', 'paddingTop', 12)
+        chkC('card1.verdict.radius', '.verdict-box', 'borderRadius', 12)
+        chkC('card1.verdict.bg', '.verdict-box', 'backgroundColor', 'rgb(248, 250, 252)')
+        chkC('card1.verdict.marginTop', '.verdict-box', 'marginTop', 16)
+        chkR('card1.verdict.icon.w', '.verdict-box .glyph', 20)
+        chkR('card1.verdict.icon.h', '.verdict-box .glyph', 27) /* remixicon 18px → 18×1.5 */
+        chkC('card1.verdict.text.fs', '.verdict-box__text', 'fontSize', 12)
+        chkC('card1.verdict.text.color', '.verdict-box__text', 'color', 'rgb(71, 85, 105)')
+        chkC('card1.info.marginTop', '.info-list', 'marginTop', 16)
+        chkR('card1.info.row.h', '.info-row', 26, 1) /* padding 5/5 + 行 16 */
+        chkC('card1.info.row.padY', '.info-row', 'paddingTop', 5)
+        chkC('card1.info.label.w', '.info-row__label', 'width', 64)
+        chkC('card1.info.label.fs', '.info-row__label', 'fontSize', 11)
+        chkC('card1.info.label.lh', '.info-row__label', 'lineHeight', 16)
+        chkC('card1.info.label.color', '.info-row__label', 'color', 'rgb(148, 163, 184)')
+        chkC('card1.info.value.fs', '.info-row__value', 'fontSize', 11.5)
+        chkC('card1.info.value.color', '.info-row__value', 'color', 'rgb(71, 85, 105)')
+
+        /* ---------- 关键指标卡（design c13761bd · stroke 0.8 center #EEF2F7） ---------- */
+        chkR('card2.h', '.card#1', 351, 2)
+        chk('card2.stroke.decl', normDecl(declared('.card#1', 'boxShadow')) || css('.card#1', 'boxShadow'),
+          'rgb(238, 242, 247) 0px 0px 0px 0.8px', 0)
+        chkC('card2.titleRow.h', '.card#1 .card__title-row', 'height', 20)
+        chkC('card2.title.fs', '.card#1 .card__title', 'fontSize', 15)
+        chkC('card2.title.fw', '.card#1 .card__title', 'fontWeight', 700)
+        chkR('card2.bar.w', '.card#1 .card__bar', 5)
+        chkR('card2.bar.h', '.card#1 .card__bar', 14)
+        chkC('card2.bar.bg', '.card#1 .card__bar', 'backgroundColor', 'rgb(37, 99, 235)')
+        chkC('card2.bar.radius', '.card#1 .card__bar', 'borderRadius', 2)
+        chkC('card2.sub.fs', '.card#1 .card__sub', 'fontSize', 11)
+        chkC('card2.sub.color', '.card#1 .card__sub', 'color', 'rgb(148, 163, 184)')
+        chkC('card2.metrics.padTop', '.metrics', 'paddingTop', 16)
+        chkR('card2.metric.w', '.metric', 174)
+        chkR('card2.metric.h', '.metric', 85, 1)
+        chkR('card2.metric.x0', '.metric#0', 36, 1)
+        chkR('card2.metric.x1', '.metric#1', 220, 1)
+        chkC('card2.metric.pad', '.metric', 'paddingTop', 12)
+        chkC('card2.metric.radius', '.metric', 'borderRadius', 12)
+        chkC('card2.metric.bg', '.metric', 'backgroundColor', 'rgb(248, 250, 252)')
+        chkC('card2.metricLabel.fs', '.metric__label', 'fontSize', 10.5)
+        chkC('card2.metricLabel.lh', '.metric__label', 'lineHeight', 15)
+        chkC('card2.metricLabel.color', '.metric__label', 'color', 'rgb(148, 163, 184)')
+        chkC('card2.metricValue.fs', '.metric__value', 'fontSize', 19)
+        chkC('card2.metricValue.fw', '.metric__value', 'fontWeight', 800)
+        chkC('card2.metricValue.color', '.metric__value', 'color', 'rgb(15, 23, 42)')
+        chkC('card2.metricUnit.fs', '.metric__unit', 'fontSize', 11)
+        chkC('card2.metricUnit.color', '.metric__unit', 'color', 'rgb(100, 116, 139)')
+        chkC('card2.metricSub.fs', '.metric__sub', 'fontSize', 10)
+        chk('card2.metricRow.pitch', (function () { var r = rects('.metric'); return r.length > 3 ? r[3].top - r[1].top : null })(), 95, 2)
+
+        /* ---------- 维度总览卡（design 7530b31a · 雷达 6cf10c3b / 均分行 33713878 / 图例 7a5c9636） ---------- */
+        chkR('card3.h', '.card#2', 518, 2)
+        chk('card3.stroke.decl', normDecl(declared('.card#2', 'boxShadow')) || css('.card#2', 'boxShadow'),
+          'rgb(238, 242, 247) 0px 0px 0px 0.8px', 0)
+        chkR('card3.radar.h', '.radar', 258, 1)
+        chkC('card3.radar.padTop', '.radar', 'paddingTop', 8)
+        chkR('card3.radarCanvas.w', '.radar__canvas', 244, 1)
+        chkR('card3.radarCanvas.h', '.radar__canvas', 250, 1)
+        chkR('card3.radarImg.w', '.radar__img', 176, 1)
+        chkR('card3.radarImg.h', '.radar__img', 176, 1)
+        chk('card3.radarLabels', texts('[data-testid="radar-label"]').length, 6)
+        chkC('card3.radarLabel.fs', '.radar__label', 'fontSize', 11)
+        chkC('card3.radarLabel.color', '.radar__label', 'color', 'rgb(100, 116, 139)')
+        chkC('card3.dims.padTop', '.dims', 'paddingTop', 12)
+        chk('card3.dim.pitch', (function () { var r = rects('.dim'); return r.length > 1 ? r[1].top - r[0].top : null })(), 28, 1)
+        chkR('card3.dim.name.w', '.dim__name', 110, 1)
+        chkR('card3.dim.dot.w', '.dim__dot', 9, 1)
+        chkR('card3.dim.dot.h', '.dim__dot', 8, 1)
+        chkC('card3.dim.text.fs', '.dim__text', 'fontSize', 12)
+        chkC('card3.dim.text.color', '.dim__text', 'color', 'rgb(51, 65, 85)')
+        chkR('card3.dim.bar.w', '.dim__bar', 200, 1)
+        chkR('card3.dim.bar.h', '.dim__bar', 6, 1)
+        chkC('card3.dim.bar.bg', '.dim__bar', 'backgroundColor', 'rgb(226, 232, 240)')
+        chkR('card3.dim.score.w', '.dim__score', 32, 1)
+        chkC('card3.dim.score.fs', '.dim__score', 'fontSize', 12)
+        chkC('card3.dim.score.color', '.dim__score', 'color', 'rgb(15, 23, 42)')
+        chk('card3.dim.score.right', (function () { var r = rects('.dim__score'); return r.length ? r[0].right : null })(), 394, 1)
+        chkC('card3.legend.padTop', '.legend', 'paddingTop', 16)
+        chk('card3.legendCount', texts('[data-testid="legend-text"]').length, 3)
+        chkC('card3.legendText.fs', '.legend__text', 'fontSize', 10.5)
+        chkC('card3.legendText.color', '.legend__text', 'color', 'rgb(148, 163, 184)')
+
+        /* ---------- 全维度明细卡（design 7806d174 · 分组 A–G · 权重说明盒 104230be） ---------- */
+        chkR('card4.h', '.card#3', 2962, 3)
+        chk('card4.stroke.decl', normDecl(declared('.card#3', 'boxShadow')) || css('.card#3', 'boxShadow'),
+          'rgb(238, 242, 247) 0px 0px 0px 0.8px', 0)
+        chkR('card4.titleRow.h', '.card#3 .card__title-row', 20)
+        chkC('card4.summary.padTop', '.detail-summary', 'paddingTop', 8)
+        chkC('card4.summary.h', '.detail-summary', 'height', 24)
+        chkC('card4.summary.fs', '.detail-summary', 'fontSize', 11)
+        chkC('card4.summary.color', '.detail-summary', 'color', 'rgb(148, 163, 184)')
+        chkR('card4.group.head.h', '.group__head', 18, 1)
+        chkR('card4.group.bar.w', '.group__bar', 5)
+        chkR('card4.group.bar.h', '.group__bar', 14)
+        chkC('card4.group.title.fs', '.group__title', 'fontSize', 13)
+        chkC('card4.group.title.fw', '.group__title', 'fontWeight', 700)
+        chkC('card4.group.title.color', '.group__title', 'color', 'rgb(15, 23, 42)')
+        chkC('card4.group.meta.fs', '.group__meta', 'fontSize', 11)
+        chkC('card4.group.meta.color', '.group__meta', 'color', 'rgb(148, 163, 184)')
+        chkC('card4.group.padTop', '.group', 'paddingTop', 16)
+        chkR('card4.item.h', '.item', 29, 1)
+        chkR('card4.item.name.w', '.item__name', 150)
+        chkC('card4.item.label.fs', '.item__label', 'fontSize', 12)
+        chkC('card4.item.label.fw', '.item__label', 'fontWeight', 500)
+        chkC('card4.item.label.lh', '.item__label', 'lineHeight', 16)
+        chkC('card4.item.label.color', '.item__label', 'color', 'rgb(51, 65, 85)')
+        chkC('card4.item.metric.fs', '.item__metric', 'fontSize', 10)
+        chkC('card4.item.metric.lh', '.item__metric', 'lineHeight', 13)
+        chkC('card4.item.metric.color', '.item__metric', 'color', 'rgb(148, 163, 184)')
+        chkR('card4.item.bar.w', '.item__bar', 162)
+        chkR('card4.item.bar.h', '.item__bar', 6)
+        chkC('card4.item.bar.bg', '.item__bar', 'backgroundColor', 'rgb(226, 232, 240)')
+        chkR('card4.item.score.w', '.item__score', 30)
+        chkC('card4.item.score.fs', '.item__score-text', 'fontSize', 12)
+        chkC('card4.item.score.fw', '.item__score-text', 'fontWeight', 700)
+        chk('card4.itemPitch', (function () {
+          /* 同组内相邻两行的 top 差 = 43（行高 29 + 间隔 14，设计 PNG x=200 条形实测） */
+          var rows = Array.prototype.map.call(doc.querySelectorAll('[data-testid="section-item"]'), function (e) {
+            return Math.round(e.getBoundingClientRect().top)
+          })
+          var groups = Array.prototype.map.call(doc.querySelectorAll('.group'), function (g) {
+            return g.querySelectorAll('[data-testid="section-item"]').length
+          })
+          var i = 0, pitches = []
+          groups.forEach(function (n) { for (var k = 1; k < n; k++) pitches.push(rows[i + k] - rows[i + k - 1]); i += n })
+          return pitches.length ? pitches[0] : null
+        })(), 43, 1)
+        chk('card4.groupPitch', (function () {
+          var g = Array.prototype.map.call(doc.querySelectorAll('.group'), function (e) { return Math.round(e.getBoundingClientRect().top) })
+          return g.length > 1 ? g[1] - g[0] : null
+        })(), 437, 2) /* = 组高 421（16+18+14+9 项 373）+ 组间间隔 16 */
+        chkR('card4.item.row0.w', '.item', 358, 1)
+        chkR('card4.item.pill.w', '.item__pill', 62, 2)
+        chkR('card4.item.pill.h', '.item__pill', 18, 1)
+        chkC('card4.item.pill.radius', '.item__pill', 'borderRadius', 9)
+        chkC('card4.item.pill.padX', '.item__pill', 'paddingLeft', 8)
+        chk('card4.noteBox.bg', colorOf('.note-box', 'backgroundColor'), 'rgb(248, 250, 252)')
+        chkC('card4.noteBox.pad', '.note-box', 'paddingTop', 12)
+        chkC('card4.noteBox.radius', '.note-box', 'borderRadius', 12)
+        chkC('card4.noteBox.fs', '.note-box', 'fontSize', 10.5)
+        chkC('card4.noteBox.color', '.note-box', 'color', 'rgb(100, 116, 139)')
+        chk('card4.groupNote.bg', colorOf('.group__note', 'backgroundColor'), 'rgb(245, 243, 255)')
+        chkC('card4.groupNote.pad', '.group__note', 'paddingTop', 12)
+        chkC('card4.groupNote.radius', '.group__note', 'borderRadius', 12)
+        chkC('card4.groupNote.color', '.group__note', 'color', 'rgb(124, 58, 237)')
+
+        /* ---------- 风险发现卡（design 658a45d1 · 4 条 padding12 r12） ---------- */
+        chkR('card5.h', '.card#4', 410, 3)
+        chk('card5.stroke.decl', normDecl(declared('.card#4', 'boxShadow')) || css('.card#4', 'boxShadow'),
+          'rgb(238, 242, 247) 0px 0px 0px 0.8px', 0)
+        chkC('card5.title.fs', '.card#4 .card__title', 'fontSize', 15)
+        chkC('card5.title.fw', '.card#4 .card__title', 'fontWeight', 700)
+        chk('card5.findingBg', colors('.finding').join(' | '),
+          'rgb(240, 253, 244) | rgb(255, 251, 235) | rgb(255, 251, 235) | rgb(241, 245, 249)')
+        chkC('card5.finding.pad', '.finding', 'paddingTop', 12)
+        chkC('card5.finding.radius', '.finding', 'borderRadius', 12)
+        chkC('card5.finding.title.fs', '.finding__title', 'fontSize', 12)
+        chkC('card5.finding.title.fw', '.finding__title', 'fontWeight', 700)
+        chkC('card5.finding.title.lh', '.finding__title', 'lineHeight', 18)
+        chkC('card5.finding.body.fs', '.finding__body', 'fontSize', 11)
+        chkC('card5.finding.body.lh', '.finding__body', 'lineHeight', 17)
+        chk('card5.findingPitch', (function () { var r = rects('.finding'); return r.length > 1 ? r[1].top - r[0].top : null })(), 86, 2)
+
+        /* ---------- 原始证据卡（design 9844215a · 键 88 宽 · 行 padding-top 16/10） ---------- */
+        chkR('card6.h', '.card#5', 287, 3)
+        chk('card6.stroke.decl', normDecl(declared('.card#5', 'boxShadow')) || css('.card#5', 'boxShadow'),
+          'rgb(238, 242, 247) 0px 0px 0px 0.8px', 0)
+        chkR('card6.key.w', '.evidence-row__key', 88)
+        chkC('card6.key.fs', '.evidence-row__key', 'fontSize', 11)
+        chkC('card6.key.lh', '.evidence-row__key', 'lineHeight', 16)
+        chkC('card6.key.color', '.evidence-row__key', 'color', 'rgb(15, 23, 42)')
+        chkC('card6.value.fs', '.evidence-row__value', 'fontSize', 11)
+        chkC('card6.value.lh', '.evidence-row__value', 'lineHeight', 16)
+        chkC('card6.value.color', '.evidence-row__value', 'color', 'rgb(100, 116, 139)')
+        chk('card6.row1.padTop', (function () { var e = doc.querySelectorAll('.evidence-row')[0]; return e ? win.getComputedStyle(e).paddingTop : null })(), 16)
+        chk('card6.row2.padTop', (function () { var e = doc.querySelectorAll('.evidence-row')[1]; return e ? win.getComputedStyle(e).paddingTop : null })(), 10)
+
+        /* ---------- 免责声明卡（design 30918987） ---------- */
+        chkR('card7.h', '.card#6', 109, 3)
+        chkC('card7.title.fs', '.disclaimer__title', 'fontSize', 12)
+        chkC('card7.title.fw', '.disclaimer__title', 'fontWeight', 600) /* design 免责标题 SemiBold */
+        chkC('card7.title.lh', '.disclaimer__title', 'lineHeight', 18)
+        chkC('card7.body.fs', '.disclaimer__body', 'fontSize', 11)
+        chkC('card7.body.lh', '.disclaimer__body', 'lineHeight', 17)
+        chkC('card7.body.color', '.disclaimer__body', 'color', 'rgb(100, 116, 139)')
+
+        /* ---------- 底部操作（design e096bd63 · padding12 r18 · 导出 126×48 / 填写报价 h48） ---------- */
+        chkR('bar.h', '.action__bar', 72, 1)
+        chkC('bar.pad', '.action__bar', 'paddingTop', 12)
+        chkC('bar.radius', '.action__bar', 'borderRadius', 18)
+        chkC('bar.bg', '.action__bar', 'backgroundColor', 'rgb(255, 255, 255)')
+        chkR('bar.export.w', '[data-testid="export-btn"]', 126, 1)
+        chkR('bar.export.h', '[data-testid="export-btn"]', 48, 1)
+        chkC('bar.export.radius', '[data-testid="export-btn"]', 'borderRadius', 12)
+        chk('bar.export.stroke.decl', normDecl(declared('[data-testid="export-btn"]', 'boxShadow')) || css('[data-testid="export-btn"]', 'boxShadow'),
+          'rgb(203, 213, 225) 0px 0px 0px 0.8px', 0)
+        chkR('bar.quote.h', '[data-testid="quote-btn"]', 48, 1)
+        chkR('bar.quote.right', '[data-testid="quote-btn"]', 402, 1) /* 底栏内容区 28..402（padding 12） */
+        chkC('bar.quote.radius', '[data-testid="quote-btn"]', 'borderRadius', 12)
+        chkC('bar.quote.bg', '[data-testid="quote-btn"]', 'backgroundColor', 'rgb(37, 99, 235)')
+        chkC('bar.quoteText.fs', '.action__primary-text', 'fontSize', 15)
+        chkC('bar.quoteText.fw', '.action__primary-text', 'fontWeight', 700)
+        chkC('bar.exportText.fs', '.action__ghost-text', 'fontSize', 14)
+
+        /* ---------- 整页 ---------- */
+        chk('page.docHeight', Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight), 5342, 6)
+        chk('page.cardCount', doc.querySelectorAll('.card').length, 7)
+        chk('page.blockGap', (function () { var c = rects('.card'); return c.length > 1 ? c[1].top - (c[0].top + c[0].h) : null })(), 12, 1)
+
+        /* ---------- 文案（设计原文，逐字） ---------- */
         var text = (doc.body && doc.body.innerText) || ''
         var need = [
           '检测报告', 'DR-20240613-0758',
@@ -94,81 +446,45 @@
           '本报告基于抽样检测生成', '报告有效期 30 天，异常可申请复测。',
           '导出 PDF', '填写报价'
         ]
+        var missing = need.filter(function (t) { return text.indexOf(t) === -1 })
+        chk('text.missing', missing.join('|'), '')
+
+        /* ---------- 溢出（不计 uni-app 自身测量元素） ---------- */
+        var over = []
+        doc.querySelectorAll('*').forEach(function (e) {
+          if (e.closest && e.closest('uni-resize-sensor')) return
+          var r = e.getBoundingClientRect()
+          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
+            over.push({ tag: e.tagName, cls: String(e.className || '').slice(0, 60), right: Math.round(r.right) })
+          }
+        })
+        chk('overflow.count', over.length, 0)
+
         return {
           innerWidth: win.innerWidth,
           docScrollWidth: doc.documentElement.scrollWidth,
           docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
-          overflowingCount: over.length,
-          overflowing: over.slice(0, 20),
-          missingTexts: need.filter(function (t) { return text.indexOf(t) === -1 }),
+          checkCount: checks,
+          checkFailCount: fails.length,
+          checkFails: fails,
+          overflowing: over.slice(0, 10),
           title: textOf('[data-testid="title"]'),
-          reportNo: textOf('[data-testid="report-no"]'),
           score: textOf('[data-testid="score"]'),
-          resultChip: textOf('[data-testid="result-chip"]'),
-          statusValues: texts('[data-testid="status-value"]'),
-          statusLabels: texts('[data-testid="status-label"]'),
-          infoLabels: texts('[data-testid="info-label"]'),
-          infoValues: texts('[data-testid="info-value"]'),
-          metricCount: doc.querySelectorAll('[data-testid="metric-label"]').length,
-          metricLabels: texts('[data-testid="metric-label"]'),
-          metricValues: texts('[data-testid="metric-value"]'),
-          metricUnits: Array.prototype.map.call(doc.querySelectorAll('.metric__unit'), function (e) { return e.textContent.trim() }),
-          metricRects: rects('.metric'),
-          metricBg: colorOf('.metric', 'backgroundColor'),
-          radarRect: rect('[data-testid="radar"]'),
-          radarSrcPrefix: (function () {
-            var host = doc.querySelector('[data-testid="radar"]')
-            if (!host) return null
-            var node = host.querySelector('img') || host.querySelector('div') || host
-            var bg = win.getComputedStyle(node).backgroundImage || ''
-            var src = node.getAttribute && node.getAttribute('src')
-            return String(src || bg).slice(0, 40)
-          })(),
-          radarImgTag: (function () {
-            var e = doc.querySelector('[data-testid="radar"]')
-            return e ? e.tagName : null
-          })(),
-          radarLabels: texts('[data-testid="radar-label"]'),
-          radarLabelRects: rects('.radar__label'),
-          dimCount: doc.querySelectorAll('[data-testid="dim-name"]').length,
+          itemCount: doc.querySelectorAll('[data-testid="section-item"]').length,
+          groupCount: doc.querySelectorAll('.group').length,
+          cardRects: rects('.card'),
+          cardTops: rects('.card').map(function (r) { return r.top }),
+          groupRects: rects('.group'),
+          groupNoteRect: rect('.group__note'),
+          weightNoteRect: rect('.note-box'),
+          metricRect: rect('.metric'),
+          metric3Rect: rect('.metric#3'),
           dimNames: texts('[data-testid="dim-name"]'),
           dimScores: texts('[data-testid="dim-score"]'),
-          dimDotColors: colors('.dim__dot'),
-          dimFillWidths: Array.prototype.map.call(doc.querySelectorAll('.dim__fill'), function (e) { return e.style.width }),
-          dimBarRect: rect('.dim__bar'),
           legendTexts: texts('[data-testid="legend-text"]'),
-          sectionTitles: texts('[data-testid="section-title"]'),
-          sectionMetas: texts('.group__meta'),
-          itemCount: doc.querySelectorAll('[data-testid="section-item"]').length,
-          itemLabels: texts('[data-testid="item-label"]'),
-          itemMetrics: texts('[data-testid="item-metric"]'),
-          itemScores: texts('[data-testid="item-score"]'),
-          itemPillTexts: texts('[data-testid="item-status"]'),
-          itemPillBgs: colors('.item__pill'),
-          itemBarRect: rect('.item__bar'),
-          itemHolderRect: rect('.item__holder'),
-          itemRowRects: rects('[data-testid="section-item"]').slice(0, 4),
-          detailSummary: textOf('[data-testid="detail-summary"]'),
-          itemCountText: textOf('[data-testid="item-count"]'),
+          radarLabels: texts('[data-testid="radar-label"]'),
           findingTitles: texts('[data-testid="finding-title"]'),
-          findingBgs: colors('.finding'),
           evidenceKeys: texts('[data-testid="evidence-key"]'),
-          evidenceValues: texts('[data-testid="evidence-value"]'),
-          evidenceRowRects: rects('.evidence-row').slice(0, 3),
-          disclaimerTitle: textOf('[data-testid="disclaimer-title"]'),
-          disclaimerText: textOf('[data-testid="disclaimer-text"]'),
-          topbar: rect('.report-page__topbar'),
-          cardRect: rect('.card'),
-          groupNoteRect: rect('.group__note'),
-          groupNoteBg: colorOf('.group__note', 'backgroundColor'),
-          noteBoxRect: rect('.note-box'),
-          actionBar: rect('.action__bar'),
-          exportBtn: rect('[data-testid="export-btn"]'),
-          exportBg: colorOf('[data-testid="export-btn"]', 'backgroundColor'),
-          quoteBtn: rect('[data-testid="quote-btn"]'),
-          quoteBg: colorOf('[data-testid="quote-btn"]', 'backgroundColor'),
-          pageBg: colorOf('.report-page', 'backgroundColor'),
-          topbarBg: colorOf('.report-page__topbar', 'backgroundColor'),
           userAgent: win.navigator.userAgent
         }
       }
@@ -184,6 +500,40 @@
           document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
         } catch (e) {
           document.getElementById('m').textContent = 'MEASURE_JSON:{"error":"' + e.message + '"}'
+        }
+      }
+
+      /* 交互回放（?scenario=actions）：导出 PDF（api）→ 填写报价（navigation）。
+         serve 实收请求行由 review-measure.sh 采集 —— 校验门/点击是否真的只发该发的请求。 */
+      function actions() {
+        try {
+          var doc = f.contentDocument, win = f.contentWindow
+          var out = { steps: [] }
+          var hash0 = win.location.hash
+          var exportBtn = doc.querySelector('[data-testid="export-btn"]')
+          exportBtn && exportBtn.click()
+          out.exportClicked = !!exportBtn
+          setTimeout(function () {
+            out.hashAfterExport = win.location.hash
+            out.hashUnchangedAfterExport = win.location.hash === hash0
+            var quoteBtn = doc.querySelector('[data-testid="quote-btn"]')
+            quoteBtn && quoteBtn.click()
+            out.quoteClicked = !!quoteBtn
+            setTimeout(function () {
+              var body = doc.body.innerText || ''
+              out.hashAfterQuote = win.location.hash
+              out.toastText = (function () {
+                var t = doc.querySelector('.uni-toast') || doc.querySelector('uni-toast')
+                return t ? t.textContent.trim() : ''
+              })()
+              out.bodyHasReportQuoteWording = body.indexOf('填写报价') !== -1
+              acc.actions = out
+              document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+            }, 900)
+          }, 900)
+        } catch (e) {
+          acc.actions = { error: e.message }
+          document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
         }
       }
     </script>

@@ -13,10 +13,10 @@
     <view class="report-page__body">
       <!-- 结论封面卡：design id=4e855266（白 · r18 · padding 20） -->
       <view class="block">
-        <view class="card">
+        <view class="card card--cover">
           <view class="card__title-row">
             <view class="card__mark"><view class="glyph glyph--doc" aria-hidden="true" /></view>
-            <text class="card__title" data-testid="verdict-title">{{ model.verdictTitle }}</text>
+            <text class="card__title card__title--cover" data-testid="verdict-title">{{ model.verdictTitle }}</text>
             <view class="card__spacer" />
             <text class="card__sub" data-testid="channel">{{ model.channelText }}</text>
           </view>
@@ -34,6 +34,9 @@
               <text class="result-chip__text">{{ model.resultLabel }}</text>
             </view>
           </view>
+
+          <!-- 分隔线：design 377c9abc（1px #EEF2F7，位于综合分块与状态四格之间，间距 16） -->
+          <view class="card__divider" />
 
           <!-- 状态四格：design id=950cbd49（值 15px · 标签 10px #94A3B8） -->
           <view class="status-grid">
@@ -73,6 +76,7 @@
       <view class="block">
         <view class="card">
           <view class="card__title-row">
+            <view class="card__bar" />
             <text class="card__title" data-testid="metrics-title">{{ KEY_METRICS_TITLE }}</text>
             <view class="card__spacer" />
             <text class="card__sub">{{ KEY_METRICS_SUB }}</text>
@@ -411,16 +415,16 @@ onMounted(async () => {
 
 .report-page__icon-btn {
   width: 24px;
-  height: 24px;
+  height: 33px; /* design 59b830bc：remixicon 22px 行框 = 22×1.5 = 33（顶部栏内容高，撑起 48+33+12=93） */
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .report-page__title {
-  margin-left: 8px;
+  margin-left: 12px;
   font-size: 17px;
-  font-weight: 600;
+  font-weight: 700; /* design eb6fd4b5 fontFamily=SourceHanSans-Bold */
   color: $color-text-primary;
   line-height: 1.2;
 }
@@ -452,6 +456,32 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  /* design c13761bd 等：stroke{align:center,thickness:0.8} → Figma 中心描边不占布局，用 box-shadow 表达
+     （用 border 会把内容宽从 358 挤成 356） */
+  box-shadow: 0 0 0 0.8px $color-border-chip;
+}
+
+/* design 4e855266：结论封面卡带 drop_shadow(0,6,20,rgba(15,23,42,0.06))，无描边 */
+.card--cover {
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+}
+
+/* design 377c9abc：综合分块与状态四格之间的 1px 分隔线（间距 16） */
+.card__divider {
+  margin-top: 16px;
+  height: 1px;
+  width: 100%;
+  background: $color-border-chip;
+}
+
+/* design 86cbfb7a 等：卡片标题前的 5×14 r2 色条（关键指标卡 8cbfb7a / 各卡同族） */
+.card__bar {
+  width: 5px;
+  height: 14px;
+  border-radius: 2px;
+  background: $color-primary;
+  margin-right: 8px;
+  flex-shrink: 0;
 }
 
 .card__title-row {
@@ -459,22 +489,32 @@ onMounted(async () => {
   flex-direction: row;
   align-items: center;
   width: 100%;
+  min-height: 20px; /* design：标题行高 20（15px Bold 行框） */
 }
 
 .card__mark {
   width: 18px;
-  height: 18px;
+  height: 24px; /* design 89db7d78：remixicon 16px 行框 = 24 */
   display: flex;
   align-items: center;
   justify-content: center;
   margin-right: 5px;
+  flex-shrink: 0;
 }
 
 .card__title {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700; /* design fontFamily=SourceHanSans-Bold */
   color: $color-text-primary;
-  line-height: 1.2;
+  line-height: 20px;
+}
+
+/* design 625f2248：结论封面卡的标题是 12px Medium #64748B（与其余卡片的 15px Bold 不同） */
+.card__title--cover {
+  font-size: 12px;
+  font-weight: 500;
+  color: $color-text-muted;
+  line-height: 18px;
 }
 
 .card__spacer {
@@ -497,8 +537,8 @@ onMounted(async () => {
 
 .score {
   font-size: 40px;
-  font-weight: 600;
-  line-height: 1.2;
+  font-weight: 900; /* design f717621c fontFamily=SourceHanSans-Black */
+  line-height: 44px; /* design：综合分行框 44（PNG 实测 ink 172..203） */
   color: $color-text-primary;
 }
 
@@ -535,7 +575,7 @@ onMounted(async () => {
   flex-direction: row;
   align-items: center;
   box-sizing: border-box;
-  background: $color-success-weak;
+  background: $color-success-weak-2;
 }
 
 .result-chip--danger {
@@ -553,6 +593,7 @@ onMounted(async () => {
 .result-chip__text {
   margin-left: 4px;
   font-size: 12px;
+  font-weight: 700; /* design c2e5f1be fontFamily=SourceHanSans-Bold */
   color: $color-success-text;
 }
 
@@ -584,7 +625,7 @@ onMounted(async () => {
 
 .status-cell__value {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700; /* design 173538c1 fontFamily=SourceHanSans-Bold */
   color: $color-text-primary;
   line-height: 20px;
 }
@@ -625,7 +666,7 @@ onMounted(async () => {
 
 /* 信息清单（design 95371b7c） */
 .info-list {
-  margin-top: 12px;
+  margin-top: 16px;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -659,13 +700,13 @@ onMounted(async () => {
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: stretch;
+  row-gap: 10px; /* design：指标行距 95 = 子卡 85 + 10（末行不留间距 → 卡高 351） */
   padding-top: 16px;
   width: 100%;
 }
 
 .metric {
   width: 174px;
-  margin-bottom: 10px;
   padding: 12px;
   border-radius: 12px;
   background: $color-bg-page;
@@ -683,15 +724,17 @@ onMounted(async () => {
 .metric__value-row {
   display: flex;
   flex-direction: row;
-  align-items: baseline;
+  align-items: flex-end;
   padding-top: 4px;
+  height: 28px; /* design：值行 = padding-top 4 + 值行框 24（子卡高 85 = 12+15+28+18+12） */
+  box-sizing: border-box;
 }
 
 .metric__value {
   font-size: 19px;
-  font-weight: 600;
+  font-weight: 800; /* design 27855b9c fontFamily=SourceHanSans-ExtraBold */
   color: $color-text-primary;
-  line-height: 1.2;
+  line-height: 24px;
 }
 
 .metric__unit {
@@ -811,6 +854,7 @@ onMounted(async () => {
 .dim__text {
   margin-left: 6px;
   font-size: 12px;
+  line-height: 16px; /* design：均分行高 16（PNG 实测行距 28 = 16 + 12） */
   color: $color-text-secondary-2;
 }
 
@@ -829,8 +873,11 @@ onMounted(async () => {
 }
 
 .dim__score {
+  width: 32px; /* design 33713878「分」= 32 宽、右对齐（名 110 + 条 200 + 分 32 + 间距 16 = 358） */
+  text-align: right;
   margin-left: 8px;
   font-size: 12px;
+  line-height: 16px;
   color: $color-text-primary;
 }
 
@@ -879,6 +926,12 @@ onMounted(async () => {
   width: 100%;
 }
 
+/* design：分组之间（以及最后一个分组与权重说明盒之间）有 16 高间隔条
+   （design.tree.json 的 spacer 8a882495 = 357×16；PNG 实测组标题 ink 间距 A→B = 437 与 421+16 自洽） */
+.group + .group {
+  margin-top: 16px;
+}
+
 .group__head {
   display: flex;
   flex-direction: row;
@@ -895,8 +948,14 @@ onMounted(async () => {
 .group__title {
   margin-left: 8px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700; /* design 772db2b3 fontFamily=SourceHanSans-Bold */
+  line-height: 18px; /* design：组标题行高 18（PNG 实测色条中心 1514、行高 18） */
   color: $color-text-primary;
+}
+
+/* design 分组A：组标题行 → 列表 间隔 14（PNG：标题 ink → 首行 ink = 32 / 92 条数据行距 43 = 29+14） */
+.group__head + .item {
+  margin-top: 14px;
 }
 
 .group__meta {
@@ -904,15 +963,25 @@ onMounted(async () => {
   color: $color-text-placeholder;
 }
 
+/* design 指纹提示（分组D，id=239a99e9）：位于两条 14 间隔条之间（标题行 →14→ 提示盒 →14→ 列表），
+   行框 16（design 文本图层 height=48 = 3 行 × 16） */
+.group__head + .group__note {
+  margin-top: 14px;
+}
+
 .group__note {
-  margin-top: 10px;
+  margin-top: 14px;
   padding: 12px;
   border-radius: 12px;
   background: $color-violet-weak;
   font-size: 10.5px;
   color: $color-violet;
-  line-height: 18px;
+  line-height: 16px;
   box-sizing: border-box;
+}
+
+.group__note + .item {
+  margin-top: 14px;
 }
 
 .item {
@@ -923,7 +992,7 @@ onMounted(async () => {
 }
 
 .item--gap {
-  margin-top: 8px;
+  margin-top: 14px; /* design：明细行距 43 = 行高 29 + 间隔 14（PNG x=200 条形实测 1549→1592） */
 }
 
 .item__name {
@@ -935,6 +1004,7 @@ onMounted(async () => {
 
 .item__label {
   font-size: 12px;
+  font-weight: 500; /* design 64a9c7b4 fontFamily=SourceHanSans-Medium */
   color: $color-text-secondary-2;
   line-height: 16px;
 }
@@ -982,7 +1052,7 @@ onMounted(async () => {
 
 .item__score-text {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700; /* design：明细分值与「分」列同为 Bold */
   color: $color-text-primary;
 }
 
@@ -1021,17 +1091,22 @@ onMounted(async () => {
 }
 
 .note-box {
-  margin-top: 16px;
+  margin-top: 16px; /* design：权重说明盒前的 spacer 8a882495 = 357×16 */
   padding: 12px;
   border-radius: 12px;
   background: $color-bg-page;
   font-size: 10.5px;
   color: $color-text-muted;
-  line-height: 18px;
+  line-height: 16px; /* design 104230be 文本图层 height=48 = 3 行 × 16 */
   box-sizing: border-box;
 }
 
 /* 风险发现（design 658a45d1） */
+/* design：标题行 → 首条发现 间距 16（PNG：标题行 4421..4441 → 发现1 4457） */
+.card__title-row + .finding {
+  margin-top: 16px;
+}
+
 .finding {
   display: flex;
   flex-direction: row;
@@ -1067,7 +1142,7 @@ onMounted(async () => {
 
 .finding__title {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700; /* design：发现标题 Bold */
   color: $color-text-primary;
   line-height: 18px;
 }
@@ -1157,7 +1232,8 @@ onMounted(async () => {
   height: 48px;
   border-radius: 12px;
   background: $color-bg-card;
-  border: 1px solid $color-border-strong;
+  /* design 导出PDF按钮 stroke{align:center,thickness:0.8,#CBD5E1} → box-shadow（border 会占布局） */
+  box-shadow: 0 0 0 0.8px $color-border-strong;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -1187,7 +1263,7 @@ onMounted(async () => {
 .action__primary-text {
   margin-left: 6px;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700; /* design：填写报价按钮文字 Bold */
   color: $color-bg-card;
 }
 
@@ -1222,8 +1298,19 @@ onMounted(async () => {
 }
 
 .glyph--check-strong {
-  width: 14px;
-  height: 14px;
+  /* design 5c0c5ff2：remixicon 18px 行框 = 20×27（形状画在 ::before） */
+  width: 20px;
+  height: 27px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.glyph--check-strong::before {
+  content: '';
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: $color-success;
 }
