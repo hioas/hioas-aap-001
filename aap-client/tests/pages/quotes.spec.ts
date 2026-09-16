@@ -16,6 +16,7 @@ import {
   DESIGN_CARD_STATUSES,
   DESIGN_FILTERS,
   DESIGN_META,
+  DESIGN_META_PARTS,
   DESIGN_NEW_QUOTE,
   DESIGN_QUOTE_NO,
   DESIGN_QUOTE_NO_LABEL,
@@ -70,7 +71,21 @@ describe('序号 8 · 结构与设计稿一致', () => {
     expect(cards[0].find('.quote-card__title').text()).toBe('2024Q3 主线路报价')
     expect(cards[0].find('.quote-card__no-label').text()).toBe(DESIGN_QUOTE_NO_LABEL)
     expect(cards[0].find('.quote-card__no-value').text()).toBe(DESIGN_QUOTE_NO)
-    expect(cards[0].find('.quote-card__meta-text').text()).toBe(DESIGN_META)
+    expect(cards[0].findAll('.quote-card__meta-part').map((t) => t.text()).join(' ')).toBe(DESIGN_META)
+  })
+
+  it('元信息行按设计拆成 5 个节点（3 段文本 + 2 个分隔点），分隔点用更浅的灰', async () => {
+    const wrapper = await mountPage()
+    const rows = wrapper.findAll('.quote-card__meta-row')
+    expect(rows).toHaveLength(5)
+    expect(rows[0].findAll('.quote-card__meta-text').map((t) => t.text())).toEqual(['2 个模型', 'CNY', '更新于 06-14 15:20'])
+    const seps = rows[0].findAll('.quote-card__meta-sep')
+    expect(seps.map((t) => t.text())).toEqual(['·', '·'])
+    /* 视觉顺序必须是 文本 · 文本 · 文本（设计里节点顺序如此） */
+    expect(rows[0].findAll('.quote-card__meta-part').map((t) => t.text())).toEqual(DESIGN_META_PARTS)
+    /* 分隔点单独着色（design fd63dfdb/9cafcec1 #CBD5E1）→ 走专属类，不靠行内样式 */
+    expect(seps[0].classes()).toContain('quote-card__meta-sep')
+    expect(seps[0].classes()).not.toContain('quote-card__meta-text')
   })
 
   it('5 张卡的状态胶囊文案与设计稿逐张一致', async () => {
@@ -85,7 +100,7 @@ describe('序号 8 · 结构与设计稿一致', () => {
       expect.stringContaining('rgb(241, 245, 249)'),
       expect.stringContaining('rgb(239, 246, 255)'),
       expect.stringContaining('rgb(254, 242, 242)'),
-      expect.stringContaining('rgb(255, 251, 235)'),
+      expect.stringContaining('rgb(255, 252, 235)'), /* design c426702b fills rgba(255,252,235,1) = #FFFCEB（修前误取 #FFFBEB） */
       expect.stringContaining('rgb(240, 253, 244)')
     ])
     const dots = wrapper.findAll('.quote-card__status-dot')
@@ -143,7 +158,8 @@ describe('序号 8 · 数据来自接口', () => {
     await flushPromises()
     const text = wrapper.text()
     expect(text).toContain('unit-线路 A')
-    expect(text).toContain('7 个模型 · USD · 更新于 01-02 03:04')
+    expect(wrapper.find('.quote-card__meta-row').findAll('.quote-card__meta-part').map((t) => t.text()).join(' '))
+      .toBe('7 个模型 · USD · 更新于 01-02 03:04')
     expect(wrapper.findAll('[data-testid="quote-card"]')).toHaveLength(1)
   })
 })

@@ -45,9 +45,16 @@
           </view>
         </view>
 
-        <!-- 元信息行：design id=ecd135b9（上间距 12；11px #94A3B8） -->
+        <!-- 元信息行：design ecd135b9（上间距 12）+ 559e490e（5 个节点，节点之间 8px 间距） -->
         <view class="quote-card__meta">
-          <text class="quote-card__meta-text">{{ row.metaText }}</text>
+          <view class="quote-card__meta-row">
+            <text
+              v-for="(part, i) in metaParts(row.metaText)"
+              :key="i"
+              class="quote-card__meta-part"
+              :class="part === META_SEPARATOR ? 'quote-card__meta-sep' : 'quote-card__meta-text'"
+            >{{ part }}</text>
+          </view>
         </view>
 
         <!-- 操作行：design id=4ddbda42（358×60 · padding 16/0 · 链接 40 高 · 间距 12 · 左对齐） -->
@@ -107,11 +114,13 @@
 import { computed, onMounted, ref } from 'vue'
 import { quoteApi } from '@/api/quote'
 import {
+  META_SEPARATOR,
   NEW_QUOTE_TEXT,
   PAGE_SIZE,
   PAGE_TITLE,
   QUOTE_NO_LABEL,
   buildQuotesModel,
+  metaParts,
   type QuoteAction,
   type QuoteFilterKey,
   type QuoteListRaw,
@@ -221,9 +230,9 @@ onMounted(load)
 
 .quotes__title {
   font-size: $font-2xl;
-  font-weight: 600;
+  font-weight: 700; /* design 91be2734 SourceHanSans-Bold */
   color: $color-text-primary;
-  line-height: 1.2;
+  line-height: 30px; /* 20px 行框 = 20 × 1.5（设计 fit_content） */
   flex: none;
 }
 
@@ -231,8 +240,10 @@ onMounted(load)
   flex: 1;
 }
 
-/* 新建报价按钮（design 7ccb56ba：97×30 · r10 · #2563EB · padding 0/12） */
+/* 新建报价按钮（design 7ccb56ba：当前画布 width 100 · 30 高 · r10 · #2563EB · padding 0/12）
+   设计里按钮 x343..443 越出 430 画布（自身不自洽）→ 按设计声明宽度 100 实现，位置右对齐 16 保证零溢出 */
 .quotes__new {
+  width: 100px;
   height: 30px;
   padding: 0 12px;
   border-radius: $radius-md;
@@ -240,6 +251,7 @@ onMounted(load)
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: flex-start;
   gap: 4px;
   box-sizing: border-box;
   flex: none;
@@ -247,14 +259,15 @@ onMounted(load)
 
 .quotes__new-text {
   font-size: $font-xs;
+  font-weight: 500; /* design 8b0d35de SourceHanSans-Medium */
   color: #ffffff;
-  line-height: 1.2;
+  line-height: 16px; /* design 显式 height=16 */
 }
 
-/* 加号图标（设计为 remixicon 矢量图标，PRD08 禁 emoji → CSS 形状占位） */
+/* 加号图标（design 47594508：16px remixicon 行框 18 × 24；PRD08 禁 emoji → CSS 形状占位，决策 D5） */
 .glyph--plus {
-  width: 12px;
-  height: 12px;
+  width: 18px;
+  height: 24px;
   position: relative;
   flex: none;
 }
@@ -267,17 +280,17 @@ onMounted(load)
 }
 
 .glyph--plus::before {
-  left: 0;
-  top: 5px;
-  width: 12px;
+  left: 1px;
+  top: 11px;
+  width: 16px;
   height: 2px;
 }
 
 .glyph--plus::after {
-  left: 5px;
-  top: 0;
+  left: 8px;
+  top: 4px;
   width: 2px;
-  height: 12px;
+  height: 16px;
 }
 
 /* 筛选行（design e3a29c25） */
@@ -319,10 +332,11 @@ onMounted(load)
   color: #ffffff;
 }
 
-/* 列表区（design 14f06409） */
+/* 列表区（design 14f06409：list padding 12/16 · 卡间距 12）
+   底部留白 112 = 设计里容器 padding-top 16 + TabBar 84（本页 TabBar 为固定底栏、脱离文档流）
+   → 整页 docScrollHeight 1206 = 设计帧高（90 + 54 + 962 + 16 + 84） */
 .quotes__list {
-  /* 底部留白 = 固定 TabBar 高度（84）+ 12，避免最后一张卡被固定栏盖住 */
-  padding: 12px 16px 108px 16px;
+  padding: 12px 16px 112px 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -333,7 +347,8 @@ onMounted(load)
 .quote-card {
   width: 100%;
   background: $color-bg-card;
-  border: 1px solid $color-border-chip;
+  /* design stroke{align:center,thickness:1} → box-shadow（border 占布局：内容宽会被挤成 356，设计是 358） */
+  box-shadow: 0 0 0 1px $color-border-chip;
   border-radius: 16px;
   padding: 16px 20px;
   display: flex;
@@ -354,7 +369,7 @@ onMounted(load)
   font-size: $font-md;
   font-weight: 600;
   color: $color-text-primary;
-  line-height: 1.2;
+  line-height: 22.5px; /* 15px 行框 = 15 × 1.5（设计 fit_content） */
   display: block;
 }
 
@@ -385,7 +400,7 @@ onMounted(load)
 .quote-card__status-text {
   font-size: $font-2xs;
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 16px; /* 11px 行框 = 11 × 1.5（设计 fit_content） */
   display: block;
 }
 
@@ -409,7 +424,7 @@ onMounted(load)
   font-size: $font-sm;
   font-weight: 600;
   color: $color-text-secondary-2;
-  line-height: 1.2;
+  line-height: 19.5px; /* 13px 行框 = 13 × 1.5（设计 fit_content） */
   display: block;
   flex: none;
 }
@@ -425,18 +440,35 @@ onMounted(load)
   flex: none;
 }
 
-/* 元信息行（design ecd135b9：上间距 12） */
+/* 元信息行（design ecd135b9：上间距 12；559e490e = 5 个节点、节点之间 8px 间距、行框 16） */
 .quote-card__meta {
   width: 100%;
   padding-top: 12px;
   box-sizing: border-box;
 }
 
-.quote-card__meta-text {
+.quote-card__meta-row {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px; /* design：每个后续节点的 container padding-left 8 */
+}
+
+.quote-card__meta-part {
   font-size: $font-2xs;
-  color: $color-text-placeholder;
-  line-height: 1.2;
+  line-height: 16px; /* 11px 行框 = 11 × 1.5（设计 fit_content：元信息盒高 16 → 卡高 178） */
   display: block;
+  flex: none;
+}
+
+.quote-card__meta-text {
+  color: $color-text-placeholder; /* design ac24812b 等 fontFill rgba(148,163,184,1) */
+}
+
+/* 分隔点在设计里是**另一套更浅的灰**（design fd63dfdb/9cafcec1 rgba(203,213,225,1)） */
+.quote-card__meta-sep {
+  color: $color-border-strong;
 }
 
 /* 操作行（design 4ddbda42：60 高 · padding 16/0 · 左对齐 · 链接间距 12） */
@@ -471,47 +503,60 @@ onMounted(load)
   display: block;
 }
 
-/* 操作图标（设计为 remixicon 矢量图标 → CSS 形状占位，与序号 1/2/3 一致） */
+/* 操作图标（design 各链接内 remixicon 16px → 行框 16 × 24；CSS 形状占位，与序号 1/2/3 一致） */
 .glyph--quote,
 .glyph--preview,
 .glyph--sign,
 .glyph--contract,
 .glyph--delete {
   width: 16px;
-  height: 16px;
+  height: 24px;
+  position: relative; /* ::before/::after 是绝对定位的形状 */
   box-sizing: border-box;
   flex: none;
 }
 
-/* 报价：钱币轮廓（方框 + 内横线） */
-.glyph--quote {
+/* 报价：钱币轮廓（方框 + 内横线）—— 形状画在 ::before，盒子按设计行框 16×24 */
+.glyph--quote::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 16px;
+  height: 16px;
   border: 1.5px solid $color-primary;
   border-radius: 3px;
-  position: relative;
+  box-sizing: border-box;
 }
 
 .glyph--quote::after {
   content: '';
   position: absolute;
-  left: 2px;
-  right: 2px;
-  top: 5px;
+  left: 3px;
+  right: 3px;
+  top: 11.5px;
   height: 1.5px;
   background: $color-primary;
 }
 
 /* 预览：眼睛（圆 + 中心点） */
-.glyph--preview {
+.glyph--preview::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 16px;
+  height: 16px;
   border: 1.5px solid $color-primary;
   border-radius: 50% / 30%;
-  position: relative;
+  box-sizing: border-box;
 }
 
 .glyph--preview::after {
   content: '';
   position: absolute;
-  left: 5px;
-  top: 5px;
+  left: 6px;
+  top: 10px;
   width: 4px;
   height: 4px;
   border-radius: 50%;
@@ -519,35 +564,37 @@ onMounted(load)
 }
 
 /* 签署 / 合同：文档轮廓（左上折角） */
-.glyph--sign,
-.glyph--contract {
+.glyph--sign::before,
+.glyph--contract::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 16px;
+  height: 16px;
   border: 1.5px solid $color-primary;
   border-radius: 2px;
-  position: relative;
+  box-sizing: border-box;
 }
 
 .glyph--sign::after,
 .glyph--contract::after {
   content: '';
   position: absolute;
-  left: 2px;
-  right: 2px;
-  top: 4px;
+  left: 3px;
+  right: 3px;
+  top: 10.5px;
   height: 1.5px;
   background: $color-primary;
 }
 
 /* 删除：叉（两条对角线用旋转方块近似） */
-.glyph--delete {
-  position: relative;
-}
-
 .glyph--delete::before,
 .glyph--delete::after {
   content: '';
   position: absolute;
   left: 1px;
-  top: 7px;
+  top: 12px;
   width: 14px;
   height: 1.5px;
   background: $color-primary;
@@ -609,6 +656,18 @@ onMounted(load)
 }
 
 .tabbar__glyph {
+  width: 22px;
+  height: 33px; /* design 22px remixicon 行框 = 22 × 1.5 */
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* 形状画在 ::before（CSS 占位，决策 D5）：18×18 居中于 22×33 行框 */
+.tabbar__glyph::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 7.5px;
   width: 18px;
   height: 18px;
   border: 2px solid $color-text-placeholder;
@@ -616,7 +675,7 @@ onMounted(load)
   box-sizing: border-box;
 }
 
-.tabbar__glyph--active {
+.tabbar__glyph--active::before {
   border-color: $color-primary;
 }
 

@@ -1,0 +1,65 @@
+序号 8「报价单列表」设计期望值 checks —— 红基线（修复前源码 + 本轮探针，同一份探针两轮）
+==============================================================================
+
+phase1 : checkCount=138 checkFailCount=27 docH=1198 docW=430 missingTexts=[]
+    FAIL page.docHeight: got 1198 want 1206
+    FAIL page.cardTops: got "156,345,534,724,913" want "156,346,536,726,916"
+    FAIL topbar.title.fw: got "600" want 700
+    FAIL topbar.title.lh: got 24 want 30
+    FAIL topbar.new.w: got 88 want 100
+    FAIL topbar.newGlyph.w: got 12 want 18
+    FAIL topbar.newGlyph.h: got 12 want 24
+    FAIL topbar.newText.fw: got "400" want 500
+    FAIL topbar.newText.h: got 14 want 16
+    FAIL card.stroke: got "none" want "rgb(238, 242, 247) 0px 0px 0px 1px"
+    FAIL card.title.lh: got 18 want 22.5
+    FAIL card.statusText.lh: got "13.2,13.2,13.2,13.2,13.2" want "16,16,16,16,16"
+    FAIL card.statusBg: got "rgb(241, 245, 249)|rgb(239, 246, 255)|rgb(254, 242, 242)|rgb(255, 251, 235)|rgb(240, 253, 244)" want "rgb(241, 245, 249)|rgb(239, 246, 255)|rgb(254, 242, 242)|rgb(255, 252, 235)|rgb(240, 253, 244)"
+    FAIL card.noLabel.h: got 16 want 19.5
+    FAIL card.metaRow.h: got null want 16
+    FAIL card.metaNodeCount: got 0 want 25
+    FAIL card.metaParts.0: got "" want "2 个模型|·|CNY|·|更新于 06-14 15:20"
+    FAIL card.metaSep.color: got null want "rgb(203, 213, 225)"
+    FAIL card.metaSep.fs: got null want 11
+    FAIL card.metaGap: got null want 8
+    FAIL card.metaText.h: got 13 want 16
+    FAIL card.metaParts.end.0: got null want 252
+    FAIL card.actionGlyph.h: got 16 want 24
+    FAIL card.actionLefts.0: got "37,113,189" want "36,112,188"
+    FAIL card.actionLefts.3: got "37,113,189,265" want "36,112,188,264"
+    FAIL tabbar.glyph.w: got 18 want 22
+    FAIL tabbar.glyph.h: got 18 want 33
+    [两轮独立测量一致? 是]
+
+phase2 : checkCount=138 checkFailCount=27 docH=1198 docW=430 missingTexts=[]
+    FAIL page.docHeight: got 1198 want 1206
+    FAIL page.cardTops: got "156,345,534,724,913" want "156,346,536,726,916"
+    FAIL topbar.title.fw: got "600" want 700
+    FAIL topbar.title.lh: got 24 want 30
+    FAIL topbar.new.w: got 88 want 100
+    FAIL topbar.newGlyph.w: got 12 want 18
+    FAIL topbar.newGlyph.h: got 12 want 24
+    FAIL topbar.newText.fw: got "400" want 500
+    FAIL topbar.newText.h: got 14 want 16
+    FAIL card.stroke: got "none" want "rgb(238, 242, 247) 0px 0px 0px 1px"
+    FAIL card.title.lh: got 18 want 22.5
+    FAIL card.statusText.lh: got "13.2,13.2,13.2,13.2,13.2" want "16,16,16,16,16"
+    FAIL card.statusBg: got "rgb(241, 245, 249)|rgb(239, 246, 255)|rgb(254, 242, 242)|rgb(255, 251, 235)|rgb(240, 253, 244)" want "rgb(241, 245, 249)|rgb(239, 246, 255)|rgb(254, 242, 242)|rgb(255, 252, 235)|rgb(240, 253, 244)"
+    FAIL card.noLabel.h: got 16 want 19.5
+    FAIL card.metaRow.h: got null want 16
+    FAIL card.metaNodeCount: got 0 want 25
+    FAIL card.metaParts.0: got "" want "2 个模型|·|CNY|·|更新于 06-14 15:20"
+    FAIL card.metaSep.color: got null want "rgb(203, 213, 225)"
+    FAIL card.metaSep.fs: got null want 11
+    FAIL card.metaGap: got null want 8
+    FAIL card.metaText.h: got 13 want 16
+    FAIL card.metaParts.end.0: got null want 252
+    FAIL card.actionGlyph.h: got 16 want 24
+    FAIL card.actionLefts.0: got "37,113,189" want "36,112,188"
+    FAIL card.actionLefts.3: got "37,113,189,265" want "36,112,188,264"
+    FAIL tabbar.glyph.w: got 18 want 22
+    FAIL tabbar.glyph.h: got 18 want 33
+    [两轮独立测量一致? 是]
+
+serve 实收请求行（run1）:
+"GET /api/v1/quotes?page=1&pageSize=10 HTTP/1.1" 200 -

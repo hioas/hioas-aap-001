@@ -1,4 +1,4 @@
-STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 09:38（160 条 · 15→0）· 序号 4 已完成 09:55（212 条 · 45→0）· 序号 4-v1 已完成 10:20（249 条 · 78→0）· 序号 5 已完成 10:42（237 条 · 95→0）· 序号 6 已完成 2026-09-16 11:5x（221 条 · 45→0，docH 4886→5343 = 设计帧高 5342，报告 `evidence/review-序号6-checks-报告.md`）· 序号 7 已完成 2026-09-16 11:3x（196 条 · 51→0，docH 1063→1111 = 设计帧高 1110，报告 `evidence/review-序号7-checks-报告.md`）→ 下一轮开工做 序号 8**（`page-8-2`「报价单列表」→ `/pages/quotes/index`，载体页 `__measure-quotes.html`，mock 目录 `api`；对照表 `python .agents/state/survey-harness-routes.py`） ②队列 1 逐页复核（7~23 行的 checks 维度待补） ③队列 7（uni-picker 溢出口径） ④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。历史流水归档在 `aap-notes-archive-2026-09-16.md`，**不要每轮读**。
+STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 09:38（160 条 · 15→0）· 序号 4 已完成 09:55（212 条 · 45→0）· 序号 4-v1 已完成 10:20（249 条 · 78→0）· 序号 5 已完成 10:42（237 条 · 95→0）· 序号 6 已完成 2026-09-16 11:5x（221 条 · 45→0，docH 4886→5343 = 设计帧高 5342，报告 `evidence/review-序号6-checks-报告.md`）· 序号 7 已完成 2026-09-16 11:3x（196 条 · 51→0，docH 1063→1111 = 设计帧高 1110，报告 `evidence/review-序号7-checks-报告.md`）· 序号 8 已完成 2026-09-16 11:5x（138 条 · 27→0，docH 1198→1206 = 设计帧高 1206，像素对账 42/42 命中，报告 `evidence/review-序号8-checks-报告.md`）→ 下一轮开工做 序号 9**（`page-9`「模型报价设置-列表」→ `/pages/model-pricing/index`，载体页 `__measure-model-pricing.html`，mock 目录 `api`；对照表 `python .agents/state/survey-harness-routes.py`） ②队列 1 逐页复核（7~23 行的 checks 维度待补） ③队列 7（uni-picker 溢出口径） ④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。历史流水归档在 `aap-notes-archive-2026-09-16.md`，**不要每轮读**。
 LEASE: free until -
 
 # AAP TDD 推进 · 状态与目标（自驱动循环的单一事实来源）
@@ -366,6 +366,25 @@ LEASE: free until -
      `check-mock-fixtures --mock api` FAIL 0 · `review-artifacts` 22/22 · 截图 `logs/screenshots/20260916-序07-检测未通过报告-checks轮-h5-430宽.png`。
   ⑧**下轮开工第一件事**：队列 8 的 **序号 8**（`page-8-2`「报价单列表」→ `/pages/quotes/index`，载体页 `__measure-quotes.html`，mock 目录 `api`）。
 
+- 2026-09-16 11:56（cron 轮 `aap-tdd-run-20260916-1141`）· **队列 8 第 7 页：序号 8「报价单列表」载体页补「设计期望值 checks」维度（138 条 · 偏差 27→0）+ 11 类设计偏差修复 + 整页对齐设计帧 1206（像素对账 42/42 命中）**：
+  ①**设计帧重抓（人工指令 C）**：重抓 `page-8-2`（layer_id `56142177-…`）→ **唯一差异 = 「新建按钮」`width 97→100`**
+     （自动布局按子节点重算 12+18+4+54+12 = 100，与子节点自洽；与 08:55 基线一致）→ 按当前帧实现为 100 宽；其余节点逐字节相同。
+  ②**TDD 红→绿（本轮主交付）**：`__measure-quotes.html` 由 249 行旧体例重写为 430 宽 iframe + **138 条 checks**
+     （want = `design.tree.json` 声明值 + 新增 `text-fields.py` 全字段 + 设计 PNG 430×1206 色带/墨迹实测）；
+     红基线（`git stash` 复现修复前源码、同一份探针两轮）**27/138**、`docH 1198` → 绿 **0/138**、`docH 1206`；
+     两轮独立测量 **30/30 字段全等**；`git stash pop` 后重建复跑同值。
+  ③**修掉 11 类偏差**（清单见台账序号 8 行 / `review-序号8-checks-报告.md` §4）：顶部标题 600→**700** + 行框 30 ·
+     「新建报价」宽 88→**100** + 图标盒 12×12→**18×24** + 文案 500/行框 16 · 卡片描边 `border`→`box-shadow 0 0 0 1px`
+     （内容宽 356→358、操作链接左界 37→36、卡高 177→**178**）· 标题行框 22.5 · 胶囊文字 16 · 单号标签 19.5 · 元信息行框 16 ·
+     **元信息行由单文本节点改为设计里的 5 节点（3 段 + 2 个分隔点、节点间 8px，分隔点用设计另一套浅灰 #CBD5E1）** ·
+     操作图标盒 16×24 · TabBar 图标盒 22×33 · 列表底留白 112 · 待签署胶囊底色 `#FFFBEB`→**`#FFFCEB`**（先红后绿 1 条单测）。
+  ④**像素对账**：`cmp-序号8-设计PNGvs实现截图-色带.txt` → 内容列 **24/24** + 条列 **18/18 全命中**，**未命中合计 0**（首个 0 未命中页），位移中位 0/1（min −1 max +1）。
+  ⑤**交互相有牙齿**：`?scenario=actions` 两轮 → 点「已驳回」chip 实收 `GET /quotes?page=1&pageSize=10&status=REJECTED`；
+     点卡1「删除」→ 真实 `uni-modal` → 确认 → 实收 `DELETE /quotes/q1 200` → toast「已删除」→ 重拉列表；两轮请求行逐字节相同。
+  ⑥**质量门**：`npm test` **1172/1172 · 72 files ×2** · `type-check` exit 0 · `build:mp-weixin` DONE（wxss 含 `box-shadow:0 0 0 1px #eef2f7`/`width:100px`/`font-weight:700`）·
+     `build:h5` DONE · `check-mock-fixtures --mock api` FAIL 0 · `review-artifacts` 22/22 · 截图 `logs/screenshots/20260916-序08-报价单列表-checks轮-h5-430宽.png`。
+  ⑦**下轮开工第一件事**：队列 8 的 **序号 9**（`page-9`「模型报价设置-列表」→ `/pages/model-pricing/index`，载体页 `__measure-model-pricing.html`，mock 目录 `api`）。
+
 ## 5. 关键命令（照抄可用）
 
 - 项目根：`E:\workspaces\hioas\hioas-aap-001`（远端 https://github.com/hioas/hioas-aap-001）
@@ -490,3 +509,24 @@ LEASE: free until -
   分项行：行高 18 + 间距 12 = 行距 30（首行前 16）；总览卡尾部说明盒 = 12 + 2×18 + 12 = 60。
 - **一个页面的同一组数据可以有两套色板**：本页分项**条填色**（绿/琥珀/红）与**分值文字色**（#334155 / #D97706 / #B91C1C）
   在设计稿里是两组不同图层填充 → 探针必须分别断言，实现侧用 `dim.color` / `dim.textColor` 两个字段（阈值同一套 70/40）。
+
+### 5.5 本轮（11:41 轮 · 序号 8）新增的工具与口径
+
+- **文本叶子全字段 dump**：`python .agents/state/text-fields.py <page-id> [--grep <子串>]`
+  —— 打印设计树里**所有文本叶子**的 `fontSize / fontFamily→字重 / fontFill（字色）/ 宽高 / 文案`；
+  判「声明值」的第一入口（比 `tree-view.py` 更聚焦文本：字色取 `fontFill`，不是 `fills`）。
+- **430 宽整页截图（固定底栏页）**：`bash .agents/state/shot-8.sh [文件名]`（窗口 430×**1206**，载体页 `?shot=1`）。
+  ⚠️ **底部固定栏页面的取图口径**：载体页在 shot 模式必须把 iframe 高度设为**设计帧高**（本页 1206），
+  否则固定底栏贴到更高的 iframe 底部 → 像素对账在 TabBar 带整体偏移（本轮首图偏移 35px，**不是页面缺陷**）。
+- **红基线复现（第三例）**：`git stash push -- aap-client/src/pages/quotes/index.vue aap-client/src/utils/quotes-model.ts aap-client/tests/`
+  → `npm run build:h5` → `review-measure.sh 8-checks-red …` → `show-phases.py` 转录 → `git stash pop` → 再 `build:h5` 跑正式两轮。
+- **证据合成**：`python .agents/state/gen-8-checks-evidence.py`（红/绿转录 + 两轮一致性 + serve 实收请求行；后续页面照抄改 tag）。
+- ⚠️ **设计里用「后续节点 `padding-left: 8`」分隔的文本组，不能实现成一个带空格的字符串**：
+  空格在 H5 回退字体里宽 ~3.4px（设计 5 节点应 216 宽 → 单串实测 188），且**分隔点在设计里是另一套更浅的色板**
+  （本页 `fd63dfdb/9cafcec1` = #CBD5E1，其余文本 #94A3B8）→ 必须按节点渲染（本页 `metaParts()` + 5 个 `<text>`）。
+  同理 `innerText` 里节点之间没有空格（读作「2 个模型·CNY·更新于 …」）→ 文案断言要**逐节点**做，别拼整串。
+- ⚠️ **`display:inline-block` 子节点会给父块加出基线空隙**（本页元信息盒 13→16 后卡高变 186，多 8px）：
+  设计里这类「一行文字」的父级是 `layout: horizontal, alignItems: center` 的 flex 行 → 落地也用 flex 行（`align-items:center`），
+  不要用 `inline-block` 收窄宽度。
+- ⚠️ **`lease-set.py` 第二个参数**：纯数字会被当**分钟数**（旧版直接写进去 → 租约行成 `until 45` 非法时间戳）；
+  现改为 `lease-set.py <holder> --minutes 45` 自动算子时间戳，`lease-set.py free` 直接释放。

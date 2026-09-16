@@ -1,240 +1,240 @@
-id=56142177-5e03-487d-ba5d-3a5c3c3b4071 name=8. 报价端·小程序 ｜ 【报价管理】报价单列表 2 type=frame width=430 height=fit_content x=-10041 y=-6908 layout=vertical alignItems=start justifyContent=start clip=True kids=1
-  id=71d676b8-dd3f-48ad-81fe-19584759f6bd name=报价单列表页 type=frame width=430 height=fit_content fills=rgba(248,250,252,1) layout=vertical alignItems=start justifyContent=start kids=4
-    id=6870f5e0-fa9a-4e76-bc5b-07ec40ebbc96 name=顶部导航 type=frame width=fill_container height=fit_content padding=[48,16,12,16] fills=rgba(255,255,255,1) layout=horizontal alignItems=center justifyContent=start kids=3
-      id=91be2734-683c-4b87-a898-9ac26caffdb8 name=图层 type=rectangle width=61 height=fit_content fontFill=rgba(15,23,42,1) fontSize=20 fontFamily=SourceHanSans-Bold textAlign=left TEXT='报价单' kids=0
-      id=61ccf859-9f66-44fc-97cf-aa24d7c07468 name=spacer type=rectangle width=fill_container height=fit_content kids=0
-      id=7ccb56ba-67fb-4c82-9525-bb299b32d650 name=新建按钮 type=frame width=97 height=30 padding=[0,12,0,12] cornerRadius=10 fills=rgba(37,99,235,1) layout=horizontal alignItems=center justifyContent=start kids=2
-        id=47594508-6bbe-4fc5-98e1-5f7752daa8be name=图层 type=paragraph width=18 height=fit_content fills=rgba(255,255,255,1) fontSize=16 fontFamily=remixicon textAlign=left TEXT='\uea13' kids=0
-        id=1e70756c-efd5-4814-8935-ddf97c9c849e name=container type=frame width=fit_content height=fit_content padding=[0,0,0,4] layout=horizontal alignItems=start justifyContent=start kids=1
-          id=8b0d35de-a5d2-466d-98ba-90159b9f84ad name=图层 type=rectangle width=54 height=16 fontFill=rgba(255,255,255,1) fontSize=12 fontFamily=SourceHanSans-Medium textAlign=left TEXT='新建报价' kids=0
-    id=e3a29c25-ea4a-4504-8e6e-866b3b660d94 name=筛选行 type=frame width=fill_container height=fit_content padding=[12,16,12,16] fills=rgba(255,255,255,1) layout=horizontal alignItems=center justifyContent=start kids=11
-      id=0bf46fd6-6b18-4ba9-8418-96d59c248627 name=筛选全部 type=frame width=fit_content height=30 padding=[0,12,0,12] cornerRadius=10 fills=rgba(37,99,235,1) layout=horizontal alignItems=center justifyContent=start kids=1
-        id=e6fa9008-03c0-4bfd-b0c0-e47eada018a0 name=图层 type=rectangle width=25 height=fit_content fontFill=rgba(255,255,255,1) fontSize=12 fontFamily=SourceHanSans-Medium textAlign=left TEXT='全部' kids=0
-      id=34e3c625-a36a-4a58-9d6c-14a93a30a1b2 name=spacer type=rectangle width=9 height=fit_content kids=0
-      id=33be05d4-6a28-4228-a152-cbdf4df39667 name=筛选草稿 type=frame width=fit_content height=30 padding=[0,12,0,12] cornerRadius=10 fills=rgba(241,245,249,1) layout=horizontal alignItems=center justifyContent=start kids=1
-        id=9c8fee46-7e30-4fff-9261-bf78e7fe03ee name=图层 type=rectangle width=25 height=fit_content fontFill=rgba(100,116,139,1) fontSize=12 fontFamily=SourceHanSans-Medium textAlign=left TEXT='草稿' kids=0
-      id=13474d0b-8c70-49cb-99d9-50a698f43b2d name=spacer type=rectangle width=9 height=fit_content kids=0
-      id=d4c61d43-d9c8-443f-a47d-ce1c00401500 name=筛选已提交 type=frame width=fit_content height=30 padding=[0,12,0,12] cornerRadius=10 fills=rgba(241,245,249,1) layout=horizontal alignItems=center justifyContent=start kids=1
-        id=1a637ac5-5beb-4e5a-a4f3-86a8e17a1bc6 name=图层 type=rectangle width=37 height=fit_content fontFill=rgba(100,116,139,1) fontSize=12 fontFamily=SourceHanSans-Medium textAlign=left TEXT='已提交' kids=0
-      id=1f806426-3de2-4ced-acfd-e8d602cc1d89 name=spacer type=rectangle width=9 height=fit_content kids=0
-      id=cf22a9a9-c186-4b3a-9c96-3067ea497de7 name=筛选已驳回 type=frame width=fit_content height=30 padding=[0,12,0,12] cornerRadius=10 fills=rgba(241,245,249,1) layout=horizontal alignItems=center justifyContent=start kids=1
-        id=e7c38540-bd3c-4d01-a55b-da5c4d03734d name=图层 type=rectangle width=37 height=fit_content fontFill=rgba(100,116,139,1) fontSize=12 fontFamily=SourceHanSans-Medium textAlign=left TEXT='已驳回' kids=0
-      id=8d085a94-0a39-4f49-beb7-b7c50522f79f name=spacer type=rectangle width=9 height=fit_content kids=0
-      id=ba2b8609-7135-4ff2-8ab6-dd65672851a1 name=筛选待签署 type=frame width=fit_content height=30 padding=[0,12,0,12] cornerRadius=10 fills=rgba(241,245,249,1) layout=horizontal alignItems=center justifyContent=start kids=1
-        id=1985e395-0955-4bd3-b38b-1fec96431fab name=图层 type=rectangle width=37 height=fit_content fontFill=rgba(100,116,139,1) fontSize=12 fontFamily=SourceHanSans-Medium textAlign=left TEXT='待签署' kids=0
-      id=9b0b2b0f-0e3b-4917-a1f2-d92046666533 name=spacer type=rectangle width=9 height=fit_content kids=0
-      id=10b7c5cc-ca2e-452e-8355-71b195df50c4 name=筛选已完成 type=frame width=fit_content height=30 padding=[0,12,0,12] cornerRadius=10 fills=rgba(241,245,249,1) layout=horizontal alignItems=center justifyContent=start kids=1
-        id=fc537c2f-93cc-4bf4-98ef-d079c0541a10 name=图层 type=rectangle width=fit_content height=fit_content fontFill=rgba(100,116,139,1) fontSize=12 fontFamily=SourceHanSans-Medium textAlign=left TEXT='已完成' kids=0
-    id=14f06409-7961-408f-bfe5-b031f6134a1a name=报价卡片列表 type=frame width=fill_container height=fit_content padding=[12,16,12,16] gap=12 layout=vertical alignItems=start justifyContent=start kids=5
-      id=9057868c-1f95-4794-a627-b37412d9491a name=报价卡1 type=frame width=fill_container height=fit_content padding=[16,20,16,20] cornerRadius=16 fills=rgba(255,255,255,1) stroke={align=center,thickness=1,lineCap=butt,lineJoin=miter,fills=rgba(238,242,247,1)} layout=vertical alignItems=start justifyContent=start kids=4
-        id=94a6b56c-4f5b-4ce7-a4ad-ae7b2c224888 name=报价卡1顶行 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start kids=3
-          id=930bc97e-976c-42af-88d4-258ac2ea2f22 name=图层 type=rectangle width=136 height=fit_content fontFill=rgba(15,23,42,1) fontSize=15 fontFamily=SourceHanSans-SemiBold textAlign=left TEXT='2024Q3 主线路报价' kids=0
-          id=87285a0a-7191-4c8d-83fe-cfb9eb4399e0 name=spacer type=rectangle width=fill_container height=fit_content kids=0
-          id=bea2086e-33d7-407e-8b69-833f429a0e0c name=草稿标 type=frame width=fit_content height=22 padding=[0,8,0,8] cornerRadius=11 fills=rgba(241,245,249,1) layout=horizontal alignItems=center justifyContent=start kids=2
-            id=8ae0f311-c2e4-4ad3-a4cc-aa966c1a7e65 name=草稿点 type=rectangle width=8 height=6 cornerRadius=4 fills=rgba(148,163,184,1) kids=0
-            id=7fa86bfa-0634-4cb7-afd9-c348bfb52ef2 name=container type=frame width=fit_content height=fit_content padding=[0,0,0,4] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=5c7b2f20-76b4-4892-88fb-1e3cab0a7724 name=图层 type=rectangle width=23 height=fit_content fontFill=rgba(100,116,139,1) fontSize=11 fontFamily=SourceHanSans-Medium textAlign=left TEXT='草稿' kids=0
-        id=6b807739-19fd-4c02-ba87-c1731c98841d name=container 2 type=frame width=fill_container height=fit_content padding=[16,0,0,0] layout=vertical alignItems=start justifyContent=start kids=1
-          id=5b7a0fce-60e6-4328-bbde-c244e520d1bc name=字段-报价单号 type=frame width=fill_container height=fit_content layout=vertical alignItems=start justifyContent=start kids=1
-            id=3a637d01-3d3f-4f1c-b34b-b7f22d4ff354 name=字段标签行 type=frame width=fill_container height=fit_content gap=8 layout=horizontal alignItems=center justifyContent=start kids=2
-              id=70696608-7f0e-4607-a129-b543f51ef56e name=图层 type=rectangle width=53 height=fit_content fontFill=rgba(51,65,85,1) fontSize=13 fontFamily=SourceHanSans-SemiBold textAlign=left TEXT='报价单号' kids=0
-              id=48bca98a-4232-4f27-a249-53bb50d0ef48 name=单号示例标 2 type=frame width=fit_content height=20 padding=[0,8,0,8] cornerRadius=10 fills=rgba(255,255,255,1) layout=horizontal alignItems=center justifyContent=start kids=1
-                id=f057dca5-4d47-4294-bcd2-eda8e8a91dbb name=图层 type=rectangle width=90 height=fit_content fontFill=rgba(148,163,184,1) fontSize=10 fontFamily=SourceHanSans-Medium textAlign=left TEXT='QT-20240615-0007' kids=0
-        id=ecd135b9-d4c9-412d-aa3a-6e02ddab963b name=container type=frame width=fill_container height=fit_content padding=[12,0,0,0] layout=vertical alignItems=start justifyContent=start kids=1
-          id=559e490e-543a-40c0-a7c2-9d281ee8de32 name=报价卡1元信息 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start kids=5
-            id=ac24812b-f52f-4b6a-9ab7-71a66b56c164 name=图层 type=rectangle width=43 height=fit_content fontFill=rgba(148,163,184,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='2 个模型' kids=0
-            id=95cd2754-3087-46a0-9255-031c43d51438 name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=fd63dfdb-98c6-4fdb-a6fb-e53b6bead45c name=图层 type=rectangle width=12 height=fit_content fontFill=rgba(203,213,225,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='·' kids=0
-            id=2574b4a8-6f81-4a32-8f23-6d1d08299023 name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=06eb7078-4297-4b90-aa7d-cf9e6143b11e name=图层 type=rectangle width=22 height=fit_content fontFill=rgba(148,163,184,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='CNY' kids=0
-            id=bcbc49b0-cc0e-4469-9794-1505f85d60e5 name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=9cafcec1-e12b-4bc4-9772-088ff45f3eb1 name=图层 type=rectangle width=12 height=fit_content fontFill=rgba(203,213,225,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='·' kids=0
-            id=8a71d96a-60b3-43dc-8ff1-ccb0250f2c3f name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=10b7127f-a698-4ef7-a7c5-04bb639e7cda name=图层 type=rectangle width=95 height=fit_content fontFill=rgba(148,163,184,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='更新于 06-14 15:20' kids=0
-        id=4ddbda42-aeef-49af-91f9-96a9e24c3f0f name=container type=frame width=358 height=60 layout=horizontal alignItems=start justifyContent=start kids=1
-          id=82acabf8-dd20-45ff-83cf-caf3be6f7139 name=报价卡1操作行 type=frame width=358 height=60 padding=[16,0,16,0] gap=12 layout=horizontal alignItems=start justifyContent=start kids=3
-            id=03bfb63c-31ca-40b4-a498-f4df39402822 name=报价设置链接 type=frame width=fit_content height=40 padding=[0,8,0,8] gap=6 layout=horizontal alignItems=center justifyContent=center kids=2
-              id=54d2653f-90d7-457b-a5d0-f67cbca32824 name=图层 type=paragraph width=fit_content height=fit_content fills=rgba(37,99,235,1) fontSize=16 fontFamily=remixicon textAlign=left TEXT='\uf0e6' kids=0
-              id=698d97b7-4592-461a-a15c-00a66973d254 name=container type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start kids=1
-                id=0ac90e56-6ae1-4e97-a6d0-ae86b08f7f77 name=图层 type=rectangle width=fit_content height=fit_content fontFill=rgba(37,99,235,1) fontSize=13 fontFamily=SourceHanSans-Medium textAlign=left TEXT='报价' kids=0
-            id=d925c690-6511-4ce8-85f2-611c7cc5bb0d name=报价预览链接 type=frame width=fit_content height=40 padding=[0,8,0,8] gap=6 layout=horizontal alignItems=center justifyContent=center kids=2
-              id=22507745-7b61-411a-9b80-aa7a9a6fbde2 name=图层 type=paragraph width=fit_content height=fit_content fills=rgba(37,99,235,1) fontSize=16 fontFamily=remixicon textAlign=left TEXT='\uecb5' kids=0
-              id=6c9cff56-79a5-4f14-b3aa-2ffbc29d0b43 name=container type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start kids=1
-                id=b350b307-fa97-4478-b2e3-ed8ba734a1e3 name=图层 type=rectangle width=fit_content height=fit_content fontFill=rgba(37,99,235,1) fontSize=13 fontFamily=SourceHanSans-Medium textAlign=left TEXT='预览' kids=0
-            id=eed58fcd-58d0-45e1-a925-42f154b9558b name=删除链接 type=frame width=fit_content height=40 padding=[0,8,0,8] gap=6 layout=horizontal alignItems=center justifyContent=center kids=2
-              id=62dcb39a-0b53-49ef-bef9-cf83661d7e9c name=图层 type=paragraph width=16 height=fit_content fills=rgba(37,99,235,1) fontSize=16 fontFamily=remixicon textAlign=left TEXT='\uec2a' kids=0
-              id=4e8134ef-05c9-47d3-bb76-6168b65b844d name=图层 type=rectangle width=fit_content height=fit_content fontFill=rgba(37,99,235,1) fontSize=13 fontFamily=SourceHanSans-Medium textAlign=left TEXT='删除' kids=0
-      id=933bf322-4d44-41c4-9468-3928aa30b9d0 name=报价卡1 3 type=frame width=fill_container height=fit_content padding=[16,20,16,20] cornerRadius=16 fills=rgba(255,255,255,1) stroke={align=center,thickness=1,lineCap=butt,lineJoin=miter,fills=rgba(238,242,247,1)} layout=vertical alignItems=start justifyContent=start kids=4
-        id=1de789e5-c69e-4734-b61a-25b43c6506bd name=报价卡2顶行 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start kids=3
-          id=b2e3a980-611f-416d-be16-02d0f39ac4c7 name=图层 type=rectangle width=151 height=fit_content fontFill=rgba(15,23,42,1) fontSize=15 fontFamily=SourceHanSans-SemiBold textAlign=left TEXT='2024Q3 主线路报价' kids=0
-          id=7aaf2d6b-2b78-47b0-acb3-60252479a536 name=spacer type=rectangle width=fill_container height=fit_content kids=0
-          id=9bc8ae41-d29e-474c-b4bf-aed9cff6b677 name=已提交标 type=frame width=fit_content height=22 padding=[0,8,0,8] cornerRadius=11 fills=rgba(239,246,255,1) layout=horizontal alignItems=center justifyContent=start kids=2
-            id=ee60ee1e-aa90-4bd1-83c2-ecece31b41d0 name=已提交点 type=rectangle width=8 height=6 cornerRadius=4 fills=rgba(37,99,235,1) kids=0
-            id=63ce1658-7d50-436f-9651-f5b8c2ce3cb1 name=container type=frame width=fit_content height=fit_content padding=[0,0,0,4] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=274472d8-1676-41d7-ba50-0ecd3c982a10 name=图层 type=rectangle width=34 height=fit_content fontFill=rgba(37,99,235,1) fontSize=11 fontFamily=SourceHanSans-Medium textAlign=left TEXT='已提交' kids=0
-        id=da6802ce-c412-40ed-a396-9ed71e662e18 name=container 2 type=frame width=fill_container height=fit_content padding=[16,0,0,0] layout=vertical alignItems=start justifyContent=start kids=1
-          id=b5fbc157-7d9b-40a2-8103-7b6af9a439b2 name=字段-报价单号 type=frame width=fill_container height=fit_content layout=vertical alignItems=start justifyContent=start kids=1
-            id=77d6608d-f149-44ec-bafd-22195a2aedcc name=字段标签行 type=frame width=fill_container height=fit_content gap=8 layout=horizontal alignItems=center justifyContent=start kids=2
-              id=e3d7395c-e68a-485e-ab7a-92bce71cc6af name=图层 type=rectangle width=53 height=fit_content fontFill=rgba(51,65,85,1) fontSize=13 fontFamily=SourceHanSans-SemiBold textAlign=left TEXT='报价单号' kids=0
-              id=d4dd129e-626d-47c6-ad7e-ee992a6bca7a name=单号示例标 2 type=frame width=fit_content height=20 padding=[0,8,0,8] cornerRadius=10 fills=rgba(255,255,255,1) layout=horizontal alignItems=center justifyContent=start kids=1
-                id=ba1e9f94-7174-4148-b962-ad6c3105ecdb name=图层 type=rectangle width=90 height=fit_content fontFill=rgba(148,163,184,1) fontSize=10 fontFamily=SourceHanSans-Medium textAlign=left TEXT='QT-20240615-0007' kids=0
-        id=9e895cae-a9cc-4c01-8da2-755492153e76 name=container type=frame width=fill_container height=fit_content padding=[12,0,0,0] layout=vertical alignItems=start justifyContent=start kids=1
-          id=e8f0fed4-2e2e-4a3c-aa53-7d715b212897 name=报价卡1元信息 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start kids=5
-            id=2823efd2-3789-435f-ad1a-4e551d71728c name=图层 type=rectangle width=43 height=fit_content fontFill=rgba(148,163,184,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='2 个模型' kids=0
-            id=51bf0ed5-5351-46bf-9cc9-3df1cc52ec9d name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=8a87dd46-787e-476f-bbe6-5d9fc232678d name=图层 type=rectangle width=12 height=fit_content fontFill=rgba(203,213,225,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='·' kids=0
-            id=a5a39d12-b82d-4cb6-a860-08898affc4c7 name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=8836bb69-e310-4a9f-ab9a-3310acc48db4 name=图层 type=rectangle width=22 height=fit_content fontFill=rgba(148,163,184,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='CNY' kids=0
-            id=1d652cb7-854a-4800-a078-e35878d1c1ef name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=7695abcd-97af-4272-ac35-96e989e49926 name=图层 type=rectangle width=12 height=fit_content fontFill=rgba(203,213,225,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='·' kids=0
-            id=5e32e884-cff7-46ca-9d1b-4e796794d8dc name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=803ddf71-93f9-47ba-b10d-76d40d1b0254 name=图层 type=rectangle width=95 height=fit_content fontFill=rgba(148,163,184,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='更新于 06-14 15:20' kids=0
-        id=7a28898e-e925-4ba3-8a0e-ebd9be37c0fc name=container type=frame width=358 height=60 layout=horizontal alignItems=start justifyContent=start kids=1
-          id=fa938c3a-3a4f-42cb-9350-7d1e63f36bb8 name=报价卡1操作行 type=frame width=358 height=60 padding=[16,0,16,0] gap=12 layout=horizontal alignItems=start justifyContent=start kids=3
-            id=daedd876-0c73-49b5-9516-482b0e72aa79 name=报价设置链接 type=frame width=fit_content height=40 padding=[0,8,0,8] gap=6 layout=horizontal alignItems=center justifyContent=center kids=2
-              id=f8b025f1-fa1f-430e-b113-a42255b8ad9c name=图层 type=paragraph width=fit_content height=fit_content fills=rgba(37,99,235,1) fontSize=16 fontFamily=remixicon textAlign=left TEXT='\uf0e6' kids=0
-              id=6fce3b35-3d99-4e05-87ea-233ceafcb3a9 name=container type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start kids=1
-                id=a9ecfe29-b3a6-4ec3-b13a-6a8253838acd name=图层 type=rectangle width=fit_content height=fit_content fontFill=rgba(37,99,235,1) fontSize=13 fontFamily=SourceHanSans-Medium textAlign=left TEXT='报价' kids=0
-            id=6fc985ff-16a3-46f0-bb00-7601457f50e7 name=报价预览链接 type=frame width=fit_content height=40 padding=[0,8,0,8] gap=6 layout=horizontal alignItems=center justifyContent=center kids=2
-              id=7e99165c-2277-4b22-b878-d08fd627ad5e name=图层 type=paragraph width=fit_content height=fit_content fills=rgba(37,99,235,1) fontSize=16 fontFamily=remixicon textAlign=left TEXT='\uecb5' kids=0
-              id=2d426356-fb53-423e-82f2-721847235c33 name=container type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start kids=1
-                id=b86378df-e17a-477b-b9d0-06dfcdd60c4b name=图层 type=rectangle width=fit_content height=fit_content fontFill=rgba(37,99,235,1) fontSize=13 fontFamily=SourceHanSans-Medium textAlign=left TEXT='预览' kids=0
-            id=c9108477-ef51-4bf5-b540-1a2e5d38a206 name=删除链接 type=frame width=fit_content height=40 padding=[0,8,0,8] gap=6 layout=horizontal alignItems=center justifyContent=center kids=2
-              id=fa1e87a1-2940-466f-8724-a172bea6d71c name=图层 type=paragraph width=16 height=fit_content fills=rgba(37,99,235,1) fontSize=16 fontFamily=remixicon textAlign=left TEXT='\uec2a' kids=0
-              id=b03181e4-38a0-4b06-9d7c-e3f0079c77b5 name=图层 type=rectangle width=fit_content height=fit_content fontFill=rgba(37,99,235,1) fontSize=13 fontFamily=SourceHanSans-Medium textAlign=left TEXT='删除' kids=0
-      id=8bb07f44-b1df-4e8a-a5e1-a9348ba776c1 name=报价卡3 type=frame width=fill_container height=fit_content padding=[16,20,16,20] cornerRadius=16 fills=rgba(255,255,255,1) stroke={align=center,thickness=1,lineCap=butt,lineJoin=miter,fills=rgba(238,242,247,1)} layout=vertical alignItems=start justifyContent=start kids=4
-        id=471a95f6-ffd9-4d5c-a79b-cc0a50e81962 name=报价卡1顶行 2 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start kids=3
-          id=feeae0ac-d698-42d0-a53a-9a8dae81199d name=图层 type=rectangle width=136 height=fit_content fontFill=rgba(15,23,42,1) fontSize=15 fontFamily=SourceHanSans-SemiBold textAlign=left TEXT='2024Q3 主线路报价' kids=0
-          id=4079a37f-76dd-4a4a-bc5a-98f3194fedcb name=spacer type=rectangle width=fill_container height=fit_content kids=0
-          id=c499f3ee-4bb5-4147-9fbb-c1d8c449e241 name=已驳回标 type=frame width=fit_content height=22 padding=[0,8,0,8] cornerRadius=11 fills=rgba(254,242,242,1) layout=horizontal alignItems=center justifyContent=start kids=2
-            id=1f70c88d-cf29-4204-b864-48b64ebf9837 name=已驳回点 type=rectangle width=8 height=6 cornerRadius=4 fills=rgba(220,38,38,1) kids=0
-            id=00991aac-03b8-4f04-80d2-59a9972ccfd7 name=container type=frame width=fit_content height=fit_content padding=[0,0,0,4] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=29c0f0a7-1e04-4192-9dbd-1a69a2d52f4d name=图层 type=rectangle width=34 height=fit_content fontFill=rgba(185,28,28,1) fontSize=11 fontFamily=SourceHanSans-Medium textAlign=left TEXT='已驳回' kids=0
-        id=45a9714c-1731-491c-b8b1-f1ca6a7255e2 name=container 3 type=frame width=fill_container height=fit_content padding=[16,0,0,0] layout=vertical alignItems=start justifyContent=start kids=1
-          id=0ae46be8-3ff5-481b-861a-3233e54407cc name=字段-报价单号 type=frame width=fill_container height=fit_content layout=vertical alignItems=start justifyContent=start kids=1
-            id=8b5285e3-4baa-4f6b-8ee1-5733b664576f name=字段标签行 type=frame width=fill_container height=fit_content gap=8 layout=horizontal alignItems=center justifyContent=start kids=2
-              id=09334714-93c8-4090-bb00-ce017ed905a6 name=图层 type=rectangle width=53 height=fit_content fontFill=rgba(51,65,85,1) fontSize=13 fontFamily=SourceHanSans-SemiBold textAlign=left TEXT='报价单号' kids=0
-              id=970e8039-5476-4985-be80-d5f1976756ad name=单号示例标 2 type=frame width=fit_content height=20 padding=[0,8,0,8] cornerRadius=10 fills=rgba(255,255,255,1) layout=horizontal alignItems=center justifyContent=start kids=1
-                id=fcbf2a8c-eff8-4d26-af4a-39b44493eefe name=图层 type=rectangle width=90 height=fit_content fontFill=rgba(148,163,184,1) fontSize=10 fontFamily=SourceHanSans-Medium textAlign=left TEXT='QT-20240615-0007' kids=0
-        id=8848d025-6cd9-4168-9b55-dbbd22b6982b name=container 4 type=frame width=fill_container height=fit_content padding=[12,0,0,0] layout=vertical alignItems=start justifyContent=start kids=1
-          id=72653765-89c8-43ce-8a73-50c892d49816 name=报价卡1元信息 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start kids=5
-            id=ced9b2c9-f8af-4f51-b7e3-aec5c47ca37b name=图层 type=rectangle width=43 height=fit_content fontFill=rgba(148,163,184,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='2 个模型' kids=0
-            id=a5048490-5fd8-4536-8496-605c081779a6 name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=92e3f266-b398-4249-a1be-ca5bfa558575 name=图层 type=rectangle width=12 height=fit_content fontFill=rgba(203,213,225,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='·' kids=0
-            id=ce30d5c7-b2f1-4083-b34f-37a983bf99b7 name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=9761b95d-1d0c-4861-a1f5-046f4c47badb name=图层 type=rectangle width=22 height=fit_content fontFill=rgba(148,163,184,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='CNY' kids=0
-            id=a6860cdf-ed6b-4a27-a453-e4c2bbc19f74 name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=068726e0-2ad3-4a16-9ddb-58ad03c8d479 name=图层 type=rectangle width=12 height=fit_content fontFill=rgba(203,213,225,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='·' kids=0
-            id=ce2c9d80-11fe-4112-8a68-04eb3e4120d8 name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=c619bda9-6591-402c-8ec0-b66d78914042 name=图层 type=rectangle width=95 height=fit_content fontFill=rgba(148,163,184,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='更新于 06-14 15:20' kids=0
-        id=dac6446e-6957-4478-92d8-ab9452435e1b name=container 5 type=frame width=358 height=60 layout=horizontal alignItems=start justifyContent=start kids=1
-          id=78aa8aa2-bd1d-4bc2-a188-2adb297b341d name=报价卡1操作行 type=frame width=358 height=60 padding=[16,0,16,0] gap=12 layout=horizontal alignItems=start justifyContent=start kids=3
-            id=d8f9ea1d-5c74-4d9d-be5e-f98a9c4cebc5 name=报价设置链接 type=frame width=fit_content height=40 padding=[0,8,0,8] gap=6 layout=horizontal alignItems=center justifyContent=center kids=2
-              id=0f292e4c-3bc7-4595-ada9-49c048a7657b name=图层 type=paragraph width=fit_content height=fit_content fills=rgba(37,99,235,1) fontSize=16 fontFamily=remixicon textAlign=left TEXT='\uf0e6' kids=0
-              id=5c8f1db4-883c-4f42-98ff-d80b6a1e87b4 name=container type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start kids=1
-                id=32d9cd4b-c698-46fd-9372-91fba36dc795 name=图层 type=rectangle width=fit_content height=fit_content fontFill=rgba(37,99,235,1) fontSize=13 fontFamily=SourceHanSans-Medium textAlign=left TEXT='报价' kids=0
-            id=5c4c19ea-cac6-41dd-b123-c56864f417e6 name=报价预览链接 type=frame width=fit_content height=40 padding=[0,8,0,8] gap=6 layout=horizontal alignItems=center justifyContent=center kids=2
-              id=cac7e876-ed94-4105-bd82-c48350242ef9 name=图层 type=paragraph width=fit_content height=fit_content fills=rgba(37,99,235,1) fontSize=16 fontFamily=remixicon textAlign=left TEXT='\uecb5' kids=0
-              id=eda4af7f-08ff-4d30-af99-b04f11055601 name=container type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start kids=1
-                id=b74f714b-f394-40ec-a52d-ab83158c7093 name=图层 type=rectangle width=fit_content height=fit_content fontFill=rgba(37,99,235,1) fontSize=13 fontFamily=SourceHanSans-Medium textAlign=left TEXT='预览' kids=0
-            id=6c735aa3-d625-4c45-b35a-86c6c318d7c8 name=删除链接 type=frame width=fit_content height=40 padding=[0,8,0,8] gap=6 layout=horizontal alignItems=center justifyContent=center kids=2
-              id=9b3ad118-42a4-4cb9-bd27-b2f96e163c0f name=图层 type=paragraph width=16 height=fit_content fills=rgba(37,99,235,1) fontSize=16 fontFamily=remixicon textAlign=left TEXT='\uec2a' kids=0
-              id=fbf5d835-d2f8-4984-bb8a-1df86f6353e0 name=图层 type=rectangle width=fit_content height=fit_content fontFill=rgba(37,99,235,1) fontSize=13 fontFamily=SourceHanSans-Medium textAlign=left TEXT='删除' kids=0
-      id=d6ce6477-bfd2-42af-929d-27d547e6fca8 name=已完成 type=frame width=fill_container height=fit_content padding=[16,20,16,20] cornerRadius=16 fills=rgba(255,255,255,1) stroke={align=center,thickness=1,lineCap=butt,lineJoin=miter,fills=rgba(238,242,247,1)} layout=vertical alignItems=start justifyContent=start kids=4
-        id=77530b6c-b6c4-458f-bf6b-c59d3a1853e7 name=报价卡1顶行 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start kids=3
-          id=a1014337-c490-4a53-8e22-a406945e02e0 name=图层 type=rectangle width=136 height=fit_content fontFill=rgba(15,23,42,1) fontSize=15 fontFamily=SourceHanSans-SemiBold textAlign=left TEXT='2024Q3 主线路报价' kids=0
-          id=af0bf89f-0d02-4b58-beef-43b171d089f8 name=spacer type=rectangle width=fill_container height=fit_content kids=0
-          id=c426702b-73cf-450e-a0e1-b2d1595d0cd7 name=已通过标 2 type=frame width=fit_content height=22 padding=[0,8,0,8] gap=4 cornerRadius=11 fills=rgba(255,252,235,1) layout=horizontal alignItems=center justifyContent=start clip=True kids=2
-            id=e6d47c2f-cd5f-44c3-a96d-be33d0c5fb20 name=点 type=rectangle width=8 height=6 cornerRadius=4 fills=rgba(255,149,0,1) kids=0
-            id=3a47d6c3-a8bc-488c-9326-0cd2815b9d74 name=文本 type=rectangle width=fit_content height=fit_content fontFill=rgba(255,149,0,1) fontSize=11 fontFamily=SourceHanSans-Medium textAlign=left TEXT='待签署' kids=0
-        id=888143cc-6b1b-4c62-a4ff-f81a857b13a7 name=container 2 type=frame width=fill_container height=fit_content padding=[16,0,0,0] layout=vertical alignItems=start justifyContent=start kids=1
-          id=6e1c70d3-b9c5-455a-9bc4-de454eb14a28 name=字段-报价单号 type=frame width=fill_container height=fit_content layout=vertical alignItems=start justifyContent=start kids=1
-            id=610d3207-d892-4337-b644-861f3efbff4e name=字段标签行 type=frame width=fill_container height=fit_content gap=8 layout=horizontal alignItems=center justifyContent=start kids=2
-              id=3c68d32f-f391-47ac-bedf-34faf679daf2 name=图层 type=rectangle width=53 height=fit_content fontFill=rgba(51,65,85,1) fontSize=13 fontFamily=SourceHanSans-SemiBold textAlign=left TEXT='报价单号' kids=0
-              id=83cc3498-887b-4d59-bb85-03017f15f3fd name=单号示例标 2 type=frame width=fit_content height=20 padding=[0,8,0,8] cornerRadius=10 fills=rgba(255,255,255,1) layout=horizontal alignItems=center justifyContent=start kids=1
-                id=010f24b7-95b2-4d50-9493-5f7a07c0a67e name=图层 type=rectangle width=90 height=fit_content fontFill=rgba(148,163,184,1) fontSize=10 fontFamily=SourceHanSans-Medium textAlign=left TEXT='QT-20240615-0007' kids=0
-        id=fed0afce-305e-4b5a-95a1-810a60a4d651 name=container type=frame width=fill_container height=fit_content padding=[12,0,0,0] layout=vertical alignItems=start justifyContent=start kids=1
-          id=c78f09a3-1351-4cce-bc27-0a05160aae85 name=报价卡1元信息 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start kids=5
-            id=9ff79be6-0bce-46a0-be29-1d3375cf469d name=图层 type=rectangle width=43 height=fit_content fontFill=rgba(148,163,184,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='2 个模型' kids=0
-            id=c50646f8-2b43-4bb3-b2c2-59e800752b2c name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=aab42a86-f0da-4035-8da5-fe8bd18d93fa name=图层 type=rectangle width=12 height=fit_content fontFill=rgba(203,213,225,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='·' kids=0
-            id=dce0f16b-970b-4acb-81f5-eaf3d8384d28 name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=efe24fe7-2231-49ca-856c-061c7845c2a5 name=图层 type=rectangle width=22 height=fit_content fontFill=rgba(148,163,184,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='CNY' kids=0
-            id=1645ab1c-e9e6-400d-960c-d0caeab06464 name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=925903c3-9213-447e-8e0e-843f95cf2977 name=图层 type=rectangle width=12 height=fit_content fontFill=rgba(203,213,225,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='·' kids=0
-            id=aabe2b91-13c2-4a12-9943-757c047a2db8 name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=a87b7dd1-0a83-48ba-806a-6e00805aa62d name=图层 type=rectangle width=95 height=fit_content fontFill=rgba(148,163,184,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='更新于 06-14 15:20' kids=0
-        id=eb96cbee-9fe5-4cfd-8740-fae74c75d4e5 name=container type=frame width=358 height=60 layout=horizontal alignItems=start justifyContent=start kids=1
-          id=3d09fef9-aad9-4c64-8403-0d08488e33c2 name=报价卡1操作行 type=frame width=358 height=60 padding=[16,0,16,0] gap=12 layout=horizontal alignItems=start justifyContent=start kids=4
-            id=c295b86a-46e5-45fd-b584-2265f2208400 name=报价设置链接 type=frame width=fit_content height=40 padding=[0,8,0,8] gap=6 layout=horizontal alignItems=center justifyContent=center kids=2
-              id=e61b1e26-eaf1-4c6e-a438-67a53976a3ac name=图层 type=paragraph width=fit_content height=fit_content fills=rgba(37,99,235,1) fontSize=16 fontFamily=remixicon textAlign=left TEXT='\uf0e6' kids=0
-              id=cb8147d9-f0c9-4b9b-a2be-f52f8dd79eed name=container type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start kids=1
-                id=8afc4c14-5634-4d42-8e09-267323929798 name=图层 type=rectangle width=fit_content height=fit_content fontFill=rgba(37,99,235,1) fontSize=13 fontFamily=SourceHanSans-Medium textAlign=left TEXT='报价' kids=0
-            id=0df65c86-848c-41d8-b6f1-b402fe10a0ba name=报价预览链接 type=frame width=fit_content height=40 padding=[0,8,0,8] gap=6 layout=horizontal alignItems=center justifyContent=center kids=2
-              id=f0e9d346-1ce9-47d0-bc7d-8ea798135399 name=图层 type=paragraph width=fit_content height=fit_content fills=rgba(37,99,235,1) fontSize=16 fontFamily=remixicon textAlign=left TEXT='\uecb5' kids=0
-              id=733c256b-c7f5-45ec-b152-dd5a0801d0a0 name=container type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start kids=1
-                id=9a352011-c67a-4efc-9ef1-c2df65eeeee7 name=图层 type=rectangle width=fit_content height=fit_content fontFill=rgba(37,99,235,1) fontSize=13 fontFamily=SourceHanSans-Medium textAlign=left TEXT='预览' kids=0
-            id=8558475e-fa22-4a71-8c0b-f996e7c0d04e name=合同签署链接 type=frame width=fit_content height=40 padding=[0,8,0,8] gap=6 layout=horizontal alignItems=center justifyContent=center clip=True kids=2
-              id=16dbfb68-1cce-49fc-943c-7e9b205d07be name=图层 type=paragraph width=fit_content height=fit_content fills=rgba(37,99,235,1) fontSize=16 fontFamily=remixicon textAlign=left TEXT='\uf04a' kids=0
-              id=453c280c-6a0b-4bb0-9c51-2f6084a0315f name=图层 type=rectangle width=fit_content height=fit_content fontFill=rgba(37,99,235,1) fontSize=13 fontFamily=SourceHanSans-Medium textAlign=left TEXT='签署' kids=0
-            id=dcbcf04f-7ee1-4c38-8c78-7b7b228e3dcc name=删除链接 type=frame width=fit_content height=40 padding=[0,8,0,8] gap=6 layout=horizontal alignItems=center justifyContent=center kids=2
-              id=13527973-eee7-413b-ac6f-7820ecd07093 name=图层 type=paragraph width=16 height=fit_content fills=rgba(37,99,235,1) fontSize=16 fontFamily=remixicon textAlign=left TEXT='\uec2a' kids=0
-              id=37adac2c-ffd0-43a9-8a46-9e34550617ad name=图层 type=rectangle width=fit_content height=fit_content fontFill=rgba(37,99,235,1) fontSize=13 fontFamily=SourceHanSans-Medium textAlign=left TEXT='删除' kids=0
-      id=edd840bb-bd47-4a30-adfd-42f16e6d01af name=已完成 2 type=frame width=fill_container height=fit_content padding=[16,20,16,20] cornerRadius=16 fills=rgba(255,255,255,1) stroke={align=center,thickness=1,lineCap=butt,lineJoin=miter,fills=rgba(238,242,247,1)} layout=vertical alignItems=start justifyContent=start kids=4
-        id=28d38b97-2b84-403c-ab65-07d83ea12d7d name=报价卡1顶行 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start kids=3
-          id=0ec098eb-7adb-44a9-b9fb-afff364423ce name=图层 type=rectangle width=136 height=fit_content fontFill=rgba(15,23,42,1) fontSize=15 fontFamily=SourceHanSans-SemiBold textAlign=left TEXT='2024Q3 主线路报价' kids=0
-          id=94a1aeb3-b0ff-453b-9626-9bd377df86e8 name=spacer type=rectangle width=fill_container height=fit_content kids=0
-          id=caf3547f-663c-480c-8470-6e0313d3dd74 name=已通过标 2 type=frame width=fit_content height=22 padding=[0,8,0,8] gap=4 cornerRadius=11 fills=rgba(240,253,244,1) layout=horizontal alignItems=center justifyContent=start clip=True kids=2
-            id=586bcaa1-70aa-4d0c-b0fc-7e04d53c2166 name=点 type=rectangle width=8 height=6 cornerRadius=4 fills=rgba(22,163,74,1) kids=0
-            id=6f03e4ed-7e4c-4805-b09d-1b0634d4da0b name=文本 type=rectangle width=fit_content height=fit_content fontFill=rgba(21,128,61,1) fontSize=11 fontFamily=SourceHanSans-Medium textAlign=left TEXT='已完成' kids=0
-        id=005d0e8f-f04d-4d13-be5d-c7fbddb17ba7 name=container 2 type=frame width=fill_container height=fit_content padding=[16,0,0,0] layout=vertical alignItems=start justifyContent=start kids=1
-          id=0802f1ed-553b-4f74-a0db-faf265aca070 name=字段-报价单号 type=frame width=fill_container height=fit_content layout=vertical alignItems=start justifyContent=start kids=1
-            id=0aaa36a6-a4c4-44e7-8f5c-8b5927a20e15 name=字段标签行 type=frame width=fill_container height=fit_content gap=8 layout=horizontal alignItems=center justifyContent=start kids=2
-              id=95a840be-cdc4-4e62-9063-983dab55711a name=图层 type=rectangle width=53 height=fit_content fontFill=rgba(51,65,85,1) fontSize=13 fontFamily=SourceHanSans-SemiBold textAlign=left TEXT='报价单号' kids=0
-              id=7b5a836b-a825-4bd3-aa16-ca88012a29a3 name=单号示例标 2 type=frame width=fit_content height=20 padding=[0,8,0,8] cornerRadius=10 fills=rgba(255,255,255,1) layout=horizontal alignItems=center justifyContent=start kids=1
-                id=bc9cf7d2-7015-42fc-a2f7-d5b9dc0c00bb name=图层 type=rectangle width=90 height=fit_content fontFill=rgba(148,163,184,1) fontSize=10 fontFamily=SourceHanSans-Medium textAlign=left TEXT='QT-20240615-0007' kids=0
-        id=84ee307c-e93b-47b4-86d8-e857b51aa740 name=container type=frame width=fill_container height=fit_content padding=[12,0,0,0] layout=vertical alignItems=start justifyContent=start kids=1
-          id=507ba1f6-baa3-407e-8ae2-8ff91108aeaa name=报价卡1元信息 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start kids=5
-            id=7f384aed-4588-4cad-8586-620a79e65093 name=图层 type=rectangle width=43 height=fit_content fontFill=rgba(148,163,184,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='2 个模型' kids=0
-            id=25b61227-8b72-4d23-9632-edfa3a73a1a0 name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=3958bc3f-3779-48fa-98d8-1fb92122ae7d name=图层 type=rectangle width=12 height=fit_content fontFill=rgba(203,213,225,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='·' kids=0
-            id=d7587599-2c10-4c4e-a188-462dbe479941 name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=0c3b9724-43c1-4409-bd52-9b0c2d629748 name=图层 type=rectangle width=22 height=fit_content fontFill=rgba(148,163,184,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='CNY' kids=0
-            id=6e7b5604-1bae-4a27-9c9b-793d6fabcf76 name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=f7215766-6979-464d-8444-e66eb8813c0a name=图层 type=rectangle width=12 height=fit_content fontFill=rgba(203,213,225,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='·' kids=0
-            id=01d1b1b4-d680-4703-a197-aa18decaf699 name=container type=frame width=fit_content height=fit_content padding=[0,0,0,8] layout=horizontal alignItems=start justifyContent=start kids=1
-              id=082776d1-e7ac-42ab-aaf0-26ac267b6d0f name=图层 type=rectangle width=95 height=fit_content fontFill=rgba(148,163,184,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='更新于 06-14 15:20' kids=0
-        id=b5ddaa1d-a734-4b00-a901-f35ce4d75e48 name=container type=frame width=358 height=60 layout=horizontal alignItems=start justifyContent=start kids=1
-          id=7a43b6d3-5c54-40d8-bd18-74c1456b4d36 name=报价卡1操作行 type=frame width=358 height=60 padding=[16,0,16,0] gap=12 layout=horizontal alignItems=start justifyContent=start kids=4
-            id=503fe350-535e-45c2-8f5e-256ad942d284 name=报价设置链接 type=frame width=fit_content height=40 padding=[0,8,0,8] gap=6 layout=horizontal alignItems=center justifyContent=center kids=2
-              id=90224590-7b5d-4a58-9f6d-16da205fba1c name=图层 type=paragraph width=fit_content height=fit_content fills=rgba(37,99,235,1) fontSize=16 fontFamily=remixicon textAlign=left TEXT='\uf0e6' kids=0
-              id=12141d57-f47f-4566-ba37-4a9cf48e1943 name=container type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start kids=1
-                id=0643b7ab-7532-44fe-9db4-94e777d607f9 name=图层 type=rectangle width=fit_content height=fit_content fontFill=rgba(37,99,235,1) fontSize=13 fontFamily=SourceHanSans-Medium textAlign=left TEXT='报价' kids=0
-            id=d8d0f8fb-2ec7-4298-93da-431155178cc0 name=报价预览链接 type=frame width=fit_content height=40 padding=[0,8,0,8] gap=6 layout=horizontal alignItems=center justifyContent=center kids=2
-              id=93cf9d38-325f-445d-ad40-234812e6ca7f name=图层 type=paragraph width=fit_content height=fit_content fills=rgba(37,99,235,1) fontSize=16 fontFamily=remixicon textAlign=left TEXT='\uecb5' kids=0
-              id=b75aafe4-83aa-45d4-9465-3c6136097304 name=container type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start kids=1
-                id=63ebb2fa-1ebf-4b25-a8e2-ad0c447a313a name=图层 type=rectangle width=fit_content height=fit_content fontFill=rgba(37,99,235,1) fontSize=13 fontFamily=SourceHanSans-Medium textAlign=left TEXT='预览' kids=0
-            id=d9917b0d-fb90-4b2b-a597-a1a3c90b4865 name=合同签署链接 type=frame width=fit_content height=40 padding=[0,8,0,8] gap=6 layout=horizontal alignItems=center justifyContent=center clip=True kids=2
-              id=78b1fc9f-3f78-4f87-a7a6-df06c8c57cea name=图层 type=paragraph width=fit_content height=fit_content fills=rgba(37,99,235,1) fontSize=16 fontFamily=remixicon textAlign=left TEXT='\uf04a' kids=0
-              id=c4645581-7168-40e7-a60f-f143b621c4a6 name=图层 type=rectangle width=fit_content height=fit_content fontFill=rgba(37,99,235,1) fontSize=13 fontFamily=SourceHanSans-Medium textAlign=left TEXT='合同' kids=0
-            id=af2913a0-6763-4048-b31c-399a4d61a4d8 name=删除链接 type=frame width=fit_content height=40 padding=[0,8,0,8] gap=6 layout=horizontal alignItems=center justifyContent=center kids=2
-              id=e35f1718-36c3-4659-ad96-37ba1212c24b name=图层 type=paragraph width=16 height=fit_content fills=rgba(37,99,235,1) fontSize=16 fontFamily=remixicon textAlign=left TEXT='\uec2a' kids=0
-              id=afb60fbb-68e2-4311-bfab-aa2d0f8cefbd name=图层 type=rectangle width=fit_content height=fit_content fontFill=rgba(37,99,235,1) fontSize=13 fontFamily=SourceHanSans-Medium textAlign=left TEXT='删除' kids=0
-    id=fd22353b-1d7c-4429-9d1f-f9740fd8bd09 name=container type=frame width=fill_container height=fit_content padding=[16,0,0,0] layout=vertical alignItems=start justifyContent=start kids=1
-      id=c958806f-3c42-401f-89ce-25a71139a931 name=底部TabBar type=frame width=fill_container height=fit_content padding=[8,0,24,0] fills=rgba(255,255,255,1) layout=horizontal alignItems=center justifyContent=space_between kids=4
-        id=a5d178d8-8a8e-416e-81c7-d325bdbef42a name=Tab工作台 type=frame width=104 height=fit_content layout=vertical alignItems=center justifyContent=start kids=2
-          id=a1bfd64b-3572-4c9a-bd02-935e8bfb0473 name=图层 type=paragraph width=fit_content height=33 fills=rgba(148,163,184,1) fontSize=22 fontFamily=remixicon textAlign=left TEXT='\uee1f' kids=0
-          id=1624184c-78cb-4404-8cf4-c14bd2b3c430 name=container type=frame width=fit_content height=fit_content padding=[3,0,0,0] layout=vertical alignItems=start justifyContent=start kids=1
-            id=e5b5a912-79ce-4684-98f1-a16ef9b95ff8 name=图层 type=rectangle width=fit_content height=16 fontFill=rgba(148,163,184,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='工作台' kids=0
-        id=549f8ec6-e351-4da7-9776-533a72562b22 name=Tab报告 type=frame width=104 height=fit_content layout=vertical alignItems=center justifyContent=start kids=2
-          id=23fc7628-ce7a-4c59-83fe-76db0284df25 name=图层 type=paragraph width=fit_content height=33 fills=rgba(148,163,184,1) fontSize=22 fontFamily=remixicon textAlign=left TEXT='\ued09' kids=0
-          id=ff70ad37-81d1-46fe-84ac-444ef95cd667 name=container type=frame width=fit_content height=fit_content padding=[3,0,0,0] layout=vertical alignItems=start justifyContent=start kids=1
-            id=c25edea4-5ef7-48d8-af0f-cf2cb84ae506 name=图层 type=rectangle width=fit_content height=16 fontFill=rgba(148,163,184,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='报告' kids=0
-        id=ca52a1f8-3877-425b-bb88-d0becf766458 name=Tab报价 type=frame width=104 height=fit_content layout=vertical alignItems=center justifyContent=start kids=2
-          id=7e83410c-f052-41c2-9159-8998d448f5ba name=图层 type=paragraph width=fit_content height=33 fills=rgba(37,99,235,1) fontSize=22 fontFamily=remixicon textAlign=left TEXT='\uf022' kids=0
-          id=08710679-c07f-441b-bec6-e1320caa6340 name=container type=frame width=fit_content height=fit_content padding=[3,0,0,0] layout=vertical alignItems=start justifyContent=start kids=1
-            id=6beac6f6-e7f2-4567-a524-b77fe75f9623 name=图层 type=rectangle width=fit_content height=16 fontFill=rgba(37,99,235,1) fontSize=11 fontFamily=SourceHanSans-SemiBold textAlign=left TEXT='报价' kids=0
-        id=438ec728-974f-45a8-a335-13f137457c64 name=Tab我的 type=frame width=104 height=fit_content layout=vertical alignItems=center justifyContent=start kids=2
-          id=72eae5bc-e40c-485a-a62f-cad5a2343f02 name=图层 type=paragraph width=fit_content height=33 fills=rgba(148,163,184,1) fontSize=22 fontFamily=remixicon textAlign=left TEXT='\uf256' kids=0
-          id=836994e2-ab30-408c-bdfc-a7f8ff57f2f8 name=container type=frame width=fit_content height=fit_content padding=[3,0,0,0] layout=vertical alignItems=start justifyContent=start kids=1
-            id=7479f598-8697-4d69-be71-603955b7f55a name=图层 type=rectangle width=fit_content height=16 fontFill=rgba(148,163,184,1) fontSize=11 fontFamily=SourceHanSans-Regular textAlign=left TEXT='我的' kids=0
+8. 报价端·小程序 ｜ 【报价管理】报价单列表 2 id=56142177 type=frame width=430 height=fit_content layout=vertical alignItems=start justifyContent=start
+  报价单列表页 id=71d676b8 type=frame width=430 height=fit_content fills="rgba(248,250,252,1)" layout=vertical alignItems=start justifyContent=start
+    顶部导航 id=6870f5e0 type=frame width=fill_container height=fit_content padding=[48, 16, 12, 16] fills="rgba(255,255,255,1)" layout=horizontal alignItems=center justifyContent=start
+      图层 id=91be2734 type=rectangle width=61 height=fit_content fontSize=20 fontFamily=SourceHanSans-Bold textAlignVertical=middle
+      spacer id=61ccf859 type=rectangle width=fill_container height=fit_content
+      新建按钮 id=7ccb56ba type=frame width=97 height=30 padding=[0, 12, 0, 12] r=10 fills="rgba(37,99,235,1)" layout=horizontal alignItems=center justifyContent=start
+        图层 id=47594508 type=paragraph width=18 height=fit_content fills="rgba(255,255,255,1)" fontSize=16 fontFamily=remixicon textAlignVertical=middle
+        container id=1e70756c type=frame width=fit_content height=fit_content padding=[0, 0, 0, 4] layout=horizontal alignItems=start justifyContent=start
+          图层 id=8b0d35de type=rectangle width=54 height=16 fontSize=12 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+    筛选行 id=e3a29c25 type=frame width=fill_container height=fit_content padding=[12, 16, 12, 16] fills="rgba(255,255,255,1)" layout=horizontal alignItems=center justifyContent=start
+      筛选全部 id=0bf46fd6 type=frame width=fit_content height=30 padding=[0, 12, 0, 12] r=10 fills="rgba(37,99,235,1)" layout=horizontal alignItems=center justifyContent=start
+        图层 id=e6fa9008 type=rectangle width=25 height=fit_content fontSize=12 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+      spacer id=34e3c625 type=rectangle width=9 height=fit_content
+      筛选草稿 id=33be05d4 type=frame width=fit_content height=30 padding=[0, 12, 0, 12] r=10 fills="rgba(241,245,249,1)" layout=horizontal alignItems=center justifyContent=start
+        图层 id=9c8fee46 type=rectangle width=25 height=fit_content fontSize=12 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+      spacer id=13474d0b type=rectangle width=9 height=fit_content
+      筛选已提交 id=d4c61d43 type=frame width=fit_content height=30 padding=[0, 12, 0, 12] r=10 fills="rgba(241,245,249,1)" layout=horizontal alignItems=center justifyContent=start
+        图层 id=1a637ac5 type=rectangle width=37 height=fit_content fontSize=12 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+      spacer id=1f806426 type=rectangle width=9 height=fit_content
+      筛选已驳回 id=cf22a9a9 type=frame width=fit_content height=30 padding=[0, 12, 0, 12] r=10 fills="rgba(241,245,249,1)" layout=horizontal alignItems=center justifyContent=start
+        图层 id=e7c38540 type=rectangle width=37 height=fit_content fontSize=12 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+      spacer id=8d085a94 type=rectangle width=9 height=fit_content
+      筛选待签署 id=ba2b8609 type=frame width=fit_content height=30 padding=[0, 12, 0, 12] r=10 fills="rgba(241,245,249,1)" layout=horizontal alignItems=center justifyContent=start
+        图层 id=1985e395 type=rectangle width=37 height=fit_content fontSize=12 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+      spacer id=9b0b2b0f type=rectangle width=9 height=fit_content
+      筛选已完成 id=10b7c5cc type=frame width=fit_content height=30 padding=[0, 12, 0, 12] r=10 fills="rgba(241,245,249,1)" layout=horizontal alignItems=center justifyContent=start
+        图层 id=fc537c2f type=rectangle width=fit_content height=fit_content fontSize=12 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+    报价卡片列表 id=14f06409 type=frame width=fill_container height=fit_content padding=[12, 16, 12, 16] layout=vertical alignItems=start justifyContent=start
+      报价卡1 id=9057868c type=frame width=fill_container height=fit_content padding=[16, 20, 16, 20] r=16 fills="rgba(255,255,255,1)" stroke={"align":"center","thickness":1,"lineCap":"butt","lineJoin":"miter","fills":"rgba(238,242,247,1)"} layout=vertical alignItems=start justifyContent=start
+        报价卡1顶行 id=94a6b56c type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start
+          图层 id=930bc97e type=rectangle width=136 height=fit_content fontSize=15 fontFamily=SourceHanSans-SemiBold textAlignVertical=middle
+          spacer id=87285a0a type=rectangle width=fill_container height=fit_content
+          草稿标 id=bea2086e type=frame width=fit_content height=22 padding=[0, 8, 0, 8] r=11 fills="rgba(241,245,249,1)" layout=horizontal alignItems=center justifyContent=start
+            草稿点 id=8ae0f311 type=rectangle width=8 height=6 r=4 fills="rgba(148,163,184,1)"
+            container id=7fa86bfa type=frame width=fit_content height=fit_content padding=[0, 0, 0, 4] layout=horizontal alignItems=start justifyContent=start
+              图层 id=5c7b2f20 type=rectangle width=23 height=fit_content fontSize=11 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+        container 2 id=6b807739 type=frame width=fill_container height=fit_content padding=[16, 0, 0, 0] layout=vertical alignItems=start justifyContent=start
+          字段-报价单号 id=5b7a0fce type=frame width=fill_container height=fit_content layout=vertical alignItems=start justifyContent=start
+            字段标签行 id=3a637d01 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start
+              图层 id=70696608 type=rectangle width=53 height=fit_content fontSize=13 fontFamily=SourceHanSans-SemiBold textAlignVertical=middle
+              单号示例标 2 id=48bca98a type=frame width=fit_content height=20 padding=[0, 8, 0, 8] r=10 fills="rgba(255,255,255,1)" layout=horizontal alignItems=center justifyContent=start
+                图层 id=f057dca5 type=rectangle width=90 height=fit_content fontSize=10 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+        container id=ecd135b9 type=frame width=fill_container height=fit_content padding=[12, 0, 0, 0] layout=vertical alignItems=start justifyContent=start
+          报价卡1元信息 id=559e490e type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start
+            图层 id=ac24812b type=rectangle width=43 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=95cd2754 type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=fd63dfdb type=rectangle width=12 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=2574b4a8 type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=06eb7078 type=rectangle width=22 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=bcbc49b0 type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=9cafcec1 type=rectangle width=12 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=8a71d96a type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=10b7127f type=rectangle width=95 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+        container id=4ddbda42 type=frame width=358 height=60 layout=horizontal alignItems=start justifyContent=start
+          报价卡1操作行 id=82acabf8 type=frame width=358 height=60 padding=[16, 0, 16, 0] layout=horizontal alignItems=start justifyContent=start
+            报价设置链接 id=03bfb63c type=frame width=fit_content height=40 padding=[0, 8, 0, 8] layout=horizontal alignItems=center justifyContent=center
+              图层 id=54d2653f type=paragraph width=fit_content height=fit_content fills="rgba(37,99,235,1)" fontSize=16 fontFamily=remixicon textAlignVertical=middle
+              container id=698d97b7 type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start
+                图层 id=0ac90e56 type=rectangle width=fit_content height=fit_content fontSize=13 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+            报价预览链接 id=d925c690 type=frame width=fit_content height=40 padding=[0, 8, 0, 8] layout=horizontal alignItems=center justifyContent=center
+              图层 id=22507745 type=paragraph width=fit_content height=fit_content fills="rgba(37,99,235,1)" fontSize=16 fontFamily=remixicon textAlignVertical=middle
+              container id=6c9cff56 type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start
+                图层 id=b350b307 type=rectangle width=fit_content height=fit_content fontSize=13 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+            删除链接 id=eed58fcd type=frame width=fit_content height=40 padding=[0, 8, 0, 8] layout=horizontal alignItems=center justifyContent=center
+              图层 id=62dcb39a type=paragraph width=16 height=fit_content fills="rgba(37,99,235,1)" fontSize=16 fontFamily=remixicon textAlignVertical=middle
+              图层 id=4e8134ef type=rectangle width=fit_content height=fit_content fontSize=13 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+      报价卡1 3 id=933bf322 type=frame width=fill_container height=fit_content padding=[16, 20, 16, 20] r=16 fills="rgba(255,255,255,1)" stroke={"align":"center","thickness":1,"lineCap":"butt","lineJoin":"miter","fills":"rgba(238,242,247,1)"} layout=vertical alignItems=start justifyContent=start
+        报价卡2顶行 id=1de789e5 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start
+          图层 id=b2e3a980 type=rectangle width=151 height=fit_content fontSize=15 fontFamily=SourceHanSans-SemiBold textAlignVertical=middle
+          spacer id=7aaf2d6b type=rectangle width=fill_container height=fit_content
+          已提交标 id=9bc8ae41 type=frame width=fit_content height=22 padding=[0, 8, 0, 8] r=11 fills="rgba(239,246,255,1)" layout=horizontal alignItems=center justifyContent=start
+            已提交点 id=ee60ee1e type=rectangle width=8 height=6 r=4 fills="rgba(37,99,235,1)"
+            container id=63ce1658 type=frame width=fit_content height=fit_content padding=[0, 0, 0, 4] layout=horizontal alignItems=start justifyContent=start
+              图层 id=274472d8 type=rectangle width=34 height=fit_content fontSize=11 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+        container 2 id=da6802ce type=frame width=fill_container height=fit_content padding=[16, 0, 0, 0] layout=vertical alignItems=start justifyContent=start
+          字段-报价单号 id=b5fbc157 type=frame width=fill_container height=fit_content layout=vertical alignItems=start justifyContent=start
+            字段标签行 id=77d6608d type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start
+              图层 id=e3d7395c type=rectangle width=53 height=fit_content fontSize=13 fontFamily=SourceHanSans-SemiBold textAlignVertical=middle
+              单号示例标 2 id=d4dd129e type=frame width=fit_content height=20 padding=[0, 8, 0, 8] r=10 fills="rgba(255,255,255,1)" layout=horizontal alignItems=center justifyContent=start
+                图层 id=ba1e9f94 type=rectangle width=90 height=fit_content fontSize=10 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+        container id=9e895cae type=frame width=fill_container height=fit_content padding=[12, 0, 0, 0] layout=vertical alignItems=start justifyContent=start
+          报价卡1元信息 id=e8f0fed4 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start
+            图层 id=2823efd2 type=rectangle width=43 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=51bf0ed5 type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=8a87dd46 type=rectangle width=12 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=a5a39d12 type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=8836bb69 type=rectangle width=22 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=1d652cb7 type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=7695abcd type=rectangle width=12 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=5e32e884 type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=803ddf71 type=rectangle width=95 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+        container id=7a28898e type=frame width=358 height=60 layout=horizontal alignItems=start justifyContent=start
+          报价卡1操作行 id=fa938c3a type=frame width=358 height=60 padding=[16, 0, 16, 0] layout=horizontal alignItems=start justifyContent=start
+            报价设置链接 id=daedd876 type=frame width=fit_content height=40 padding=[0, 8, 0, 8] layout=horizontal alignItems=center justifyContent=center
+              图层 id=f8b025f1 type=paragraph width=fit_content height=fit_content fills="rgba(37,99,235,1)" fontSize=16 fontFamily=remixicon textAlignVertical=middle
+              container id=6fce3b35 type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start
+                图层 id=a9ecfe29 type=rectangle width=fit_content height=fit_content fontSize=13 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+            报价预览链接 id=6fc985ff type=frame width=fit_content height=40 padding=[0, 8, 0, 8] layout=horizontal alignItems=center justifyContent=center
+              图层 id=7e99165c type=paragraph width=fit_content height=fit_content fills="rgba(37,99,235,1)" fontSize=16 fontFamily=remixicon textAlignVertical=middle
+              container id=2d426356 type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start
+                图层 id=b86378df type=rectangle width=fit_content height=fit_content fontSize=13 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+            删除链接 id=c9108477 type=frame width=fit_content height=40 padding=[0, 8, 0, 8] layout=horizontal alignItems=center justifyContent=center
+              图层 id=fa1e87a1 type=paragraph width=16 height=fit_content fills="rgba(37,99,235,1)" fontSize=16 fontFamily=remixicon textAlignVertical=middle
+              图层 id=b03181e4 type=rectangle width=fit_content height=fit_content fontSize=13 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+      报价卡3 id=8bb07f44 type=frame width=fill_container height=fit_content padding=[16, 20, 16, 20] r=16 fills="rgba(255,255,255,1)" stroke={"align":"center","thickness":1,"lineCap":"butt","lineJoin":"miter","fills":"rgba(238,242,247,1)"} layout=vertical alignItems=start justifyContent=start
+        报价卡1顶行 2 id=471a95f6 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start
+          图层 id=feeae0ac type=rectangle width=136 height=fit_content fontSize=15 fontFamily=SourceHanSans-SemiBold textAlignVertical=middle
+          spacer id=4079a37f type=rectangle width=fill_container height=fit_content
+          已驳回标 id=c499f3ee type=frame width=fit_content height=22 padding=[0, 8, 0, 8] r=11 fills="rgba(254,242,242,1)" layout=horizontal alignItems=center justifyContent=start
+            已驳回点 id=1f70c88d type=rectangle width=8 height=6 r=4 fills="rgba(220,38,38,1)"
+            container id=00991aac type=frame width=fit_content height=fit_content padding=[0, 0, 0, 4] layout=horizontal alignItems=start justifyContent=start
+              图层 id=29c0f0a7 type=rectangle width=34 height=fit_content fontSize=11 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+        container 3 id=45a9714c type=frame width=fill_container height=fit_content padding=[16, 0, 0, 0] layout=vertical alignItems=start justifyContent=start
+          字段-报价单号 id=0ae46be8 type=frame width=fill_container height=fit_content layout=vertical alignItems=start justifyContent=start
+            字段标签行 id=8b5285e3 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start
+              图层 id=09334714 type=rectangle width=53 height=fit_content fontSize=13 fontFamily=SourceHanSans-SemiBold textAlignVertical=middle
+              单号示例标 2 id=970e8039 type=frame width=fit_content height=20 padding=[0, 8, 0, 8] r=10 fills="rgba(255,255,255,1)" layout=horizontal alignItems=center justifyContent=start
+                图层 id=fcbf2a8c type=rectangle width=90 height=fit_content fontSize=10 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+        container 4 id=8848d025 type=frame width=fill_container height=fit_content padding=[12, 0, 0, 0] layout=vertical alignItems=start justifyContent=start
+          报价卡1元信息 id=72653765 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start
+            图层 id=ced9b2c9 type=rectangle width=43 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=a5048490 type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=92e3f266 type=rectangle width=12 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=ce30d5c7 type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=9761b95d type=rectangle width=22 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=a6860cdf type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=068726e0 type=rectangle width=12 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=ce2c9d80 type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=c619bda9 type=rectangle width=95 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+        container 5 id=dac6446e type=frame width=358 height=60 layout=horizontal alignItems=start justifyContent=start
+          报价卡1操作行 id=78aa8aa2 type=frame width=358 height=60 padding=[16, 0, 16, 0] layout=horizontal alignItems=start justifyContent=start
+            报价设置链接 id=d8f9ea1d type=frame width=fit_content height=40 padding=[0, 8, 0, 8] layout=horizontal alignItems=center justifyContent=center
+              图层 id=0f292e4c type=paragraph width=fit_content height=fit_content fills="rgba(37,99,235,1)" fontSize=16 fontFamily=remixicon textAlignVertical=middle
+              container id=5c8f1db4 type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start
+                图层 id=32d9cd4b type=rectangle width=fit_content height=fit_content fontSize=13 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+            报价预览链接 id=5c4c19ea type=frame width=fit_content height=40 padding=[0, 8, 0, 8] layout=horizontal alignItems=center justifyContent=center
+              图层 id=cac7e876 type=paragraph width=fit_content height=fit_content fills="rgba(37,99,235,1)" fontSize=16 fontFamily=remixicon textAlignVertical=middle
+              container id=eda4af7f type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start
+                图层 id=b74f714b type=rectangle width=fit_content height=fit_content fontSize=13 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+            删除链接 id=6c735aa3 type=frame width=fit_content height=40 padding=[0, 8, 0, 8] layout=horizontal alignItems=center justifyContent=center
+              图层 id=9b3ad118 type=paragraph width=16 height=fit_content fills="rgba(37,99,235,1)" fontSize=16 fontFamily=remixicon textAlignVertical=middle
+              图层 id=fbf5d835 type=rectangle width=fit_content height=fit_content fontSize=13 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+      已完成 id=d6ce6477 type=frame width=fill_container height=fit_content padding=[16, 20, 16, 20] r=16 fills="rgba(255,255,255,1)" stroke={"align":"center","thickness":1,"lineCap":"butt","lineJoin":"miter","fills":"rgba(238,242,247,1)"} layout=vertical alignItems=start justifyContent=start
+        报价卡1顶行 id=77530b6c type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start
+          图层 id=a1014337 type=rectangle width=136 height=fit_content fontSize=15 fontFamily=SourceHanSans-SemiBold textAlignVertical=middle
+          spacer id=af0bf89f type=rectangle width=fill_container height=fit_content
+          已通过标 2 id=c426702b type=frame width=fit_content height=22 padding=[0, 8, 0, 8] r=11 fills="rgba(255,252,235,1)" layout=horizontal alignItems=center justifyContent=start
+            点 id=e6d47c2f type=rectangle width=8 height=6 r=4 fills="rgba(255,149,0,1)"
+            文本 id=3a47d6c3 type=rectangle width=fit_content height=fit_content fontSize=11 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+        container 2 id=888143cc type=frame width=fill_container height=fit_content padding=[16, 0, 0, 0] layout=vertical alignItems=start justifyContent=start
+          字段-报价单号 id=6e1c70d3 type=frame width=fill_container height=fit_content layout=vertical alignItems=start justifyContent=start
+            字段标签行 id=610d3207 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start
+              图层 id=3c68d32f type=rectangle width=53 height=fit_content fontSize=13 fontFamily=SourceHanSans-SemiBold textAlignVertical=middle
+              单号示例标 2 id=83cc3498 type=frame width=fit_content height=20 padding=[0, 8, 0, 8] r=10 fills="rgba(255,255,255,1)" layout=horizontal alignItems=center justifyContent=start
+                图层 id=010f24b7 type=rectangle width=90 height=fit_content fontSize=10 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+        container id=fed0afce type=frame width=fill_container height=fit_content padding=[12, 0, 0, 0] layout=vertical alignItems=start justifyContent=start
+          报价卡1元信息 id=c78f09a3 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start
+            图层 id=9ff79be6 type=rectangle width=43 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=c50646f8 type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=aab42a86 type=rectangle width=12 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=dce0f16b type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=efe24fe7 type=rectangle width=22 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=1645ab1c type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=925903c3 type=rectangle width=12 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=aabe2b91 type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=a87b7dd1 type=rectangle width=95 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+        container id=eb96cbee type=frame width=358 height=60 layout=horizontal alignItems=start justifyContent=start
+          报价卡1操作行 id=3d09fef9 type=frame width=358 height=60 padding=[16, 0, 16, 0] layout=horizontal alignItems=start justifyContent=start
+            报价设置链接 id=c295b86a type=frame width=fit_content height=40 padding=[0, 8, 0, 8] layout=horizontal alignItems=center justifyContent=center
+              图层 id=e61b1e26 type=paragraph width=fit_content height=fit_content fills="rgba(37,99,235,1)" fontSize=16 fontFamily=remixicon textAlignVertical=middle
+              container id=cb8147d9 type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start
+                图层 id=8afc4c14 type=rectangle width=fit_content height=fit_content fontSize=13 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+            报价预览链接 id=0df65c86 type=frame width=fit_content height=40 padding=[0, 8, 0, 8] layout=horizontal alignItems=center justifyContent=center
+              图层 id=f0e9d346 type=paragraph width=fit_content height=fit_content fills="rgba(37,99,235,1)" fontSize=16 fontFamily=remixicon textAlignVertical=middle
+              container id=733c256b type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start
+                图层 id=9a352011 type=rectangle width=fit_content height=fit_content fontSize=13 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+            合同签署链接 id=8558475e type=frame width=fit_content height=40 padding=[0, 8, 0, 8] layout=horizontal alignItems=center justifyContent=center
+              图层 id=16dbfb68 type=paragraph width=fit_content height=fit_content fills="rgba(37,99,235,1)" fontSize=16 fontFamily=remixicon textAlignVertical=middle
+              图层 id=453c280c type=rectangle width=fit_content height=fit_content fontSize=13 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+            删除链接 id=dcbcf04f type=frame width=fit_content height=40 padding=[0, 8, 0, 8] layout=horizontal alignItems=center justifyContent=center
+              图层 id=13527973 type=paragraph width=16 height=fit_content fills="rgba(37,99,235,1)" fontSize=16 fontFamily=remixicon textAlignVertical=middle
+              图层 id=37adac2c type=rectangle width=fit_content height=fit_content fontSize=13 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+      已完成 2 id=edd840bb type=frame width=fill_container height=fit_content padding=[16, 20, 16, 20] r=16 fills="rgba(255,255,255,1)" stroke={"align":"center","thickness":1,"lineCap":"butt","lineJoin":"miter","fills":"rgba(238,242,247,1)"} layout=vertical alignItems=start justifyContent=start
+        报价卡1顶行 id=28d38b97 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start
+          图层 id=0ec098eb type=rectangle width=136 height=fit_content fontSize=15 fontFamily=SourceHanSans-SemiBold textAlignVertical=middle
+          spacer id=94a1aeb3 type=rectangle width=fill_container height=fit_content
+          已通过标 2 id=caf3547f type=frame width=fit_content height=22 padding=[0, 8, 0, 8] r=11 fills="rgba(240,253,244,1)" layout=horizontal alignItems=center justifyContent=start
+            点 id=586bcaa1 type=rectangle width=8 height=6 r=4 fills="rgba(22,163,74,1)"
+            文本 id=6f03e4ed type=rectangle width=fit_content height=fit_content fontSize=11 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+        container 2 id=005d0e8f type=frame width=fill_container height=fit_content padding=[16, 0, 0, 0] layout=vertical alignItems=start justifyContent=start
+          字段-报价单号 id=0802f1ed type=frame width=fill_container height=fit_content layout=vertical alignItems=start justifyContent=start
+            字段标签行 id=0aaa36a6 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start
+              图层 id=95a840be type=rectangle width=53 height=fit_content fontSize=13 fontFamily=SourceHanSans-SemiBold textAlignVertical=middle
+              单号示例标 2 id=7b5a836b type=frame width=fit_content height=20 padding=[0, 8, 0, 8] r=10 fills="rgba(255,255,255,1)" layout=horizontal alignItems=center justifyContent=start
+                图层 id=bc9cf7d2 type=rectangle width=90 height=fit_content fontSize=10 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+        container id=84ee307c type=frame width=fill_container height=fit_content padding=[12, 0, 0, 0] layout=vertical alignItems=start justifyContent=start
+          报价卡1元信息 id=507ba1f6 type=frame width=fill_container height=fit_content layout=horizontal alignItems=center justifyContent=start
+            图层 id=7f384aed type=rectangle width=43 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=25b61227 type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=3958bc3f type=rectangle width=12 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=d7587599 type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=0c3b9724 type=rectangle width=22 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=6e7b5604 type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=f7215766 type=rectangle width=12 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+            container id=01d1b1b4 type=frame width=fit_content height=fit_content padding=[0, 0, 0, 8] layout=horizontal alignItems=start justifyContent=start
+              图层 id=082776d1 type=rectangle width=95 height=fit_content fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+        container id=b5ddaa1d type=frame width=358 height=60 layout=horizontal alignItems=start justifyContent=start
+          报价卡1操作行 id=7a43b6d3 type=frame width=358 height=60 padding=[16, 0, 16, 0] layout=horizontal alignItems=start justifyContent=start
+            报价设置链接 id=503fe350 type=frame width=fit_content height=40 padding=[0, 8, 0, 8] layout=horizontal alignItems=center justifyContent=center
+              图层 id=90224590 type=paragraph width=fit_content height=fit_content fills="rgba(37,99,235,1)" fontSize=16 fontFamily=remixicon textAlignVertical=middle
+              container id=12141d57 type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start
+                图层 id=0643b7ab type=rectangle width=fit_content height=fit_content fontSize=13 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+            报价预览链接 id=d8d0f8fb type=frame width=fit_content height=40 padding=[0, 8, 0, 8] layout=horizontal alignItems=center justifyContent=center
+              图层 id=93cf9d38 type=paragraph width=fit_content height=fit_content fills="rgba(37,99,235,1)" fontSize=16 fontFamily=remixicon textAlignVertical=middle
+              container id=b75aafe4 type=frame width=fit_content height=fit_content layout=horizontal alignItems=start justifyContent=start
+                图层 id=63ebb2fa type=rectangle width=fit_content height=fit_content fontSize=13 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+            合同签署链接 id=d9917b0d type=frame width=fit_content height=40 padding=[0, 8, 0, 8] layout=horizontal alignItems=center justifyContent=center
+              图层 id=78b1fc9f type=paragraph width=fit_content height=fit_content fills="rgba(37,99,235,1)" fontSize=16 fontFamily=remixicon textAlignVertical=middle
+              图层 id=c4645581 type=rectangle width=fit_content height=fit_content fontSize=13 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+            删除链接 id=af2913a0 type=frame width=fit_content height=40 padding=[0, 8, 0, 8] layout=horizontal alignItems=center justifyContent=center
+              图层 id=e35f1718 type=paragraph width=16 height=fit_content fills="rgba(37,99,235,1)" fontSize=16 fontFamily=remixicon textAlignVertical=middle
+              图层 id=afb60fbb type=rectangle width=fit_content height=fit_content fontSize=13 fontFamily=SourceHanSans-Medium textAlignVertical=middle
+    container id=fd22353b type=frame width=fill_container height=fit_content padding=[16, 0, 0, 0] layout=vertical alignItems=start justifyContent=start
+      底部TabBar id=c958806f type=frame width=fill_container height=fit_content padding=[8, 0, 24, 0] fills="rgba(255,255,255,1)" layout=horizontal alignItems=center justifyContent=space_between
+        Tab工作台 id=a5d178d8 type=frame width=104 height=fit_content layout=vertical alignItems=center justifyContent=start
+          图层 id=a1bfd64b type=paragraph width=fit_content height=33 fills="rgba(148,163,184,1)" fontSize=22 fontFamily=remixicon textAlignVertical=middle
+          container id=1624184c type=frame width=fit_content height=fit_content padding=[3, 0, 0, 0] layout=vertical alignItems=start justifyContent=start
+            图层 id=e5b5a912 type=rectangle width=fit_content height=16 fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+        Tab报告 id=549f8ec6 type=frame width=104 height=fit_content layout=vertical alignItems=center justifyContent=start
+          图层 id=23fc7628 type=paragraph width=fit_content height=33 fills="rgba(148,163,184,1)" fontSize=22 fontFamily=remixicon textAlignVertical=middle
+          container id=ff70ad37 type=frame width=fit_content height=fit_content padding=[3, 0, 0, 0] layout=vertical alignItems=start justifyContent=start
+            图层 id=c25edea4 type=rectangle width=fit_content height=16 fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle
+        Tab报价 id=ca52a1f8 type=frame width=104 height=fit_content layout=vertical alignItems=center justifyContent=start
+          图层 id=7e83410c type=paragraph width=fit_content height=33 fills="rgba(37,99,235,1)" fontSize=22 fontFamily=remixicon textAlignVertical=middle
+          container id=08710679 type=frame width=fit_content height=fit_content padding=[3, 0, 0, 0] layout=vertical alignItems=start justifyContent=start
+            图层 id=6beac6f6 type=rectangle width=fit_content height=16 fontSize=11 fontFamily=SourceHanSans-SemiBold textAlignVertical=middle
+        Tab我的 id=438ec728 type=frame width=104 height=fit_content layout=vertical alignItems=center justifyContent=start
+          图层 id=72eae5bc type=paragraph width=fit_content height=33 fills="rgba(148,163,184,1)" fontSize=22 fontFamily=remixicon textAlignVertical=middle
+          container id=836994e2 type=frame width=fit_content height=fit_content padding=[3, 0, 0, 0] layout=vertical alignItems=start justifyContent=start
+            图层 id=7479f598 type=rectangle width=fit_content height=16 fontSize=11 fontFamily=SourceHanSans-Regular textAlignVertical=middle

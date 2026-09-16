@@ -14,6 +14,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   FILTERS,
+  META_SEPARATOR,
   PAGE_SIZE,
   PAGE_TITLE,
   QUOTE_NO_LABEL,
@@ -21,6 +22,7 @@ import {
   buildQuotesModel,
   filterStatusQuery,
   formatUpdatedAt,
+  metaParts,
   statusKeyOf
 } from '@/utils/quotes-model'
 import {
@@ -28,6 +30,7 @@ import {
   DESIGN_CARD_STATUSES,
   DESIGN_FILTERS,
   DESIGN_META,
+  DESIGN_META_PARTS,
   DESIGN_QUOTE_NO,
   DESIGN_QUOTE_NO_LABEL,
   DESIGN_TITLE
@@ -66,8 +69,16 @@ describe('序号 8 · 文案常量与设计稿一致', () => {
     expect(STATUS_META.draft).toMatchObject({ bg: '#f1f5f9', dot: '#94a3b8', text: '#64748b' })
     expect(STATUS_META.submitted).toMatchObject({ bg: '#eff6ff', dot: '#2563eb', text: '#2563eb' })
     expect(STATUS_META.rejected).toMatchObject({ bg: '#fef2f2', dot: '#dc2626', text: '#b91c1c' })
-    expect(STATUS_META.pending_sign).toMatchObject({ bg: '#fffbeb', dot: '#ff9500', text: '#ff9500' })
+    expect(STATUS_META.pending_sign).toMatchObject({ bg: '#fffceb', dot: '#ff9500', text: '#ff9500' })
     expect(STATUS_META.completed).toMatchObject({ bg: '#f0fdf4', dot: '#16a34a', text: '#15803d' })
+  })
+
+  it('元信息行还原成设计里的 5 个节点（节点之间是 8px 间距，不是空格字符）', () => {
+    expect(META_SEPARATOR).toBe('·')
+    expect(metaParts(DESIGN_META)).toEqual(DESIGN_META_PARTS)
+    expect(metaParts('2 个模型 · CNY · 更新于 06-14 15:20')).toEqual([
+      '2 个模型', '·', 'CNY', '·', '更新于 06-14 15:20'
+    ])
   })
 })
 

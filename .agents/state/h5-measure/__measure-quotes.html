@@ -12,145 +12,458 @@
   </head>
   <body>
     <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
-         页面 8：/pages/quotes/index（报价单列表 2，page-8-2）
-         phase1（首次加载）· phase2（+1700ms 后，布局一致性 = 「连跑两轮」的 H5 版）
-         phase3（点「已驳回」chip → 记录 chip 高亮/行数；真实请求见 serve.py 日志 status=REJECTED）
-         phase4（点卡1「删除」→ 弹窗确认 → 真实 DELETE + toast；请求见 serve.py 日志）
-         设计基线（page-8-2 像素色带量得）：顶栏 90 · 筛选行 54 · 卡 178 高 / 间距 12 · 操作行 60 · TabBar 84 · 页高 1206 -->
+         页面 8：/pages/quotes/index（【报价管理】报价单列表 2，page-8-2 · 帧 layer_id 56142177-5e03-487d-ba5d-3a5c3c3b4071）
+         phase1（加载后 2500ms）· phase2（4200ms）→ 关键数字应一致（= 「连跑两轮」的 H5 版）
+         ?scenario=actions → phase3（点「已驳回」chip = api · serve 日志见 status=REJECTED）
+                            · phase4（点卡1「删除」= api → uni-modal 二次确认 → DELETE + toast + 重拉列表）
+         设计期望值（want）两类来源：
+           (a) 声明值：.calicat/raw/pages/page-8-2/design.tree.json（python .agents/state/text-fields.py page-8-2
+               打印全部文本叶子的 fontSize / fontFamily→字重 / fontFill；python .agents/state/tree-view.py page-8-2
+               打印盒子的几何/内边距/圆角/stroke/gap）
+           (b) fit_content 盒的真实高度：设计截图 PNG 色带/行带实测（430×1206）
+               PNG: https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/2099920271396171776/canvas/image/2099920271396171776.png
+               复现命令（仓库根；png 已存在 .agents/state/design-shots/page-8-2.png）：
+                 python .agents/state/png-rowclass.py  .agents/state/design-shots/page-8-2.png            # 卡片/间隙边界
+                 python .agents/state/png-textbands.py .agents/state/design-shots/page-8-2.png 36 150 394 340  # 卡内文字行带
+                 python .agents/state/png-xruns.py     .agents/state/design-shots/page-8-2.png 183 0 430      # 行内 x 区间
+               实测骨架（设计帧高 1206 = 90 + 54 + 962 + 16 + 84）：
+                 顶部导航 0..90 · 筛选行 90..144（chip 102..131）· 列表 144..1106
+                 卡 156..334 / 346..524 / 536..714 / 726..904 / 916..1094（卡高 178 · 间距 12）
+                 卡内：顶行 172..194(22) · 单号块 210..230(16+20) · 元信息块 242..258(12+16) · 操作行 258..318(60)
+                 容器 padding-top 16 + 底部 TabBar 1122..1206(84)
+               关键模型：fit_content 文本行框 = fontSize × 1.5（20→30 · 15→22.5 · 13→20 · 12→18 · 11→16）·
+                 **显式 height 优先**（新建报价文本 16 · TabBar 标签 16）· 图标字形行框 = fontSize × 1.5（22→33 · 16→24）·
+                 Figma center 描边 → box-shadow 0 0 0 1px（border 会占布局，内容宽 356→358）·
+                 设计里「新建按钮」宽 100（当前画布重抓值；子节点 12+18+4+54+12 = 100 自洽） -->
     <iframe id="f" src="/index.html#/pages/quotes/index"></iframe>
     <div id="sink"><pre id="m">pending</pre></div>
     <script>
       var f = document.getElementById('f')
       var acc = {}
+      var SCENARIO = (location.search.match(/scenario=([a-z]+)/) || [])[1] || ''
+      var SHOT_ONLY = location.search.indexOf('shot') !== -1
+      if (SHOT_ONLY) f.style.height = '1206px' /* = 设计帧高：底部固定 TabBar 才会落在 1122..1206（与设计一致） */
+      f.addEventListener('load', function () {
+        setTimeout(function () { phase(1) }, 2500)
+        setTimeout(function () { phase(2) }, 4200)
+        if (SCENARIO === 'actions') setTimeout(function () { actions() }, 5000)
+      })
+
+      /* 选择器语法：`sel@@N` = 该选择器的第 N 个匹配（也接受 CSS 里非法的 `sel#N` 写法，先归一化成 @@N）。
+         `A@@N B C` = 在第 N 个 A 里查 B C。 */
+      function splitSel(sel) {
+        var s = String(sel).replace(/#(\d+)(?=\s|$)/g, '@@$1')
+        var i = s.indexOf('@@')
+        if (i === -1) return { base: s, n: 0, tail: '' }
+        var head = s.slice(0, i)
+        var rest = s.slice(i + 2).split(/\s+/)
+        return { base: head.trim(), n: Number(rest[0]), tail: rest.slice(1).join(' ') }
+      }
 
       function collect(doc, win) {
-        function all(sel) { return Array.prototype.slice.call(doc.querySelectorAll(sel)) }
+        var fails = []
+        var checks = 0
+        function norm(v) {
+          if (typeof v === 'number') return v
+          var s = String(v == null ? '' : v).trim()
+          if (/^-?\d+(\.\d+)?px$/.test(s)) return Number(s.replace('px', ''))
+          return s
+        }
+        function normColor(s) {
+          var m = String(s || '').match(/rgba?\(([^)]+)\)/)
+          if (!m) return String(s || '')
+          var p = m[1].split(',').map(function (t) { return Number(t.trim()) })
+          var a = p.length > 3 ? p[3] : 1
+          return a === 1 ? 'rgb(' + p[0] + ', ' + p[1] + ', ' + p[2] + ')' : 'rgba(' + p.join(', ') + ')'
+        }
+        function declared(sel, prop) {
+          /* CSSOM 声明值（非 used 值）：Chrome 会把 0.8px 报成 1px，所以判声明值 */
+          var sp = splitSel(sel)
+          if (!el(sel)) return null
+          for (var i = 0; i < doc.styleSheets.length; i++) {
+            var rules
+            try { rules = doc.styleSheets[i].cssRules } catch (e) { continue }
+            for (var j = 0; j < rules.length; j++) {
+              var r = rules[j]
+              if (!r.selectorText || r.selectorText.indexOf('[') === 0) continue
+              var sels = r.selectorText.split(',').map(function (s) { return s.trim().replace(/\[data-v-[^\]]+\]/g, '') })
+              if (sels.indexOf(sp.base) === -1) continue
+              var v = r.style && r.style[prop]
+              if (v) return v
+            }
+          }
+          return null
+        }
+        /* box-shadow 的颜色要归一化，但**偏移/模糊/扩散必须保留** —— 走 normColor() 会把整串
+           压成只剩颜色，于是每条 box-shadow 检查都假失败。这里只替换颜色片段。 */
+        function normShadow(s) {
+          return String(s == null ? '' : s).replace(/rgba?\([^)]+\)/g, function (m) { return normColor(m) })
+        }
+        function el(sel) {
+          var sp = splitSel(sel)
+          if (!sp.n && !sp.tail) return doc.querySelector(sp.base)
+          var roots = doc.querySelectorAll(sp.base)
+          var root = roots[sp.n]
+          if (!root) return null
+          return sp.tail ? root.querySelector(sp.tail) : root
+        }
         function rect(sel) {
-          var el = doc.querySelector(sel)
-          if (!el) return null
-          var r = el.getBoundingClientRect()
-          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+          var e = el(sel)
+          if (!e) return null
+          var r = e.getBoundingClientRect()
+          return {
+            x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right),
+            bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height)
+          }
+        }
+        function css(sel, prop) {
+          var e = el(sel)
+          if (!e) return null
+          var v = win.getComputedStyle(e)[prop]
+          if (prop === 'boxShadow') return normShadow(v)
+          return prop.toLowerCase().indexOf('color') >= 0 ? normColor(v) : norm(v)
+        }
+        function chk(key, got, want, tol) {
+          checks++
+          var t = tol == null ? 0 : tol
+          var g = norm(got)
+          var w = norm(want)
+          /* 数值型比较：computed 的 fontWeight 是字符串 "700"，want 写的是数字 700 */
+          var gn = typeof g === 'number' ? g : (typeof g === 'string' && /^-?\d+(\.\d+)?$/.test(g) ? Number(g) : null)
+          var wn = typeof w === 'number' ? w : (typeof w === 'string' && /^-?\d+(\.\d+)?$/.test(w) ? Number(w) : null)
+          var ok
+          if (gn !== null && wn !== null) ok = Math.abs(gn - wn) <= t
+          else ok = g === w
+          if (!ok) fails.push({ k: key, got: got, want: want })
+          return got
+        }
+        /* chkR 的字段由 key 末段决定：.h/.w/.x/.left/.right/.top/.bottom */
+        function rectField(sel, key) {
+          var r = rect(sel)
+          if (!r) return null
+          var f = String(key).split('.').pop()
+          if (f === 'x' || f === 'left') return r.x
+          if (f === 'right') return r.right
+          if (f === 'top') return r.top
+          if (f === 'bottom') return r.bottom
+          if (f === 'w' || f === 'width') return r.w
+          if (f === 'h' || f === 'height') return r.h
+          return r
+        }
+        function chkR(key, sel, want, tol) { return chk(key, rectField(sel, key), want, tol) }
+        function chkC(key, sel, prop, want, tol) { return chk(key, css(sel, prop), want, tol) }
+        /* 数值数组逐项比较（设计帧是 Figma 小数坐标链，落地后会有 ±1 的取整差 → 判「逐项在容差内」） */
+        function chkList(key, got, want, tol) {
+          checks++
+          var t = tol == null ? 0 : tol
+          var ok = got.length === want.length
+          if (ok) {
+            for (var i = 0; i < got.length; i++) {
+              if (Math.abs(got[i] - want[i]) > t) { ok = false; break }
+            }
+          }
+          if (!ok) fails.push({ k: key, got: got.join(','), want: want.join(',') })
+          return got
         }
         function rects(sel) {
-          return all(sel).map(function (e) {
+          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) {
             var r = e.getBoundingClientRect()
-            return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), w: Math.round(r.width), h: Math.round(r.height) }
+            return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
           })
         }
-        function texts(sel) { return all(sel).map(function (e) { return e.textContent.trim() }) }
-        function colors(sel) { return all(sel).map(function (e) { return win.getComputedStyle(e).backgroundColor }) }
-        function colorOf(sel, prop) {
-          var el = doc.querySelector(sel)
-          return el ? win.getComputedStyle(el)[prop] : null
+        function texts(sel) {
+          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return e.textContent.trim() })
+        }
+        function colors(sel) {
+          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return normColor(win.getComputedStyle(e).backgroundColor) })
+        }
+        function textColors(sel) {
+          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return normColor(win.getComputedStyle(e).color) })
         }
         function textOf(sel) {
-          var e = doc.querySelector(sel)
+          var e = el(sel)
           return e ? e.textContent.trim() : null
         }
-        function styleOf(sel, prop) {
-          var e = doc.querySelector(sel)
-          return e ? e.style[prop] : null
+        function groupOf(sel, groupSel) {
+          /* 取每个 groupSel 内该 sel 的第一个匹配（按卡分组断言用） */
+          return Array.prototype.map.call(doc.querySelectorAll(groupSel), function (g) {
+            var e = g.querySelector(sel)
+            return e ? e : null
+          })
         }
-        var over = []
-        all('*').forEach(function (el) {
-          var r = el.getBoundingClientRect()
-          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
-            over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), left: Math.round(r.x), w: Math.round(r.width), right: Math.round(r.right), html: String(el.outerHTML || '').slice(0, 140) })
-          }
-        })
+        function grpRect(groupSel, sel, field) {
+          var els = groupOf(sel, groupSel)
+          return els.map(function (e) {
+            if (!e) return null
+            var r = e.getBoundingClientRect()
+            var f = String(field).split('.').pop()
+            if (f === 'x' || f === 'left') return Math.round(r.x)
+            if (f === 'right') return Math.round(r.right)
+            if (f === 'top') return Math.round(r.top)
+            if (f === 'w' || f === 'width') return Math.round(r.width)
+            if (f === 'h' || f === 'height') return Math.round(r.height)
+            return null
+          })
+        }
+        function grpCss(groupSel, sel, prop) {
+          var els = groupOf(sel, groupSel)
+          return els.map(function (e) {
+            if (!e) return null
+            var v = win.getComputedStyle(e)[prop]
+            if (prop === 'boxShadow') return normShadow(v)
+            return prop.toLowerCase().indexOf('color') >= 0 ? normColor(v) : norm(v)
+          })
+        }
+        function grpTexts(groupSel, sel) {
+          return Array.prototype.map.call(doc.querySelectorAll(groupSel), function (g) {
+            var e = g.querySelector(sel)
+            return e ? e.textContent.trim() : null
+          })
+        }
+        var CARDS = '[data-testid="quote-card"]'
+
+        /* ================= 整页 ================= */
+        chk('page.docHeight', Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight), 1206, 3)
+        chkC('page.bg', '.quotes', 'backgroundColor', 'rgb(248, 250, 252)')
+        chk('page.cardCount', doc.querySelectorAll(CARDS).length, 5)
+        /* 设计帧 156/346/536/726/916（PNG 实测）· 卡高 178 */
+        chkList('page.cardTops', rects(CARDS).map(function (r) { return r.top }), [156, 346, 536, 726, 916], 2)
+        chkList('page.cardHeights', rects(CARDS).map(function (r) { return r.h }), [178, 178, 178, 178, 178], 2)
+
+        /* ================= 顶部导航（design 6870f5e0 · padding [48,16,12,16]） ================= */
+        chkR('topbar.h', '.quotes__topbar', 90, 1)
+        chkC('topbar.padTop', '.quotes__topbar', 'paddingTop', 48)
+        chkC('topbar.padRight', '.quotes__topbar', 'paddingRight', 16)
+        chkC('topbar.padBottom', '.quotes__topbar', 'paddingBottom', 12)
+        chkC('topbar.padLeft', '.quotes__topbar', 'paddingLeft', 16)
+        chkC('topbar.bg', '.quotes__topbar', 'backgroundColor', 'rgb(255, 255, 255)')
+        chkR('topbar.title.left', '.quotes__title', 16, 1)
+        chkC('topbar.title.fs', '.quotes__title', 'fontSize', 20)
+        chkC('topbar.title.fw', '.quotes__title', 'fontWeight', 700) /* design 91be2734 SourceHanSans-Bold */
+        chkC('topbar.title.color', '.quotes__title', 'color', 'rgb(15, 23, 42)')
+        chkC('topbar.title.lh', '.quotes__title', 'lineHeight', 30, 1) /* 20px 行框 = 20×1.5 */
+        /* 新建按钮（design 7ccb56ba：当前画布 width 100 · 30 高 · r10 · #2563EB · padding 0/12）
+           设计里按钮 x343..443 越出 430 画布（自身不自洽）→ 零溢出实现为右对齐 16（x314..414），宽度按声明 100 */
+        chkR('topbar.new.w', '.quotes__new', 100, 1)
+        chkR('topbar.new.h', '.quotes__new', 30, 1)
+        chkR('topbar.new.right', '.quotes__new', 414, 2)
+        chkC('topbar.new.radius', '.quotes__new', 'borderRadius', 10)
+        chkC('topbar.new.bg', '.quotes__new', 'backgroundColor', 'rgb(37, 99, 235)')
+        chkC('topbar.new.padLeft', '.quotes__new', 'paddingLeft', 12)
+        chkC('topbar.new.padRight', '.quotes__new', 'paddingRight', 12)
+        chkR('topbar.newGlyph.w', '.quotes__new .glyph', 18, 1) /* design 47594508：16px remixicon 行框 18 宽 24 高 */
+        chkR('topbar.newGlyph.h', '.quotes__new .glyph', 24, 1)
+        chk('topbar.newGlyph.offset',
+          (function () { var a = rect('.quotes__new .glyph'); var b = rect('.quotes__new'); return a && b ? a.x - b.x : null })(), 12, 1)
+        chkC('topbar.newText.fs', '.quotes__new-text', 'fontSize', 12)
+        chkC('topbar.newText.fw', '.quotes__new-text', 'fontWeight', 500) /* design 8b0d35de Medium */
+        chkC('topbar.newText.color', '.quotes__new-text', 'color', 'rgb(255, 255, 255)')
+        chkR('topbar.newText.h', '.quotes__new-text', 16, 1) /* design 显式 height=16 */
+        chk('topbar.newText.offset',
+          (function () { var a = rect('.quotes__new-text'); var b = rect('.quotes__new .glyph'); return a && b ? a.x - b.right : null })(), 4, 2)
+
+        /* ================= 筛选行（design e3a29c25 · padding [12,16,12,16] · chip 30 高 r10 padding 0/12 · 间距 9） ============ */
+        chkR('filters.h', '.quotes__filters', 54, 1)
+        chkC('filters.padTop', '.quotes__filters', 'paddingTop', 12)
+        chkC('filters.padBottom', '.quotes__filters', 'paddingBottom', 12)
+        chkC('filters.padLeft', '.quotes__filters', 'paddingLeft', 16)
+        chkC('filters.bg', '.quotes__filters', 'backgroundColor', 'rgb(255, 255, 255)')
+        chk('filters.count', doc.querySelectorAll('.filter-chip').length, 6)
+        chk('filters.labels', texts('.filter-chip__label').join('|'), '全部|草稿|已提交|已驳回|待签署|已完成')
+        chkList('filters.lefts', rects('.filter-chip').map(function (r) { return r.x }), [16, 73, 130, 199, 268, 337], 2)
+        chkList('filters.widths', rects('.filter-chip').map(function (r) { return r.w }), [48, 48, 60, 60, 60, 60], 3)
+        chkR('filters.chip.h', '.filter-chip', 30, 1)
+        chkC('filters.chip.radius', '.filter-chip', 'borderRadius', 10)
+        chkC('filters.chip.padLeft', '.filter-chip', 'paddingLeft', 12)
+        chkC('filters.active.bg', '.filter-chip--active', 'backgroundColor', 'rgb(37, 99, 235)')
+        chkC('filters.active.color', '.filter-chip--active .filter-chip__label', 'color', 'rgb(255, 255, 255)')
+        chkC('filters.idle.bg', '.filter-chip:not(.filter-chip--active)', 'backgroundColor', 'rgb(241, 245, 249)')
+        chkC('filters.idle.color', '.filter-chip:not(.filter-chip--active) .filter-chip__label', 'color', 'rgb(100, 116, 139)')
+        chkC('filters.label.fs', '.filter-chip__label', 'fontSize', 12)
+        chkC('filters.label.fw', '.filter-chip__label', 'fontWeight', 500) /* design 9c8fee46 Medium */
+
+        /* ================= 报价卡（design 9057868c 等 · padding [16,20,16,20] r16 · 描边 1px #EEF2F7） ============ */
+        chk('card.count', doc.querySelectorAll(CARDS).length, 5)
+        chkList('card.x', rects(CARDS).map(function (r) { return r.x }), [16, 16, 16, 16, 16], 1)
+        chkList('card.w', rects(CARDS).map(function (r) { return r.w }), [398, 398, 398, 398, 398], 1)
+        chk('card.padTop', css(CARDS, 'paddingTop'), 16)
+        chk('card.padLeft', css(CARDS, 'paddingLeft'), 20)
+        chk('card.radius', css(CARDS, 'borderRadius'), 16)
+        chk('card.bg', css(CARDS, 'backgroundColor'), 'rgb(255, 255, 255)')
+        /* Figma center 描边 → box-shadow（border 会占布局，把内容宽从 358 挤成 356） */
+        chk('card.stroke', css(CARDS, 'boxShadow'), 'rgb(238, 242, 247) 0px 0px 0px 1px')
+        chkR('card.topRow.h', '.quote-card__top', 22, 1)
+        chkC('card.title.fs', '.quote-card__title', 'fontSize', 15)
+        chkC('card.title.fw', '.quote-card__title', 'fontWeight', 600) /* design 930bc97e SemiBold */
+        chkC('card.title.color', '.quote-card__title', 'color', 'rgb(15, 23, 42)')
+        chkC('card.title.lh', '.quote-card__title', 'lineHeight', 22.5, 1) /* 15px 行框 = 15×1.5 */
+        chkR('card.status.h', '.quote-card__status', 22, 1)
+        chkC('card.status.radius', '.quote-card__status', 'borderRadius', 11)
+        chkC('card.status.padLeft', '.quote-card__status', 'paddingLeft', 8)
+        chkList('card.status.right', rects('.quote-card__status').map(function (r) { return r.right }), [394, 394, 394, 394, 394], 2)
+        chkR('card.statusDot.w', '.quote-card__status-dot', 8, 1)
+        chkR('card.statusDot.h', '.quote-card__status-dot', 6, 1)
+        chkC('card.statusDot.radius', '.quote-card__status-dot', 'borderRadius', 4)
+        chkC('card.statusText.fs', '.quote-card__status-text', 'fontSize', 11)
+        chkC('card.statusText.fw', '.quote-card__status-text', 'fontWeight', 500)
+        chkList('card.statusText.lh', grpCss(CARDS, '.quote-card__status-text', 'lineHeight'),
+          [16, 16, 16, 16, 16], 1.5) /* 11px 行框 = 11×1.5 */
+        /* 五态配色（design bea2086e/9bc8ae41/c499f3ee/c426702b/caf3547f，文字色取各标内文本叶子 fontFill） */
+        chk('card.statusBg', colors('.quote-card__status').join('|'),
+          'rgb(241, 245, 249)|rgb(239, 246, 255)|rgb(254, 242, 242)|rgb(255, 252, 235)|rgb(240, 253, 244)')
+        chk('card.statusDot', colors('.quote-card__status-dot').join('|'),
+          'rgb(148, 163, 184)|rgb(37, 99, 235)|rgb(220, 38, 38)|rgb(255, 149, 0)|rgb(22, 163, 74)')
+        chk('card.statusTextColor', textColors('.quote-card__status-text').join('|'),
+          'rgb(100, 116, 139)|rgb(37, 99, 235)|rgb(185, 28, 28)|rgb(255, 149, 0)|rgb(21, 128, 61)')
+        chk('card.statusLabels', texts('.quote-card__status-text').join('|'), '草稿|已提交|已驳回|待签署|已完成')
+        /* 单号块（design 6b807739：padding-top 16 · 行高 20 · 标签 13px SemiBold #334155 + 单号 10px Medium #94A3B8） */
+        chkC('card.no.padTop', '.quote-card__no', 'paddingTop', 16)
+        chkR('card.noRow.h', '.quote-card__no-row', 20, 1)
+        chkC('card.noLabel.fs', '.quote-card__no-label', 'fontSize', 13)
+        chkC('card.noLabel.fw', '.quote-card__no-label', 'fontWeight', 600) /* design 70696608 SemiBold */
+        chkC('card.noLabel.color', '.quote-card__no-label', 'color', 'rgb(51, 65, 85)')
+        chkR('card.noLabel.h', '.quote-card__no-label', 19.5, 1.5) /* 13px 行框 = 13×1.5 */
+        chkC('card.noValue.fs', '.quote-card__no-value', 'fontSize', 10)
+        chkC('card.noValue.fw', '.quote-card__no-value', 'fontWeight', 500)
+        chkC('card.noValue.color', '.quote-card__no-value', 'color', 'rgb(148, 163, 184)')
+        chk('card.noValue.labels', texts('.quote-card__no-label').join('|'), '报价单号|报价单号|报价单号|报价单号|报价单号')
+        chk('card.noValue.values', texts('.quote-card__no-value').join('|'),
+          'QT-20240615-0007|QT-20240615-0007|QT-20240615-0007|QT-20240615-0007|QT-20240615-0007')
+        /* 单号与标签的间距 = 设计里单号白底内联标的 padding 0/8 ×2 = 16（PNG：标签 ink 36..87 → 单号 ink 105..192） */
+        chk('card.noGap', (function () {
+          var L = rect('.quote-card__no-label'), V = rect('.quote-card__no-value')
+          return L && V ? V.x - L.right : null
+        })(), 16, 2)
+        /* 元信息块（design ecd135b9：padding-top 12 · 559e490e = 5 个节点、节点之间 8px 间距、行框 16）
+           行宽 216 = 43+8+12+8+22+8+12+8+95（PNG 墨迹 39..250） */
+        chkC('card.meta.padTop', '.quote-card__meta', 'paddingTop', 12)
+        chkR('card.metaRow.h', '.quote-card__meta-row', 16, 1)
+        chk('card.metaNodeCount', doc.querySelectorAll('.quote-card__meta-part').length, 25) /* 5 节点 × 5 卡 */
+        chk('card.metaParts.0', texts('.quote-card__meta-part').slice(0, 5).join('|'),
+          '2 个模型|·|CNY|·|更新于 06-14 15:20')
+        chkC('card.metaSep.color', '.quote-card__meta-sep', 'color', 'rgb(203, 213, 225)') /* design fd63dfdb/9cafcec1 */
+        chkC('card.metaSep.fs', '.quote-card__meta-sep', 'fontSize', 11)
+        chk('card.metaGap', (function () {
+          var p = rects('.quote-card__meta-part')
+          return p.length > 1 ? p[1].x - p[0].right : null
+        })(), 8, 1) /* design：后续节点 container padding-left 8 */
+        chkR('card.metaText.h', '.quote-card__meta-text', 16, 1) /* 11px 行框 = 11 × 1.5（PNG 墨迹 244..254） */
+        chkC('card.metaText.fs', '.quote-card__meta-text', 'fontSize', 11)
+        chkC('card.metaText.fw', '.quote-card__meta-text', 'fontWeight', 400)
+        chkC('card.metaText.color', '.quote-card__meta-text', 'color', 'rgb(148, 163, 184)')
+        chkR('card.metaText.x', '.quote-card__meta-text', 36, 1)
+        chk('card.metaParts.end.0', (function () {
+          var p = rects('.quote-card__meta-part')
+          return p.length >= 5 ? p[4].right : null
+        })(), 252, 16) /* 设计 36 + 216 = 252（H5 回退字体字宽略窄，容差 16） */
+        /* 操作行（design 82acabf8：60 高 · padding-top 16 · gap 12 · 左侧 x36 = 卡内容左）
+           链接（design 03bfb63c：40 高 · padding 0/8 · gap 6 · 图标 16px remixicon 行框 16×24 · 文字 13px Medium #2563EB） */
+        chk('card.actions.h', css(CARDS + ' .quote-card__actions', 'height'), 60)
+        chkC('card.actions.padTop', '.quote-card__actions', 'paddingTop', 16)
+        chkC('card.actions.gap', '.quote-card__actions', 'gap', 12)
+        chkR('card.action.h', '.quote-action', 40, 1)
+        chkC('card.action.padLeft', '.quote-action', 'paddingLeft', 8)
+        chkC('card.action.gap', '.quote-action', 'gap', 6)
+        chkR('card.actionGlyph.w', '.quote-action .glyph', 16, 1)
+        chkR('card.actionGlyph.h', '.quote-action .glyph', 24, 1) /* 16px 行框 = 16×1.5 */
+        chk('card.actionGlyphBox', doc.querySelectorAll('.quote-action .glyph').length, 17) /* 3+3+3+4+4 */
+        chkC('card.actionLabel.fs', '.quote-action__label', 'fontSize', 13)
+        chkC('card.actionLabel.fw', '.quote-action__label', 'fontWeight', 500) /* design 0ac90e56 Medium */
+        chkC('card.actionLabel.color', '.quote-action__label', 'color', 'rgb(37, 99, 235)')
+        /* 逐卡操作集（设计：草稿/已提交/已驳回 = 报价·预览·删除；待签署 +签署；已完成 +合同） */
+        chk('card.actionLabels.0', texts('.quote-action__label').join('|'),
+          '报价|预览|删除|报价|预览|删除|报价|预览|删除|报价|预览|签署|删除|报价|预览|合同|删除')
+        /* 操作链接左边界：设计 x36 + 76 步进（宽 64 + 间距 12） */
+        chk('card.actionLefts.0',
+          rects(CARDS + ' .quote-action').slice(0, 3).map(function (r) { return r.x }).join(','), '36,112,188')
+        chk('card.actionLefts.3',
+          rects(CARDS + ' .quote-action').slice(9, 13).map(function (r) { return r.x }).join(','), '36,112,188,264')
+        chk('card.actionLeft.3.last',
+          (function () { var rs = rects(CARDS + ' .quote-action'); return rs.length === 17 ? rs[12].x : null })(), 264, 2)
+
+        /* ================= 底部 TabBar（design c958806f · padding [8,0,24,0] · 4 项各 104 · space_between） ======== */
+        chkR('tabbar.h', '.tabbar', 84, 1)
+        chkC('tabbar.padTop', '.tabbar', 'paddingTop', 8)
+        chkC('tabbar.padBottom', '.tabbar', 'paddingBottom', 24)
+        chkC('tabbar.bg', '.tabbar', 'backgroundColor', 'rgb(255, 255, 255)')
+        chk('tabbar.count', doc.querySelectorAll('.tabbar__item').length, 4)
+        chkList('tabbar.item.w', rects('.tabbar__item').map(function (r) { return r.w }), [104, 104, 104, 104], 1)
+        chkList('tabbar.item.x', rects('.tabbar__item').map(function (r) { return r.x }), [0, 109, 217, 326], 2)
+        chkR('tabbar.icon.h', '.tabbar__icon', 33, 1) /* 22px remixicon 行框 = 22×1.5 */
+        chkR('tabbar.glyph.w', '.tabbar__glyph', 22, 1)
+        chkR('tabbar.glyph.h', '.tabbar__glyph', 33, 1)
+        chkR('tabbar.gap.h', '.tabbar__gap', 3, 1) /* design container padding-top 3 */
+        chk('tabbar.labels', texts('.tabbar__label').join('|'), '工作台|报告|报价|我的')
+        chkC('tabbar.label.fs', '.tabbar__label', 'fontSize', 11)
+        chkC('tabbar.label.fw', '.tabbar__label', 'fontWeight', 400) /* design e5b5a912 Regular */
+        chkC('tabbar.label.color', '.tabbar__label', 'color', 'rgb(148, 163, 184)')
+        chkR('tabbar.label.h', '.tabbar__label', 16, 1) /* design 显式 height=16 */
+        chkC('tabbar.active.fw', '.tabbar__label--active', 'fontWeight', 600) /* design 6beac6f6 SemiBold */
+        chkC('tabbar.active.color', '.tabbar__label--active', 'color', 'rgb(37, 99, 235)')
+        chk('tabbar.active.label', textOf('.tabbar__label--active'), '报价')
+
+        /* ================= 文案（设计稿原文逐字） ================= */
         var text = (doc.body && doc.body.innerText) || ''
-        /* 设计稿里每一个独立文本图层都要覆盖（漏写会漏报 —— 序号 6 教训） */
         var need = [
           '报价单', '新建报价',
           '全部', '草稿', '已提交', '已驳回', '待签署', '已完成',
           '2024Q3 主线路报价', '报价单号', 'QT-20240615-0007',
-          '2 个模型 · CNY · 更新于 06-14 15:20',
+          /* ⚠️ 元信息行的 5 个节点之间是 flex gap（设计里是 8px 间距、不是空格字符），
+             innerText 里读作「2 个模型·CNY·更新于 …」没有空格 → 逐节点断言，不拼整串比较
+             （节点顺序与数量由 card.metaParts.0 / card.metaNodeCount 断言） */
+          '2 个模型', 'CNY', '更新于 06-14 15:20',
           '报价', '预览', '签署', '合同', '删除',
           '工作台', '报告', '我的'
         ]
+        var missing = need.filter(function (t) { return text.indexOf(t) === -1 })
+        chk('text.missing', missing.join('|'), '')
+
+        /* ================= 溢出（不计 uni-app 自身测量元素 uni-resize-sensor / 内部空 div） ============ */
+        var over = []
+        doc.querySelectorAll('*').forEach(function (e) {
+          if (e.closest && e.closest('uni-resize-sensor')) return
+          var r = e.getBoundingClientRect()
+          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
+            over.push({ tag: e.tagName, cls: String(e.className || '').slice(0, 60), right: Math.round(r.right) })
+          }
+        })
+        chk('overflow.count', over.length, 0)
+
         return {
           innerWidth: win.innerWidth,
           docScrollWidth: doc.documentElement.scrollWidth,
           docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
-          overflowingCount: over.length,
-          overflowing: over.slice(0, 20),
-          missingTexts: need.filter(function (t) { return text.indexOf(t) === -1 }),
-          pageBg: colorOf('.quotes', 'backgroundColor'),
+          checkCount: checks,
+          checkFailCount: fails.length,
+          checkFails: fails,
+          overflowing: over.slice(0, 10),
           title: textOf('.quotes__title'),
-          titleRect: rect('.quotes__title'),
-          titleStyle: (function () {
-            var cs = win.getComputedStyle(doc.querySelector('.quotes__title'))
-            return { fontSize: cs.fontSize, fontWeight: cs.fontWeight, color: cs.color, lineHeight: cs.lineHeight }
-          })(),
-          topbar: rect('.quotes__topbar'),
-          topbarBg: colorOf('.quotes__topbar', 'backgroundColor'),
-          newBtn: rect('[data-testid="new-quote"]'),
-          newBtnBg: colorOf('[data-testid="new-quote"]', 'backgroundColor'),
           newBtnText: textOf('.quotes__new-text'),
-          newBtnTextStyle: (function () {
-            var el = doc.querySelector('.quotes__new-text')
-            var cs = win.getComputedStyle(el)
-            return { fontSize: cs.fontSize, color: cs.color }
-          })(),
-          filtersRect: rect('.quotes__filters'),
+          newBtn: rect('.quotes__new'),
           filterLabels: texts('.filter-chip__label'),
           filterRects: rects('.filter-chip'),
-          filterActive: textOf('.filter-chip--active'),
-          filterActiveBg: colorOf('.filter-chip--active', 'backgroundColor'),
-          filterActiveLabelColor: colorOf('.filter-chip--active .filter-chip__label', 'color'),
-          filterIdleBg: colorOf('.filter-chip:not(.filter-chip--active)', 'backgroundColor'),
-          filterIdleLabelColor: colorOf('.filter-chip:not(.filter-chip--active) .filter-chip__label', 'color'),
-          listRect: rect('.quotes__list'),
-          cardCount: all('[data-testid="quote-card"]').length,
-          cardRects: rects('[data-testid="quote-card"]'),
-          cardBg: colorOf('.quote-card', 'backgroundColor'),
-          cardBorder: colorOf('.quote-card', 'borderTopColor'),
-          cardRadius: colorOf('.quote-card', 'borderRadius'),
-          cardTitles: texts('.quote-card__title'),
+          activeChip: textOf('.filter-chip--active'),
+          cardRects: rects(CARDS),
+          cardTops: rects(CARDS).map(function (r) { return r.top }),
+          cardHeights: rects(CARDS).map(function (r) { return r.h }),
           statusLabels: texts('.quote-card__status-text'),
-          statusRects: rects('.quote-card__status'),
-          statusBg: colors('.quote-card__status'),
-          statusDotColors: colors('.quote-card__status-dot'),
-          statusTextColors: all('.quote-card__status-text').map(function (e) { return win.getComputedStyle(e).color }),
-          statusTextStyle: (function () {
-            var cs = win.getComputedStyle(doc.querySelector('.quote-card__status-text'))
-            return { fontSize: cs.fontSize, display: cs.display, lineHeight: cs.lineHeight }
-          })(),
-          noLabel: textOf('.quote-card__no-label'),
-          noLabelStyle: (function () {
-            var cs = win.getComputedStyle(doc.querySelector('.quote-card__no-label'))
-            return { fontSize: cs.fontSize, color: cs.color, fontWeight: cs.fontWeight }
-          })(),
-          noValues: texts('.quote-card__no-value'),
-          noValueRects: rects('.quote-card__no-value'),
-          noRowRects: rects('.quote-card__no-row'),
-          metaTexts: texts('.quote-card__meta-text'),
-          metaRects: rects('.quote-card__meta-text'),
-          metaStyle: (function () {
-            var cs = win.getComputedStyle(doc.querySelector('.quote-card__meta-text'))
-            return { fontSize: cs.fontSize, color: cs.color, lineHeight: cs.lineHeight, display: cs.display }
-          })(),
-          actionsRect: rect('.quote-card__actions'),
-          actionsRects: rects('.quote-card__actions'),
-          actionLabels: texts('.quote-action__label'),
-          actionLabelsByCard: all('[data-testid="quote-card"]').map(function (c) {
+          statusColors: colors('.quote-card__status'),
+          actionLabelsByCard: Array.prototype.map.call(doc.querySelectorAll(CARDS), function (c) {
             return Array.prototype.map.call(c.querySelectorAll('.quote-action__label'), function (l) { return l.textContent.trim() })
           }),
-          actionRects: rects('.quote-action'),
-          actionLabelColor: colorOf('.quote-action__label', 'color'),
-          actionLabelStyle: (function () {
-            var el = doc.querySelector('.quote-action__label')
-            var cs = win.getComputedStyle(el)
-            return { fontSize: cs.fontSize, fontWeight: cs.fontWeight, display: cs.display }
-          })(),
-          tabs: texts('[data-testid^="tab-"]'),
+          actionRectsByCard: Array.prototype.map.call(doc.querySelectorAll(CARDS), function (c) {
+            return Array.prototype.map.call(c.querySelectorAll('.quote-action'), function (a) { return Math.round(a.getBoundingClientRect().x) })
+          }),
+          actionRow: rect('.quote-card__actions'),
+          metaText: textOf('.quote-card__meta-text'),
+          metaRect: rect('.quote-card__meta-text'),
+          noRow: rect('.quote-card__no-row'),
           tabbar: rect('.tabbar'),
-          tabbarBg: colorOf('.tabbar', 'backgroundColor'),
           tabItemRects: rects('.tabbar__item'),
           tabActive: textOf('.tabbar__label--active'),
-          tabActiveColor: colorOf('.tabbar__label--active', 'color'),
           emptyExists: !!doc.querySelector('[data-testid="quotes-empty"]'),
           glyphCount: doc.querySelectorAll('.glyph').length,
+          missingTexts: missing,
           userAgent: win.navigator.userAgent
         }
       }
@@ -163,7 +476,7 @@
       function phase(n) {
         try {
           var payload = collect(f.contentDocument, f.contentWindow)
-          if (n === 2) {
+          if (n === 2 && !SHOT_ONLY) {
             f.style.height = payload.docScrollHeight + 'px'
             acc.iframeHeightForShot = payload.docScrollHeight
           }
@@ -173,6 +486,8 @@
         }
       }
 
+      /* 交互回放：点真实控件，读真实效果（chip 高亮 / uni-modal / toast / hash）。
+         真实请求由 serve 实收请求行证明（review-measure.sh 采集 requests-序号8-actions-run*.txt）。 */
       function clickIn(sel) {
         var doc = f.contentDocument
         var el = doc.querySelector(sel)
@@ -188,62 +503,48 @@
         return el ? el.textContent.trim() : ''
       }
 
-      f.addEventListener('load', function () {
-        var NO_ACTION = location.search.indexOf('noaction') !== -1
-        setTimeout(function () { phase(1) }, 2500)
-        setTimeout(function () { phase(2) }, 4200)
-        if (NO_ACTION) return
-        /* phase3：切「已驳回」chip（真实请求 → serve.py 日志出现 status=REJECTED） */
-        setTimeout(function () {
+      function actions() {
+        try {
+          var doc = f.contentDocument
+          var win = f.contentWindow
+          /* phase3：切「已驳回」chip（api → serve 日志 status=REJECTED） */
           var clicked = clickIn('[data-testid="filter-rejected"]')
           setTimeout(function () {
-            var doc = f.contentDocument
+            var chip = doc.querySelector('.filter-chip--active')
             sink(3, {
               clicked: clicked,
-              activeChip: (function () {
-                var e = doc.querySelector('.filter-chip--active')
-                return e ? e.textContent.trim() : null
-              })(),
-              activeChipBg: (function () {
-                var e = doc.querySelector('.filter-chip--active')
-                return e ? f.contentWindow.getComputedStyle(e).backgroundColor : null
-              })(),
+              activeChip: chip ? chip.textContent.trim() : null,
+              activeChipBg: chip ? win.getComputedStyle(chip).backgroundColor : null,
               cardCount: doc.querySelectorAll('[data-testid="quote-card"]').length,
-              firstCardTitle: (function () {
-                var e = doc.querySelector('.quote-card__title')
-                return e ? e.textContent.trim() : null
-              })()
+              statusLabels: Array.prototype.map.call(doc.querySelectorAll('.quote-card__status-text'), function (e) { return e.textContent.trim() }),
+              hash: String(win.location.hash)
             })
-          }, 1400)
-        }, 5000)
-        /* phase4：点卡1「删除」→ uni.showModal 二次确认 → 真实 DELETE + toast */
-        setTimeout(function () {
-          clickIn('[data-testid="filter-all"]')
-          var clicked = clickIn('[data-testid="action-delete-q1"]')
-          setTimeout(function () {
-            var doc = f.contentDocument
-            var modal = doc.querySelector('.uni-modal')
-            var html = modal ? modal.outerHTML.slice(0, 400) : ''
-            var modalText = modal ? modal.textContent.replace(/\s+/g, ' ').trim() : ''
-            var btns = Array.prototype.map.call(doc.querySelectorAll('.uni-modal__btn'), function (b) { return b.textContent.trim() })
-            var confirmSel = '.uni-modal__btn_primary'
-            var confirmed = clickIn(confirmSel)
+            /* phase4：点卡1「删除」→ uni-modal → 确认 → DELETE + toast + 重拉列表 */
+            var clicked2 = clickIn('[data-testid="filter-all"]')
+            var clicked3 = clickIn('[data-testid="action-delete-q1"]')
             setTimeout(function () {
-              sink(4, {
-                clickedDelete: clicked,
-                modalExists: !!modal,
-                modalText: modalText,
-                modalButtons: btns,
-                confirmClicked: confirmed,
-                modalHtmlHead: html.slice(0, 160),
-                toastAfterDelete: toastText(f.contentDocument),
-                cardCountAfterDelete: f.contentDocument.querySelectorAll('[data-testid="quote-card"]').length,
-                hash: String(f.contentWindow.location.hash)
-              })
-            }, 1500)
-          }, 900)
-        }, 7000)
-      })
+              var modal = doc.querySelector('.uni-modal')
+              var btns = Array.prototype.map.call(doc.querySelectorAll('.uni-modal__btn'), function (b) { return b.textContent.trim() })
+              var confirmed = clickIn('.uni-modal__btn_primary')
+              setTimeout(function () {
+                sink(4, {
+                  backToAllClicked: clicked2,
+                  deleteClicked: clicked3,
+                  modalExists: !!modal,
+                  modalText: modal ? modal.textContent.replace(/\s+/g, ' ').trim() : '',
+                  modalButtons: btns,
+                  confirmClicked: confirmed,
+                  toastAfterDelete: toastText(doc),
+                  cardCountAfterDelete: doc.querySelectorAll('[data-testid="quote-card"]').length,
+                  hash: String(win.location.hash)
+                })
+              }, 1500)
+            }, 900)
+          }, 1500)
+        } catch (e) {
+          sink(3, { error: String(e && e.message) })
+        }
+      }
     </script>
   </body>
 </html>

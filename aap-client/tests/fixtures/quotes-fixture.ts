@@ -22,6 +22,10 @@ export const DESIGN_QUOTE_NO = 'QT-20240615-0007'
 
 /** 元信息行（design id=ac24812b / fd63dfdb / 06eb7078 / 9cafcec1 / 10b7127f） */
 export const DESIGN_META = '2 个模型 · CNY · 更新于 06-14 15:20'
+/** 元信息行在设计里是 **5 个独立文本节点**，节点之间是 8px 间距（不是空格字符） */
+export const DESIGN_META_PARTS = ['2 个模型', '·', 'CNY', '·', '更新于 06-14 15:20']
+/** 两个分隔点在设计里用的是更浅的灰（design id=fd63dfdb / 9cafcec1 fills rgba(203,213,225,1)） */
+export const DESIGN_META_SEP_COLOR = 'rgb(203, 213, 225)'
 
 /** 操作行文案（design id=0ac90e56 / b350b307 / 453c280c / c4645581 / 4e8134ef） */
 export const DESIGN_ACTIONS = ['报价', '预览', '签署', '合同', '删除']

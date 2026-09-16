@@ -6,7 +6,7 @@
  *     （chip 高 30 · r10 · padding 0/12 · 间距 9；active #2563EB 白字 / inactive #F1F5F9 + #64748B）
  *   卡片 9057868c：标题 930bc97e 15px SemiBold #0F172A · 状态胶囊 22 高 r11（dot 8×6 + 11px Medium）
  *     草稿标 bea2086e #F1F5F9/#94A3B8/#64748B · 已提交标 9bc8ae41 #EFF6FF/#2563EB ·
- *     已驳回标 c499f3ee #FEF2F2/#DC2626/#B91C1C · 已通过标（待签署）c426702b #FFFBEB/#FF9500 ·
+ *     已驳回标 c499f3ee #FEF2F2/#DC2626/#B91C1C · 已通过标（待签署）c426702b #FFFCEB/#FF9500 ·
  *     已通过标（已完成）caf3547f #F0FDF4/#16A34A/#15803D
  *   单号行：70696608「报价单号」13px SemiBold #334155 + f057dca5 单号 10px Medium #94A3B8（间距 8）
  *   元信息 ac24812b…10b7127f 11px #94A3B8：「2 个模型 · CNY · 更新于 06-14 15:20」
@@ -41,6 +41,23 @@ export const EMPTY_TEXT = '暂无报价单'
 /** 与序号 3 凭证列表一致的单页条数（18-API 分页默认 20 上限 200） */
 export const PAGE_SIZE = 10
 
+/** 元信息行分隔点（design fd63dfdb / 9cafcec1：设计里是独立文本节点「·」，节点之间 8px） */
+export const META_SEPARATOR = '·'
+
+/**
+ * 把 `metaText` 还原成设计里的 5 个节点：['2 个模型', '·', 'CNY', '·', '更新于 06-14 15:20']。
+ * 设计里这 5 个节点之间是 **8px 间距**（container padding-left 8），不是空格字符 ——
+ * 页面必须按节点渲染，分隔点单独用更浅的灰 #CBD5E1，否则字距与色值都会偏离设计。
+ */
+export function metaParts(metaText: string): string[] {
+  const out: string[] = []
+  metaText.split(` ${META_SEPARATOR} `).forEach((seg, i) => {
+    if (i) out.push(META_SEPARATOR)
+    out.push(seg)
+  })
+  return out
+}
+
 /** 页面路由（目标来自台账 aap-feature-status.csv 的目标路由列 = 画布页码） */
 export const QUOTE_FORM_PAGE = '/pages/quote-form/index'
 export const QUOTE_PREVIEW_PAGE = '/pages/quote-preview/index'
@@ -55,7 +72,7 @@ export const STATUS_META: Record<QuoteChipKey, { label: string; bg: string; dot:
   draft: { label: '草稿', bg: '#f1f5f9', dot: '#94a3b8', text: '#64748b' },
   submitted: { label: '已提交', bg: '#eff6ff', dot: '#2563eb', text: '#2563eb' },
   rejected: { label: '已驳回', bg: '#fef2f2', dot: '#dc2626', text: '#b91c1c' },
-  pending_sign: { label: '待签署', bg: '#fffbeb', dot: '#ff9500', text: '#ff9500' },
+  pending_sign: { label: '待签署', bg: '#fffceb', dot: '#ff9500', text: '#ff9500' },
   completed: { label: '已完成', bg: '#f0fdf4', dot: '#16a34a', text: '#15803d' }
 }
 
