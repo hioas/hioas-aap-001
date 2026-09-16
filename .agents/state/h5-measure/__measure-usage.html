@@ -311,8 +311,8 @@
         Array.prototype.slice.call(doc.querySelectorAll('*')).forEach(function (e) {
           var r = e.getBoundingClientRect()
           if (r.width <= 0 || r.right <= win.innerWidth + 0.5) return
-          if (e.closest && e.closest('uni-resize-sensor')) return
-          if (String(e.tagName).toLowerCase() === 'uni-resize-sensor') return
+          if (e.closest && e.closest('uni-resize-sensor, uni-picker')) return
+          if (String(e.tagName).toLowerCase() === 'uni-resize-sensor' || String(e.tagName).toLowerCase() === 'uni-picker') return
           over.push({ tag: e.tagName, cls: String(e.className || '').slice(0, 70), left: Math.round(r.x), w: Math.round(r.width), right: Math.round(r.right) })
         })
         var bodyText = (doc.body && doc.body.innerText) || ''
