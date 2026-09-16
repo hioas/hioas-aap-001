@@ -265,11 +265,11 @@ function metricAlign(i: number) {
   return ['start', 'center', 'end'][i] ?? 'start'
 }
 
+/* 快捷入口 4 项：设计画布的「钱包」项按决策 D2（aap-decisions.md，用户 2026-09-16 拍板）整项删除 */
 const quickEntries = [
   { label: '评测', iconBg: '#eff6ff', iconColor: '#2563eb', url: CREDENTIALS_PAGE },
   { label: '报价', iconBg: '#ecfdf5', iconColor: '#16a34a', url: QUOTES_PAGE },
   { label: '合同', iconBg: '#fff7ed', iconColor: '#d97706', url: CONTRACTS_PAGE },
-  { label: '钱包', iconBg: '#eff6ff', iconColor: '#2563eb', url: '' },
   { label: '明细', iconBg: '#f1f5f9', iconColor: '#64748b', url: USAGE_PAGE }
 ]
 
@@ -298,12 +298,7 @@ function openMine() {
   goto(MINE_PAGE)
 }
 
-function onQuick(q: { label: string; url: string }) {
-  if (!q.url) {
-    // 钱包：设计画布中没有对应页面（见台账「备注」），按 client-only 处理，不臆造路由
-    uni.showToast({ title: '钱包功能开发中', icon: 'none' })
-    return
-  }
+function onQuick(q: { url: string }) {
   goto(q.url)
 }
 

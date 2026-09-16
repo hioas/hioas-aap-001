@@ -72,10 +72,14 @@
         'gpt-4o', '¥26,400', '0.42M · 21%',
         '其他模型', '¥8,240', '0.08M · 6%',
         '合计 ¥128,640 · 4 个模型', '明细',
-        '评测', '报价', '合同', '钱包',
+        '评测', '报价', '合同',
         '待处理', '全部', '合同待签署（06-20 前）', '1 条报价单被驳回',
         '工作台', '报告', '我的'
       ]
+
+      /* 决策 D2（aap-decisions.md，用户 2026-09-16 拍板）：设计画布的快捷入口「钱包」整项删除 →
+         其标签不再要求出现在文案清单里，但要断言它确实不在（见 collect 的 walletEntryAbsent / quickIds） */
+      var removedByDecision = ['钱包（D2：整项删除，设计画布无对应页面）']
 
       function norm(v) {
         if (v === null || v === undefined) return v
@@ -249,6 +253,10 @@
         out.metricLabels = texts(doc, '.metrics__label')
         out.metricValues = texts(doc, '.metrics__value')
         out.quickLabels = texts(doc, '.quick__label')
+        out.quickIds = all(doc, '[data-testid^="quick-"]').map(function (e) { return e.getAttribute('data-testid') })
+        out.walletEntryAbsent = !doc.querySelector('[data-testid="quick-钱包"]')
+        out.pageTextHasWallet = doc.body.innerText.indexOf('钱包') >= 0
+        out.removedByDecision = removedByDecision
         out.todoTexts = texts(doc, '.todo__text')
         out.tabLabels = texts(doc, '.tabbar__label')
         out.tabActive = textOf(doc, '.tabbar__label--active')
@@ -335,16 +343,19 @@
         if (!sc || location.search.indexOf('noaction') !== -1 || location.search.indexOf('shot=1') !== -1) return
 
         if (sc === 'actions') {
-          /* phase2：钱包快捷入口 = client-only（设计画布无对应页面）→ 只 toast，不跳转 */
-          var cWallet = clickIn('[data-testid="quick-钱包"]')
-          await sleep(1200)
+          /* phase2：快捷入口按决策 D2 删掉「钱包」→ 只剩 4 项，第 1 项「评测」跳凭证列表 */
+          var quickIds = all(f.contentDocument, '[data-testid^="quick-"]').map(function (e) { return e.getAttribute('data-testid') })
+          var walletGone = !f.contentDocument.querySelector('[data-testid="quick-钱包"]')
+          var cQuick = clickIn('[data-testid="quick-评测"]')
+          await sleep(1500)
           sink(2, {
-            scenario: 'quick-wallet',
-            clicked: cWallet,
-            toast: toastText(f.contentDocument),
+            scenario: 'quick-eval',
+            quickIds: quickIds,
+            walletEntryAbsent: walletGone,
+            clicked: cQuick,
             hash: hashNow(),
-            navigated: hashNow().indexOf('/pages/workbench/index') < 0,
-            requestHint: '钱包为 client-only：serve 日志不应出现与钱包相关的写请求'
+            navigatedToCredentials: hashNow().indexOf('/pages/credentials/index') >= 0,
+            requestHint: '评测入口跳凭证列表：serve 应见到 GET /api/v1/credentials'
           })
 
           /* phase3：Tab「我的」→ 跳 /pages/mine/index */

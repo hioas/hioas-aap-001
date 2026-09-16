@@ -1,5 +1,5 @@
-STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。四条在办：①**目录命名对齐 hioas-aap-client**（用户 dev server 持句柄 → 每轮重试，锁一放就搬）②**按序号逐页复核**：序号 1/2 本轮补上 430 宽载体页（**22/22 页全覆盖**），并给载体页加了「设计期望值 checks」维度；已复核页里 3~23 行的 checks 维度**尚未补**（队列 8）③**序号 9 测量面 fixture 缺口已补并复跑**（历史）④**登录注册页 auth fixture 缺口本轮已补**（`api/v1/auth/sms/{send,login}/post`，同探针 before/after 见队列 6）。历史流水归档在 aap-notes-archive-2026-09-16.md，**不要每轮读**。
-LEASE: aap-tdd-run-20260916-0835 until 2026-09-16 09:35
+STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（前台会话 2026-09-16 建立，待执行决策优先于本文件在办项）。当前在办：①**D3（图例百分比统一且最优）→ 下轮第一件事** ②D1 循环侧收尾（台账 missing-prd 备注改成依据 `docs/api/接口字段级schema.md` + 字段名一致性核对）+ D4/D5 的小改 ③**按序号逐页复核**：22/22 页已有 430 宽载体页，序号 1/2 已带「设计期望值 checks」（checkFails 0/93 与 0/92）；3~23 行的 checks 维度待补（队列 8） ④目录改名 **挂起**（D6）。本轮另：D2 已执行完（删「钱包」入口）、登录页 auth fixture 缺口已补。历史流水归档在 aap-notes-archive-2026-09-16.md，**不要每轮读**。
+LEASE: free until -
 
 # AAP TDD 推进 · 状态与目标（自驱动循环的单一事实来源）
 
@@ -91,7 +91,7 @@ LEASE: aap-tdd-run-20260916-0835 until 2026-09-16 09:35
 
 ## 4. 工作队列（严格按序；一行一轮，别跳）
 
-0. **目录命名对齐**（§1 A，每轮先试一次 `git mv`，被占用就记一行顺延）。
+0. ~~**目录命名对齐（`git mv aap-client hioas-aap-client`）**~~ —— **挂起，勿再重试**（决策 D6，2026-09-16 前台会话决定：仓库内模块目录沿用 `aap-*` 与 `aap-server`/`aap-admn` 对齐，`hioas-*` 是仓库名约定，不是模块目录约定）。本轮（08:35 轮）仍在重试前已按旧在办项试过一次，得到 `Permission denied`（用户 dev server 持句柄）→ 自 D6 起**不再重试**。
 1. **按台账序号 1→23 逐页复核**（不重写页面，只做客观复核 + 修偏差）：每页跑
    `npm test` **连跑两轮**全绿 · `npm run type-check` exit 0 · `build:mp-weixin` 产物存在（`pages/<route>/index.{js,json,wxml,wxss}`，
    `credential-submit/form`、`quote-form/{index,apikey,success}` 等同理）· 有 `__measure-*.html` 载体页的页面复跑 430 宽 DOM 实测并用
@@ -108,8 +108,11 @@ LEASE: aap-tdd-run-20260916-0835 until 2026-09-16 09:35
    两轮 dump-dom + 与建页留证对比；这两页此前只有截图/产物证据，是逐页复核里唯一没有客观 DOM 数字的两行。**← 下轮开工第一件事**
 7. （工具卫生）把「uni-app 内部测量元素不计入溢出统计」的口径补到序号 22 的载体页（`uni-picker`），与序号 6 已修的 `uni-resize-sensor` 同族；
 8. **给其余 20 个载体页补「设计期望值 checks」维度**（本轮新立，从序号 3 开始，一页一轮）：现有 3~23 的载体页只测「文案齐、溢出 0、两轮一致」，本轮登录页的经验说明**还能量出与设计树的逐项偏差**（序号 1 就量出 49 条）。做法照 `__measure-login.html` 的 `chk(k, got, want)`：want 一律取 `.calicat/raw/pages/<page>/design.tree.json` + `node-probe.py` 的声明值，不许凭截图目测。
-9. **队列 2「已拍板口径核对」仍未做**：确认 22 页里没有别处把 `/pages/quote-form/index` 当「新建/填写」入口（已拍板落点 = `/pages/quote-models/index`，page-9）。
-   如果还有别的页面出现「两轮 overflowing 波动但 docScrollWidth 恒等」，先跑 `__diag-report-overflow.html` 那类祖先链探针定位，再决定是探针噪音还是真溢出。
+9. **决策台账 `aap-decisions.md` 的待执行项优先于本队列**（前台会话 2026-09-16 建立该文件，状态文件顶部已加提醒）：
+   - **D3 · 图例百分比统一且最优**（`待执行`）——最大余数法 + 环形图与图例同分母，是工作台（序号 2）的实质改造，**下轮第一件事**。
+   - **D1 的循环侧收尾**：把台账里 `missing-prd` 的接口备注改成「依据 `docs/api/接口字段级schema.md` §x」，并核对已实现页面字段名与该 schema 是否一致（不一致以 schema 为准改代码）。
+   - D2 已由本轮执行完（见 `aap-decisions.md` D2 证据）；D4/D5 的「循环要做的」小改（tokens 顶部注释、`docs/aap-client-page-plan.md` §4 结论）尚未做。
+   - ⚠️ 已向人类提一条拍板：D2 的验收「`src/` 内 grep 钱包 = 0」与设计稿冲突（mine 页的「我的钱包」卡是 page-21-2 图层），建议改为按 `src/pages/workbench/**` 计。
 
 ### 本轮小结（追加式，一行一轮）
 
@@ -170,6 +173,13 @@ LEASE: aap-tdd-run-20260916-0835 until 2026-09-16 09:35
   ⑦**跨代对比**：工作台与建页老留证（扁平结构）用新增的 `cmp-flat-phase.py` 对比，公共键 16 → 相同 12，4 处差异全部 = 老留证那轮 iframe 有可见滚动条（innerWidth 同为 430 而 `docScrollWidth` 415）：docScrollWidth/avatarRight/todoChevronRight 各 +15、条填 95→102（42% × 轨道宽）→ **非页面漂移**（evidence/cmp-序号2-老留证vs本轮.txt）。
   ⑧**产物与报告**：`build:mp-weixin` exit 0（`dist/build/mp-weixin/pages/{login,workbench}/index.{js,json,wxml,wxss}` 齐备）、`build:h5` + 430 宽实测、`type-check` exit 0；报告 `evidence/review-measure-20260916-0900.md`（含差异判读 6~9）。
   ⑨**下轮开工第一件事**：改名重试 → 队列 9（已拍板口径核对）→ 队列 8（给序号 3 的载体页补 checks 维度）。
+
+- 2026-09-16 09:15（**同一 cron 轮 `aap-tdd-run-20260916-0835` 的后半段**）· **发现了并发的人类/前台会话决策台账，并执行 D2（删「钱包」入口）**：
+  ①**发现**：提交前 `git log` 里出现非本轮的 `cb926a8 docs(api): 补接口字段级 schema + 决策台账 D1-D6（用户拍板）`（08:56:44），新增 `aap-decisions.md`、`docs/api/接口字段级schema.md`、`push-calicat-doc.py`，并改状态文件顶部加「每轮先读决策台账、待执行决策优先」。已核对：其状态文件改动仍在（未被本轮覆盖），本轮三个提交**未包含**其任何文件。
+  ②**D6**：目录改名**挂起、勿再重试**（`hioas-*` 是仓库名约定）→ 已从队列移除并标注。
+  ③**D2 执行（先红后绿）**：工作台快捷入口「钱包」整项删除（连同 `onQuick` 里的 toast 死分支）+ 单测改 4 项断言与「删干净」新用例（红 3 failed → 绿 16/16）；载体页 phase2 由「钱包 client-only」换成「评测 → 凭证列表」，「钱包」移入 `removedByDecision`；两轮实测 `checkFailCount 0/92`、`walletEntryAbsent=true`、`pageTextHasWallet=false`、`navigating→/pages/credentials/index`、溢出 0；全量 `npm test` **1145/1145 ×2**、type-check exit 0、两个 build DONE（证据 `evidence/green-D2-全量轮{1,2}.txt`）。
+  ④**向人类提拍板一条**：D2 写的「`src/` 内 grep 钱包 = 0 命中」按字面做不到 —— mine 页的「我的钱包」卡是设计稿 page-21-2 的图层，删它违背「设计稿优先」；已建议改成按 `src/pages/workbench/**` 计（当前已满足）。本轮未擅自扩大删除范围。
+  ⑤**下轮第一件事**：执行 **D3**（图例百分比统一且最优：最大余数法 + 环形图与图例同分母），再回头做队列 8（给序号 3 的载体页补 checks 维度）。
 
 ## 5. 关键命令（照抄可用）
 

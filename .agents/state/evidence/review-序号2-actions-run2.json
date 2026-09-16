@@ -9,7 +9,7 @@
   "uniInternalNoise": [],
   "overflowing": [],
   "missingTexts": [],
-  "needTextCount": 49,
+  "needTextCount": 48,
   "avatarRight": 414,
   "todoChevronRight": 396,
   "tabbarTop": 822,
@@ -66,8 +66,18 @@
    "评测",
    "报价",
    "合同",
-   "钱包",
    "明细"
+  ],
+  "quickIds": [
+   "quick-评测",
+   "quick-报价",
+   "quick-合同",
+   "quick-明细"
+  ],
+  "walletEntryAbsent": true,
+  "pageTextHasWallet": false,
+  "removedByDecision": [
+   "钱包（D2：整项删除，设计画布无对应页面）"
   ],
   "todoTexts": [
    "合同待签署（06-20 前）",
@@ -671,12 +681,18 @@
   "iframeHeightForShot": 1146
  },
  "phase2": {
-  "scenario": "quick-wallet",
+  "scenario": "quick-eval",
+  "quickIds": [
+   "quick-评测",
+   "quick-报价",
+   "quick-合同",
+   "quick-明细"
+  ],
+  "walletEntryAbsent": true,
   "clicked": "CLICKED",
-  "toast": "钱包功能开发中",
-  "hash": "#/pages/workbench/index",
-  "navigated": false,
-  "requestHint": "钱包为 client-only：serve 日志不应出现与钱包相关的写请求"
+  "hash": "#/pages/credentials/index",
+  "navigatedToCredentials": true,
+  "requestHint": "评测入口跳凭证列表：serve 应见到 GET /api/v1/credentials"
  },
  "phase3": {
   "scenario": "tab-mine",

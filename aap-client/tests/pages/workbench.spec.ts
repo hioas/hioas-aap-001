@@ -116,9 +116,9 @@ describe('页面 2 · 结构与设计稿一致', () => {
     }
   })
 
-  it('快捷入口 5 个、待办 2 条、底部 TabBar 4 个', async () => {
+  it('快捷入口 4 个（D2 删「钱包」后）、待办 2 条、底部 TabBar 4 个', async () => {
     const wrapper = await mountWorkbench()
-    expect(wrapper.findAll('.quick__item')).toHaveLength(5)
+    expect(wrapper.findAll('.quick__item')).toHaveLength(4)
     expect(wrapper.findAll('.todo')).toHaveLength(2)
     expect(wrapper.findAll('.tabbar__item')).toHaveLength(4)
     expect(wrapper.find('.tabbar__label--active').text()).toContain('工作台')
@@ -183,8 +183,17 @@ describe('页面 2 · 数据来自接口', () => {
 })
 
 describe('页面 2 · 交互（分类见台账）', () => {
-  it('快捷入口跳转：评测→凭证列表、报价→报价单列表、合同→合同、明细→用量概览', async () => {
+  it('快捷入口仅 4 项：评测/报价/合同/明细各自跳转（「钱包」按决策 D2 整项删除）', async () => {
     const wrapper = await mountWorkbench()
+    /* aap-decisions.md D2（用户 2026-09-16 拍板）：设计画布无「钱包」页 → 快捷入口里这一项整项删除，
+       不是改成 toast、也不是隐藏；同时模板里不应再出现「钱包」二字。 */
+    expect(wrapper.findAll('[data-testid^="quick-"]').map((w) => w.attributes('data-testid'))).toEqual([
+      'quick-评测',
+      'quick-报价',
+      'quick-合同',
+      'quick-明细'
+    ])
+    expect(wrapper.text()).not.toContain('钱包')
     const cases: Array<[string, string]> = [
       ['quick-评测', '/pages/credentials/index'],
       ['quick-报价', '/pages/quotes/index'],
@@ -198,12 +207,12 @@ describe('页面 2 · 交互（分类见台账）', () => {
     }
   })
 
-  it('钱包在设计稿中无页面 → 不臆造路由，只提示（client-only）', async () => {
+  it('「钱包」入口被删干净：节点不存在、文案里也没有「钱包」、无任何 toast', async () => {
     const wrapper = await mountWorkbench()
-    const before = getCalls('navigateTo').length
-    await tap(wrapper, 'quick-钱包')
-    expect(getCalls('navigateTo').length).toBe(before)
-    expect(getCalls('showToast').at(-1)?.args[0]).toMatchObject({ title: '钱包功能开发中' })
+    expect(wrapper.find('[data-testid="quick-钱包"]').exists()).toBe(false)
+    expect(wrapper.findAll('[data-testid^="quick-"]')).toHaveLength(4)
+    expect(wrapper.text()).not.toContain('钱包')
+    expect(getCalls('showToast')).toHaveLength(0)
   })
 
   it('模型卡「明细」跳转用量概览；待办「全部」跳转消息；两条待办各自跳转', async () => {
