@@ -776,7 +776,7 @@
             })()
           })
 
-          /* phase4：填名称 → 保存并继续 → 真实 POST /quotes[+/q9/items] → toast + 跳模型定价页
+          /* phase4：填名称 → 保存并继续 → 真实 POST /quotes[+/q9/items] → toast + 跳保存成功页（page-29）
              toast 必须在跳转前采样（1.5s 后会被 uni 收起；落地页自己的取数 toast 也会覆盖它） */
           var typed = typeName('2024Q3 主线路报价')
           await sleep(1200)
@@ -791,7 +791,7 @@
             clickedSave: saveClick,
             toastAfterSave: toastAfterSave,
             hashAfterSave: hashNow(),
-            pricingRendered: countIn('[data-testid="pricing-title"], .pricing, .mp')
+            successRendered: countIn('[data-testid="success-title"], [data-testid="btn-copy"], .qs--ok')
           })
         } catch (e) {
           sink('error', { message: String(e && e.message), stack: String((e && e.stack) || '').slice(0, 600) })

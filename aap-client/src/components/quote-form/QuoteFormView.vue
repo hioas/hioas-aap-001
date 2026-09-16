@@ -327,7 +327,6 @@ import {
   CRED_SUB_LINE_BOX,
   MODEL_EMPTY_TIP,
   MODEL_EMPTY_TITLE,
-  MODEL_PRICING_PAGE,
   NAME_LABEL,
   NAME_MAX,
   NAME_PLACEHOLDER,
@@ -340,6 +339,7 @@ import {
   QUOTE_NO_TAG,
   REQUIRED_HINT,
   SETTINGS_PAGE,
+  SUCCESS_PAGE,
   VARIANT_INITIAL,
   buildCredOptions,
   buildFormPayload,
@@ -474,7 +474,9 @@ async function submit(advance: boolean) {
     if (quoteId && items.length) await quoteApi.setItems(quoteId, { items })
     uni.showToast({ title: advance ? TOAST_SAVED : TOAST_DRAFT, icon: 'none' })
     if (advance) {
-      uni.navigateTo({ url: quoteId ? `${MODEL_PRICING_PAGE}?quoteId=${quoteId}` : MODEL_PRICING_PAGE })
+      // 人类 2026-09-16：序号 12「保存并继续」落点按设计 = 新增报价单-保存成功页（page-29），
+      // 不再直跳模型定价页（成功页内有「继续设置模型报价」主按钮再进 MODEL_PRICING_PAGE）。
+      uni.navigateTo({ url: quoteId ? `${SUCCESS_PAGE}?quoteId=${quoteId}` : SUCCESS_PAGE })
     } else {
       uni.navigateBack({ delta: 1 })
     }

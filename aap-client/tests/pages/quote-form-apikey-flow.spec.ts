@@ -134,7 +134,7 @@ describe('序号 12-v2 · 保存链路（复用序号 12-v1 口径）', () => {
     expect(requestsTo('/quotes')).toHaveLength(0)
   })
 
-  it('选凭证 + 勾选模型 → POST /quotes 与 /quotes/q9/items → 跳模型定价页', async () => {
+  it('选凭证 + 勾选模型 → POST /quotes 与 /quotes/q9/items → 跳保存成功页', async () => {
     const wrapper = await mountPage()
     await pick(wrapper, 'c1')
     await wrapper.find('[data-testid="name-input"]').setValue('2024Q3 主线路报价')
@@ -146,7 +146,7 @@ describe('序号 12-v2 · 保存链路（复用序号 12-v1 口径）', () => {
     expect(posts[0].data).toEqual({ name: '2024Q3 主线路报价', credential_id: 'c1' })
     expect(requestsTo('/quotes/q9/items', 'POST')).toHaveLength(1)
     expect(toasts()).toEqual(['保存成功'])
-    expect(navUrls()).toEqual(['/pages/model-pricing/index?quoteId=q9'])
+    expect(navUrls()).toEqual(['/pages/quote-form/success?quoteId=q9'])
   })
 
   it('存为草稿 → POST /quotes（不拦截必填）+ 返回上一页', async () => {

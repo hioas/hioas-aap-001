@@ -186,7 +186,7 @@ describe('序号 12-v1 · 保存并继续（api + navigation，10-PRD §5.1 校�
     expect(requestsTo('/quotes')).toHaveLength(0)
   })
 
-  it('校验通过 → POST /quotes + 明细行，toast 后进入「设置报价」（模型定价页）', async () => {
+  it('校验通过 → POST /quotes + 明细行，toast 后进入「保存成功页」（quote-form/success）', async () => {
     const wrapper = mountPage()
     await pickCredential(wrapper)
     await wrapper.find('[data-testid="name-input"]').setValue('2024Q3 主线路报价')
@@ -199,7 +199,7 @@ describe('序号 12-v1 · 保存并继续（api + navigation，10-PRD §5.1 校�
     expect(itemPosts).toHaveLength(1)
     expect(itemPosts[0].data).toEqual({ items: [{ model_name: 'gpt-4o' }] })
     expect(toasts()).toEqual(['保存成功'])
-    expect(navUrls()).toEqual(['/pages/model-pricing/index?quoteId=q9'])
+    expect(navUrls()).toEqual(['/pages/quote-form/success?quoteId=q9'])
   })
 
   it('保存失败 → toast 服务端 message，不跳转', async () => {

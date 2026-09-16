@@ -84,6 +84,13 @@ export { NAME_MAX }
 export const MODEL_PRICING_PAGE = '/pages/model-pricing/index'
 
 /**
+ * 台账序号 12-v3 的目标路由（page-29「新增报价单-保存成功」）。
+ * 人类 2026-09-16 指令：序号 12「保存并继续」的落点按设计 = 本页，不再走模型定价页；
+ * 成功页内的「继续设置模型报价」主按钮再进 MODEL_PRICING_PAGE（见 quote-success-model.ts）。
+ */
+export const SUCCESS_PAGE = '/pages/quote-form/success'
+
+/**
  * 图标行盒 = 字号 × 1.5（page-10-1-2 实测规则：设计里 remixicon 段落按 1.5 倍行高撑行，不是字号本身）。
  * 本页 page-26 需套用两处：须知标题图标 18 → 27、底栏保存说明图标 13 → 19.5。
  */

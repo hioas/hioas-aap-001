@@ -1,0 +1,8 @@
+"GET /api/v1/credentials?page=1&pageSize=20 HTTP/1.1" 200 -
+"GET /api/v1/credentials/c1 HTTP/1.1" 200 -
+POST /api/v1/quotes body={"name":"2024Q3 主线路报价","credential_id":"c1"}
+"POST /api/v1/quotes HTTP/1.1" 200 -
+POST /api/v1/quotes/q9/items body={"items":[{"model_name":"gpt-4o"}]}
+"POST /api/v1/quotes/q9/items HTTP/1.1" 200 -
+"GET /api/v1/quotes/q9 HTTP/1.1" 200 -
+"GET /api/v1/credentials/c1 HTTP/1.1" 200 -
