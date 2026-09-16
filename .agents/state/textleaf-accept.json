@@ -595,6 +595,116 @@
       "reason": "判据①设计显式 h=28：模型标签 1f778b64（--off）与 5290721b（--on）height=28 + padding [0,12,0,12] → 行盒不承重。PNG：胶囊边界 708 / 735 与 734..772 逐值相同，墨迹 gpt-4o / gpt-4o-mini / claude-3-5 / gemini-1.5-pro 逐值相同（claude-3-5 下沿 AA 708..709 vs 708、gemini 分隔 743 vs 743..744 = 亚像素取整）。",
       "evidence": "evidence/cmp-序号12v3-文本叶子行盒-逐类带.txt + evidence/cmp-序号12v3-分区并排对账.txt + design-shots/page-29.png",
       "at": "2026-09-16 20:15"
+    },
+    {
+      "page": "page-7-2",
+      "tag": "7",
+      "class": "card__label",
+      "declared": "fs12 × lh1.2 = 14.4",
+      "impl": "line-height 18",
+      "verdict": "not-a-deviation",
+      "reason": "判据②盒算术：封面顶行 1093d116（horizontal · alignItems=center · fit_content，子节点只有两个文本叶子）→ 行高即文本行盒；未通过封面卡 07b82bea padding 20 使行顶 = 卡顶 108 + 20 = 128，设计墨迹 131 ⇒ 偏移 3 = (L−12)/2 ⇒ **L = 18**。PNG：综合检测结论 设计 131..142 = 实现 131..142（逐值相同）。",
+      "evidence": "evidence/cmp-序号7-文本叶子行盒-逐类带.txt + evidence/cmp-序号7-设计PNGvs实现截图-结构带.txt + design-shots/page-7-2.png",
+      "at": "2026-09-16 20:40"
+    },
+    {
+      "page": "page-7-2",
+      "tag": "7",
+      "class": "card__sub",
+      "declared": "fs12 × lh1.2 = 14.4",
+      "impl": "line-height 18",
+      "verdict": "not-a-deviation",
+      "reason": "与 card__label 同一行（封面顶行），行盒同解 = 18；PNG：华南备线路 · 备用通道 设计 131..142 = 实现 131..142。",
+      "evidence": "evidence/cmp-序号7-文本叶子行盒-逐类带.txt + evidence/cmp-序号7-设计PNGvs实现截图-结构带.txt + design-shots/page-7-2.png",
+      "at": "2026-09-16 20:40"
+    },
+    {
+      "page": "page-7-2",
+      "tag": "7",
+      "class": "detail__title",
+      "declared": "fs14 × lh1.2 = 16.8",
+      "impl": "line-height 20",
+      "verdict": "not-a-deviation",
+      "reason": "D2标题行 b2bba46b（fit_content，子节点 = 标题文本 + spacer + 分值文本）→ 行高由文本行盒定；PNG：D2 鉴权有效性 · 详情 设计 791..804 vs 实现 793..806（**+2 = 14px 拉丁/数字混排的回退字体墨迹偏移**，同页结构带 19/19 命中、卡片边界 ±1）。",
+      "evidence": "evidence/cmp-序号7-文本叶子行盒-逐类带.txt + evidence/cmp-序号7-设计PNGvs实现截图-结构带.txt + design-shots/page-7-2.png",
+      "at": "2026-09-16 20:40"
+    },
+    {
+      "page": "page-7-2",
+      "tag": "7",
+      "class": "detail__score",
+      "declared": "fs14 × lh1.2 = 16.8",
+      "impl": "line-height 20",
+      "verdict": "not-a-deviation",
+      "reason": "与 detail__title 同一行（D2标题行），两侧同 +2（相对差 0）⇒ 行盒一致、差为字体墨迹：设计 791..804 = 实现 793..806。",
+      "evidence": "evidence/cmp-序号7-文本叶子行盒-逐类带.txt + evidence/cmp-序号7-设计PNGvs实现截图-结构带.txt + design-shots/page-7-2.png",
+      "at": "2026-09-16 20:40"
+    },
+    {
+      "page": "page-7-2",
+      "tag": "7",
+      "class": "dim__label",
+      "declared": "fs12 × lh1.2 = 14.4",
+      "impl": "line-height 18",
+      "verdict": "not-a-deviation",
+      "reason": "评分项行 df5c9dfc（fit_content，子节点 = 标签 + 进度条 h8 + 分值）→ 行高由文本定；PNG 四行标签墨迹起点 设计 436/466/496/526 = 实现 437/467/497/527：**行距两侧同为 30**（+1 常量偏移）⇒ 行盒一致。",
+      "evidence": "evidence/cmp-序号7-文本叶子行盒-逐类带.txt + evidence/cmp-序号7-设计PNGvs实现截图-结构带.txt + design-shots/page-7-2.png",
+      "at": "2026-09-16 20:40"
+    },
+    {
+      "page": "page-7-2",
+      "tag": "7",
+      "class": "dim__score",
+      "declared": "fs12 × lh1.2 = 14.4",
+      "impl": "line-height 18",
+      "verdict": "not-a-deviation",
+      "reason": "与 dim__label 同行（分值列）：设计 437..446 / 467..475 / 497..506 / 527..536 = 实现 438..447 / 468..476 / 498..507 / 528..537（+1、带高 9~10 相同）。",
+      "evidence": "evidence/cmp-序号7-文本叶子行盒-逐类带.txt + evidence/cmp-序号7-设计PNGvs实现截图-结构带.txt + design-shots/page-7-2.png",
+      "at": "2026-09-16 20:40"
+    },
+    {
+      "page": "page-7-2",
+      "tag": "7",
+      "class": "score",
+      "declared": "fs38 × lh1.2 = 45.6",
+      "impl": "line-height 57",
+      "verdict": "not-a-deviation",
+      "reason": "判据②：38px ExtraBold 数字「54」—— 实现 span 实测 163..218（55 高 · lh 57px），设计墨迹 175..204（30 行）与实现 178..207（30 行）**带高相同、起点 +3**（38px 下 3px ≈ 8% em，属回退字体数字基线偏移）；结构带 x=36..394 列 34/38 命中（未命中 4 条 = 376/379/385 封面卡投影 AA + 707 换行）。57 由本页 checks 轮按设计 PNG 定（`.score` 行高 57px = 38×1.5，见 evidence/review-序号7-checks-报告.md §5）：同卡结论胶囊设计边界 176/203 = 实现 177/204 反证块高 57 —— 若按 45.6 则块矮 11px、其下全部内容上移约 11px。",
+      "evidence": "evidence/cmp-序号7-文本叶子行盒-逐类带.txt + evidence/cmp-序号7-设计PNGvs实现截图-结构带.txt + design-shots/page-7-2.png",
+      "at": "2026-09-16 20:40"
+    },
+    {
+      "page": "page-7-2",
+      "tag": "7",
+      "class": "verdict-row__text",
+      "declared": "fs12 × lh1.2 = 14.4",
+      "impl": "line-height 18",
+      "verdict": "not-a-deviation",
+      "reason": "两行块：设计 310..323 / 326..336 vs 实现 310..323 / 329..339 —— **第 1 行逐值相同**，第 2 行差来自**换行点不同**（设计 line2 墨迹 75 列 vs 实现 86 列，H5 回退字体换行）。行盒由同卡内一票否决条的填充盒直证（见 veto-box__text）；封面卡边界与卡2 顶在结构带里 ±1。",
+      "evidence": "evidence/cmp-序号7-文本叶子行盒-逐类带.txt + evidence/cmp-序号7-设计PNGvs实现截图-结构带.txt + design-shots/page-7-2.png",
+      "at": "2026-09-16 20:40"
+    },
+    {
+      "page": "page-7-2",
+      "tag": "7",
+      "class": "veto-box__text",
+      "declared": "fs12 × lh1.2 = 14.4",
+      "impl": "line-height 18",
+      "verdict": "not-a-deviation",
+      "reason": "判据②（决定性）：一票否决条 c93a930a padding 12 的**填充盒**（#FEF2F2）在 x=200 列实测 —— 设计 234..293 = 实现 235..294，**盒高两侧同为 60 = 12 + 2×18 + 12 ⇒ 12px 行盒 = 18**（声明模型 14.4 会给出 52.8）。墨迹：设计 250..262 / 266..276 vs 实现 250..261 / 269..279（第 1 行 −1、第 2 行 +3 = 换行/字体墨迹）。",
+      "evidence": "evidence/cmp-序号7-文本叶子行盒-逐类带.txt + evidence/cmp-序号7-设计PNGvs实现截图-结构带.txt + design-shots/page-7-2.png",
+      "at": "2026-09-16 20:40"
+    },
+    {
+      "page": "page-7-2",
+      "tag": "7",
+      "class": "weight-box__text",
+      "declared": "h=36（设计**显式 height**）",
+      "impl": "line-height 18",
+      "verdict": "not-a-deviation",
+      "reason": "判据①设计显式 h=36：权重说明 def3b414 padding 12 内的叶子 18dda7b2 **height=36 = 2 × 18**（append 声明 w=fill_container h=36 · fs11）⇒ 行盒 18 = 实现值；实现 2 行块高 = 2 × 18 = 36 ✓。墨迹 设计 694..705 / 707..717 vs 实现 693..704 / 711..721（第 1 行 −1、第 2 行差为换行点不同：设计 line2 墨迹 25 列 vs 实现 14 列）。",
+      "evidence": "evidence/cmp-序号7-文本叶子行盒-逐类带.txt + evidence/cmp-序号7-设计PNGvs实现截图-结构带.txt + design-shots/page-7-2.png",
+      "at": "2026-09-16 20:40"
     }
   ]
 }
