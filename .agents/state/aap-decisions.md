@@ -123,3 +123,20 @@
 4. 台账 `aap-feature-status.csv` 序号 15 行备注里「电子签 vs 线下（待人类拍板）」一条改为「**已确认（D7）：保留电子签入口**」，其余 `missing-prd` 不动。
 5. 回归锁定：「去签署」4 例（入口存在 / 二次确认文案 / `POST /contracts/c1/sign` / 签署被拒 E-1601 状态保持）保持全绿；
    载体页 `__measure-contract.html` 的 `?scenario=sign` 出口继续纳入每轮复跑（请求逐字节比对）。
+
+**循环侧执行证据（cron 轮 `aap-tdd-run-20260916-1525`，2026-09-16 15:4x）**
+
+- ①**收纳用户在做中的 4 处改动**（用户 15:41 自行改的注释/文档口径）为独立提交 `9637730`
+  （`docs(aap-client): 采纳用户在做中的决策 D7…`）：`contract/index.vue` 顶部与 `onSign` 注释 · `utils/contract-model.ts` 顶部冲突段 · `tests/pages/contract-flow.spec.ts` 文件头 ·
+  `docs/aap-client-page-plan.md` §4 冲突表新行 —— 均为注释/文档，无行为改动（diff 已逐行核对）。
+- ②**第 3 条（page-plan §4 补行）已由用户本人在同批改动里完成**（表格最后一行「已确认：保留电子签入口（决策 D7）」），循环侧无需重复。
+- ③**第 4 条已完成**：台账 `aap-feature-status.csv` 序号 15 行备注①由「是否下架『去签署·电子签』入口待拍板」改为
+  **「已确认（D7）：保留电子签入口」（用户 2026-09-16「保留a 电子签入口」；PRD 口径作偏差留痕）**，其余 `missing-prd` 条目一字未动。
+- ④**第 5 条已完成（回归锁定，两轮独立测量）**：`bash .agents/state/review-measure.sh 15-d7regress __measure-contract.html .agents/state/h5-measure/api-15 5330 "?scenario=sign"`
+  → 载体页 239 条 checks **0 失败**、`docH 1231` = 设计帧高；`?scenario=sign` 出口两轮：uni-modal 文案「确认签署 / 确认对当前合同发起签署？」→
+  **真实 `POST /api/v1/contracts/c1/sign`（body 空）** → toast「签署申请已提交」→ 重载后状态胶囊「待签署」；
+  两轮 serve 实收请求行 **逐字节相同**（`evidence/requests-序号15-d7regress-run{1,2}.txt`：GET c1 → POST sign → GET c1）。
+  证据 JSON：`evidence/review-序号15-d7regress-run{1,2}.json`。
+- ⑤**「去签署」4 例回归**：`npm test` **1181/1181 · 72 files 连跑两轮**（15:42 轮1 / 轮2）+ `type-check` exit 0 —— 含
+  `tests/pages/contract-flow.spec.ts` 的 4 例（入口存在 / 二次确认 / POST sign / 被拒 E-1601 保持状态）全绿。
+
