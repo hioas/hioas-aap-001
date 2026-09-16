@@ -1,0 +1,21 @@
+# 序号 20（page-20-2「【合同与通知】站内信列表 2」）· 新探针 __measure-messages.html 绿基线
+# 命令: python .agents/state/refresh-notification-mock.py && bash .agents/state/review-measure.sh 20-checks __measure-messages.html .agents/state/h5-measure/api-20 5323
+# 说明：本页 5 条时间文案是相对时间 → 测量前必须重跑 refresh-notification-mock.py，否则「10 分钟前」会漂成「N 小时前」
+
+=== run1 ===
+file: .agents/state/evidence/review-序号20-checks-run1.json
+phase1 : scenario=- state=- checkCount=148 checkFailCount=0 overflowing=0 docH=760 docW=430
+    missingTexts=[]
+
+=== run2 ===
+file: .agents/state/evidence/review-序号20-checks-run2.json
+phase1 : scenario=- state=- checkCount=148 checkFailCount=0 overflowing=0 docH=760 docW=430
+    missingTexts=[]
+
+=== 两轮独立测量一致性 ===
+phase=phase1 · 全等字段 30 个
+全等: badge, cards, checkCount, checkFailCount, checkFails, chips, contentRows, counts, designLiteralDiff, docScrollHeight, docScrollWidth, dots, filters, glyphBoxes, icons, innerWidth, list, missingTexts, nav, navTitle, overflowing, overflowingCount, readAll, readAllIcon, readAllText, tabItems, tabbar, texts, timeRows, titleRows
+不一致 0 个:
+
+=== serve 实收请求行（纯测量轮）===
+"GET /api/v1/notifications?page=1&pageSize=20 HTTP/1.1" 200 -

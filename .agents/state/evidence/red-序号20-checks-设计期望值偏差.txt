@@ -1,0 +1,43 @@
+# 序号 20（page-20-2「【合同与通知】站内信列表 2」）· 新探针 __measure-messages.html 红基线
+# 探针 144 条设计期望值 checks；源码未改 + 同一份探针两轮（run1/run2 逐条相同）
+# 命令: bash .agents/state/review-measure.sh 20-checks-red __measure-messages.html .agents/state/h5-measure/api-20 5321
+
+=== run1 ===
+warning: Failed to set cwd to temp dir
+file: .agents/state/evidence/review-序号20-checks-red-run1.json
+phase1 : scenario=- state=- checkCount=144 checkFailCount=14 overflowing=0 docH=760 docW=430
+    FAIL page.missingTextCount: got 1 want 0
+    FAIL nav.badgeText.lh: got 14 want 13.2
+    FAIL nav.readAllText.lh: got 15 want 14.4
+    FAIL filters.chipX: got "16,73,130,187" want "16,74,132,190"
+    FAIL filters.chipText.lh: got 15 want 14.4
+    FAIL card.glyphBoxTops: got "" want "172,276,380,484,588"
+    FAIL card.glyphBoxW: got "" want "22,22,22,22,22"
+    FAIL card.glyphBoxH: got "" want "30,30,30,30,30"
+    FAIL card.contentRowTops: got "186,290,394,498,602" want "190,294,398,502,606"
+    FAIL card.contentRowH: got "22,22,22,22,22" want "18,18,18,18,18"
+    FAIL card.timeRowTops: got "208,312,416,520,624" want "212,316,420,524,628"
+    FAIL card.timeRowH: got "20,20,20,20,20" want "16,16,16,16,16"
+    FAIL card.times: got "13 分钟前 | 2 小时前 | 昨天 18:20 | 3 天前 | 5 天前" want "10 分钟前 | 2 小时前 | 昨天 18:20 | 3 天前 | 5 天前"
+    FAIL tabbar.labelWeights: got "400 | 400 | 400 | 600" want "400 | 400 | 400 | 400"
+    missingTexts=['10 分钟前']
+
+=== run2 ===
+warning: Failed to set cwd to temp dir
+file: .agents/state/evidence/review-序号20-checks-red-run2.json
+phase1 : scenario=- state=- checkCount=144 checkFailCount=14 overflowing=0 docH=760 docW=430
+    FAIL page.missingTextCount: got 1 want 0
+    FAIL nav.badgeText.lh: got 14 want 13.2
+    FAIL nav.readAllText.lh: got 15 want 14.4
+    FAIL filters.chipX: got "16,73,130,187" want "16,74,132,190"
+    FAIL filters.chipText.lh: got 15 want 14.4
+    FAIL card.glyphBoxTops: got "" want "172,276,380,484,588"
+    FAIL card.glyphBoxW: got "" want "22,22,22,22,22"
+    FAIL card.glyphBoxH: got "" want "30,30,30,30,30"
+    FAIL card.contentRowTops: got "186,290,394,498,602" want "190,294,398,502,606"
+    FAIL card.contentRowH: got "22,22,22,22,22" want "18,18,18,18,18"
+    FAIL card.timeRowTops: got "208,312,416,520,624" want "212,316,420,524,628"
+    FAIL card.timeRowH: got "20,20,20,20,20" want "16,16,16,16,16"
+    FAIL card.times: got "13 分钟前 | 2 小时前 | 昨天 18:20 | 3 天前 | 5 天前" want "10 分钟前 | 2 小时前 | 昨天 18:20 | 3 天前 | 5 天前"
+    FAIL tabbar.labelWeights: got "400 | 400 | 400 | 600" want "400 | 400 | 400 | 400"
+    missingTexts=['10 分钟前']

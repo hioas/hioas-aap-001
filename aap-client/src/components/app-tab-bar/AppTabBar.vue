@@ -24,7 +24,7 @@
       <text
         class="tabbar__label"
         :class="{ 'tabbar__label--active': isActiveTab(tab.label, active) }"
-        :style="{ color: labelColor(tab.label) }"
+        :style="{ color: labelColor(tab.label), fontWeight: labelWeight(tab.label) }"
       >
         {{ tab.label }}
       </text>
@@ -34,9 +34,14 @@
 
 <script setup lang="ts">
 /**
- * 共享底部 TabBar。页面只需 <AppTabBar :active="..." :active-color="..." />
+ * 共享底部 TabBar。页面只需 <AppTabBar :active="..." :active-color="..." :active-weight="..." />
  * 交互：navigation —— 当前模块不跳转；未实现的目标路由由 uni 侧降级（台账已记）。
  * 图标：CSS 形状占位（设计用 remixicon 字形，仓库无图标资源；R-26 禁 emoji）→ 记台账。
+ *
+ * 逐帧差异（两帧同一版式，仅高亮态两处不同 → 都做成 prop，不各写一套）：
+ *  · activeColor：page-21-2 = #2563EB · page-20-2 = #007AFF
+ *  · activeWeight：page-21-2「我的」= SourceHanSans-SemiBold(600) · page-20-2 四行全为 Regular(400)
+ *    （非高亮项两帧一致 = Regular 400）
  */
 import {
   ACTIVE_TAB,
@@ -53,12 +58,15 @@ const props = withDefaults(
   defineProps<{
     active?: string
     activeColor?: string
+    activeWeight?: number
   }>(),
-  { active: ACTIVE_TAB, activeColor: TAB_ACTIVE_COLOR }
+  { active: ACTIVE_TAB, activeColor: TAB_ACTIVE_COLOR, activeWeight: 600 }
 )
 
 const glyphColor = (label: string) => tabGlyphColor(label, props.active, props.activeColor)
 const labelColor = (label: string) => tabLabelColor(label, props.active, props.activeColor)
+/** 高亮项字重逐帧（见文件头）；非高亮项两帧一致 400 */
+const labelWeight = (label: string) => (isActiveTab(label, props.active) ? props.activeWeight : 400)
 
 function onTabTap(tab: TabItem) {
   const target = resolveTabTarget(tab.url, tab.label, props.active)
@@ -118,7 +126,9 @@ function onTabTap(tab: TabItem) {
   line-height: 16px;
 }
 
+/* 高亮项字重逐帧 → 由 activeWeight prop 以内联样式给出（page-21-2 = 600 / page-20-2 = 400），
+   这里不再写死 font-weight，避免覆盖内联值造成"看类名猜不出实际字重" */
 .tabbar__label--active {
-  font-weight: 600;
+  /* 仅作态标记（供页面/探针断言当前高亮项），视觉差异全部走内联样式 */
 }
 </style>

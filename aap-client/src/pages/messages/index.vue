@@ -44,7 +44,10 @@
         @tap="onRowTap(row)"
       >
         <view class="msg__icon" :style="{ background: row.iconBg }">
-          <view class="msg__glyph" :style="{ background: row.iconColor }" aria-hidden="true" />
+          <!-- 图标占位（D5）：盒子 = 设计图层尺寸（remixicon fs20 声明 w22 · 字形行盒 = 字号×1.5 = 30），形状画在盒内 -->
+          <view class="msg__glyph-box">
+            <view class="msg__glyph" :style="{ background: row.iconColor }" aria-hidden="true" />
+          </view>
         </view>
         <view class="msg__body">
           <view class="msg__content-wrap">
@@ -70,8 +73,10 @@
     </view>
 
     <!-- 底部 TabBar（design c02e59d8：padding 8/0/24 · 4 项各 104 · 图标 33 + 3 + 文字 16 = 84）
-         序号 21 起抽为共享组件 src/components/app-tab-bar/AppTabBar.vue（本帧高亮色 #007AFF） -->
-    <AppTabBar active-color="#007AFF" />
+         序号 21 起抽为共享组件 src/components/app-tab-bar/AppTabBar.vue
+         本帧（page-20-2）逐帧差异：高亮色 #007AFF + 高亮字重 400（该帧四行文本全为 SourceHanSans-Regular，
+         而 page-21-2 帧的高亮项是 SemiBold 600） -->
+    <AppTabBar active-color="#007AFF" :active-weight="400" />
   </view>
 </template>
 
@@ -216,7 +221,7 @@ onMounted(load)
   font-size: $font-2xs;
   font-weight: 600;
   color: $color-danger-text;
-  line-height: 14px;
+  line-height: 13.2px; /* 设计 lineHeight 1.2 × 11（胶囊 h22 固定，行盒不影响布局） */
 }
 
 .messages__spacer {
@@ -255,7 +260,7 @@ onMounted(load)
   font-size: $font-xs;
   font-weight: 500;
   color: $color-primary;
-  line-height: 15px;
+  line-height: 14.4px; /* 设计 lineHeight 1.2 × 12（按钮行高由 24 的图标盒决定） */
 }
 
 /* 筛选行（design 42d2aeb5） */
@@ -290,7 +295,7 @@ onMounted(load)
   font-size: $font-xs;
   font-weight: 500;
   color: $color-text-muted;
-  line-height: 15px;
+  line-height: 14.4px; /* 设计 lineHeight 1.2 × 12（chip h30 固定，行盒居中不影响布局） */
 }
 
 .chip--active .chip__text {
@@ -331,10 +336,19 @@ onMounted(load)
   justify-content: center;
 }
 
-/* 图标字形仍为 CSS 占位（R-26 禁 emoji）：实心圆避免被误读成勾选框 */
+/* 图标字形盒 = 设计图层尺寸（fs20 remixicon 声明 w22 · 字形行盒 = 字号×1.5 = 30）；形状为 CSS 占位（D5）：
+   实心圆（避免被误读成勾选框），墨迹按设计 17。盒子不参与布局（外层 38×38 居中），对齐设计声明值即可。 */
+.msg__glyph-box {
+  width: 22px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .msg__glyph {
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
   border-radius: 50%;
 }
 

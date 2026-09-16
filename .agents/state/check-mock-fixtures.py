@@ -211,6 +211,46 @@ CHECKS = [
         "must": ["status"],
         "check": lambda d: bool(d.get("status")),
     },
+    {
+        "mock": "api-20",
+        "method": "GET",
+        "path": "/api/v1/notifications?page=1&pageSize=20",
+        "why": "序号 20 站内信列表取数 /pages/messages/index（缺则整页空态 + 错误 toast）",
+        "must": ["items"],
+        "check": lambda d: isinstance(d.get("items"), list) and len(d["items"]) > 0,
+    },
+    {
+        "mock": "api-20",
+        "method": "POST",
+        "path": "/api/v1/notifications/n1/read",
+        "why": "序号 20「全部已读 / 点消息」逐条标记已读（18-API 无批量接口；缺则 serve 对未定义 POST 兜底假成功）",
+        "must": ["id"],
+        "check": lambda d: bool(d.get("id")),
+    },
+    {
+        "mock": "api-20",
+        "method": "GET",
+        "path": "/api/v1/reports/r1",
+        "why": "序号 20 点「检测报告」消息的落地页 /pages/report/index?reportId=r1 取数（缺则落地页错误 toast 盖住落点证据）",
+        "must": ["report_no", "total_score"],
+        "check": lambda d: bool(d.get("report_no")) and d.get("total_score") is not None,
+    },
+    {
+        "mock": "api-20",
+        "method": "GET",
+        "path": "/api/v1/provider/profile",
+        "why": "序号 20 TabBar「工作台」落地页 /pages/workbench/index 取数",
+        "must": ["id"],
+        "check": lambda d: bool(d.get("id")),
+    },
+    {
+        "mock": "api-20",
+        "method": "GET",
+        "path": "/api/v1/usage/summary",
+        "why": "序号 20 TabBar「工作台」落地页 /pages/workbench/index 取数（用量/图例）",
+        "must": ["total_tokens"],
+        "check": lambda d: d.get("total_tokens") is not None,
+    },
 ]
 
 

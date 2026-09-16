@@ -75,6 +75,24 @@ describe('序号 21 · AppTabBar 逐帧取色', () => {
   })
 })
 
+describe('序号 20 · AppTabBar 高亮字重逐帧（page-20-2 四行文本全为 SourceHanSans-Regular）', () => {
+  it('默认高亮字重 = 600（page-21-2 设计帧 我的 = SemiBold）', () => {
+    const wrapper = mountBar()
+    expect(wrapper.find('.tabbar__label--active').attributes('style')).toContain('font-weight: 600')
+  })
+
+  it('page-20-2 帧传 activeWeight=400 → 高亮项不加粗（设计帧 Regular）', () => {
+    const wrapper = mountBar({ active: '我的', activeColor: '#007AFF', activeWeight: 400 })
+    expect(wrapper.find('.tabbar__label--active').attributes('style')).toContain('font-weight: 400')
+  })
+
+  it('非高亮项恒为 400（两帧设计一致：SourceHanSans-Regular）', () => {
+    const wrapper = mountBar({ activeWeight: 400 })
+    const inactive = wrapper.findAll('.tabbar__label').find((l) => !l.classes('tabbar__label--active'))
+    expect(inactive?.attributes('style')).toContain('font-weight: 400')
+  })
+})
+
 describe('序号 21 · AppTabBar 交互（navigation）', () => {
   it('4 项落点与画布一致（工作台 / 报告 / 报价 / 我的）', () => {
     expect(TAB_ITEMS.map((t) => t.label)).toEqual(DESIGN_LABELS)
