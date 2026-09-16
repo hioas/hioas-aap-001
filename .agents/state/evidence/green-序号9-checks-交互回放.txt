@@ -1,0 +1,24 @@
+序号 9「模型报价设置」交互回放（phases 3/4：勾选/全选/全不选 + 保存提交）+ 设计期望值 checks
+==============================================================================
+
+phase1 : checkCount=0 checkFailCount=0 docH=900 docW=430 overflowing=0 missingTexts=['华东主线路 · GPT 通道', 'sk-prod-••••••••2f9a', '已自动带出该凭证下 5 个可用模型', '已选 3 / 5', 'gpt-4o', 'gpt-4o-mini', 'claude-3-5-sonnet', 'gemini-1.5-pro', 'deepseek-chat', 'OpenAI', 'Anthropic', 'Google', 'DeepSeek', '输入 $2.50 / 输出 $10.00 / 1M token', '输入 $0.15 / 输出 $0.60 / 1M token', '输入 $3.00 / 输出 $15.00 / 1M token', '输入 $1.25 / 输出 $5.00 / 1M token', '输入 $0.14 / 输出 $0.28 / 1M token', '可选']
+    [两轮独立测量一致? 是]
+
+phase2 : checkCount=272 checkFailCount=0 docH=1212 docW=430 overflowing=0 missingTexts=[]
+    [两轮独立测量一致? 是]
+
+phase3: {"toggleClicked": "CLICKED", "countAfterToggle": "已选 4 / 5", "statusAfterToggle": "已选", "countAfterSelectAll": "已选 5 / 5", "countAfterUnselectAll": "已选 0 / 5", "nameCount": "12/30", "hash": "#/pages/quote-models/index"}
+phase3(run2): {"toggleClicked": "CLICKED", "countAfterToggle": "已选 4 / 5", "statusAfterToggle": "已选", "countAfterSelectAll": "已选 5 / 5", "countAfterUnselectAll": "已选 0 / 5", "nameCount": "12/30", "hash": "#/pages/quote-models/index"}
+
+phase4: {"saveClicked": "CLICKED", "toast": "保存成功", "hash": "#/pages/model-pricing/index?quoteId=q9"}
+phase4(run2): {"saveClicked": "CLICKED", "toast": "保存成功", "hash": "#/pages/model-pricing/index?quoteId=q9"}
+
+serve 实收请求行（run1）:
+"GET /api/v1/provider/profile HTTP/1.1" 200 -
+"GET /api/v1/credentials?page=1&pageSize=20 HTTP/1.1" 200 -
+"GET /api/v1/credentials/c1 HTTP/1.1" 200 -
+POST /api/v1/quotes body={"name":"2024Q3 主线路报价","provider_id":"p1","credential_id":"c1"}
+"POST /api/v1/quotes HTTP/1.1" 200 -
+POST /api/v1/quotes/q9/items body={"items":[{"model_name":"gpt-4o"}]}
+"POST /api/v1/quotes/q9/items HTTP/1.1" 200 -
+"GET /api/v1/quotes/q9/items HTTP/1.1" 200 -

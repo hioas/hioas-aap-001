@@ -1,0 +1,37 @@
+feat(aap-client): 9-模型报价设置 补设计期望值 checks 维度（272 条 · 偏差 53→0）+ 12 类设计偏差修复 + 整页对齐设计帧 1211（队列 8 第 8 页）
+
+序号↔路由口径纠正：状态文件在办项曾把序号 9 写成「→ /pages/model-pricing/index，载体页 __measure-model-pricing.html」，
+与台账「目标路由 = /pages/quote-models/index」及仓库实际不符（/pages/model-pricing/index 是序号 11）→ 本轮按台账执行，
+载体页 __measure-quote-setup.html，并已把状态文件改成与台账一致。
+
+设计帧重抓（当前画布，layer_id bbdb4ec0-104b-4e96-b856-c1ddc529f18e）：design.json sha256 bb278d4e…
+与实现所依据的一份**逐字节相同**（无漂移）。
+
+TDD 红→绿（同一份探针、两轮）：
+- 探针红（git stash 复现修复前源码）：53/272 · docH 1202 → 绿：0/272 · docH 1212（设计帧 1211）
+- 两轮独立测量 33/33 字段全等；git stash pop 复位后重建复跑同值
+- 像素对账（实现截图 vs 设计 PNG，±3）内容列 49/49 + 条列 19/19 = 68/68 命中，未命中 0
+
+修掉 12 类偏差：
+- 三处投影按设计 effects 补上：卡片 (0,4,16,rgba(15,23,42,.06)) · 底栏 (0,-4,16,rgba(15,23,42,.05)) · 保存按钮 (0,6,16,rgba(37,99,235,.28))
+- 三处 0.8 描边 border→box-shadow 0 0 0 .8px（选择框/输入框/存为草稿）→ 内容左界回到设计值 46
+- 字数提示行框 16→15；凭证说明图标盒 20×20→14×18（行框 18）→ 卡2 280→277
+- 模型工具栏 40→44（全选图标行框 24）+ 顶 626→623；模型行高 58→59（型号名行框 19）+ 首行 678→679
+- 模型卡底部说明 padding-top 12→16 且图标盒 13→15×20（行框 20）→ 卡3 434→451
+- 联动提示卡文案行距 16→14 → 卡高 56→52
+- 12 处图标盒按设计图层（返回/帮助 20×27 · 钥匙 17×23 · 下拉 22×30 · 勾选 22×30 · 行尾 20×27 · chip 13×17 ·
+  清空 18×24 · 工具栏 18×24 · 来源 14×18 · 凭证说明 14×18 · 底部说明 15×20 · 提示卡 18×24 · 保存 20×27），
+  形状（含旋转）移入 ::before，元素包围盒 = 设计尺寸
+- 返回/帮助圆角 50%→18px（设计声明的 r=18）
+
+交互相（?scenario=actions 两轮逐字节相同）：勾选第 4 行/全选/全不选 计数 3→4→5→0（hash 不变，client-only）·
+保存 → 真实 POST /quotes + POST /quotes/q9/items → toast「保存成功」→ /pages/model-pricing/index?quoteId=q9；
+纯测量轮 serve 实收仅 3 行（profile + credentials + credentials/c1）。
+
+设计稿静态假数据留痕：字数提示「13/30」与同帧名称文案「2024Q3 主线路报价」（12 字）矛盾 → 实现按真实字数（12/30），
+探针断言「格式 + 与名称长度一致」，设计字面量登记在 designLiteralDiff（同族于决策 D3 的图例百分比，不照抄）。
+
+证据：evidence/review-序号9-checks-报告.md · red/green-序号9-checks-设计期望值*.txt · green-序号9-checks-交互回放.txt ·
+cmp-序号9-checks-两轮.txt · cmp-序号9-设计PNGvs实现截图-结构带.txt · review-序号9-checks-{red-,actions-}run{1,2}.json ·
+requests-序号9-checks-*.txt · 截图 logs/screenshots/20260916-1221-序号9-模型报价设置-checks轮-h5-430宽.png
+质量门：npm test 1172/1172 ×2 · type-check exit 0 · build:mp-weixin / build:h5 DONE · check-mock-fixtures FAIL 0 · review-artifacts 22/22

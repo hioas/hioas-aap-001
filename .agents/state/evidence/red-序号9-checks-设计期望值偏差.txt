@@ -1,0 +1,66 @@
+序号 9「模型报价设置」设计期望值 checks —— 红基线（git stash 复现修复前源码 + 同一份探针两轮）
+==============================================================================
+
+phase1 : checkCount=0 checkFailCount=0 docH=900 docW=430 overflowing=0 missingTexts=['华东主线路 · GPT 通道', 'sk-prod-••••••••2f9a', '已自动带出该凭证下 5 个可用模型', '已选 3 / 5', 'gpt-4o', 'gpt-4o-mini', 'claude-3-5-sonnet', 'gemini-1.5-pro', 'deepseek-chat', 'OpenAI', 'Anthropic', 'Google', 'DeepSeek', '输入 $2.50 / 输出 $10.00 / 1M token', '输入 $0.15 / 输出 $0.60 / 1M token', '输入 $3.00 / 输出 $15.00 / 1M token', '输入 $1.25 / 输出 $5.00 / 1M token', '输入 $0.14 / 输出 $0.28 / 1M token', '可选']
+    [两轮独立测量一致? 是]
+
+phase2 : checkCount=272 checkFailCount=53 docH=1202 docW=430 overflowing=0 missingTexts=[]
+    FAIL page.docHeight: got 1202 want 1211
+    FAIL page.cardTops: got "118,282,578" want "118,282,575"
+    FAIL page.cardHeights: got "148,280,434" want "148,277,451"
+    FAIL nav.back.radius: got "50%" want 18
+    FAIL nav.backGlyph.w: got 17 want 20
+    FAIL nav.backGlyph.h: got 17 want 27
+    FAIL nav.helpGlyph.h: got 20 want 27
+    FAIL card.shadow: got "none" want "rgba(15, 23, 42, 0.06) 0px 4px 16px 0px"
+    FAIL chip.top: got "134,298,594" want "134,298,591"
+    FAIL chip.icon.w: got 10 want 13
+    FAIL subjectSelect.stroke.declared: got null want "rgb(37, 99, 235) 0px 0px 0px 0.8px"
+    FAIL subjectSelect.stroke.used: got "none" want "rgb(37, 99, 235) 0px 0px 0px 0.8px"
+    FAIL subjectKeyGlyph.w: got 12 want 17
+    FAIL subjectKeyGlyph.h: got 10 want 23
+    FAIL subjectChevron.w: got 14 want 22
+    FAIL subjectChevron.h: got 14 want 30
+    FAIL inputBox.stroke.declared: got null want "rgb(226, 232, 240) 0px 0px 0px 0.8px"
+    FAIL counter.text.lh: got "normal" want 15
+    FAIL credSelect.stroke.declared: got null want "rgb(37, 99, 235) 0px 0px 0px 0.8px"
+    FAIL credHint.row.h: got 26 want 24
+    FAIL credHintIcon.w: got 20 want 14
+    FAIL credHintIcon.h: got 20 want 18
+    FAIL toolbar.top: got 626 want 623
+    FAIL toolbar.h: got 40 want 44
+    FAIL toolbar.allIcon.w: got 20 want 18
+    FAIL toolbar.allIcon.h: got 20 want 24
+    FAIL toolbar.sourceIcon.w: got 12 want 14
+    FAIL toolbar.sourceIcon.h: got 12 want 18
+    FAIL model.tops: got "678,736,794,852,910" want "679,738,797,856,915"
+    FAIL model.icon.w: got "20,20,20,20,20" want "22,22,22,22,22"
+    FAIL model.icon.h: got "20,20,20,20,20" want "30,30,30,30,30"
+    FAIL model.name.lh: got 18 want 19
+    FAIL model.pill.right: got "378,378,378,378,378" want "366,366,366,366,366"
+    FAIL model.chevron.w: got "11,11,11,11,11" want "20,20,20,20,20"
+    FAIL model.chevron.h: got "11,11,11,11,11" want "27,27,27,27,27"
+    FAIL modelNote.top: got 982 want 990
+    FAIL modelNote.h: got 28 want 36
+    FAIL modelNote.icon.w: got 13 want 15
+    FAIL modelNote.icon.h: got 13 want 20
+    FAIL tip.top: got 1028 want 1042
+    FAIL tip.h: got 56 want 52
+    FAIL tip.icon.w: got 16 want 18
+    FAIL tip.icon.h: got 16 want 24
+    FAIL tip.text.lh: got 16 want 14
+    FAIL bar.top: got 1104 want 1113
+    FAIL bar.shadow: got "none" want "rgba(15, 23, 42, 0.05) 0px -4px 16px 0px"
+    FAIL barInner.top: got 1116 want 1125
+    FAIL draft.top: got 1126 want 1135
+    FAIL save.top: got 1126 want 1135
+    FAIL draft.stroke.declared: got null want "rgb(226, 232, 240) 0px 0px 0px 0.8px"
+    FAIL save.shadow: got "none" want "rgba(37, 99, 235, 0.28) 0px 6px 16px 0px"
+    FAIL save.icon.w: got 14 want 20
+    FAIL save.icon.h: got 14 want 27
+    [两轮独立测量一致? 是]
+
+serve 实收请求行（run1）:
+"GET /api/v1/provider/profile HTTP/1.1" 200 -
+"GET /api/v1/credentials?page=1&pageSize=20 HTTP/1.1" 200 -
+"GET /api/v1/credentials/c1 HTTP/1.1" 200 -

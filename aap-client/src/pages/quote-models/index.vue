@@ -160,7 +160,7 @@
               :data-testid="`model-row-${row.name}`"
               @tap="onToggleRow(row.key)"
             >
-              <view class="ic" :class="row.selected ? 'ic-check-circle' : 'ic-circle'" />
+              <view class="ic model__check" :class="row.selected ? 'ic-check-circle' : 'ic-circle'" />
               <view class="model__info">
                 <view class="model__name-row">
                   <text class="model__name">{{ row.name }}</text>
@@ -473,7 +473,7 @@ async function submit(advance: boolean) {
 .nav__help {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: 18px; /* 设计 25ff4a71 / 4ed6f243：r=18（36 的圆） */
   background: $color-bg-subtle;
   display: flex;
   align-items: center;
@@ -517,6 +517,8 @@ async function submit(advance: boolean) {
   background: $color-bg-card;
   display: flex;
   flex-direction: column;
+  /* 设计 effects drop_shadow(0,4,16,rgba(15,23,42,.06))（卡片无描边） */
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
 }
 .card__head {
   display: flex;
@@ -609,7 +611,8 @@ async function submit(advance: boolean) {
   line-height: 18px;
 }
 
-/* 选择框 / 输入框 */
+/* 选择框 / 输入框（设计 stroke{align:center,thickness:0.8} → box-shadow 0 0 0 0.8px：
+   Figma 的中心描边不占布局，用 border 会把内容左界从 46 挤到 46.8） */
 .select {
   width: 100%;
   height: 48px;
@@ -617,13 +620,13 @@ async function submit(advance: boolean) {
   padding: 0 14px;
   border-radius: 12px;
   background: $color-bg-card;
-  border: 0.8px solid $color-border;
+  box-shadow: 0 0 0 0.8px $color-border;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 .select--active {
-  border-color: $color-primary;
+  box-shadow: 0 0 0 0.8px $color-primary;
 }
 .select__left {
   display: flex;
@@ -669,7 +672,7 @@ async function submit(advance: boolean) {
   padding: 0 14px;
   border-radius: 12px;
   background: $color-bg-card;
-  border: 0.8px solid $color-border;
+  box-shadow: 0 0 0 0.8px $color-border;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -690,6 +693,7 @@ async function submit(advance: boolean) {
 .counter__text {
   font-size: 11px;
   color: $color-text-placeholder;
+  line-height: 15px; /* 设计只放 11px 文本 → 行框 15（卡2 高 277 反推） */
 }
 
 /* 下拉面板（设计无展开稿 → 复用设计的选择框风格，记 missing-prd） */
@@ -802,7 +806,7 @@ async function submit(advance: boolean) {
   font-size: 14px;
   font-weight: 600;
   color: $color-text-primary;
-  line-height: 18px;
+  line-height: 19px; /* 模型行高 59 = 12 + (19 + 16) + 12（PNG 行首步进 59） */
 }
 .model__vendor {
   height: 16px;
@@ -849,7 +853,8 @@ async function submit(advance: boolean) {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding-top: 12px;
+  /* 设计：模型卡底部说明 = 外层 container padding-top 4 + 说明行容器 padding-top 12 = 16 */
+  padding-top: 16px;
 }
 .model-note__text {
   font-size: 11px;
@@ -870,14 +875,15 @@ async function submit(advance: boolean) {
 .tip__text {
   font-size: 11px;
   color: $color-brand;
-  line-height: 16px;
+  line-height: 14px; /* 设计两行文本行距 14（PNG ink 1055..1065 / 1069..1078）→ 卡高 52 */
   white-space: pre-line;
 }
 
-/* 底部操作条 */
+/* 底部操作条（设计 effects drop_shadow(0,-4,16,rgba(15,23,42,.05))） */
 .setup__bar {
   background: $color-bg-card;
   padding: 12px 16px 28px;
+  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.05);
 }
 .setup__bar-inner {
   display: flex;
@@ -896,7 +902,7 @@ async function submit(advance: boolean) {
   width: 128px;
   box-sizing: border-box;
   background: $color-bg-card;
-  border: 0.8px solid $color-border;
+  box-shadow: 0 0 0 0.8px $color-border; /* 设计 6e0463ba stroke 0.8 center */
   font-size: 14px;
   font-weight: 600;
   color: $color-text-muted;
@@ -906,6 +912,8 @@ async function submit(advance: boolean) {
   flex: 1;
   background: $color-primary;
   gap: 8px;
+  /* 设计 259b9824 effects drop_shadow(0,6,16,rgba(37,99,235,.28)) */
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
 }
 .btn__text {
   font-size: 15px;
@@ -913,102 +921,187 @@ async function submit(advance: boolean) {
   color: #ffffff;
 }
 
-/* 图标（设计稿用 remixicon 字形；小程序/H5 跨端一致性优先 → CSS 形状占位，见台账登记） */
+/* 图标（设计稿用 remixicon 字形；小程序/H5 跨端一致性优先 → CSS 形状占位，见台账登记）
+   盒子尺寸一律按设计图层：宽 = 设计层 width，高 = 字形行框（fontSize × 1.5）；
+   形状画在 ::before 上（含旋转），元素自身包围盒 = 设计尺寸，不被 transform 撑大 */
 .ic {
-  width: 16px;
-  height: 16px;
+  position: relative;
   flex-shrink: 0;
 }
-.ic-back {
+.ic::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+/* 顶部栏返回 / 帮助（design 25ff4a71 / 4ed6f243 内图层 fs=18 → 20×27） */
+.nav__back .ic,
+.nav__help .ic {
+  width: 20px;
+  height: 27px;
+}
+.ic-back::before {
   width: 10px;
   height: 10px;
   border-left: 2px solid $color-text-secondary-2;
   border-bottom: 2px solid $color-text-secondary-2;
-  transform: rotate(45deg);
+  transform: translate(-50%, -50%) rotate(45deg);
 }
-.ic-help {
+.ic-help::before {
   width: 16px;
   height: 16px;
   border-radius: 50%;
   border: 2px solid $color-text-muted;
 }
-.ic-chevron {
+/* 选择框右侧下拉箭头（design c466ff76 / 8d373498 内图层 fs=20 → 22×30） */
+.select > .ic {
+  width: 22px;
+  height: 30px;
+}
+.ic-chevron::before {
   width: 8px;
   height: 8px;
   border-right: 2px solid $color-primary;
   border-bottom: 2px solid $color-primary;
-  transform: rotate(45deg);
+  transform: translate(-50%, -50%) rotate(45deg);
 }
-.ic-chevron-sm {
+/* 模型行行尾箭头（design 805e195b fs=18 → 20×27） */
+.model > .ic-chevron-sm {
+  width: 20px;
+  height: 27px;
+}
+.ic-chevron-sm::before {
   width: 6px;
   height: 6px;
   border-right: 2px solid $color-border-strong;
   border-bottom: 2px solid $color-border-strong;
-  transform: rotate(-45deg);
+  transform: translate(-50%, -50%) rotate(-45deg);
 }
-.ic-company {
+/* 选择框钥匙图标（design d1f20119 / 10d599f9 fs=15 → 17×23） */
+.select__keybox .ic {
+  width: 17px;
+  height: 23px;
+}
+.ic-company::before {
   width: 12px;
   height: 10px;
   background: #ffffff;
   border-radius: 2px;
 }
-.ic-key {
+.ic-key::before {
   width: 12px;
   height: 12px;
   background: #ffffff;
   border-radius: 50%;
 }
-.ic-plus {
+/* chip 内图标（design 78a5b9a9 / 845b348b fs=11 → 13×17） */
+.chip .ic {
+  width: 13px;
+  height: 17px;
+}
+.ic-plus::before {
   width: 10px;
   height: 10px;
   background: $color-success-text-2;
   border-radius: 2px;
 }
-.ic-check {
+.ic-check::before {
   width: 11px;
   height: 11px;
   background: $color-success;
   border-radius: 2px;
 }
-.ic-check-circle {
+/* 勾选圈：模型行（design 8044b4e4 fs=20 → 22×30）与工具栏全选（design 508d5ef9 fs=16 → 18×24） */
+.model__check {
+  width: 22px;
+  height: 30px;
+}
+.ic-check-circle::before {
   width: 20px;
   height: 20px;
   border-radius: 50%;
   background: $color-primary;
 }
-.ic-circle {
+.ic-circle::before {
   width: 20px;
   height: 20px;
   border-radius: 50%;
   border: 1.5px solid $color-border-strong;
   box-sizing: border-box;
 }
-.ic-clear {
+/* 输入框清空（design 6aaa3e1b fs=16 → 18×24） */
+.input-box .ic {
+  width: 18px;
+  height: 24px;
+}
+.ic-clear::before {
   width: 14px;
   height: 14px;
   background: $color-border-strong;
   border-radius: 50%;
 }
-.ic-info {
+
+/* 工具栏「按凭证实时带出」前图标（design 598839ff fs=12 → 14×18） */
+.toolbar__source .ic {
+  width: 14px;
+  height: 18px;
+}
+.ic-info::before {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   border: 1.5px solid $color-text-placeholder;
   box-sizing: border-box;
 }
-.ic-light {
+/* 工具栏「全选模型」前图标（design 508d5ef9 fs=16 → 18×24） */
+.toolbar__all .ic {
+  width: 18px;
+  height: 24px;
+}
+.toolbar__all .ic::before {
+  width: 16px;
+  height: 16px;
+}
+/* 凭证说明前图标（design 98d26c37 fs=12 → 14×18，fill rgba(22,163,74,1)） */
+.hint--success .ic {
+  width: 14px;
+  height: 18px;
+}
+.hint--success .ic::before {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: $color-success;
+}
+/* 模型卡底部说明前图标（design cddf5b02 fs=13 → 15×20） */
+.model-note .ic {
+  width: 15px;
+  height: 20px;
+}
+.ic-light::before {
   width: 13px;
   height: 13px;
   border-radius: 50%;
   background: $color-border-strong;
 }
-.ic-tip {
+/* 联动提示卡前图标（design 39a42960 fs=16 → 18×24，fill rgba(37,99,235,1)） */
+.tip .ic {
+  width: 18px;
+  height: 24px;
+}
+.ic-tip::before {
   width: 16px;
   height: 16px;
   border-radius: 4px;
   background: $color-primary;
 }
-.ic-save {
+/* 保存按钮前图标（design 6de36561 fs=18 → 20×27） */
+.btn--primary .ic {
+  width: 20px;
+  height: 27px;
+}
+.ic-save::before {
   width: 14px;
   height: 14px;
   background: #ffffff;
