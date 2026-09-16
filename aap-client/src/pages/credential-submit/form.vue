@@ -373,15 +373,15 @@ async function onSubmit() {
 
 .access-form__title {
   font-size: $font-xl; /* 18 */
-  font-weight: 600;
+  font-weight: 700; /* design a7c44e71 SourceHanSans-Bold */
   color: $color-text-primary;
-  line-height: 1.2;
+  line-height: 24px; /* design a7c44e71 声明 height 24（标题块 24+18=42 决定顶部栏高 74） */
 }
 
 .access-form__subtitle {
   font-size: $font-xs; /* 12 */
   color: $color-text-placeholder;
-  line-height: 1.2;
+  line-height: 18px; /* design 8bd171e3 声明 height 18 */
 }
 
 .icon-btn {
@@ -455,15 +455,15 @@ async function onSubmit() {
 
 .card__title {
   font-size: $font-base; /* 14 */
-  font-weight: 600;
+  font-weight: 700; /* design 99b6172b 等 SourceHanSans-Bold */
   color: $color-text-primary;
-  line-height: 1.2;
+  line-height: 20px; /* fit_content 行框 = 14px 的度量行框（设计 PNG 色带实测 20；竖条 16 不决定行高） */
 }
 
 .card__tip {
   font-size: $font-2xs; /* 11 */
   color: $color-text-placeholder;
-  line-height: 1.2;
+  line-height: 16px; /* 11px 行框（design 919871df 等声明 height 16） */
 }
 
 .field {
@@ -482,22 +482,24 @@ async function onSubmit() {
 
 .field__label {
   font-size: $font-xs; /* 12 */
+  font-weight: 600; /* design b0317376 SourceHanSans-SemiBold */
   color: $color-text-secondary-2;
-  line-height: 1.2;
+  line-height: 18px; /* 12px 行框（标签行实测 18） */
 }
 
 .field__star {
   font-size: $font-xs;
   color: $color-danger;
-  line-height: 1.2;
+  line-height: 18px;
 }
 
-/* 输入框（design ae346709 等：44 高 · r10 · #F8FAFC · 描边 #EEF2F7） */
+/* 输入框（design ae346709 等：44 高 · r10 · #F8FAFC · 中心描边 0.8 #EEF2F7 —— 描边用 box-shadow 表达，
+   Figma center stroke 不占布局；用 border 会把内容宽 358 压成 356、输入文本左移 1px） */
 .input-box {
   width: 100%;
   height: 44px;
   background: $color-bg-page;
-  border: 1px solid $color-border-chip;
+  box-shadow: 0 0 0 0.8px $color-border-chip;
   border-radius: 10px;
   padding: 0 12px;
   display: flex;
@@ -512,7 +514,7 @@ async function onSubmit() {
   min-width: 0;
   font-size: $font-sm; /* 13 */
   color: $color-text-primary;
-  line-height: 1.2;
+  line-height: 20px; /* 13px 行框（design 3901f022 等 fit_content 实测 20） */
   background: transparent;
 }
 
@@ -533,33 +535,35 @@ async function onSubmit() {
   padding: 8px 14px;
   border-radius: 10px;
   background: $color-bg-page;
-  border: 1px solid $color-border-chip;
+  box-shadow: 0 0 0 0.8px $color-border-chip; /* design 6120d5c8 stroke 0.8（中心描边不占布局） */
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
 }
 
+/* design 36550710（选中）只有 fills、无 stroke → 去掉描边 */
 .type-chip--checked {
   background: $color-primary;
-  border-color: $color-primary;
+  box-shadow: none;
 }
 
 .type-chip__text {
   font-size: $font-xs; /* 12 */
+  font-weight: 600; /* design ab52b55a SourceHanSans-SemiBold */
   color: $color-text-tertiary;
-  line-height: 1.2;
+  line-height: 18px; /* 12px 行框 → chip 高 8+18+8 = 34（设计实测 34） */
 }
 
 .type-chip--checked .type-chip__text {
   color: #ffffff;
 }
 
-/* 上传区（design f9f7f369：r12 · 虚线描边 #CBD5E1 · padding 24/0 · gap 8） */
+/* 上传区（design f9f7f369：r12 · **实线**中心描边 0.8 #CBD5E1 · padding 24/0 · gap 8） */
 .upload {
   width: 100%;
   padding: 24px 0;
-  border: 1px dashed $color-border-strong;
+  box-shadow: 0 0 0 0.8px $color-border-strong; /* 设计为实线 stroke（设计 PNG 行 655 连续 334px 无断点），非 dashed */
   border-radius: 12px;
   display: flex;
   flex-direction: column;
@@ -582,17 +586,18 @@ async function onSubmit() {
 
 .upload__main {
   font-size: $font-sm; /* 13 */
+  font-weight: 600; /* design ee12aef8 SourceHanSans-SemiBold */
   color: $color-text-secondary-2;
-  line-height: 1.2;
+  line-height: 20px; /* design ee12aef8 声明 height 20 */
 }
 
 .upload__limit {
   font-size: $font-2xs; /* 11 */
   color: $color-text-placeholder;
-  line-height: 1.2;
+  line-height: 16px; /* 设计声明 height 16 */
 }
 
-/* 已上传文件行（design 0126e565：gap 10 · padding 10/12 · r10） */
+/* 已上传文件行（design 0126e565：gap 10 · padding 10/12 · r10 · 高 54） */
 .file-row {
   width: 100%;
   background: $color-bg-page;
@@ -615,8 +620,9 @@ async function onSubmit() {
 
 .file-row__name {
   font-size: $font-xs; /* 12 */
+  font-weight: 600; /* design 7549512f SourceHanSans-SemiBold */
   color: $color-text-primary;
-  line-height: 1.2;
+  line-height: 18px; /* 设计声明 height 18 */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -625,26 +631,27 @@ async function onSubmit() {
 .file-row__size {
   font-size: $font-2xs; /* 11 */
   color: $color-text-placeholder;
-  line-height: 1.2;
+  line-height: 16px; /* 设计声明 height 16 */
 }
 
+/* 删除盒：设计 8b46f292 图标图层 width 20 · fontSize 18 → 行框 27（形状仍为 18 圆） */
 .file-row__del {
   width: 20px;
-  height: 20px;
+  height: 27px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex: none;
 }
 
-/* 备注框（design 0e5a46b9：r10 · #F8FAFC · 描边 #EEF2F7 · padding 12/12/24/12 → 总高 52） */
+/* 备注框（design 0e5a46b9：r10 · #F8FAFC · 中心描边 0.8 #EEF2F7 · padding 12/12/24/12 → 总高 12+20+24 = 56） */
 .remark-box {
   width: 100%;
-  height: 52px;
+  height: 56px;
   background: $color-bg-page;
-  border: 1px solid $color-border-chip;
+  box-shadow: 0 0 0 0.8px $color-border-chip;
   border-radius: 10px;
-  padding: 12px;
+  padding: 12px 12px 24px 12px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -652,10 +659,10 @@ async function onSubmit() {
 
 .remark-box__textarea {
   width: 100%;
-  height: 28px;
+  height: 20px; /* 13px 行框（占位文本单行） */
   font-size: $font-sm; /* 13 */
   color: $color-text-primary;
-  line-height: 1.2;
+  line-height: 20px;
   background: transparent;
 }
 
@@ -696,50 +703,78 @@ async function onSubmit() {
 .footnote__text {
   font-size: $font-2xs; /* 11 */
   color: $color-text-placeholder;
-  line-height: 1.2;
+  line-height: 16px; /* 11px 行框（设计 5735195f 声明 height 16） */
 }
 
-/* 图标占位（设计稿为矢量图标；PRD08 禁 emoji → CSS 形状占位，与序号 1/2/3/4 一致） */
+/* 图标占位（设计稿为 remixicon 矢量字形；PRD08 禁 emoji → CSS 形状占位，与序号 1/2/3/4 一致）
+   ⚠️ 盒子尺寸必须按设计图层声明：宽 = 该图层 width、行框高 = fontSize×1.5 ——
+   否则图标后的文本整体偏移、行/卡高不再等于设计（序号 4 已实测过这条）。形状画在 ::before/::after 里。
+   设计：1f674160 返回 20×27 · 7a694441 扫描 20×27 · 6af08bbd 上传圆内 24×33 ·
+        0126e565 文件 22×30 · 8b46f292 删除 20×27 · c29d94c6 提交 22×30 · 3f8c7ae8 脚注 16×21 */
 .glyph--back {
-  width: 9px;
-  height: 9px;
+  width: 20px;
+  height: 27px;
+  position: relative;
+  flex: none;
+}
+
+.glyph--back::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
   border-left: 2px solid $color-text-secondary-2;
   border-bottom: 2px solid $color-text-secondary-2;
   transform: rotate(45deg);
-  margin-left: 3px;
 }
 
 .glyph--scan {
+  width: 20px;
+  height: 27px;
+  position: relative;
+  flex: none;
+}
+
+.glyph--scan::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 50%;
   width: 16px;
   height: 16px;
+  margin-top: -8px;
   border: 1.5px solid $color-text-muted;
   border-radius: 2px;
-  position: relative;
   box-sizing: border-box;
 }
 
 .glyph--scan::after {
   content: '';
   position: absolute;
-  left: 0;
-  right: 0;
+  left: 2px;
   top: 50%;
+  width: 16px;
   height: 1.5px;
   margin-top: -0.75px;
   background: $color-text-muted;
 }
 
 .glyph--cloud {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 33px;
   position: relative;
+  flex: none;
 }
 
 .glyph--cloud::before {
   content: '';
   position: absolute;
-  left: 0;
-  bottom: 3px;
+  left: 3px;
+  top: 50%;
+  margin-top: -1px;
   width: 18px;
   height: 8px;
   border-radius: 4px;
@@ -749,8 +784,9 @@ async function onSubmit() {
 .glyph--cloud::after {
   content: '';
   position: absolute;
-  left: 4px;
-  top: 0;
+  left: 7px;
+  top: 50%;
+  margin-top: -11px;
   width: 0;
   height: 0;
   border-left: 5px solid transparent;
@@ -759,26 +795,38 @@ async function onSubmit() {
 }
 
 .glyph--file {
+  width: 22px;
+  height: 30px;
+  position: relative;
+  flex: none;
+}
+
+.glyph--file::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  margin-top: -9px;
   width: 15px;
   height: 18px;
   border: 1.5px solid $color-primary;
   border-radius: 3px;
-  position: relative;
-  flex: none;
   box-sizing: border-box;
 }
 
 .glyph--file::after {
   content: '';
   position: absolute;
-  right: -1.5px;
-  top: -1.5px;
+  left: 12px;
+  top: 50%;
+  margin-top: -9px;
   width: 0;
   height: 0;
   border-left: 6px solid transparent;
   border-top: 6px solid $color-primary;
 }
 
+/* 删除图标形状仍是 18 圆（盒子 20×27 在 .file-row__del 上） */
 .glyph--close {
   width: 18px;
   height: 18px;
@@ -786,6 +834,7 @@ async function onSubmit() {
   border-radius: 50%;
   position: relative;
   box-sizing: border-box;
+  flex: none;
 }
 
 .glyph--close::before,
@@ -808,19 +857,42 @@ async function onSubmit() {
 }
 
 .glyph--check-white {
+  width: 22px;
+  height: 30px;
+  position: relative;
+  flex: none;
+}
+
+.glyph--check-white::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
   width: 8px;
   height: 4px;
+  margin-left: -4px;
+  margin-top: -3px;
   border-left: 2px solid #ffffff;
   border-bottom: 2px solid #ffffff;
   transform: rotate(-45deg);
-  margin-bottom: 2px;
 }
 
 .glyph--shield {
+  width: 16px;
+  height: 21px;
+  position: relative;
+  flex: none;
+}
+
+.glyph--shield::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  margin-top: -6px;
   width: 12px;
   height: 12px;
   border-radius: 2px 2px 6px 6px;
   background: $color-text-placeholder;
-  flex: none;
 }
 </style>

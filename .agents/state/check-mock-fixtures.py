@@ -89,6 +89,14 @@ CHECKS = [
         "check": lambda d: bool(d.get("token")),
     },
     {
+        "mock": "api",
+        "method": "POST",
+        "path": "/api/v1/provider/qualifications",
+        "why": "序号 4-v1 接入凭证-表单「提交接入」（src/api/access-application.ts submit；缺 fixture 则 404 → 提交后停在原页 + 错误 toast）",
+        "must": ["id", "detection_job_id"],
+        "check": lambda d: bool(d.get("detection_job_id")),
+    },
+    {
         "mock": "api-11",
         "method": "GET",
         "path": "/api/v1/quotes/items/qi1",

@@ -5,165 +5,684 @@
     <title>measure-form</title>
     <style>
       body { margin: 0; font: 12px monospace; }
-      /* 1120 高 = 覆盖整页（docScrollHeight≈1079），便于整页截图 */
-      iframe { width: 430px; height: 1120px; border: 0; }
-      /* 取数用的 <pre> 包在 0 尺寸 overflow:hidden 容器里：textContent 仍可读，但不参与渲染（负坐标 off-screen 会被截进图里） */
+      /* 430x1200 iframe 模拟小程序视口（整页 docScrollHeight 设计 = 1137）；只给 DOM 数字，不靠 vision 猜 */
+      iframe { width: 430px; height: 1200px; border: 0; }
+      /* 取数 <pre> 包进 0 尺寸 overflow:hidden：textContent 可读但不渲染、不会被 --screenshot 截进图 */
       #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
     </style>
   </head>
   <body>
-    <!-- 430x900 iframe 模拟小程序视口；只给 DOM 数字，不靠 vision 猜
-         页面 4-v1：/pages/credential-submit/form（准入表单变体，page-24）
-         两段测量：①空态（真初始化态）②给 uni.chooseFile 打桩并点上传区 → 已上传文件态（与设计稿示例态一致） -->
+    <!-- 页面 4-v1：/pages/credential-submit/form（准入表单变体）
+         帧名「24. 报价端·小程序 ｜ 接入凭证-表单」· frame layer_id cb1de468-0658-4ccb-a1c3-46c2f48f6314 · 抓取 id page-24
+         设计真源（两类，逐条对应）：
+           A. 声明值 = .calicat/raw/pages/page-24/design.tree.json + .agents/state/page-24-nodes.txt
+              （padding / gap / 固定宽高 / cornerRadius / stroke.thickness / effects / fontSize / fontFamily / 文案）
+           B. 盒子高度 = 设计 PNG 色带实测（fit_content 行的真实高度；命令可复现）：
+              curl -o design24.png https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/2099902651224866816/canvas/image/2099902651224866816.png
+              python .agents/state/png-rows.py design24.png v 30 0 1200 1        # 顶部栏 74（+1px 分隔影）· 卡 90..477 / 494..591 / 608..881 / 898..1015
+              python .agents/state/png-rows.py design24.png v 100 88 1137 2      # 输入框 166/250/334/418（各 44）· chip 542..575（34）· 备注框 945..998（56）· 按钮 1032..1079（48）
+              python .agents/state/png-rows.py design24.png h 558 30 400 3       # chip 各 77 宽 @36 / 121 / 206（fit_content = 文字 49 + padding 28）
+              python .agents/state/png-rows.py design24.png h 655 30 400 2       # 上传区描边 连续（**实线**，非 dashed）
+              实测：顶部栏 74 · 卡高 388/98/274/118 · 卡间距 16 · 内容 padding 16/20 · 按钮 48 · 脚注 25 · 整页 1137
+              说明：fit_content 文本行的真实行框 = 字号×1.42 取整（14→20 / 13→20 / 12→18 / 11→16；18→24 为设计显式声明）；
+                    图标字形行框 = 字号×1.5（22→33 / 20→30 / 18→27 / 14→21，见序号 4 的实测结论）。
+         期望值逐条写进 checks（got = 实现 DOM 实测，want = 上表声明值/实测高度）：
+           页面容器 430 宽 bg rgb(245,247,251) · flex column
+           顶部栏 padding 16/20/16/20 · 白底 · **高 74**（= 16 + 标题块 42 + 16；标题块 24+18 高于返回按钮 36）· 底 1px 分隔影(0,1,0,#F1F5F9)
+             · 返回按钮 36x36 r18 bg rgb(241,245,249) @x20 y19 · 图标盒 20x27 · 顶部左侧 gap 12 · 标题块 @x68
+             · 标题 18px/700 rgb(15,23,42) 行高 24 · 副标题 12px/400 rgb(148,163,184) 行高 18 · 扫描按钮 36x36 @x374 图标盒 20x27 rgb(100,116,139)
+           内容区 padding 16/20/16/20 · gap 16
+           卡片：白底 r16 padding 16 · 影(0,4,16,rgba(15,23,42,0.06)) · 左右 20/410 · 标题行 高 20（竖条 5x16 r2 + gap 8 + 标题 14px/700 行高 20）
+           卡1 基本信息 @90 高 388 gap 14：4 个字段 gap 8（标签行 高 18：标签 12px/600 rgb(51,65,85) + gap 4 + '*' 12px/400 rgb(239,68,68)；输入框 高 44 r10 bg rgb(248,250,252) 描边 0.8 rgb(238,242,247) 内边距 0/12）
+             · 输入框 top 166/250/334/418 · 输入文本 13px rgb(15,23,42) 行高 20
+           卡2 检测类型 @494 高 98 gap 12：chip 高 34 r10 padding 8/14 gap 8 @x36/121/206 宽 77
+             · 选中 bg rgb(37,99,235) 文字 12px/600 白 · 未选 bg rgb(248,250,252) 描边 0.8 rgb(238,242,247) 文字 12px/600 rgb(71,85,105)
+           卡3 凭证资料 @608 高 274（空态 208 = 274 - 66）gap 12：标题行 左组 gap 8 · 右侧 tip 11px/400 rgb(148,163,184) 行高 16
+             · 上传区 高 144 r12 **实线**描边 0.8 rgb(203,213,225) padding 24/0 gap 8 · 圆底 44 r22 bg rgb(239,246,255) 图标盒 24x33 rgb(37,99,235)
+             · 主文案 13px/600 rgb(51,65,85) 行高 20 · 限制文案 11px/400 rgb(148,163,184) 行高 16
+             · 文件行 高 54 r10 bg rgb(248,250,252) padding 10/12 gap 10 · 图标盒 22x30 · 名称 12px/600 rgb(15,23,42) 行高 18 · 大小 11px/400 rgb(148,163,184) 行高 16 · 删除盒 20x27
+           卡4 备注 @898 高 118 gap 10：备注框 高 56 r10 padding 12/12/24/12 描边 0.8 rgb(238,242,247) · 占位 13px/400 rgb(148,163,184) 行高 20
+           提交按钮 @1032 高 48 r12 bg rgb(37,99,235) gap 6 影(0,6,16,rgba(37,99,235,0.28)) · 图标盒 22x30 · 文字 15px/600 白
+           脚注 @1096 高 25（padding-bottom 4 + 图标行框 21）gap 6 · 图标盒 16x21 · 文字 11px/400 rgb(148,163,184) 行高 16
+           整页 docScrollHeight 1137（含文件行）· 1071（空态）· 无 TabBar
+         字重映射（设计 fontFamily 名 → CSS）：SourceHanSans-Bold→700 · SemiBold→600 · Medium→500 · Regular→400
+         overriddenByDecision（有意偏离，不计入偏差）：
+           - 图标形状 = D5 决策：CSS 形状占位（设计为 remixicon 矢字形）；但**盒子尺寸**按设计声明（宽 = 该图层 width、行框高 = fontSize×1.5），
+             否则图标后的文本整体偏移、卡片高度不再等于设计
+           - 顶部栏 padding-top 加 var(--status-bar-height)（H5=0；小程序状态栏安全区，设计帧未含）
+           - 提交按钮/脚注仍留在文档流末尾（设计亦如此，无 fixed 操作条）
+         ?scenario=guard 只跑 1~3 相（空表单提交必须**零** /api 请求）
+         ?shot=1 只渲染 iframe（不写 JSON），供截图
+         ⚠️ 触发方式必须用轮询取数（iframe onload 会因监听注册过晚而错过 → 静默拿到 pending） -->
     <iframe id="f" src="/index.html#/pages/credential-submit/form"></iframe>
     <div id="sink"><pre id="m">pending</pre></div>
     <script>
+      var SHOT_ONLY = /(\?|&)shot=1/.test(location.search)
+      var SCENARIO = (location.search.match(/scenario=([a-zA-Z-]+)/) || [])[1] || 'full'
       var f = document.getElementById('f')
-      f.addEventListener('load', function () {
-        setTimeout(phase1, 3000)
-      })
+      var acc = {}
+      /* 取数用 900 高视口：页面 min-height:100vh → docScrollHeight = 内容高（= 设计 1137），
+         否则 1200 高视口会把 scrollHeight 顶成 1200，量不到整页高。截图才用 1200。 */
+      if (!SHOT_ONLY) f.style.height = '900px'
 
-      function collect(doc, win) {
+      function all(d, sel) { return Array.prototype.slice.call(d.querySelectorAll(sel)) }
+      function rectEl(el) {
+        if (!el) return null
+        var r = el.getBoundingClientRect()
+        return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+      }
+      function rect(d, sel) { return rectEl(d.querySelector(sel)) }
+      function rects(d, sel) { return all(d, sel).map(rectEl) }
+      function textOf(d, sel) { var e = d.querySelector(sel); return e ? e.textContent.trim() : null }
+      function texts(d, sel) { return all(d, sel).map(function (e) { return e.textContent.trim() }) }
+      function styleOf(w, el, prop) { return el ? w.getComputedStyle(el)[prop] : null }
+
+      /** 设计 PNG 色带实测（fit_content 行的真实高度，命令见文件头注释） */
+      var DESIGN = {
+        frameW: 430, pageH: 1137, pageHEmpty: 1071, topbarH: 74,
+        cardTop: [90, 494, 608, 898],
+        cardH: [388, 98, 274, 118],
+        cardH3Empty: 208, cardGap: 16, cardX: 20, cardRight: 410, cardPadding: 16,
+        headRowH: 20, labelRowH: 18, inputH: 44, fieldGap: 8, fieldGapInCard: 14,
+        inputTop: [166, 250, 334, 418],
+        chipH: 34, chipX: [36, 121, 206], chipW: 77,
+        uploadH: 144, fileRowH: 54, remarkH: 56, remarkTextH: 20,
+        submitTop: 1032, submitH: 48, footnoteTop: 1096, footnoteH: 25,
+        iconBack: [20, 27], iconScan: [20, 27], iconCloud: [24, 33], iconFile: [22, 30],
+        iconDel: [20, 27], iconSubmit: [22, 30], iconNote: [16, 21]
+      }
+
+      /** 设计里每个独立文本图层（逐字抄自 page-24 design.tree.json） */
+      var needText = [
+        '接入凭证', '填写客户信息并提交检测',
+        '基本信息', '客户名称', '统一社会信用代码', '联系人', '联系电话',
+        '请输入 18 位统一社会信用代码', '请输入联系人姓名', '请输入手机号',
+        '检测类型', '基础检测', '深度检测', '合规检测',
+        '凭证资料', '支持 jpg / png / pdf', '点击上传凭证文件', '单个文件不超过 10MB',
+        '营业执照扫描件.pdf', '2.4 MB',
+        '备注', '补充说明，例如客户所属行业、检测用途等',
+        '提交接入', '提交后系统将自动发起检测，预计 5 分钟内完成'
+      ]
+
+      /** 归一化：48px → 48；rgba(29,78,216,1) → 'rgb(29,78,216)'（alpha=1 时 Chrome 序列化成 rgb()）；
+       *  alpha≠1 保留 'rgba(r,g,b,a)' */
+      function norm(v) {
+        if (v === null || v === undefined) return v
+        var s = String(v).trim()
+        var m = s.match(/^(-?\d+(?:\.\d+)?)px$/)
+        if (m) return Number(m[1])
+        var r = s.match(/^rgba?\(([^)]+)\)$/)
+        if (r) {
+          var p = r[1].split(',').map(function (x) { return Number(String(x).trim()) })
+          if (p.length > 3 && p[3] !== 1) return 'rgba(' + p[0] + ',' + p[1] + ',' + p[2] + ',' + p[3] + ')'
+          return 'rgb(' + p.slice(0, 3).join(',') + ')'
+        }
+        return s
+      }
+
+      function build(doc, win) {
+        var checks = []
+        function chk(k, got, want) {
+          var gg = norm(got), ww = norm(want)
+          checks.push({ k: k, got: gg, want: ww, ok: gg === ww })
+        }
+        function chkS(k, got, want) { checks.push({ k: k, got: got, want: want, ok: got === want }) }
+        /** 文字驱动宽度/位置的容差断言（H5 字体与设计字体的度量差不可避免，容差写进 key） */
+        function chkNear(k, got, want, tol) {
+          var ok = typeof got === 'number' && Math.abs(got - want) <= tol
+          checks.push({ k: k + '~±' + tol, got: got, want: want, ok: ok })
+        }
+        function dim(sel, key) { var r = rect(doc, sel); return r ? r[key] : null }
+        function c(sel, prop) { return styleOf(win, doc.querySelector(sel), prop) }
+        function cs(sel, prop) { return all(doc, sel).map(function (e) { return styleOf(win, e, prop) }) }
+        function cAt(sel, i, prop) { return styleOf(win, all(doc, sel)[i], prop) }
+        /** 读样式表里的**声明值**（computed 是 used value：Chrome 会把 1.5px/0.8px 取整） */
+        function declared(sel, prop) {
+          var sheets = doc.styleSheets
+          for (var s = 0; s < sheets.length; s++) {
+            var rules
+            try { rules = sheets[s].cssRules } catch (e) { continue }
+            for (var r = 0; r < rules.length; r++) {
+              var rule = rules[r]
+              var st = rule.selectorText
+              if (!st || !rule.style) continue
+              var parts = st.split(',')
+              for (var p = 0; p < parts.length; p++) {
+                var base = parts[p].replace(/\[[^\]]*\]/g, '').trim()
+                if (base === sel) {
+                  var v = rule.style[prop]
+                  if (v) return v
+                }
+              }
+            }
+          }
+          return null
+        }
+        /** 样式表声明值（归一化空白）：Chrome 把 box-shadow 序列化成「rgb(..) 0px 0px 0px .8px」（颜色在前、逗号后带空格） */
+        function declaredNorm(sel, prop) {
+          var v = declared(sel, prop)
+          return v === null || v === undefined ? null : String(v).replace(/\s+/g, '')
+        }
+        /** box-shadow → {x,y,blur,spread,color}（Chrome 序列化为「颜色 偏移 模糊 扩散」，颜色在前） */
+        function shadowOf(sel) {
+          var el = doc.querySelector(sel)
+          var none = { x: null, y: null, blur: null, spread: null, color: null }
+          if (!el) return none
+          var s = win.getComputedStyle(el).boxShadow
+          if (!s || s === 'none') return none
+          var m = s.match(/^(rgba?\([^)]*\)|\S+)\s+(-?[\d.]+)px\s+(-?[\d.]+)px\s+(-?[\d.]+)px(?:\s+(-?[\d.]+)px)?/)
+          if (!m) return { x: null, y: null, blur: null, spread: null, color: s.replace(/\s+/g, '') }
+          return {
+            x: Number(m[2]), y: Number(m[3]), blur: Number(m[4]),
+            spread: m[5] === undefined ? 0 : Number(m[5]),
+            color: m[1].replace(/\s+/g, '')
+          }
+        }
+
+        /* ── 页面容器（设计 cb1de468 / bc6764c5） ─────────────────── */
+        chk('page.frameWidth', dim('.access-form', 'w'), DESIGN.frameW)
+        chk('page.bg', c('.access-form', 'backgroundColor'), 'rgba(245,247,251,1)')
+        chk('page.flexDir', c('.access-form', 'flexDirection'), 'column')
+        chk('page.docHeight', Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight), DESIGN.pageH)
+
+        /* ── 顶部栏（设计 8dd86532：padding 16/20/16/20 · 白底 · 高 74） ── */
+        chk('topbar.paddingTop', c('.access-form__topbar', 'paddingTop'), '16px')
+        chk('topbar.paddingRight', c('.access-form__topbar', 'paddingRight'), '20px')
+        chk('topbar.paddingBottom', c('.access-form__topbar', 'paddingBottom'), '16px')
+        chk('topbar.paddingLeft', c('.access-form__topbar', 'paddingLeft'), '20px')
+        chk('topbar.bg', c('.access-form__topbar', 'backgroundColor'), 'rgba(255,255,255,1)')
+        chk('topbar.height', dim('.access-form__topbar', 'h'), DESIGN.topbarH)
+        chk('topbar.justify', c('.access-form__topbar', 'justifyContent'), 'space-between')
+        chk('topbar.alignItems', c('.access-form__topbar', 'alignItems'), 'center')
+        /* 设计 effects：drop_shadow(0, 1, 0, rgba(241,245,249,1)) → 1px 分隔线（**不占布局**，故栏高仍是 74） */
+        var topShadow = shadowOf('.access-form__topbar')
+        chk('topbar.divideOffsetY', topShadow.y, 1)
+        chk('topbar.divideBlur', topShadow.blur, 0)
+        chk('topbar.divideColor', topShadow.color, 'rgb(241,245,249)')
+
+        /* 顶部左侧组（设计 855de236：gap 12）与标题块（设计 d0d42948） */
+        var back = rect(doc, '[data-testid="back-btn"]')
+        var titleBlock = rect(doc, '.access-form__title-block')
+        chk('back.w', back && back.w, 36)
+        chk('back.h', back && back.h, 36)
+        chk('back.radius', c('[data-testid="back-btn"]', 'borderRadius'), '18px')
+        chk('back.bg', c('[data-testid="back-btn"]', 'backgroundColor'), 'rgba(241,245,249,1)')
+        chk('back.left', back && back.x, 20)
+        /* 返回按钮在 42 高的行里垂直居中 → top = 16 + (42-36)/2 = 19 */
+        chk('back.centerY', back ? Math.round(back.top + back.h / 2) : null, 16 + 42 / 2)
+        chk('titleBlock.leftGap', back && titleBlock ? titleBlock.x - back.right : null, 12)
+        chk('titleBlock.left', titleBlock && titleBlock.x, 68)
+        chk('pageTitle.text', textOf(doc, '[data-testid="page-title"]'), '接入凭证')
+        chk('pageTitle.fontSize', c('.access-form__title', 'fontSize'), '18px')
+        chk('pageTitle.fontWeight', c('.access-form__title', 'fontWeight'), '700')
+        chk('pageTitle.color', c('.access-form__title', 'color'), 'rgba(15,23,42,1)')
+        chk('pageTitle.lineHeight', c('.access-form__title', 'lineHeight'), '24px')
+        chk('pageTitle.h', dim('[data-testid="page-title"]', 'h'), 24)
+        chk('pageSubtitle.text', textOf(doc, '[data-testid="page-subtitle"]'), '填写客户信息并提交检测')
+        chk('pageSubtitle.fontSize', c('.access-form__subtitle', 'fontSize'), '12px')
+        chk('pageSubtitle.fontWeight', c('.access-form__subtitle', 'fontWeight'), '400')
+        chk('pageSubtitle.color', c('.access-form__subtitle', 'color'), 'rgba(148,163,184,1)')
+        chk('pageSubtitle.lineHeight', c('.access-form__subtitle', 'lineHeight'), '18px')
+        chk('pageSubtitle.h', dim('[data-testid="page-subtitle"]', 'h'), 18)
+        var scan = rect(doc, '[data-testid="scan-btn"]')
+        chk('scan.w', scan && scan.w, 36)
+        chk('scan.h', scan && scan.h, 36)
+        chk('scan.bg', c('[data-testid="scan-btn"]', 'backgroundColor'), 'rgba(241,245,249,1)')
+        chk('scan.right', scan && scan.right, 410)
+        chk('scan.centerY', scan ? Math.round(scan.top + scan.h / 2) : null, 16 + 42 / 2)
+
+        /* 图标占位盒按设计声明（D5：形状为 CSS 占位，盒子尺寸取设计值；行框 = fontSize×1.5）
+           设计 1f674160 返回 20x(18→27) · 7a694441 扫描 20x27 · 6af08bbd 上传圆 44 · f9f7f369 内 24x33
+           0126e565 文件 22x30 · 8b46f292 删除 20x27 · c29d94c6 提交 22x30 · 3f8c7ae8 脚注 16x21 */
+        chk('iconBack.w', dim('.glyph--back', 'w'), DESIGN.iconBack[0])
+        chk('iconBack.h', dim('.glyph--back', 'h'), DESIGN.iconBack[1])
+        chk('iconScan.w', dim('.glyph--scan', 'w'), DESIGN.iconScan[0])
+        chk('iconScan.h', dim('.glyph--scan', 'h'), DESIGN.iconScan[1])
+        /* 形状画在 ::before 里 → 颜色读伪元素（盒子上没有 border 了） */
+        chk('iconScan.color', win.getComputedStyle(doc.querySelector('.glyph--scan'), '::before').borderTopColor, 'rgba(100,116,139,1)')
+        chk('iconCloud.w', dim('.glyph--cloud', 'w'), DESIGN.iconCloud[0])
+        chk('iconCloud.h', dim('.glyph--cloud', 'h'), DESIGN.iconCloud[1])
+        chk('iconFile.w', dim('.glyph--file', 'w'), DESIGN.iconFile[0])
+        chk('iconFile.h', dim('.glyph--file', 'h'), DESIGN.iconFile[1])
+        chk('iconDel.w', dim('.file-row__del .glyph--close', 'w'), 18)
+        chk('iconDel.h', dim('.file-row__del .glyph--close', 'h'), 18)
+        /* 设计 8b46f292 的**图层盒**宽 20、行框 27（形状本身仍是 18 圆）→ 盒尺寸由 fileDel.* 两条覆盖 */
+        chk('iconSubmit.w', dim('.glyph--check-white', 'w'), DESIGN.iconSubmit[0])
+        chk('iconSubmit.h', dim('.glyph--check-white', 'h'), DESIGN.iconSubmit[1])
+        chk('iconNote.w', dim('.glyph--shield', 'w'), DESIGN.iconNote[0])
+        chk('iconNote.h', dim('.glyph--shield', 'h'), DESIGN.iconNote[1])
+
+        /* ── 内容区（设计 647d9c22：padding 16/20/16/20 · gap 16） ───── */
+        chk('content.paddingTop', c('.access-form__content', 'paddingTop'), '16px')
+        chk('content.paddingRight', c('.access-form__content', 'paddingRight'), '20px')
+        chk('content.paddingBottom', c('.access-form__content', 'paddingBottom'), '16px')
+        chk('content.paddingLeft', c('.access-form__content', 'paddingLeft'), '20px')
+        chk('content.gap', c('.access-form__content', 'gap'), '16px')
+        chk('content.flexDir', c('.access-form__content', 'flexDirection'), 'column')
+
+        /* ── 四张卡的绝对几何（设计 PNG 色带实测） ───────────────── */
+        var cards = rects(doc, '.card')
+        chk('card.count', cards.length, 4)
+        for (var ci = 0; ci < 4; ci++) {
+          chk('card' + ci + '.top', cards[ci] && cards[ci].top, DESIGN.cardTop[ci])
+          chk('card' + ci + '.h', cards[ci] && cards[ci].h, DESIGN.cardH[ci])
+        }
+        chk('card0.bottomTo1', cards[0] && cards[1] ? cards[1].top - cards[0].bottom : null, DESIGN.cardGap)
+        chk('card1.bottomTo2', cards[1] && cards[2] ? cards[2].top - cards[1].bottom : null, DESIGN.cardGap)
+        chk('card3.bottom', cards[3] && cards[3].bottom, DESIGN.cardTop[3] + DESIGN.cardH[3])
+        chk('card.left0', cards[0] && cards[0].x, DESIGN.cardX)
+        chk('card.right0', cards[0] && cards[0].right, DESIGN.cardRight)
+        chk('card.w', cards[0] && cards[0].w, 390)
+        chk('card.bg', c('.card', 'backgroundColor'), 'rgba(255,255,255,1)')
+        chk('card.radius', c('.card', 'borderRadius'), '16px')
+        chk('card.padding', c('.card', 'paddingTop'), '16px')
+        chk('card.paddingLeft', c('.card', 'paddingLeft'), '16px')
+        chk('card.flow', c('.card', 'flexDirection'), 'column')
+        /* 设计 effects：drop_shadow(0, 4, 16, rgba(15,23,42,0.06)) */
+        var cardShadow = shadowOf('.card')
+        chk('card.shadowY', cardShadow.y, 4)
+        chk('card.shadowBlur', cardShadow.blur, 16)
+        chk('card.shadowSpread', cardShadow.spread, 0)
+        chk('card.shadowColor', cardShadow.color, 'rgba(15,23,42,0.06)')
+        chk('cardGap.basic', c('.card--basic', 'gap'), '14px')
+        chk('cardGap.remark', c('.card--remark', 'gap'), '10px')
+
+        /* 卡片标题行（设计 1ef25264/9050d847/eb18a557/834152fa：竖条 5x16 r2 + gap 8 + 标题 14px Bold 行高 20） */
+        chk('head.count', all(doc, '.card__head').length, 4)
+        chk('head.h', dim('.card__head', 'h'), DESIGN.headRowH)
+        chk('head.gap', c('.card__head', 'gap'), '8px')
+        chk('head.alignItems', c('.card__head', 'alignItems'), 'center')
+        chk('headBetween.justify', c('.card__head--between', 'justifyContent'), 'space-between')
+        chk('bar.w', dim('.card__bar', 'w'), 5)
+        chk('bar.h', dim('.card__bar', 'h'), 16)
+        chk('bar.radius', c('.card__bar', 'borderRadius'), '2px')
+        chk('bar.bg', c('.card__bar', 'backgroundColor'), 'rgba(37,99,235,1)')
+        chkS('sectionTitles', texts(doc, '[data-testid="section-title"]').join('|'), '基本信息|检测类型|凭证资料|备注')
+        chk('title.fontSize', c('.card__title', 'fontSize'), '14px')
+        chk('title.fontWeight', c('.card__title', 'fontWeight'), '700')
+        chk('title.color', c('.card__title', 'color'), 'rgba(15,23,42,1)')
+        chk('title.lineHeight', c('.card__title', 'lineHeight'), '20px')
+        chk('title.h', dim('.card__title', 'h'), DESIGN.headRowH)
+        /* 竖条（5）→ gap 8 → 标题 */
+        chk('title.leftGap', (function () {
+          var b = rect(doc, '.card__bar'), t = rect(doc, '.card__title')
+          return b && t ? t.x - b.right : null
+        })(), 8)
+
+        /* ── 卡1 基本信息（设计 aa34f953 · gap 14） ──────────────── */
+        chk('field.count', all(doc, '.field').length, 4)
+        chk('field.gap', c('.field', 'gap'), '8px')
+        chk('field.flow', c('.field', 'flexDirection'), 'column')
+        chkS('fieldLabels', texts(doc, '[data-testid="field-label"]').join('|'), '客户名称|统一社会信用代码|联系人|联系电话')
+        chk('star.count', all(doc, '[data-testid="field-star"]').length, 2)
+        chk('labelRow.h', dim('.field__label-row', 'h'), DESIGN.labelRowH)
+        chk('labelRow.gap', c('.field__label-row', 'gap'), '4px')
+        chkS('star.text', textOf(doc, '[data-testid="field-star"]'), '*')
+        chk('star.color', c('.field__star', 'color'), 'rgba(239,68,68,1)')
+        chk('label.fontSize', c('.field__label', 'fontSize'), '12px')
+        chk('label.fontWeight', c('.field__label', 'fontWeight'), '600')
+        chk('label.color', c('.field__label', 'color'), 'rgba(51,65,85,1)')
+        chk('label.lineHeight', c('.field__label', 'lineHeight'), '18px')
+        var inputTops = rects(doc, '.input-box').map(function (r) { return r.top })
+        chkS('inputBox.tops', inputTops.join('|'), DESIGN.inputTop.join('|'))
+        chk('inputBox.count', inputTops.length, 4)
+        chk('inputBox.h', dim('.input-box', 'h'), DESIGN.inputH)
+        chk('inputBox.w', dim('.input-box', 'w'), 358)
+        chk('inputBox.left', dim('.input-box', 'x'), 36)
+        chk('inputBox.right', (function () { var r = rect(doc, '.input-box'); return r ? r.right : null })(), 394)
+        chk('inputBox.radius', c('.input-box', 'borderRadius'), '10px')
+        chk('inputBox.bg', c('.input-box', 'backgroundColor'), 'rgba(248,250,252,1)')
+        chk('inputBox.paddingLeft', c('.input-box', 'paddingLeft'), '12px')
+        chk('inputBox.alignItems', c('.input-box', 'alignItems'), 'center')
+        /* 设计 stroke = align center / thickness 0.8 rgb(238,242,247)（中心描边不占布局 → 用 box-shadow 表达，内容宽 358 不被压成 356） */
+        chkS('inputBox.strokeDeclared', declaredNorm('.input-box', 'boxShadow'), 'rgb(238,242,247)0px0px0px0.8px')
+        chk('inputBox.borderWidth', c('.input-box', 'borderTopWidth'), '0px')
+        chk('inputBox.strokeSpread', shadowOf('.input-box').spread, 0.8)
+        chk('inputBox.strokeShadowColor', shadowOf('.input-box').color, 'rgb(238,242,247)')
+        chk('inputBox.textLeft', (function () {
+          var el = doc.querySelector('.input-box__input')
+          return el ? Math.round(el.getBoundingClientRect().x) : null
+        })(), 48)
+        chk('input.fontSize', c('.input-box__input', 'fontSize'), '13px')
+        chk('input.lineHeight', c('.input-box__input', 'lineHeight'), '20px')
+        chk('input.color', c('.input-box__input', 'color'), 'rgba(15,23,42,1)')
+        /* uni-app H5 把 placeholder 渲染成 uni-input 内部的 .uni-input-placeholder 文本节点（不是 attribute）
+           → 直接断言渲染出来的占位文案（比读属性更接近用户所见） */
+        chkS('placeholders', texts(doc, '.input-box .input-box__placeholder').join('|'),
+          '请输入客户名称|请输入 18 位统一社会信用代码|请输入联系人姓名|请输入手机号')
+
+        /* ── 卡2 检测类型（设计 844ad0c2 · gap 12；chip 36550710/6120d5c8/7288694f） ── */
+        var chips = rects(doc, '[data-testid="type-chip"]')
+        chk('chip.count', chips.length, 3)
+        chk('chip.rowGap', c('.type-row', 'gap'), '8px')
+        chk('chip.h', chips[0] && chips[0].h, DESIGN.chipH)
+        chk('chip.radius', c('.type-chip', 'borderRadius'), '10px')
+        chk('chip.borderWidth', c('.type-chip', 'borderTopWidth'), '0px')
+        chk('chip.strokeSpread', shadowOf('.type-chip:not(.type-chip--checked)').spread, 0.8)
+        chk('chip.strokeColor', shadowOf('.type-chip:not(.type-chip--checked)').color, 'rgb(238,242,247)')
+        /* 设计 36550710（选中）只有 fills、**无 stroke** → 选中态不得有描边 */
+        chkS('chipChecked.boxShadow', c('.type-chip--checked', 'boxShadow'), 'none')
+        chk('chip.paddingY', c('.type-chip', 'paddingTop'), '8px')
+        chk('chip.paddingX', c('.type-chip', 'paddingLeft'), '14px')
+        for (var k = 0; k < 3; k++) {
+          chkNear('chip' + k + '.left', chips[k] && chips[k].x, DESIGN.chipX[k], 3)
+          chkNear('chip' + k + '.w', chips[k] && chips[k].w, DESIGN.chipW, 3)
+        }
+        chkS('chip.texts', texts(doc, '.type-chip__text').join('|'), '基础检测|深度检测|合规检测')
+        chk('chipText.fontSize', c('.type-chip__text', 'fontSize'), '12px')
+        chk('chipText.fontWeight', c('.type-chip__text', 'fontWeight'), '600')
+        chk('chipText.lineHeight', c('.type-chip__text', 'lineHeight'), '18px')
+        chk('chip0.bg', cAt('[data-testid="type-chip"]', 0, 'backgroundColor'), 'rgba(37,99,235,1)')
+        chk('chip1.bg', cAt('[data-testid="type-chip"]', 1, 'backgroundColor'), 'rgba(248,250,252,1)')
+        chk('chip0.textColor', cAt('.type-chip__text', 0, 'color'), 'rgba(255,255,255,1)')
+        chk('chip1.textColor', cAt('.type-chip__text', 1, 'color'), 'rgba(71,85,105,1)')
+        chkS('chip.checked', cAt('[data-testid="type-chip"]', 0, 'backgroundColor'), c('.type-chip--checked', 'backgroundColor'))
+        chkS('chip.checkedFlags', all(doc, '[data-testid="type-chip"]').map(function (e) { return e.getAttribute('data-checked') }).join('|'), 'true|false|false')
+
+        /* ── 卡3 凭证资料（设计 1a3b0d4d · gap 12；上传区 f9f7f369；文件行 0126e565） ── */
+        chk('tip.text', textOf(doc, '[data-testid="upload-tip"]'), '支持 jpg / png / pdf')
+        chk('tip.fontSize', c('.card__tip', 'fontSize'), '11px')
+        chk('tip.color', c('.card__tip', 'color'), 'rgba(148,163,184,1)')
+        chk('tip.lineHeight', c('.card__tip', 'lineHeight'), '16px')
+        var upload = rect(doc, '[data-testid="upload-box"]')
+        chk('upload.h', upload && upload.h, DESIGN.uploadH)
+        chk('upload.w', upload && upload.w, 358)
+        chk('upload.left', upload && upload.x, 36)
+        chk('upload.radius', c('[data-testid="upload-box"]', 'borderRadius'), '12px')
+        chk('upload.paddingTop', c('[data-testid="upload-box"]', 'paddingTop'), '24px')
+        chk('upload.gap', c('[data-testid="upload-box"]', 'gap'), '8px')
+        /* 设计 stroke = align center / thickness 0.8 rgb(203,213,225) 且 **实线**（PNG 行 655 连续 334px 无断点） */
+        chkS('upload.strokeDeclared', declaredNorm('.upload', 'boxShadow'), 'rgb(203,213,225)0px0px0px0.8px')
+        chk('upload.strokeSpread', shadowOf('[data-testid="upload-box"]').spread, 0.8)
+        chk('upload.strokeColor', shadowOf('[data-testid="upload-box"]').color, 'rgb(203,213,225)')
+        chk('upload.borderWidth', c('[data-testid="upload-box"]', 'borderTopWidth'), '0px')
+        var iconBox = rect(doc, '.upload__icon')
+        chk('uploadIcon.w', iconBox && iconBox.w, 44)
+        chk('uploadIcon.h', iconBox && iconBox.h, 44)
+        chk('uploadIcon.radius', c('.upload__icon', 'borderRadius'), '22px')
+        chk('uploadIcon.bg', c('.upload__icon', 'backgroundColor'), 'rgba(239,246,255,1)')
+        chk('uploadMain.text', textOf(doc, '[data-testid="upload-main"]'), '点击上传凭证文件')
+        chk('uploadMain.fontSize', c('.upload__main', 'fontSize'), '13px')
+        chk('uploadMain.fontWeight', c('.upload__main', 'fontWeight'), '600')
+        chk('uploadMain.lineHeight', c('.upload__main', 'lineHeight'), '20px')
+        chk('uploadMain.color', c('.upload__main', 'color'), 'rgba(51,65,85,1)')
+        chk('uploadLimit.text', textOf(doc, '[data-testid="upload-limit"]'), '单个文件不超过 10MB')
+        chk('uploadLimit.fontSize', c('.upload__limit', 'fontSize'), '11px')
+        chk('uploadLimit.lineHeight', c('.upload__limit', 'lineHeight'), '16px')
+        chk('uploadLimit.color', c('.upload__limit', 'color'), 'rgba(148,163,184,1)')
+
+        /* 已上传文件行（设计 0126e565：10/12 padding · gap 10 · r10 · 高 54） */
+        var fileRow = rect(doc, '[data-testid="file-row"]')
+        chk('fileRow.count', all(doc, '[data-testid="file-row"]').length, 1)
+        chk('fileRow.h', fileRow && fileRow.h, DESIGN.fileRowH)
+        chk('fileRow.w', fileRow && fileRow.w, 358)
+        chk('fileRow.left', fileRow && fileRow.x, 36)
+        chk('fileRow.radius', c('[data-testid="file-row"]', 'borderRadius'), '10px')
+        chk('fileRow.bg', c('[data-testid="file-row"]', 'backgroundColor'), 'rgba(248,250,252,1)')
+        chk('fileRow.paddingLeft', c('[data-testid="file-row"]', 'paddingLeft'), '12px')
+        chk('fileRow.paddingTop', c('[data-testid="file-row"]', 'paddingTop'), '10px')
+        chk('fileRow.gap', c('[data-testid="file-row"]', 'gap'), '10px')
+        chk('fileGlyph.left', dim('.glyph--file', 'x'), 48)
+        chkS('fileName.text', textOf(doc, '[data-testid="file-name"]'), '营业执照扫描件.pdf')
+        chk('fileName.fontSize', c('.file-row__name', 'fontSize'), '12px')
+        chk('fileName.fontWeight', c('.file-row__name', 'fontWeight'), '600')
+        chk('fileName.lineHeight', c('.file-row__name', 'lineHeight'), '18px')
+        chk('fileName.color', c('.file-row__name', 'color'), 'rgba(15,23,42,1)')
+        chk('fileName.left', dim('.file-row__info', 'x'), 80)
+        chkS('fileSize.text', textOf(doc, '[data-testid="file-size"]'), '2.4 MB')
+        chk('fileSize.fontSize', c('.file-row__size', 'fontSize'), '11px')
+        chk('fileSize.lineHeight', c('.file-row__size', 'lineHeight'), '16px')
+        chk('fileSize.color', c('.file-row__size', 'color'), 'rgba(148,163,184,1)')
+        chk('fileInfo.h', dim('.file-row__info', 'h'), 34)
+        var del = rect(doc, '[data-testid="file-del-0"]')
+        chk('fileDel.w', del && del.w, DESIGN.iconDel[0])
+        chk('fileDel.h', del && del.h, DESIGN.iconDel[1])
+        chk('fileDel.right', del && del.right, 382)
+
+        /* ── 卡4 备注（设计 0ff82e01 · gap 10；备注输入 0e5a46b9） ──── */
+        var remark = rect(doc, '.remark-box')
+        chk('remark.h', remark && remark.h, DESIGN.remarkH)
+        chk('remark.radius', c('.remark-box', 'borderRadius'), '10px')
+        chk('remark.bg', c('.remark-box', 'backgroundColor'), 'rgba(248,250,252,1)')
+        chk('remark.paddingTop', c('.remark-box', 'paddingTop'), '12px')
+        chk('remark.paddingBottom', c('.remark-box', 'paddingBottom'), '24px')
+        chk('remark.paddingLeft', c('.remark-box', 'paddingLeft'), '12px')
+        chkS('remark.strokeDeclared', declaredNorm('.remark-box', 'boxShadow'), 'rgb(238,242,247)0px0px0px0.8px')
+        chk('remark.strokeSpread', shadowOf('.remark-box').spread, 0.8)
+        chk('remark.strokeColor', shadowOf('.remark-box').color, 'rgb(238,242,247)')
+        chk('remarkText.h', dim('.remark-box__textarea', 'h'), DESIGN.remarkTextH)
+        chk('remarkText.fontSize', c('.remark-box__textarea', 'fontSize'), '13px')
+        chk('remarkText.lineHeight', c('.remark-box__textarea', 'lineHeight'), '20px')
+        chkS('remarkPlaceholder', textOf(doc, '.remark-box .input-box__placeholder'), '补充说明，例如客户所属行业、检测用途等')
+
+        /* ── 提交按钮（设计 c29d94c6：48 高 · r12 · gap 6 · 投影 0/6/16 rgba(37,99,235,0.28)） ── */
+        var submit = rect(doc, '[data-testid="submit-btn"]')
+        chk('submit.top', submit && submit.top, DESIGN.submitTop)
+        chk('submit.h', submit && submit.h, DESIGN.submitH)
+        chk('submit.w', submit && submit.w, 390)
+        chk('submit.left', submit && submit.x, 20)
+        chk('submit.radius', c('[data-testid="submit-btn"]', 'borderRadius'), '12px')
+        chk('submit.bg', c('[data-testid="submit-btn"]', 'backgroundColor'), 'rgba(37,99,235,1)')
+        chk('submit.gap', c('[data-testid="submit-btn"]', 'gap'), '6px')
+        chk('submit.justify', c('[data-testid="submit-btn"]', 'justifyContent'), 'center')
+        var subShadow = shadowOf('[data-testid="submit-btn"]')
+        chk('submit.shadowY', subShadow.y, 6)
+        chk('submit.shadowBlur', subShadow.blur, 16)
+        chk('submit.shadowColor', subShadow.color, 'rgba(37,99,235,0.28)')
+        chkS('submit.text', textOf(doc, '.submit-btn__text'), '提交接入')
+        chk('submitText.fontSize', c('.submit-btn__text', 'fontSize'), '15px')
+        chk('submitText.fontWeight', c('.submit-btn__text', 'fontWeight'), '600')
+        chk('submitText.color', c('.submit-btn__text', 'color'), 'rgba(255,255,255,1)')
+
+        /* ── 脚注（设计 3f8c7ae8：padding-bottom 4 · gap 6 · 图标 16x21 行框 → 高 25） ── */
+        var note = rect(doc, '.footnote')
+        chk('footnote.top', note && note.top, DESIGN.footnoteTop)
+        chk('footnote.h', note && note.h, DESIGN.footnoteH)
+        chk('footnote.paddingBottom', c('.footnote', 'paddingBottom'), '4px')
+        chk('footnote.gap', c('.footnote', 'gap'), '6px')
+        chk('footnote.justify', c('.footnote', 'justifyContent'), 'center')
+        chkS('footnote.text', textOf(doc, '[data-testid="submit-footnote"]'), '提交后系统将自动发起检测，预计 5 分钟内完成')
+        chk('footnoteText.fontSize', c('.footnote__text', 'fontSize'), '11px')
+        chk('footnoteText.lineHeight', c('.footnote__text', 'lineHeight'), '16px')
+        chk('footnoteText.color', c('.footnote__text', 'color'), 'rgba(148,163,184,1)')
+
+        return checks
+      }
+
+      /** 空态专用：文件行未出现时的相对几何（设计 1137 - 54 - 12 = 1071） */
+      function buildEmpty(doc, win) {
+        var checks = []
+        function chk(k, got, want) { var gg = norm(got), ww = norm(want); checks.push({ k: k, got: gg, want: ww, ok: gg === ww }) }
+        var cards = rects(doc, '.card')
+        chk('empty.fileRowCount', all(doc, '[data-testid="file-row"]').length, 0)
+        chk('empty.card2.h', cards[2] && cards[2].h, DESIGN.cardH3Empty)
+        chk('empty.card3.top', cards[3] && cards[3].top, DESIGN.cardTop[3] - (DESIGN.cardH[2] - DESIGN.cardH3Empty))
+        chk('empty.submit.top', (function () { var r = rect(doc, '[data-testid="submit-btn"]'); return r ? r.top : null })(), DESIGN.submitTop - (DESIGN.cardH[2] - DESIGN.cardH3Empty))
+        chk('empty.docHeight', Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight), DESIGN.pageHEmpty)
+        chk('empty.upload.h', (function () { var r = rect(doc, '[data-testid="upload-box"]'); return r ? r.h : null })(), DESIGN.uploadH)
+        return checks
+      }
+
+      function collect(doc, win, empty) {
         var over = []
-        doc.querySelectorAll('*').forEach(function (el) {
+        all(doc, '*').forEach(function (el) {
+          /* uni-app 内部测量元素（uni-resize-sensor / uni-picker 空 div）不算页面溢出（见 dev SKILL §5） */
+          if (el.closest && el.closest('uni-resize-sensor, uni-picker')) return
           var r = el.getBoundingClientRect()
-          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
-            over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), right: Math.round(r.right) })
+          if (r.width > 0 && (r.right > win.innerWidth + 0.5 || r.left < -0.5)) {
+            over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), left: Math.round(r.left), right: Math.round(r.right) })
           }
         })
-        function rect(sel) {
-          var el = doc.querySelector(sel)
-          if (!el) return null
-          var r = el.getBoundingClientRect()
-          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
-        }
-        function texts(sel) {
-          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return e.textContent.trim() })
-        }
-        function colors(sel) {
-          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return win.getComputedStyle(e).backgroundColor })
-        }
-        function styleOf(sel, prop) {
-          var el = doc.querySelector(sel)
-          return el ? win.getComputedStyle(el)[prop] : null
-        }
-        function attrOf(sel, attr) {
-          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return e.getAttribute(attr) })
-        }
         var text = (doc.body && doc.body.innerText) || ''
-        var need = [
-          '接入凭证', '填写客户信息并提交检测',
-          '基本信息', '客户名称', '统一社会信用代码', '联系人', '联系电话',
-          '检测类型', '基础检测', '深度检测', '合规检测',
-          '凭证资料', '支持 jpg / png / pdf', '点击上传凭证文件', '单个文件不超过 10MB',
-          '备注', '提交接入', '提交后系统将自动发起检测，预计 5 分钟内完成'
-        ]
-        var cards = Array.prototype.map.call(doc.querySelectorAll('.card'), function (e) {
-          var r = e.getBoundingClientRect()
-          return { top: Math.round(r.top), bottom: Math.round(r.bottom), h: Math.round(r.height), w: Math.round(r.width) }
-        })
-        var submit = rect('[data-testid="submit-btn"]')
+        var checks = empty ? buildEmpty(doc, win) : build(doc, win)
+        var fails = checks.filter(function (c) { return !c.ok })
+        var barRects = rects(doc, '.card')
         return {
+          state: empty ? 'empty' : 'filled',
           innerWidth: win.innerWidth,
           innerHeight: win.innerHeight,
           docScrollWidth: doc.documentElement.scrollWidth,
           docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
           overflowingCount: over.length,
-          overflowing: over.slice(0, 20),
-          missingTexts: need.filter(function (t) { return text.indexOf(t) === -1 }),
-          titleText: texts('[data-testid="page-title"]'),
-          subtitleText: texts('[data-testid="page-subtitle"]'),
-          sectionTitles: texts('[data-testid="section-title"]'),
-          fieldLabels: texts('[data-testid="field-label"]'),
-          starCount: doc.querySelectorAll('[data-testid="field-star"]').length,
-          starColor: styleOf('.field__star', 'color'),
-          nativePlaceholders: attrOf('input, textarea', 'placeholder'),
-          placeholderTexts: texts('.input-box__placeholder'),
-          inputBoxRect: rect('.input-box'),
-          inputBoxBg: styleOf('.input-box', 'backgroundColor'),
-          inputBoxBorder: styleOf('.input-box', 'borderTopColor'),
-          inputBoxRadius: styleOf('.input-box', 'borderTopLeftRadius'),
-          cardCount: cards.length,
-          cards: cards,
-          cardGap: styleOf('.card--basic', 'rowGap'),
-          cardShadow: styleOf('.card', 'boxShadow'),
-          cardRadius: styleOf('.card', 'borderTopLeftRadius'),
-          typeChips: texts('[data-testid="type-chip"]'),
-          chipChecked: attrOf('[data-testid="type-chip"]', 'data-checked'),
-          chipBg: colors('[data-testid="type-chip"]'),
-          chipTextColors: Array.prototype.map.call(doc.querySelectorAll('.type-chip__text'), function (e) { return win.getComputedStyle(e).color }),
-          chipRect: rect('[data-testid="type-chip"]'),
-          uploadTipText: texts('[data-testid="upload-tip"]'),
-          uploadMainText: texts('[data-testid="upload-main"]'),
-          uploadLimitText: texts('[data-testid="upload-limit"]'),
-          uploadRect: rect('[data-testid="upload-box"]'),
-          uploadBorderStyle: styleOf('[data-testid="upload-box"]', 'borderTopStyle'),
-          uploadBorderColor: styleOf('[data-testid="upload-box"]', 'borderTopColor'),
-          uploadIconRect: rect('.upload__icon'),
-          uploadIconBg: styleOf('.upload__icon', 'backgroundColor'),
-          fileRowCount: doc.querySelectorAll('[data-testid="file-row"]').length,
-          fileNameText: texts('[data-testid="file-name"]'),
-          fileSizeText: texts('[data-testid="file-size"]'),
-          fileRowRect: rect('[data-testid="file-row"]'),
-          fileDelRect: rect('[data-testid="file-del-0"]'),
-          remarkBoxRect: rect('.remark-box'),
-          remarkBoxBg: styleOf('.remark-box', 'backgroundColor'),
-          remarkBoxBorder: styleOf('.remark-box', 'borderTopColor'),
-          submitBtnText: texts('[data-testid="submit-btn"]'),
-          submitBtnRect: submit,
-          submitBtnBg: styleOf('[data-testid="submit-btn"]', 'backgroundColor'),
-          submitBtnShadow: styleOf('[data-testid="submit-btn"]', 'boxShadow'),
-          submitBelowDocTop: submit ? Math.round(submit.top) : null,
-          footnoteText: texts('[data-testid="submit-footnote"]'),
-          footnoteFontSize: styleOf('.footnote__text', 'fontSize'),
-          topbarRect: rect('.access-form__topbar'),
-          topbarBg: styleOf('.access-form__topbar', 'backgroundColor'),
-          pageBg: styleOf('.access-form', 'backgroundColor'),
-          contentPadding: styleOf('.access-form__content', 'padding'),
-          contentGap: styleOf('.access-form__content', 'rowGap'),
-          hasTabbar: doc.querySelectorAll('.tabbar').length,
-          glyphCount: doc.querySelectorAll('.glyph').length,
-          emojiInText: /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(text)
+          overflowing: over.slice(0, 10),
+          missingTexts: needText.filter(function (t) { return text.indexOf(t) === -1 }),
+          needTextCount: needText.length,
+          checkCount: checks.length,
+          checkFailCount: fails.length,
+          checkFails: fails,
+          checkKeys: checks.map(function (c) { return c.k }),
+          cardRects: barRects,
+          chipRects: rects(doc, '[data-testid="type-chip"]'),
+          inputBoxRects: rects(doc, '.input-box'),
+          uploadRect: rect(doc, '[data-testid="upload-box"]'),
+          fileRowRect: rect(doc, '[data-testid="file-row"]'),
+          remarkRect: rect(doc, '.remark-box'),
+          submitRect: rect(doc, '[data-testid="submit-btn"]'),
+          footnoteRect: rect(doc, '.footnote'),
+          topbarRect: rect(doc, '.access-form__topbar'),
+          headRects: rects(doc, '.card__head'),
+          fileRowCount: all(doc, '[data-testid="file-row"]').length,
+          fileNameText: textOf(doc, '[data-testid="file-name"]'),
+          fileSizeText: textOf(doc, '[data-testid="file-size"]'),
+          chipCheckedFlags: all(doc, '[data-testid="type-chip"]').map(function (e) { return e.getAttribute('data-checked') }).join('|'),
+          toast: toastText(doc),
+          hash: hashNow(),
+          /* 诊断用：placeholder 在 uni-app H5 里落在哪个节点上（读不到时看这里） */
+          placeholderDebug: all(doc, '.input-box__input').map(function (e) {
+            return { tag: e.tagName, attr: e.getAttribute('placeholder'), prop: e.placeholder || null, outer: String(e.outerHTML || '').slice(0, 160) }
+          }),
+          emojiInText: /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(text),
+          hasTabbar: all(doc, '.tabbar').length
         }
       }
 
-      var out = {}
-      function flush(label) {
-        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(out)
-        void label
+      /* ── 交互 / 相 ───────────────────────────────────────────── */
+      function toastText(doc) {
+        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
+        return el ? el.textContent.trim() : ''
+      }
+      function hashNow() { try { return String(f.contentWindow.location.hash) } catch (e) { return 'ERR:' + e.message } }
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        if (!SHOT_ONLY) document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
+      function clickIn(sel) {
+        var doc = f.contentDocument
+        var el = doc.querySelector(sel)
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+      /** uni-app H5 的 <input> 渲染成 <uni-input> 宿主 → 必须写内层原生 input 才触发 v-model */
+      function typeIn(hostSel, value) {
+        var host = f.contentDocument.querySelector(hostSel)
+        if (!host) return 'NOT_FOUND'
+        var el = host.tagName === 'INPUT' || host.tagName === 'TEXTAREA' ? host : host.querySelector('input, textarea')
+        if (!el) return 'NO_NATIVE_FIELD'
+        el.focus()
+        el.value = value
+        el.dispatchEvent(new Event('input', { bubbles: true }))
+        el.dispatchEvent(new Event('change', { bubbles: true }))
+        return 'TYPED'
+      }
+      function waitFor(fn, maxTries) {
+        return new Promise(function (resolve) {
+          var n = 0
+          function tick() {
+            n++
+            var ok = false
+            try { ok = !!fn() } catch (e) { ok = false }
+            if (ok) return resolve('READY(tries=' + n + ')')
+            if (n >= (maxTries || 40)) return resolve('TIMEOUT(tries=' + n + ')')
+            setTimeout(tick, 250)
+          }
+          tick()
+        })
       }
 
-      function phase1() {
-        try {
-          out.empty = collect(f.contentDocument, f.contentWindow)
-          var fr = f.getBoundingClientRect()
-          out.iframeRect = { x: Math.round(fr.x), y: Math.round(fr.y), w: Math.round(fr.width), h: Math.round(fr.height) }
-          out.outerInnerWidth = window.innerWidth
-        } catch (e) {
-          out.empty = { error: e.message }
+      async function main() {
+        /* phase1 空态：真初始化态（无文件行） */
+        await waitFor(function () { return all(f.contentDocument, '.card').length === 4 })
+        await sleep(400)
+        sink(1, collect(f.contentDocument, f.contentWindow, true))
+
+        /* 截图模式：把设计帧的**示例已填值**（客户名称 = 深圳市恒信科技有限公司）写进去，
+           让 430 宽截图可与设计 PNG 直接对看（设计帧该框本就是已填值；页面默认态是空表单） */
+        if (SHOT_ONLY) {
+          typeIn('[data-testid="company-input"]', '深圳市恒信科技有限公司')
+          await sleep(400)
         }
-        // 打桩 uni.chooseFile（H5 路径）并点击上传区 → 走真实 onPickFile 代码路径
+
+        /* 打桩 uni.chooseFile（H5 路径）并点击上传区 → 走真实 onPickFile 代码路径 */
+        var pick = 'NOT_RUN'
         try {
           var w = f.contentWindow
           w.uni.chooseFile = function (options) {
             options.success({ tempFiles: [{ path: '营业执照扫描件.pdf', name: '营业执照扫描件.pdf', size: 2516582 }] })
           }
-          var box = f.contentDocument.querySelector('[data-testid="upload-box"]')
-          box.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: w }))
+          pick = clickIn('[data-testid="upload-box"]')
         } catch (e) {
-          out.injectError = e.message
+          pick = 'ERR:' + e.message
         }
-        setTimeout(phase2, 2500)
+        await waitFor(function () { return all(f.contentDocument, '[data-testid="file-row"]').length === 1 })
+        await sleep(400)
+
+        /* phase2 已上传态（= 设计帧的状态）：全量设计期望值 checks */
+        var filled = collect(f.contentDocument, f.contentWindow, false)
+        filled.pickResult = pick
+        sink(2, filled)
+
+        /* 截图模式：停在「已上传态」= 设计帧的状态，不要继续跑到提交后跳页 */
+        if (SHOT_ONLY) return
+
+        /* phase3 交互（client-only，不得发请求）：chip 切换 + 空表单提交被校验门拦住 */
+        var chipBefore = all(f.contentDocument, '[data-testid="type-chip"]')[0].getAttribute('data-checked')
+        var tapChip = clickIn('[data-testid="type-chip"]')
+        await sleep(600)
+        var chipAfter = all(f.contentDocument, '[data-testid="type-chip"]').map(function (e) { return e.getAttribute('data-checked') }).join('|')
+        var tapSubmit = clickIn('[data-testid="submit-btn"]')
+        await sleep(900)
+        sink(3, {
+          scenario: 'guard',
+          chipBefore: chipBefore,
+          tapChip: tapChip,
+          chipFlagsAfter: chipAfter,
+          tapSubmit: tapSubmit,
+          toast: toastText(f.contentDocument),
+          hash: hashNow(),
+          fileRowStillThere: all(f.contentDocument, '[data-testid="file-row"]').length,
+          requestHint: 'chip 是 client-only、必填未过 → 本轮不应出现任何 /api 请求（见 requests-*.txt）'
+        })
+
+        if (SCENARIO === 'guard') return
+
+        /* phase4 补必填 → 提交（真实 POST /provider/qualifications）→ 跳「检测进行中」 */
+        var typed = [
+          typeIn('[data-testid="company-input"]', '深圳市恒信科技有限公司'),
+          typeIn('[data-testid="uscc-input"]', '91440300MA5F2K3X8B'),
+          typeIn('[data-testid="contact-input"]', '李明'),
+          typeIn('[data-testid="phone-input"]', '13800138000')
+        ].join('|')
+        await typeIn('[data-testid="remark-input"]', '客户所属行业：智能硬件')
+        await sleep(600)
+        var clickSubmit = clickIn('[data-testid="submit-btn"]')
+        await sleep(2500)
+        sink(4, {
+          scenario: 'submit-ok',
+          typed: typed,
+          clickSubmit: clickSubmit,
+          toast: toastText(f.contentDocument),
+          hash: hashNow(),
+          navigatedToDetecting: hashNow().indexOf('/pages/detecting/index') >= 0,
+          requestHint: '应有且仅有 1 条 POST /api/v1/provider/qualifications（mock 返回 detection_job_id=j1）'
+        })
       }
 
-      function phase2() {
-        try {
-          out.filled = collect(f.contentDocument, f.contentWindow)
-        } catch (e) {
-          out.filled = { error: e.message }
-        }
-        flush('done')
-      }
+      /* 轮询取数：iframe 的 load 事件常因监听注册过晚而错过 → 静默拿到 pending */
+      main()
     </script>
   </body>
 </html>

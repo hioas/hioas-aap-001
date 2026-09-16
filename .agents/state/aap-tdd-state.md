@@ -1,4 +1,4 @@
-STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D3 图例百分比统一口径本轮落地、D4/D5 的循环侧小改本轮落地；D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 2026-09-16 09:38（160 条 checks · 偏差 15→0）· 序号 4 已完成 2026-09-16 09:55（212 条 checks · 偏差 45→0 · 卡片边界像素级对齐设计 PNG）→ 下一轮开工做 序号 4-v1** ②队列 1 逐页复核（4~23 行的 checks 维度待补） ③队列 7（uni-picker 溢出口径） ④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。历史流水归档在 aap-notes-archive-2026-09-16.md，**不要每轮读**。
+STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 2026-09-16 09:38（160 条 checks · 偏差 15→0）· 序号 4 已完成 2026-09-16 09:55（212 条 · 45→0）· 序号 4-v1 已完成 2026-09-16 10:20（249 条 · 78→0，整页 1079→1137 与设计 PNG 逐带相同）→ 下一轮开工做 序号 5**（page-5-2 检测进行中 → `/pages/detecting/index`，载体页 `__measure-detecting.html`，mock `api`） ②队列 1 逐页复核（4~23 行的 checks 维度待补） ③队列 7（uni-picker 溢出口径） ④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。历史流水归档在 `aap-notes-archive-2026-09-16.md`，**不要每轮读**。
 LEASE: free until -
 
 # AAP TDD 推进 · 状态与目标（自驱动循环的单一事实来源）
@@ -128,6 +128,15 @@ LEASE: free until -
      证据：`evidence/review-序号4-checks-run{1,2}.json` · `red/green-序号4-checks-设计期望值*.txt` · `cmp-序号4-上一轮vs本轮.txt` ·
      报告 `evidence/review-序号4-checks-报告.md` · 430 宽截图 `evidence/20260916-0955-序号4-提交接入凭证-checks轮-h5-430宽.png`。
      设计帧重抓（09:59）sha256 逐字节相同（`29757a6f…`，无漂移）。**下一轮：序号 4-v1**（`__measure-form.html`，先补成 430 宽 iframe 体例）。
+   - ✅ **序号 4-v1 已完成 2026-09-16 10:20**：`__measure-form.html` 由旧体例重写为 430 宽 iframe + **249 条 checks**（phase1 空态 6 条、phase2 已上传态 249 条），
+     红基线（`git stash` 复现修复前代码、同一份探针两轮）**phase1 5/6 · phase2 78/249** → 绿 **0 / 0**，两轮独立测量 **33/33 字段全等**；
+     整页 `docScrollHeight` **1079 → 1137**（= 设计帧高；空态 1071），关键几何与设计 PNG 色带 **x=30/x=100 两列逐带相同**
+     （`cmp-序号4v1-设计PNGvs实现截图-色带.txt`）。修掉 9 类偏差：顶部栏 68→74、7 个图标盒按设计图层（20×27 / 24×33 / 22×30 / 16×21，形状入 `::before`）、
+     13 处字重（Bold→700 / SemiBold→600）、文本行高（11→16 / 12→18 / 13→20 / 14→20 / 18→24）、中心描边 0.8 由 border 改 box-shadow、
+     上传区 dashed→**实线**、备注框 52→56、文件行 48→54、删除盒 20×20→20×27。
+     交互相：guard 场景两轮 **0 行 /api 请求**；补必填后真实 POST `/provider/qualifications` → 跳 `/pages/detecting/index?jobId=j1`（mock fixture 本轮补齐，先红后绿）。
+     证据 `evidence/review-序号4v1-checks-报告.md` · `red/green-序号4v1-*` · `cmp-序号4v1-*` · 截图 `evidence/20260916-1022-序号4v1-…-h5-430宽.png`。
+     设计帧重抓 sha256 `bd249858…` **逐字节相同**（无漂移）。**下一轮：序号 5**（page-5-2「检测进行中」→ `/pages/detecting/index`，载体页 `__measure-detecting.html`）。
    - ⚠️ 本轮踩到并写进 §5 的坑：重抓前必须先确认 Calicat 编辑器在浏览器里打开（否则 22 帧全 FAIL `请先在浏览器中打开文件`）；
      `cmp-measure-runs.py` 对扁平文件也要传 phase 名（传 `flat`）；Chrome `--screenshot` 的中文路径会被 MSYS 弄坏 → 先写 ASCII 临时名再 `cp`；
      探针自身 4 处口径错误（`.card__hint` 只有 2 处不是 3 处、`.card__title-row` 首个是 APIKey 卡、`.card__field` 的 8px 是 padding 不是间距、`declared()` 不认 `[data-testid=...]`）。
@@ -254,6 +263,25 @@ LEASE: free until -
   ⑧**与上一轮留证对比**：公共字段 14 全等、53 处差异全部可解释（本轮的 7 类修复 + 探针字段集升级 + 脱敏值口径）→ `evidence/cmp-序号4-上一轮vs本轮.txt`；报告 `evidence/review-序号4-checks-报告.md`。
   ⑨**下轮开工第一件事**：队列 8 的 **序号 4-v1**（page-24「接入凭证-表单」→ `/pages/credential-submit/form`，载体页 `__measure-form.html` 需先补成 430 宽 iframe 体例）。
 
+- 2026-09-16 10:20（cron 轮 `aap-tdd-run-20260916-1005`）· **队列 8 第 3 页：序号 4-v1 载体页补「设计期望值 checks」维度（249 条 · 偏差 78→0）+ 整页高度对齐设计帧 1137**：
+  ①**改名**：未执行 —— 队列 0 已被决策 D6 挂起（`hioas-*` 是仓库名约定，勿再重试），按「人类决策 > prompt」处理。
+  ②**设计帧重抓（人工指令 C）**：先 `cmd /c start ""` 拉起编辑器，再重抓 page-24 → `design.json` sha256 **逐字节相同**（`bd249858…`）→ 画布当前状态 = 实现所依据的版本，无漂移。
+  ③**TDD 红→绿（本轮主交付）**：`__measure-form.html` 从 169 行旧体例重写为 430 宽 iframe + **249 条 checks**；
+     红基线用 `git stash` 复现修复前代码、同一份探针跑：**phase1 5/6 · phase2 78/249**（`evidence/red-序号4v1-checks-设计期望值偏差.txt`）→ 修后 **0 / 0**，
+     两轮独立测量 33/33 字段全等、不一致 0；`git stash pop` + 重建后再跑一轮（`…-final-run{1,2}`）仍 0 且与首轮逐字段相同 → 复位干净。
+  ④**期望值口径**：声明值（`design.tree.json` + `dump-node-fields.py` 全字段）+ fit_content 行真实行框（设计 PNG 色带）。
+     本轮定标：**文本行框 ≈ 字号度量行框**（18→24 · 14→20 · 13→20 · 12→18 · 11→16）、**图标字形行框 = 字号×1.5**；PNG 命令写进载体页头注释可复现。
+  ⑤**修掉 9 类偏差**（列表见台账序号 4-v1 行 / 报告 §4）：顶部栏 68→**74**、7 个图标盒按设计图层（形状入 `::before`）、13 处字重、文本行高、
+     中心描边 0.8 由 border 改 box-shadow（内容宽 356→358）、上传区 dashed→**实线**、备注框 52→**56**、文件行 48→**54**、删除盒 20×20→**20×27**。
+     连带卡高 370/93/259/111 → **388/98/274/118**、卡 top 84/470/580/855 → **90/494/608/898**、整页 1079 → **1137**。
+  ⑥**像素对账**：实现截图 vs 设计 PNG 在 x=30 / x=100 两列**逐带相同**（`cmp-序号4v1-设计PNGvs实现截图-色带.txt`）。
+  ⑦**交互相有牙齿**：guard 场景（chip 切换 + 空表单提交）两轮 serve 实收 **0 行** /api 请求；补必填后真实 `POST /provider/qualifications`（body 落 `requests-序号4v1-run1.txt`）→ 跳 `detecting?jobId=j1`。
+     mock 缺口先红后绿：`api/v1/provider/qualifications/post` 缺失时 serve.py 对未定义 POST 会回 **200 `{"id":"c1"}`（静默假成功）** → 补 fixture + `check-mock-fixtures.py` 新增该条（FAIL 1→0）。
+  ⑧**质量门**：`npm test` **1168/1168 ×2** · `type-check` exit 0 · `build:mp-weixin` exit 0（wxss 含本轮设计值）· `build:h5` DONE · `review-artifacts.py` 22/22。
+  ⑨**探针自纠 3 处**（写进 §5）：`declared()` 不认 `[data-testid]`、Chrome 对 box-shadow 声明值的序列化形如 `rgb(..) 0px 0px 0px .8px`、
+     **uni-app H5 的 placeholder 是 `.uni-input-placeholder` 文本节点而非 attribute**；另 chip 文字宽度改 ±3 容差断言。
+  ⑩**下轮开工第一件事**：队列 8 的 **序号 5**（page-5-2「检测进行中」→ `/pages/detecting/index`，载体页 `__measure-detecting.html`，mock 目录 `api`）。
+
 ## 5. 关键命令（照抄可用）
 
 - 项目根：`E:\workspaces\hioas\hioas-aap-001`（远端 https://github.com/hioas/hioas-aap-001）
@@ -298,3 +326,19 @@ LEASE: free until -
 - 平台坑：中文 Windows `netstat` 是 GBK；`taskkill` 要写 `/PID`（`//PID` 报「无效参数」）；
   bash 把中文塞 JSON body 会变 GBK（要发中文请求体用 Node/Python 的 utf-8）；
   `npm run build:h5` 会清空 `dist/build/h5` → `__measure*.html` 载体页每次 build 后要重新拷贝。
+
+### 5.1 本轮（10:20 轮）新增的工具与口径
+
+- **多相载体页看板**：`python .agents/state/show-phases.py <run.json> [out.txt] [--fails-only]`
+  —— 打印 acc（phase1..N）每相的 checkCount / checkFailCount / docH / 失败清单（`show-checks.py` 只认扁平单段文件）。
+- **红基线复现（不用手抄）**：`git stash push -- aap-client/src/pages/credential-submit/form.vue` → `npm run build:h5` → 跑 `review-measure.sh <tag>-red` → `show-phases.py … red-…txt` → `git stash pop` → 再 build:h5 复位（复位后补跑一轮 `-final` 证清白）。
+- **单发排查载体页**：`bash .agents/state/dbg-measure.sh <载体页> <mock目录> <端口>`（带 `--enable-logging=stderr` 抓 console 报错 + 打印 pre 内容；本轮靠它定位 `dim is not defined`）。
+- **内联脚本语法体检**：`python .agents/state/extract-inline-js.py <html> <out.js>` + `node --check <out.js>`。
+- **拍整页截图**：`bash .agents/state/shot-4v1.sh [文件名]`（模板：ASCII 临时名 → `cp` 到中文名；`--window-size=440,1240` 才能装下 1200 高 iframe 载体页；载体页需 `?shot=1` 且**截图模式停在设计帧状态**不跳页）。
+- **台账/清单查看**：`python .agents/state/show-inv-page.py <page-id>`（inventory.json 里某页的 layer_id/抓取文件）。
+- ⚠️ **iframe 取数高度要小于内容高**：页面 `min-height:100vh` → iframe 1200 高时 `docScrollHeight` 恒 = 1200，量不到整页高；取数用 900、截图用 1200（载体页里按 `SHOT_ONLY` 切换）。
+- ⚠️ **uni-app H5 的 placeholder 不是 attribute**：`<uni-input>` 内部渲染 `.uni-input-placeholder` 文本节点 → 断言渲染文案（`texts('.input-box .input-box__placeholder')`），别读 `getAttribute('placeholder')`。
+- ⚠️ **serve.py 对未定义的 POST/PUT/DELETE 会返回 200 `{"id":"c1"}`**（静默假成功，不是 404）→ 页面「提交成功」可能只是 mock 兜底；新增写接口的页面必须往 `check-mock-fixtures.py` 加一条并补 fixture。
+- ⚠️ **Chrome 对 box-shadow 声明值的序列化**：`rule.style.boxShadow` 读出来是 `rgb(238, 242, 247) 0px 0px 0px 0.8px`（颜色在前、逗号后带空格）→ 用 `declaredNorm()` 归一化空白再比；`declared()` 只认**类名选择器**，传 `[data-testid=...]` 永远取不到。
+- 口径（本轮定标，后续页面复用）：**fit_content 文本行框 ≈ 字号度量行框**（18→24 · 14→20 · 13→20 · 12→18 · 11→16）；
+  **图标字形行框 = 字号×1.5**（24→36 · 22→33 · 20→30 · 18→27 · 14→21）；形状画 `::before`、盒子按设计图层尺寸。

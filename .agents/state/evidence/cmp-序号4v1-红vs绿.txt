@@ -1,0 +1,92 @@
+=== 红（修复前）vs 绿（修复后）逐字段对比 phase2
+warning: Failed to set cwd to temp dir
+phase=phase2 · 全等字段 19 个
+全等: checkCount, checkKeys, chipCheckedFlags, docScrollWidth, emojiInText, fileNameText, fileRowCount, fileSizeText, hasTabbar, hash, innerHeight, innerWidth, missingTexts, needTextCount, overflowing, overflowingCount, pickResult, state, toast
+不一致 14 个:
+  cardRects:
+    A=[{"x": 20, "top": 84, "right": 410, "bottom": 454, "w": 390, "h": 370}, {"x": 20, "top": 470, "right": 410, "bottom": 564, "w": 390, "h": 93}, {"x": 20, "top": 580, "right": 410, "bottom": 839, "w": 3
+    B=[{"x": 20, "top": 90, "right": 410, "bottom": 478, "w": 390, "h": 388}, {"x": 20, "top": 494, "right": 410, "bottom": 592, "w": 390, "h": 98}, {"x": 20, "top": 608, "right": 410, "bottom": 882, "w": 3
+  checkFailCount:
+    A=78
+    B=0
+  checkFails:
+    A=[{"k": "page.docHeight", "got": "1079", "want": "1137", "ok": false}, {"k": "topbar.height", "got": "68", "want": "74", "ok": false}, {"k": "back.centerY", "got": "34", "want": "37", "ok": false}, {"k
+    B=[]
+  chipRects:
+    A=[{"x": 36, "top": 515, "right": 114, "bottom": 548, "w": 78, "h": 32}, {"x": 122, "top": 515, "right": 200, "bottom": 548, "w": 78, "h": 32}, {"x": 208, "top": 515, "right": 286, "bottom": 548, "w": 7
+    B=[{"x": 36, "top": 542, "right": 112, "bottom": 576, "w": 76, "h": 34}, {"x": 120, "top": 542, "right": 196, "bottom": 576, "w": 76, "h": 34}, {"x": 204, "top": 542, "right": 280, "bottom": 576, "w": 7
+  docScrollHeight:
+    A=1079
+    B=1137
+  fileRowRect:
+    A={"x": 36, "top": 775, "right": 394, "bottom": 823, "w": 358, "h": 48}
+    B={"x": 36, "top": 812, "right": 394, "bottom": 866, "w": 358, "h": 54}
+  footnoteRect:
+    A={"x": 20, "top": 1046, "right": 410, "bottom": 1063, "w": 390, "h": 17}
+    B={"x": 20, "top": 1096, "right": 410, "bottom": 1121, "w": 390, "h": 25}
+  headRects:
+    A=[{"x": 36, "top": 100, "right": 394, "bottom": 117, "w": 358, "h": 17}, {"x": 36, "top": 486, "right": 394, "bottom": 503, "w": 358, "h": 17}, {"x": 36, "top": 596, "right": 394, "bottom": 612, "w": 3
+    B=[{"x": 36, "top": 106, "right": 394, "bottom": 126, "w": 358, "h": 20}, {"x": 36, "top": 510, "right": 394, "bottom": 530, "w": 358, "h": 20}, {"x": 36, "top": 624, "right": 394, "bottom": 644, "w": 3
+  inputBoxRects:
+    A=[{"x": 36, "top": 153, "right": 394, "bottom": 197, "w": 358, "h": 44}, {"x": 36, "top": 234, "right": 394, "bottom": 278, "w": 358, "h": 44}, {"x": 36, "top": 314, "right": 394, "bottom": 358, "w": 3
+    B=[{"x": 36, "top": 166, "right": 394, "bottom": 210, "w": 358, "h": 44}, {"x": 36, "top": 250, "right": 394, "bottom": 294, "w": 358, "h": 44}, {"x": 36, "top": 334, "right": 394, "bottom": 378, "w": 3
+  placeholderDebug:
+    A=[{"tag": "UNI-INPUT", "attr": null, "prop": null, "outer": "&lt;uni-input data-v-5662c3f3=\"\" class=\"input-box__input\" data-testid=\"company-input\"&gt;&lt;div class=\"uni-input-wrapper\"&gt;&lt;di
+    B=[{"tag": "UNI-INPUT", "attr": null, "prop": null, "outer": "&lt;uni-input data-v-15bc325c=\"\" class=\"input-box__input\" data-testid=\"company-input\"&gt;&lt;div class=\"uni-input-wrapper\"&gt;&lt;di
+  remarkRect:
+    A={"x": 36, "top": 898, "right": 394, "bottom": 950, "w": 358, "h": 52}
+    B={"x": 36, "top": 944, "right": 394, "bottom": 1000, "w": 358, "h": 56}
+  submitRect:
+    A={"x": 20, "top": 982, "right": 410, "bottom": 1030, "w": 390, "h": 48}
+    B={"x": 20, "top": 1032, "right": 410, "bottom": 1080, "w": 390, "h": 48}
+  topbarRect:
+    A={"x": 0, "top": 0, "right": 430, "bottom": 68, "w": 430, "h": 68}
+    B={"x": 0, "top": 0, "right": 430, "bottom": 74, "w": 430, "h": 74}
+  uploadRect:
+    A={"x": 36, "top": 624, "right": 394, "bottom": 763, "w": 358, "h": 139}
+    B={"x": 36, "top": 656, "right": 394, "bottom": 800, "w": 358, "h": 144}
+
+=== phase1
+warning: Failed to set cwd to temp dir
+phase=phase1 · 全等字段 19 个
+全等: checkCount, checkKeys, chipCheckedFlags, docScrollWidth, emojiInText, fileNameText, fileRowCount, fileRowRect, fileSizeText, hasTabbar, hash, innerHeight, innerWidth, missingTexts, needTextCount, overflowing, overflowingCount, state, toast
+不一致 13 个:
+  cardRects:
+    A=[{"x": 20, "top": 84, "right": 410, "bottom": 454, "w": 390, "h": 370}, {"x": 20, "top": 470, "right": 410, "bottom": 564, "w": 390, "h": 93}, {"x": 20, "top": 580, "right": 410, "bottom": 779, "w": 3
+    B=[{"x": 20, "top": 90, "right": 410, "bottom": 478, "w": 390, "h": 388}, {"x": 20, "top": 494, "right": 410, "bottom": 592, "w": 390, "h": 98}, {"x": 20, "top": 608, "right": 410, "bottom": 816, "w": 3
+  checkFailCount:
+    A=5
+    B=0
+  checkFails:
+    A=[{"k": "empty.card2.h", "got": "200", "want": "208", "ok": false}, {"k": "empty.card3.top", "got": "795", "want": "832", "ok": false}, {"k": "empty.submit.top", "got": "922", "want": "966", "ok": fals
+    B=[]
+  chipRects:
+    A=[{"x": 36, "top": 515, "right": 114, "bottom": 548, "w": 78, "h": 32}, {"x": 122, "top": 515, "right": 200, "bottom": 548, "w": 78, "h": 32}, {"x": 208, "top": 515, "right": 286, "bottom": 548, "w": 7
+    B=[{"x": 36, "top": 542, "right": 112, "bottom": 576, "w": 76, "h": 34}, {"x": 120, "top": 542, "right": 196, "bottom": 576, "w": 76, "h": 34}, {"x": 204, "top": 542, "right": 280, "bottom": 576, "w": 7
+  docScrollHeight:
+    A=1019
+    B=1071
+  footnoteRect:
+    A={"x": 20, "top": 986, "right": 410, "bottom": 1003, "w": 390, "h": 17}
+    B={"x": 20, "top": 1030, "right": 410, "bottom": 1055, "w": 390, "h": 25}
+  headRects:
+    A=[{"x": 36, "top": 100, "right": 394, "bottom": 117, "w": 358, "h": 17}, {"x": 36, "top": 486, "right": 394, "bottom": 503, "w": 358, "h": 17}, {"x": 36, "top": 596, "right": 394, "bottom": 612, "w": 3
+    B=[{"x": 36, "top": 106, "right": 394, "bottom": 126, "w": 358, "h": 20}, {"x": 36, "top": 510, "right": 394, "bottom": 530, "w": 358, "h": 20}, {"x": 36, "top": 624, "right": 394, "bottom": 644, "w": 3
+  inputBoxRects:
+    A=[{"x": 36, "top": 153, "right": 394, "bottom": 197, "w": 358, "h": 44}, {"x": 36, "top": 234, "right": 394, "bottom": 278, "w": 358, "h": 44}, {"x": 36, "top": 314, "right": 394, "bottom": 358, "w": 3
+    B=[{"x": 36, "top": 166, "right": 394, "bottom": 210, "w": 358, "h": 44}, {"x": 36, "top": 250, "right": 394, "bottom": 294, "w": 358, "h": 44}, {"x": 36, "top": 334, "right": 394, "bottom": 378, "w": 3
+  placeholderDebug:
+    A=[{"tag": "UNI-INPUT", "attr": null, "prop": null, "outer": "&lt;uni-input data-v-5662c3f3=\"\" class=\"input-box__input\" data-testid=\"company-input\"&gt;&lt;div class=\"uni-input-wrapper\"&gt;&lt;di
+    B=[{"tag": "UNI-INPUT", "attr": null, "prop": null, "outer": "&lt;uni-input data-v-15bc325c=\"\" class=\"input-box__input\" data-testid=\"company-input\"&gt;&lt;div class=\"uni-input-wrapper\"&gt;&lt;di
+  remarkRect:
+    A={"x": 36, "top": 838, "right": 394, "bottom": 890, "w": 358, "h": 52}
+    B={"x": 36, "top": 878, "right": 394, "bottom": 934, "w": 358, "h": 56}
+  submitRect:
+    A={"x": 20, "top": 922, "right": 410, "bottom": 970, "w": 390, "h": 48}
+    B={"x": 20, "top": 966, "right": 410, "bottom": 1014, "w": 390, "h": 48}
+  topbarRect:
+    A={"x": 0, "top": 0, "right": 430, "bottom": 68, "w": 430, "h": 68}
+    B={"x": 0, "top": 0, "right": 430, "bottom": 74, "w": 430, "h": 74}
+  uploadRect:
+    A={"x": 36, "top": 624, "right": 394, "bottom": 763, "w": 358, "h": 139}
+    B={"x": 36, "top": 656, "right": 394, "bottom": 800, "w": 358, "h": 144}
