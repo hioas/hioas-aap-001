@@ -146,7 +146,7 @@ for t in bad:
     print('  偏差: 序号 %s（%s）设计 want=%s vs 实现行盒=%s' % (t[0], t[1], t[4], t[5]))
 if '--out' in sys.argv:
     p = os.path.join(REPO, sys.argv[sys.argv.index('--out') + 1])
-    lines = ['%-7s %-12s %-20s %-14s %-8s %-8s %s' % t for t in rows]
+    lines = ['%-7s %-12s %-20s %-14s %-8s %-8s %s%s' % t for t in rows]
     lines.append('核对 %d 页 · 行盒不一致 %d 页' % (len(rows), len(bad)))
     for t in bad:
         lines.append('  偏差: 序号 %s（%s）设计 want=%s vs 实现行盒=%s' % (t[0], t[1], t[4], t[5]))
