@@ -1,0 +1,58 @@
+序号 21 / page-21-2「【工作台与我的】我的 2」→ /pages/mine/index
+红基线：**最终版探针**（__measure-mine.html，230 条 checks，由 build-probe-21.py 从 __measure-messages.html 切骨架生成）
+        + **未修改的页面源码**（修复前），430 宽 iframe 无头 Chrome 实测两轮。
+命令：bash .agents/state/review-measure.sh 21-checks-red __measure-mine.html .agents/state/h5-measure/api-21 5341
+
+--- run1 ---
+  phase1  checkCount=230 checkFailCount=17 docH=990 docW=430 overflowing=0
+      FAIL head.avatarGlyph.w: got 16 want 33
+      FAIL head.avatarGlyph.h: got 16 want 45
+      FAIL head.typeText.lh: got 16 want 13.2
+      FAIL head.verifiedText.lh: got 16 want 13.2
+      FAIL wallet.title.lh: got 21 want 16.8
+      FAIL wallet.withdrawText.lh: got 20 want 15.6
+      FAIL entries.glyphBoxX: got '44,44,44,44,44' want '42,42,42,42,42'
+      FAIL entries.glyphBoxW: got '16,16,16,16,16' want '20,20,20,20,20'
+      FAIL entries.glyphBoxH: got '16,16,16,16,16' want '27,27,27,27,27'
+      FAIL entries.glyphBoxTops: got '372,429,486,543,599' want '366,423,480,537,593'
+      FAIL entries.glyphColors: got 'rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0)' want 'rgb(37, 99, 235) | rgb(22, 163, 74) | rgb(217, 119, 6) | rgb(124, 58, 237) | rgb(255, 149, 0)'
+      FAIL entries.label.lh: got 19.5 want 15.6
+      FAIL entries.value.lh: got 18 want 14.4
+      FAIL records.glyphColors: got 'rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0)' want 'rgb(148, 163, 184) | rgb(148, 163, 184) | rgb(148, 163, 184) | rgb(148, 163, 184)'
+      FAIL records.label.lh: got 19.5 want 15.6
+      FAIL records.pillText.lh: got 14 want 12
+      FAIL records.value.lh: got 18 want 14.4
+  serve 实收请求行 7 行："GET /api/v1/provider/profile HTTP/1.1" 200 - / "GET /api/v1/payments?page=&pageSize= HTTP/1.1" 200 - / "GET /api/v1/quotes?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/reports?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/credentials?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/contracts?page=1&pageSize=1&status=PENDING_SIGN HTTP/1.1" 200 - / "GET /api/v1/notifications?page=1&pageSize=1&unread=true HTTP/1.1" 200 -
+--- run2 ---
+  phase1  checkCount=230 checkFailCount=17 docH=990 docW=430 overflowing=0
+      FAIL head.avatarGlyph.w: got 16 want 33
+      FAIL head.avatarGlyph.h: got 16 want 45
+      FAIL head.typeText.lh: got 16 want 13.2
+      FAIL head.verifiedText.lh: got 16 want 13.2
+      FAIL wallet.title.lh: got 21 want 16.8
+      FAIL wallet.withdrawText.lh: got 20 want 15.6
+      FAIL entries.glyphBoxX: got '44,44,44,44,44' want '42,42,42,42,42'
+      FAIL entries.glyphBoxW: got '16,16,16,16,16' want '20,20,20,20,20'
+      FAIL entries.glyphBoxH: got '16,16,16,16,16' want '27,27,27,27,27'
+      FAIL entries.glyphBoxTops: got '372,429,486,543,599' want '366,423,480,537,593'
+      FAIL entries.glyphColors: got 'rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0)' want 'rgb(37, 99, 235) | rgb(22, 163, 74) | rgb(217, 119, 6) | rgb(124, 58, 237) | rgb(255, 149, 0)'
+      FAIL entries.label.lh: got 19.5 want 15.6
+      FAIL entries.value.lh: got 18 want 14.4
+      FAIL records.glyphColors: got 'rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0)' want 'rgb(148, 163, 184) | rgb(148, 163, 184) | rgb(148, 163, 184) | rgb(148, 163, 184)'
+      FAIL records.label.lh: got 19.5 want 15.6
+      FAIL records.pillText.lh: got 14 want 12
+      FAIL records.value.lh: got 18 want 14.4
+  serve 实收请求行 7 行："GET /api/v1/payments?page=&pageSize= HTTP/1.1" 200 - / "GET /api/v1/provider/profile HTTP/1.1" 200 - / "GET /api/v1/quotes?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/reports?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/contracts?page=1&pageSize=1&status=PENDING_SIGN HTTP/1.1" 200 - / "GET /api/v1/credentials?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/notifications?page=1&pageSize=1&unread=true HTTP/1.1" 200 -
+
+红基线分诊（哪条算页面缺陷、哪条是探针自身口径 bug）：
+  · 探针自身 2 类期望值 bug（本轮先踩到、写进探针后重跑红基线，红/绿同版探针）：
+      ① head.tags.top 我按「标签行」写 want 82，而实现里 .head__tags 本身就是带 padding-top 8 的容器
+         （设计是「容器 a3c59082 + 子行 标签行」两层）→ 改为断容器盒 74 + 新增 .head__type.top = 82
+      ② entries.values 我按 3 个值写 want，漏了第 5 行「我的消息」的「待阅读 3」（设计 row5 确实有值节点）
+         → 改为 4 个值 + 4 个右边 + 4 个色（第 4 个是设计字面量 #000000，逐值断言不统一）
+  · 其余 17 条全部是页面缺陷（本轮修掉的 10 类）：
+      头像字形盒 16×16（设计 85003c7e fs30 声明 w33 → 33×45）·
+      4 处文本行盒未按设计 lineHeight 1.2（类型标签/已认证 16→13.2 · 钱包标题 21→16.8 · 提现文案 20→15.6）·
+      行图标字形盒 16×16（设计声明 w20、行盒 fs18×1.5=27 → 20×27，x 44→42、top 逐行 +6）·
+      行标签行盒 19.5→15.6 · 行值行盒 18→14.4 · 胶囊文字行盒 14→12 ·
+      字形颜色读不到（形状原在元素自身 background，改为 ::before + currentColor 后由伪元素承载）

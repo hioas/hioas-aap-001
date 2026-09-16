@@ -1,0 +1,676 @@
+{
+ "iframeHeightForShot": 990,
+ "phase1": {
+  "checkCount": 230,
+  "checkFailCount": 17,
+  "checkFails": [
+   {
+    "k": "head.avatarGlyph.w",
+    "got": 16,
+    "want": 33
+   },
+   {
+    "k": "head.avatarGlyph.h",
+    "got": 16,
+    "want": 45
+   },
+   {
+    "k": "head.typeText.lh",
+    "got": 16,
+    "want": 13.2
+   },
+   {
+    "k": "head.verifiedText.lh",
+    "got": 16,
+    "want": 13.2
+   },
+   {
+    "k": "wallet.title.lh",
+    "got": 21,
+    "want": 16.8
+   },
+   {
+    "k": "wallet.withdrawText.lh",
+    "got": 20,
+    "want": 15.6
+   },
+   {
+    "k": "entries.glyphBoxX",
+    "got": "44,44,44,44,44",
+    "want": "42,42,42,42,42"
+   },
+   {
+    "k": "entries.glyphBoxW",
+    "got": "16,16,16,16,16",
+    "want": "20,20,20,20,20"
+   },
+   {
+    "k": "entries.glyphBoxH",
+    "got": "16,16,16,16,16",
+    "want": "27,27,27,27,27"
+   },
+   {
+    "k": "entries.glyphBoxTops",
+    "got": "372,429,486,543,599",
+    "want": "366,423,480,537,593"
+   },
+   {
+    "k": "entries.glyphColors",
+    "got": "rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0)",
+    "want": "rgb(37, 99, 235) | rgb(22, 163, 74) | rgb(217, 119, 6) | rgb(124, 58, 237) | rgb(255, 149, 0)"
+   },
+   {
+    "k": "entries.label.lh",
+    "got": 19.5,
+    "want": 15.6
+   },
+   {
+    "k": "entries.value.lh",
+    "got": 18,
+    "want": 14.4
+   },
+   {
+    "k": "records.glyphColors",
+    "got": "rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0) | rgba(0, 0, 0, 0)",
+    "want": "rgb(148, 163, 184) | rgb(148, 163, 184) | rgb(148, 163, 184) | rgb(148, 163, 184)"
+   },
+   {
+    "k": "records.label.lh",
+    "got": 19.5,
+    "want": 15.6
+   },
+   {
+    "k": "records.pillText.lh",
+    "got": 14,
+    "want": 12
+   },
+   {
+    "k": "records.value.lh",
+    "got": 18,
+    "want": 14.4
+   }
+  ],
+  "overflowingCount": 0,
+  "overflowing": [],
+  "missingTexts": [],
+  "designLiteralDiff": [
+   "设计帧第 5 行「我的消息」的值「待阅读 3」与 chevron 被推出卡片右边界（导出图墨迹 372..429，卡右界 414）→ 实现按零溢出右对齐（值右 368 / chevron 右 394），越界已登记（台账序号 21 备注⑩）",
+   "「待阅读 3」设计字色 rgba(0,0,0,1)（同卡其它值 #94A3B8）→ 实现照设计用 #000000（不擅自统一）",
+   "三金额文案由 GET /payments 的 available_balance/pending_settlement/total_settled 派生（18-API 无钱包汇总 schema，字段名为推断 → 台账序号 21 备注②）",
+   "各入口计数由各模块列表接口 pageSize=1 的 total 派生（无汇总接口）；缺字段渲染「—」",
+   "「已认证」由 GET /provider/profile 的 verified 布尔派生（PRD 零命中 → 台账备注⑤）",
+   "图标字形为 CSS 占位形状（D5）：形状 17×16 贴近设计 remixicon 墨迹 17×16；笔画细节非真实图标",
+   "卡片描边用 ring（盒外 1px）→ 可见描边行比设计帧外移 1px（卡内容盒 140/192、344/299、655/235 与设计逐值相等）",
+   "「提现」按钮按设计保留 → 点击只做占位提示（18-API 无提现端点，02-PRD 写线下结算 → missing-prd）",
+   "toast 文案（提现功能暂未开放 / 数据加载失败，请稍后重试）设计帧无稿 → 占位（missing-prd）"
+  ],
+  "docScrollWidth": 430,
+  "docScrollHeight": 990,
+  "innerWidth": 430,
+  "head": {
+   "x": 0,
+   "top": 0,
+   "right": 430,
+   "bottom": 128,
+   "w": 430,
+   "h": 128
+  },
+  "avatar": {
+   "x": 16,
+   "top": 48,
+   "right": 72,
+   "bottom": 104,
+   "w": 56,
+   "h": 56
+  },
+  "avatarGlyph": {
+   "x": 36,
+   "top": 68,
+   "right": 52,
+   "bottom": 84,
+   "w": 16,
+   "h": 16
+  },
+  "company": {
+   "x": 84,
+   "top": 48,
+   "right": 228,
+   "bottom": 74,
+   "w": 144,
+   "h": 26
+  },
+  "typePill": {
+   "x": 84,
+   "top": 82,
+   "right": 133,
+   "bottom": 104,
+   "w": 49,
+   "h": 22
+  },
+  "verifiedPill": {
+   "x": 142,
+   "top": 82,
+   "right": 204,
+   "bottom": 104,
+   "w": 62,
+   "h": 22
+  },
+  "dot": {
+   "x": 150,
+   "top": 90,
+   "right": 159,
+   "bottom": 97,
+   "w": 9,
+   "h": 7
+  },
+  "wallet": {
+   "x": 16,
+   "top": 140,
+   "right": 414,
+   "bottom": 332,
+   "w": 398,
+   "h": 192
+  },
+  "walletTitleRow": {
+   "x": 36,
+   "top": 160,
+   "right": 394,
+   "bottom": 190,
+   "w": 358,
+   "h": 30
+  },
+  "walletTitle": {
+   "x": 36,
+   "top": 165,
+   "right": 92,
+   "bottom": 186,
+   "w": 56,
+   "h": 21
+  },
+  "walletChev": {
+   "x": 372,
+   "top": 160,
+   "right": 394,
+   "bottom": 190,
+   "w": 22,
+   "h": 30
+  },
+  "balanceRow": {
+   "x": 36,
+   "top": 206,
+   "right": 394,
+   "bottom": 258,
+   "w": 358,
+   "h": 52
+  },
+  "balanceBlock": {
+   "x": 36,
+   "top": 206,
+   "right": 170,
+   "bottom": 258,
+   "w": 134,
+   "h": 52
+  },
+  "amount": {
+   "x": 36,
+   "top": 224,
+   "right": 170,
+   "bottom": 258,
+   "w": 134,
+   "h": 34
+  },
+  "withdraw": {
+   "x": 336,
+   "top": 213,
+   "right": 394,
+   "bottom": 251,
+   "w": 58,
+   "h": 38
+  },
+  "detailRow": {
+   "x": 36,
+   "top": 274,
+   "right": 394,
+   "bottom": 312,
+   "w": 358,
+   "h": 38
+  },
+  "dividers": [
+   {
+    "x": 214,
+    "top": 277,
+    "right": 216,
+    "bottom": 309,
+    "w": 2,
+    "h": 32
+   }
+  ],
+  "subs": [
+   {
+    "x": 102,
+    "top": 290,
+    "right": 148,
+    "bottom": 312,
+    "w": 46,
+    "h": 22
+   },
+   {
+    "x": 278,
+    "top": 290,
+    "right": 332,
+    "bottom": 312,
+    "w": 54,
+    "h": 22
+   }
+  ],
+  "entries": {
+   "x": 16,
+   "top": 344,
+   "right": 414,
+   "bottom": 643,
+   "w": 398,
+   "h": 299
+  },
+  "entryRows": [
+   {
+    "x": 36,
+    "top": 352,
+    "right": 394,
+    "bottom": 408,
+    "w": 358,
+    "h": 56
+   },
+   {
+    "x": 36,
+    "top": 409,
+    "right": 394,
+    "bottom": 465,
+    "w": 358,
+    "h": 56
+   },
+   {
+    "x": 36,
+    "top": 466,
+    "right": 394,
+    "bottom": 522,
+    "w": 358,
+    "h": 56
+   },
+   {
+    "x": 36,
+    "top": 523,
+    "right": 394,
+    "bottom": 579,
+    "w": 358,
+    "h": 56
+   },
+   {
+    "x": 36,
+    "top": 579,
+    "right": 394,
+    "bottom": 635,
+    "w": 358,
+    "h": 56
+   }
+  ],
+  "entryIcons": [
+   {
+    "x": 36,
+    "top": 364,
+    "right": 68,
+    "bottom": 396,
+    "w": 32,
+    "h": 32
+   },
+   {
+    "x": 36,
+    "top": 421,
+    "right": 68,
+    "bottom": 453,
+    "w": 32,
+    "h": 32
+   },
+   {
+    "x": 36,
+    "top": 478,
+    "right": 68,
+    "bottom": 510,
+    "w": 32,
+    "h": 32
+   },
+   {
+    "x": 36,
+    "top": 535,
+    "right": 68,
+    "bottom": 567,
+    "w": 32,
+    "h": 32
+   },
+   {
+    "x": 36,
+    "top": 591,
+    "right": 68,
+    "bottom": 623,
+    "w": 32,
+    "h": 32
+   }
+  ],
+  "entryGlyphs": [
+   {
+    "x": 44,
+    "top": 372,
+    "right": 60,
+    "bottom": 388,
+    "w": 16,
+    "h": 16
+   },
+   {
+    "x": 44,
+    "top": 429,
+    "right": 60,
+    "bottom": 445,
+    "w": 16,
+    "h": 16
+   },
+   {
+    "x": 44,
+    "top": 486,
+    "right": 60,
+    "bottom": 502,
+    "w": 16,
+    "h": 16
+   },
+   {
+    "x": 44,
+    "top": 543,
+    "right": 60,
+    "bottom": 559,
+    "w": 16,
+    "h": 16
+   },
+   {
+    "x": 44,
+    "top": 599,
+    "right": 60,
+    "bottom": 615,
+    "w": 16,
+    "h": 16
+   }
+  ],
+  "entryValues": [
+   {
+    "x": 347,
+    "top": 371,
+    "right": 368,
+    "bottom": 389,
+    "w": 21,
+    "h": 18
+   },
+   {
+    "x": 347,
+    "top": 428,
+    "right": 368,
+    "bottom": 446,
+    "w": 21,
+    "h": 18
+   },
+   {
+    "x": 323,
+    "top": 485,
+    "right": 368,
+    "bottom": 503,
+    "w": 45,
+    "h": 18
+   },
+   {
+    "x": 323,
+    "top": 598,
+    "right": 368,
+    "bottom": 616,
+    "w": 45,
+    "h": 18
+   }
+  ],
+  "entryChevs": [
+   {
+    "x": 368,
+    "top": 365,
+    "right": 394,
+    "bottom": 395,
+    "w": 26,
+    "h": 30
+   },
+   {
+    "x": 368,
+    "top": 422,
+    "right": 394,
+    "bottom": 452,
+    "w": 26,
+    "h": 30
+   },
+   {
+    "x": 368,
+    "top": 479,
+    "right": 394,
+    "bottom": 509,
+    "w": 26,
+    "h": 30
+   },
+   {
+    "x": 368,
+    "top": 536,
+    "right": 394,
+    "bottom": 566,
+    "w": 26,
+    "h": 30
+   },
+   {
+    "x": 368,
+    "top": 592,
+    "right": 394,
+    "bottom": 622,
+    "w": 26,
+    "h": 30
+   }
+  ],
+  "records": {
+   "x": 16,
+   "top": 655,
+   "right": 414,
+   "bottom": 890,
+   "w": 398,
+   "h": 235
+  },
+  "recordRows": [
+   {
+    "x": 36,
+    "top": 663,
+    "right": 394,
+    "bottom": 717,
+    "w": 358,
+    "h": 54
+   },
+   {
+    "x": 36,
+    "top": 718,
+    "right": 394,
+    "bottom": 772,
+    "w": 358,
+    "h": 54
+   },
+   {
+    "x": 36,
+    "top": 773,
+    "right": 394,
+    "bottom": 827,
+    "w": 358,
+    "h": 54
+   },
+   {
+    "x": 36,
+    "top": 828,
+    "right": 394,
+    "bottom": 882,
+    "w": 358,
+    "h": 54
+   }
+  ],
+  "recordGlyphs": [
+   {
+    "x": 36,
+    "top": 677,
+    "right": 56,
+    "bottom": 704,
+    "w": 20,
+    "h": 27
+   },
+   {
+    "x": 36,
+    "top": 732,
+    "right": 56,
+    "bottom": 759,
+    "w": 20,
+    "h": 27
+   },
+   {
+    "x": 36,
+    "top": 787,
+    "right": 56,
+    "bottom": 814,
+    "w": 20,
+    "h": 27
+   },
+   {
+    "x": 36,
+    "top": 842,
+    "right": 56,
+    "bottom": 869,
+    "w": 20,
+    "h": 27
+   }
+  ],
+  "recordValues": [
+   {
+    "x": 347,
+    "top": 736,
+    "right": 368,
+    "bottom": 754,
+    "w": 21,
+    "h": 18
+   },
+   {
+    "x": 332,
+    "top": 791,
+    "right": 368,
+    "bottom": 809,
+    "w": 36,
+    "h": 18
+   }
+  ],
+  "pill": {
+   "x": 326,
+   "top": 680,
+   "right": 368,
+   "bottom": 700,
+   "w": 43,
+   "h": 20
+  },
+  "tabbar": {
+   "x": 0,
+   "top": 906,
+   "right": 430,
+   "bottom": 990,
+   "w": 430,
+   "h": 84
+  },
+  "tabItems": [
+   {
+    "x": 0,
+    "top": 914,
+    "right": 104,
+    "bottom": 966,
+    "w": 104,
+    "h": 52
+   },
+   {
+    "x": 109,
+    "top": 914,
+    "right": 213,
+    "bottom": 966,
+    "w": 104,
+    "h": 52
+   },
+   {
+    "x": 217,
+    "top": 914,
+    "right": 321,
+    "bottom": 966,
+    "w": 104,
+    "h": 52
+   },
+   {
+    "x": 326,
+    "top": 914,
+    "right": 430,
+    "bottom": 966,
+    "w": 104,
+    "h": 52
+   }
+  ],
+  "texts": {
+   "company": "云智科技有限公司",
+   "type": "渠道商",
+   "verified": "已认证",
+   "walletTitle": "我的钱包",
+   "labels": [
+    "可提现余额",
+    "待结算",
+    "累计结算"
+   ],
+   "amount": "¥12,860.00",
+   "subs": [
+    "¥3,240",
+    "¥86,420"
+   ],
+   "withdraw": "提现",
+   "entryLabels": [
+    "我的报价单",
+    "检测报告",
+    "我的合同",
+    "用量与对账",
+    "我的消息"
+   ],
+   "entryValues": [
+    "3 个",
+    "2 份",
+    "待签署 1",
+    "待阅读 3"
+   ],
+   "recordLabels": [
+    "主体档案",
+    "接入凭证",
+    "结算账户",
+    "账号与设置"
+   ],
+   "recordValues": [
+    "3 条",
+    "已绑定"
+   ],
+   "pillText": "100%",
+   "tabs": [
+    "工作台",
+    "报告",
+    "报价",
+    "我的"
+   ]
+  },
+  "counts": {
+   "cards": 3,
+   "entryRows": 5,
+   "recordRows": 4,
+   "pills": 1,
+   "inputs": 0
+  },
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36"
+ }
+}

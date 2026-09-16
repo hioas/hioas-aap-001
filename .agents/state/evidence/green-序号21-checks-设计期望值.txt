@@ -1,0 +1,86 @@
+序号 21 / page-21-2「【工作台与我的】我的 2」→ /pages/mine/index
+绿基线：修复后 + 同一份最终版探针，430 宽 iframe 无头 Chrome 实测两轮。
+命令：bash .agents/state/review-measure.sh 21-checks __measure-mine.html .agents/state/h5-measure/api-21 5342
+
+--- run1 ---
+  phase1  checkCount=230 checkFailCount=0 docH=990 docW=430 overflowing=0
+  serve 实收请求行 7 行："GET /api/v1/provider/profile HTTP/1.1" 200 - / "GET /api/v1/payments?page=&pageSize= HTTP/1.1" 200 - / "GET /api/v1/credentials?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/reports?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/quotes?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/contracts?page=1&pageSize=1&status=PENDING_SIGN HTTP/1.1" 200 - / "GET /api/v1/notifications?page=1&pageSize=1&unread=true HTTP/1.1" 200 -
+--- run2 ---
+  phase1  checkCount=230 checkFailCount=0 docH=990 docW=430 overflowing=0
+  serve 实收请求行 7 行："GET /api/v1/provider/profile HTTP/1.1" 200 - / "GET /api/v1/payments?page=&pageSize= HTTP/1.1" 200 - / "GET /api/v1/quotes?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/reports?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/contracts?page=1&pageSize=1&status=PENDING_SIGN HTTP/1.1" 200 - / "GET /api/v1/credentials?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/notifications?page=1&pageSize=1&unread=true HTTP/1.1" 200 -
+
+两次独立测量一致性（cmp-measure-runs.py phase1）：
+warning: Failed to set cwd to temp dir
+phase=phase1 · 全等字段 43 个
+全等: amount, avatar, avatarGlyph, balanceBlock, balanceRow, checkCount, checkFailCount, checkFails, company, counts, designLiteralDiff, detailRow, dividers, docScrollHeight, docScrollWidth, dot, entries, entryChevs, entryGlyphs, entryIcons, entryRows, entryValues, head, innerWidth, missingTexts, overflowing, overflowingCount, pill, recordGlyphs, recordRows, recordValues, records, subs, tabItems, tabbar, texts, typePill, verifiedPill, wallet, walletChev, walletTitle, walletTitleRow, withdraw
+不一致 0 个:
+
+交互相出口（每个场景各两轮；requests 用「集合相等」比对 —— 首屏 7 个 GET 是 Promise.all 并发，
+落盘顺序会抖动，集合相同即证明请求集合一致，逐字节比对只在确定性场景（rows-quotes）成立）：
+
+--- 21-withdraw：点「提现」= client-only 占位（missing-prd：18-API 无提现端点） ---
+  phase1  checkCount=230 checkFailCount=0 docH=990 docW=430 overflowing=0
+  phase2  checkCount=None checkFailCount=None docH=None docW=None overflowing=None
+      scenario=withdraw payload={"scenario": "withdraw", "clicked": "CLICKED", "toast": "提现功能暂未开放", "withdrawBg": "rgb(37, 99, 235)", "hash": "#/pages/mine/index", "rowCount": 5}
+  phase1  checkCount=230 checkFailCount=0 docH=990 docW=430 overflowing=0
+  phase2  checkCount=None checkFailCount=None docH=None docW=None overflowing=None
+      scenario=withdraw payload={"scenario": "withdraw", "clicked": "CLICKED", "toast": "提现功能暂未开放", "withdrawBg": "rgb(37, 99, 235)", "hash": "#/pages/mine/index", "rowCount": 5}
+  requests 集合相等=True（run1 7 行 / run2 7 行）
+  run1 请求行："GET /api/v1/provider/profile HTTP/1.1" 200 - / "GET /api/v1/payments?page=&pageSize= HTTP/1.1" 200 - / "GET /api/v1/quotes?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/reports?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/contracts?page=1&pageSize=1&status=PENDING_SIGN HTTP/1.1" 200 - / "GET /api/v1/credentials?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/notifications?page=1&pageSize=1&unread=true HTTP/1.1" 200 -
+
+--- 21-rows-quotes：点「我的报价单」→ /pages/quotes/index ---
+  phase1  checkCount=230 checkFailCount=0 docH=990 docW=430 overflowing=0
+  phase2  checkCount=None checkFailCount=None docH=None docW=None overflowing=None
+      scenario=rows-quotes payload={"scenario": "rows-quotes", "clicked": "CLICKED", "hash": "#/pages/quotes/index", "landingText": "报价单"}
+  phase1  checkCount=230 checkFailCount=0 docH=990 docW=430 overflowing=0
+  phase2  checkCount=None checkFailCount=None docH=None docW=None overflowing=None
+      scenario=rows-quotes payload={"scenario": "rows-quotes", "clicked": "CLICKED", "hash": "#/pages/quotes/index", "landingText": "报价单"}
+  requests 集合相等=True（run1 8 行 / run2 8 行）
+  run1 请求行："GET /api/v1/provider/profile HTTP/1.1" 200 - / "GET /api/v1/payments?page=&pageSize= HTTP/1.1" 200 - / "GET /api/v1/quotes?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/reports?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/contracts?page=1&pageSize=1&status=PENDING_SIGN HTTP/1.1" 200 - / "GET /api/v1/credentials?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/notifications?page=1&pageSize=1&unread=true HTTP/1.1" 200 - / "GET /api/v1/quotes?page=1&pageSize=10 HTTP/1.1" 200 -
+
+--- 21-usage：点「用量与对账」→ /pages/usage/index（序号 22 已实现，旧台账「未实现 → 降级」口径作废） ---
+  phase1  checkCount=230 checkFailCount=0 docH=990 docW=430 overflowing=0
+  phase2  checkCount=None checkFailCount=None docH=None docW=None overflowing=None
+      scenario=usage payload={"scenario": "usage", "clicked": "CLICKED", "hash": "#/pages/usage/index", "landingText": "用量概览"}
+  phase1  checkCount=230 checkFailCount=0 docH=990 docW=430 overflowing=0
+  phase2  checkCount=None checkFailCount=None docH=None docW=None overflowing=None
+      scenario=usage payload={"scenario": "usage", "clicked": "CLICKED", "hash": "#/pages/usage/index", "landingText": "用量概览"}
+  requests 集合相等=True（run1 8 行 / run2 8 行）
+  run1 请求行："GET /api/v1/provider/profile HTTP/1.1" 200 - / "GET /api/v1/quotes?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/payments?page=&pageSize= HTTP/1.1" 200 - / "GET /api/v1/reports?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/contracts?page=1&pageSize=1&status=PENDING_SIGN HTTP/1.1" 200 - / "GET /api/v1/credentials?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/notifications?page=1&pageSize=1&unread=true HTTP/1.1" 200 - / "GET /api/v1/usage/summary?month=2026-09 HTTP/1.1" 200 -
+
+--- 21-settings：点「账号与设置」→ /pages/settings/index（序号 23 已实现） ---
+  phase1  checkCount=230 checkFailCount=0 docH=990 docW=430 overflowing=0
+  phase2  checkCount=None checkFailCount=None docH=None docW=None overflowing=None
+      scenario=settings payload={"scenario": "settings", "clicked": "CLICKED", "hash": "#/pages/settings/index", "landingText": "账号与设置"}
+  phase1  checkCount=230 checkFailCount=0 docH=990 docW=430 overflowing=0
+  phase2  checkCount=None checkFailCount=None docH=None docW=None overflowing=None
+      scenario=settings payload={"scenario": "settings", "clicked": "CLICKED", "hash": "#/pages/settings/index", "landingText": "账号与设置"}
+  requests 集合相等=True（run1 8 行 / run2 8 行）
+  run1 请求行："GET /api/v1/payments?page=&pageSize= HTTP/1.1" 200 - / "GET /api/v1/provider/profile HTTP/1.1" 200 - / "GET /api/v1/quotes?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/reports?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/contracts?page=1&pageSize=1&status=PENDING_SIGN HTTP/1.1" 200 - / "GET /api/v1/credentials?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/notifications?page=1&pageSize=1&unread=true HTTP/1.1" 200 - / "GET /api/v1/auth/me HTTP/1.1" 200 -
+
+--- 21-tab-workbench：TabBar「工作台」→ /pages/workbench/index ---
+  phase1  checkCount=230 checkFailCount=0 docH=990 docW=430 overflowing=0
+  phase2  checkCount=None checkFailCount=None docH=None docW=None overflowing=None
+      scenario=tab-workbench payload={"scenario": "tab-workbench", "clicked": "CLICKED", "hash": "#/pages/workbench/index", "landingText": "数据台 · 2026-09-16云智科技有限公司本月词元用量↑12.5%总词元3.86B输入词元42% · 1.74B输出词元28% · 1.16B缓存命中14% · 0.58B图片4% · 0.15B音频6% · 0.23B视频6% · 0.23B调用请求1.24MToken3.86B缓存命中率15%模型调用量按收入贡献排序1gpt-4o-mini¥54,2001.24M · 42%2claude-3-5-sonnet¥39,8000.86M · 31%3gpt-4o¥26,4000.42M · 21%4其他模型¥8,2400.08M · 6%合计 ¥128,640 · 4 个模型明细评测报价合同明细待处理全部合同待签署（06-20 前）1 条报价单被驳回工作台报告报价我的"}
+  phase1  checkCount=230 checkFailCount=0 docH=990 docW=430 overflowing=0
+  phase2  checkCount=None checkFailCount=None docH=None docW=None overflowing=None
+      scenario=tab-workbench payload={"scenario": "tab-workbench", "clicked": "CLICKED", "hash": "#/pages/workbench/index", "landingText": "数据台 · 2026-09-16云智科技有限公司本月词元用量↑12.5%总词元3.86B输入词元42% · 1.74B输出词元28% · 1.16B缓存命中14% · 0.58B图片4% · 0.15B音频6% · 0.23B视频6% · 0.23B调用请求1.24MToken3.86B缓存命中率15%模型调用量按收入贡献排序1gpt-4o-mini¥54,2001.24M · 42%2claude-3-5-sonnet¥39,8000.86M · 31%3gpt-4o¥26,4000.42M · 21%4其他模型¥8,2400.08M · 6%合计 ¥128,640 · 4 个模型明细评测报价合同明细待处理全部合同待签署（06-20 前）1 条报价单被驳回工作台报告报价我的"}
+  requests 集合相等=True（run1 9 行 / run2 9 行）
+  run1 请求行："GET /api/v1/provider/profile HTTP/1.1" 200 - / "GET /api/v1/payments?page=&pageSize= HTTP/1.1" 200 - / "GET /api/v1/quotes?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/reports?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/contracts?page=1&pageSize=1&status=PENDING_SIGN HTTP/1.1" 200 - / "GET /api/v1/credentials?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/notifications?page=1&pageSize=1&unread=true HTTP/1.1" 200 - / "GET /api/v1/provider/profile HTTP/1.1" 200 - / "GET /api/v1/usage/summary HTTP/1.1" 200 -
+
+--- 21-tab-mine：TabBar「我的」= 当前模块 → hash 不变 ---
+  phase1  checkCount=230 checkFailCount=0 docH=990 docW=430 overflowing=0
+  phase2  checkCount=None checkFailCount=None docH=None docW=None overflowing=None
+      scenario=tab-mine payload={"scenario": "tab-mine", "clicked": "CLICKED", "hash": "#/pages/mine/index", "rowCount": 5}
+  phase1  checkCount=230 checkFailCount=0 docH=990 docW=430 overflowing=0
+  phase2  checkCount=None checkFailCount=None docH=None docW=None overflowing=None
+      scenario=tab-mine payload={"scenario": "tab-mine", "clicked": "CLICKED", "hash": "#/pages/mine/index", "rowCount": 5}
+  requests 集合相等=True（run1 7 行 / run2 7 行）
+  run1 请求行："GET /api/v1/provider/profile HTTP/1.1" 200 - / "GET /api/v1/payments?page=&pageSize= HTTP/1.1" 200 - / "GET /api/v1/quotes?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/reports?page=1&pageSize=1 HTTP/1.1" 200 - / "GET /api/v1/contracts?page=1&pageSize=1&status=PENDING_SIGN HTTP/1.1" 200 - / "GET /api/v1/notifications?page=1&pageSize=1&unread=true HTTP/1.1" 200 - / "GET /api/v1/credentials?page=1&pageSize=1 HTTP/1.1" 200 -
+
+共用组件回归门（AppTabBar 被 page-20-2 与 page-21-2 共用）：
+  命令：bash .agents/state/review-measure.sh 21-sibling20 __measure-messages.html .agents/state/h5-measure/api-20 5350
+  --- run1 ---
+  phase1  checkCount=148 checkFailCount=0 docH=760 docW=430 overflowing=0
+  --- run2 ---
+  phase1  checkCount=148 checkFailCount=0 docH=760 docW=430 overflowing=0

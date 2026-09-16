@@ -276,21 +276,32 @@ onMounted(load)
   justify-content: center;
 }
 
-/* 头像图形（design 用 remixicon \uf274 30px）→ CSS 占位：人形剪影（避开复选框/单选框同形） */
+/* 头像字形（design 85003c7e fs30 remixicon \uf274 · 声明 w33 → 字形盒 33×45 = 字号×1.5）→ CSS 占位（D5）：
+   盒按设计图层尺寸、形状画在盒内。设计字形墨迹实测 26×25 @(30..55, 64..88)（头像盒 16..72 × 48..104）：
+   头 14×14 + 肩 26×11，盒内偏移 (3.5, 10.5) / (3.5, 24)。 */
 .head__avatar-glyph {
   position: relative;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: $color-brand;
+  width: 33px;
+  height: 45px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 9.5px;
+    top: 10.5px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: $color-brand;
+  }
 
   &::after {
     content: '';
     position: absolute;
-    left: -4px;
-    top: 19px;
-    width: 24px;
-    height: 10px;
+    left: 3.5px;
+    top: 24px;
+    width: 26px;
+    height: 11px;
     border-radius: 6px 6px 0 0;
     background: $color-brand;
   }
@@ -333,7 +344,7 @@ onMounted(load)
   display: block;
   font-size: $font-2xs;
   font-weight: 600;
-  line-height: 16px;
+  line-height: 13.2px; /* 设计无显式 height → lineHeight 1.2 × 11（dec24f88） */
   color: $color-brand;
 }
 
@@ -366,7 +377,7 @@ onMounted(load)
   margin-left: 4px;
   font-size: $font-2xs;
   font-weight: 500;
-  line-height: 16px;
+  line-height: 13.2px; /* 设计无显式 height → lineHeight 1.2 × 11（ba4503ea） */
   color: $color-verified-text;
 }
 
@@ -435,7 +446,7 @@ onMounted(load)
   display: block;
   font-size: $font-base;
   font-weight: 600;
-  line-height: 21px;
+  line-height: 16.8px; /* 设计无显式 height → lineHeight 1.2 × 14（a5722e5c）；行高 30 由 chevron 字形盒决定 */
   color: $color-text-primary;
 }
 
@@ -486,7 +497,7 @@ onMounted(load)
   display: block;
   font-size: $font-sm;
   font-weight: 500;
-  line-height: 20px;
+  line-height: 15.6px; /* 设计无显式 height → lineHeight 1.2 × 13（1926f470） */
   color: $color-bg-card;
 }
 
@@ -549,30 +560,26 @@ onMounted(load)
   justify-content: center;
 }
 
-/* 图标字形（design 用 remixicon 18px）→ CSS 占位；颜色由行模型内联到 color，形状取 currentColor
-   （占位块 16×16 接近设计字形墨迹 14~16，避免实心大块被误读成图片位） */
+/* 图标字形占位（design 用 remixicon 18px，声明 w20）→ 盒 = 声明宽 20 × 行盒 27（= 字号×1.5），
+   形状 17×16 画在盒内（贴近设计字形墨迹 17×16 @(43..59, 373..388)），颜色取 currentColor（行模型内联 color）。
+   ⚠️ D5 下「字形颜色」落在 ::before 上 —— 读元素 color 会拿不到（探针口径）。
+   两卡同规格（入口行图标在 32×32 圆角盒内居中、记录行图标直接作行首子元素；设计两处字形层同值 w20/fs18）
+   → 单一规则；模板仍保留 `row__glyph--plain` 类名作为「非图标盒内」的语义钩子与断言锚点。 */
 .row__glyph {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  background: currentColor;
-}
-
-.row__glyph--plain {
   width: 20px;
   height: 27px;
   flex: none;
-  background: transparent;
-}
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-.row__glyph--plain::after {
-  content: '';
-  display: block;
-  width: 16px;
-  height: 16px;
-  margin: 5.5px 2px 0 2px;
-  border-radius: 4px;
-  background: currentColor;
+  &::before {
+    content: '';
+    width: 17px;
+    height: 16px;
+    border-radius: 4px;
+    background: currentColor;
+  }
 }
 
 .row__label {
@@ -580,14 +587,14 @@ onMounted(load)
   margin-left: 10px;
   font-size: $font-sm;
   font-weight: 500;
-  line-height: 19.5px;
+  line-height: 15.6px; /* 设计无显式 height → lineHeight 1.2 × 13（efe090dd 等） */
   color: $color-text-primary;
 }
 
 .row__value {
   display: block;
   font-size: $font-xs;
-  line-height: 18px;
+  line-height: 14.4px; /* 设计无显式 height → lineHeight 1.2 × 12（1d6d01c9 / 5da46f3a / 379c907e / f437b642） */
   flex: none;
 }
 
@@ -606,6 +613,6 @@ onMounted(load)
   display: block;
   font-size: 10px;
   font-weight: 500;
-  line-height: 14px;
+  line-height: 12px; /* 设计无显式 height → lineHeight 1.2 × 10（36fd8a4c） */
 }
 </style>
