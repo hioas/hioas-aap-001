@@ -99,7 +99,7 @@ LEASE: free until -
    `npm test` **连跑两轮**全绿 · `npm run type-check` exit 0 · `build:mp-weixin` 产物存在（`pages/<route>/index.{js,json,wxml,wxss}`，
    `credential-submit/form`、`quote-form/{index,apikey,success}` 等同理）· 有 `__measure-*.html` 载体页的页面复跑 430 宽 DOM 实测并用
    `.agents/state/cmp-measure-runs.py` 证明**两次独立测量一致**；有偏差按 §2 的第 4~6 步（先红后绿）修；台账行写「复核通过 <时间> + 命令」。
-2. ✅ **已拍板口径的落地核对（已完成 2026-09-16 09:38）**：用户已拍板一条 —— 报价单列表「新建报价」与检测报告「填写报价」落点 = `/pages/quote-models/index`
+2. ✅ **已拍板口径的落地核对（已完成 2026-09-16 09:26）**：用户已拍板一条 —— 报价单列表「新建报价」与检测报告「填写报价」落点 = `/pages/quote-models/index`
    （画布序号 9；已落 `e1522f7`）。复核时确认 22 页里**没有别处**仍把 `/pages/quote-form/index` 当「新建/填写」入口，
    有则按同口径改（**先红后绿**，别只改注释）。→ **核对结果：无遗漏** —— `src/pages/quotes/index.vue:158`（新建报价）与 `src/utils/report-model.ts:112 QUOTE_ROUTE`（填写报价）及断言 `tests/pages/quotes.spec.ts:156` / `tests/pages/report.spec.ts:190` 均为 `/pages/quote-models/index`；卡片内「报价」= `quote-form/index?quoteId=`（按设计稿打开当前报价单，带参，非「新建」入口，保留）；唯一残留是 `tests/pages/report.spec.ts` 头部旧注释（已改）；台账序号 6 行已追记。
 3. **15 条待人类拍板缺口**：只做**可自主**的部分；未拍板的**保持原样**，每轮简报只列 1 条最该拍的，不擅自改设计稿口径。
@@ -112,9 +112,9 @@ LEASE: free until -
 7. （工具卫生）把「uni-app 内部测量元素不计入溢出统计」的口径补到序号 22 的载体页（`uni-picker`），与序号 6 已修的 `uni-resize-sensor` 同族；
 8. **给其余 20 个载体页补「设计期望值 checks」维度**（本轮新立，从序号 3 开始，一页一轮）：现有 3~23 的载体页只测「文案齐、溢出 0、两轮一致」，本轮登录页的经验说明**还能量出与设计树的逐项偏差**（序号 1 就量出 49 条）。做法照 `__measure-login.html` 的 `chk(k, got, want)`：want 一律取 `.calicat/raw/pages/<page>/design.tree.json` + `node-probe.py` 的声明值，不许凭截图目测。
 9. **决策台账 `aap-decisions.md` 的待执行项优先于本队列**（前台会话 2026-09-16 建立该文件，状态文件顶部已加提醒）：
-   - ✅ **D3 · 图例百分比统一且最优** —— **已完成 2026-09-16 09:35**（口径落在 `src/utils/percentage.ts`，执行证据见 `aap-decisions.md` D3）。**下轮第一件事 = 队列 8**（给序号 3 的载体页补「设计期望值 checks」维度，照 `__measure-login.html` 的 `chk(k,got,want)` 做法）。
+   - ✅ **D3 · 图例百分比统一且最优** —— **已完成 2026-09-16 09:26**（口径落在 `src/utils/percentage.ts`，执行证据见 `aap-decisions.md` D3）。**下轮第一件事 = 队列 8**（给序号 3 的载体页补「设计期望值 checks」维度，照 `__measure-login.html` 的 `chk(k,got,want)` 做法）。
    - **D1 的循环侧收尾**：把台账里 `missing-prd` 的接口备注改成「依据 `docs/api/接口字段级schema.md` §x」，并核对已实现页面字段名与该 schema 是否一致（不一致以 schema 为准改代码）。
-   - D2 已完成（2026-09-16 09:15）；**D4/D5 的循环侧小改已完成 2026-09-16 09:38**（`src/styles/tokens.scss` 顶部注释改为「主色=设计稿蓝（D4）+ 图标维持 CSS 占位（D5）」；`docs/aap-client-page-plan.md` §4 表格三行冲突结论更新）。D1~D6 至此全部有结论。
+   - D2 已完成（2026-09-16 09:15）；**D4/D5 的循环侧小改已完成 2026-09-16 09:26**（`src/styles/tokens.scss` 顶部注释改为「主色=设计稿蓝（D4）+ 图标维持 CSS 占位（D5）」；`docs/aap-client-page-plan.md` §4 表格三行冲突结论更新）。D1~D6 至此全部有结论。
    - ⚠️ 已向人类提一条拍板：D2 的验收「`src/` 内 grep 钱包 = 0」与设计稿冲突（mine 页的「我的钱包」卡是 page-21-2 图层），建议改为按 `src/pages/workbench/**` 计。
 
 ### 本轮小结（追加式，一行一轮）
@@ -184,7 +184,7 @@ LEASE: free until -
   ④**向人类提拍板一条**：D2 写的「`src/` 内 grep 钱包 = 0 命中」按字面做不到 —— mine 页的「我的钱包」卡是设计稿 page-21-2 的图层，删它违背「设计稿优先」；已建议改成按 `src/pages/workbench/**` 计（当前已满足）。本轮未擅自扩大删除范围。
   ⑤**下轮第一件事**：执行 **D3**（图例百分比统一且最优：最大余数法 + 环形图与图例同分母），再回头做队列 8（给序号 3 的载体页补 checks 维度）。
 
-- 2026-09-16 09:38（cron 轮 `aap-tdd-run-20260916-0910`）· **执行决策 D3（图例百分比统一且最优）+ 队列 2 口径核对 + D4/D5 循环侧小改**：
+- 2026-09-16 09:26（cron 轮 `aap-tdd-run-20260916-0910`）· **执行决策 D3（图例百分比统一且最优）+ 队列 2 口径核对 + D4/D5 循环侧小改**：
   ①**D3 落地（本轮主交付，严格 TDD）**：新增 `src/utils/percentage.ts`（唯一口径：分母 = max(total_tokens, Σ六类) + 最大余数法 + `percentTotalOf`），
   `workbench-model.ts` 出 `ring{hasData,denominator,segments,percentSum,remainderPercent}` 与 `categories[i].percent`，
   页面 `donutBackground` 只读 `model.ring`（不再自算比例）；三个红基线（`red-D3-01/02/03*.txt`，含 `'45% · 1.74B' ≠ '42% · 1.74B'` 与 conic 42.54% ≠ 图例整数 42）→ 三处绿。
@@ -193,7 +193,7 @@ LEASE: free until -
   + `overriddenByDecision` 决策留痕；`api` mock 与 `api-tmp-d3-nomedia` 两种场景各跑**两轮独立测量全等**（`review-序号2-d3-run{1,2}.json` / `review-序号2-d3nomedia-run{1,2}.json`，`checkCount 103 · checkFailCount 0 · 溢出 0`）；
   变体用新增的 `make-nomedia-mock.py` 复现（用完已 clean）。与 D2 轮留证差异仅 D3 相关 7 项。
   ③**质量门**：`npm test` **1168/1168 · 72 files 连跑两轮**（`green-D3-全量轮1/2.txt`）· `type-check` exit 0 · `build:mp-weixin` / `build:h5` DONE（`pages/workbench` 四件套齐备）·
-  截图 `logs/screenshots/20260916-0932-序号2-工作台-图例统一口径D3-h5-430宽.png`。
+  截图 `logs/screenshots/20260916-0921-序号2-工作台-图例统一口径D3-h5-430宽.png`。
   ④**队列 2**：全仓库核对「新建/填写报价」落点确为 `/pages/quote-models/index`，无遗漏；顺手修掉 `tests/pages/report.spec.ts` 头部旧注释。⑤**D4/D5 循环侧小改**：tokens.scss 顶部注释 + 页面计划 §4 冲突表更新。
   ⑥**下轮第一件事**：队列 8 —— 给序号 3 的载体页补「设计期望值 checks」维度（照 `__measure-login.html` 的 chk 做法，每页一轮）。
 
