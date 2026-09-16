@@ -1,0 +1,55 @@
+序号 1（page-1-2 登录注册）·「设计声明字重 / 行盒」两步 RED→GREEN 证据（2026-09-16）
+载体页 .agents/state/h5-measure/__measure-login.html（430 宽 iframe，mock=api）· 每步两轮独立测量
+发现路径：textleaf-audit.py 全量「文本叶子 ↔ 设计声明」扫描（1131 设计叶子 / 22 页）
+
+== 字重（10 处）RED 
+   run1: checkCount=103 checkFailCount=10 docScrollHeight=1085
+   run2: checkCount=103 checkFailCount=10 docScrollHeight=1085
+       FAIL fw.brand__name: got "400" want "700"
+       FAIL fw.brand__title: got "400" want "700"
+       FAIL fw.card__title: got "400" want "700"
+       FAIL fw.captcha__text: got "400" want "700"
+       FAIL fw.disclaimer__title: got "400" want "600"
+       FAIL fw.field__label: got "400" want "500"
+       FAIL fw.field__prefix: got "400" want "500"
+       FAIL fw.sms-btn__text: got "400" want "500"
+       FAIL fw.submit__text: got "400" want "600"
+       FAIL fw.wechat__text: got "400" want "500"
+
+== 字重（10 处）GREEN
+   run1: checkCount=103 checkFailCount=0 docScrollHeight=1085
+   run2: checkCount=103 checkFailCount=0 docScrollHeight=1085
+
+== 行盒（10 处）RED  
+   run1: checkCount=113 checkFailCount=10 docScrollHeight=1085
+   run2: checkCount=113 checkFailCount=10 docScrollHeight=1085
+       FAIL be.brandName: got 24 want 28
+       FAIL be.brandEn: got 14.4 want 20
+       FAIL be.brandTitle: got 32.5 want 36
+       FAIL be.brandSubtitle: got 19.6 want 24
+       FAIL be.cardTitle: got 26 want 28
+       FAIL be.cardHint: got 15.6 want 20
+       FAIL be.fieldLabel: got 16.9 want 18
+       FAIL be.footerText: got 19.8 want 18
+       FAIL be.fieldTipText: got 15.6 want 14.4
+       FAIL be.placeholder: got 19.6 want 16.8
+
+== 行盒（10 处）GREEN
+   run1: checkCount=113 checkFailCount=0 docScrollHeight=1098
+   run2: checkCount=113 checkFailCount=0 docScrollHeight=1098
+
+== PNG 色带对照（430 宽整页截图 vs 设计导出 PNG 430x1114，png-textbands x=24..406）
+   设计 PNG : E:/workspaces/hioas/hioas-aap-001\.agents\state\design-shots\page-1-2.png
+   修前     : E:/workspaces/hioas/hioas-aap-001\.agents\state\evidence\20260916-序01-登录注册-字重口径-h5-430宽.png（仅补字重、行盒未改）
+   修后     : E:/workspaces/hioas/hioas-aap-001\.agents\state\evidence\20260916-序01-登录注册-行盒字重对齐-h5-430宽.png
+   修前 vs 设计（y<300）：
+     设计 56..109 / 143..168 / 185..198 / 268..271 / 297..299
+     修前 56..109 / 142..167 / 180..193 / 260..263 / 288..299   ← 品牌标题 -1 · 副标题 -5 · 卡片顶 -8
+   修后 vs 设计（y<320）：
+     修后 56..109 / 143..168 / 185..198 / 268..271 / 297..317    ← 逐带与设计相同（±0）
+   整页高：实现 docScrollHeight 1085 → 1098（设计帧 1114；剩余差 16 = 首个字段前间距 4 + 免责摘要正文按设计应为两行 h=40 的 20.8 - 8.8 残差，见下轮待办）
+
+== 质量门
+   npm test 1182/1182 · 72 files ×2（18:36:47 / 18:37:18）· npm run type-check exit 0
+   npm run build:mp-weixin DONE（pages/login/index.{js,json,wxml,wxss}；wxss 含 font-weight 700×4 / 600×2 / 500×4 与 line-height 36/28×2/24/20×2/18×2/16.8/14.4）
+   npm run build:h5 DONE

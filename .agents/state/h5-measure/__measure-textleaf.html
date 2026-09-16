@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-textleaf</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 通用「文本叶子 ↔ 设计文本叶子」审计载体页（一处代码覆盖全部路由，不逐页复制）。
+         用法: __measure-textleaf.html?route=<encodeURIComponent('#/pages/x/index')>
+         产出: MEASURE_JSON = { route, docH, leafs:[{ t:文案, c:class, tg:tag, pc:父class, fs, lh, fw, al, top, left, w, h }] }
+         口径: 「文本叶子」= 无元素子节点且 textContent 去空白后非空；
+               lh 为 computed line-height（normal 原样保留，由 Python 侧判读）；
+               uni-app 内置测量元素（uni-resize-sensor 等）不在文本叶子集合内，天然排除。 -->
+    <iframe id="f"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var q = location.search.match(/route=([^&]*)/)
+      var route = q ? decodeURIComponent(q[1]) : '#/pages/login/index'
+      f.src = '/index.html' + route
+      var acc = {}
+      function sink(k, v) { acc[k] = v; document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc) }
+
+      function collect(doc, win) {
+        var out = []
+        var all = doc.querySelectorAll('*')
+        function chainOf(el) {
+          var names = []
+          var p = el
+          for (var k = 0; k < 5 && p; k++) {
+            if (p.className && String(p.className).trim()) names.push(String(p.className).trim())
+            p = p.parentElement
+          }
+          return names
+        }
+        for (var i = 0; i < all.length; i++) {
+          var el = all[i]
+          if (el.children.length) continue
+          if (el.closest && el.closest('head')) continue          /* 排除 <title> 等 head 元素（假叶子） */
+          if (el.tagName.toLowerCase() === 'title') continue
+          var txt = (el.textContent || '').replace(/\s+/g, ' ').trim()
+          if (!txt) continue
+          var cs = win.getComputedStyle(el)
+          var r = el.getBoundingClientRect()
+          var ch = chainOf(el)
+          out.push({
+            t: txt,
+            c: String(el.className || ''),
+            tg: el.tagName.toLowerCase(),
+            ch: ch,
+            ac: ch.join(' | '),
+            fs: cs.fontSize,
+            lh: cs.lineHeight,
+            fw: cs.fontWeight,
+            al: cs.textAlign,
+            top: Math.round(r.top * 10) / 10,
+            left: Math.round(r.left * 10) / 10,
+            w: Math.round(r.width * 10) / 10,
+            h: Math.round(r.height * 10) / 10
+          })
+        }
+        return out
+      }
+
+      var tries = 0
+      var stable = 0
+      var lastSig = ''
+      var t = setInterval(function () {
+        tries++
+        var doc = f.contentDocument
+        var win = f.contentWindow
+        var leafs = []
+        if (doc && doc.body) {
+          try { leafs = collect(doc, win) } catch (e) { sink('error', String(e)); return }
+        }
+        var sig = leafs.length + ':' + (doc && doc.documentElement ? doc.documentElement.scrollHeight : 0)
+        if (sig === lastSig) stable++; else stable = 0
+        lastSig = sig
+        // 收口条件：叶子数/页高**连续 16 次采样（≈4s）不变**且已跑过 24 次（≈6s），或超时 25s。
+        // （旧版只看叶子数 >12 就在 2s 时收口 → 数据未回来时抓到半成品，未渲染叶子虚高。）
+        if (stable >= 16 && tries >= 24) {
+          clearInterval(t)
+          sink('route', route)
+          sink('leafs', leafs)
+          sink('docH', doc && doc.documentElement ? doc.documentElement.scrollHeight : null)
+          sink('tries', tries)
+          sink('settled', 'stable16')
+        } else if (tries > 100) {
+          clearInterval(t)
+          sink('route', route)
+          sink('leafs', leafs)
+          sink('docH', doc && doc.documentElement ? doc.documentElement.scrollHeight : null)
+          sink('tries', tries)
+          sink('settled', 'timeout25s')
+        }
+      }, 250)
+    </script>
+  </body>
+</html>

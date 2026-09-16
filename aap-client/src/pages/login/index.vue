@@ -282,14 +282,15 @@ function onWechatLogin() {
   }
 
   &__name {
+    font-weight: 700;
     font-size: $font-2xl;
-    line-height: 1.2;
+    line-height: 28px; /* 设计 2774910e h=28（fs20） */
     color: $color-bg-card;
   }
 
   &__en {
     font-size: $font-xs;
-    line-height: 1.2;
+    line-height: 20px; /* 设计 425a7e1c h=20（fs12） */
     letter-spacing: 1px;
     color: $color-brand-en;
   }
@@ -297,15 +298,16 @@ function onWechatLogin() {
   /* 定位语块：Logo行 之后 spacer 28 */
   &__title {
     margin-top: 28px;
+    font-weight: 700;
     font-size: $font-title;
-    line-height: 1.25;
+    line-height: 36px; /* 设计 15a710ce h=36（fs26） */
     color: $color-bg-card;
   }
 
   &__subtitle {
     margin-top: 6px;
     font-size: $font-base;
-    line-height: 1.4;
+    line-height: 24px; /* 设计 b96e4f92 h=24（fs14） */
     color: $color-brand-subtitle;
   }
 }
@@ -328,14 +330,15 @@ function onWechatLogin() {
 
   &__title {
     font-size: $font-2xl;
-    line-height: 1.3;
+    line-height: 28px; /* 设计 c127cbae h=28（fs20） */
+    font-weight: 700;
     color: $color-text-primary;
   }
 
   &__hint {
     margin-top: $gap-xs;
     font-size: $font-xs;
-    line-height: 1.3;
+    line-height: 20px; /* 设计 d6c0472f h=20（fs12） */
     color: $color-text-muted;
   }
 }
@@ -346,8 +349,9 @@ function onWechatLogin() {
   flex-direction: column;
 
   &__label {
+    font-weight: 500;
     font-size: $font-sm;
-    line-height: 1.3;
+    line-height: 18px; /* 设计 125de7eb 等 3 处 h=18（fs13） */
     color: $color-text-secondary-2;
   }
 
@@ -392,6 +396,7 @@ function onWechatLogin() {
   &__prefix {
     font-size: $font-base;
     color: $color-text-secondary-2;
+    font-weight: 500;
     flex-shrink: 0;
   }
 
@@ -415,6 +420,7 @@ function onWechatLogin() {
   &__placeholder {
     color: $color-text-placeholder;
     font-size: $font-base;
+    line-height: 16.8px; /* 设计 3d537892 fs14×lh1.2 = 16.8（无显式 h） */
   }
 
   &__tip {
@@ -437,7 +443,7 @@ function onWechatLogin() {
     flex: 1;
     min-width: 0;
     font-size: $font-xs;
-    line-height: 1.3;
+    line-height: 14.4px; /* 设计 345fa279 fs12×lh1.2 = 14.4（无显式 h） */
     color: $color-text-placeholder;
   }
 }
@@ -458,6 +464,7 @@ function onWechatLogin() {
   &__text {
     font-size: $font-lg;
     letter-spacing: 2px;
+    font-weight: 700;
     color: $color-captcha-text;
   }
 }
@@ -482,6 +489,7 @@ function onWechatLogin() {
   &__text {
     font-size: $font-sm;
     color: $color-primary;
+    font-weight: 500;
     white-space: nowrap;
   }
 }
@@ -499,6 +507,7 @@ function onWechatLogin() {
   &__text {
     font-size: $font-lg;
     color: $color-bg-card;
+    font-weight: 600;
   }
 }
 
@@ -546,6 +555,7 @@ function onWechatLogin() {
   &__text {
     font-size: $font-md;
     color: $color-wechat-text;
+    font-weight: 500;
   }
 }
 
@@ -630,6 +640,7 @@ function onWechatLogin() {
   }
 
   &__title {
+    font-weight: 600;
     font-size: $font-base;
     color: $color-text-primary;
   }
@@ -651,7 +662,7 @@ function onWechatLogin() {
 
   &__text {
     font-size: $font-2xs;
-    line-height: 1.8;
+    line-height: 18px; /* 设计 页脚说明 h=18（fs11） */
     color: $color-text-placeholder;
   }
 }

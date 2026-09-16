@@ -122,6 +122,36 @@
         chk('brand.logoRowToTitle', logoR && titleR ? Math.round(titleR.top - logoR.bottom) : null, 28)
         chk('brand.titleToSubtitle', titleR && subR ? Math.round(subR.top - titleR.bottom) : null, 6)
 
+        /* 字重（设计 fontFamily → 字重映射：Bold 700 / SemiBold 600 / Medium 500 / Regular 400）
+           来源：.calicat/raw/pages/page-1-2 文本叶子的 fontFamily（text-fields.py 的 fw 列）。
+           此前本页载体页**没有任何字重检查** → 10 处字重与设计不符而长期未被发现
+           （2026-09-16 19:xx 由 textleaf-audit.py 全量「文本叶子 ↔ 设计声明」扫描查出）。 */
+        chk('fw.brand__name', g('.brand__name', 'fontWeight'), '700')          /* 2774910e */
+        chk('fw.brand__title', g('.brand__title', 'fontWeight'), '700')        /* 15a710ce */
+        chk('fw.card__title', g('.card__title', 'fontWeight'), '700')          /* c127cbae */
+        chk('fw.captcha__text', g('.captcha__text', 'fontWeight'), '700')      /* 282a01d9 */
+        chk('fw.disclaimer__title', g('.disclaimer__title', 'fontWeight'), '600') /* b2f5825d */
+        chk('fw.field__label', g('.field__label', 'fontWeight'), '500')        /* 125de7eb 等 3 处 */
+        chk('fw.field__prefix', g('.field__prefix', 'fontWeight'), '500')      /* c825d0d3 */
+        chk('fw.sms-btn__text', g('.sms-btn__text', 'fontWeight'), '500')      /* c9f25ca7 */
+        chk('fw.submit__text', g('.submit__text', 'fontWeight'), '600')        /* fcfe15cf */
+        chk('fw.wechat__text', g('.wechat__text', 'fontWeight'), '500')        /* 5ecf7b26 */
+
+        /* 行盒（want = 设计**显式 height**，来源 page-1-2 各文本叶子）：
+           本页设计对每个文本叶子都给了显式高度（fs20→28 · fs26→36 · fs14→24 · fs12→20 · fs13→18 · fs11→18 · fs14→16.8），
+           实现此前按各自 line-height 倍数落地 → 品牌区累计短 8px（PNG 实测：设计 268 处 vs 实现 260 处）。
+           2026-09-16 19:2x 由 textleaf-audit.py 全量扫描查出，PNG 色带实测确认。 */
+        chk('be.brandName', g('.brand__name', 'lineHeight'), '28px')           /* 2774910e h=28 */
+        chk('be.brandEn', g('.brand__en', 'lineHeight'), '20px')               /* 425a7e1c h=20 */
+        chk('be.brandTitle', g('.brand__title', 'lineHeight'), '36px')         /* 15a710ce h=36 */
+        chk('be.brandSubtitle', g('.brand__subtitle', 'lineHeight'), '24px')   /* b96e4f92 h=24 */
+        chk('be.cardTitle', g('.card__title', 'lineHeight'), '28px')           /* c127cbae h=28 */
+        chk('be.cardHint', g('.card__hint', 'lineHeight'), '20px')             /* d6c0472f h=20 */
+        chk('be.fieldLabel', g('.field__label', 'lineHeight'), '18px')         /* 125de7eb h=18 */
+        chk('be.footerText', g('.footer__text', 'lineHeight'), '18px')         /* 设计 h=18 */
+        chk('be.fieldTipText', g('.field__tip-text', 'lineHeight'), '14.4px')  /* 345fa279 fs12×lh1.2（无显式 h） */
+        chk('be.placeholder', g('.field__placeholder', 'lineHeight'), '16.8px') /* 3d537892 fs14×lh1.2（无显式 h） */
+
         /* 表单卡片 */
         chk('card.radius', g('.card', 'borderRadius'), '20px')
         chk('card.paddingTop', g('.card', 'paddingTop'), '24px')

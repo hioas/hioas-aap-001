@@ -1,0 +1,39 @@
+{
+  "note": "「文本叶子 ↔ 设计声明」审计的**人工核定表**：探针的 declared-box 模型（fs × lineHeight）对 CJK fit_content 文本节点会给出偏小值，因为设计**渲染**出来的行盒来自字体自然行框（design PNG 实测）。凡经 design PNG 实测判定「实现与设计渲染一致」的条目登记在此，审计输出标记为已核定，避免下轮重复开庭。",
+  "rule": "判据优先级：①设计显式 height ②design PNG 的盒/带实测（卡 pitch、卡边界、墨迹带）③fs × lineHeight。②③冲突时以 ② 为准（SKILL §5「Settle fit_content heights from the design PNG's bytes」）。",
+  "items": [
+    {
+      "page": "page-8-2",
+      "tag": "8",
+      "class": ".quote-card__meta-part",
+      "declared": "fs11 × lh1.2 = 13.2",
+      "impl": "line-height 16",
+      "verdict": "not-a-deviation",
+      "reason": "设计**渲染**行盒 = 16（不是 13.2）。若改为 13.2：卡高 178.5→175.7，而设计 PNG 实测卡 pitch = 190（= 卡高 178 + 间距 12，与实现逐像素相同）→ 会破坏像素对齐。",
+      "evidence": "evidence/textleaf-accept-序号8-png-pitch.txt（scan-col x=215：设计白起 157 / 卡2 白起 347 = pitch 190；实现 156 / 346 = 190）",
+      "at": "2026-09-16 18:40"
+    },
+    {
+      "page": "page-8-2",
+      "tag": "8",
+      "class": ".quote-card__title",
+      "declared": "fs15 × lh1.2 = 18",
+      "impl": "line-height 22.5",
+      "verdict": "not-a-deviation",
+      "reason": "同上：设计渲染行盒 22.5；顶行由「草稿标」h22 与标题盒共同定高，缩短会让卡高偏离 PNG 实测 pitch 190。墨迹带两侧同为 176..191（design）/176..191（impl）。",
+      "evidence": "evidence/textleaf-accept-序号8-png-pitch.txt（png-textbands x36..330：设计 176..191 · 实现 176..191）",
+      "at": "2026-09-16 18:40"
+    },
+    {
+      "page": "page-8-2",
+      "tag": "8",
+      "class": ".quote-card__no-label",
+      "declared": "fs13 × lh1.2 = 15.6",
+      "impl": "line-height 19.5",
+      "verdict": "not-a-deviation",
+      "reason": "该行高由设计声明决定 = 渲染 19.5（与标题同族：SourceHanSans CJK 行框）；行两侧墨迹带 214..226 完全相同。",
+      "evidence": "evidence/textleaf-accept-序号8-png-pitch.txt",
+      "at": "2026-09-16 18:40"
+    }
+  ]
+}
