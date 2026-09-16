@@ -496,6 +496,105 @@
       "reason": "系统生成（fs10）墨迹 302..311（设计）= 303..312（实现，+1）；待带出（tag__text--chip fs11）墨迹 784..794（设计）= 784..794（实现），带高与起点相同。面板内的「沙箱 / 专用」实为 env-tag__text（fs10，与设计 3291a0b7 / 9e2b7dbe 声明一致），不属本键。",
       "evidence": "evidence/cmp-序号12v2-文本叶子行盒-逐类带.txt + evidence/cmp-序号12v2-面板副行换行判读.txt",
       "at": "2026-09-16 20:15"
+    },
+    {
+      "page": "page-29",
+      "tag": "12-v3",
+      "class": "btn__text",
+      "declared": "fs14 × lh1.2 = 16.8",
+      "impl": "line-height 18",
+      "verdict": "not-a-deviation",
+      "reason": "判据①设计显式 h=48：次按钮 26d36f5b height=48（主按钮同）+ textAlignVertical=middle → 文本行盒不承重。PNG：继续设置模型报价 设计 901..915 = 实现 901..915；返回报价单列表 设计 959..972 vs 实现 960..973（+1，H5 回退字体墨迹）。",
+      "evidence": "evidence/cmp-序号12v3-文本叶子行盒-逐类带.txt + evidence/cmp-序号12v3-分区并排对账.txt + design-shots/page-29.png",
+      "at": "2026-09-16 20:15"
+    },
+    {
+      "page": "page-29",
+      "tag": "12-v3",
+      "class": "card__title",
+      "declared": "fs15 × lh1.2 = 18（--sm 变体 fs14 → 16.8）",
+      "impl": "line-height 20（--sm 18）",
+      "verdict": "not-a-deviation",
+      "reason": "两条独立依据：①--sm 变体（已带出模型）同行有 remixicon 字形层 f6b7fbbd fs16 → 字形行盒 24 定行高（同本页 12-v3 checks 轮：卡3 标题行 fs16→24 使卡3 恰 132）⇒ 文本行盒不承重；②结果摘要标题行 c0b98aa4 子节点只有 标题竖条 h16 + 文本，行高由文本定，PNG 卡2 全部 ink 起点 408/453/488/526/568/604 设计与实现逐值相同、卡2 区带 8/8 命中（docH 1018 = 设计帧高）。墨迹：结果摘要 409..423 = 409..423；已带出模型 677..690 vs 678..691（+1）。",
+      "evidence": "evidence/cmp-序号12v3-文本叶子行盒-逐类带.txt + evidence/cmp-序号12v3-分区并排对账.txt + design-shots/page-29.png",
+      "at": "2026-09-16 20:15"
+    },
+    {
+      "page": "page-29",
+      "tag": "12-v3",
+      "class": "count-chip__text",
+      "declared": "fs10 × lh1.2 = 12",
+      "impl": "line-height 18",
+      "verdict": "not-a-deviation",
+      "reason": "判据①设计显式 h=18：模型数标 22acf5bc height=18 + padding [0,8,0,8] + textAlignVertical=middle → 胶囊内居中、行盒不承重。PNG：胶囊上下边界 526 / 543 与墨迹 530..539 设计与实现逐值相同（含 526/543 两行 AA 带的墨迹量）。",
+      "evidence": "evidence/cmp-序号12v3-文本叶子行盒-逐类带.txt + evidence/cmp-序号12v3-分区并排对账.txt + design-shots/page-29.png",
+      "at": "2026-09-16 20:15"
+    },
+    {
+      "page": "page-29",
+      "tag": "12-v3",
+      "class": "env-chip__text",
+      "declared": "fs10 × lh1.2 = 12",
+      "impl": "line-height 18",
+      "verdict": "not-a-deviation",
+      "reason": "判据①设计显式 h=18：环境小标 2a6f28d0 height=18 + padding [0,8,0,8] → 行盒不承重。PNG：胶囊边界 488 / 505 与墨迹 492..501 逐值相同。",
+      "evidence": "evidence/cmp-序号12v3-文本叶子行盒-逐类带.txt + evidence/cmp-序号12v3-分区并排对账.txt + design-shots/page-29.png",
+      "at": "2026-09-16 20:15"
+    },
+    {
+      "page": "page-29",
+      "tag": "12-v3",
+      "class": "no-bar__copy-text",
+      "declared": "fs12 × lh1.2 = 14.4",
+      "impl": "line-height 16",
+      "verdict": "not-a-deviation",
+      "reason": "判据①设计显式 h=32：复制按钮 6bb5859a height=32 + padding [0,12,0,12] → 行盒不承重。PNG：复制 设计 309..320（24 列墨迹）= 实现 309..320。",
+      "evidence": "evidence/cmp-序号12v3-文本叶子行盒-逐类带.txt + evidence/cmp-序号12v3-分区并排对账.txt + design-shots/page-29.png",
+      "at": "2026-09-16 20:15"
+    },
+    {
+      "page": "page-29",
+      "tag": "12-v3",
+      "class": "srow__label",
+      "declared": "fs13 × lh1.2 = 15.6",
+      "impl": "line-height 18",
+      "verdict": "not-a-deviation",
+      "reason": "盒算术（判据②）：摘要行 fba2ebb8/11050f12/bb193b6b/dd3a795d 均 padding [10,0,10,0] + alignItems=center，相邻行同字号标签的墨迹起点差 = 行高 ⇒ PNG 实测 453→491 = **38 = 10 + 行盒 + 10**（若 15.6 则行距 ≈37，与实测不符）⇒ 行盒 = 18。四行标签墨迹 453/491/529/568 设计与实现逐值相同；卡2 区带 8/8 命中。",
+      "evidence": "evidence/cmp-序号12v3-文本叶子行盒-逐类带.txt + evidence/cmp-序号12v3-分区并排对账.txt + design-shots/page-29.png",
+      "at": "2026-09-16 20:15"
+    },
+    {
+      "page": "page-29",
+      "tag": "12-v3",
+      "class": "srow__value",
+      "declared": "fs13 × lh1.2 = 15.6",
+      "impl": "line-height 18",
+      "verdict": "not-a-deviation",
+      "reason": "与同行标签同盒（摘要行双方共用行高 38 = 10 + 18 + 10）。PNG 墨迹：2024Q3 主线路报价 453..466 = 453..466；sk-prod-••2f9a 491..504 = 491..504；QT-20240615-0007 569..581 vs 569..581（墨迹宽 94 vs 91 = H5 回退字体数字字距）。",
+      "evidence": "evidence/cmp-序号12v3-文本叶子行盒-逐类带.txt + evidence/cmp-序号12v3-分区并排对账.txt + design-shots/page-29.png",
+      "at": "2026-09-16 20:15"
+    },
+    {
+      "page": "page-29",
+      "tag": "12-v3",
+      "class": "status-chip__text",
+      "declared": "fs11 × lh1.2 = 13.2",
+      "impl": "line-height 20",
+      "verdict": "not-a-deviation",
+      "reason": "判据①设计显式 h=20：状态标 c9fda041 height=20 + padding [0,8,0,8] → 行盒不承重。PNG：胶囊边界 604 / 623 逐值相同；墨迹 608..618 vs 609..619（+1）。",
+      "evidence": "evidence/cmp-序号12v3-文本叶子行盒-逐类带.txt + evidence/cmp-序号12v3-分区并排对账.txt + design-shots/page-29.png",
+      "at": "2026-09-16 20:15"
+    },
+    {
+      "page": "page-29",
+      "tag": "12-v3",
+      "class": "tag__text",
+      "declared": "fs12 × lh1.2 = 14.4",
+      "impl": "line-height 16",
+      "verdict": "not-a-deviation",
+      "reason": "判据①设计显式 h=28：模型标签 1f778b64（--off）与 5290721b（--on）height=28 + padding [0,12,0,12] → 行盒不承重。PNG：胶囊边界 708 / 735 与 734..772 逐值相同，墨迹 gpt-4o / gpt-4o-mini / claude-3-5 / gemini-1.5-pro 逐值相同（claude-3-5 下沿 AA 708..709 vs 708、gemini 分隔 743 vs 743..744 = 亚像素取整）。",
+      "evidence": "evidence/cmp-序号12v3-文本叶子行盒-逐类带.txt + evidence/cmp-序号12v3-分区并排对账.txt + design-shots/page-29.png",
+      "at": "2026-09-16 20:15"
     }
   ]
 }

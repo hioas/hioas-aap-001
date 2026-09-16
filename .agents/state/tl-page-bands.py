@@ -3,8 +3,11 @@
 
 用法:
   python .agents/state/tl-page-bands.py <design.png> <impl.png> [--x0 30] [--x1 410] [--tol 2]
+  python .agents/state/tl-page-bands.py <design.png> <impl.png> --regions "name:y0:y1,..."
 
-窗口由内置 REGIONS 给出（page-26 / 序号 12-v1 用）。
+窗口默认由内置 REGIONS 给出（page-26 / 序号 12-v1 用）；换页时用 `--regions` 显式给
+「区名:y0:y1」列表（y 从设计 PNG 的卡片色带读出，别凭感觉写）。
+
 对每个窗口打印两图的 band 起点列表，并统计「设计起点在实现里 ±tol 内命中」的比例。
 """
 import argparse
@@ -69,13 +72,23 @@ def main():
     ap.add_argument('--x1', type=int, default=410)
     ap.add_argument('--tol', type=int, default=2)
     ap.add_argument('--minink', type=int, default=2)
+    ap.add_argument('--regions', default=None,
+                    help='覆盖默认窗口，形如 "区名:y0:y1,区名:y0:y1"')
     args = ap.parse_args()
+    regions = REGIONS
+    if args.regions:
+        regions = []
+        for item in args.regions.split(','):
+            parts = item.strip().rsplit(':', 2)
+            if len(parts) != 3:
+                raise SystemExit('--regions 格式错误：%r' % item)
+            regions.append((parts[0], int(parts[1]), int(parts[2])))
     des = _png.read_png(args.design)
     imp = _png.read_png(args.impl)
     print('design %dx%d   impl %dx%d   x=%d..%d  minink=%d  tol=%d'
           % (des[0], des[1], imp[0], imp[1], args.x0, args.x1, args.minink, args.tol))
     tot = hit = 0
-    for name, y0, y1 in REGIONS:
+    for name, y0, y1 in regions:
         db = bands(des, args.x0, args.x1, y0, y1, args.minink)
         ib = bands(imp, args.x0, args.x1, y0, y1, args.minink)
         istarts = [b[0] for b in ib]
