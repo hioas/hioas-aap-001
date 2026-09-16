@@ -213,6 +213,8 @@
         chk('chip.textFontSize', c('.chip__text', 'fontSize'), '11px')
         chk('chip.textFontWeight', c('.chip__text', 'fontWeight'), '500')
         chk('chip.textColor', c('.chip__text', 'color'), 'rgba(37,99,235,1)')
+        /* 行盒=16 的依据：判据①同帧显式 height（本帧 fs11 有 9 个叶子显式 h=16）。见 textleaf-accept.json page-5-2 条目。 */
+        chk('chip.textLineHeight', c('.chip__text', 'lineHeight'), '16px')
         chk('chip.dot.w', dim('.chip__dot', 'w'), 9)
         chk('chip.dot.h', dim('.chip__dot', 'h'), 7)
         chk('chip.dot.radius', c('.chip__dot', 'borderRadius'), '4px')
@@ -363,6 +365,8 @@
         chk('rowChip.labels', texts(doc, '.probe-chip__text').join('|'), '完成|完成|进行中|进行中|进行中|排队中|排队中|排队中')
         chk('rowChip.fontSize', cAt('.probe-chip__text', 0, 'fontSize'), '11px')
         chk('rowChip.fontWeight', cAt('.probe-chip__text', 0, 'fontWeight'), '500')
+        /* 行盒=16 的依据同 chip.textLineHeight（同帧 fs11 显式 h=16 · 胶囊 h22 定高不承重）。 */
+        chk('rowChip.lineHeight', cAt('.probe-chip__text', 0, 'lineHeight'), '16px')
         chk('rowChip.bgs', cs('.probe-chip', 'backgroundColor').map(function (v) { return norm(v) }).join('|'),
           'rgb(236,253,245)|rgb(236,253,245)|rgb(239,246,255)|rgb(239,246,255)|rgb(239,246,255)|rgb(241,245,249)|rgb(241,245,249)|rgb(241,245,249)')
         chk('rowChip.colors', cs('.probe-chip__text', 'color').map(function (v) { return norm(v) }).join('|'),
@@ -410,6 +414,8 @@
         chk('history.textFontSize', c('.history-bar__text', 'fontSize'), '14px')
         chk('history.textFontWeight', c('.history-bar__text', 'fontWeight'), '500')
         chk('history.textColor', c('.history-bar__text', 'color'), 'rgba(71,85,105,1)')
+        /* 行盒=20：底栏按钮 h48 定高 + alignItems=center ⇒ 不承重；设计 PNG 墨迹中心两侧同为 886.5。 */
+        chk('history.textLineHeight', c('.history-bar__text', 'lineHeight'), '20px')
         chk('history.textGap', (function () { var t = rect(doc, '.history-bar__text'), i = rect(doc, '.glyph--history'); return t && i ? t.x - i.right : null })(), 6)
 
         return checks

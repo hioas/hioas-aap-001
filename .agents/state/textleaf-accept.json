@@ -1002,6 +1002,94 @@
       "reason": "判据②盒算术：备注框 `0e5a46b9` padding [12, 12, 24, 12] + 备注卡 118 = 16 + 标题行 20 + 10 + 备注框 56 + 16 ⇒ 备注框 56 = 12 + 行盒 + 24 ⇒ **行盒 = 20**（声明模型 15.6 会给出 51.6，与 PNG 的卡 4 边界冲突）。墨迹：设计 917..923 vs 实现 918..923（起点 +1，窗口内带高相同）。",
       "evidence": "evidence/cmp-序号4v1-文本叶子-逐类带.txt + evidence/review-序号4v1-textleaf-报告.md + .agents/state/evidence/review-序号4v1-tl-run{1,2}.json + design-shots/page-24.png（430×1137 · sha256 f77955ca…，与重抓帧的新导出图逐字节相同）",
       "at": "2026-09-16 21:10"
+    },
+    {
+      "page": "page-5-2",
+      "tag": "5",
+      "class": "card__percent",
+      "declared": "fs20 × lh1.2 = 24（fit_content，卡1 标题行右侧）",
+      "impl": "line-height 26",
+      "verdict": "not-a-deviation",
+      "reason": "判据②+③盒算术：卡1 = 20 + 标题行 T + 16 + 进度条 10 + 12 + 元信息行 M + 16 + 成本块 58 + 20 = 196。design PNG（430×934） 与实现截图在 x=60 列的**进度条蓝带逐行相同（170..179）**、x=25 的**卡1 白带逐段相同（110..301）**、x=60 的成本块**起点同为 226** ⇒ T = 170 − 108 − 20 − 16 = **26**、M = 226 − 208 = **18**。标题行 = max(标题 22, 58% 行盒) ⇒ 58% 的行盒必为 26（若按声明 24，标题行 24、进度条会落在 168）。墨迹：设计 134..149(16) vs 实现 134..149(16)，中心 141.5 = 141.5（差 0.0）。",
+      "evidence": "evidence/cmp-序号5-文本叶子行盒-逐类带.txt + evidence/review-序号5-textleaf-报告.md + design-shots/page-5-2.png（430×934 · sha256 b64ef9e8…，与重抓帧的新导出图逐字节相同）",
+      "at": "2026-09-16 21:2x"
+    },
+    {
+      "page": "page-5-2",
+      "tag": "5",
+      "class": "card__title",
+      "declared": "fs15 × lh1.2 = 18（fit_content，卡1「总进度」）",
+      "impl": "line-height 22",
+      "verdict": "not-a-deviation",
+      "reason": "判据①同帧显式 height：本帧 fs15 的 `ea3a0a0d`（分项检测）**显式 height=22** ⇒ 该帧 fs15 渲染行盒 = 22；且卡1 标题行 26 由 58% 的行盒（26）决定，标题 22 不承重（见 card__percent 条的 T 链）。墨迹：设计 134..148(15) vs 实现 134..148(15)，中心 141.0 = 141.0（差 0.0）。",
+      "evidence": "evidence/cmp-序号5-文本叶子行盒-逐类带.txt + evidence/review-序号5-textleaf-报告.md + design-shots/page-5-2.png（430×934 · sha256 b64ef9e8…，与重抓帧的新导出图逐字节相同）",
+      "at": "2026-09-16 21:2x"
+    },
+    {
+      "page": "page-5-2",
+      "tag": "5",
+      "class": "chip__text",
+      "declared": "fs11 × lh1.2 = 13.2（fit_content，顶部状态胶囊 + 3 个行内胶囊）",
+      "impl": "line-height 16",
+      "verdict": "not-a-deviation",
+      "reason": "判据①同帧显式 height：本帧 fs11 有 9 个叶子显式 height=16（`f44b1675` 成本信息副行 + `cc4105a8`/`f91842a8`/`8140ada2`/`52d6726b`/`1378b642`/`2c1dafd9`/`ce8830a1`/`1f963553` 八条 D 行副行）⇒ 该帧 fs11 的渲染行盒就是 16（声明模型 11×1.2 = 13.2 只是审计口径）。 判据②不承重：胶囊是定高盒（顶部 24 / 行内 22）+ alignItems=center ⇒ 文本行盒不参与布局。 硬证据：顶部胶囊盒在 x=410（近右圆角）**两侧同为 58..73**、D1 行胶囊盒在 x=380 **两侧同为 380..401**（h22）；顶部胶囊文案墨迹 设计 61..70(10) vs 实现 62..71(10)，中心 65.5 = 65.5（+0.0）、带高相同（±1 为 H5 回退字体）。",
+      "evidence": "evidence/cmp-序号5-文本叶子行盒-逐类带.txt + evidence/review-序号5-textleaf-报告.md + design-shots/page-5-2.png（430×934 · sha256 b64ef9e8…，与重抓帧的新导出图逐字节相同）",
+      "at": "2026-09-16 21:2x"
+    },
+    {
+      "page": "page-5-2",
+      "tag": "5",
+      "class": "history-bar__text",
+      "declared": "fs14 × lh1.2 = 16.8（fit_content，底栏「查看历史检测报告」）",
+      "impl": "line-height 20",
+      "verdict": "not-a-deviation",
+      "reason": "判据②不承重：该文本在 `查看历史报告按钮 73a98024`（**h=48 定高** + alignItems=center）内 ⇒ 行盒不参与布局；底栏 84 = 12 + 48 + 24 与两侧 PNG 一致（x=140 按钮带 **862..909 逐行相同**）。墨迹：设计 878..895(18) vs 实现 880..893(14) —— 带高差来自设计字体（SourceHanSans）与 H5 回退字体的字形墨迹高度，**墨迹中心完全相同（886.5 = 886.5，差 0.0）** ⇒ 行盒差异对墨迹无影响。",
+      "evidence": "evidence/cmp-序号5-文本叶子行盒-逐类带.txt + evidence/review-序号5-textleaf-报告.md + design-shots/page-5-2.png（430×934 · sha256 b64ef9e8…，与重抓帧的新导出图逐字节相同）",
+      "at": "2026-09-16 21:2x"
+    },
+    {
+      "page": "page-5-2",
+      "tag": "5",
+      "class": "meta__done",
+      "declared": "fs12 × lh1.2 = 14.4（fit_content，卡1 元信息行左侧）",
+      "impl": "line-height 18",
+      "verdict": "not-a-deviation",
+      "reason": "判据①+②：本帧 fs12 的 `ff72fdea`（检测期间已启用成本保护）**显式 height=18**；盒算术 卡1 的成本块起点 226（两侧 PNG 相同）= 108 + 20 + T26 + 16 + 10 + 12 + M + 16 ⇒ **M = 18**。墨迹：设计 196..206(11) vs 实现 196..206(11)，中心 201.0 = 201.0（差 0.0）。",
+      "evidence": "evidence/cmp-序号5-文本叶子行盒-逐类带.txt + evidence/review-序号5-textleaf-报告.md + design-shots/page-5-2.png（430×934 · sha256 b64ef9e8…，与重抓帧的新导出图逐字节相同）",
+      "at": "2026-09-16 21:2x"
+    },
+    {
+      "page": "page-5-2",
+      "tag": "5",
+      "class": "meta__eta",
+      "declared": "fs12 × lh1.2 = 14.4（fit_content，卡1 元信息行右侧）",
+      "impl": "line-height 18",
+      "verdict": "not-a-deviation",
+      "reason": "同 meta__done：同一元信息行（`dac2c177` horizontal / align center / fit_content）内的右侧文本，行盒由该行两个 fs12 文本共同决定 = 18（判据① `ff72fdea` h=18 + 判据② 卡1 闭合 M = 18）。墨迹（同窗口）：设计 196..206(11) vs 实现 196..206(11)。",
+      "evidence": "evidence/cmp-序号5-文本叶子行盒-逐类带.txt + evidence/review-序号5-textleaf-报告.md + design-shots/page-5-2.png（430×934 · sha256 b64ef9e8…，与重抓帧的新导出图逐字节相同）",
+      "at": "2026-09-16 21:2x"
+    },
+    {
+      "page": "page-5-2",
+      "tag": "5",
+      "class": "probe-chip__text",
+      "declared": "fs11 × lh1.2 = 13.2（fit_content，D1..D8 行内状态胶囊文案 16 处）",
+      "impl": "line-height 16",
+      "verdict": "not-a-deviation",
+      "reason": "判据①同帧显式 height：本帧 fs11 有 9 个叶子显式 height=16（`f44b1675` 成本信息副行 + `cc4105a8`/`f91842a8`/`8140ada2`/`52d6726b`/`1378b642`/`2c1dafd9`/`ce8830a1`/`1f963553` 八条 D 行副行）⇒ 该帧 fs11 的渲染行盒就是 16（声明模型 11×1.2 = 13.2 只是审计口径）。 判据②不承重：胶囊是定高盒（顶部 24 / 行内 22）+ alignItems=center ⇒ 文本行盒不参与布局。 硬证据：D1 行胶囊盒（#ECFDF5，x=380）**两侧同为 380..401（22 行）**、D1 文案「完成」墨迹 设计 385..395(11) vs 实现 386..396(11)，中心 390.5 = 390.5（差 0.0）。",
+      "evidence": "evidence/cmp-序号5-文本叶子行盒-逐类带.txt + evidence/review-序号5-textleaf-报告.md + design-shots/page-5-2.png（430×934 · sha256 b64ef9e8…，与重抓帧的新导出图逐字节相同）",
+      "at": "2026-09-16 21:2x"
+    },
+    {
+      "page": "page-5-2",
+      "tag": "5",
+      "class": "tip__text",
+      "declared": "fs12 × lh1.2 = 14.4（fit_content，提示卡文案 2 行）",
+      "impl": "line-height 16",
+      "verdict": "not-a-deviation",
+      "reason": "判据②design PNG 实测（②与③冲突，以 ② 为准）：提示卡 `c960eff4`（padding [16,20,16,20]）的 x=25 白带 **765..830(66) 两侧相同** ⇒ 卡高 72 = 16 + content 40 + 16；文案两行墨迹 **设计 785..795 / 800..810（行距 16）· 实现 785..795 / 801..811（行距 16）**⇒ 该文本块的**行盒就是 16**（按声明的 14.4 会得到行距 14.4，与设计 PNG 的 16 冲突），且 40 高的块由 2 行（2×16 = 32）在盒内居中（若按 14.4 顶对齐，两行墨迹会整体上移约 4 行）。墨迹中心 797.5 vs 798.0（差 0.5 = H5 回退字体）。",
+      "evidence": "evidence/cmp-序号5-文本叶子行盒-逐类带.txt + evidence/review-序号5-textleaf-报告.md + design-shots/page-5-2.png（430×934 · sha256 b64ef9e8…，与重抓帧的新导出图逐字节相同）",
+      "at": "2026-09-16 21:2x"
     }
   ]
 }
