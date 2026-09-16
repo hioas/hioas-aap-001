@@ -7,7 +7,8 @@
  * 交互分类（台账序号 6 行）：
  *   返回 = navigation(navigateBack 1)
  *   导出 PDF = api（GET /api/v1/reports/{reportId}/export，18-API Report Tag）
- *   填写报价 = navigation(navigateTo /pages/quote-form/index，画布序号 12-v1「新增报价单-初始态」）
+ *   填写报价 = navigation(navigateTo /pages/quote-models/index，用户拍板对齐原型 page-9「模型报价设置-列表」；
+ *             先前注释写的 page-26/quote-form 为旧口径，已按拍板修正 —— 断言一直断的是 quote-models）
  *   其余（评分/维度/明细/风险/证据）均为渲染态 → client-only
  * 接口：GET /api/v1/reports/{reportId}（18-API Report Tag；方法为 REST 语义推断，台账已记）
  */

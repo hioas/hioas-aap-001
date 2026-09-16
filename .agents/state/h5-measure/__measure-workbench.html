@@ -29,7 +29,11 @@
            快捷卡 padding 16/20 · 图标 40x40 r13 · 标签 10px rgb(71,85,105)
            待办卡 padding 16/20 · 图标 34x34 r12 · 文字 12px rgb(51,65,85) · 分隔 1px rgb(241,245,249)
            TabBar padding 8/0/24/0 bg 白 · 标签 11px（选中 rgb(37,99,235)）
-         ?scenario=actions 追加回放：钱包（client-only toast，不跳转）→ Tab 我的（跳 /pages/mine/index）
+         图例百分比（决策 D3，`aap-decisions.md`）：分母 = max(total_tokens, Σ六类)，最大余数法取整，
+           环形图分段与图例共用同一份整数、合计恒 ≤ 100 → 本页 checks 直接断「分段宽度 == 图例整数」。
+           设计稿图例的 45/30/15（合计 106%）是逐项取整的产物 → 只作视觉参考（见 overriddenByDecision）。
+         ?scenario=actions 追加回放：快捷入口「评测」→ /pages/credentials/index → Tab 我的 → /pages/mine/index
+         ?scenario=nomedia 用 api-tmp-d3-nomedia（summary 缺 audio/video 字段）跑「缺字段 → 占位符，不显示 0%」
          ?noaction / ?shot=1 只取 phase1（供截图）
          ⚠️ 触发方式必须用 waitFor 轮询（iframe onload 会因监听注册过晚而错过 → 取数脚本静默拿到 pending）
          ⚠️ 是否发请求以 serve 日志为准（evidence/requests-序号2*.txt） -->
@@ -59,12 +63,52 @@
       function rectFor(d, sel) { var el = d.querySelector(sel); return el ? el.getBoundingClientRect() : null }
       function dimOf(d, sel, dim) { var r = rectFor(d, sel); return r ? Math.round(r[dim]) : null }
 
-      /** 设计稿文本图层（page-2-b design.tree.json 的 TEXT 值；动态日期与设计内部矛盾的 音频/视频 单独记录） */
+      /* ---- 决策 D3：环形图与图例同源（分段宽度 == 图例整数百分比） ---- */
+      function legendPct(text) { var m = String(text).match(/^(\d+)%/) ; return m ? Number(m[1]) : null }
+      function ringStyle(doc) {
+        var el = doc.querySelector('.ring')
+        return el ? String(el.getAttribute('style') || '') : ''
+      }
+      function ringStops(doc) {
+        var style = ringStyle(doc)
+        /* Chrome 会把 conic-gradient 序列化成「color p%, color p%, ...」两两配对（颜色重复、用 rgb()），
+           所以先取全部停靠点，再按相邻停靠点差算每段宽度（宽度 0 的配对跳过）。 */
+        var re = /((?:#[0-9a-fA-F]{3,8})|(?:rgba?\([^)]*\)))\s+(\d+(?:\.\d+)?)%/g
+        var stops = []
+        var m
+        while ((m = re.exec(style)) !== null) stops.push({ color: m[1].toLowerCase(), pos: Number(m[2]) })
+        var segs = []
+        var remainder = 0
+        for (var i = 0; i + 1 < stops.length; i++) {
+          var width = stops[i + 1].pos - stops[i].pos
+          if (width <= 0) continue
+          var color = stops[i].color
+          if (color === '#e2e8f0' || color === 'rgb(226, 232, 240)' || color === 'rgb(226,232,240)') {
+            remainder += width
+          } else if (segs.length && segs[segs.length - 1].color === color) {
+            segs[segs.length - 1].width += width
+            segs[segs.length - 1].to = stops[i + 1].pos
+          } else {
+            segs.push({ color: color, width: width, from: stops[i].pos, to: stops[i + 1].pos })
+          }
+        }
+        return { segments: segs, remainder: remainder, total: segs.reduce(function (s, x) { return s + x.width }, 0) + remainder }
+      }
+
+      /** 设计稿文本图层（page-2-b design.tree.json 的 TEXT 值；动态日期另测；
+       *  图例百分比按决策 D3 改为「由数值算出」→ 45/30/15 三个设计字面量移入 overriddenByDecision） */
+      var DESIGN_LEGEND_OVERRIDDEN = ['45% · 1.74B', '30% · 1.16B', '15% · 0.58B']
+      var COMPUTED_LEGEND = ['42% · 1.74B', '28% · 1.16B', '14% · 0.58B', '4% · 0.15B', '6% · 0.23B', '6% · 0.23B']
+      var COMPUTED_LEGEND_PCT = [42, 28, 14, 4, 6, 6]
+      /** nomedia 场景：api-tmp-d3-nomedia 的 summary 缺 audio/video 字段 */
+      var NOMEDIA_LEGEND = ['45% · 1.74B', '30% · 1.16B', '15% · 0.58B', '4% · 0.15B', '—', '—']
+      var NOMEDIA_LEGEND_PCT = [45, 30, 15, 4]
+
       var needText = [
         '云智科技有限公司',
         '本月词元用量', '12.5%', '总词元', '3.86B',
-        '输入词元', '45% · 1.74B', '输出词元', '30% · 1.16B', '缓存命中', '15% · 0.58B',
-        '图片', '4% · 0.15B', '音频', '6% · 0.23B', '视频', '6% · 0.23B',
+        '输入词元', '输出词元', '缓存命中',
+        '图片', '音频', '视频',
         '调用请求', '1.24M', 'Token', '缓存命中率', '15%',
         '模型调用量', '按收入贡献排序',
         'gpt-4o-mini', '¥54,200', '1.24M · 42%',
@@ -75,6 +119,33 @@
         '评测', '报价', '合同',
         '待处理', '全部', '合同待签署（06-20 前）', '1 条报价单被驳回',
         '工作台', '报告', '我的'
+      ]
+
+      /** 场景相关文案清单：nomedia 场景下音频/视频两行是占位符，不能要求出现 6% */
+      function effectiveNeedText() {
+        var base = needText.slice()
+        if (isNoMedia()) return base
+        return base.concat(COMPUTED_LEGEND)
+      }
+      function isNoMedia() {
+        return location.search.indexOf('nomedia') >= 0
+      }
+      function scenarioLegend() {
+        return isNoMedia() ? NOMEDIA_LEGEND : COMPUTED_LEGEND
+      }
+      function scenarioLegendPct() {
+        return isNoMedia() ? NOMEDIA_LEGEND_PCT : COMPUTED_LEGEND_PCT
+      }
+
+      /** 决策留痕（设计稿值 → 生效口径） */
+      var overriddenByDecision = [
+        {
+          key: '图例百分比 45/30/15/4/6/6',
+          decision: 'D3（aap-decisions.md，用户 2026-09-16）',
+          design: DESIGN_LEGEND_OVERRIDDEN.concat(['4% · 0.15B', '6% · 0.23B']),
+          effective: COMPUTED_LEGEND,
+          reason: '设计稿逐项取整导致合计 106%；改为「分母 max(total, Σ六类) + 最大余数法」后合计 ≤ 100，环形图与图例同源'
+        }
       ]
 
       /* 决策 D2（aap-decisions.md，用户 2026-09-16 拍板）：设计画布的快捷入口「钱包」整项删除 →
@@ -157,6 +228,26 @@
         chk('legendLabel.fontSize', g('.legend__label', 'fontSize'), '12px')
         chk('legendValue.fontSize', g('.legend__value', 'fontSize'), '11px')
         chk('legendValue.color', g('.legend__value', 'color'), 'rgba(148,163,184,1)')
+
+        /* ---- 决策 D3：图例百分比与环形图统一口径（分母 max(total, Σ六类) + 最大余数法） ---- */
+        var legendTexts = texts(doc, '.legend__value')
+        var legendPcts = legendTexts.map(legendPct).filter(function (p) { return p !== null })
+        var expectPct = scenarioLegendPct()
+        chkArr('d3.legend.values', legendTexts, scenarioLegend())
+        chkArr('d3.legend.percents', legendPcts, expectPct)
+        chk('d3.legend.percentsSumLte100', legendPcts.reduce(function (s, p) { return s + p }, 0) <= 100, true)
+        chk('d3.legend.percentsSum', legendPcts.reduce(function (s, p) { return s + p }, 0), expectPct.reduce(function (s, p) { return s + p }, 0))
+        chk('d3.legend.placeholderCount', legendTexts.filter(function (t) { return t === '—' }).length, isNoMedia() ? 2 : 0)
+        var ring = ringStops(doc)
+        chkArr('d3.ring.stopWidths', ring.segments.map(function (s) { return s.width }), expectPct)
+        chkArr('d3.ring.stopColors', ring.segments.map(function (s) { return s.color }),
+          /* 设计稿图例点色 #1d4ed8 / #3b82f6 / #16a34a / #5856d6 / #f59e0b / #af52de
+             —— Chrome 把 conic-gradient 里的颜色序列化成 rgb()，故这里写 norm() 归一后的形态 */
+          ['rgb(29,78,216)', 'rgb(59,130,246)', 'rgb(22,163,74)', 'rgb(88,86,214)', 'rgb(245,158,11)', 'rgb(175,82,222)'].slice(0, expectPct.length))
+        chk('d3.ring.remainder', ring.remainder, isNoMedia() ? 6 : 0)
+        chk('d3.ring.totalPct', ring.total, 100)
+        chk('d3.ring.noDesignLiteral45', isNoMedia() ? true : doc.body.innerText.indexOf('45% · ') < 0, true)
+        chk('d3.legend.valueHasNoDesign30', isNoMedia() ? true : doc.body.innerText.indexOf('30% · ') < 0, true)
         chk('metricsSep.w', dimOf(doc, '.metrics__sep', 'width'), 2)
         chk('metricsSep.h', dimOf(doc, '.metrics__sep', 'height'), 30)
         chk('metricsSep.bg', g('.metrics__sep', 'backgroundColor'), 'rgba(226,232,240,1)')
@@ -233,8 +324,9 @@
         })
 
         var body = doc.body.innerText
-        out.missingTexts = needText.filter(function (t) { return body.indexOf(t) < 0 })
-        out.needTextCount = needText.length
+        out.missingTexts = effectiveNeedText().filter(function (t) { return body.indexOf(t) < 0 })
+        out.needTextCount = effectiveNeedText().length
+        out.scenario = isNoMedia() ? 'nomedia' : 'default'
 
         out.avatarRight = dimOf(doc, '.avatar', 'right')
         out.todoChevronRight = dimOf(doc, '.todo__chevron', 'right')
@@ -277,6 +369,10 @@
         }
         out.toast = toastText(doc)
         out.hash = hashNow()
+        /* 决策 D3 留痕：原始 conic-gradient 字符串 + 解析后的分段（环形图与图例同源的直接证据） */
+        out.ringStyle = ringStyle(doc)
+        out.ringParsed = ringStops(doc)
+        out.overriddenByDecision = overriddenByDecision
         out.checks = build(doc, win)
         out.checkFails = out.checks.filter(function (c) { return !c.ok }).map(function (c) { return c.k + ': got ' + JSON.stringify(c.got) + ' want ' + JSON.stringify(c.want) })
         out.checkFailCount = out.checkFails.length

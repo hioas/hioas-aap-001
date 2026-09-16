@@ -1,0 +1,68 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+ [31m❯[39m tests/pages/workbench.spec.ts [2m([22m[2m18 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 346[2mms[22m[39m
+[31m   [31m×[31m 页面 2 · 图例百分比统一口径（决策 D3）[2m > [22m环形图分段 = 图例整数百分比（同分母同一份计算，视觉与数字永不打架）[90m 27[2mms[22m[31m[39m
+[31m     → expected [ 42.54, 28.360000000000007, …(4) ] to deeply equal [ 42, 28, 14, 4, 6, 6 ][39m
+[31m   [31m×[31m 页面 2 · 图例百分比统一口径（决策 D3）[2m > [22m接口只给总量、六类全缺 → 六行图例全占位符，环形图退轨道色（不画 0% 的假环）[90m 10[2mms[22m[31m[39m
+[31m     → expected 'background: rgb(241, 245, 249);' to contain '#f1f5f9'[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/workbench.spec.ts[2m > [22m页面 2 · 图例百分比统一口径（决策 D3）[2m > [22m环形图分段 = 图例整数百分比（同分母同一份计算，视觉与数字永不打架）
+[31m[1mAssertionError[22m: expected [ 42.54, 28.360000000000007, …(4) ] to deeply equal [ 42, 28, 14, 4, 6, 6 ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Array [[22m
+[32m-   42,[39m
+[32m-   28,[39m
+[32m-   14,[39m
+[32m-   4,[39m
+[32m-   6,[39m
+[32m-   6,[39m
+[31m+   42.54,[39m
+[31m+   28.360000000000007,[39m
+[31m+   14.189999999999998,[39m
+[31m+   3.6599999999999966,[39m
+[31m+   5.6299999999999955,[39m
+[31m+   5.6200000000000045,[39m
+[2m  ][22m
+
+[36m [2m❯[22m tests/pages/workbench.spec.ts:[2m209:39[22m[39m
+    [90m207| [39m    [35mconst[39m legend [33m=[39m [34mlegendPercents[39m(wrapper)
+    [90m208| [39m    [34mexpect[39m(legend)[33m.[39m[34mtoEqual[39m([[34m42[39m[33m,[39m [34m28[39m[33m,[39m [34m14[39m[33m,[39m [34m4[39m[33m,[39m [34m6[39m[33m,[39m [34m6[39m])
+    [90m209| [39m    [34mexpect[39m(stops[33m.[39m[34mmap[39m((s) [33m=>[39m s[33m.[39mwidth))[33m.[39m[34mtoEqual[39m(legend)
+    [90m   | [39m                                      [31m^[39m
+    [90m210| [39m    [34mexpect[39m(stops[33m.[39m[34mmap[39m((s) [33m=>[39m s[33m.[39mcolor))[33m.[39m[34mtoEqual[39m([[32m'#1d4ed8'[39m[33m,[39m [32m'#3b82f6'[39m[33m,[39m [32m'[39m…
+    [90m211| [39m    [90m/* 逐段首尾相接：第 i 段 from = 前 i 段之和，最后一段收在 100% */[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/workbench.spec.ts[2m > [22m页面 2 · 图例百分比统一口径（决策 D3）[2m > [22m接口只给总量、六类全缺 → 六行图例全占位符，环形图退轨道色（不画 0% 的假环）
+[31m[1mAssertionError[22m: expected 'background: rgb(241, 245, 249);' to contain '#f1f5f9'[39m
+
+Expected: [32m"#f1f5f9"[39m
+Received: [31m"background: rgb(241, 245, 249);"[39m
+
+[36m [2m❯[22m tests/pages/workbench.spec.ts:[2m227:55[22m[39m
+    [90m225| [39m    [35mawait[39m [34mflushPromises[39m()
+    [90m226| [39m    [34mexpect[39m(wrapper[33m.[39m[34mfindAll[39m([32m'.legend__value'[39m)[33m.[39m[34mmap[39m((w) [33m=>[39m w[33m.[39m[34mtext[39m()))[33m.[39m[34mtoE[39m…
+    [90m227| [39m    [34mexpect[39m(wrapper[33m.[39m[34mfind[39m([32m'.ring'[39m)[33m.[39m[34mattributes[39m([32m'style'[39m))[33m.[39m[34mtoContain[39m([32m'#f1f5[39m…
+    [90m   | [39m                                                      [31m^[39m
+    [90m228| [39m    [34mexpect[39m([34mringStops[39m(wrapper))[33m.[39m[34mtoHaveLength[39m([34m0[39m)
+    [90m229| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m16 passed[39m[22m[90m (18)[39m
+[2m   Start at [22m 09:15:05
+[2m   Duration [22m 2.37s[2m (transform 604ms, setup 43ms, collect 808ms, tests 346ms, environment 746ms, prepare 150ms)[22m
+

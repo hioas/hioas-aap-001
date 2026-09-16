@@ -9,15 +9,25 @@
  *   - 11-PRD usage_hourly 表另有 image/audio 输入 token（视频在同域内按同类处理）
  * ⚠️ 响应体的精确 schema（字段名/嵌套）未在 18-API 定义 → 台账「备注」记 missing-prd（字段级），
  *    本文件只做「设计稿需要的展示口径」映射，缺字段一律显示占位符，不编造数字。
+ *
+ * 百分比口径（决策 D3 / `.agents/state/aap-decisions.md`，唯一，不许每页各写一套）：
+ *   分母 = max(total_tokens, Σ六类)；整数百分比用最大余数法（`src/utils/percentage.ts`）；
+ *   环形图与图例共用同一份整数（`ring.segments[i].percent === categories[i].percent`）。
+ *   设计稿图例的 45/30/15/4/6/6（合计 106%）只作视觉参考，不照抄。
  */
 import {
   PLACEHOLDER,
   formatAmount,
   formatCount,
   formatPercent,
-  formatTokens,
-  percentOf
+  formatTokens
 } from './format'
+import {
+  PERCENT_TOTAL,
+  largestRemainderPercentages,
+  percentTotalOf,
+  resolvePercentDenominator
+} from './percentage'
 
 /** 用量域原始字段（含设计稿用到的图片/音频/视频输入 token） */
 export interface UsageModelRaw {
@@ -49,6 +59,27 @@ export interface CategoryRow {
   label: string
   color: string
   text: string
+  /** 与环形图共用的整数百分比（缺字段 = null → 显示占位符） */
+  percent: number | null
+}
+
+/** 环形图分段（与图例同一份整数百分比，见 D3） */
+export interface RingSegment {
+  key: string
+  color: string
+  percent: number
+}
+
+export interface RingInfo {
+  /** 是否有可画的分类数据（六类全缺失 → false，页面退轨道色） */
+  hasData: boolean
+  /** 统一分母 = max(total_tokens, Σ六类) */
+  denominator: number
+  segments: RingSegment[]
+  /** 分段整数百分比之和（== 图例之和，恒 ≤ 100） */
+  percentSum: number
+  /** 未分类/取整余量 = 100 − percentSum（页面用轨道色画） */
+  remainderPercent: number
 }
 
 export interface MetricRow {
@@ -74,6 +105,8 @@ export interface WorkbenchModel {
   totalText: string
   momText: string
   categories: CategoryRow[]
+  /** 环形图数据（与 categories 同源同分母，页面只许用它画 conic-gradient） */
+  ring: RingInfo
   metrics: MetricRow[]
   models: ModelRow[]
   footerText: string
@@ -128,23 +161,42 @@ export function buildWorkbenchModel(raw: UsageSummaryRaw = {}): WorkbenchModel {
   const amountTotal = raw.amount_total ?? rows.reduce((s, m) => s + (m.amount ?? 0), 0)
   const hasAmount = rows.length > 0 && rows.some((m) => m.amount !== undefined)
 
-  const categories: CategoryRow[] = CATEGORY_DEFS.map((def) => {
-    const value = raw[def.field] as number | undefined
-    if (value === undefined || value === null) {
-      return { key: def.key, label: def.label, color: def.color, text: PLACEHOLDER }
+  /* D3 口径：六类先取分母，再用最大余数法取整；环形图与图例共用下面这一份整数 */
+  const categoryValues = CATEGORY_DEFS.map((def) => raw[def.field] as number | null | undefined)
+  const presentSum = categoryValues.reduce<number>(
+    (sum, v) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? sum + v : sum),
+    0
+  )
+  const denominator = resolvePercentDenominator(totalTokens, categoryValues)
+  const percents = largestRemainderPercentages(categoryValues, denominator)
+
+  const categories: CategoryRow[] = CATEGORY_DEFS.map((def, i) => {
+    const value = categoryValues[i]
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      return { key: def.key, label: def.label, color: def.color, text: PLACEHOLDER, percent: null }
     }
-    const pct = percentOf(value, totalTokens)
     return {
       key: def.key,
       label: def.label,
       color: def.color,
-      text: `${pct === null ? PLACEHOLDER : `${pct}%`} · ${formatTokens(value)}`
+      text: `${percents[i]}% · ${formatTokens(value)}`,
+      percent: percents[i]
     }
   })
 
+  const segments: RingSegment[] = categories
+    .filter((c) => c.percent !== null)
+    .map((c) => ({ key: c.key, color: c.color, percent: c.percent as number }))
+  const percentSum = percentTotalOf(segments.map((s) => s.percent))
+
+  /* 模型行占比：同一口径（分母 = max(合计金额, Σ行金额)，最大余数法） */
+  const amounts = rows.map((m) => m.amount)
+  const amountDenominator = resolvePercentDenominator(amountTotal, amounts)
+  const amountPercents = largestRemainderPercentages(amounts, amountDenominator)
+
   const models: ModelRow[] = rows.map((m, i) => {
     const tone = MODEL_TONES[Math.min(i, MODEL_TONES.length - 1)]
-    const pct = percentOf(m.amount, amountTotal)
+    const pct = typeof m.amount === 'number' && Number.isFinite(m.amount) ? amountPercents[i] : null
     return {
       rank: i + 1,
       name: m.model_name,
@@ -162,6 +214,13 @@ export function buildWorkbenchModel(raw: UsageSummaryRaw = {}): WorkbenchModel {
     totalText: formatTokens(totalTokens),
     momText: formatPercent(raw.mom_rate),
     categories,
+    ring: {
+      hasData: presentSum > 0,
+      denominator,
+      segments,
+      percentSum,
+      remainderPercent: Math.max(0, PERCENT_TOTAL - percentSum)
+    },
     metrics: [
       { label: '调用请求', value: formatCount(raw.request_count), tone: 'default' },
       { label: 'Token', value: formatTokens(totalTokens), tone: 'default' },

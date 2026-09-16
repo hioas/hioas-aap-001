@@ -223,32 +223,20 @@ const headerDate = formatHeaderDate()
 
 const model = computed(() => buildWorkbenchModel(summary.value ?? {}))
 
-/** 环形图：按设计稿 6 类占比拼 conic-gradient；无数据时退为轨道色 */
+/** 环形图：与图例同源（决策 D3）—— 分段的整数百分比直接取自 model.ring，页面不再自行按比例计算；
+ *  余量（未分类/取整差）用轨道色段补齐到 100%；六类全缺（hasData=false）时退纯轨道色。 */
+const RING_TRACK = '#f1f5f9'
+const RING_REMAINDER = '#e2e8f0'
 const donutBackground = computed(() => {
-  const raw = summary.value
-  if (!raw || !raw.total_tokens) return '#f1f5f9'
-  const parts: Array<{ color: string; value: number | undefined }> = [
-    { color: '#1d4ed8', value: raw.prompt_tokens },
-    { color: '#3b82f6', value: raw.completion_tokens },
-    { color: '#16a34a', value: raw.cache_read_tokens },
-    { color: '#5856d6', value: raw.image_input_tokens },
-    { color: '#f59e0b', value: raw.audio_input_tokens },
-    { color: '#af52de', value: raw.video_input_tokens }
-  ]
-  const totalPart = parts.reduce((s, p) => s + (p.value ?? 0), 0)
-  if (totalPart <= 0) return '#f1f5f9'
+  const ring = model.value.ring
+  if (!ring.hasData) return RING_TRACK
   let cursor = 0
-  const stops = parts.map((p) => {
-    const from = (cursor / totalPart) * 100
-    cursor += p.value ?? 0
-    const to = (cursor / totalPart) * 100
-    return `${p.color} ${from.toFixed(2)}% ${to.toFixed(2)}%`
+  const stops = ring.segments.map((seg) => {
+    const from = cursor
+    cursor += seg.percent
+    return `${seg.color} ${from}% ${cursor}%`
   })
-  const rest = Math.max(0, raw.total_tokens - totalPart)
-  if (rest > 0) {
-    const from = (totalPart / raw.total_tokens) * 100
-    stops.push(`#e2e8f0 ${from.toFixed(2)}% 100%`)
-  }
+  if (ring.remainderPercent > 0) stops.push(`${RING_REMAINDER} ${cursor}% 100%`)
   return `conic-gradient(${stops.join(', ')})`
 })
 

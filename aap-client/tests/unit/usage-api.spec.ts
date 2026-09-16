@@ -72,7 +72,7 @@ describe('buildWorkbenchModel · 视图模型对齐设计稿', () => {
     expect(model.centerLabel).toBe('总词元')
   })
 
-  it('构成图例顺序与文案（设计稿 6 行，标签 + 占比·数值）', () => {
+  it('构成图例顺序与文案（6 行，标签 + 百分比·数值）—— 百分比由数值算出（决策 D3）', () => {
     expect(model.categories.map((c) => c.label)).toEqual([
       '输入词元',
       '输出词元',
@@ -81,14 +81,18 @@ describe('buildWorkbenchModel · 视图模型对齐设计稿', () => {
       '音频',
       '视频'
     ])
+    /* 决策 D3（aap-decisions.md）：分母 = max(total_tokens, Σ六类) = 4.09B，最大余数法取整。
+       设计稿的 45/30/15（合计 106%）是逐项取整的产物，只作视觉参考，不再逐字照抄。 */
     expect(model.categories.map((c) => c.text)).toEqual([
-      '45% · 1.74B',
-      '30% · 1.16B',
-      '15% · 0.58B',
+      '42% · 1.74B',
+      '28% · 1.16B',
+      '14% · 0.58B',
       '4% · 0.15B',
       '6% · 0.23B',
       '6% · 0.23B'
     ])
+    expect(model.categories.map((c) => c.percent)).toEqual([42, 28, 14, 4, 6, 6])
+    expect(model.categories.some((c) => c.text.startsWith('45%'))).toBe(false)
   })
 
   it('构成图例点色值取自设计稿', () => {

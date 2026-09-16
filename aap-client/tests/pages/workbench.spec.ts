@@ -79,9 +79,11 @@ describe('页面 2 · 结构与设计稿一致', () => {
       '图片',
       '音频',
       '视频',
-      '45% · 1.74B',
-      '30% · 1.16B',
-      '15% · 0.58B',
+      /* 决策 D3：百分比由接口数值按「最大余数法 + 分母 max(total, Σ六类)」算出，
+         设计稿的 45/30/15（合计 106%）只作视觉参考，不再逐字照抄 */
+      '42% · 1.74B',
+      '28% · 1.16B',
+      '14% · 0.58B',
       '4% · 0.15B',
       '6% · 0.23B',
       '调用请求',
@@ -179,6 +181,52 @@ describe('页面 2 · 数据来自接口', () => {
     const wrapper = mount(WorkbenchPage)
     await flushPromises()
     expect(wrapper.text()).toContain('合计 ¥1,000 · 1 个模型')
+  })
+})
+
+describe('页面 2 · 图例百分比统一口径（决策 D3）', () => {
+  /** 解析 .ring 的 conic-gradient 各段（颜色 + 宽度百分比） */
+  function ringStops(wrapper: ReturnType<typeof mount>) {
+    const style = wrapper.find('.ring').attributes('style') ?? ''
+    const re = /(#[0-9a-f]{6})\s+(\d+(?:\.\d+)?)%\s+(\d+(?:\.\d+)?)%/g
+    const out: Array<{ color: string; width: number; from: number; to: number }> = []
+    let m: RegExpExecArray | null
+    while ((m = re.exec(style)) !== null) {
+      out.push({ color: m[1], width: Number(m[3]) - Number(m[2]), from: Number(m[2]), to: Number(m[3]) })
+    }
+    return out
+  }
+
+  function legendPercents(wrapper: ReturnType<typeof mount>) {
+    return wrapper.findAll('.legend__value').map((w) => Number.parseInt(w.text(), 10))
+  }
+
+  it('环形图分段 = 图例整数百分比（同分母同一份计算，视觉与数字永不打架）', async () => {
+    const wrapper = await mountWorkbench()
+    const stops = ringStops(wrapper)
+    const legend = legendPercents(wrapper)
+    expect(legend).toEqual([42, 28, 14, 4, 6, 6])
+    expect(stops.map((s) => s.width)).toEqual(legend)
+    expect(stops.map((s) => s.color)).toEqual(['#1d4ed8', '#3b82f6', '#16a34a', '#5856d6', '#f59e0b', '#af52de'])
+    /* 逐段首尾相接：第 i 段 from = 前 i 段之和，最后一段收在 100% */
+    let cursor = 0
+    for (const s of stops) {
+      expect(s.from).toBe(cursor)
+      cursor = s.to
+    }
+    expect(cursor).toBe(100)
+    expect(stops.reduce((sum, s) => sum + s.width, 0)).toBeLessThanOrEqual(100)
+  })
+
+  it('接口只给总量、六类全缺 → 六行图例全占位符，环形图退轨道色（不画 0% 的假环）', async () => {
+    pushResponse(ok(PROFILE))
+    pushResponse(ok({ request_count: 1_000, total_tokens: 3_860_000_000 }))
+    const wrapper = mount(WorkbenchPage)
+    await flushPromises()
+    expect(wrapper.findAll('.legend__value').map((w) => w.text())).toEqual(['—', '—', '—', '—', '—', '—'])
+    /* jsdom 会把 inline style 归一化为 rgb() 形式，色值仍是设计稿轨道色 #f1f5f9 */
+    expect(wrapper.find('.ring').attributes('style')).toContain('rgb(241, 245, 249)')
+    expect(ringStops(wrapper)).toHaveLength(0)
   })
 })
 

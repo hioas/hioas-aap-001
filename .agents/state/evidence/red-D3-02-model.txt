@@ -1,0 +1,171 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+ [31m❯[39m tests/unit/workbench-percent.spec.ts [2m([22m[2m10 tests[22m[2m | [22m[31m8 failed[39m[2m)[22m[90m 55[2mms[22m[39m
+[31m   [31m×[31m D3 · 图例百分比由真实数值计算（不再照抄设计稿 45/30/15）[2m > [22m设计稿场景 → 42% · 1.74B / 28% · 1.16B / 14% · 0.58B / 4% · 0.15B / 6% · 0.23B / 6% · 0.23B[90m 45[2mms[22m[31m[39m
+[31m     → expected [ '45% · 1.74B', '30% · 1.16B', …(4) ] to deeply equal [ '42% · 1.74B', '28% · 1.16B', …(4) ][39m
+[31m   [31m×[31m D3 · 图例百分比由真实数值计算（不再照抄设计稿 45/30/15）[2m > [22m分母 = max(total_tokens, Σ六类)（本场景 4.09B，不是总量 3.86B）[90m 1[2mms[22m[31m[39m
+[31m     → Cannot read properties of undefined (reading 'denominator')[39m
+[31m   [31m×[31m D3 · 图例百分比由真实数值计算（不再照抄设计稿 45/30/15）[2m > [22m六类整数百分比之和恒 ≤ 100（容差 0），且等于环形图分段之和[90m 1[2mms[22m[31m[39m
+[31m     → Cannot read properties of undefined (reading 'segments')[39m
+[31m   [31m×[31m D3 · 环形图与图例同分母、同一份计算结果[2m > [22m分段与图例逐项同 key / 同色 / 同整数百分比[90m 1[2mms[22m[31m[39m
+[31m     → Cannot read properties of undefined (reading 'segments')[39m
+[31m   [31m×[31m D3 · 环形图与图例同分母、同一份计算结果[2m > [22m余量（轨道色段） = 100 − 分段之和[90m 0[2mms[22m[31m[39m
+[31m     → Cannot read properties of undefined (reading 'percentSum')[39m
+[31m   [31m×[31m D3 · 缺字段与空数据一律占位符（不显示 0%）[2m > [22m音频/视频 字段缺失 → 图例显示 — 且不参与环形图分段[90m 1[2mms[22m[31m[39m
+[31m     → expected undefined to be null[39m
+[31m   [31m×[31m D3 · 缺字段与空数据一律占位符（不显示 0%）[2m > [22m整个 summary 为空 → 六类全占位、环形图无数据（退轨道色）[90m 1[2mms[22m[31m[39m
+[31m     → expected [ undefined, undefined, …(4) ] to deeply equal [ null, null, null, null, null, null ][39m
+[31m   [31m×[31m D3 · 缺字段与空数据一律占位符（不显示 0%）[2m > [22m字段存在但为 0 是「真 0」而不是缺失 → 显示 0% · 0（区别于占位符）[90m 2[2mms[22m[31m[39m
+[31m     → expected '— · 0' to be '0% · 0' // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 8 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/workbench-percent.spec.ts[2m > [22mD3 · 图例百分比由真实数值计算（不再照抄设计稿 45/30/15）[2m > [22m设计稿场景 → 42% · 1.74B / 28% · 1.16B / 14% · 0.58B / 4% · 0.15B / 6% · 0.23B / 6% · 0.23B
+[31m[1mAssertionError[22m: expected [ '45% · 1.74B', '30% · 1.16B', …(4) ] to deeply equal [ '42% · 1.74B', '28% · 1.16B', …(4) ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Array [[22m
+[32m-   "42% · 1.74B",[39m
+[32m-   "28% · 1.16B",[39m
+[32m-   "14% · 0.58B",[39m
+[31m+   "45% · 1.74B",[39m
+[31m+   "30% · 1.16B",[39m
+[31m+   "15% · 0.58B",[39m
+[2m    "4% · 0.15B",[22m
+[2m    "6% · 0.23B",[22m
+[2m    "6% · 0.23B",[22m
+[2m  ][22m
+
+[36m [2m❯[22m tests/unit/workbench-percent.spec.ts:[2m35:32[22m[39m
+    [90m 33| [39m[34mdescribe[39m([32m'D3 · 图例百分比由真实数值计算（不再照抄设计稿 45/30/15）'[39m[33m,[39m (…
+    [90m 34| [39m  [34mit[39m([32m'设计稿场景 → 42% · 1.74B / 28% · 1.16B / 14% · 0.58B / 4% · 0.15[39m…
+    [90m 35| [39m    [34mexpect[39m([34mtexts[39m([33mDESIGN_LIKE[39m))[33m.[39m[34mtoEqual[39m([
+    [90m   | [39m                               [31m^[39m
+    [90m 36| [39m      [32m'42% · 1.74B'[39m[33m,[39m
+    [90m 37| [39m      [32m'28% · 1.16B'[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/workbench-percent.spec.ts[2m > [22mD3 · 图例百分比由真实数值计算（不再照抄设计稿 45/30/15）[2m > [22m分母 = max(total_tokens, Σ六类)（本场景 4.09B，不是总量 3.86B）
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading 'denominator')[39m
+[36m [2m❯[22m tests/unit/workbench-percent.spec.ts:[2m47:23[22m[39m
+    [90m 45| [39m  [34mit[39m([32m'分母 = max(total_tokens, Σ六类)（本场景 4.09B，不是总量 3.86B）'[39m…
+    [90m 46| [39m    [35mconst[39m model [33m=[39m [34mbuildWorkbenchModel[39m([33mDESIGN_LIKE[39m)
+    [90m 47| [39m    [34mexpect[39m(model[33m.[39mring[33m.[39mdenominator)[33m.[39m[34mtoBe[39m([34m4_090_000_000[39m)
+    [90m   | [39m                      [31m^[39m
+    [90m 48| [39m    [34mexpect[39m(model[33m.[39mcategories[[34m0[39m][33m.[39mpercent)[33m.[39m[34mtoBe[39m([34m42[39m)
+    [90m 49| [39m    [34mexpect[39m(model[33m.[39mcategories[[34m0[39m][33m.[39mpercent)[33m.[39mnot[33m.[39m[34mtoBe[39m([34m45[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/workbench-percent.spec.ts[2m > [22mD3 · 图例百分比由真实数值计算（不再照抄设计稿 45/30/15）[2m > [22m六类整数百分比之和恒 ≤ 100（容差 0），且等于环形图分段之和
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading 'segments')[39m
+[36m [2m❯[22m tests/unit/workbench-percent.spec.ts:[2m66:34[22m[39m
+    [90m 64| [39m      [35mconst[39m model [33m=[39m [34mbuildWorkbenchModel[39m(raw)
+    [90m 65| [39m      [35mconst[39m legendSum [33m=[39m model[33m.[39mcategories[33m.[39m[34mreduce[39m((s[33m,[39m c) [33m=>[39m s [33m+[39m (c[33m.[39mperce…
+    [90m 66| [39m      [35mconst[39m ringSum [33m=[39m model[33m.[39mring[33m.[39msegments[33m.[39m[34mreduce[39m((s[33m,[39m seg) [33m=>[39m s [33m+[39m seg[33m.[39mp…
+    [90m   | [39m                                 [31m^[39m
+    [90m 67| [39m      [34mexpect[39m(legendSum)[33m.[39m[34mtoBeLessThanOrEqual[39m([34m100[39m)
+    [90m 68| [39m      [34mexpect[39m(ringSum)[33m.[39m[34mtoBe[39m(legendSum)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/workbench-percent.spec.ts[2m > [22mD3 · 环形图与图例同分母、同一份计算结果[2m > [22m分段与图例逐项同 key / 同色 / 同整数百分比
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading 'segments')[39m
+[36m [2m❯[22m tests/unit/workbench-percent.spec.ts:[2m77:23[22m[39m
+    [90m 75| [39m  [34mit[39m([32m'分段与图例逐项同 key / 同色 / 同整数百分比'[39m[33m,[39m () [33m=>[39m {
+    [90m 76| [39m    [35mconst[39m model [33m=[39m [34mbuildWorkbenchModel[39m([33mDESIGN_LIKE[39m)
+    [90m 77| [39m    [34mexpect[39m(model[33m.[39mring[33m.[39msegments[33m.[39m[34mmap[39m((s) [33m=>[39m s[33m.[39mkey))[33m.[39m[34mtoEqual[39m(model[33m.[39mcatego…
+    [90m   | [39m                      [31m^[39m
+    [90m 78| [39m    [34mexpect[39m(model[33m.[39mring[33m.[39msegments[33m.[39m[34mmap[39m((s) [33m=>[39m s[33m.[39mcolor))[33m.[39m[34mtoEqual[39m(model[33m.[39mcate…
+    [90m 79| [39m    [34mexpect[39m(model[33m.[39mring[33m.[39msegments[33m.[39m[34mmap[39m((s) [33m=>[39m s[33m.[39mpercent))[33m.[39m[34mtoEqual[39m(model[33m.[39mca…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/workbench-percent.spec.ts[2m > [22mD3 · 环形图与图例同分母、同一份计算结果[2m > [22m余量（轨道色段） = 100 − 分段之和
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading 'percentSum')[39m
+[36m [2m❯[22m tests/unit/workbench-percent.spec.ts:[2m84:23[22m[39m
+    [90m 82| [39m  [34mit[39m([32m'余量（轨道色段） = 100 − 分段之和'[39m[33m,[39m () [33m=>[39m {
+    [90m 83| [39m    [35mconst[39m model [33m=[39m [34mbuildWorkbenchModel[39m({ total_tokens[33m:[39m [34m1000[39m[33m,[39m prompt_tok…
+    [90m 84| [39m    [34mexpect[39m(model[33m.[39mring[33m.[39mpercentSum)[33m.[39m[34mtoBe[39m([34m15[39m)
+    [90m   | [39m                      [31m^[39m
+    [90m 85| [39m    [34mexpect[39m(model[33m.[39mring[33m.[39mremainderPercent)[33m.[39m[34mtoBe[39m([34m85[39m)
+    [90m 86| [39m    [34mexpect[39m(model[33m.[39mring[33m.[39mhasData)[33m.[39m[34mtoBe[39m([35mtrue[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/workbench-percent.spec.ts[2m > [22mD3 · 缺字段与空数据一律占位符（不显示 0%）[2m > [22m音频/视频 字段缺失 → 图例显示 — 且不参与环形图分段
+[31m[1mAssertionError[22m: expected undefined to be null[39m
+
+[32m- Expected:[39m 
+null
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/unit/workbench-percent.spec.ts:[2m100:41[22m[39m
+    [90m 98| [39m    })
+    [90m 99| [39m    [34mexpect[39m(model[33m.[39mcategories[[34m4[39m][33m.[39mtext)[33m.[39m[34mtoBe[39m([32m'—'[39m)
+    [90m100| [39m    [34mexpect[39m(model[33m.[39mcategories[[34m4[39m][33m.[39mpercent)[33m.[39m[34mtoBeNull[39m()
+    [90m   | [39m                                        [31m^[39m
+    [90m101| [39m    [34mexpect[39m(model[33m.[39mcategories[[34m5[39m][33m.[39mtext)[33m.[39m[34mtoBe[39m([32m'—'[39m)
+    [90m102| [39m    [34mexpect[39m(model[33m.[39mcategories[[34m5[39m][33m.[39mpercent)[33m.[39m[34mtoBeNull[39m()
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/workbench-percent.spec.ts[2m > [22mD3 · 缺字段与空数据一律占位符（不显示 0%）[2m > [22m整个 summary 为空 → 六类全占位、环形图无数据（退轨道色）
+[31m[1mAssertionError[22m: expected [ undefined, undefined, …(4) ] to deeply equal [ null, null, null, null, null, null ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Array [[22m
+[32m-   null,[39m
+[32m-   null,[39m
+[32m-   null,[39m
+[32m-   null,[39m
+[32m-   null,[39m
+[32m-   null,[39m
+[31m+   undefined,[39m
+[31m+   undefined,[39m
+[31m+   undefined,[39m
+[31m+   undefined,[39m
+[31m+   undefined,[39m
+[31m+   undefined,[39m
+[2m  ][22m
+
+[36m [2m❯[22m tests/unit/workbench-percent.spec.ts:[2m112:52[22m[39m
+    [90m110| [39m    [35mconst[39m model [33m=[39m [34mbuildWorkbenchModel[39m({})
+    [90m111| [39m    [34mexpect[39m(model[33m.[39mcategories[33m.[39m[34mmap[39m((c) [33m=>[39m c[33m.[39mtext))[33m.[39m[34mtoEqual[39m([[32m'—'[39m[33m,[39m [32m'—'[39m[33m,[39m [32m'—'[39m…
+    [90m112| [39m    [34mexpect[39m(model[33m.[39mcategories[33m.[39m[34mmap[39m((c) [33m=>[39m c[33m.[39mpercent))[33m.[39m[34mtoEqual[39m([[35mnull[39m[33m,[39m [35mnull[39m…
+    [90m   | [39m                                                   [31m^[39m
+    [90m113| [39m    [34mexpect[39m(model[33m.[39mring[33m.[39mhasData)[33m.[39m[34mtoBe[39m([35mfalse[39m)
+    [90m114| [39m    [34mexpect[39m(model[33m.[39mring[33m.[39msegments)[33m.[39m[34mtoEqual[39m([])
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/workbench-percent.spec.ts[2m > [22mD3 · 缺字段与空数据一律占位符（不显示 0%）[2m > [22m字段存在但为 0 是「真 0」而不是缺失 → 显示 0% · 0（区别于占位符）
+[31m[1mAssertionError[22m: expected '— · 0' to be '0% · 0' // Object.is equality[39m
+
+Expected: [32m"[7m0%[27m · 0"[39m
+Received: [31m"[7m—[27m · 0"[39m
+
+[36m [2m❯[22m tests/unit/workbench-percent.spec.ts:[2m121:38[22m[39m
+    [90m119| [39m  [34mit[39m([32m'字段存在但为 0 是「真 0」而不是缺失 → 显示 0% · 0（区别于占位符[39m…
+    [90m120| [39m    [35mconst[39m model [33m=[39m [34mbuildWorkbenchModel[39m({ total_tokens[33m:[39m [34m1000[39m[33m,[39m prompt_tok…
+    [90m121| [39m    [34mexpect[39m(model[33m.[39mcategories[[34m0[39m][33m.[39mtext)[33m.[39m[34mtoBe[39m([32m'0% · 0'[39m)
+    [90m   | [39m                                     [31m^[39m
+    [90m122| [39m    [34mexpect[39m(model[33m.[39mcategories[[34m0[39m][33m.[39mpercent)[33m.[39m[34mtoBe[39m([34m0[39m)
+    [90m123| [39m    [34mexpect[39m(model[33m.[39mcategories[[34m2[39m][33m.[39mtext)[33m.[39m[34mtoBe[39m([32m'—'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m8 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m 09:14:14
+[2m   Duration [22m 1.28s[2m (transform 63ms, setup 47ms, collect 56ms, tests 55ms, environment 690ms, prepare 129ms)[22m
+
