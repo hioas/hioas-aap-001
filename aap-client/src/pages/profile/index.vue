@@ -745,13 +745,13 @@ async function onSave() {
   color: $color-warning-text-3;
 }
 
-/* 上传新资质（design f79c7824：h44 · r12 · 白底 · 描边 #93C5FD） */
+/* 上传新资质（design f79c7824：h44 · r12 · 白底 · 描边 #93C5FD；Figma center 描边不占布局 → ring） */
 .btn-upload {
   width: 100%;
   height: 44px;
   border-radius: 12px;
   background: $color-bg-card;
-  border: 1px solid $color-primary-border-light;
+  box-shadow: 0 0 0 1px $color-primary-border-light;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -799,7 +799,8 @@ async function onSave() {
   width: 193px;
   flex: none;
   background: $color-bg-card;
-  border: 1px solid $color-border-strong;
+  /* design b1b991b0 stroke center 1 #CBD5E1 → ring（border 会把内容宽压成 191） */
+  box-shadow: 0 0 0 1px $color-border-strong;
 }
 
 .btn--ghost__text {
@@ -831,37 +832,75 @@ async function onSave() {
 }
 
 .glyph--completeness {
-  width: 13px;
-  height: 13px;
-  border-radius: 3px;
-  background: $color-warning-text;
+  /* 设计图层 92209e73：w=15 · fs=13 → 字形行框 13×1.5 = 20（形状移入 ::before，盒按设计尺寸） */
+  width: 15px;
+  height: 20px;
   flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-warning-text;
+}
+
+.glyph--completeness::before {
+  content: '';
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: currentColor;
 }
 
 .glyph--basic,
 .glyph--contact,
 .glyph--files {
+  /* 设计图层：w=20 · fs=18 → 字形行框 18×1.5 = 27（形状移入 ::before，盒按设计尺寸） */
+  width: 20px;
+  height: 27px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-primary;
+}
+
+.glyph--basic::before,
+.glyph--contact::before,
+.glyph--files::before {
+  content: '';
+  display: block;
   width: 18px;
   height: 18px;
   border-radius: 5px;
-  background: $color-primary;
-  flex: none;
+  background: currentColor;
 }
 
-.glyph--contact {
+.glyph--contact::before {
   border-radius: 9px;
 }
 
-.glyph--files {
+.glyph--files::before {
   border-radius: 4px;
 }
 
 .glyph--lock {
+  /* 设计图层 3dc141cc：w=14 · fs=12 → 字形行框 12×1.5 = 18 */
+  width: 14px;
+  height: 18px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-text-placeholder;
+}
+
+.glyph--lock::before {
+  content: '';
+  display: block;
   width: 12px;
   height: 12px;
   border-radius: 3px;
-  background: $color-text-placeholder;
-  flex: none;
+  background: currentColor;
 }
 
 .glyph--warn {
@@ -881,30 +920,67 @@ async function onSave() {
 }
 
 .glyph--doc {
-  width: 24px;
-  height: 24px;
+  /* 设计图层 35075926：w=26 · fs=24 → 字形行框 24×1.5 = 36（PNG ink 19×21 居中缩略图） */
+  width: 26px;
+  height: 36px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-primary;
+}
+
+.glyph--doc::before {
+  content: '';
+  display: block;
+  width: 20px;
+  height: 22px;
   border-radius: 4px;
-  background: $color-primary;
+  background: currentColor;
 }
 
 .qual-row__thumb--muted .glyph--doc {
-  background: $color-text-placeholder;
+  color: $color-text-placeholder;
 }
 
 .glyph--plus {
+  /* 设计图层 3cb47d44：w=22 · fs=20 → 字形行框 20×1.5 = 30 */
+  width: 22px;
+  height: 30px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-primary;
+}
+
+.glyph--plus::before {
+  content: '';
+  display: block;
   width: 18px;
   height: 18px;
   border-radius: 3px;
-  background: $color-primary;
-  flex: none;
+  background: currentColor;
 }
 
 .glyph--chevron {
+  /* 设计图层 e8c9a56d：w=22 · fs=20 → 字形行框 20×1.5 = 30（PNG ink 379..385 · 盒右界 394） */
+  width: 22px;
+  height: 30px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-border-strong;
+}
+
+.glyph--chevron::before {
+  content: '';
+  display: block;
   width: 7px;
   height: 7px;
-  border-right: 1.5px solid $color-border-strong;
-  border-top: 1.5px solid $color-border-strong;
+  border-right: 1.5px solid currentColor;
+  border-top: 1.5px solid currentColor;
   transform: rotate(45deg);
-  flex: none;
 }
 </style>

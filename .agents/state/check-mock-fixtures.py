@@ -107,6 +107,9 @@ CHECKS = [
 ]
 
 
+KNOWN = {c["mock"] for c in CHECKS}
+
+
 def free_port():
     s = socket.socket()
     s.bind(("127.0.0.1", 0))
@@ -138,10 +141,7 @@ def request(port, method, path):
     return r.status, raw
 
 
-def main():
-    only = None
-    if "--mock" in sys.argv:
-        only = sys.argv[sys.argv.index("--mock") + 1]
+def run_group(only, exact=False):
     mock = os.path.join(MOCK_ROOT, only or "api")
     port = free_port()
     srv = subprocess.Popen(
@@ -158,7 +158,7 @@ def main():
         checks = [
             c
             for c in CHECKS
-            if only is None or c["mock"] == only or only.startswith(c["mock"] + "-")
+            if only is None or c["mock"] == only or (not exact and only not in KNOWN and only.startswith(c["mock"] + "-"))
         ]
         for c in checks:
             status, raw = request(port, c["method"], c["path"])
@@ -215,8 +215,22 @@ def main():
             srv.kill()
 
     print("---")
-    print("结论：%s（FAIL %d）" % ("全部 PASS" if not fails else "存在 FAIL", len(fails)))
+    print("结论[%s]：%s（FAIL %d）" % (only or "api", "全部 PASS" if not fails else "存在 FAIL", len(fails)))
     return 1 if fails else 0
+
+
+def main():
+    only = None
+    if "--mock" in sys.argv:
+        only = sys.argv[sys.argv.index("--mock") + 1]
+    # 不带 --mock 时：按每条 check 自带的 mock 目录名分组，各起一次 serve。
+    # （否则 api-11 的路径会打到 api 目录上 → 永久假 FAIL，掩盖真实缺口）
+    groups = [only] if only else sorted({c["mock"] for c in CHECKS})
+    total = 0
+    for g in groups:
+        total += run_group(g, exact=True) if only is None else run_group(g)
+    print("=== 汇总：%d 个 mock 目录 · FAIL 合计 %d ===" % (len(groups), total))
+    return 1 if total else 0
 
 
 if __name__ == "__main__":

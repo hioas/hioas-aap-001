@@ -1,0 +1,31 @@
+序号 10.1「供应商档案」设计期望值 checks —— 绿基线（全部修复后 + 两轮独立测量）
+==============================================================================
+
+phase1 : checkCount=271 checkFailCount=0 docH=1414 docW=430 overflowing=0 missingTexts=[]
+    [两轮独立测量一致? 是]
+
+serve 实收请求行（run1，写请求带 body）:
+"GET /api/v1/provider/profile HTTP/1.1" 200 -
+"GET /api/v1/provider/qualifications HTTP/1.1" 200 -
+PUT /api/v1/provider/profile body={"company_name":"云智科技有限公司","unified_social_credit_code":"91330106MA2XXXXX8B","industry_category":"RESELLER","province":"浙江","city":"杭州","address":"西湖区文三路 199 号 A 座 18F","website":"www.yunzhi-tech.com"
+"PUT /api/v1/provider/profile HTTP/1.1" 200 -
+"GET /api/v1/provider/qualifications HTTP/1.1" 200 -
+"GET /api/v1/provider/profile HTTP/1.1" 200 -
+"GET /api/v1/provider/profile HTTP/1.1" 200 -
+"GET /api/v1/provider/qualifications HTTP/1.1" 200 -
+"GET /api/v1/provider/profile HTTP/1.1" 200 -
+"GET /api/v1/provider/qualifications HTTP/1.1" 200 -
+"GET /api/v1/provider/profile HTTP/1.1" 200 -
+"GET /api/v1/provider/qualifications HTTP/1.1" 200 -
+"GET /api/v1/provider/profile HTTP/1.1" 200 -
+"GET /api/v1/provider/qualifications HTTP/1.1" 200 -
+"GET /api/v1/provider/profile HTTP/1.1" 200 -
+"GET /api/v1/provider/qualifications HTTP/1.1" 200 -
+"GET /api/v1/provider/profile HTTP/1.1" 200 -
+"GET /api/v1/provider/qualifications HTTP/1.1" 200 -
+"GET /api/v1/provider/profile HTTP/1.1" 200 -
+"GET /api/v1/provider/qualifications HTTP/1.1" 200 -
+"GET /api/v1/provider/profile HTTP/1.1" 200 -
+"GET /api/v1/provider/qualifications HTTP/1.1" 200 -
+"GET /api/v1/provider/profile HTTP/1.1" 200 -
+"GET /api/v1/provider/qualifications HTTP/1.1" 200 -

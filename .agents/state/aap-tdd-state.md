@@ -1,4 +1,4 @@
-STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 09:38（160 条 · 15→0）· 序号 4 已完成 09:55（212 条 · 45→0）· 序号 4-v1 已完成 10:20（249 条 · 78→0）· 序号 5 已完成 10:42（237 条 · 95→0）· 序号 6 已完成 11:5x（221 条 · 45→0，docH 4886→5343 = 设计帧高 5342）· 序号 7 已完成 11:3x（196 条 · 51→0，docH 1063→1111 = 设计帧高 1110）· 序号 8 已完成 11:5x（138 条 · 27→0，docH 1198→1206 = 设计帧高 1206）· 序号 9 已完成 2026-09-16 12:21（272 条 · 53→0，docH 1202→1212 = 设计帧高 1211，像素对账 68/68 命中，报告 `evidence/review-序号9-checks-报告.md`）· 序号 10 已完成 2026-09-16 12:5x（229 条 · 36→0，docH 1409 = 设计帧高，像素对账 56/56 命中 · 未命中 0，报告 `evidence/review-序号10-checks-报告.md`）→ 下一轮开工做 序号 10.1**（`page-10-1-2`「供应商档案 2」→ `/pages/profile/index`，载体页 `__measure-profile.html`，mock 目录 `api-10-1-2`；对照表 `python .agents/state/survey-harness-routes.py`） ②队列 1 逐页复核（余下行的 checks 维度待补） ③队列 7（uni-picker 溢出口径）④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。⚠️ **序号↔路由映射一律以台账「目标路由」列为准**（序号 9 = `/pages/quote-models/index`；`/pages/model-pricing/index` 是序号 11）——此前在办项写错过一次（2026-09-16 12:05 轮已改正），勿再沿用。历史流水归档在 `aap-notes-archive-2026-09-16.md`，**不要每轮读**。
+STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 09:38（160 条 · 15→0）· 序号 4 已完成 09:55（212 条 · 45→0）· 序号 4-v1 已完成 10:20（249 条 · 78→0）· 序号 5 已完成 10:42（237 条 · 95→0）· 序号 6 已完成 11:5x（221 条 · 45→0，docH 4886→5343 = 设计帧高 5342）· 序号 7 已完成 11:3x（196 条 · 51→0，docH 1063→1111 = 设计帧高 1110）· 序号 8 已完成 11:5x（138 条 · 27→0，docH 1198→1206 = 设计帧高 1206）· 序号 9 已完成 2026-09-16 12:21（272 条 · 53→0，docH 1202→1212 = 设计帧高 1211，像素对账 68/68 命中，报告 `evidence/review-序号9-checks-报告.md`）· 序号 10 已完成 2026-09-16 12:5x（229 条 · 36→0，docH 1409 = 设计帧高，像素对账 56/56 命中 · 未命中 0，报告 `evidence/review-序号10-checks-报告.md`）· 序号 10.1 已完成 2026-09-16 13:0x（271 条 · 22→0，docH 1414 = 设计帧高，像素对账 31/33 = 97% 命中，报告 `evidence/review-序号10.1-checks-报告.md`）→ 下一轮开工做 序号 11**（`page-11`「【报价管理】模型定价-详情」→ `/pages/model-pricing/index`，载体页 `__measure-model-pricing.html`（另有 `?quoteId=` 回落载体页 `__measure-model-pricing-q9.html`），mock 目录 `api-11`；对照表 `python .agents/state/survey-harness-routes.py`） ②队列 1 逐页复核（余下行的 checks 维度待补） ③队列 7（uni-picker 溢出口径）④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。⚠️ **序号↔路由映射一律以台账「目标路由」列为准**（序号 9 = `/pages/quote-models/index`；`/pages/model-pricing/index` 是序号 11）——此前在办项写错过一次（2026-09-16 12:05 轮已改正），勿再沿用。历史流水归档在 `aap-notes-archive-2026-09-16.md`，**不要每轮读**。
 LEASE: free until -
 
 # AAP TDD 推进 · 状态与目标（自驱动循环的单一事实来源）
@@ -160,6 +160,22 @@ LEASE: free until -
      像素对账（实现截图 vs 设计 PNG，±3）内容列 **49/49** + 条列 **19/19** = **68/68 命中、未命中 0**。
      质量门：`npm test` **1172/1172 ×2** · `type-check` exit 0 · `build:mp-weixin` / `build:h5` DONE · 截图 `evidence/20260916-1221-序号9-模型报价设置-checks轮-h5-430宽.png`。
      **下一轮：序号 10**（`page-10-2`「供应商档案编辑 2」→ `/pages/profile-edit/index`，载体页 `__measure-profile-edit.html`，mock 目录 `api-10-2`）。
+   - ✅ **序号 10 已完成 2026-09-16 12:5x**（cron 轮 `aap-tdd-run-20260916-1231`）：`__measure-profile-edit.html` 由 355 行旧体例重写为 430 宽 iframe + **229 条 checks**，
+     红基线 36 → 绿 0、`docH 1409` = 设计帧高，像素对账 56/56 命中、未命中 0（明细见台账序号 10 行与 `evidence/review-序号10-checks-报告.md`）。
+   - ✅ **序号 10.1 已完成 2026-09-16 13:0x**（cron 轮 `aap-tdd-run-20260916-1255`）：`__measure-profile.html` 由 314 行旧体例重写为 430 宽 iframe + **271 条 checks**
+     （want = `page-10-1-2` design.tree.json 声明值 + 58 个文本叶子 + 设计 PNG 430×1414 像素实测）。
+     红基线（修复前源码 + 同一份探针两轮）**22/271** → 绿 **0/271**；两轮独立测量 **43/43 字段全等**；`docH 1414` = 设计帧高。
+     修掉 3 类偏差：8 处图标占位盒按设计图层（15×20 · 20×27 ×3 · 14×18 · 26×36 · 22×30 · 22×30，形状入 `::before`）·
+     2 处 Figma center 描边 `border`→`box-shadow 0 0 0 1px`（上传新资质按钮 / 保存按钮）· 胶囊宽 91→95 且 x 323→321。
+     交互相两轮逐字节相同：保存 → 真实 `PUT /provider/profile`（toast「保存成功」· 完整度 72%→**78%**，pill/percent/bar 三处一致）·
+     四个入口（编辑/管理/上传新资质/去补全资质）均跳 `/pages/profile-edit/index` · 返回 = navigateBack · 每轮 serve 实收 24 行 = 1 写 + 11 对只读 GET。
+     像素对账（设计 PNG vs 实现截图，按最近 y0 一对一匹配）**31/33 = 97%**（唯一未命中 = 官网值行被设计切成 h11 + h1 两条带）。
+     质量门：`npm test` **1173/1173 ×2** · `type-check` exit 0 · `build:mp-weixin` 产物 `pages/profile/index.{js,json,wxml,wxss}` · `build:h5` DONE ·
+     截图 `logs/screenshots/20260916-1309-序号10.1-供应商档案-checks轮-h5-430宽.png` · 设计帧重抓 sha256 逐字节相同（无漂移）。
+     **下一轮：序号 11**（`page-11`「【报价管理】模型定价-详情」→ `/pages/model-pricing/index`，载体页 `__measure-model-pricing.html`（另有 `?quoteId=` 回落载体页 `__measure-model-pricing-q9.html`），mock 目录 `api-11`）。
+   - 本轮新增探针尺子（已写进 §5）：`node-by-id.py`（按 layer_id 查声明值）· `ink-bbox.py` / `ink-runs.py` / `scan-row.py` / `scan-col.py`（墨迹与边界定位）；
+     坑：list 助手对 `A@@N B` 型选择器必须走新增的 `resolveAll()`（否则拿到「全部 A 的文本」）· `collect()` 内的 `textOf` 在外层作用域不可见 ·
+     `check-mock-fixtures.py` 默认模式会把 api-11 的路径打到 api 目录上假 FAIL（已改为「按每条 check 自带的 mock 目录分组、各起一次 serve」，2 组 FAIL 0）。
 
    - ⚠️ 本轮踩到并写进 §5 的坑：重抓前必须先确认 Calicat 编辑器在浏览器里打开（否则 22 帧全 FAIL `请先在浏览器中打开文件`）；
      `cmp-measure-runs.py` 对扁平文件也要传 phase 名（传 `flat`）；Chrome `--screenshot` 的中文路径会被 MSYS 弄坏 → 先写 ASCII 临时名再 `cp`；
@@ -615,3 +631,16 @@ LEASE: free until -
   写 want 前先用 PNG 引一条「框 ink 起点」序列，别用统一步进递推。
 - **本页新增脚本**：`build-probe-10.py`（从 `__measure-quote-setup.html` 切 head/helpers/tail 拼本页载体页）· `shot-10.sh`（430×1409 整页截图）·
   `check-js-balance.py` / `js-depth.py`（载体页内联脚本体检）· `show-node-json.py` / `show-children.py`（设计节点子树）。
+
+- 2026-09-16 13:0x（cron 轮 `aap-tdd-run-20260916-1255`）· **队列 8 第 10 页：序号 10.1「供应商档案」载体页补「设计期望值 checks」维度（271 条 · 偏差 22→0）+ 3 类设计偏差修复 + 整页对齐设计帧 1414（像素对账 31/33 = 97% 命中）**：
+  ①**设计帧重抓**（人工指令 C）：`page-10-1-2`（layer_id `54ad46b0-1f7c-498a-ac1a-70dff723b35d`）重抓，`design.json` sha256 `e7983634…` **逐字节相同**（无漂移）。
+  ②**TDD 红→绿（本轮主交付）**：`__measure-profile.html` 由 314 行旧体例重写为 **430 宽 iframe + 271 条 checks**；红基线（修复前源码 + 同一份探针两轮）**22/271** → 绿 **0/271**；两轮独立测量 **43/43 字段全等**；`docH 1414` = 设计帧高。
+  ③**修 3 类偏差**（清单见台账序号 10.1 行 / `evidence/review-序号10.1-checks-报告.md` §4）：8 处图标占位盒按设计图层（形状入 `::before`）· 2 处 center 描边 `border`→ring · 胶囊宽 91→95。
+  ④**交互相两轮逐字节相同**：保存 → 真实 `PUT /provider/profile`（完整度 72%→78%，pill/percent/bar 三处一致）· 四个入口均跳 `/pages/profile-edit/index` · 返回 = navigateBack · 每轮 serve 实收 24 行 = 1 写 + 11 对只读 GET。
+  ⑤**工具卫生**：`check-mock-fixtures.py` 默认模式对 api-11 的路径假 FAIL → 改为「按每条 check 自带的 mock 目录分组、各起一次 serve」（api / api-11 各 FAIL 0）。
+- ⚠️ **载体页 `main()` 的异步链必须 try/catch 并把错误 `sink('error', …)` 出来**：本轮 `main()` 借用了 `collect()` 作用域内的 `textOf` → `ReferenceError` 让 phase2~4 **整段静默丢失**（dump 里只有 phase1，看起来像「跑完了但没交互」）。
+  与上一轮「`textOf` 闭包 `doc` 静默不 sink」同类；`show-phases.py` 看 `phases=[…]` 少了哪相即可定位，`show-err.py` 打印错误相。
+- ⚠️ **文本带对账不能按 index 配对**：设计 PNG 存在 h=1 的抗锯齿残带（本页 y=602），一按序对齐即**全表串位**、误报 18 条未命中；改「按最近 y0 一对一匹配」后同一对图是 **31/33 = 97%**。写 want / 对账前先看带数与 h=1 残带。
+- ⚠️ **`A@@N B` 型选择器在 list 助手里必须组感知**：`querySelectorAll(splitSel(sel).base)` 会退化成「全部 A 的文本」（本页误报 5 条）；`texts/colors/textColors/rects` 统一走新增的 `resolveAll()`。
+- **本页新增脚本**：`shot-10.1.sh`（430×1414 整页截图）· `cmp-bands-10.1.py`（设计 PNG vs 实现截图文本带对账，最近 y0 匹配）· `node-by-id.py`（按 layer_id 查设计声明值）·
+  `ink-bbox.py` / `ink-runs.py` / `scan-row.py` / `scan-col.py`（墨迹包围盒 / y 带内 x 向墨迹段 / 单行·单列颜色分段）· `show-fails.py`（打印 checkFails 清单）· `show-err.py`（打印载体页错误相）。
