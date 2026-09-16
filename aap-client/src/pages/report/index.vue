@@ -275,7 +275,7 @@
  * 交互分类（台账序号 6 行）：
  *   返回 = navigation(navigateBack 1)
  *   导出 PDF = api(GET /reports/{reportId}/export)；小程序内不做文件落地，成功即提示（响应体字段 missing-prd）
- *   填写报价 = navigation(navigateTo /pages/quote-form/index，画布序号 12-v1「新增报价单-初始态」)
+ *   填写报价 = navigation(navigateTo /pages/quote-models/index，用户拍板对齐原型 page-9)
  *   评分 / 维度 / 明细 / 风险 / 证据 / 免责 = client-only（渲染态，无点击）
  * 入参：reportId 取页面 query（?reportId=），无 query 时退 storage 键 aap_report_id。
  */
@@ -370,7 +370,7 @@ async function onExport() {
   }
 }
 
-/** 填写报价：跳画布序号 12-v1「新增报价单-初始态」（不臆造带参路由） */
+/** 填写报价：跳用户拍板对齐的原型 page-9「模型报价设置-列表」（不臆造带参路由） */
 function onQuote() {
   uni.navigateTo({ url: QUOTE_ROUTE })
 }

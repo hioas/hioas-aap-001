@@ -98,7 +98,7 @@
  * 设计真源：.calicat/raw/pages/page-8-2/design.tree.json（430 宽 · 设计总高 1206）
  * 接口真源：GET /api/v1/quotes（列表）· DELETE /api/v1/quotes/{quoteId}（删除）— 18-API「Quote」Tag
  * 交互分类见 .agents/state/aap-feature-status.csv 序号 8 行：
- *   新建报价 = navigation(/pages/quote-form/index，画布 12-v1 新增报价单-初始态)
+ *   新建报价 = navigation(/pages/quote-models/index，画布 9 模型报价设置-列表，用户拍板对齐原型 page-9)
  *   筛选 chip = api（GET /quotes?status=，参数名/取值集合为推断 → missing-prd）
  *   报价 = navigation(/pages/quote-form/index?quoteId=) · 预览 = navigation(/pages/quote-preview/index?quoteId=，画布 12)
  *   签署 / 合同 = navigation(/pages/contract/index?contractId=，画布 15) · 删除 = api(DELETE /quotes/{id}，二次确认后刷新)
@@ -155,7 +155,7 @@ function onFilter(key: QuoteFilterKey) {
 }
 
 function goNewQuote() {
-  uni.navigateTo({ url: '/pages/quote-form/index' })
+  uni.navigateTo({ url: '/pages/quote-models/index' })
 }
 
 function onAction(row: QuoteRow, action: QuoteAction) {

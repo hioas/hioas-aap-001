@@ -108,8 +108,8 @@ export const MISSING_REPORT_TOAST = '缺少报告标识'
 export const EXPORT_READY_TOAST = '导出链接已生成，请在浏览器中打开'
 export const LOAD_FAIL_TOAST = '加载失败，请稍后重试'
 
-/** 「填写报价」目标路由：画布序号 12-v1「新增报价单-初始态」= /pages/quote-form/index */
-export const QUOTE_ROUTE = '/pages/quote-form/index'
+/** 「填写报价」目标路由：用户拍板对齐原型 page-9「模型报价设置-列表」= /pages/quote-models/index */
+export const QUOTE_ROUTE = '/pages/quote-models/index'
 
 /* ------------------------------- 原始数据结构 ------------------------------- */
 

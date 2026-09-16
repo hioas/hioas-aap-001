@@ -149,11 +149,11 @@ describe('序号 8 · 数据来自接口', () => {
 })
 
 describe('序号 8 · 交互（分类见台账）', () => {
-  it('「新建报价」→ 新增报价单页 /pages/quote-form/index（画布 12-v1）', async () => {
+  it('「新建报价」→ 新增报价单页 /pages/quote-models/index（画布 9，用户拍板对齐原型）', async () => {
     const wrapper = await mountPage()
     await tap(wrapper, 'new-quote')
     const nav = getCalls('navigateTo').at(-1)
-    expect((nav?.args[0] as Record<string, unknown>).url).toBe('/pages/quote-form/index')
+    expect((nav?.args[0] as Record<string, unknown>).url).toBe('/pages/quote-models/index')
   })
 
   it('「报价」→ /pages/quote-form/index?quoteId=…', async () => {

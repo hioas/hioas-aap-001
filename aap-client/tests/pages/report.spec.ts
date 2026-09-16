@@ -187,10 +187,10 @@ describe('序号 6 · 页面：接口与交互分类', () => {
     expect(w.find('[data-testid="export-btn"]').text()).toBe(EXPORT_TEXT)
   })
 
-  it('填写报价 = navigation(navigateTo /pages/quote-form/index)', async () => {
+  it('填写报价 = navigation(navigateTo /pages/quote-models/index)', async () => {
     const w = await mountPage()
     await w.find('[data-testid="quote-btn"]').trigger('tap')
-    expect(getCalls('navigateTo')[0].args[0]).toMatchObject({ url: '/pages/quote-form/index' })
+    expect(getCalls('navigateTo')[0].args[0]).toMatchObject({ url: '/pages/quote-models/index' })
     expect(w.find('[data-testid="quote-btn"]').text()).toBe(QUOTE_TEXT)
   })
 
