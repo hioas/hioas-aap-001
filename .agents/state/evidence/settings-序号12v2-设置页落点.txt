@@ -1,0 +1,16 @@
+序号 12-v2「前往「我的设置」新建凭证」落点（?scenario=settings，两轮）
+（台账旧备注写「序号 23 未实现 → hash 不变」——本轮实测 /pages/settings/index 已实现且注册在 pages.json，口径已改正）
+
+=== SETTINGS run1 :: .agents/state\evidence\review-序号12-v2-checks-settings-run1.json
+phase1   checkCount=272 checkFailCount=0 docScrollHeight=1127 overflowing=0 missingTexts=[]
+phase2   {"clickedCreate": "CLICKED", "hashBeforeCreate": "#/pages/quote-form/apikey", "hashAfterCreate": "#/pages/settings/index", "settingsTitle": "账号与设置", "settingsTitleCount": 1, "toastOnLanding": ""}
+
+=== SETTINGS run2 :: .agents/state\evidence\review-序号12-v2-checks-settings-run2.json
+phase1   checkCount=272 checkFailCount=0 docScrollHeight=1127 overflowing=0 missingTexts=[]
+phase2   {"clickedCreate": "CLICKED", "hashBeforeCreate": "#/pages/quote-form/apikey", "hashAfterCreate": "#/pages/settings/index", "settingsTitle": "账号与设置", "settingsTitleCount": 1, "toastOnLanding": ""}
+
+两轮一致性：phase2 逐字段相同 = True · serve 实收请求行逐字节相同 = True
+
+=== serve 实收请求行 ===
+"GET /api/v1/credentials?page=1&pageSize=20 HTTP/1.1" 200 -
+"GET /api/v1/auth/me HTTP/1.1" 200 -

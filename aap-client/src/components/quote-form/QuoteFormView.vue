@@ -153,7 +153,7 @@
                       v-if="cred.subText"
                       class="panel__sub"
                       :data-testid="`cred-sub-${cred.id}`"
-                      :style="{ lineHeight: textLineBox(11) + 'px' }"
+                      :style="{ lineHeight: CRED_SUB_LINE_BOX + 'px' }"
                       >{{ cred.subText }}</text
                     >
                   </view>
@@ -324,6 +324,7 @@ import {
   CRED_LABEL,
   CRED_PLACEHOLDER,
   CRED_RECOMMENDED,
+  CRED_SUB_LINE_BOX,
   MODEL_EMPTY_TIP,
   MODEL_EMPTY_TITLE,
   MODEL_PRICING_PAGE,
@@ -700,13 +701,13 @@ async function submit(advance: boolean) {
   font-size: 13px;
   font-weight: 600;
   color: $color-text-secondary-2;
-  line-height: 17.5px; /* PNG 实测：标签行 17.5（输入框顶 276.5 = 251 + 17.5 + 8；取 18 会让卡1 与下方锚点整体 +0.5） */
+  line-height: 17px; /* 设计 13px 标签行 = 17（PNG 反证：卡1 名称输入框顶 195/276 各自成立；17.5 会让两帧整体 +0.5） */
 }
 .label__star {
   font-size: 13px;
   font-weight: 600;
   color: $color-danger;
-  line-height: 17.5px;
+  line-height: 17px;
 }
 .field__inner {
   padding-top: 8px;
@@ -853,6 +854,10 @@ async function submit(advance: boolean) {
 .select--open .ic-key {
   border-color: $color-primary;
 }
+/* 展开态占位文案改用更深一档的 #94A3B8（page-apikey design 324d1612；收起态 page-26 为 #CBD5E1 —— 逐帧不同，不统一） */
+.select--open .select__value {
+  color: $color-text-placeholder;
+}
 .select__left {
   display: flex;
   align-items: center;
@@ -879,16 +884,16 @@ async function submit(advance: boolean) {
   text-overflow: ellipsis;
 }
 
-/* 下拉面板（设计 566c12d1：紧贴选择框下沿 · padding 6 · r[0,0,12,12] · 描边 0.8 #2563EB）
-   注：上边框去掉 —— 与选择框下边框拼成 1 条连续描边（设计稿为一个连续盒子） */
+/* 下拉面板（设计 566c12d1：紧贴选择框下沿 · padding 6 · r[0,0,12,12] · stroke 0.8 #2563EB + effects(0,12,24,rgba(15,23,42,0.1))）
+   注：stroke 用 ring 表达 —— Figma 中心描边不占布局（border 会把内容宽挤掉 1.6px，选项行就从 354 变 352）；
+   与选择框的下沿描边在边界处重合 → 视觉上仍是 1 条连续蓝线） */
 .panel {
   width: 100%;
   box-sizing: border-box;
   padding: 6px;
   border-radius: 0 0 12px 12px;
   background: $color-bg-card;
-  border: 0.8px solid $color-primary;
-  border-top: 0;
+  box-shadow: 0 0 0 0.8px $color-primary, 0 12px 24px rgba(15, 23, 42, 0.1);
 }
 /* 选项行（padding[10,12,10,12] · r10 · 选中底 #EFF6FF） */
 .panel__row {
@@ -936,7 +941,7 @@ async function submit(advance: boolean) {
   font-size: 14px;
   font-weight: 600;
   color: $color-text-primary;
-  line-height: 16.8px; /* 设计 lineHeight 1.2（见 textLineBox(14)） */
+  line-height: 19px; /* 设计：page-apikey 后两行名称节点显式 h19、首行 fit_content 同为 19~20 → 取 19；16.8 会让选项行 54（设计 55） */
   white-space: nowrap;
 }
 /* 推荐标「常用」（设计：h16 r8 #2563EB · 9px SemiBold 白字） */
@@ -960,7 +965,7 @@ async function submit(advance: boolean) {
   display: block;
   font-size: 11px;
   color: $color-text-placeholder;
-  line-height: 13.2px; /* 设计 lineHeight 1.2（见 textLineBox(11)） */
+  line-height: 16px; /* 设计 7a442214/40b8ef3a/2958b233 均显式 h16（不是 1.2 的 13.2） */
   white-space: nowrap;
 }
 /* 环境标「沙箱 / 专用」（设计：h20 r10 #F1F5F9 · 10px Medium #64748B） */
@@ -1394,34 +1399,36 @@ async function submit(advance: boolean) {
   border-bottom: 2px solid $color-primary;
   transform: rotate(-45deg);
 }
-/* 面板底部操作「+」图标（设计 \\uea11，15px #2563EB 圆形加号） */
+/* 面板底部操作「+」图标（设计 \\uea11：图层 w17 fs15 → 盒 17×22.5（字号×1.5），
+   形状（13px 圆形加号）画在 ::before/::after 里 —— 盒子按设计图层、形状不撑盒子） */
 .ic-plus {
+  width: 17px;
+  height: 22.5px;
+  position: relative;
+}
+.ic-plus::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
   width: 13px;
   height: 13px;
   border-radius: 50%;
   border: 1.5px solid $color-primary;
   box-sizing: border-box;
-  position: relative;
+  transform: translate(-50%, -50%);
 }
-.ic-plus::before,
 .ic-plus::after {
   content: '';
   position: absolute;
-  background: $color-primary;
-}
-.ic-plus::before {
   left: 50%;
   top: 50%;
   width: 7px;
-  height: 1.5px;
-  transform: translate(-50%, -50%);
-}
-.ic-plus::after {
-  left: 50%;
-  top: 50%;
-  width: 1.5px;
   height: 7px;
   transform: translate(-50%, -50%);
+  /* 加号两笔：横 7×1.5 + 竖 1.5×7（用两层渐变画，避免再占一个伪元素） */
+  background: linear-gradient($color-primary, $color-primary) center / 7px 1.5px no-repeat,
+    linear-gradient($color-primary, $color-primary) center / 1.5px 7px no-repeat;
 }
 /* 凭证选择钥匙（字形 f1d3c758 fs15 w17 → 17×22.5） */
 .ic-key {

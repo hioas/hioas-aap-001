@@ -1,0 +1,37 @@
+序号 12-v2 交互回放（?scenario=actions，两轮）
+
+=== ACTIONS run1 :: .agents/state\evidence\review-序号12-v2-checks-actions-run1.json
+phase1   checkCount=272 checkFailCount=0 docScrollHeight=1127 overflowing=0 missingTexts=[]
+phase2   {"clickedOption": "CLICKED", "panelAfterPick": 0, "credValue": "测试环境密钥", "chipAfterPick": "已选 1 / 2", "modelRowCount": 2, "modelRows": ["gpt-4o", "gpt-4o-mini"], "emptyStillThere": 0, "selectRing": "rgb(226, 232, 240) 0px 0px 0px 0.8px", "hash": "#/pages/quote-form/apikey"}
+phase3   {"panelReopened": 1, "rowBgs": ["rgba(0, 0, 0, 0)", "rgb(239, 246, 255)", "rgba(0, 0, 0, 0)"], "iconBgs": ["rgb(241, 245, 249)", "rgb(37, 99, 235)", "rgb(241, 245, 249)"], "pickedCount": 1, "pickedTestIds": ["cred-check-c2"], "envTags": ["专用"], "recTags": ["常用"], "panel": {"top": 479, "h": 225}}
+phase3b  {"clickedSelectToClose": "CLICKED", "panelAfterClose": 0, "selectRingAfterClose": "rgb(226, 232, 240) 0px 0px 0px 0.8px"}
+phase4   {"typed": "TYPED", "countAfterType": "12/30", "clickedSave": "CLICKED", "toastAfterSave": "保存成功", "hashAfterSave": "#/pages/model-pricing/index?quoteId=q9", "pricingRendered": 1}
+
+=== ACTIONS run2 :: .agents/state\evidence\review-序号12-v2-checks-actions-run2.json
+phase1   checkCount=272 checkFailCount=0 docScrollHeight=1127 overflowing=0 missingTexts=[]
+phase2   {"clickedOption": "CLICKED", "panelAfterPick": 0, "credValue": "测试环境密钥", "chipAfterPick": "已选 1 / 2", "modelRowCount": 2, "modelRows": ["gpt-4o", "gpt-4o-mini"], "emptyStillThere": 0, "selectRing": "rgb(226, 232, 240) 0px 0px 0px 0.8px", "hash": "#/pages/quote-form/apikey"}
+phase3   {"panelReopened": 1, "rowBgs": ["rgba(0, 0, 0, 0)", "rgb(239, 246, 255)", "rgba(0, 0, 0, 0)"], "iconBgs": ["rgb(241, 245, 249)", "rgb(37, 99, 235)", "rgb(241, 245, 249)"], "pickedCount": 1, "pickedTestIds": ["cred-check-c2"], "envTags": ["专用"], "recTags": ["常用"], "panel": {"top": 479, "h": 225}}
+phase3b  {"clickedSelectToClose": "CLICKED", "panelAfterClose": 0, "selectRingAfterClose": "rgb(226, 232, 240) 0px 0px 0px 0.8px"}
+phase4   {"typed": "TYPED", "countAfterType": "12/30", "clickedSave": "CLICKED", "toastAfterSave": "保存成功", "hashAfterSave": "#/pages/model-pricing/index?quoteId=q9", "pricingRendered": 1}
+
+两轮一致性：phase2 逐字段相同 = True · phase3 逐字段相同 = True · phase3b 逐字段相同 = True · phase4 逐字段相同 = True · serve 实收请求行逐字节相同 = True
+
+=== serve 实收请求行（run1 / run2）===
+--- .agents/state\evidence\requests-序号12-v2-checks-actions-run1.txt
+"GET /api/v1/credentials?page=1&pageSize=20 HTTP/1.1" 200 -
+"GET /api/v1/credentials/c2 HTTP/1.1" 200 -
+POST /api/v1/quotes body={"name":"2024Q3 主线路报价","credential_id":"c2"}
+"POST /api/v1/quotes HTTP/1.1" 200 -
+POST /api/v1/quotes/q9/items body={"items":[{"model_name":"gpt-4o"}]}
+"POST /api/v1/quotes/q9/items HTTP/1.1" 200 -
+"GET /api/v1/quotes/q9/items HTTP/1.1" 200 -
+--- .agents/state\evidence\requests-序号12-v2-checks-actions-run2.txt
+"GET /api/v1/credentials?page=1&pageSize=20 HTTP/1.1" 200 -
+"GET /api/v1/credentials/c2 HTTP/1.1" 200 -
+POST /api/v1/quotes body={"name":"2024Q3 主线路报价","credential_id":"c2"}
+"POST /api/v1/quotes HTTP/1.1" 200 -
+POST /api/v1/quotes/q9/items body={"items":[{"model_name":"gpt-4o"}]}
+"POST /api/v1/quotes/q9/items HTTP/1.1" 200 -
+"GET /api/v1/quotes/q9/items HTTP/1.1" 200 -
+
+纯测量轮（无 scenario）实收请求：1 行（仅首屏 GET /credentials）· 见 requests-序号12-v2-checks-run{1,2}.txt

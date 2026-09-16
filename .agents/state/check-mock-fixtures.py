@@ -104,6 +104,56 @@ CHECKS = [
         "must": ["model_name", "input_price", "output_price"],
         "check": None,
     },
+    {
+        "mock": "api-12-v2",
+        "method": "GET",
+        "path": "/api/v1/credentials",
+        "why": "序号 12-v2 新增报价单-APIKey 下拉展开首屏（credentialApi.list → 三个候选项）",
+        "must": ["items"],
+        "check": lambda d: isinstance(d.get("items"), list) and len(d["items"]) == 3
+        and bool(d["items"][0].get("api_key_mask")),
+    },
+    {
+        "mock": "api-12-v2",
+        "method": "GET",
+        "path": "/api/v1/credentials/c2",
+        "why": "序号 12-v2 下拉选中项（credentialApi.get → 带出模型清单；缺 fixture 则面板选不中）",
+        "must": ["model_list"],
+        "check": lambda d: isinstance(d.get("model_list"), list) and len(d["model_list"]) > 0
+        and d["model_list"][0].get("model_name"),
+    },
+    {
+        "mock": "api-12-v2",
+        "method": "POST",
+        "path": "/api/v1/quotes",
+        "why": "序号 12-v2「保存并继续」（quoteApi.create；缺 fixture 则 404 → 停在原页 + 错误 toast）",
+        "must": ["quote_id"],
+        "check": lambda d: bool(d.get("quote_id")),
+    },
+    {
+        "mock": "api-12-v2",
+        "method": "POST",
+        "path": "/api/v1/quotes/q9/items",
+        "why": "序号 12-v2「保存并继续」逐模型明细（quoteApi.saveItems）",
+        "must": [],
+        "check": lambda d: d.get("ok") is True,
+    },
+    {
+        "mock": "api-12-v2",
+        "method": "GET",
+        "path": "/api/v1/quotes/q9/items",
+        "why": "序号 12-v2 保存成功后的落地页 /pages/model-pricing/index?quoteId=q9 回落取数",
+        "must": ["items"],
+        "check": None,
+    },
+    {
+        "mock": "api-12-v2",
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "why": "序号 12-v2 面板底部操作「前往「我的设置」新建凭证」的落地页 /pages/settings/index（authApi.me）",
+        "must": ["phone"],
+        "check": lambda d: bool(d.get("phone")),
+    },
 ]
 
 

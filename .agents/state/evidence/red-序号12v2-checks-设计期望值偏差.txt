@@ -1,0 +1,37 @@
+序号 12-v2「新增报价单-APIKey 下拉展开」载体页 checks 红基线（修复前源码 + 最终版探针；两轮独立测量）
+红基线口径：red = git stash 掉本轮源码改动（QuoteFormView.vue / quote-form-model.ts）后 build:h5 × 最终版 __measure-quote-apikey.html
+  → 最终版探针 272 条 · 红 6 条（探针自身期望值 bug 在红基线前已逐条修掉，见末尾「探针自身」段）
+  → 两轮独立测量完全一致（35/35 字段全等）→ 红基线可复现
+
+=== RED run1 :: .agents/state\evidence\review-序号12-v2-checks-red-run1.json
+phase1   checkCount=272 checkFailCount=6 docScrollHeight=1126 overflowing=0 missingTexts=[]
+    FAIL cred.value.color: got rgb(203, 213, 225) want rgb(148, 163, 184)
+    FAIL panel.h: got 223 want 226
+    FAIL panel.ring: got none want rgb(37, 99, 235) 0px 0px 0px 0.8px, rgba(15, 23, 42, 0.1) 0px 12px 24px 0px
+    FAIL row.w: got 352,352,352 want 354,354,354
+    FAIL panel.actionIcon.w: got 13 want 17
+    FAIL panel.actionIcon.h: got 13 want 22.5
+
+=== RED run2 :: .agents/state\evidence\review-序号12-v2-checks-red-run2.json
+phase1   checkCount=272 checkFailCount=6 docScrollHeight=1126 overflowing=0 missingTexts=[]
+    FAIL cred.value.color: got rgb(203, 213, 225) want rgb(148, 163, 184)
+    FAIL panel.h: got 223 want 226
+    FAIL panel.ring: got none want rgb(37, 99, 235) 0px 0px 0px 0.8px, rgba(15, 23, 42, 0.1) 0px 12px 24px 0px
+    FAIL row.w: got 352,352,352 want 354,354,354
+    FAIL panel.actionIcon.w: got 13 want 17
+    FAIL panel.actionIcon.h: got 13 want 22.5
+
+红基线 6 条分诊 —— 全部为**页面缺陷**（本轮已修，见 review-序号12v2-checks-报告.md §3）：
+  1) cred.value.color    展开态占位文案 #CBD5E1 → 设计 324d1612 #94A3B8（收起态 page-26 才是 #CBD5E1，逐帧不同）
+  2) panel.h             223 → 设计 225.5：选项行 54（设计 55，副行行盒 13.2 → 设计显式 h16）+ 面板用 border（占布局）
+  3) panel.ring          none → 设计 stroke 0.8 #2563EB + effects(0,12,24,rgba(15,23,42,0.1))（原用 border 实现，无投影）
+  4) row.w               352 → 设计 354（面板内容宽 = 366 − 2×6；border 0.8 挤掉 1.6px）
+  5) panel.actionIcon.w  13 → 设计图层 w17（盒 = 声明宽 17）
+  6) panel.actionIcon.h  13 → 22.5 = 字号 15 × 1.5（图标字形行盒）
+
+探针自身期望值 bug（已在探针内修正、不计页面账；修正后重跑红基线才有上面这 6 条）：
+  · nav.left.gap 断在 .nav__titles 的 columnGap（组件里标题块本身就是竖排容器）→ 改为断「标题 x − 返回右界」= 12
+  · cred.chevron.color / empty.glyph.color 读元素自身 color（D5 规定图标是 CSS 占位形状，颜色落在 ::before 的
+    border-color / background 上）→ 改用 chkP 读 ::before 的声明值
+  · row.h/panel.h 的容差与分帧口径：面板「首行选中态」是设计帧自身矛盾（选择框显占位、首行却画了底 #EFF6FF + 对勾）
+    → 不照抄，改断「三行都不高亮」+ 选中时由真实选择驱动（phase3 实测）

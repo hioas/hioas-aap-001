@@ -92,6 +92,15 @@ export const ICON_LINE_RATIO = 1.5
 /** 文本行盒 = 字号 × 1.2（本页 design.tree.json 全部文本节点 lineHeight=1.2） */
 export const TEXT_LINE_RATIO = 1.2
 
+/**
+ * 下拉候选项副行行盒 = 16（**不是** 11px × 1.2 = 13.2）。
+ * 真源：page-apikey design.tree.json 三个副行节点 7a442214 / 40b8ef3a / 2958b233 **都显式写了 height 16**
+ * （与同页其它 11px 文本走 1.2 的 13.2 是两套口径）→ 按声明值落地。
+ * 用 13.2 时选项信息只有 32.2 → 被 34 高的图标盒接管 → 每个选项行 54 而设计是 55，
+ * 面板整体短 3px，并把卡1/卡2/底栏与整页高度一起顶偏（实测卡1 626 vs 设计 630）。
+ */
+export const CRED_SUB_LINE_BOX = 16
+
 export function iconLineBox(fontSize: number): number {
   return fontSize * ICON_LINE_RATIO
 }
