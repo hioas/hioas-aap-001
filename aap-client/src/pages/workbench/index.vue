@@ -86,7 +86,7 @@
           <view v-if="i > 0" class="card__gap-16" />
           <view class="model" data-testid="model-row">
             <view class="model__rank" :style="{ background: row.badgeBg }">
-              <text class="model__rank-text">{{ row.rank }}</text>
+              <text class="model__rank-text" :style="{ color: row.rankColor }">{{ row.rank }}</text>
             </view>
             <view class="model__gap" />
             <view class="model__mid">
@@ -461,7 +461,7 @@ onMounted(async () => {
 .card__title-sm {
   font-size: $font-xs;
   font-weight: 500;
-  color: $color-text-secondary;
+  color: $color-text-muted;
 }
 
 .card__hint {
@@ -593,7 +593,7 @@ onMounted(async () => {
 
 .legend__value {
   font-size: $font-2xs;
-  color: $color-text-muted;
+  color: $color-text-placeholder;
   line-height: 1.3;
 }
 
@@ -631,7 +631,7 @@ onMounted(async () => {
 
 .metrics__label {
   font-size: $font-2xs;
-  color: $color-text-muted;
+  color: $color-text-placeholder;
   line-height: 1.2;
 }
 
@@ -667,7 +667,7 @@ onMounted(async () => {
 .model__rank-text {
   font-size: $font-xs;
   font-weight: 700;
-  color: $color-text-primary;
+  /* 颜色由 row.rankColor 行内给（设计 模型1~4序号 fontFill 逐行不同） */
 }
 
 .model__gap {
@@ -736,7 +736,7 @@ onMounted(async () => {
 
 .model__calls {
   font-size: $font-2xs;
-  color: $color-text-muted;
+  color: $color-text-placeholder;
   width: 70px;
   text-align: right;
 }
@@ -755,7 +755,7 @@ onMounted(async () => {
 
 .model__footer {
   font-size: $font-2xs;
-  color: $color-text-muted;
+  color: $color-text-placeholder;
 }
 
 .model__chevron {
@@ -856,7 +856,7 @@ onMounted(async () => {
 .todo__text {
   font-size: $font-xs;
   font-weight: 500;
-  color: $color-text-primary;
+  color: $color-text-secondary-2;
 }
 
 .todo__chevron {

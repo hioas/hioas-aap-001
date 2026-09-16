@@ -65,6 +65,8 @@ export interface ModelRow {
   barPercent: number
   badgeBg: string
   barColor: string
+  /** 序号文字色（设计 模型1~4序号 各自 fontFill） */
+  rankColor: string
 }
 
 export interface WorkbenchModel {
@@ -94,6 +96,12 @@ const MODEL_TONES = [
   { badgeBg: '#fff7ed', barColor: '#f59e0b' },
   { badgeBg: '#f1f5f9', barColor: '#94a3b8' }
 ]
+
+/**
+ * 模型序号文字色：设计稿 模型1~4序号 的 fontFill 逐行不同
+ *   rgba(37,99,235,1) / rgba(22,163,74,1) / rgba(217,119,6,1) / rgba(100,116,139,1)
+ */
+const RANK_COLORS = ['#2563eb', '#16a34a', '#d97706', '#64748b']
 
 /**
  * 模型行合并规则（设计稿第 4 行为「其他模型」）：
@@ -144,7 +152,8 @@ export function buildWorkbenchModel(raw: UsageSummaryRaw = {}): WorkbenchModel {
       callsText: `${formatCount(m.request_count)} · ${pct === null ? PLACEHOLDER : `${pct}%`}`,
       barPercent: pct ?? 0,
       badgeBg: tone.badgeBg,
-      barColor: tone.barColor
+      barColor: tone.barColor,
+      rankColor: RANK_COLORS[Math.min(i, RANK_COLORS.length - 1)]
     }
   })
 

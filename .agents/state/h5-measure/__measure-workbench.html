@@ -1,0 +1,360 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-workbench</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      /* 取数 <pre> 包进 0 尺寸 overflow:hidden：textContent 可读但不渲染、不会被 --screenshot 截进图（SKILL §4.1） */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
+         页面 2：/pages/workbench/index（【工作台与我的】工作台 · 方案B 数据台，page-2-b）
+         设计真源：.calicat/raw/pages/page-2-b/design.tree.json + .agents/state/page-2-b-nodes.txt
+         期望值（design 声明值，逐条 got/want）：
+           页面底 rgb(248,250,252) · 顶部栏 padding 48/16/12/16 bg 白 · 标题块 w160
+           日期 12px rgb(148,163,184) · 公司名 20px rgb(15,23,42) · 通知钮 38x38 r12 rgb(241,245,249) · 间隔 9 · 头像 42x42 r21 rgb(219,234,254)
+           内容区 padding 12/16 · 卡 r18 padding20 bg 白
+           卡标题 15px · 小标题 12px rgb(100,116,139) · 右侧提示 12px rgb(148,163,184)
+           环比标 h26 r13 rgb(236,253,245) · 数值 12px rgb(22,163,74)
+           环形 104x104 / 内孔 70x70 · 中心标签 11px rgb(148,163,184) · 中心值 19px rgb(15,23,42)
+           图例行间距 24 · 列间距 12 · 点 10x9 r5 · 标签 12px · 值 11px rgb(148,163,184)
+           指标标签 11px rgb(148,163,184) · 指标值 15px · 竖分隔 2x30 rgb(226,232,240)
+           模型序号 26x26 r9（文字 12px，四行色 rgb(37,99,235)/rgb(22,163,74)/rgb(217,119,6)/rgb(100,116,139)）
+           模型名 12px · 金额 12px · 条底 h6 r3 rgb(241,245,249) · 条行值 11px rgb(148,163,184)
+           合计行 11px rgb(148,163,184) · 明细链接 12px rgb(37,99,235)
+           快捷卡 padding 16/20 · 图标 40x40 r13 · 标签 10px rgb(71,85,105)
+           待办卡 padding 16/20 · 图标 34x34 r12 · 文字 12px rgb(51,65,85) · 分隔 1px rgb(241,245,249)
+           TabBar padding 8/0/24/0 bg 白 · 标签 11px（选中 rgb(37,99,235)）
+         ?scenario=actions 追加回放：钱包（client-only toast，不跳转）→ Tab 我的（跳 /pages/mine/index）
+         ?noaction / ?shot=1 只取 phase1（供截图）
+         ⚠️ 触发方式必须用 waitFor 轮询（iframe onload 会因监听注册过晚而错过 → 取数脚本静默拿到 pending）
+         ⚠️ 是否发请求以 serve 日志为准（evidence/requests-序号2*.txt） -->
+    <iframe id="f" src="/index.html#/pages/workbench/index"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var acc = {}
+
+      function all(d, sel) { return Array.prototype.slice.call(d.querySelectorAll(sel)) }
+      function rect(d, sel) {
+        var el = d.querySelector(sel)
+        if (!el) return null
+        var r = el.getBoundingClientRect()
+        return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+      }
+      function rects(d, sel) {
+        return all(d, sel).map(function (e) {
+          var r = e.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+        })
+      }
+      function textOf(d, sel) { var e = d.querySelector(sel); return e ? e.textContent.trim() : null }
+      function texts(d, sel) { return all(d, sel).map(function (e) { return e.textContent.trim() }) }
+      function css(d, w, sel, prop) { var el = d.querySelector(sel); return el ? w.getComputedStyle(el)[prop] : null }
+      function stylesOf(d, w, sel, prop) { return all(d, sel).map(function (e) { return w.getComputedStyle(e)[prop] }) }
+      function rectFor(d, sel) { var el = d.querySelector(sel); return el ? el.getBoundingClientRect() : null }
+      function dimOf(d, sel, dim) { var r = rectFor(d, sel); return r ? Math.round(r[dim]) : null }
+
+      /** 设计稿文本图层（page-2-b design.tree.json 的 TEXT 值；动态日期与设计内部矛盾的 音频/视频 单独记录） */
+      var needText = [
+        '云智科技有限公司',
+        '本月词元用量', '12.5%', '总词元', '3.86B',
+        '输入词元', '45% · 1.74B', '输出词元', '30% · 1.16B', '缓存命中', '15% · 0.58B',
+        '图片', '4% · 0.15B', '音频', '6% · 0.23B', '视频', '6% · 0.23B',
+        '调用请求', '1.24M', 'Token', '缓存命中率', '15%',
+        '模型调用量', '按收入贡献排序',
+        'gpt-4o-mini', '¥54,200', '1.24M · 42%',
+        'claude-3-5-sonnet', '¥39,800', '0.86M · 31%',
+        'gpt-4o', '¥26,400', '0.42M · 21%',
+        '其他模型', '¥8,240', '0.08M · 6%',
+        '合计 ¥128,640 · 4 个模型', '明细',
+        '评测', '报价', '合同', '钱包',
+        '待处理', '全部', '合同待签署（06-20 前）', '1 条报价单被驳回',
+        '工作台', '报告', '我的'
+      ]
+
+      function norm(v) {
+        if (v === null || v === undefined) return v
+        var s = String(v).trim()
+        var m = s.match(/^(-?\d+(?:\.\d+)?)px$/)
+        if (m) return Number(m[1])
+        var r = s.match(/^rgba?\(([^)]+)\)$/)
+        if (r) {
+          var p = r[1].split(',').map(function (x) { return Number(String(x).trim()) })
+          return 'rgb(' + p.slice(0, 3).join(',') + ')'
+        }
+        return s
+      }
+
+      function build(doc, win) {
+        var checks = []
+        function chk(k, got, want) {
+          var g = norm(got), w2 = norm(want)
+          checks.push({ k: k, got: g, want: w2, ok: g === w2 })
+        }
+        function chkArr(k, gotArr, wantArr) {
+          var g = gotArr.map(norm).join('|')
+          var w2 = wantArr.map(norm).join('|')
+          checks.push({ k: k, got: g, want: w2, ok: g === w2 })
+        }
+        function g(sel, prop) { return css(doc, win, sel, prop) }
+
+        chk('page.bg', g('.workbench', 'backgroundColor'), 'rgba(248,250,252,1)')
+        chk('topbar.paddingTop', g('.workbench__topbar', 'paddingTop'), '48px')
+        chk('topbar.paddingLeft', g('.workbench__topbar', 'paddingLeft'), '16px')
+        chk('topbar.paddingBottom', g('.workbench__topbar', 'paddingBottom'), '12px')
+        chk('topbar.bg', g('.workbench__topbar', 'backgroundColor'), 'rgb(255,255,255)')
+        chk('brandTitleBlock.w', dimOf(doc, '.brand', 'width'), 160)
+        chk('brandDate.fontSize', g('.brand__date', 'fontSize'), '12px')
+        chk('brandDate.color', g('.brand__date', 'color'), 'rgba(148,163,184,1)')
+        chk('brandCompany.fontSize', g('.brand__company', 'fontSize'), '20px')
+        chk('brandCompany.color', g('.brand__company', 'color'), 'rgba(15,23,42,1)')
+        chk('iconBtn.w', dimOf(doc, '.icon-btn', 'width'), 38)
+        chk('iconBtn.h', dimOf(doc, '.icon-btn', 'height'), 38)
+        chk('iconBtn.radius', g('.icon-btn', 'borderRadius'), '12px')
+        chk('iconBtn.bg', g('.icon-btn', 'backgroundColor'), 'rgba(241,245,249,1)')
+        chk('topbarGap.w', dimOf(doc, '.topbar__gap', 'width'), 9)
+        chk('avatar.w', dimOf(doc, '.avatar', 'width'), 42)
+        chk('avatar.h', dimOf(doc, '.avatar', 'height'), 42)
+        chk('avatar.radius', g('.avatar', 'borderRadius'), '21px')
+        chk('avatar.bg', g('.avatar', 'backgroundColor'), 'rgba(219,234,254,1)')
+        chk('content.paddingTop', g('.workbench__content', 'paddingTop'), '12px')
+        chk('content.paddingLeft', g('.workbench__content', 'paddingLeft'), '16px')
+        chk('card.radius', g('.card', 'borderRadius'), '18px')
+        chk('card.paddingTop', g('.card', 'paddingTop'), '20px')
+        chk('card.bg', g('.card', 'backgroundColor'), 'rgb(255,255,255)')
+        chk('cardTitle.fontSize', g('.card__title', 'fontSize'), '15px')
+        chk('cardTitleSm.fontSize', g('.card__title-sm', 'fontSize'), '12px')
+        chk('cardTitleSm.color', g('.card__title-sm', 'color'), 'rgba(100,116,139,1)')
+        chk('cardHint.fontSize', g('.card__hint', 'fontSize'), '12px')
+        chk('cardHint.color', g('.card__hint', 'color'), 'rgba(148,163,184,1)')
+        chk('badge.h', dimOf(doc, '.badge', 'height'), 26)
+        chk('badge.radius', g('.badge', 'borderRadius'), '13px')
+        chk('badge.bg', g('.badge', 'backgroundColor'), 'rgba(236,253,245,1)')
+        chk('badgeValue.fontSize', g('.badge__value', 'fontSize'), '12px')
+        chk('badgeValue.color', g('.badge__value', 'color'), 'rgba(22,163,74,1)')
+        chk('ring.w', dimOf(doc, '.ring', 'width'), 104)
+        chk('ring.h', dimOf(doc, '.ring', 'height'), 104)
+        chk('ringHole.w', dimOf(doc, '.ring__hole', 'width'), 70)
+        chk('ringHole.h', dimOf(doc, '.ring__hole', 'height'), 70)
+        chk('ringLabel.fontSize', g('.ring__label', 'fontSize'), '11px')
+        chk('ringLabel.color', g('.ring__label', 'color'), 'rgba(148,163,184,1)')
+        chk('ringValue.fontSize', g('.ring__value', 'fontSize'), '19px')
+        chk('ringValue.color', g('.ring__value', 'color'), 'rgba(15,23,42,1)')
+        chk('legend.rowGap', g('.legend', 'gap'), '24px')
+        chk('legend.colGap', g('.legend__col', 'gap'), '12px')
+        chk('legendDot.w', dimOf(doc, '.legend__dot', 'width'), 10)
+        chk('legendDot.h', dimOf(doc, '.legend__dot', 'height'), 9)
+        chk('legendDot.radius', g('.legend__dot', 'borderRadius'), '5px')
+        chk('legendLabel.fontSize', g('.legend__label', 'fontSize'), '12px')
+        chk('legendValue.fontSize', g('.legend__value', 'fontSize'), '11px')
+        chk('legendValue.color', g('.legend__value', 'color'), 'rgba(148,163,184,1)')
+        chk('metricsSep.w', dimOf(doc, '.metrics__sep', 'width'), 2)
+        chk('metricsSep.h', dimOf(doc, '.metrics__sep', 'height'), 30)
+        chk('metricsSep.bg', g('.metrics__sep', 'backgroundColor'), 'rgba(226,232,240,1)')
+        chk('metricsLabel.fontSize', g('.metrics__label', 'fontSize'), '11px')
+        chk('metricsLabel.color', g('.metrics__label', 'color'), 'rgba(148,163,184,1)')
+        chk('metricsValue.fontSize', g('.metrics__value', 'fontSize'), '15px')
+        chk('modelRank.w', dimOf(doc, '.model__rank', 'width'), 26)
+        chk('modelRank.h', dimOf(doc, '.model__rank', 'height'), 26)
+        chk('modelRank.radius', g('.model__rank', 'borderRadius'), '9px')
+        chk('modelRankText.fontSize', g('.model__rank-text', 'fontSize'), '12px')
+        chkArr('modelRankText.colors', stylesOf(doc, win, '.model__rank-text', 'color'),
+          ['rgba(37,99,235,1)', 'rgba(22,163,74,1)', 'rgba(217,119,6,1)', 'rgba(100,116,139,1)'])
+        chk('modelName.fontSize', g('.model__name', 'fontSize'), '12px')
+        chk('modelAmount.fontSize', g('.model__amount', 'fontSize'), '12px')
+        chk('modelBarTrack.h', dimOf(doc, '.model__bar-track', 'height'), 6)
+        chk('modelBarTrack.radius', g('.model__bar-track', 'borderRadius'), '3px')
+        chk('modelBarTrack.bg', g('.model__bar-track', 'backgroundColor'), 'rgba(241,245,249,1)')
+        chk('modelCalls.fontSize', g('.model__calls', 'fontSize'), '11px')
+        chk('modelCalls.color', g('.model__calls', 'color'), 'rgba(148,163,184,1)')
+        chk('modelFooter.fontSize', g('.model__footer', 'fontSize'), '11px')
+        chk('modelFooter.color', g('.model__footer', 'color'), 'rgba(148,163,184,1)')
+        chk('link.fontSize', g('.link', 'fontSize'), '12px')
+        chk('link.color', g('.link', 'color'), 'rgba(37,99,235,1)')
+        chk('quickCard.paddingTop', g('.card--quick', 'paddingTop'), '16px')
+        chk('quickCard.paddingLeft', g('.card--quick', 'paddingLeft'), '20px')
+        chk('quickIcon.w', dimOf(doc, '.quick__icon', 'width'), 40)
+        chk('quickIcon.h', dimOf(doc, '.quick__icon', 'height'), 40)
+        chk('quickIcon.radius', g('.quick__icon', 'borderRadius'), '13px')
+        chk('quickLabel.fontSize', g('.quick__label', 'fontSize'), '10px')
+        chk('quickLabel.color', g('.quick__label', 'color'), 'rgba(71,85,105,1)')
+        chk('todoCard.paddingTop', g('.card--todo', 'paddingTop'), '16px')
+        chk('todoIcon.w', dimOf(doc, '.todo__icon', 'width'), 34)
+        chk('todoIcon.h', dimOf(doc, '.todo__icon', 'height'), 34)
+        chk('todoIcon.radius', g('.todo__icon', 'borderRadius'), '12px')
+        chk('todoText.fontSize', g('.todo__text', 'fontSize'), '12px')
+        chk('todoText.color', g('.todo__text', 'color'), 'rgba(51,65,85,1)')
+        chk('todoDivider.bg', g('.todo__divider', 'backgroundColor'), 'rgba(241,245,249,1)')
+        chk('tabbar.paddingTop', g('.tabbar', 'paddingTop'), '8px')
+        chk('tabbar.paddingBottom', g('.tabbar', 'paddingBottom'), '24px')
+        chk('tabbar.bg', g('.tabbar', 'backgroundColor'), 'rgb(255,255,255)')
+        chk('tabLabel.fontSize', g('.tabbar__label', 'fontSize'), '11px')
+        chk('tabLabelActive.color', g('.tabbar__label--active', 'color'), 'rgba(37,99,235,1)')
+        chk('tabLabelInactive.color', g('.tabbar__label:not(.tabbar__label--active)', 'color'), 'rgba(148,163,184,1)')
+
+        return checks
+      }
+
+      function collect(doc, win) {
+        var de = doc.documentElement
+        var out = {}
+        out.innerWidth = win.innerWidth
+        out.innerHeight = win.innerHeight
+        out.docScrollWidth = de.scrollWidth
+        out.docScrollHeight = de.scrollHeight
+
+        /* 溢出统计：uni-app 内部测量元素（uni-resize-sensor / uni-picker 空 div）不计入（见 dev SKILL §5） */
+        var raw = []
+        var overflowing = all(doc, '*').filter(function (e) {
+          var r = e.getBoundingClientRect()
+          if (!(r.width > 0 && (r.right > win.innerWidth + 0.5 || r.left < -0.5))) return false
+          var host = e.closest && e.closest('uni-resize-sensor, uni-picker')
+          if (host) {
+            raw.push({ tag: e.tagName, cls: String(e.className), left: Math.round(r.left), right: Math.round(r.right), w: Math.round(r.width), uniInternal: host.tagName })
+            return false
+          }
+          return true
+        })
+        out.overflowingCount = overflowing.length
+        out.uniInternalNoiseCount = raw.length
+        out.uniInternalNoise = raw.slice(0, 6)
+        out.overflowing = overflowing.slice(0, 6).map(function (e) {
+          var r = e.getBoundingClientRect()
+          return { tag: e.tagName, cls: String(e.className), left: Math.round(r.left), right: Math.round(r.right), w: Math.round(r.width) }
+        })
+
+        var body = doc.body.innerText
+        out.missingTexts = needText.filter(function (t) { return body.indexOf(t) < 0 })
+        out.needTextCount = needText.length
+
+        out.avatarRight = dimOf(doc, '.avatar', 'right')
+        out.todoChevronRight = dimOf(doc, '.todo__chevron', 'right')
+        out.tabbarTop = dimOf(doc, '.tabbar', 'top')
+        out.tabbarBottom = dimOf(doc, '.tabbar', 'bottom')
+        out.tabbarPinned = out.tabbarBottom === win.innerHeight
+        out.lastCardBottom = dimOf(doc, '.card--todo', 'bottom')
+        out.modelRowCount = all(doc, '[data-testid="model-row"]').length
+        out.barWidthPx = dimOf(doc, '[data-testid="model-bar"]', 'width')
+
+        out.modelNames = texts(doc, '.model__name')
+        out.modelAmounts = texts(doc, '.model__amount')
+        out.modelCalls = texts(doc, '.model__calls')
+        out.legendLabels = texts(doc, '.legend__label')
+        out.legendValues = texts(doc, '.legend__value')
+        out.metricLabels = texts(doc, '.metrics__label')
+        out.metricValues = texts(doc, '.metrics__value')
+        out.quickLabels = texts(doc, '.quick__label')
+        out.todoTexts = texts(doc, '.todo__text')
+        out.tabLabels = texts(doc, '.tabbar__label')
+        out.tabActive = textOf(doc, '.tabbar__label--active')
+        out.cardCount = all(doc, '.card').length
+        out.tabbarRect = rect(doc, '.tabbar')
+        out.workbenchRect = rect(doc, '.workbench')
+
+        out.numbers = {
+          total: textOf(doc, '.ring__value'),
+          company: textOf(doc, '.brand__company'),
+          date: textOf(doc, '.brand__date'),
+          footer: textOf(doc, '.model__footer')
+        }
+        out.numbersFromMock = {
+          expectCompany: '云智科技有限公司',
+          expectTotal: '3.86B',
+          expectFooter: '合计 ¥128,640 · 4 个模型'
+        }
+        out.toast = toastText(doc)
+        out.hash = hashNow()
+        out.checks = build(doc, win)
+        out.checkFails = out.checks.filter(function (c) { return !c.ok }).map(function (c) { return c.k + ': got ' + JSON.stringify(c.got) + ' want ' + JSON.stringify(c.want) })
+        out.checkFailCount = out.checkFails.length
+        out.checkCount = out.checks.length
+        out.userAgent = win.navigator.userAgent
+        return out
+      }
+
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
+
+      function clickIn(sel) {
+        var doc = f.contentDocument
+        var el = doc.querySelector(sel)
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+      function toastText(doc) {
+        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
+        return el ? el.textContent.trim() : ''
+      }
+      function hashNow() { try { return String(f.contentWindow.location.hash) } catch (e) { return 'ERR:' + e.message } }
+
+      function waitFor(sel, maxTries) {
+        return new Promise(function (resolve) {
+          var n = 0
+          function tick() {
+            n++
+            var ok = false
+            try { ok = !!f.contentDocument.querySelector(sel) } catch (e) { ok = false }
+            if (ok) return resolve('READY(tries=' + n + ')')
+            if (n >= (maxTries || 40)) return resolve('TIMEOUT(tries=' + n + ')')
+            setTimeout(tick, 200)
+          }
+          tick()
+        })
+      }
+
+      function scenario() {
+        var m = location.search.match(/scenario=([a-zA-Z-]+)/)
+        return m ? m[1] : ''
+      }
+
+      async function main() {
+        await waitFor('[data-testid="row-placeholder-noop"], .card--todo')
+        await sleep(1800)
+        var payload
+        try {
+          payload = collect(f.contentDocument, f.contentWindow)
+          f.style.height = payload.docScrollHeight + 'px'
+          payload.iframeHeightForShot = payload.docScrollHeight
+          sink(1, payload)
+        } catch (e) {
+          sink(1, { error: String(e && e.message) })
+          return
+        }
+        var sc = scenario()
+        if (!sc || location.search.indexOf('noaction') !== -1 || location.search.indexOf('shot=1') !== -1) return
+
+        if (sc === 'actions') {
+          /* phase2：钱包快捷入口 = client-only（设计画布无对应页面）→ 只 toast，不跳转 */
+          var cWallet = clickIn('[data-testid="quick-钱包"]')
+          await sleep(1200)
+          sink(2, {
+            scenario: 'quick-wallet',
+            clicked: cWallet,
+            toast: toastText(f.contentDocument),
+            hash: hashNow(),
+            navigated: hashNow().indexOf('/pages/workbench/index') < 0,
+            requestHint: '钱包为 client-only：serve 日志不应出现与钱包相关的写请求'
+          })
+
+          /* phase3：Tab「我的」→ 跳 /pages/mine/index */
+          var cTab = clickIn('[data-testid="tab-我的"]')
+          await sleep(1500)
+          sink(3, { scenario: 'tab-mine', clicked: cTab, hash: hashNow() })
+          return
+        }
+      }
+      main()
+    </script>
+  </body>
+</html>
