@@ -1,0 +1,71 @@
+序号 11 红基线（修复前源码 + 新探针，同一份探针跑两轮）— 设计期望值 checks 偏差
+==============================================================================
+
+phase1 : {"checks": 256, "checkCount": 256, "checkFailCount": 21, "checkFails": [{"k": "page.card1.shadow", "got": "none", "want": "rgba(15, 23, 42, 0.06) 0px 4px 16px 0px"}, {"k": "page.card2.shadow", "got": "none", "want": "rgba(15, 23, 42, 0.06) 0px 4px 16px 0px"}, {"k": "page.card3.shadow", "got": "none", "want": "rgba(15, 23, 42, 0.06) 0px 4px 16px 0px"}, {"k": "page.card4.shadow", "got": "none", "want": "rgba(15, 23, 42, 0.06) 0px 4px 16px 0px"}, {"k": "card1.chevron.w", "got": 17, "want": 20}, {"k": "card1.chevron.right", "got": 400, "want": 398}, {"k": "card2.tierBox.ring", "got": "rgb(226, 232, 240) 0px 0px 0px 0.8px", "want": "rgba(226, 232, 240, 1) 0px 0px 0px 0.8px"}, {"k": "card2.select.w", "got": 245, "want": 237}, {"k": "card2.branch.x", "got": 287, "want": 279}, {"k": "card2.branch.w", "got": 111, "want": 119}, {"k": "card2.branch.ring", "got": "rgb(147, 197, 253) 0px 0px 0px 0.8px", "want": "rgba(147, 197, 253, 1) 0px 0px 0px 0.8px"}, {"k": "card2.branchIcon.w", "got": 11, "want": 18}, {"k": "card2.selectCaret.w", "got": 11, "want": 18}, {"k": "card3.tokenBoxTops", "got": "454,454,537", "want": "454,537,620"}, {"k": "card3.box.ring", "got": "rgb(226, 232, 240) 0px 0px 0px 0.8px", "want": "rgba(226, 232, 240, 1) 0px 0px 0px 0.8px"}, {"k": "card3.checkOff.ring", "got": "rgb(203, 213, 225) 0px 0px 0px 0.8px", "want": "rgba(203, 213, 225, 1) 0px 0px 0px 0.8px"}, {"k": "card3.mediaCheck.ring", "got": "rgb(203, 213, 225) 0px 0px 0px 0.8px", "want": "rgba(203, 213, 225, 1) 0
+    [两轮独立测量一致? 是]
+    checkCount=256 checkFailCount=21 docH=1540 docW=430 overflowing=0 missingTexts=[]
+    FAIL page.card1.shadow: got "none" want "rgba(15, 23, 42, 0.06) 0px 4px 16px 0px"
+    FAIL page.card2.shadow: got "none" want "rgba(15, 23, 42, 0.06) 0px 4px 16px 0px"
+    FAIL page.card3.shadow: got "none" want "rgba(15, 23, 42, 0.06) 0px 4px 16px 0px"
+    FAIL page.card4.shadow: got "none" want "rgba(15, 23, 42, 0.06) 0px 4px 16px 0px"
+    FAIL card1.chevron.w: got 17 want 20
+    FAIL card1.chevron.right: got 400 want 398
+    FAIL card2.tierBox.ring: got "rgb(226, 232, 240) 0px 0px 0px 0.8px" want "rgba(226, 232, 240, 1) 0px 0px 0px 0.8px"
+    FAIL card2.select.w: got 245 want 237
+    FAIL card2.branch.x: got 287 want 279
+    FAIL card2.branch.w: got 111 want 119
+    FAIL card2.branch.ring: got "rgb(147, 197, 253) 0px 0px 0px 0.8px" want "rgba(147, 197, 253, 1) 0px 0px 0px 0.8px"
+    FAIL card2.branchIcon.w: got 11 want 18
+    FAIL card2.selectCaret.w: got 11 want 18
+    FAIL card3.tokenBoxTops: got "454,454,537" want "454,537,620"
+    FAIL card3.box.ring: got "rgb(226, 232, 240) 0px 0px 0px 0.8px" want "rgba(226, 232, 240, 1) 0px 0px 0px 0.8px"
+    FAIL card3.checkOff.ring: got "rgb(203, 213, 225) 0px 0px 0px 0.8px" want "rgba(203, 213, 225, 1) 0px 0px 0px 0.8px"
+    FAIL card3.mediaCheck.ring: got "rgb(203, 213, 225) 0px 0px 0px 0.8px" want "rgba(203, 213, 225, 1) 0px 0px 0px 1px"
+    FAIL card4.cond.ring: got "rgb(226, 232, 240) 0px 0px 0px 0.8px" want "rgba(226, 232, 240, 1) 0px 0px 0px 0.8px"
+    FAIL card4.addBtn.ring: got "rgb(203, 213, 225) 0px 0px 0px 0.8px" want "rgba(203, 213, 225, 1) 0px 0px 0px 0.8px"
+    FAIL bar.save.shadow: got "none" want "rgba(37, 99, 235, 0.28) 0px 6px 16px 0px"
+    FAIL bar.saveIcon.w: got 14 want 22
+phase2 : {"clickedSaveTop": "CLICKED", "toastAfterSaveTop": "保存成功", "hash": "#/pages/model-pricing/index?itemId=qi1"}
+phase3 : {"clickedCheck": "CLICKED", "checkOnAfterToggle": 3, "clickedSaveBottom": "CLICKED", "toastAfterSaveBottom": "保存成功", "hash": "#/pages/model-pricing/index?itemId=qi1"}
+phase4 : {"collapsed": {"groupsVisible": 0, "hintText": "点击展开，配置计费请求规则", "addBtnVisible": false}, "groupTitlesAfterAdd": ["规则组 #1", "规则组 #2"], "groupCountAfterAdd": 2, "clickedBack": "CLICKED", "hashAfterBack": "#/pages/model-pricing/index?itemId=qi1"}
+
+serve 实收（requests-序号11-checks-red-run1.txt）：
+    "GET /api/v1/quotes/items/qi1 HTTP/1.1" 200 -
+    PUT /api/v1/quotes/items/qi1 body={"input_price":2.5,"output_price":10,"tier":"base","billing_mode":"按 token","request_rules":[{"field":"时间","granularity":"小时","tz":"Asia/Shanghai","op":"大于等于","value":"","multiplier":"1.0"}]}
+    "PUT /api/v1/quotes/items/qi1 HTTP/1.1" 200 -
+    PUT /api/v1/quotes/items/qi1 body={"input_price":2.5,"output_price":10,"cache_read_price":0,"tier":"base","billing_mode":"按 token","request_rules":[{"field":"时间","granularity":"小时","tz":"Asia/Shanghai","op":"大于等于","value":"","multipli
+    "PUT /api/v1/quotes/items/qi1 HTTP/1.1" 200 -
+    "GET /api/v1/quotes/items/qi1 HTTP/1.1" 200 -
+
+serve 实收（requests-序号11-checks-red-run2.txt）：
+    "GET /api/v1/quotes/items/qi1 HTTP/1.1" 200 -
+    PUT /api/v1/quotes/items/qi1 body={"input_price":2.5,"output_price":10,"tier":"base","billing_mode":"按 token","request_rules":[{"field":"时间","granularity":"小时","tz":"Asia/Shanghai","op":"大于等于","value":"","multiplier":"1.0"}]}
+    "PUT /api/v1/quotes/items/qi1 HTTP/1.1" 200 -
+    PUT /api/v1/quotes/items/qi1 body={"input_price":2.5,"output_price":10,"cache_read_price":0,"tier":"base","billing_mode":"按 token","request_rules":[{"field":"时间","granularity":"小时","tz":"Asia/Shanghai","op":"大于等于","value":"","multipli
+    "PUT /api/v1/quotes/items/qi1 HTTP/1.1" 200 -
+    "GET /api/v1/quotes/items/qi1 HTTP/1.1" 200 -
+
+
+--------------------------------------------------------------------------------
+红基线分诊（21 条 = 15 条真页面偏差 + 6 条探针自身期望值 bug；另 1 条 want 索引写错）
+--------------------------------------------------------------------------------
+A. 探针自身口径 bug（**不是**页面缺陷，已在探针里修正后复跑）：
+   1) 6 条 `*.ring` 的 want 写成 `rgba(226, 232, 240, 1) ...`，而 Chrome 对 alpha=1 的
+      box-shadow 颜色序列化成 `rgb(...)`，探针的 normShadow() 也按此归一 → 期望值写错。
+      改为 `rgb(226, 232, 240) 0px 0px 0px 0.8px` / `rgb(147, 197, 253) ...` / `rgb(203, 213, 225) ...`。
+      涉及：card2.tierBox.ring · card2.branch.ring · card3.box.ring · card3.checkOff.ring ·
+            card4.cond.ring · card4.addBtn.ring
+   2) `card3.tokenBoxTops` 写了 slice(0,3)，而 `.card--price .box--input` 的 DOM 顺序是
+      「行1 输入/输出 → 行2 缓存读/写 → 行3 1h」（got `454,454,537`）→ 取下标 [0,2,4] 才对
+      （`454,537,620`）。属探针索引写错，非页面缺陷。
+B. 真页面偏差（15 条，本轮已修，见台账序号 11 行与 evidence/review-序号11-checks-报告.md §4）：
+   1) 四张卡缺设计声明的 `drop_shadow(0,4,16,rgba(15,23,42,0.06))`（page.card1~4.shadow）→ 补 box-shadow。
+   2) 保存按钮缺设计声明的 `drop_shadow(0,6,16,rgba(37,99,235,0.28))`（bar.save.shadow）→ 补 box-shadow。
+   3) 图标盒只有形状大小、没有设计图层盒大小 → 6 类图标盒按设计声明改（盒子变化会改 flex 占位）：
+      卡1 折叠箭头 20×20（原 17×17，右界 400→398）· 计费方式 caret 18×18（原 11）·
+      添加计费分支 + 18×18（原 11）· 保存按钮 ✓ 22×22（原 14）·
+      媒体/规则折叠箭头 18×18 · 规则组删除 18×18 · 条件行 + 15×15。
+   4) 由 3) 连带：添加计费分支按钮宽 111→119（= 12+18+4+73+12，设计值），
+      计费方式选择框 245→237（设计值），按钮 x 287→279（设计值）。
+   5) 媒体列勾选框描边：设计 stroke thickness=1（token 列 0.8）→ `.media__col .check:not(.check--on)`
+      单独声明 `0 0 0 1px`（card3.mediaCheck.ring 红 → 绿）。

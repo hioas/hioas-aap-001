@@ -1,0 +1,34 @@
+序号 11 绿（修复后 + 同一份探针，两轮独立测量）— 设计期望值 checks
+==============================================================================
+
+phase1 : {"checks": 271, "checkCount": 271, "checkFailCount": 0, "checkFails": [], "overflowingCount": 0, "overflowing": [], "missingTexts": [], "docScrollWidth": 430, "docScrollHeight": 1540, "innerWidth": 430, "nav": {"x": 0, "top": 0, "right": 430, "bottom": 98, "w": 430, "h": 98}, "cards": [{"x": 16, "top": 114, "right": 414, "bottom": 196, "w": 398, "h": 82}, {"x": 16, "top": 210, "right": 414, "bottom": 363, "w": 398, "h": 153}, {"x": 16, "top": 377, "right": 414, "bottom": 976, "w": 398, "h": 598}, {"x": 16, "top": 990, "right": 414, "bottom": 1448, "w": 398, "h": 459}], "bodies": {"card1": {"x": 32, "top": 128, "right": 398, "bottom": 154, "w": 366, "h": 26}, "card2": {"x": 32, "top": 305, "right": 398, "bottom": 349, "w": 366, "h": 44}, "priceHead": {"x": 32, "top": 391, "right": 398, "bottom": 415, "w": 366, "h": 24}, "divider": {"x": 32, "top": 678, "right": 398, "bottom": 679, "w": 366, "h": 1}, "mediaHead": {"x": 32, "top": 693, "right": 398, "bottom": 713, "w": 366, "h": 19}, "ruleHead": {"x": 32, "top": 1004, "right": 398, "bottom": 1023, "w": 366, "h": 19}, "ruleNote": {"x": 32, "top": 1035, "right": 398, "bottom": 1061, "w": 366, "h": 26}, "ruleGroup": {"x": 32, "top": 1073, "right": 398, "bottom": 1378, "w": 366, "h": 305}, "ruleAdd": {"x": 32, "top": 1390, "right": 398, "bottom": 1434, "w": 366, "h": 44}, "bar": {"x": 0, "top": 1464, "right": 430, "bottom": 1540, "w": 430, "h": 76}, "save": {"x": 16, "top": 1476, "right": 414, "bottom": 1524, "w": 398, "h": 48}}, "t
+    [两轮独立测量一致? 是]
+    checkCount=271 checkFailCount=0 docH=1540 docW=430 overflowing=0 missingTexts=[]
+phase2 : {"clickedSaveTop": "CLICKED", "toastAfterSaveTop": "保存成功", "hash": "#/pages/model-pricing/index?itemId=qi1"}
+phase3 : {"clickedCheck": "CLICKED", "checkOnAfterToggle": 3, "clickedSaveBottom": "CLICKED", "toastAfterSaveBottom": "保存成功", "hash": "#/pages/model-pricing/index?itemId=qi1"}
+phase4 : {"collapsed": {"groupsVisible": 0, "hintText": "点击展开，配置计费请求规则", "addBtnVisible": false}, "groupTitlesAfterAdd": ["规则组 #1", "规则组 #2"], "groupCountAfterAdd": 2, "clickedBack": "CLICKED", "hashAfterBack": "#/pages/model-pricing/index?itemId=qi1"}
+
+serve 实收（requests-序号11-checks-run1.txt）：
+    "GET /api/v1/quotes/items/qi1 HTTP/1.1" 200 -
+    PUT /api/v1/quotes/items/qi1 body={"input_price":2.5,"output_price":10,"tier":"base","billing_mode":"按 token","request_rules":[{"field":"时间","granularity":"小时","tz":"Asia/Shanghai","op":"大于等于","value":"","multiplier":"1.0"}]}
+    "PUT /api/v1/quotes/items/qi1 HTTP/1.1" 200 -
+    PUT /api/v1/quotes/items/qi1 body={"input_price":2.5,"output_price":10,"cache_read_price":0,"tier":"base","billing_mode":"按 token","request_rules":[{"field":"时间","granularity":"小时","tz":"Asia/Shanghai","op":"大于等于","value":"","multipli
+    "PUT /api/v1/quotes/items/qi1 HTTP/1.1" 200 -
+    "GET /api/v1/quotes/items/qi1 HTTP/1.1" 200 -
+
+serve 实收（requests-序号11-checks-run2.txt）：
+    "GET /api/v1/quotes/items/qi1 HTTP/1.1" 200 -
+    PUT /api/v1/quotes/items/qi1 body={"input_price":2.5,"output_price":10,"tier":"base","billing_mode":"按 token","request_rules":[{"field":"时间","granularity":"小时","tz":"Asia/Shanghai","op":"大于等于","value":"","multiplier":"1.0"}]}
+    "PUT /api/v1/quotes/items/qi1 HTTP/1.1" 200 -
+    PUT /api/v1/quotes/items/qi1 body={"input_price":2.5,"output_price":10,"cache_read_price":0,"tier":"base","billing_mode":"按 token","request_rules":[{"field":"时间","granularity":"小时","tz":"Asia/Shanghai","op":"大于等于","value":"","multipli
+    "PUT /api/v1/quotes/items/qi1 HTTP/1.1" 200 -
+    "GET /api/v1/quotes/items/qi1 HTTP/1.1" 200 -
+
+
+--------------------------------------------------------------------------------
+本轮补的 checks 维度（新增 15 条，覆盖本轮修掉的图标盒/描边，防止回归）
+--------------------------------------------------------------------------------
+card1.chevron.h · card2.branchIcon.h · card2.selectCaret.h · card3.mediaCheck.radius ·
+card3.mediaArrow.w/.h/.right · card4.ruleArrow.w/.h · card4.trash.w/.h ·
+card4.actionPlus.w/.h · card4.addPlus.w/.h
+（红基线那轮探针还没有这些 check，故 red 的 checkCount=256 < green 的 271）

@@ -1,4 +1,37 @@
-<!doctype html>
+"""Build __measure-model-pricing.html (序号 11 · page-11) as a 430-wide iframe probe with
+design-expectation checks (chk/chkR/chkC/chkList).
+
+The helpers (splitSel / norm / normColor / normShadow / declared / el / rect / rects / css /
+chk / rectField / chkR / chkC / chkList / texts / colors / textOf / groupOf / grpRss / textColors)
+are lifted VERBATIM from __measure-profile.html so every probe shares exactly one implementation.
+"""
+import io
+import os
+
+ROOT = r"E:/workspaces/hioas/hioas-aap-001"
+HM = os.path.join(ROOT, ".agents/state/h5-measure")
+SRC = os.path.join(HM, "__measure-profile.html")
+DST = os.path.join(HM, "__measure-model-pricing.html")
+
+with io.open(SRC, encoding="utf-8") as fh:
+    src = fh.read().split("\n")
+
+
+def find(needle, start=0):
+    for i in range(start, len(src)):
+        if needle in src[i]:
+            return i
+    raise SystemExit("not found: " + needle)
+
+
+i_var = find("var f = document.getElementById('f')")
+# 只取顶部作用域（var f / acc / SCENARIO / SHOT_ONLY / NO_ACTION / splitSel），
+# collect() 由本页自己定义（否则会把上一页的 collect 打开却不闭合）
+i_helpers_end = find("function collect(doc, win, withChecks) {")
+helpers = "\n".join(src[i_var:i_helpers_end])
+helpers = helpers.replace("f.style.height = '1414px'", "f.style.height = '1541px'")
+
+HEAD = r"""<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -52,25 +85,9 @@
     <iframe id="f" src="/index.html#/pages/model-pricing/index?itemId=qi1"></iframe>
     <div id="sink"><pre id="m">pending</pre></div>
     <script>
-      var f = document.getElementById('f')
-      var acc = {}
-      var reloadSeq = 0
-      var SCENARIO = (location.search.match(/scenario=([a-z]+)/) || [])[1] || ''
-      var SHOT_ONLY = location.search.indexOf('shot') !== -1
-      var NO_ACTION = location.search.indexOf('noaction') !== -1
-      if (SHOT_ONLY) f.style.height = '1541px' /* = 设计帧高 */
+"""
 
-      /* 选择器语法：`sel@@N` = 该选择器的第 N 个匹配（也接受 CSS 里非法的 `sel#N` 写法，先归一化成 @@N）。
-         `A@@N B` = 在第 N 个 A 里查 B。 */
-      function splitSel(sel) {
-        var s = String(sel).replace(/#(\d+)(?=\s|$)/g, '@@$1')
-        var i = s.indexOf('@@')
-        if (i === -1) return { base: s, n: 0, tail: '' }
-        var head = s.slice(0, i)
-        var rest = s.slice(i + 2).split(/\s+/)
-        return { base: head.trim(), n: Number(rest[0]), tail: rest.slice(1).join(' ') }
-      }
-
+BODY = r"""
       var CARD = '.card'
       var NEED_TEXT = [
         '模型定价', '保存',
@@ -747,6 +764,14 @@
       }
 
       main()
-    </script>
+"""
+
+TAIL = """    </script>
   </body>
 </html>
+"""
+
+with io.open(DST, "w", encoding="utf-8", newline="\n") as fh:
+    fh.write(HEAD + helpers + BODY + TAIL)
+print("wrote", DST)
+print("helpers lines:", len(helpers.split("\n")))

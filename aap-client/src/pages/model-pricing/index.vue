@@ -537,6 +537,8 @@ async function onSave() {
   box-sizing: border-box;
   border-radius: 16px;
   background: $color-bg-card;
+  /* design effects：四张卡均声明 drop_shadow(0,4,16,rgba(15,23,42,0.06))（box-shadow 不占布局） */
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
   display: flex;
   flex-direction: column;
 }
@@ -774,6 +776,10 @@ async function onSave() {
   color: $color-text-secondary-2;
   line-height: 14.4px;
 }
+/* 设计里媒体列勾选框 stroke thickness = 1（token 列是 0.8）→ 分开声明；:not(--on) 让勾选态仍无描边 */
+.media__col .check:not(.check--on) {
+  box-shadow: 0 0 0 1px $color-border-strong;
+}
 
 /* 卡4 请求规则 */
 .rule__head {
@@ -919,6 +925,8 @@ async function onSave() {
   height: 48px;
   border-radius: 12px;
   background: $color-primary;
+  /* design effects：保存按钮 drop_shadow(0,6,16,rgba(37,99,235,0.28)) */
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -930,13 +938,27 @@ async function onSave() {
   color: #ffffff;
 }
 
-/* 图标（设计稿用 remixicon 字形；小程序/H5 跨端一致性优先 → CSS 形状占位，见台账登记） */
+/* 图标（设计稿用 remixicon 字形；小程序/H5 跨端一致性优先 → CSS 形状占位，见台账登记）
+   口径：**盒子尺寸 = 设计图层盒**（declared width × 本页字形行框 fontSize×1.1），形状画进 `::before`。
+   盒子进 flex 的占位必须与设计一致（例：添加计费分支按钮 = 12+18+4+73+12 = 119，盒子小 7px 会让框宽变 111）。 */
 .ic {
-  width: 16px;
-  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  box-sizing: border-box;
+}
+.ic::before {
+  content: '';
+  display: block;
+  box-sizing: border-box;
 }
 .ic-back {
+  /* design 3900d52a w=26 · fs=24 → 盒 26×26（设计 PNG 字形 ink 20..36 / 61..76，居中于盒） */
+  width: 26px;
+  height: 26px;
+}
+.ic-back::before {
   width: 10px;
   height: 10px;
   border-left: 2px solid $color-text-secondary-2;
@@ -944,6 +966,11 @@ async function onSave() {
   transform: rotate(45deg);
 }
 .ic-chevron-up {
+  /* design e47dc806 w=20 · fs=18 → 盒 20×20（设计 PNG ink 382..392 / 140..145，盒右界 398） */
+  width: 20px;
+  height: 20px;
+}
+.ic-chevron-up::before {
   width: 10px;
   height: 10px;
   border-left: 2px solid $color-text-placeholder;
@@ -951,6 +978,11 @@ async function onSave() {
   transform: rotate(135deg);
 }
 .ic-chevron-up-sm {
+  /* design ebc25539（媒体定价头）/ 990b61af（规则标题行）fs=16 → 盒 18×18 */
+  width: 18px;
+  height: 18px;
+}
+.ic-chevron-up-sm::before {
   width: 8px;
   height: 8px;
   border-left: 1.6px solid $color-text-placeholder;
@@ -958,6 +990,11 @@ async function onSave() {
   transform: rotate(135deg);
 }
 .ic-caret {
+  /* design 00bedca8（计费方式选择框）w=18 · fs=16 → 盒 18×18 */
+  width: 18px;
+  height: 18px;
+}
+.ic-caret::before {
   width: 7px;
   height: 7px;
   border-right: 1.6px solid $color-text-placeholder;
@@ -965,6 +1002,11 @@ async function onSave() {
   transform: rotate(45deg);
 }
 .ic-caret-sm {
+  /* design 0c8d1f6c 等条件选择框 fs=14 → 盒 15×15 */
+  width: 15px;
+  height: 15px;
+}
+.ic-caret-sm::before {
   width: 6px;
   height: 6px;
   border-right: 1.4px solid $color-text-placeholder;
@@ -972,24 +1014,44 @@ async function onSave() {
   transform: rotate(45deg);
 }
 .ic-plus-blue {
+  /* design 84b1c4b0（添加计费分支）/ a119149b（新增规则组）w=18 · fs=16 → 盒 18×18 */
+  width: 18px;
+  height: 18px;
+}
+.ic-plus-blue::before {
   width: 11px;
   height: 11px;
   border-radius: 2px;
   background: $color-primary;
 }
 .ic-plus-sm {
+  /* design 77d95bec / ef6224d5（新增参数 / 新增时间条件）fs=14 → 盒 15×15 */
+  width: 15px;
+  height: 15px;
+}
+.ic-plus-sm::before {
   width: 10px;
   height: 10px;
   border-radius: 2px;
   background: $color-primary;
 }
 .ic-trash {
+  /* design ffbcc2d6（规则组删除）fs=16 → 盒 18×18 */
+  width: 18px;
+  height: 18px;
+}
+.ic-trash::before {
   width: 12px;
   height: 12px;
   border-radius: 2px;
   background: $color-danger;
 }
 .ic-check-white {
+  /* design e1e80bd3（保存按钮）w=22 · fs=20 → 盒 22×22 */
+  width: 22px;
+  height: 22px;
+}
+.ic-check-white::before {
   width: 14px;
   height: 14px;
   border-radius: 3px;
