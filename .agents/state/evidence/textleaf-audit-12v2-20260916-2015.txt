@@ -1,0 +1,32 @@
+# 序号 12-v2 文本叶子审计（收口后）：待判读 class 0 · 已核定 12
+# 生成: python .agents/state/textleaf-audit.py 12-v2  （dump=evidence/textleaf-12-v2.json）
+
+warning: Failed to set cwd to temp dir
+== 序号 12-v2   page-apikey  文本叶子 32 · 匹配 32 · 未渲染 2 · 待判读 class 0 · 已核定 12
+   bar__hint-text                     n=1   已核定(非偏差): 底部操作条同 12-v1：说明行行高由同排图标字形盒（fs13 remixicon → 19.5）决定，文本在行内居中 → 行盒不承重；本帧墨迹 1027..1
+                                        leaf=['759e401b'] sample='保存成功后系统将自动生成报价单号' al=['start'] fs=11.0 chain=bar__hint-text | bar__hint | qf__bar | qf
+   card__title                        n=2   已核定(非偏差): 本帧两张卡的标题墨迹：基本信息 137..151（设计）= 137..151（实现）；模型列表 783..797（设计）= 782..796（实现，−1）。卡/
+                                        leaf=['63d02fa4', 'c3059e08'] sample='基本信息' al=['start'] fs=15.0 chain=card__title | card__head | card | qf__body
+   hint__text hint__text--blue        n=1   已核定(非偏差): 与 12-v1 同组件同结构（字段 → container padTop 6 → 提示行）；本帧选择框下的蓝色提示行墨迹 715..727（设计，与选框描边带相
+                                        leaf=['a046a0e9'] sample='选择凭证后，系统将自动带出该凭证下可用的模型列表' al=['start'] fs=11.0 chain=hint__text hint__text--blue | hint | field | card
+   label__star                        n=4   已核定(非偏差): 与同行标签同盒（字段标签行 gap4 / align-center）；设计墨迹 173..178 = 实现 173..178。
+                                        leaf=['5b8344d7', 'bd50660f'] sample='*' al=['start'] fs=13.0 chain=label__star | label | field | card
+   label__text                        n=3   已核定(非偏差): 盒算术定死 = 17（本帧两条独立链）：字段-报价单名称 = [字段标签行][container padTop 8 → 名称输入框 h48]；链1 输入框顶 1
+                                        leaf=['02cf74b8', '2a1697de', 'efcdb8e6'] sample='报价单名称' al=['start'] fs=13.0 chain=label__text | label | field | card
+   panel__title                       n=1   已核定(非偏差): 判据①设计**显式 h=19**：0e3fde7a（测试环境密钥）与 3b424c06（数据标注专用）均为 w=fill_container h=19；首行 e
+                                        leaf=['ecfecae1'] sample='生产环境密钥' al=['start'] fs=14.0 chain=panel__title | panel__name-row | panel__info | panel__left
+   readonly-box__text                 n=1   已核定(非偏差): 位于设计声明 h48 的只读盒内居中 → 行盒不承重；墨迹 342..355（设计）= 342..355（实现），逐值相同。
+                                        leaf=['a03d8a1b'] sample='保存后自动生成' al=['start'] fs=14.0 chain=readonly-box__text | readonly-box__left | readonly-box | field__inner
+   rec-tag__text                      n=1   已核定(非偏差): 设计 73297a26 fs9 SemiBold 白字（胶囊 h16 r8 #2563EB）；墨迹 500..508（设计）= 499..507（实现，−1）。
+                                        leaf=['73297a26'] sample='常用' al=['start'] fs=9.0 chain=rec-tag__text | rec-tag | panel__name-row | panel__info
+   sample-pill__text                  n=1   已核定(非偏差): 设计 106d1228 fs10；墨迹 344..353（设计）= 345..354（实现，+1）；与同页 fs10 一致。
+                                        leaf=['106d1228'] sample='QT-XXXXXXXX-XXXX' al=['start'] fs=10.0 chain=sample-pill__text | sample-pill | readonly-box | field__inner
+   select__value                      n=1   已核定(非偏差): 位于定高选择框内居中 → 行盒不承重；墨迹 449..462（设计）= 448..461（实现，−1）。
+                                        leaf=['324d1612'] sample='请选择凭证' al=['start'] fs=14.0 chain=select__value | select__left | select select--open | field__inner
+   tag__text tag__text--chip          n=1   已核定(非偏差): 系统生成（fs10）墨迹 302..311（设计）= 303..312（实现，+1）；待带出（tag__text--chip fs11）墨迹 784..794（
+                                        leaf=['1867a0bc'] sample='待带出' al=['start'] fs=11.0 chain=tag__text tag__text--chip | tag | card__head | card
+   tag__text                          n=1   已核定(非偏差): 系统生成（fs10）墨迹 302..311（设计）= 303..312（实现，+1）；待带出（tag__text--chip fs11）墨迹 784..794（
+                                        leaf=['d829e70b'] sample='系统生成' al=['start'] fs=10.0 chain=tag__text | tag tag--blue | label label--gap8 | field
+   未渲染叶子(2): 2024Q3 主线路报价 / 13/30
+
+合计: 设计文本叶子 32 · 匹配 30 · 未渲染 2 · 待判读 class 0 · 已核定 12（有偏差行合计 12，含已核定）

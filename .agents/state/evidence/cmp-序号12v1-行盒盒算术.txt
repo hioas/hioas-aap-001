@@ -1,0 +1,117 @@
+# 序号 12-v1 行盒判定的「盒算术」实测（判据优先级 ② design PNG 实测）
+# 生成: bash .agents/state/gen-12v1-textleaf-evidence.sh
+
+## 1. 字段标签行行盒 = 17（设计声明 padding 链 + PNG 反推，两条独立链）
+# 设计树: 字段-报价单名称(61760d8d) = [字段标签行(fit_content)][container padTop 8 → 名称输入框 h=48][container padTop 6 → 字数提示]
+#         卡片间由 container(padTop 16 → 1px 分隔线) 连接
+# 反推: 输入框顶 = 标签行顶 + 8 + L；标签墨迹 = 标签行顶 + (L-13)/2
+#       链1 报价单名称: 输入框顶 277、标签墨迹 254 → 0.5L = 8.5 → L = 17
+#       链2 报价单号:   输入框顶 405、标签墨迹 382 → L = 17
+--- design scan-col x=215 y=265..350（名称输入框 fill 248,250,252 的上下界）
+warning: Failed to set cwd to temp dir
+col x=215 y=265..350 tol=6 segs=11
+  y=265..275 h=11 rgb(255, 255, 255)
+  y=278..299 h=22 rgb(248, 250, 252)
+  y=300..303 h=4 rgb(240, 244, 247)
+  y=304..305 h=2 rgb(248, 250, 252)
+  y=307..323 h=17 rgb(248, 250, 252)
+  y=326..349 h=24 rgb(255, 255, 255)
+--- design scan-col x=215 y=395..470（报价单号 readonly 盒 fill 241,245,249）
+warning: Failed to set cwd to temp dir
+col x=215 y=395..470 tol=6 segs=7
+  y=395..403 h=9 rgb(255, 255, 255)
+  y=406..451 h=46 rgb(241, 245, 249)
+  y=454..469 h=16 rgb(255, 255, 255)
+
+## 2. 须知卡条目 3 = 两行 × 18（行盒 18），卡高 154 两边相同
+# 设计树: 填写须知卡(f4fab5a4) padding 16、无 gap；children = 须知标题行 + container(padTop 12→条目1) + container(8→条目2) + container(8→条目3)
+# 卡高 = 16 + 标题行 T + (12+H1) + (8+H2) + (8+H3) + 16 = 118 + H3；PNG 实测卡高 154 → H3 = 36 = 2×18
+# 序号点 18×18、条目间 padding 8 → 点距 26（设计 995/1021/1047 = 实现 998/1024/1050，两边 26）
+--- design scan-col x=402 y=930..1130（须知卡白区上下界）
+warning: Failed to set cwd to temp dir
+col x=402 y=930..1130 tol=6 segs=6
+  y=930..934 h=5 rgb(239, 241, 245)
+  y=935..943 h=9 rgb(242, 243, 248)
+  y=945..1098 h=154 rgb(255, 255, 255)
+  y=1099..1119 h=21 rgb(240, 242, 246)
+  y=1120..1129 h=10 rgb(255, 255, 255)
+--- impl   scan-col x=402 y=930..1130
+warning: Failed to set cwd to temp dir
+col x=402 y=930..1130 tol=6 segs=9
+  y=930..933 h=4 rgb(237, 239, 244)
+  y=934..938 h=5 rgb(240, 242, 246)
+  y=939..946 h=8 rgb(243, 245, 249)
+  y=947..1100 h=154 rgb(255, 255, 255)
+  y=1102..1107 h=6 rgb(238, 240, 245)
+  y=1108..1118 h=11 rgb(241, 243, 247)
+  y=1119..1121 h=3 rgb(238, 240, 245)
+  y=1122..1129 h=8 rgb(255, 255, 255)
+--- 序号点列 x=30..56（设计）
+warning: Failed to set cwd to temp dir
+PNG 430x1238 box x=30..56 y=940..1110 modal=(255, 255, 255)
+  940..945   len=6    maxink=12
+  965..978   len=14   maxink=15
+  995..1013  len=19   maxink=16
+ 1021..1039  len=19   maxink=17
+ 1047..1065  len=19   maxink=17
+ 1099..1109  len=11   maxink=15
+--- 序号点列 x=30..56（实现）
+warning: Failed to set cwd to temp dir
+PNG 430x1241 box x=30..56 y=940..1110 modal=(255, 255, 255)
+  940..946   len=7    maxink=13
+  965..982   len=18   maxink=14
+  998..1015  len=18   maxink=16
+ 1024..1041  len=18   maxink=16
+ 1050..1067  len=18   maxink=16
+ 1101..1109  len=9    maxink=8
+--- 条目 3 文字 x=57..70（设计）—— 两行墨迹起点差 = 字体墨迹差（两边行盒同为 18）
+warning: Failed to set cwd to temp dir
+PNG 430x1238 box x=57..70 y=1040..1095 modal=(255, 255, 255)
+ 1052..1063  len=12   maxink=10
+ 1067..1077  len=11   maxink=7
+--- 条目 3 文字 x=57..70（实现）
+warning: Failed to set cwd to temp dir
+PNG 430x1241 box x=57..70 y=1040..1095 modal=(255, 255, 255)
+ 1054..1064  len=11   maxink=10
+ 1072..1082  len=11   maxink=7
+
+## 3. 底部操作条：说明行盒由图标字形盒 19.5 决定（文本行盒不承重）
+# 设计树: 底部操作条(0bf8e01d) padding[12,16,28,16] → [保存说明 横排 gap4 align-center][container padTop 10 → 按钮行]
+# 条高 118 = 12 + 19.5(图标字形盒 fs13×1.5) + 10 + 48 + 28 ✓（实现 119 含 AA）
+--- design scan-col x=8 y=1090..1238（页面底色→白条上界）
+warning: Failed to set cwd to temp dir
+col x=8 y=1090..1238 tol=6 segs=4
+  y=1090..1112 h=23 rgb(243, 245, 250)
+  y=1113..1119 h=7 rgb(241, 243, 247)
+  y=1120..1236 h=117 rgb(255, 255, 255)
+--- impl   scan-col x=8 y=1090..1241
+warning: Failed to set cwd to temp dir
+col x=8 y=1090..1241 tol=6 segs=4
+  y=1090..1114 h=25 rgb(244, 246, 250)
+  y=1115..1120 h=6 rgb(241, 243, 247)
+  y=1122..1240 h=119 rgb(255, 255, 255)
+
+## 4. 卡片头行（card__title fs15）：竖条 217..232 两侧相同 ⇒ 头行高一致（18~20 均在 ±1 内，取 20）
+--- 卡片 1 白区上界（x=402）design / impl
+warning: Failed to set cwd to temp dir
+col x=402 y=190..340 tol=6 segs=2
+  y=190..199 h=10 rgb(241, 243, 247)
+  y=200..339 h=140 rgb(255, 255, 255)
+warning: Failed to set cwd to temp dir
+col x=402 y=190..340 tol=6 segs=3
+  y=190..198 h=9 rgb(242, 244, 248)
+  y=200..339 h=140 rgb(255, 255, 255)
+--- 卡片 1/2 之间（x=402）design / impl
+warning: Failed to set cwd to temp dir
+col x=402 y=600..720 tol=6 segs=5
+  y=600..622 h=23 rgb(255, 255, 255)
+  y=624..628 h=5 rgb(238, 240, 244)
+  y=629..640 h=12 rgb(240, 242, 247)
+  y=641..719 h=79 rgb(255, 255, 255)
+warning: Failed to set cwd to temp dir
+col x=402 y=600..720 tol=6 segs=6
+  y=600..622 h=23 rgb(255, 255, 255)
+  y=624..627 h=4 rgb(237, 239, 244)
+  y=628..632 h=5 rgb(240, 242, 246)
+  y=633..640 h=8 rgb(243, 245, 249)
+  y=641..719 h=79 rgb(255, 255, 255)

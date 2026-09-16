@@ -113,9 +113,11 @@ def main():
 
     lines = []
     total_leaves = total_matched = total_dev = total_unmatched = total_ambig = 0
+    total_pending = total_accepted = 0
     accepted = 0
     for r in rows:
         tag, pid = r['序号'], r['页面ID']
+        accepted = 0
         dom_f = os.path.join(EVD, 'textleaf-%s.json' % tag)
         if not os.path.exists(dom_f):
             lines.append('== 序号 %-7s %-12s （无 DOM dump，先跑 textleaf-scan.py）' % (tag, pid))
@@ -193,6 +195,8 @@ def main():
             elif all_classes:
                 devs.append((cls, rec, ['OK']))
         total_dev += len(devs)
+        total_pending += len([d for d in devs if not str(d[2][0]).startswith('已核定')])
+        total_accepted += accepted
         lines.append('== 序号 %-7s %-12s 文本叶子 %d · 匹配 %d · 未渲染 %d · 待判读 class %d · 已核定 %d'
                      % (tag, pid, len(dls), sum(v['n'] for v in agg.values()), len(unmatched),
                         len([d for d in devs if not str(d[2][0]).startswith('已核定')]), accepted))
@@ -207,8 +211,8 @@ def main():
         if skipped:
             lines.append('   口径跳过(文案在设计里多义，%d 条): %s' % (len(ambiguous), ' / '.join(ambiguous[:10])))
     lines.append('')
-    lines.append('合计: 设计文本叶子 %d · 匹配 %d · 未渲染 %d · 有偏差 class %d'
-                 % (total_leaves, total_matched, total_unmatched, total_dev))
+    lines.append('合计: 设计文本叶子 %d · 匹配 %d · 未渲染 %d · 待判读 class %d · 已核定 %d（有偏差行合计 %d，含已核定）'
+                 % (total_leaves, total_matched, total_unmatched, total_pending, total_accepted, total_dev))
     text = '\n'.join(lines)
     print(text)
     if out_path:
