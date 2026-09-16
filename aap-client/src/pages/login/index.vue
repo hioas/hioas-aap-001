@@ -318,6 +318,9 @@ function onWechatLogin() {
   padding: 24px 20px;
   background: $color-bg-card;
   border-radius: 20px;
+  /* 设计 表单卡片 cab5940c effects=[drop_shadow(0,8,24,rgba(15,23,42,0.08))]
+     像素证据：卡底下方 y891..911 设计 235→248 渐变；修前实现恒为页面底色 248,250,252（投影整体缺失） */
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -366,7 +369,10 @@ function onWechatLogin() {
     height: 48px;
     padding: 0 $gap-md;
     background: $color-bg-page;
-    border: 1px solid $color-border;
+    /* 设计 0969fe4e / 4b7f22fc / 1b3579fd：stroke{align:center,thickness:1,rgba(226,232,240,1)}
+       → Figma center 描边不占布局，border 会把内容盒挤掉 2px（内容左界 49 vs 设计 48、右界 381 vs 设计 382）
+       → 按同族页口径改用 box-shadow 表达 */
+    box-shadow: 0 0 0 1px $color-border;
     border-radius: 12px;
     display: flex;
     flex-direction: row;
@@ -375,30 +381,46 @@ function onWechatLogin() {
     overflow: hidden;
   }
 
-  /* 图标占位（设计稿为矢量图标，禁用 emoji） */
+  /* 图标占位（设计稿为矢量字形，禁用 emoji；D5 = CSS 绘制占位）
+     设计 df37d41e / 930dc950 / c59ce992：声明宽 20 · fs18 → 盒 20×27（字号×1.5 字形行框）；
+     形状按设计 PNG 实测墨迹画在盒内（手机 11×16 · 盾 15×17 · 锁 15×17），
+     颜色 = 设计字形填充 rgba(148,163,184,1)（灰）→ 由伪元素承载（形状颜色读 ::before 的 border-color） */
   &__mark {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 27px;
     flex-shrink: 0;
     margin-right: $gap-sm;
-    border-radius: 4px;
-    background: $color-primary-weak-2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    &--phone {
-      background: $color-primary-weak;
+    &::before {
+      content: '';
+      box-sizing: border-box;
+      border: 2px solid $color-text-placeholder;
     }
 
-    &--shield {
-      border-radius: 50%;
-      background: $color-primary-weak;
+    &--phone::before {
+      width: 11px;
+      height: 16px;
+      border-radius: 3px;
     }
 
-    &--lock {
-      background: $color-primary-weak;
+    &--shield::before {
+      width: 15px;
+      height: 17px;
+      border-radius: 7px 7px 50% 50%;
+    }
+
+    &--lock::before {
+      width: 15px;
+      height: 17px;
+      border-radius: 3px;
     }
   }
 
   &__prefix {
+    width: 25px; /* 设计 c825d0d3 声明宽 25（PNG 墨迹 x76..99）→ 固定宽，使竖分隔/输入框左界不随回退字体漂移 */
     font-size: $font-base;
     color: $color-text-secondary-2;
     font-weight: 500;
@@ -409,7 +431,8 @@ function onWechatLogin() {
   &__divider {
     width: 2px;
     height: 18px;
-    margin: 0 $gap-md;
+    /* 设计 165e103e / 515ac9c7：竖分隔两侧 spacer 8/8（原 $gap-md=12 会把输入框左界推到 123，设计 119） */
+    margin: 0 $gap-sm;
     background: $color-border;
     flex-shrink: 0;
   }
@@ -471,7 +494,9 @@ function onWechatLogin() {
   flex-shrink: 0;
   border-radius: 12px;
   background: $color-primary-weak-2;
-  border: 1px solid $color-captcha-border;
+  /* 设计 1bb97e22：stroke{align:center,thickness:1,rgba(224,231,255,1)} → box-shadow
+     （border 实现会把块整体推到 x269，设计 270；右界 381，设计 382） */
+  box-shadow: 0 0 0 1px $color-captcha-border;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -492,7 +517,8 @@ function onWechatLogin() {
   flex-shrink: 0;
   border-radius: 12px;
   background: $color-primary-weak;
-  border: 1px solid $color-brand-en;
+  /* 设计 b4fa89d5：stroke{align:center,thickness:1,rgba(191,219,254,1)} → box-shadow */
+  box-shadow: 0 0 0 1px $color-brand-en;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -516,6 +542,9 @@ function onWechatLogin() {
   height: 50px;
   border-radius: 14px;
   background: $color-primary;
+  /* 设计 主按钮 7e26d478 effects=[drop_shadow(0,8,20,rgba(37,99,235,0.28))]
+     像素证据：按钮下方 y721..740 设计 (207,221,250)→(247,249,254)；修前实现恒 255,255,255 */
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -553,7 +582,8 @@ function onWechatLogin() {
   height: 50px;
   border-radius: 14px;
   background: $color-wechat-weak;
-  border: 1px solid $color-wechat-border;
+  /* 设计 6cf8d63a：stroke{align:center,thickness:1,rgba(187,247,208,1)} → box-shadow */
+  box-shadow: 0 0 0 1px $color-wechat-border;
   box-sizing: border-box;
   display: flex;
   flex-direction: row;
@@ -585,13 +615,14 @@ function onWechatLogin() {
     align-items: center; /* 设计协议行 07a3c1d3 layout=horizontal alignItems=center（行高 = 勾选框 18） */
   }
 
-  /* 设计：勾选框 18x18 r6（含 1px 描边的外框尺寸） */
+  /* 设计 927a3b46：勾选框 18x18 r6，**选中态 = fill rgba(37,99,235,1) 且无描边**（fill-only）；
+     未选中态是设计未画出的状态（PRD 校验门要求用户显式勾选）→ 用同族 ring 表达 1px 描边 */
   &__box {
     width: 18px;
     height: 18px;
     margin-right: $gap-sm;
     flex-shrink: 0;
-    border: 1px solid $color-border;
+    box-shadow: 0 0 0 1px $color-border;
     border-radius: 6px;
     background: $color-bg-card;
     box-sizing: border-box;
@@ -601,7 +632,7 @@ function onWechatLogin() {
 
     &--checked {
       background: $color-primary;
-      border-color: $color-primary;
+      box-shadow: none;
     }
   }
 

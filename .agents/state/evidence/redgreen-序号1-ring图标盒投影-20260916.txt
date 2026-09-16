@@ -1,0 +1,155 @@
+== 序号 1 登录注册：center 描边 → ring（5 处） + 输入框图标字形盒 20×27 + 设计 effects（卡/主按钮投影） ==
+设计真源：.calicat/raw/pages/page-1-2/design.tree.json（画布 2095515676976640000 当前状态）+ 设计 PNG 430×1114
+时间：2026-09-16 19:10:24
+
+---- RED ①（载体页新增 29 条 checks，源码未改，两轮）----
+phase1: checks=163 fails=34 docH=1114 overflow=0
+    FAIL fieldBox.borderWidth: got 1 want 0
+    FAIL fieldBox.contentLeft: got "49" want "48"
+  红清单条数 run1：35
+  红清单条数 run2：35
+    FAIL fieldBox.borderWidth: got 1 want 0
+    FAIL fieldBox.contentLeft: got "49" want "48"
+    FAIL fieldBox.ringNums: got "none" want "0px 0px 0px 1px"
+    FAIL fieldBox.ringColor: got null want "rgb(226,232,240)"
+    FAIL mark.sizes: got "16x16,16x16,16x16" want "20x27,20x27,20x27"
+    FAIL mark.lefts: got "49,49,49" want "48,48,48"
+    FAIL markPhone.shapeW: got "auto" want 11
+    FAIL markPhone.shapeH: got "auto" want 16
+    FAIL markPhone.shapeBorderW: got 0 want 2
+    FAIL markPhone.shapeColor: got "rgb(0,0,0)" want "rgb(148,163,184)"
+    FAIL markShield.shapeW: got "auto" want 15
+    FAIL markShield.shapeH: got "auto" want 17
+    FAIL markShield.shapeBorderW: got 0 want 2
+    FAIL markShield.shapeColor: got "rgb(0,0,0)" want "rgb(148,163,184)"
+    FAIL markLock.shapeW: got "auto" want 15
+    FAIL markLock.shapeH: got "auto" want 17
+    FAIL markLock.shapeBorderW: got 0 want 2
+    FAIL markLock.shapeColor: got "rgb(0,0,0)" want "rgb(148,163,184)"
+    FAIL prefix.left: got "73" want "76"
+    FAIL prefix.right: got "97" want "101"
+    FAIL input.lefts: got "123,73,73" want "119,76,76"
+    FAIL captcha.borderWidth: got 1 want 0
+    FAIL captcha.ringNums: got "none" want "0px 0px 0px 1px"
+    FAIL captcha.ringColor: got null want "rgb(224,231,255)"
+    FAIL captcha.x: got "269" want "270"
+    FAIL smsBtn.borderWidth: got 1 want 0
+    FAIL smsBtn.ringNums: got "none" want "0px 0px 0px 1px"
+    FAIL smsBtn.ringColor: got null want "rgb(191,219,254)"
+    FAIL wechat.borderWidth: got 1 want 0
+    FAIL wechat.ringNums: got "none" want "0px 0px 0px 1px"
+    FAIL wechat.ringColor: got null want "rgb(187,247,208)"
+    FAIL agreeBox.borderWidth: got 1 want 0
+    FAIL agreeBox.ringNums: got "none" want "0px 0px 0px 1px"
+    FAIL agreeBox.ringColor: got null want "rgb(226,232,240)"
+    FAIL agreeBoxChecked.borderWidth: got 1 want 0
+
+---- RED ②（补 2 条 effects checks：卡片/主按钮投影，源码未改，两轮）----
+phase1: checks=165 fails=2 docH=1114 overflow=0
+    FAIL card.shadow: got "none" want "rgba(15, 23, 42, 0.08) 0px 8px 24px 0px"
+    FAIL submit.shadow: got "none" want "rgba(37, 99, 235, 0.28) 0px 8px 20px 0px"
+phase2: checks=None fails=None docH=None overflow=None
+  run2：
+phase1: checks=165 fails=2 docH=1114 overflow=0
+    FAIL card.shadow: got "none" want "rgba(15, 23, 42, 0.08) 0px 8px 24px 0px"
+    FAIL submit.shadow: got "none" want "rgba(37, 99, 235, 0.28) 0px 8px 20px 0px"
+phase2: checks=None fails=None docH=None overflow=None
+
+---- GREEN（实现后复跑两轮）----
+phase1: checks=165 fails=0 docH=1114 overflow=0
+phase2: checks=None fails=None docH=None overflow=None
+phase3: checks=None fails=None docH=None overflow=None
+phase4: checks=None fails=None docH=None overflow=None
+phase5: checks=5 fails=0 docH=None overflow=None
+phase6: checks=None fails=None docH=None overflow=None
+phase1: checks=165 fails=0 docH=1114 overflow=0
+phase2: checks=None fails=None docH=None overflow=None
+phase3: checks=None fails=None docH=None overflow=None
+phase4: checks=None fails=None docH=None overflow=None
+phase5: checks=5 fails=0 docH=None overflow=None
+phase6: checks=None fails=None docH=None overflow=None
+
+---- 两轮独立测量一致性 ----
+phase=phase1 · 全等字段 42 个
+全等: agreeBox, brand, buttons, captcha, captchaText, card, cardHead, checkCount, checkFailCount, checkFails, checks, disclaimer, disclaimerBody, disclaimerBodyLineHeight, disclaimerHead, disclaimerMark, dividers, docScrollHeight, docScrollWidth, fieldBoxRects, fieldLabels, fields, footer, hash, innerHeight, innerWidth, inputCount, missingTexts, needTextCount, overflowing, overflowingCount, placeholders, smsBtn, storageToken, submit, tipMark, tipRow, tipText, toast, uniInternalNoise, uniInternalNoiseCount, wechat
+不一致 0 个:
+  phase5（勾选态）：checkCount     = 5 checkFailCount = 0 phase keys: agreeBoxChecked, checkCount, checkFailCount, checkFails, checks, clicked, clickedAgree, requestHint, scenario, smsBtnDisabledClass, smsLabel, toast, typedCaptcha 
+  agreeBoxChecked run1：agreeBoxChecked = {"bg": "rgb(37, 99, 235)", "shadow": "none", "borderWidth": "0px", "cls": "agree__box agree__box--checked"}
+  agreeBoxChecked run2：agreeBoxChecked = {"bg": "rgb(37, 99, 235)", "shadow": "none", "borderWidth": "0px", "cls": "agree__box agree__box--checked"}
+
+---- 像素对账（设计 PNG 430×1114 vs 实现截图 430×1114，±3 结构带）----
+序号 6 像素对账：设计 PNG 430x1114 vs 实现 430 宽整页截图 430x1114
+
+--- 卡片内容区 x=36..394 ---
+  设计带起点 29 个（首 [56, 143, 185] 末 [979, 1049, 1067]）
+  实现带起点 31 个（首 [56, 144, 186] 末 [979, 1050, 1068]）
+  命中(±3) 27 / 未命中 2
+  命中处位移：中位 0 · 最小 -1 · 最大 2 · 0 位移 14 个
+    y 0..1000：25 个命中，位移 min -1 max 2 中位 0
+    y 1000..1425：2 个命中，位移 min 1 max 1 中位 1
+  未命中清单 → [914, 920]
+--- 明细条/进度条列 x=194..356 ---
+  设计带起点 19 个（首 [93, 144, 185] 末 [979, 1049, 1067]）
+  实现带起点 19 个（首 [93, 145, 186] 末 [980, 1050, 1068]）
+  命中(±3) 19 / 未命中 0
+  命中处位移：中位 1 · 最小 0 · 最大 2 · 0 位移 5 个
+    y 0..1000：17 个命中，位移 min 0 max 2 中位 1
+    y 1000..1425：2 个命中，位移 min 1 max 1 中位 1
+  未命中清单 → []
+
+结构带未命中合计: 2（命中 46）
+
+---- 新增结构：图标墨迹 / 文本左界（设计 PNG vs 实现截图，同一 y 带 ink-runs）----
+[设计 page-1-2.png]
+band y=407..423 bg=(248, 250, 252) runs=4
+  x=52..62 w=11
+  x=76..99 w=24
+  x=109..110 w=2
+  x=119..202 w=84
+  x=282..282 w=1
+  x=316..336 w=21
+  x=338..356 w=19
+  x=393..393 w=1
+  x=76..187 w=112
+  x=281..282 w=2
+  x=305..369 w=65
+  x=393..394 w=2
+[实现 20260916-1930-序01-登录注册-ring图标盒投影-h5-430宽.png]
+band y=407..423 bg=(248, 250, 252) runs=5
+  x=53..63 w=11
+  x=76..99 w=24
+  x=109..110 w=2
+  x=119..202 w=84
+  x=394..394 w=1
+  x=327..336 w=10
+  x=339..347 w=9
+  x=382..382 w=1
+  x=394..394 w=1
+  x=294..318 w=25
+  x=320..357 w=38
+  x=382..382 w=1
+  x=394..394 w=1
+
+---- 投影（卡底 / 主按钮下）同列取色：设计 vs 实现 ----
+y=721  design=(207, 221, 250)  impl=(207, 221, 250)
+y=725  design=(216, 227, 251)  impl=(216, 227, 251)
+y=730  design=(227, 236, 252)  impl=(228, 236, 252)
+y=735  design=(239, 244, 253)  impl=(239, 244, 253)
+y=740  design=(247, 249, 254)  impl=(248, 250, 254)
+y=891  design=(235, 237, 240)  impl=(234, 237, 240)
+y=895  design=(237, 239, 242)  impl=(236, 239, 241)
+y=900  design=(240, 242, 245)  impl=(239, 241, 244)
+y=905  design=(243, 245, 247)  impl=(243, 245, 247)
+y=910  design=(252, 252, 252)  impl=(255, 255, 255)
+y=913  design=(253, 253, 253)  impl=(255, 255, 255)
+y=914  design=(253, 253, 253)  impl=(255, 255, 255)
+y=920  design=(254, 254, 254)  impl=(255, 255, 255)
+
+---- 质量门 ----
+npm test：1182/1182 · 72 files 连跑两轮（19:08:34 / 19:09:23）
+type-check：exit 0
+build:mp-weixin：dist/build/mp-weixin/pages/login/{index.js,index.json,index.wxml,index.wxss}（19:07）
+  wxss 关键值：box-shadow:0 0 0 1px #e2e8f0 ×2 · #e0e7ff · #bfdbfe · #bbf7d0 · border:2px solid #94a3b8（::before 形状）· width:20px;height:27px ×2 · width:25px · box-shadow:0 8px 24px rgba(15,23,42,.08) · box-shadow:0 8px 20px rgba(37,99,235,.28)
+build:h5：DONE（19:07）
+review-artifacts：22/22 路由 mp-weixin 三件套齐备且已注册
+check-mock-fixtures --mock api：全部 PASS（FAIL 0）
