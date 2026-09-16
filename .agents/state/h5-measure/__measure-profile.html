@@ -327,7 +327,12 @@
         chkC('c1.gateText.fs', '.gate__text', 'fontSize', 12) /* design d183dcc0 fs=12 */
         chkC('c1.gateText.fw', '.gate__text', 'fontWeight', 400)
         chkC('c1.gateText.color', '.gate__text', 'color', 'rgb(146, 64, 14)')
-        chkC('c1.gateText.lh', '.gate__text', 'lineHeight', 18)
+        /* 文本叶子维度（2026-09-16 20:15 轮）· design d183dcc0：
+           盒算术给出的是**块高 36**（闸门提示 87815f1d padding12 → 60 = 12 + 36 + 12；图标行框 27 不承重），
+           而行盒由设计**渲染**实测 = fs12 × lh1.2 = 14.4（设计 PNG 墨迹 202..214 / 217..228，行距 15）⇒ 块高 36 = 2 × 18 但墨迹按 14.4 排、在块内垂直居中 */
+        chkR('c1.gateText.h', '.gate__text', 36, 1)
+        chkC('c1.gateText.lh', '.gate__text', 'lineHeight', '14.4px')
+        chkC('c1.gateText.align', '.gate__text', 'alignItems', 'center')
         chk('c1.gateText', textOf('[data-testid="gate-hint"]'), '档案完整度达到 100% 后，才可发起报价审核。当前还缺 2 项资质文件。')
 
         /* ===================== 卡2 主体信息卡（design 4207fc77 padding20 r18 · stroke center 1 #EEF2F7） == */
@@ -440,6 +445,12 @@
         chkC('c3.introText.fs', '.intro-box__text', 'fontSize', 12) /* design 234362e0 fs=12 h=40（2 行） */
         chkC('c3.introText.fw', '.intro-box__text', 'fontWeight', 400)
         chkC('c3.introText.color', '.intro-box__text', 'color', 'rgb(71, 85, 105)')
+        /* 文本叶子维度（2026-09-16 20:15 轮）：design 234362e0 的 **显式 height=40 是块高（两行）**，
+           行盒按设计渲染实测：lh1.2 → 14.4px（设计 PNG 墨迹 917..929 / 932..943，行距 15）
+           → 块高 40 = 2 × 行盒，且 textAlignVertical=middle ⇒ 盒内垂直居中（同族口径 = 序号 1 .disclaimer__body） */
+        chkR('c3.introText.h', '.intro-box__text', 40, 1)
+        chkC('c3.introText.lh', '.intro-box__text', 'lineHeight', '14.4px')
+        chkC('c3.introText.align', '.intro-box__text', 'alignItems', 'center')
         chk('c3.introText', textOf('[data-testid="v-intro"]'), '专注大模型 API 分销与聚合，覆盖华东区域客户，具备 3 年上游资源整合经验。')
 
         /* ===================== 卡4 资质文件卡（design 495c465e padding20 r18 stroke 1 #EEF2F7） =========== */

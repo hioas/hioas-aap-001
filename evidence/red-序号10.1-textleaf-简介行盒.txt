@@ -1,0 +1,19 @@
+序号 10.1（page-10-1-2 · 供应商档案 / /pages/profile/index）· 文本叶子维度收口 · RED 基线
+命令: bash .agents/state/review-measure.sh 10.1-tlred __measure-profile.html .agents/state/h5-measure/api-10-1-2 5351
+（载体页 __measure-profile.html 新增 3 条 checks；**源码未改**；两轮独立测量 dump bytes 52392 / 52392）
+
+run1: phases=['iframeHeightForShot','phase1','phase2','phase3','phase4']
+      checkCount = 275 · checkFailCount = 2 · docScrollHeight = 1414
+      FAIL c3.introText.lh: got 20 want "14.4px"
+      FAIL c3.introText.align: got "normal" want "center"
+run2: 同 run1（两轮失败清单逐条相同）
+requests run1/run2: 各 24 行（1 写 + 11 对只读 GET）
+
+证据文件: evidence/review-序号10.1-tlred-run{1,2}.json · evidence/requests-序号10.1-tlred-run{1,2}.txt
+
+判读（设计真源重抓 20:16 = design.json sha256 e7983634… **逐字节相同**，无漂移）：
+- design 234362e0（简介文本）**显式 height=40** 且 textAlignVertical=middle；fill_container 宽 → 块高 40 = 2 行 × 行盒。
+- 行盒判据②（设计 PNG 实测）：设计墨迹 **917..929 / 932..943 = 行距 15**（= fs12 × lh1.2 = 14.4 的渲染结果），
+  实现修前 **915..927 / 936..946 = 行距 21**（line-height 20 撑满 40 盒）。
+- 同族口径已在 序号 1（.disclaimer__body，同为「显式 h40 + 两行」）确立：line-height 14.4px + 盒内垂直居中 ⇒ 墨迹逐行与设计相同。
+→ 真偏差，先红后绿改源码（本页第 1 处真偏差；其余 8 条待判读 class 判为非偏差，另见 textleaf-accept.json）。

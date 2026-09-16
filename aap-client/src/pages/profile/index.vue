@@ -483,11 +483,17 @@ async function onSave() {
 }
 
 .gate__text {
-  display: block;
+  /* 文本叶子维度（2026-09-16 20:15 轮）· design d183dcc0 + 容器 87815f1d padding12：
+     盒高 60 = 12 + 36 + 12 ⇒ **块高 36**（闸门图标行框 27 不承重）；
+     行盒按设计**渲染**实测 = fs12 × lh1.2 = 14.4（设计 PNG 墨迹 202..214 / 217..228，行距 15；
+     修前 line-height 18 让第 2 行墨迹落在 220..230 = 比设计低 3px）。 */
+  display: flex; /* 让承载文本的 span 在 36 高块内垂直居中（设计 textAlignVertical=middle） */
+  align-items: center;
   flex: 1;
   min-width: 0;
+  height: 36px;
   font-size: $font-xs; /* 12 */
-  line-height: 18px;
+  line-height: 14.4px;
   color: $color-warning-text-2;
 }
 
@@ -652,10 +658,16 @@ async function onSave() {
 }
 
 .intro-box__text {
-  display: block;
+  /* 文本叶子维度（2026-09-16 20:15 轮）· design 234362e0：
+     显式 **height=40 是「块高」（两行）**，不是行盒 —— 行盒由设计渲染实测 = fs12 × lh1.2 = 14.4
+     （设计 PNG 墨迹 917..929 / 932..943，行距 15；修前实现 915..927 / 936..946，行距 21）。
+     同族口径 = 序号 1 .disclaimer__body（显式 40 高 + 两行）：高度写 40、行高写 14.4、盒内垂直居中。 */
+  display: flex; /* 让承载文本的 span 在 40 高盒内垂直居中（设计 textAlignVertical=middle） */
+  align-items: center;
   width: 100%;
+  height: 40px; /* 设计 234362e0 显式 height 40 = 2 × 行盒 14.4 */
   font-size: $font-xs; /* 12 */
-  line-height: 20px;
+  line-height: 14.4px;
   color: $color-text-tertiary;
 }
 

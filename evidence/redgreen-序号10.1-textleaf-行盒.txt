@@ -1,0 +1,31 @@
+序号 10.1（page-10-1-2 · 供应商档案 / /pages/profile/index）· 文本叶子维度「行盒」两段 RED→GREEN 转录
+命令：bash .agents/state/review-measure.sh <tag> __measure-profile.html .agents/state/h5-measure/api-10-1-2 <port>
+
+== 段① .intro-box__text（简介块：块高 40 保留、行高 20 → 14.4 + 盒内居中）==
+RED   python .agents/state/show-fields.py .agents/state/evidence/review-序号10.1-tlred-run1.json phase1 checkCount checkFailCount docScrollHeight
+        checkCount = 275 · checkFailCount = 2 · docScrollHeight = 1414
+        phase1: checks=275 fails=2 docH=1414
+          FAIL c3.introText.lh: got 20 want "14.4px"
+          FAIL c3.introText.align: got "normal" want "center"
+GREEN review-序号10.1-tlg-run{1,2}.json
+        checkCount = 275 · checkFailCount = 0 · docScrollHeight = 1414   （两轮）
+        cmp-measure-runs.py tlg-run1 tlg-run2 phase1 → 全等字段 43 个 · 不一致 0 个
+
+== 段② .gate__text（闸门块：块高 36 保留、行高 18 → 14.4 + 盒内居中）==
+RED   review-序号10.1-tlred2-run1.json
+        checkCount = 277 · checkFailCount = 2 · docScrollHeight = 1414
+          FAIL c1.gateText.lh: got 18 want "14.4px"
+          FAIL c1.gateText.align: got "normal" want "center"
+GREEN review-序号10.1-tlg2-run{1,2}.json
+        checkCount = 277 · checkFailCount = 0 · docScrollHeight = 1414   （两轮）
+        cmp-measure-runs.py tlg2-run1 tlg2-run2 phase1 → 全等字段 43 个 · 不一致 0 个
+
+== 设计 PNG 墨迹对账（修前 / 修后）==
+命令：python .agents/state/tl-bands.py .agents/state/evidence/textleaf-10.1.json --classes "intro-box__text,gate__text" --design .agents/state/design-shots/page-10-1-2.png --impl <实现截图> --pad 16
+
+intro-box__text   修前 impl 915..927 / 936..946（行距 21）  →  修后 impl 918..930 / 933..943   design 917..929 / 932..943
+gate__text        修前 impl 201..212 / 220..230（行距 19）  →  修后 impl 203..214 / 218..228   design 202..214 / 217..228
+
+盒高（不变）：简介 #F8FAFC 899..962 = 64（两侧）· 闸门 #FFFBEB x=215 列 186..245 = 60（两侧）
+                  x=40 列 189..242 = 54（两侧，= 60 − 2×(12−√(12²−8²)) 圆角校正）
+图标墨迹中心：闸门图标 设计 204..219（中心 211.5）= 实现 203..220（中心 211.5）
