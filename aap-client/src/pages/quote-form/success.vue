@@ -71,7 +71,7 @@
         </view>
         <view class="srow srow--no" data-testid="row-no">
           <text class="srow__label">{{ QUOTE_NO_LABEL }}</text>
-          <view class="srow__value-group">
+          <view class="srow__value-group srow__value-group--no">
             <view class="icon-line icon-line--13"><view class="ic-check-sm" /></view>
             <text class="srow__value srow__value--primary">{{ view.quoteNo }}</text>
           </view>
@@ -123,7 +123,7 @@
         </view>
       </view>
 
-      <!-- 4) 下一步提示卡（12 + 图标行盒 24 / 文案两行 26.4 + 12） -->
+      <!-- 4) 下一步提示卡（12 + 图标行盒 24（= 字号16×1.5）+ 12 = 48；文案单行 13.2，卡高由图标行盒决定） -->
       <view class="tip" data-testid="tip-card">
         <view class="icon-line icon-line--16"><view class="ic-info" /></view>
         <text class="tip__text" data-testid="tip">{{ TIP_TEXT }}</text>
@@ -350,6 +350,9 @@ function onSecondary() {
   border-radius: 16px;
   /* 卡片内边距 16（page-29 结果摘要卡 / 带出模型卡；成功头部卡用 .succ 覆盖为 28/16） */
   padding: 16px;
+  /* design f5d8ac7d / 7ce5a3a9 / cec63018 effects drop_shadow(0,4,16,rgba(15,23,42,0.06))：三张卡逐卡同值，
+     且三卡都**没有** stroke → 只能用 box-shadow（不得用 ring 顶替） */
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
 }
 
 /* ---------- 1) 成功头部卡（28+64+14+24+18+18+62+28 = 256） ---------- */
@@ -510,6 +513,10 @@ function onSecondary() {
   align-items: center;
   gap: 8px;
 }
+/* 单号行右侧组：设计 55b312e3 gap=4（与密钥行的密钥信息 e86268ab gap=8 不是同一个间距） */
+.srow__value-group--no {
+  gap: 4px;
+}
 .env-chip {
   height: 18px;
   padding: 0 8px;
@@ -619,6 +626,8 @@ function onSecondary() {
 .qs__bar {
   padding: 12px 16px 28px;
   background: $color-bg-card;
+  /* design a17976f7 effects drop_shadow(0,-4,16,rgba(15,23,42,0.05)) */
+  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.05);
   display: flex;
   flex-direction: column;
 }
@@ -634,6 +643,8 @@ function onSecondary() {
 }
 .btn--primary {
   background: $color-primary;
+  /* design e607246e effects drop_shadow(0,6,16,rgba(37,99,235,0.28)) */
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
 }
 .btn--ghost {
   background: $color-bg-card;
@@ -670,18 +681,30 @@ function onSecondary() {
   height: 27px;
 }
 
-/* 图标（设计稿为 remixicon 字形 → CSS 形状占位，见台账登记） */
+/* 图标占位盒（design 每个 remixicon 字号层一个）：盒 = 设计图层声明宽 × 字号×1.5 行盒，
+   形状画在 ::before（决策 D5：不引入图标字体库 → CSS 形状占位）。page-29 定标：fs18→27 · fs16→24 · fs14→21 · fs13→19.5 */
 .ic-back {
-  width: 10px;
-  height: 10px;
+  width: 20px;
+  height: 27px;
+  position: relative;
+  flex-shrink: 0;
+}
+.ic-back::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 9px;
+  height: 9px;
   border-left: 2px solid $color-text-secondary-2;
   border-bottom: 2px solid $color-text-secondary-2;
-  transform: rotate(45deg);
+  transform: translate(-50%, -50%) rotate(45deg);
 }
 .ic-close {
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 27px;
   position: relative;
+  flex-shrink: 0;
 }
 .ic-close::before,
 .ic-close::after {
@@ -701,57 +724,121 @@ function onSecondary() {
   transform: translate(-50%, -50%) rotate(-45deg);
 }
 .ic-check-big {
+  width: 41px;
+  height: 57px;
+  position: relative;
+  flex-shrink: 0;
+}
+.ic-check-big::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
   width: 22px;
   height: 11px;
   border-left: 4px solid $color-wechat;
   border-bottom: 4px solid $color-wechat;
-  transform: rotate(-45deg) translate(2px, -2px);
+  transform: translate(-50%, -50%) rotate(-45deg) translate(2px, -2px);
 }
 .ic-check-sm {
+  width: 15px;
+  height: 19.5px;
+  position: relative;
+  flex-shrink: 0;
+}
+.ic-check-sm::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
   width: 12px;
   height: 7px;
   border-left: 2px solid $color-wechat;
   border-bottom: 2px solid $color-wechat;
-  transform: rotate(-45deg);
+  transform: translate(-50%, -50%) rotate(-45deg);
 }
 .ic-copy {
+  width: 16px;
+  height: 21px;
+  position: relative;
+  flex-shrink: 0;
+}
+.ic-copy::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
   width: 12px;
   height: 12px;
   border: 2px solid $color-primary;
   border-radius: 2px;
-  position: relative;
   box-sizing: border-box;
+  transform: translate(-50%, -50%);
 }
 .ic-copy::after {
   content: '';
   position: absolute;
-  left: 3px;
-  top: -4px;
+  left: 50%;
+  top: 50%;
   width: 10px;
   height: 10px;
   border: 2px solid $color-primary;
   border-radius: 2px;
   background: $color-primary-weak;
   box-sizing: border-box;
+  transform: translate(calc(-50% + 3px), calc(-50% - 4px));
 }
 .ic-models {
+  width: 18px;
+  height: 24px;
+  position: relative;
+  flex-shrink: 0;
+}
+.ic-models::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
   width: 16px;
   height: 16px;
   border-radius: 4px;
   background: $color-primary;
+  transform: translate(-50%, -50%);
 }
 .ic-info {
+  width: 18px;
+  height: 24px;
+  position: relative;
+  flex-shrink: 0;
+}
+.ic-info::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
   width: 16px;
   height: 16px;
   border-radius: 50%;
   border: 2px solid $color-primary;
   box-sizing: border-box;
+  transform: translate(-50%, -50%);
 }
 .ic-shield {
+  width: 20px;
+  height: 27px;
+  position: relative;
+  flex-shrink: 0;
+}
+.ic-shield::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
   width: 14px;
   height: 16px;
   border: 2px solid #ffffff;
   border-radius: 3px 3px 7px 7px;
   box-sizing: border-box;
+  transform: translate(-50%, -50%);
 }
 </style>

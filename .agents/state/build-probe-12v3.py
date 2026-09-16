@@ -1,4 +1,77 @@
-<!doctype html>
+"""Build __measure-quote-success.html (序号 12-v3 · page-29「新增报价单-保存成功」) as a
+430-wide iframe probe with design-expectation checks (chk/chkR/chkC/chkD/chkList/chkStrs/chkP).
+
+做法与 build-probe-10/11/12/12v2 同：从 __measure-quote-apikey.html（同族载体页，含
+`resolveAll` / `chkP` / `pseudoStyle` / `declared` 等全套 helpers）切三段「与帧无关的骨架」
+（顶部作用域 / collect() helpers / 溢出统计 / sink+phase+点击工具）逐字节复用，
+本文件只写 page-29 自己的 checks / return / phases。
+
+want 两类来源：
+  (a) 声明值 .calicat/raw/pages/page-29/{design.json,design.tree.json}
+      python .agents/state/dump-layout.py page-29      # 全字段（gap/lineHeight/effects/stroke/cornerRadius）
+      python .agents/state/text-fields.py page-29      # 文本叶子 fontSize/字重/字色/宽高/文案
+      python .agents/state/raw-node.py page-29 <id前缀> # 单节点完整 JSON
+  (b) 设计截图 PNG 实测（430×1018）
+      python .agents/state/png-rowclass.py <png> --x0 20 --x1 410   # 卡片/间隙
+      python .agents/state/scan-col.py <png> 28 0 1018              # 单列色带（卡边界/底栏）
+      python .agents/state/png-textbands.py <png> 32 390 412 640    # 盒内文字带（行位）
+
+设计骨架（声明值 + PNG 实测逐条对上）：
+  顶部导航 0..102（= 48 + 标题块 42 + 12）
+  内容区 padding[16,16,20,16] gap16
+  卡1 成功头部卡 118..374（256 = 28+64+14+24+18+18+62+28）
+  卡2 结果摘要卡 390..639.5（249.5 = 16+20+14+38×3+39.5+30+16）
+  卡3 带出模型卡 655.5..787.5（132 = 16+24+12+28+8+28+16）
+  提示卡 803.5..851.5（48 = 12+24+12；PNG 文案墨迹 819..830 = 单行）
+  底栏 871.5..1017.5（146 = 12+48+10+48+28）· 页高 1018
+  卡内锚点（PNG）：成功图标 146..210 · 标题 224..248 · 说明 248..266 · 单号条 284..346(x32..398, 复制按钮 x315..384)
+                  摘要标题行 406..426 · 5 行 440/478/516/554/593.5 · 环境小标 488..506 · 模型数标 526..544 · 状态标 604..623.5
+                  标签行 708..735 / 743..772 · 主按钮 884..931.5 · 次按钮 941.5..989.5
+
+本页定标（与其它页的差异，不静默统一）：
+  · 图标字形行盒 = 字号 × 1.5（三条交叉验证：单号行 fs13→19.5 使卡2 恰 249.5 · 卡3 标题行 fs16→24 使卡3 恰 132
+    · 提示卡 fs16→24 使提示卡恰 48）；字形颜色落在占位形状上（D5）→ 用 chkP 读 ::before。
+  · 文本行盒：13px→18（PNG 五行算术自洽）· 15px 标题→20（PNG 卡2 高 249.5 反推）· 11px→无显式声明处走 13.2（提示卡文案）
+    或显式 height（单号标签 15）。
+  · stroke{align:center,thickness:0.8} → box-shadow: 0 0 0 0.8px（border 会占布局）· effects.drop_shadow → box-shadow。
+"""
+import io
+import os
+
+ROOT = r"E:/workspaces/hioas/hioas-aap-001"
+HM = os.path.join(ROOT, ".agents/state/h5-measure")
+SRC = os.path.join(HM, "__measure-quote-apikey.html")
+DST = os.path.join(HM, "__measure-quote-success.html")
+
+with io.open(SRC, encoding="utf-8") as fh:
+    src = fh.read().split("\n")
+
+
+def find(needle, start=0):
+    for i in range(start, len(src)):
+        if needle in src[i]:
+            return i
+    raise SystemExit("not found: " + needle)
+
+
+i_var = find("var f = document.getElementById('f')")
+i_collect = find("function collect(doc, win, withChecks) {")
+i_over = find("/* ============ 溢出")
+i_checks = find("/* ===================== 整页", i_over)
+i_sink = find("function sink(n, payload) {")
+i_type = find("/** uni-app H5 的 <input>")
+
+top = "\n".join(src[i_var:i_collect])
+top = top.replace(
+    "if (SHOT_ONLY) f.style.height = '1129px' /* = 设计帧高 */",
+    "if (SHOT_ONLY) f.style.height = '1018px' /* = 设计帧高 */",
+)
+assert "'1018px'" in top, "SHOT 高度替换失败（顶部作用域切片变了？）"
+preamble = "\n".join(src[i_collect:i_over])   # collect 签名 + helpers（未闭合）
+overflow = "\n".join(src[i_over:i_checks])    # over / missing 统计（引用 NEED_TEXT / CARDS）
+tail = "\n".join(src[i_sink:i_type])          # sink / phase / clickIn / toastText / hashNow / waitFor / sleep / textIn / countIn / bgsIn
+
+HEAD = r"""<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -25,208 +98,9 @@
     <iframe id="f" src="/index.html#/pages/quote-form/success?quoteId=q9"></iframe>
     <div id="sink"><pre id="m">pending</pre></div>
     <script>
-      var f = document.getElementById('f')
-      var acc = {}
-      var SCENARIO = (location.search.match(/scenario=([a-z-]+)/) || [])[1] || ''
-      var SHOT_ONLY = location.search.indexOf('shot') !== -1
-      var NO_ACTION = location.search.indexOf('noaction') !== -1
-      if (SHOT_ONLY) f.style.height = '1018px' /* = 设计帧高 */
+"""
 
-      /* 选择器语法：`sel@@N` = 该选择器的第 N 个匹配（也接受 CSS 里非法的 `sel#N` 写法，先归一化成 @@N）。
-         `A@@N B` = 在第 N 个 A 里查 B。 */
-      function splitSel(sel) {
-        var s = String(sel).replace(/#(\d+)(?=\s|$)/g, '@@$1')
-        var i = s.indexOf('@@')
-        if (i === -1) return { base: s, n: 0, tail: '' }
-        var head = s.slice(0, i)
-        var rest = s.slice(i + 2).split(/\s+/)
-        return { base: head.trim(), n: Number(rest[0]), tail: rest.slice(1).join(' ') }
-      }
-      function collect(doc, win, withChecks) {
-        var fails = []
-        var checks = 0
-
-        function norm(v) {
-          if (typeof v === 'number') return v
-          var s = String(v == null ? '' : v).trim()
-          if (/^-?\d+(\.\d+)?px$/.test(s)) return Number(s.replace('px', ''))
-          return s
-        }
-        function normColor(s) {
-          var m = String(s || '').match(/rgba?\(([^)]+)\)/)
-          if (!m) return String(s || '')
-          var p = m[1].split(',').map(function (t) { return Number(t.trim()) })
-          var a = p.length > 3 ? p[3] : 1
-          return a === 1 ? 'rgb(' + p[0] + ', ' + p[1] + ', ' + p[2] + ')' : 'rgba(' + p.join(', ') + ')'
-        }
-        function normShadow(s) {
-          return String(s == null ? '' : s).replace(/rgba?\([^)]+\)/g, function (m) { return normColor(m) })
-        }
-        function el(sel) {
-          var sp = splitSel(sel)
-          if (!sp.n && !sp.tail) return doc.querySelector(sp.base)
-          var roots = doc.querySelectorAll(sp.base)
-          var root = roots[sp.n]
-          if (!root) return null
-          return sp.tail ? root.querySelector(sp.tail) : root
-        }
-        function resolveAll(sel) {
-          var sp = splitSel(sel)
-          if (!sp.n && !sp.tail) return Array.prototype.slice.call(doc.querySelectorAll(sp.base))
-          var roots = doc.querySelectorAll(sp.base)
-          var root = roots[sp.n]
-          if (!root) return []
-          if (!sp.tail) return [root]
-          return Array.prototype.slice.call(root.querySelectorAll(sp.tail))
-        }
-        function rect(sel) {
-          var e = el(sel)
-          if (!e) return null
-          var r = e.getBoundingClientRect()
-          return {
-            x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right),
-            bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height)
-          }
-        }
-        function rects(sel) {
-          return resolveAll(sel).map(function (e) {
-            var r = e.getBoundingClientRect()
-            return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
-          })
-        }
-        function css(sel, prop) {
-          var e = el(sel)
-          if (!e) return null
-          var v = win.getComputedStyle(e)[prop]
-          if (prop === 'boxShadow') return normShadow(v)
-          return prop.toLowerCase().indexOf('color') >= 0 ? normColor(v) : norm(v)
-        }
-        function declared(sel, prop) {
-          var sp = splitSel(sel)
-          if (!el(sel)) return null
-          for (var i = 0; i < doc.styleSheets.length; i++) {
-            var rules
-            try { rules = doc.styleSheets[i].cssRules } catch (e) { continue }
-            for (var j = 0; j < rules.length; j++) {
-              var r = rules[j]
-              if (!r.selectorText || r.selectorText.indexOf('[') === 0) continue
-              var sels = r.selectorText.split(',').map(function (s) { return s.trim().replace(/\[data-v-[^\]]+\]/g, '') })
-              if (sels.indexOf(sp.base) === -1) continue
-              var v = r.style && r.style[prop]
-              if (v) return v
-            }
-          }
-          return null
-        }
-        function chk(key, got, want, tol) {
-          if (!withChecks) return got
-          checks++
-          var t = tol == null ? 0 : tol
-          var g = norm(got)
-          var w = norm(want)
-          var gn = typeof g === 'number' ? g : (typeof g === 'string' && /^-?\d+(\.\d+)?$/.test(g) ? Number(g) : null)
-          var wn = typeof w === 'number' ? w : (typeof w === 'string' && /^-?\d+(\.\d+)?$/.test(w) ? Number(w) : null)
-          var ok
-          if (gn !== null && wn !== null) ok = Math.abs(gn - wn) <= t
-          else ok = g === w
-          if (!ok) fails.push({ k: key, got: got, want: want })
-          return got
-        }
-        function rectField(sel, key) {
-          var r = rect(sel)
-          if (!r) return null
-          var f = String(key).split('.').pop()
-          if (f === 'x' || f === 'left') return r.x
-          if (f === 'right') return r.right
-          if (f === 'top') return r.top
-          if (f === 'bottom') return r.bottom
-          if (f === 'w' || f === 'width') return r.w
-          if (f === 'h' || f === 'height') return r.h
-          return r
-        }
-        function chkR(key, sel, want, tol) { return chk(key, rectField(sel, key), want, tol) }
-        function chkC(key, sel, prop, want, tol) { return chk(key, css(sel, prop), want, tol) }
-        function chkD(key, sel, prop, want) { return chk(key, declared(sel, prop), want) }
-        /* 数值数组逐项比较（设计帧小数坐标链取整后会有 ±1..2 差） */
-        function chkList(key, got, want, tol) {
-          if (!withChecks) return got
-          checks++
-          var t = tol == null ? 0 : tol
-          var ok = got.length === want.length
-          if (ok) {
-            for (var i = 0; i < got.length; i++) {
-              if (got[i] == null || Math.abs(got[i] - want[i]) > t) { ok = false; break }
-            }
-          }
-          if (!ok) fails.push({ k: key, got: got.join(','), want: want.join(',') })
-          return got
-        }
-        /* 字符串数组逐项比较（chkList 只做数值比较，字符串会被静默放过） */
-        function chkStrs(key, got, want) {
-          if (!withChecks) return got
-          checks++
-          var ok = got.length === want.length
-          if (ok) {
-            for (var i = 0; i < got.length; i++) {
-              if (String(got[i]) !== String(want[i])) { ok = false; break }
-            }
-          }
-          if (!ok) fails.push({ k: key, got: got.join(' | '), want: want.join(' | ') })
-          return got
-        }
-        function texts(sel) { return resolveAll(sel).map(function (e) { return e.textContent.trim() }) }
-        function textOf(sel) { var e = el(sel); return e ? e.textContent.trim() : null }
-        function colors(sel) { return resolveAll(sel).map(function (e) { return normColor(win.getComputedStyle(e).backgroundColor) }) }
-        function textColors(sel) { return resolveAll(sel).map(function (e) { return normColor(win.getComputedStyle(e).color) }) }
-        function byTestId(id) { return doc.querySelector('[data-testid="' + id + '"]') }
-
-        var CARDS = '.card'
-        /* 设计树里每一个独立文本图层（文案完整性检查清单，逐字抄自 design.tree.json；图标字形层 content 为空不进清单） */
-        var NEED_TEXT = [
-          '新增报价单', '填写基本信息并设置模型报价',
-          '填写信息', '名称 / 密钥 / 单号', '设置报价', '模型定价', '1', '2',
-          '基本信息', '为必填项',
-          '报价单名称', '*', '请输入报价单名称，如：2024Q3 主线路报价', '0/30',
-          '报价单号', '系统生成', '保存后自动生成', 'QT-XXXXXXXX-XXXX',
-          '报价单号由系统按日期与序号规则自动生成，无需手动填写',
-          '凭证名称', '请选择凭证', '选择凭证后，系统将自动带出该凭证下可用的模型列表',
-          '模型列表', '待带出', '尚未加载模型', '请先在上方选择凭证，系统将自动带出可用模型列表',
-          '带出的模型数量与凭证权限相关，可在「我的设置」中管理凭证权限范围。',
-          '填写须知',
-          '报价单名称建议包含季度或用途，便于后续在列表中检索。',
-          '凭证决定可报价的模型范围，选择后模型列表自动刷新。',
-          '首次保存成功后，系统将自动生成报价单号并进入设置报价环节。',
-          '保存成功后系统将自动生成报价单号', '存为草稿', '保存并继续'
-        ]
-
-        var CARDS = '.card'
-        /* D5：图标是 CSS 绘制的占位形状 → 设计声明的「字形颜色」落在形状（多在 ::before）上；
-           读元素自身的 color 只会得到 rgb(0,0,0)（那是探针口径 bug，会记到页面账上）。
-           pseudo… / chkP 专门读 ::before 的声明值。 */
-        function pseudoStyle(sel, prop) {
-          var e = el(sel)
-          if (!e) return null
-          var v = win.getComputedStyle(e, '::before')[prop]
-          return prop.toLowerCase().indexOf('color') >= 0 ? normColor(v) : norm(v)
-        }
-        function chkP(key, sel, prop, want, tol) { return chk(key, pseudoStyle(sel, prop), want, tol) }
-        /* 设计树里每一个独立文本图层（文案完整性检查清单，逐字抄自 page-apikey design.tree.json；
-           图标字形层 content 为空不进清单。「2024Q3 主线路报价」「13/30」是设计帧的示例填写态，
-           本实现不预填（无数据来源）→ 不进清单，登记在 designLiteralDiff） */
-        var NEED_TEXT = [
-          '新增报价单', '填写基本信息并设置模型报价',
-          '基本信息', '报价单名称', '*',
-          '请输入报价单名称，如：2024Q3 主线路报价',
-          '报价单号', '系统生成', '保存后自动生成', 'QT-XXXXXXXX-XXXX',
-          '凭证名称', '请选择凭证',
-          '选择凭证后，系统将自动带出该凭证下可用的模型列表',
-          '生产环境密钥', '常用', 'sk-prod-••••••••2f9a · 12 个模型',
-          '测试环境密钥', '沙箱', 'sk-test-••••••••7b31 · 8 个模型',
-          '数据标注专用', '专用', 'sk-label-••••••••a4c8 · 5 个模型',
-          '前往「我的设置」新建凭证',
-          '模型列表', '待带出', '尚未加载模型', '选择凭证后将自动带出可用模型',
-          '保存成功后系统将自动生成报价单号', '存为草稿', '保存并继续'
-        ]
+PRELUDE = r"""
         var CARDS = '.card'
         /* 设计树里每一个独立文本图层（文案完整性检查清单，逐字抄自 page-29 design.tree.json；
            图标字形层 content 为空不进清单。示例值「QT-20240615-0007」「2024Q3 主线路报价」「共 5 个 / 勾选 3 个」
@@ -242,19 +116,9 @@
           '下一步可为勾选模型设置输入/输出单价，设置完成即可提交审核。',
           '继续设置模型报价', '返回报价单列表'
         ]
-        /* ============ 溢出（uni-app 内置测量元素不计入，见 uni-app 技能 §3 口径） ============ */
-        var over = []
-        Array.prototype.slice.call(doc.querySelectorAll('*')).forEach(function (e) {
-          var r = e.getBoundingClientRect()
-          if (r.width <= 0 || r.right <= win.innerWidth + 0.5) return
-          if (e.closest && e.closest('uni-resize-sensor')) return
-          if (String(e.tagName).toLowerCase() === 'uni-resize-sensor') return
-          over.push({ tag: e.tagName, cls: String(e.className || '').slice(0, 70), left: Math.round(r.x), w: Math.round(r.width), right: Math.round(r.right) })
-        })
-        var bodyText = (doc.body && doc.body.innerText) || ''
-        var missing = NEED_TEXT.filter(function (t) { return bodyText.indexOf(t) === -1 })
+"""
 
-
+CHECKS = r"""
         /* ===================== 整页（设计帧 430×1018） ===================== */
         var docH = Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight)
         chk('page.innerWidth', win.innerWidth, 430)
@@ -616,72 +480,9 @@
         }
       }
 
-      function sink(n, payload) {
-        acc['phase' + n] = payload
-        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
-      }
+"""
 
-      function phase(n) {
-        try {
-          var payload = collect(f.contentDocument, f.contentWindow, n === 1)
-          if (n === 1 && !SHOT_ONLY) {
-            f.style.height = '900px' /* 保持取数高度：min-height:100vh 会把测量高度顶到 iframe 高 */
-            acc.iframeHeightForShot = payload.docScrollHeight
-          }
-          sink(n, payload)
-        } catch (e) {
-          sink(n, { error: String(e && e.message) })
-        }
-      }
-
-      function clickIn(sel) {
-        var doc = f.contentDocument
-        var el = doc.querySelector(sel)
-        if (!el) return 'NOT_FOUND'
-        var ev = doc.createEvent('MouseEvents')
-        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
-        el.dispatchEvent(ev)
-        return 'CLICKED'
-      }
-
-      function toastText(doc) {
-        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
-        return el ? el.textContent.trim() : ''
-      }
-
-      function hashNow() {
-        try { return String(f.contentWindow.location.hash) } catch (e) { return 'ERR:' + e.message }
-      }
-
-      function waitFor(sel, maxTries) {
-        return new Promise(function (resolve) {
-          var n = 0
-          function tick() {
-            n++
-            var ok = false
-            try { ok = !!f.contentDocument.querySelector(sel) } catch (e) { ok = false }
-            if (ok) return resolve('READY(tries=' + n + ')')
-            if (n >= (maxTries || 40)) return resolve('TIMEOUT(tries=' + n + ')')
-            setTimeout(tick, 200)
-          }
-          tick()
-        })
-      }
-
-      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
-      function textIn(sel) {
-        try { var e = f.contentDocument.querySelector(sel); return e ? e.textContent.trim() : null } catch (err) { return 'ERR:' + err.message }
-      }
-      function countIn(sel) {
-        try { return f.contentDocument.querySelectorAll(sel).length } catch (err) { return -1 }
-      }
-      function bgsIn(sel) {
-        try {
-          var win = f.contentWindow
-          return Array.prototype.slice.call(f.contentDocument.querySelectorAll(sel)).map(function (e) { return win.getComputedStyle(e).backgroundColor })
-        } catch (err) { return ['ERR:' + err.message] }
-      }
-      async function main() {
+MAIN = r"""      async function main() {
         try {
           await waitFor('[data-testid="success-card"]')
           await sleep(1400)
@@ -755,3 +556,9 @@
     </script>
   </body>
 </html>
+"""
+
+out = HEAD + top + "\n" + preamble + PRELUDE + overflow + CHECKS + tail + MAIN
+with io.open(DST, "w", encoding="utf-8", newline="\n") as fh:
+    fh.write(out)
+print("wrote", DST, len(out), "chars,", out.count("\n") + 1, "lines")

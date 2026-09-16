@@ -154,6 +154,39 @@ CHECKS = [
         "must": ["phone"],
         "check": lambda d: bool(d.get("phone")),
     },
+    {
+        "mock": "api-12-v3",
+        "method": "GET",
+        "path": "/api/v1/quotes/q9",
+        "why": "序号 12-v3 保存成功页首屏（quoteApi.detail → 单号/名称/状态/明细行）",
+        "must": ["quote_no", "credential_id"],
+        "check": lambda d: bool(d.get("quote_no")) and bool(d.get("credential_id")),
+    },
+    {
+        "mock": "api-12-v3",
+        "method": "GET",
+        "path": "/api/v1/credentials/c1",
+        "why": "序号 12-v3 按 credential_id 带出模型清单（设计「共 5 个 / 勾选 3 个」= 5 项 3 选中）",
+        "must": ["model_list", "env_tag", "api_key_mask"],
+        "check": lambda d: isinstance(d.get("model_list"), list) and len(d["model_list"]) == 5
+        and sum(1 for m in d["model_list"] if m.get("selected")) == 3,
+    },
+    {
+        "mock": "api-12-v3",
+        "method": "GET",
+        "path": "/api/v1/quotes/q9/items",
+        "why": "序号 12-v3「继续设置模型报价」的落地页 /pages/model-pricing/index?quoteId=q9 回落取数（缺则落地页 404 且错误 toast 盖住出口证据）",
+        "must": ["items"],
+        "check": lambda d: isinstance(d.get("items"), list) and len(d["items"]) > 0,
+    },
+    {
+        "mock": "api-12-v3",
+        "method": "GET",
+        "path": "/api/v1/quotes",
+        "why": "序号 12-v3「返回报价单列表 / 关闭」的落地页 /pages/quotes/index 取数（缺则落地页弹「数据加载失败」）",
+        "must": ["items"],
+        "check": lambda d: isinstance(d.get("items"), list) and len(d["items"]) > 0,
+    },
 ]
 
 

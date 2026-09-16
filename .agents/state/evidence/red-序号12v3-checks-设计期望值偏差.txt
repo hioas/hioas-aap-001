@@ -1,0 +1,76 @@
+序号 12-v3「新增报价单-保存成功」（page-29）载体页 checks 红基线
+红基线口径：probe 建立后用 `git stash push -- aap-client/src/pages/quote-form/success.vue` 复现修复前源码 + build:h5，
+  再跑最终版 __measure-quote-apikey 系骨架切出的 __measure-quote-success.html（红/绿同一份探针）
+  → 259 条 checks · 红 30 条（5 处 effects 投影 + 8 个图标占位盒 + 3 处字形颜色 + 单号行右侧组 gap）
+  → 两轮独立测量完全一致 → 红基线可复现
+
+=== RED run1 :: .agents/state\evidence\review-序号12-v3-checks-red-run1.json
+phase1   checkCount=259 checkFailCount=30 docScrollHeight=1018 overflowing=0 missingTexts=[]
+    FAIL page.card1Shadow: got none want rgba(15, 23, 42, 0.06) 0px 4px 16px 0px
+    FAIL page.card2Shadow: got none want rgba(15, 23, 42, 0.06) 0px 4px 16px 0px
+    FAIL page.card3Shadow: got none want rgba(15, 23, 42, 0.06) 0px 4px 16px 0px
+    FAIL nav.backIcon.w: got 17 want 20
+    FAIL nav.backIcon.h: got 17 want 27
+    FAIL nav.backIcon.color: got rgb(0, 0, 0) want rgb(51, 65, 85)
+    FAIL nav.closeIcon.w: got 14 want 20
+    FAIL nav.closeIcon.h: got 14 want 27
+    FAIL succ.iconGlyph.w: got 29 want 41
+    FAIL succ.iconGlyph.h: got 29 want 57
+    FAIL succ.iconGlyph.color: got rgb(0, 0, 0) want rgb(22, 163, 74)
+    FAIL noBar.copyIcon.w: got 12 want 16
+    FAIL noBar.copyIcon.h: got 12 want 21
+    FAIL noBar.copyIcon.color: got rgb(0, 0, 0) want rgb(37, 99, 235)
+    FAIL sum.checkIcon.h: got 16 want 19.5
+    FAIL sum.checkIcon.color: got rgb(0, 0, 0) want rgb(22, 163, 74)
+    FAIL sum.checkGap: got 7 want 4
+    FAIL sum.noGroup.gap: got 8 want 4
+    FAIL models.iconGlyph.w: got 16 want 18
+    FAIL models.iconGlyph.h: got 16 want 24
+    FAIL models.iconGlyph.color: got rgba(0, 0, 0, 0) want rgb(37, 99, 235)
+    FAIL tip.iconGlyph.w: got 16 want 18
+    FAIL tip.iconGlyph.h: got 16 want 24
+    FAIL tip.iconGlyph.color: got rgb(0, 0, 0) want rgb(37, 99, 235)
+    FAIL tip.text.x: got 54 want 56
+    FAIL bar.shadow: got none want rgba(15, 23, 42, 0.05) 0px -4px 16px 0px
+    FAIL bar.primary.shadow: got none want rgba(37, 99, 235, 0.28) 0px 6px 16px 0px
+    FAIL bar.primaryIcon.w: got 14 want 20
+    FAIL bar.primaryIcon.h: got 16 want 27
+    FAIL bar.primaryIcon.color: got rgb(0, 0, 0) want rgb(255, 255, 255)
+
+=== RED run2 :: .agents/state\evidence\review-序号12-v3-checks-red-run2.json
+phase1   checkCount=259 checkFailCount=30 docScrollHeight=1018 overflowing=0 missingTexts=[]
+    FAIL page.card1Shadow: got none want rgba(15, 23, 42, 0.06) 0px 4px 16px 0px
+    FAIL page.card2Shadow: got none want rgba(15, 23, 42, 0.06) 0px 4px 16px 0px
+    FAIL page.card3Shadow: got none want rgba(15, 23, 42, 0.06) 0px 4px 16px 0px
+    FAIL nav.backIcon.w: got 17 want 20
+    FAIL nav.backIcon.h: got 17 want 27
+    FAIL nav.backIcon.color: got rgb(0, 0, 0) want rgb(51, 65, 85)
+    FAIL nav.closeIcon.w: got 14 want 20
+    FAIL nav.closeIcon.h: got 14 want 27
+    FAIL succ.iconGlyph.w: got 29 want 41
+    FAIL succ.iconGlyph.h: got 29 want 57
+    FAIL succ.iconGlyph.color: got rgb(0, 0, 0) want rgb(22, 163, 74)
+    FAIL noBar.copyIcon.w: got 12 want 16
+    FAIL noBar.copyIcon.h: got 12 want 21
+    FAIL noBar.copyIcon.color: got rgb(0, 0, 0) want rgb(37, 99, 235)
+    FAIL sum.checkIcon.h: got 16 want 19.5
+    FAIL sum.checkIcon.color: got rgb(0, 0, 0) want rgb(22, 163, 74)
+    FAIL sum.checkGap: got 7 want 4
+    FAIL sum.noGroup.gap: got 8 want 4
+    FAIL models.iconGlyph.w: got 16 want 18
+    FAIL models.iconGlyph.h: got 16 want 24
+    FAIL models.iconGlyph.color: got rgba(0, 0, 0, 0) want rgb(37, 99, 235)
+    FAIL tip.iconGlyph.w: got 16 want 18
+    FAIL tip.iconGlyph.h: got 16 want 24
+    FAIL tip.iconGlyph.color: got rgb(0, 0, 0) want rgb(37, 99, 235)
+    FAIL tip.text.x: got 54 want 56
+    FAIL bar.shadow: got none want rgba(15, 23, 42, 0.05) 0px -4px 16px 0px
+    FAIL bar.primary.shadow: got none want rgba(37, 99, 235, 0.28) 0px 6px 16px 0px
+    FAIL bar.primaryIcon.w: got 14 want 20
+    FAIL bar.primaryIcon.h: got 16 want 27
+    FAIL bar.primaryIcon.color: got rgb(0, 0, 0) want rgb(255, 255, 255)
+
+红基线两轮一致性（cmp-measure-runs.py <red1> <red2> phase1）:
+phase=phase1 · 全等字段 31 个
+全等: bar, cardShadows, cards, checkCount, checkFailCount, checkFails, countChip, counts, designLiteralDiff, docScrollHeight, docScrollWidth, envChip, iconBoxes, innerWidth, missingTexts, nav, noBar, noBarCopy, overflowing, overflowingCount, primary, rows, secondary, statusChip, statusDot, succIcon, tagRows, tags, texts, tip, tipText
+不一致 0 个:

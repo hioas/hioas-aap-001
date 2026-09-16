@@ -1,4 +1,4 @@
-STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 09:38（160 条 · 15→0）· 序号 4 已完成 09:55（212 条 · 45→0）· 序号 4-v1 已完成 10:20（249 条 · 78→0）· 序号 5 已完成 10:42（237 条 · 95→0）· 序号 6 已完成 11:5x（221 条 · 45→0，docH 4886→5343 = 设计帧高 5342）· 序号 7 已完成 11:3x（196 条 · 51→0，docH 1063→1111 = 设计帧高 1110）· 序号 8 已完成 11:5x（138 条 · 27→0，docH 1198→1206 = 设计帧高 1206）· 序号 9 已完成 2026-09-16 12:21（272 条 · 53→0，docH 1202→1212 = 设计帧高 1211，像素对账 68/68 命中，报告 `evidence/review-序号9-checks-报告.md`）· 序号 10 已完成 2026-09-16 12:5x（229 条 · 36→0，docH 1409 = 设计帧高，像素对账 56/56 命中 · 未命中 0，报告 `evidence/review-序号10-checks-报告.md`）· 序号 10.1 已完成 2026-09-16 13:0x（271 条 · 22→0，docH 1414 = 设计帧高，像素对账 31/33 = 97% 命中，报告 `evidence/review-序号10.1-checks-报告.md`）· **序号 11 已完成 2026-09-16 13:2x（`page-11`「【报价管理】模型定价-详情」：271 条 · 偏差 21→0，docH 1540，像素对账 内容列 59/62 + 条列 19/19（未命中 3 条 = ≤2px 小数坐标 / AA 带起点边界），报告 `evidence/review-序号11-checks-报告.md`）· **序号 12 已完成 2026-09-16 13:5x（`page-12-2`「报价预览与提交 2」→ `/pages/quote-preview/index`：126 条 checks · 偏差 10→0，docH 1027 = 设计帧高，像素对账 55 命中 / 3 未命中（投影衰减 + AA 阈值，非页面缺陷），报告 `evidence/review-序号12-checks-报告.md`）· **序号 12-v1 已完成 2026-09-16 14:1x（`page-26`「新增报价单-初始态」→ `/pages/quote-form/index`：286 条 · 偏差 45→0，docH 1241 = 设计 1238 + 提示卡 CJK 换行 3，像素对账 60 命中 / 11 未命中（投影衰减步长 + 卡2 以下 +3~4 顺延，非页面缺陷），报告 `evidence/review-序号12v1-checks-报告.md`）· **序号 12-v2 已完成 2026-09-16 14:5x（`page-apikey`「新增报价单-APIKey下拉展开」→ `/pages/quote-form/apikey`：新建载体页 `__measure-quote-apikey.html`（430 宽 iframe + **272 条 checks**，由 `build-probe-12v2.py` 切 12-v1 骨架）；红 6/272 → 绿 **0/272** · 两轮独立测量 35/35 全等 · `docH 1127`（设计帧 1128）· 修 6 类偏差（展开态文案色 / 面板 border→ring+投影 / 选项行宽 354 / 图标盒 17×22.5 / 选项行高 55（新增 `CRED_SUB_LINE_BOX`）/ 标签行盒 17）· 共用组件回归门 12-v1 复跑 **286 条 0 失败**（docH 1241→1240）· 像素对账 54 命中 / 4 未命中（≤1px 小数坐标链 + 设计帧首行选中矛盾）· 报告 `evidence/review-序号12v2-checks-报告.md`）→ 下一轮开工做 序号 12-v3**（`page-29`「新增报价单-保存成功」→ `/pages/quote-form/success`，载体页 `__measure-quote-success.html`，mock 目录 `api-12-v3`；⚠️ 与 12-v1/12-v2 共用 `src/components/quote-form/QuoteFormView.vue` 的保存流程，改动后必须同时复跑 `__measure-quote-apikey.html` 与 `__measure-quote-form.html` 两个载体页） ②队列 1 逐页复核（余下行的 checks 维度待补） ③队列 7（uni-picker 溢出口径）④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。⚠️ **序号↔路由映射一律以台账「目标路由」列为准**（序号 9 = `/pages/quote-models/index`；`/pages/model-pricing/index` 是序号 11）——此前在办项写错过一次（2026-09-16 12:05 轮已改正），勿再沿用。历史流水归档在 `aap-notes-archive-2026-09-16.md`，**不要每轮读**。
+STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 09:38（160 条 · 15→0）· 序号 4 已完成 09:55（212 条 · 45→0）· 序号 4-v1 已完成 10:20（249 条 · 78→0）· 序号 5 已完成 10:42（237 条 · 95→0）· 序号 6 已完成 11:5x（221 条 · 45→0，docH 4886→5343 = 设计帧高 5342）· 序号 7 已完成 11:3x（196 条 · 51→0，docH 1063→1111 = 设计帧高 1110）· 序号 8 已完成 11:5x（138 条 · 27→0，docH 1198→1206 = 设计帧高 1206）· 序号 9 已完成 2026-09-16 12:21（272 条 · 53→0，docH 1202→1212 = 设计帧高 1211，像素对账 68/68 命中，报告 `evidence/review-序号9-checks-报告.md`）· 序号 10 已完成 2026-09-16 12:5x（229 条 · 36→0，docH 1409 = 设计帧高，像素对账 56/56 命中 · 未命中 0，报告 `evidence/review-序号10-checks-报告.md`）· 序号 10.1 已完成 2026-09-16 13:0x（271 条 · 22→0，docH 1414 = 设计帧高，像素对账 31/33 = 97% 命中，报告 `evidence/review-序号10.1-checks-报告.md`）· **序号 11 已完成 2026-09-16 13:2x（`page-11`「【报价管理】模型定价-详情」：271 条 · 偏差 21→0，docH 1540，像素对账 内容列 59/62 + 条列 19/19（未命中 3 条 = ≤2px 小数坐标 / AA 带起点边界），报告 `evidence/review-序号11-checks-报告.md`）· **序号 12 已完成 2026-09-16 13:5x（`page-12-2`「报价预览与提交 2」→ `/pages/quote-preview/index`：126 条 checks · 偏差 10→0，docH 1027 = 设计帧高，像素对账 55 命中 / 3 未命中（投影衰减 + AA 阈值，非页面缺陷），报告 `evidence/review-序号12-checks-报告.md`）· **序号 12-v1 已完成 2026-09-16 14:1x（`page-26`「新增报价单-初始态」→ `/pages/quote-form/index`：286 条 · 偏差 45→0，docH 1241 = 设计 1238 + 提示卡 CJK 换行 3，像素对账 60 命中 / 11 未命中（投影衰减步长 + 卡2 以下 +3~4 顺延，非页面缺陷），报告 `evidence/review-序号12v1-checks-报告.md`）· **序号 12-v2 已完成 2026-09-16 14:5x（`page-apikey`「新增报价单-APIKey下拉展开」→ `/pages/quote-form/apikey`：新建载体页 `__measure-quote-apikey.html`（430 宽 iframe + **272 条 checks**，由 `build-probe-12v2.py` 切 12-v1 骨架）；红 6/272 → 绿 **0/272** · 两轮独立测量 35/35 全等 · `docH 1127`（设计帧 1128）· 修 6 类偏差（展开态文案色 / 面板 border→ring+投影 / 选项行宽 354 / 图标盒 17×22.5 / 选项行高 55（新增 `CRED_SUB_LINE_BOX`）/ 标签行盒 17）· 共用组件回归门 12-v1 复跑 **286 条 0 失败**（docH 1241→1240）· 像素对账 54 命中 / 4 未命中（≤1px 小数坐标链 + 设计帧首行选中矛盾）· 报告 `evidence/review-序号12v2-checks-报告.md`）✅ **序号 12-v3 已完成 2026-09-16 15:0x（`page-29`「新增报价单-保存成功」→ `/pages/quote-form/success`：新建载体页 `__measure-quote-success.html`（430 宽 iframe + **259 条 checks**，构建脚本 `build-probe-12v3.py`）；红基线 30/259（git stash 复现修复前源码 + 同一份最终版探针两轮）→ 绿 **0/259** · 两轮独立测量 31/31 全等 · `docH 1018` = 设计帧高 · 溢出 0 · 文案缺失 0 · 像素对账 **50 命中 / 0 未命中**（首个零未命中页）· 修 4 类偏差（5 处 effects 投影 / 8 个图标占位盒按设计图层 / 单号行右侧组 gap 8→4 / 提示卡文案单行）· 四出口交互两轮逐字节相同（copy 剪贴板 + toast · primary → model-pricing?quoteId=q9 · secondary/close → quotes/index）· fixture 缺口先红后绿（补 api-12-v3 两个落地页 fixture，`check-mock-fixtures --mock api-12-v3` 5 PASS / FAIL 0）· 共用组件回归门 12-v1 286/0 · 12-v2 272/0）** → 下一轮开工做 序号 15**（`page-15-2`「【合同与通知】合同签署 2」→ `/pages/contract/index`，载体页 `__measure-contract.html`，mock 目录 `api-15`） ②队列 1 逐页复核（余下行的 checks 维度待补） ③队列 7（uni-picker 溢出口径）④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。⚠️ **序号↔路由映射一律以台账「目标路由」列为准**（序号 9 = `/pages/quote-models/index`；`/pages/model-pricing/index` 是序号 11）——此前在办项写错过一次（2026-09-16 12:05 轮已改正），勿再沿用。历史流水归档在 `aap-notes-archive-2026-09-16.md`，**不要每轮读**。
 LEASE: free until -
 
 # AAP TDD 推进 · 状态与目标（自驱动循环的单一事实来源）
@@ -202,6 +202,20 @@ LEASE: free until -
      质量门：`npm test` 1178/1178 ×2 · `type-check` exit 0 · `build:mp-weixin` / `build:h5` DONE · `review-artifacts` 22/22 ·
      报告 `evidence/review-序号12v1-checks-报告.md` · 截图 `logs/screenshots/20260916-1412-序12v1-新增报价单初始态-checks轮-h5-430宽.png`。
      **下一轮开工第一件事**：队列 8 的 **序号 12-v2**（`page-apikey` → `/pages/quote-form/apikey`，mock `api-12-v2`；注意共用组件连带）。
+   - ✅ **序号 12-v3 已完成 2026-09-16 15:0x**（cron 轮 `aap-tdd-run-20260916-1445`）：**新建**载体页 `__measure-quote-success.html`（430 宽 iframe + **259 条设计期望值 checks**，构建脚本 `build-probe-12v3.py` 切 12-v2 骨架）。红基线（`git stash push -- aap-client/src/pages/quote-form/success.vue` 复现修复前源码 + **同一份最终版探针**两轮）**30/259** · `docH 1018` → 绿 **0/259** · `docH 1018`（= 设计帧高）；两轮独立测量 **31/31 字段全等**（`cmp-measure-runs … phase1` 不一致 0）。
+     修 **4 类偏差**（清单见台账序号 12-v3 行 用例(证据) 列 / `evidence/red-序号12v3-checks-设计期望值偏差.txt`）：
+     ①**5 处 effects 投影**（三张卡 `drop_shadow(0,4,16,rgba(15,23,42,.06))` · 底栏 `(0,-4,16,.05)` · 主按钮 `(0,6,16,rgba(37,99,235,.28))`）；
+     ②**8 个图标占位盒按设计图层**（盒 = 声明宽 × 字号×1.5 → 20×27 / 20×27 / 41×57 / 16×21 / 15×19.5 / 18×24 / 18×24 / 20×27，形状入 `::before`，颜色改由伪元素声明）；
+     ③**单号行右侧组 gap 8→4**（设计「单号值行」55b312e3 gap=4，与密钥行「密钥信息」gap=8 不同）；
+     ④提示卡文案按单行渲染（行盒 13.2；卡高 48 由图标行盒 24 决定 —— 旧注释「文案两行 26.4」作废）。
+     **像素对账 `cmp-bands-6`（±3）：内容列 35/35 + 条列 15/15 = 50 命中 / 0 未命中**（`evidence/cmp-序号12v3-设计PNGvs实现截图-结构带.txt`）。
+     **交互相有牙齿（四出口，各两轮逐字节相同）**：`?scenario=copy` 剪贴板写 `QT-20240615-0007` + toast「报价单号已复制」· hash 不变 · 零写请求；
+     `?scenario=primary` → `#/pages/model-pricing/index?quoteId=q9`（渲染「模型定价」）；`?scenario=secondary` / `?scenario=close` → `#/pages/quotes/index`（5 张卡片）；
+     每轮 serve 实收 2~3 行 **全为只读 GET**。**fixture 缺口先红后绿**：两个落地页 fixture 缺失（404 + 错误 toast）→ 补 `api-12-v3/v1/quotes/q9/items/index`（同 12-v1）与 `api-12-v3/v1/quotes/index`（同 12）→ 200 且 toast 空，`check-mock-fixtures --mock api-12-v3` **5 PASS / FAIL 0**。
+     质量门：`npm test` **1178/1178 ×2** · `type-check` exit 0 · `build:mp-weixin` DONE · `build:h5` DONE · `review-artifacts` 22/22 ·
+     **共用组件回归门**（本页无共用组件，仍复跑兄弟载体页）：12-v1 **286 条 0 失败** · 12-v2 **272 条 0 失败** ·
+     截图 `evidence/20260916-序12v3-新增报价单保存成功-checks轮-h5-430宽.png`（430×1018 = 设计尺寸）。
+     **下轮开工第一件事**：队列 8 的 **序号 15**（`page-15-2`「【合同与通知】合同签署 2」→ `/pages/contract/index`，载体页 `__measure-contract.html`，mock 目录 `api-15`）。
    - ⚠️ 本轮踩到并写进 §5 的坑：重抓前必须先确认 Calicat 编辑器在浏览器里打开（否则 22 帧全 FAIL `请先在浏览器中打开文件`）；
      `cmp-measure-runs.py` 对扁平文件也要传 phase 名（传 `flat`）；Chrome `--screenshot` 的中文路径会被 MSYS 弄坏 → 先写 ASCII 临时名再 `cp`；
      探针自身 4 处口径错误（`.card__hint` 只有 2 处不是 3 处、`.card__title-row` 首个是 APIKey 卡、`.card__field` 的 8px 是 padding 不是间距、`declared()` 不认 `[data-testid=...]`）。
@@ -494,6 +508,21 @@ LEASE: free until -
   ⑧**跨代对比**：与上一轮留证（`review-序号10-run1.json`）公共几何块 `topbar`/`bar`/`draftBtn`/`saveBtn`/`chip` **完全相同**、
      `fieldBoxes` 除新增 `bottom` 字段外逐项相同 → 本轮修的全是盒内细节，没动页面骨架；`evidence/cmp-序号10-checks-上一轮vs本轮.txt`（`review-compare --tag 10-checks`）。
   ⑨**下轮开工第一件事**：队列 8 的 **序号 10.1**（`page-10-1-2`「【档案与凭证】供应商档案 2」→ `/pages/profile/index`，载体页 `__measure-profile.html`，mock 目录 `api-10-1-2`）。
+
+- 2026-09-16 15:0x（cron 轮 `aap-tdd-run-20260916-1445`）· **队列 8 第 15 页：序号 12-v3「新增报价单-保存成功」载体页补「设计期望值 checks」维度（259 条 · 偏差 30→0）+ 4 类设计偏差修复 + 像素对账首个零未命中（50/50）**：
+  ①**设计帧重抓（人工指令 C）**：帧「新增报价单-保存成功」+ layer_id `49d2fa52-959d-4415-9fda-edf38415d6bd` 重抓 →
+     `design.json` sha256 `cdd34a51…` **逐字节相同**（无漂移）。
+  ②**TDD 红→绿（本轮主交付）**：**新建**载体页 `__measure-quote-success.html`（430 宽 iframe + **259 条 checks**；`build-probe-12v3.py` 切 12-v2 骨架，新增 `dump-layout.py` 全字段 dump 出 want）；
+     红基线（`git stash push -- aap-client/src/pages/quote-form/success.vue` 复现修复前源码 + **同一份最终版探针**两轮）**30/259** → 绿 **0/259**；
+     两轮独立测量 **31/31 字段全等**；`docScrollHeight 1018` = 设计帧高 · 溢出 0 · 文案缺失 0。
+  ③**修 4 类偏差**：5 处 effects 投影（三卡/底栏/主按钮）· 8 个图标占位盒按设计图层（盒 = 声明宽 × 字号×1.5，形状入 `::before`，颜色改判伪元素）·
+     单号行右侧组 gap 8→4 · 提示卡文案单行（旧注释「两行 26.4」作废）。
+  ④**像素对账 50 命中 / 0 未命中**（`evidence/cmp-序号12v3-设计PNGvs实现截图-结构带.txt`）—— 本循环首个零未命中页：
+     本页几何（1018）本来已对齐，本轮修的都是盒内效果/图标盒，且该页无 CJK 换行残差。
+  ⑤**交互四出口两轮逐字节相同**（copy / primary / secondary / close）+ **fixture 缺口先红后绿**（补 api-12-v3 两个落地页 fixture，5 PASS / FAIL 0）。
+  ⑥**质量门**：`npm test` **1178/1178 ×2** · `type-check` exit 0 · `build:mp-weixin` / `build:h5` DONE · `review-artifacts` 22/22 ·
+     共用组件回归门（12-v1 286/0 · 12-v2 272/0）· 截图 `evidence/20260916-序12v3-新增报价单保存成功-checks轮-h5-430宽.png`。
+  ⑦**下轮开工第一件事**：队列 8 的 **序号 15**（`page-15-2`「合同签署 2」→ `/pages/contract/index`，载体页 `__measure-contract.html`，mock 目录 `api-15`）。
 
 ## 5. 关键命令（照抄可用）
 
@@ -849,3 +878,23 @@ LEASE: free until -
   像素对账 **54 命中 / 4 未命中**（判读见表）· 截图 `logs/screenshots/20260916-序12v2-新增报价单APIKey下拉展开-checks轮-h5-430宽.png`（430×1129）。
   ⑧**探针自身 3 处口径 bug** 已修（见 §5.10）：nav.left.gap 断错容器 · 字形颜色读元素 `color`（D5 占位形状）· 面板首行选中态属设计帧矛盾。
   ⑨**下轮开工第一件事**：队列 8 的 **序号 12-v3**（`page-29`「新增报价单-保存成功」→ `/pages/quote-form/success`，载体页 `__measure-quote-success.html`，mock `api-12-v3`）；其后 15 / 20 / 21 / 22 / 23。
+
+### 5.11 本轮（14:45 轮 · 序号 12-v3）新增的工具与口径
+
+- **设计节点全字段 dump**：`python .agents/state/dump-layout.py <page-id> [--match 子串] [--depth N]`
+  —— 打印全树每节点的 layout/`gap`/padding/宽高/圆角/fills/stroke/**effects**/fontSize/fontFamily/**lineHeight**/文案；
+  `tree-view.py` **不打印 `gap` 与 `lineHeight`**（本页要断「顶部左侧 gap12」「密钥行 gap8 vs 单号行 gap4」「11px 行盒」就靠它）。
+- **按页组装 checks 探针（第四例）**：`python .agents/state/build-probe-12v3.py`（从 `__measure-quote-apikey.html` 切四段骨架：
+  顶部作用域 / `collect()` helpers / 溢出统计 / `sink+phase+点击工具`）。
+  ⚠️ 溢出统计的切片终点必须是 `find("/* ===================== 整页", i_over)` —— 用 `function sink(` 当终点会把上一页的 checks + return 一并切进来。
+  ⚠️ 本页 NEED_TEXT/CARDS 必须写在**溢出统计之前**（切片顺序：top + preamble + 本页 PRELUDE + overflow + 本页 CHECKS + return + tail + main）。
+- ⚠️ **载体页里不要放可见的说明元素**（本轮首版加了一个 `#note` div，整页截图被它整体下移 ~20px，像素对账 40 条假未命中）；
+  说明一律写进 HTML 注释。判据：实现截图的带起点列表比设计整体偏一个常量 → 先查 iframe 之前有没有渲染元素。
+- ⚠️ **`show-checks.py` 只认扁平单段文件**；多相（phase1..N）载体页要用 `show-phases.py <run.json> [out.txt]`（本轮踩到：show-checks 报 `checkCount=None`）。
+- ⚠️ **`review-measure.sh` 的 requests 证据偶发 0 行**（serve 日志在 kill 前未刷新完）→ 该轮重跑一次；两轮必须 `diff` 逐字节相同才算证据。
+- **本页定标（供同族「成功/结果页」复用）**：图标字形行盒 = 字号 × 1.5（三条交叉验证：单号行 fs13→19.5 使卡2 恰 249.5 ·
+  卡3 标题行 fs16→24 使卡3 恰 132 · 提示卡 fs16→24 使提示卡恰 48）；13px 文本行盒 18（卡2 五行算术自洽）；
+  15px 标题行盒 20（卡2 高 249.5 反推）；11px 走显式 height（单号标签 15）或 13.2（提示卡文案，单行）；
+  三张卡 effects 同值且**无 stroke** → 只能 `box-shadow`；**同一页里两处相邻元素间距可以不同**（密钥信息 gap8 / 单号值行 gap4）—— 探针要分别断言。
+- **本轮新增脚本**：`dump-layout.py` · `build-probe-12v3.py` · `shot-12v3.sh`（430×1018 整页截图）· `gen-12v3-checks-evidence.py`（红/绿/四出口/请求行合成）·
+  `append-12v3-checks-note.py`（台账回写）· `append-12v3-state.py`（本文件回写）。

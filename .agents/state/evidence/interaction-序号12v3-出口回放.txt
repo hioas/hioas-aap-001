@@ -1,0 +1,83 @@
+序号 12-v3 四个出口交互回放（?scenario=copy|primary|secondary|close，各两轮）
+设计侧 interaction.json = 「不存在图层交互数据」→ 交互退 PRD/设计控件语义（页面注释已登记）；
+  本轮只回放「点击 → 真实调用链 → 落点/剪贴板/toast」并留 serve 实收请求行为证。
+
+=== copy run1 (复制报价单号（client-only）) :: .agents/state\evidence\review-序号12-v3-copy-run1.json
+phase1   checkCount=259 checkFailCount=0 docScrollHeight=1018 overflowing=0 missingTexts=[]
+phase2   {"scenario": "copy", "clicked": "CLICKED", "clipboardWrite": "QT-20240615-0007", "execCommand": "", "toast": "报价单号已复制", "hash": "#/pages/quote-form/success?quoteId=q9"}
+
+=== copy run2 :: .agents/state\evidence\review-序号12-v3-copy-run2.json
+phase1   checkCount=259 checkFailCount=0 docScrollHeight=1018 overflowing=0 missingTexts=[]
+phase2   {"scenario": "copy", "clicked": "CLICKED", "clipboardWrite": "QT-20240615-0007", "execCommand": "", "toast": "报价单号已复制", "hash": "#/pages/quote-form/success?quoteId=q9"}
+
+=== copy 请求行（serve 实收）
+  run1: 2 行
+    "GET /api/v1/quotes/q9 HTTP/1.1" 200 -
+    "GET /api/v1/credentials/c1 HTTP/1.1" 200 -
+  run2: 2 行
+    "GET /api/v1/quotes/q9 HTTP/1.1" 200 -
+    "GET /api/v1/credentials/c1 HTTP/1.1" 200 -
+  两轮请求行逐字节相同: True
+
+=== primary run1 (继续设置模型报价 → 模型定价页) :: .agents/state\evidence\review-序号12-v3-primary-run1.json
+phase1   checkCount=259 checkFailCount=0 docScrollHeight=1018 overflowing=0 missingTexts=[]
+phase2   {"scenario": "primary", "clicked": "CLICKED", "hashBefore": "#/pages/quote-form/success?quoteId=q9", "hash": "#/pages/model-pricing/index?quoteId=q9", "pricingRendered": 1, "pricingTitle": "模型定价", "toast": ""}
+
+=== primary run2 :: .agents/state\evidence\review-序号12-v3-primary-run2.json
+phase1   checkCount=259 checkFailCount=0 docScrollHeight=1018 overflowing=0 missingTexts=[]
+phase2   {"scenario": "primary", "clicked": "CLICKED", "hashBefore": "#/pages/quote-form/success?quoteId=q9", "hash": "#/pages/model-pricing/index?quoteId=q9", "pricingRendered": 1, "pricingTitle": "模型定价", "toast": ""}
+
+=== primary 请求行（serve 实收）
+  run1: 3 行
+    "GET /api/v1/quotes/q9 HTTP/1.1" 200 -
+    "GET /api/v1/credentials/c1 HTTP/1.1" 200 -
+    "GET /api/v1/quotes/q9/items HTTP/1.1" 200 -
+  run2: 3 行
+    "GET /api/v1/quotes/q9 HTTP/1.1" 200 -
+    "GET /api/v1/credentials/c1 HTTP/1.1" 200 -
+    "GET /api/v1/quotes/q9/items HTTP/1.1" 200 -
+  两轮请求行逐字节相同: True
+
+=== secondary run1 (返回报价单列表 → 报价单列表) :: .agents/state\evidence\review-序号12-v3-secondary-run1.json
+phase1   checkCount=259 checkFailCount=0 docScrollHeight=1018 overflowing=0 missingTexts=[]
+phase2   {"scenario": "secondary", "clicked": "CLICKED", "hashBefore": "#/pages/quote-form/success?quoteId=q9", "hash": "#/pages/quotes/index", "quotesRendered": 1, "quoteCards": 5, "toast": ""}
+
+=== secondary run2 :: .agents/state\evidence\review-序号12-v3-secondary-run2.json
+phase1   checkCount=259 checkFailCount=0 docScrollHeight=1018 overflowing=0 missingTexts=[]
+phase2   {"scenario": "secondary", "clicked": "CLICKED", "hashBefore": "#/pages/quote-form/success?quoteId=q9", "hash": "#/pages/quotes/index", "quotesRendered": 1, "quoteCards": 5, "toast": ""}
+
+=== secondary 请求行（serve 实收）
+  run1: 3 行
+    "GET /api/v1/quotes/q9 HTTP/1.1" 200 -
+    "GET /api/v1/credentials/c1 HTTP/1.1" 200 -
+    "GET /api/v1/quotes?page=1&pageSize=10 HTTP/1.1" 200 -
+  run2: 3 行
+    "GET /api/v1/quotes/q9 HTTP/1.1" 200 -
+    "GET /api/v1/credentials/c1 HTTP/1.1" 200 -
+    "GET /api/v1/quotes?page=1&pageSize=10 HTTP/1.1" 200 -
+  两轮请求行逐字节相同: True
+
+=== close run1 (关闭（×）→ 报价单列表) :: .agents/state\evidence\review-序号12-v3-close-run1.json
+phase1   checkCount=259 checkFailCount=0 docScrollHeight=1018 overflowing=0 missingTexts=[]
+phase2   {"scenario": "close", "clicked": "CLICKED", "hashBefore": "#/pages/quote-form/success?quoteId=q9", "hash": "#/pages/quotes/index", "quotesRendered": 1, "quoteCards": 5, "toast": ""}
+
+=== close run2 :: .agents/state\evidence\review-序号12-v3-close-run2.json
+phase1   checkCount=259 checkFailCount=0 docScrollHeight=1018 overflowing=0 missingTexts=[]
+phase2   {"scenario": "close", "clicked": "CLICKED", "hashBefore": "#/pages/quote-form/success?quoteId=q9", "hash": "#/pages/quotes/index", "quotesRendered": 1, "quoteCards": 5, "toast": ""}
+
+=== close 请求行（serve 实收）
+  run1: 3 行
+    "GET /api/v1/quotes/q9 HTTP/1.1" 200 -
+    "GET /api/v1/credentials/c1 HTTP/1.1" 200 -
+    "GET /api/v1/quotes?page=1&pageSize=10 HTTP/1.1" 200 -
+  run2: 3 行
+    "GET /api/v1/quotes/q9 HTTP/1.1" 200 -
+    "GET /api/v1/credentials/c1 HTTP/1.1" 200 -
+    "GET /api/v1/quotes?page=1&pageSize=10 HTTP/1.1" 200 -
+  两轮请求行逐字节相同: True
+
+== fixture 缺口（先红后绿）==
+  红：?scenario=primary 落地页 /pages/model-pricing/index?quoteId=q9 取 GET /api/v1/quotes/q9/items → 404；
+      ?scenario=secondary 落地页 /pages/quotes/index 取 GET /api/v1/quotes → 404 + 错误 toast「数据加载失败，请稍后重试」
+  绿：补 api-12-v3 的 `v1/quotes/q9/items/index`（同 12-v1）与 `v1/quotes/index`（同 12）后，两个落地页均 200 且 toast 为空；
+      `python .agents/state/check-mock-fixtures.py --mock api-12-v3` → 5 条 PASS（含反向体检）· FAIL 0

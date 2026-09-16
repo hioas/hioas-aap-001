@@ -1,0 +1,22 @@
+序号 12-v3「新增报价单-保存成功」（page-29）载体页 checks 绿基线（修复后源码 + 最终版探针；两轮独立测量）
+
+=== GREEN run1 :: .agents/state\evidence\review-序号12-v3-checks-run1.json
+phase1   checkCount=259 checkFailCount=0 docScrollHeight=1018 overflowing=0 missingTexts=[]
+
+=== GREEN run2 :: .agents/state\evidence\review-序号12-v3-checks-run2.json
+phase1   checkCount=259 checkFailCount=0 docScrollHeight=1018 overflowing=0 missingTexts=[]
+
+绿基线两轮一致性（cmp-measure-runs.py <run1> <run2> phase1）:
+phase=phase1 · 全等字段 31 个
+全等: bar, cardShadows, cards, checkCount, checkFailCount, checkFails, countChip, counts, designLiteralDiff, docScrollHeight, docScrollWidth, envChip, iconBoxes, innerWidth, missingTexts, nav, noBar, noBarCopy, overflowing, overflowingCount, primary, rows, secondary, statusChip, statusDot, succIcon, tagRows, tags, texts, tip, tipText
+不一致 0 个:
+
+纯测量轮请求行（应为 2 行只读 GET：报价单详情 + 凭证明细；零写请求）
+=== 12-v3-checks 请求行（serve 实收）
+  run1: 2 行
+    "GET /api/v1/quotes/q9 HTTP/1.1" 200 -
+    "GET /api/v1/credentials/c1 HTTP/1.1" 200 -
+  run2: 2 行
+    "GET /api/v1/quotes/q9 HTTP/1.1" 200 -
+    "GET /api/v1/credentials/c1 HTTP/1.1" 200 -
+  两轮请求行逐字节相同: True

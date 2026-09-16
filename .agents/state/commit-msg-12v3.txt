@@ -1,0 +1,28 @@
+feat(aap-client): 12-v3-新增报价单保存成功 补设计期望值 checks 维度（259 条 · 偏差 30→0）+ 4 类设计偏差修复 + 像素对账首个零未命中（队列 8 第 15 页）
+
+载体页：新建 .agents/state/h5-measure/__measure-quote-success.html（430 宽 iframe + 259 条设计期望值 checks，
+由 build-probe-12v3.py 切 12-v2 骨架；want = page-29 design.tree.json 声明值（新增 dump-layout.py 全字段 dump）
++ 设计 PNG 430×1018 色带/文字带实测）。
+
+TDD：红基线（git stash 复现修复前 success.vue + 同一份最终版探针两轮）30/259 · docH 1018
+→ 绿 0/259 · docH 1018（= 设计帧高）；两轮独立测量 31/31 字段全等；溢出 0 · 文案缺失 0。
+
+修 4 类偏差（src/pages/quote-form/success.vue）：
+① 5 处 effects 投影（三张卡 drop_shadow(0,4,16,rgba(15,23,42,.06)) · 底栏 (0,-4,16,.05) · 主按钮 (0,6,16,rgba(37,99,235,.28))）
+② 8 个图标占位盒按设计图层（盒 = 声明宽 × 字号×1.5：20×27 · 20×27 · 41×57 · 16×21 · 15×19.5 · 18×24 · 18×24 · 20×27，形状入 ::before）
+③ 单号行右侧组 gap 8→4（设计「单号值行」gap=4，与密钥行「密钥信息」gap=8 不同）
+④ 提示卡文案按单行渲染（行盒 13.2；卡高 48 由图标行盒 24 决定 —— 旧注释「文案两行 26.4」作废）
+
+像素对账 cmp-bands-6（±3）设计 PNG vs 实现 430×1018 截图：内容列 35/35 + 条列 15/15 = 50 命中 / 0 未命中。
+
+交互相（四出口各两轮，请求行逐字节相同，全为只读 GET）：
+copy → 剪贴板 QT-20240615-0007 + toast「报价单号已复制」· hash 不变 · 零写请求；
+primary → #/pages/model-pricing/index?quoteId=q9；secondary / close → #/pages/quotes/index（5 张卡片）。
+fixture 缺口先红后绿：补 api-12-v3/v1/quotes/q9/items/index 与 api-12-v3/v1/quotes/index
+（缺则两落地页 404 + 错误 toast），check-mock-fixtures --mock api-12-v3 5 PASS / FAIL 0。
+
+质量门：npm test 1178/1178 ×2 · type-check exit 0 · build:mp-weixin（wxss 含 6 条 box-shadow 与图标盒尺寸）
+· build:h5 DONE · review-artifacts 22/22 · 共用组件回归门（12-v1 286/0 · 12-v2 272/0）
+· 截图 evidence/20260916-序12v3-新增报价单保存成功-checks轮-h5-430宽.png（430×1018 = 设计尺寸）。
+
+设计帧重抓：帧「新增报价单-保存成功」+ layer_id 49d2fa52-959d-4415-9fda-edf38415d6bd → design.json sha256 cdd34a51… 逐字节相同（无漂移）。
