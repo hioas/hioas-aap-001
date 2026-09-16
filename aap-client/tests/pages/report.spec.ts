@@ -45,6 +45,18 @@ describe('序号 6 · 页面：页头与结论卡文案与设计稿逐条一致'
     expect(w.find('[data-testid="back-btn"]').exists()).toBe(true)
   })
 
+  /* 口径锁：本页设计原文是**单个**文本图层 content='DR-20240613-0758'（无「报告编号」前缀）——
+     序号 7 台账备注⑩ 的跨页断言「序号 6 也缺前缀、待回炉修」经两条独立证据核定为误判
+     （设计树叶子 202cd360 + 设计 PNG 顶部栏右侧墨迹宽 95 = 15 字符；序号 7-2 同位置 142 = 21 字符）。
+     证据：.agents/state/evidence/序号6-报告编号前缀核定.txt。
+     这条断言的作用是**禁止**后续把前缀补到本页（补了就与设计稿不符）。 */
+  it('报告编号不带「报告编号」前缀（按设计稿原文直出）', async () => {
+    const w = await mountPage()
+    const no = w.find('[data-testid="report-no"]').text()
+    expect(no).toBe('DR-20240613-0758')
+    expect(no).not.toContain('报告编号')
+  })
+
   it('结论卡：综合评分 92 / 通过标签 / 通道名 / 结论措辞 / 信息清单 5 行', async () => {
     const w = await mountPage()
     expect(w.find('[data-testid="verdict-title"]').text()).toBe('综合检测结论')

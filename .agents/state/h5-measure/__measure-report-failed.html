@@ -198,6 +198,14 @@
         chkC('topbar.title.ml', '.rf-page__title', 'marginLeft', 12)
         chkC('topbar.no.fs', '.rf-page__no', 'fontSize', 11)
         chkC('topbar.no.color', '.rf-page__no', 'color', 'rgb(148, 163, 184)')
+        /* 报告编号：design 叶子 57f828cc 是**单个**文本图层 content='报告编号 DR-20240614-0312'（**含前缀**）·
+           w=143 · h=fit_content · lineHeight 1.2 · #94A3B8 → 行框 = 11 × 1.2 = 13.2
+           （本帧**没有** 16 高盒子 —— 与序号 6 的 frame h=16 不同，逐帧判；对照见 evidence/序号6-报告编号前缀核定.txt）。 */
+        chk('topbar.no.text', textOf('.rf-page__no'), '报告编号 DR-20240614-0312', 0)
+        chk('topbar.no.prefixPresent', String(textOf('.rf-page__no')).indexOf('报告编号'), 0, 0)
+        chkC('topbar.no.lineHeight', '.rf-page__no', 'lineHeight', 13.2)
+        chkR('topbar.no.h', '.rf-page__no', 13.2, 1)
+        chkR('topbar.no.right', '.rf-page__no', 414, 1)
 
         /* ---------- 封面卡（design 07b82bea · padding20 r18 · drop_shadow(0,6,20,rgba(15,23,42,.06))） ---------- */
         chkR('card1.x', '.card#0', 16, 1)
@@ -449,6 +457,13 @@
           dimFillWidths: rects('[data-testid="dim-fill"]').map(function (r) { return r.w }),
           dimRows: rects('.dim-row'),
           cardRects: rects('.card'),
+          /* 顶部栏「报告编号」实测留证（前缀口径核定用 · 见 evidence/序号6-报告编号前缀核定.txt） */
+          topbarNo: {
+            text: textOf('.rf-page__no'),
+            rect: rect('.rf-page__no'),
+            lineHeight: css('.rf-page__no', 'lineHeight'),
+            fontWeight: css('.rf-page__no', 'fontWeight')
+          },
           cardTops: rects('.card').map(function (r) { return r.top }),
           cardHeights: rects('.card').map(function (r) { return r.h }),
           topbar: rect('.rf-page__topbar'),

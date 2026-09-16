@@ -1,0 +1,34 @@
+序号 6「报告编号」前缀口径锁 · 变异测试（mutation）RED 基线
+=====================================================================
+目的：证明 tests/pages/report.spec.ts 新增断言「报告编号不带『报告编号』前缀」**真的有牙齿**
+      （否则「本来就过」的断言等于没断言）。
+
+方法（可复现）：
+  1. 临时把 aap-client/src/pages/report/index.vue 的顶部栏改回「带前缀」写法：
+       <text class="report-page__no" data-testid="report-no">报告编号 {{ model.reportNo }}</text>
+  2. cd aap-client && npx vitest run tests/pages/report.spec.ts
+  3. 记录输出（本文件）→ 立刻还原该行（不带前缀）。
+
+结论：带前缀时 **2 failed**（新增负向断言 + 原有「报告编号」精文断言各 1 条）；
+      还原后 17/17 全绿。→ 该口径锁具备真实检出能力。
+
+---------------------------------------------------------------------
+$ npx vitest run tests/pages/report.spec.ts
+ FAIL  tests/pages/report.spec.ts > 序号 6 · 页面：页头与结论卡文案与设计稿逐条一致 > 报告编号不带「报告编号」前缀（按设计稿原文直出）
+AssertionError: expected '报告编号 DR-20240613-0758' to be 'DR-20240613-0758' // Object.is equality
+
+Expected: "DR-20240613-0758"
+Received: "报告编号 DR-20240613-0758"
+
+ ❯ tests/pages/report.spec.ts:56:16
+     54|     const w = await mountPage()
+     55|     const no = w.find('[data-testid="report-no"]').text()
+     56|     expect(no).toBe('DR-20240613-0758')
+      |                ^
+     57|     expect(no).not.toContain('报告编号')
+     58|   })
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 15 passed (17)
+   Start at  17:51:41
+   Duration  2.39s

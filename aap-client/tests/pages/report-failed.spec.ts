@@ -52,6 +52,8 @@ describe('序号 7 · 页面：页头与结论封面卡文案与设计稿逐条�
     const w = await mountPage()
     expect(w.find('[data-testid="title"]').text()).toBe('检测报告')
     // 设计稿顶部右侧是**单个**文本图层「报告编号 DR-20240614-0312」（含前缀），逐字还原
+    // 对照：序号 6 的设计原文**没有**前缀（本页台账备注⑩ 的跨页断言为误判）→
+    // 证据 .agents/state/evidence/序号6-报告编号前缀核定.txt（设计 PNG 墨迹宽 142 vs 95）
     expect(w.find('[data-testid="report-no"]').text()).toBe('报告编号 DR-20240614-0312')
     expect(w.find('[data-testid="back-btn"]').exists()).toBe(true)
   })

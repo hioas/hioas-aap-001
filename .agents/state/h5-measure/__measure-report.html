@@ -173,6 +173,20 @@
         chkC('topbar.title.marginLeft', '.report-page__title', 'marginLeft', 12)
         chkC('topbar.no.fs', '.report-page__no', 'fontSize', 11)
         chkC('topbar.no.color', '.report-page__no', 'color', 'rgb(148, 163, 184)')
+        /* 报告编号右侧组：design frame 5d860a4b（w=fill_container · **h=16** · justifyContent=end · alignItems=start）
+           叶子 202cd360：content='DR-20240613-0758'（**设计稿里没有「报告编号」前缀**）· fs11 · lineHeight 1.2 · #94A3B8
+           口径核定（两条独立证据）：evidence/序号6-报告编号前缀核定.txt —— 设计 PNG 顶部栏右侧墨迹
+             x318..412 w=95 = 15 字符 @ fs11；对照序号 7-2 同位置墨迹 w=142 = 21 字符（含前缀的串）
+             → 本页**不得**渲染前缀（序号 7 台账备注⑩ 的跨页断言为误判）。
+           行框口径：frame 显式 height 16 + 叶子 height=fill_container → 行框 16（设计 PNG 墨迹 y60..69、中心 64.5
+             = 内容行 48..81 的中心 —— 正是「16 高盒在 33 高行里垂直居中」的必然结果；lineHeight 1.2 被显式 height 覆盖）。 */
+        chk('topbar.no.text', textOf('.report-page__no'), 'DR-20240613-0758', 0)
+        chk('topbar.no.prefixAbsent', String(textOf('.report-page__no')).indexOf('报告编号'), -1, 0)
+        chkR('topbar.no.h', '.report-page__no', 16, 1)
+        chkR('topbar.no.top', '.report-page__no', 57, 2) /* 设计 frame 顶 = 48 + (33 − 16)/2 = 56.5 */
+        chkR('topbar.no.right', '.report-page__no', 414, 1)
+        chkC('topbar.no.lineHeight', '.report-page__no', 'lineHeight', 16)
+        chkC('topbar.no.fw', '.report-page__no', 'fontWeight', 400) /* design SourceHanSans-Regular */
 
         /* ---------- 结论封面卡（design 4e855266 · padding20 r18 · drop_shadow[0,6,20,rgba(15,23,42,.06)]） ---------- */
         chkR('card1.h', '.card#0', 416, 2)
@@ -473,6 +487,13 @@
           itemCount: doc.querySelectorAll('[data-testid="section-item"]').length,
           groupCount: doc.querySelectorAll('.group').length,
           cardRects: rects('.card'),
+          /* 顶部栏「报告编号」实测留证（前缀口径核定用 · 见 evidence/序号6-报告编号前缀核定.txt） */
+          topbarNo: {
+            text: textOf('.report-page__no'),
+            rect: rect('.report-page__no'),
+            lineHeight: css('.report-page__no', 'lineHeight'),
+            fontWeight: css('.report-page__no', 'fontWeight')
+          },
           cardTops: rects('.card').map(function (r) { return r.top }),
           groupRects: rects('.group'),
           groupNoteRect: rect('.group__note'),

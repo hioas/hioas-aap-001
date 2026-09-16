@@ -436,6 +436,13 @@ onMounted(async () => {
 .report-page__no {
   font-size: 11px;
   color: $color-text-placeholder;
+  /* design 5d860a4b「报告编号」frame：h=16（叶子 202cd360 height=fill_container）→ 行框取显式 height 16，
+     不是 lineHeight 1.2 × 11 = 13.2（同族口径：显式 height 优先）。设计 PNG 顶部栏右侧墨迹 y60..69、
+     中心 64.5 = 内容行 48..81 的中心，正是「16 高盒在 33 高行里居中」的结果。
+     文案口径：本页设计原文**无**「报告编号」前缀（叶子 content = 'DR-20240613-0758'，
+     设计 PNG 墨迹宽 95 = 15 字符）；序号 7 的跨页断言「序号 6 也缺前缀」为误判 —— 见
+     .agents/state/evidence/序号6-报告编号前缀核定.txt。 */
+  line-height: 16px;
 }
 
 .report-page__body {

@@ -323,6 +323,10 @@ onMounted(async () => {
 .rf-page__no {
   font-size: 11px;
   color: $color-text-placeholder;
+  /* design 57f828cc（**单个**文本图层 content='报告编号 DR-20240614-0312'，含前缀）：h=fit_content ·
+     lineHeight 1.2 → 行框 = 11 × 1.2 = 13.2（本帧**没有** 16 高盒子，与序号 6 的 frame h=16 不同 → 逐帧判；
+     对照见 .agents/state/evidence/序号6-报告编号前缀核定.txt）。 */
+  line-height: 13.2px;
 }
 
 .rf-page__body {
