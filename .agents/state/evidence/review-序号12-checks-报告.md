@@ -136,7 +136,24 @@ python .agents/state/png-profile.py   .agents/state/design-shots/page-12-2-desig
 .agents/state/evidence/20260916-序12-报价预览与提交-checks轮-h5-430宽.png
 ```
 
-## 8. 未决 / 需人类拍板（沿用，不阻塞本轮）
+## 8. 跨代对比（与建页轮留证 `aap-client/evidence/measure-序号12-run2.json`）
+
+`python .agents/state/review-compare.py --tag 12-checks --old aap-client/evidence/measure-序号12-run2.json`
+→ 两次独立测量 **25/25 全等**；与建页留证：全等 9 / 不一致 63（其中绝大多数是探针维度改名/新增：本轮新增 `cardStyles`/`priceRows`/`rules`/`ruleIcons`/`confirmRow`/`check`/`hint`/`ghost`/`main`/`texts{…}`）。
+
+**关键公共几何逐值复核（`show-measure-fields.py`）——页面骨架未动，改的全是卡内细节**：
+
+| 字段 | 建页轮 | 本轮 | 判读 |
+|---|---|---|---|
+| `nav` | 0..96 | 0..96 | 相同 |
+| `cards`（top/h） | 108/392/624/800 · 272/220/164/127 | 108/392/624/800 · 272/220/164/127 | 相同（本轮仅多记录 `bottom`） |
+| `bar` | 943..1027(84) | 943..1027(84) | 相同 |
+| `docScrollHeight` / `docScrollWidth` | 1027 / 430 | 1027 / 430 | 相同 |
+
+即：整页高度与四张卡的外框在修前修后**完全一致**（旧模型 head 26 + 价行 34 + 规则行全 44 与本轮 head 26 + 价行 38 + 规则行 44/44/40 在页级同值），
+本轮修的是卡**内部**的价行高度、规则行分行高与文字行框、确认行/提示条高度、以及逐卡卡片效果。
+
+## 9. 未决 / 需人类拍板（沿用，不阻塞本轮）
 
 - 台账序号 12 备注 ①②③④⑤⑦⑧⑨⑩⑪⑫⑬⑮ 的推断项不变：接口方法/请求体 schema 为 REST 语义推断、
   标签文案与底色为派生、`/submit` 无请求体 schema（实测 body 为空）、规则行文案为派生、
