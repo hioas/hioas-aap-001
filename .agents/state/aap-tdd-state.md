@@ -1,4 +1,4 @@
-STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）；本轮新增两件事：①目录命名对齐 hioas-aap-client（用户在跑 dev server，句柄占用 → 每轮重试，锁一放就搬）②按序号 1→23 逐页复核。历史流水已归档到 aap-notes-archive-2026-09-16.md，**不要每轮读**。
+STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。三条在办：①**目录命名对齐 hioas-aap-client**（用户 dev server 持句柄 → 每轮重试，锁一放就搬）②**按序号逐页复核**（430 宽 DOM 实测已覆盖 20/22 页且连跑两轮一致；剩 序号 1 登录注册 / 2 工作台 待补载体页）③**序号 9 测量面 fixture 缺口**（api mock 缺 GET /quotes/q9/items）待补，补后需回跑所有用 `api` 目录的页面。历史流水归档在 aap-notes-archive-2026-09-16.md，**不要每轮读**。
 LEASE: free until -
 
 # AAP TDD 推进 · 状态与目标（自驱动循环的单一事实来源）
@@ -100,6 +100,10 @@ LEASE: free until -
    有则按同口径改（**先红后绿**，别只改注释）。
 3. **15 条待人类拍板缺口**：只做**可自主**的部分；未拍板的**保持原样**，每轮简报只列 1 条最该拍的，不擅自改设计稿口径。
 4. 画布余下 **8 个管理端 PC 页（`aap-admn`）** —— **本轮范围外**，除非人类放行，不要开工。
+5. **补 序号 9 的测量面 fixture**：`api/v1/quotes/q9/items/index`（GET 明细行；页面按 `src/api/quote.ts:90` 的回落入口取数）。
+   补完必须**回跑所有用 `api` 目录的页面**（3、4、5、6、7、8、9）确认没被 fixture 影响（两轮一致 + 与留证对比）。
+6. **给 序号 1（登录注册）、2（工作台）补 430 宽载体页**（`__measure-login.html` / `__measure-workbench.html`），
+   两轮 dump-dom + 与建页留证对比；这两页此前只有截图/产物证据，是逐页复核里唯一没有客观 DOM 数字的两行。
 
 ### 本轮小结（追加式，一行一轮）
 
@@ -114,6 +118,24 @@ LEASE: free until -
   ⑤清理本循环自己的遗留：两个 01:25/01:43 起的 `serve.py` 静态服务器已 kill，并按原参数在 5199 端口重启，
   用户浏览器原 URL 不受影响。
 
+- 2026-09-16 08:11（cron 轮 `aap-tdd-run-20260916-0805`）· **目录改名顺延 + 逐页复核（430 宽 DOM）覆盖 20/22 页**：
+  ①**改名**：`git mv aap-client hioas-aap-client` 仍 `Permission denied`（用户 `npm run dev:h5` 持句柄）→ 记一行顺延，**未杀用户进程**（§3.10）。
+  ②**仓库基线**：`npm test` **1141/1141 · 69 files** 连跑两轮 exit 0；`npm run type-check` exit 0；
+  `npm run build:mp-weixin` exit 0。新增 `.agents/state/review-artifacts.py` 按台账「目标路由」核 22 行 →
+  **22/22 路由 mp-weixin 三件套（js/json/wxml）齐备且注册在 app.json**（wxss 仅在页面有样式时产出，不算缺失）。
+  ③**逐页 DOM 复核**：新增 `review-measure.sh`（一页两轮 dump-dom）/`review-compare.py`（两次独立测量 + 与建页留证对比）/
+  `show-measure-fields.py` / `gen-review-report.sh`，报告 `.agents/state/evidence/review-measure-20260916-0805.md`。
+  覆盖 3、4、4-v1、5、6、7、8、9、10、10.1、11、12、12-v1、12-v2、12-v3、15、20、21、22、23 共 20 页：
+  **两次独立测量在每个分组上都全等（不一致 0）**。
+  ④**三处差异全部定位为非页面缺陷**（报告里逐条留证）：序号 6 / 10 / 9 的差异都是「留证文件早于同轮/本页提交」的过期快照
+  （6 早于载体页 01:28 更新；10 早于 a5916ac 02:46:57 的「双角标补红」；9 早于 cc98e23 02:24:51），
+  序号 22 的 `overflowing` 两轮波动系 uni-app 内置 `uni-picker` 空 div（父级 overflow:hidden，`docScrollWidth` 两轮均 430）。
+  ⑤**修掉本循环自己的两个取证工具缺陷**：`cmp-measure-runs.py` 不支持扁平单段文件；`review-compare.py` 曾漏比「顶层标量字段」
+  （被 rect 分组掩盖）——都补齐后**全量重跑**，结论不变。
+  ⑥**台账回写**：22 行里 20 行追加「复核通过 2026-09-16 08:11 + 命令 + 证据文件」，4 处差异补 `备注`。
+  ⑦**下轮开工第一件事**：补 `api/v1/quotes/q9/items/index` fixture（页面按 `src/api/quote.ts:90` 回落取明细行）并回跑用 `api` 目录的页面；
+  再给 序号 1/2 补 430 宽载体页。
+
 ## 5. 关键命令（照抄可用）
 
 - 项目根：`E:\workspaces\hioas\hioas-aap-001`（远端 https://github.com/hioas/hioas-aap-001）
@@ -124,7 +146,17 @@ LEASE: free until -
 - 设计截图像素量尺：`python .agents/state/png-bands.py <png> v|h <idx> [from] [to]`（同色色带 = 盒子边界；定卡高/间距/栏高最硬的依据）
 - 像素对账：`python .agents/state/text-rows.py`（同一脚本跑设计与实现，逐行文本带对比）
 - 台账取件：`python .agents/state/list-pending.py`（按序号列出未完成页面）
-- 两次独立测量一致性：`python .agents/state/cmp-measure-runs.py <runA.json> <runB.json>`
+- 两次独立测量一致性：`python .agents/state/cmp-measure-runs.py <runA.json> <runB.json> [phase]`（扁平单段文件自动兼容）
+- **逐页复核一条龙**（本轮新增）：
+  - 一页跑两轮 430 宽实测：`bash .agents/state/review-measure.sh <序号> <__measure-*.html> <mock目录> <端口>`
+    → 证据 `.agents/state/evidence/review-序号<序号>-run{1,2}.json`
+  - 两次独立测量 + 与建页留证对比（紧凑输出）：`python .agents/state/review-compare.py --tag <序号> [--old .agents/state/evidence/measure-序号<序号>-*.json]`
+  - 定位字段差异：`python .agents/state/show-measure-fields.py <a.json> <b.json> <phase> <字段...>`
+  - 台账产物核对：`python .agents/state/review-artifacts.py`（按台账路由核 mp-weixin 三件套 + app.json 注册）
+  - 生成报告：`bash .agents/state/gen-review-report.sh` → `.agents/state/evidence/review-measure-<日期>.md`
+  - 台账追加笔记：`python .agents/state/append-ledger-note.py <序号> --case <文本> --note <文本>`（**写完跑 `normalize-ledger-eol.py` 把行尾改回 LF**，否则整文件在 git 里显示改动）
+  - mock 目录与载体页对照：`api`=3/4/4-v1/5/6/7/8/9 · `api-10-2`=10 · `api-10-1-2`=10.1 · `api-11`=11 · `api-12`=12 ·
+    `api-12-v1/v2/v3`=12-v1/v2/v3 · `api-15`=15 · `api-20`=20 · `api-21`=21 · `api-22`=22 · `api-23`=23
 - 静态取证服务器（本循环自用，用完即关）：`python .agents/state/h5-measure/serve.py <h5 产物目录> .agents/state/h5-measure/api <端口>`
 - Calicat CLI：`calicat status` / `calicat tools-call --name get_screenshots --args '{...}'`；
   技能脚本目录 `C:/Users/laitz/AppData/Local/hermes/skills/calicat/scripts/`

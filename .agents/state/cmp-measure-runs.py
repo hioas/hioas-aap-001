@@ -11,6 +11,13 @@ a = json.load(io.open(sys.argv[1], encoding="utf-8"))
 b = json.load(io.open(sys.argv[2], encoding="utf-8"))
 ph = sys.argv[3]
 
+# 兼容「扁平单段」测量文件（早期载体页只写一个 MEASURE_JSON，没有 phase 分组）：
+# 指定 phase 不存在且两份都没有该 phase 分组时，整体当一个 phase 比较。
+if ph not in a and ph not in b and all(not isinstance(v, dict) or "innerWidth" not in v for v in list(a.values())):
+    a = {"flat": a}
+    b = {"flat": b}
+    ph = "flat"
+
 ka, kb = a[ph], b[ph]
 keys = sorted(set(ka) | set(kb))
 same, diff = [], []
