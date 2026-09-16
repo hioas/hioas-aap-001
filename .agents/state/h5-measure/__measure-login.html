@@ -1,0 +1,433 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-login</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      /* 取数 <pre> 包进 0 尺寸 overflow:hidden：textContent 可读但不渲染、不会被 --screenshot 截进图（SKILL §4.1） */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
+         页面 1：/pages/login/index（【账号接入】登录注册，page-1-2）
+         设计真源：.calicat/raw/pages/page-1-2/design.tree.json + .agents/state/page-1-2-nodes.txt
+         期望值（design 声明值，全部写进 checks，逐条给 got/want）：
+           品牌头部 padding 56/24/64/24 · bg rgb(29,78,216) · Logo 54x54 r16
+           品牌名 20px · 英文行 12px rgb(191,219,254) · 标题 26px · 副标题 14px rgb(199,215,254)
+           Logo 行 → 标题块间距 28 · 标题 → 副标题 6（设计 spacer）
+           表单卡片 r20 padding 24/20 · 卡顶紧接品牌底（设计无负外边距）
+           卡标题 20px · 提示 12px rgb(100,116,139)
+           字段标签 13px rgb(51,65,85) · 输入框 h48 r12 bg rgb(248,250,252) 描边 rgb(226,232,240) · 字段间距 16
+           +86 14px rgb(51,65,85) · 竖分隔 2x18 rgb(226,232,240)
+           图形验证码块 112x48 r12 bg rgb(238,242,255) 描边 rgb(224,231,255) · 码文字 16px rgb(79,70,229)
+           获取验证码按钮 112x48 r12 bg rgb(239,246,255) 描边 rgb(191,219,254) · 文字 13px rgb(37,99,235)
+           提示行 12px rgb(148,163,184) · 主按钮 h50 r14 bg rgb(37,99,235) 文字 16px · 距上 24
+           分隔行 12px rgb(148,163,184) · 距上 20
+           微信按钮 h50 r14 bg rgb(240,253,244) 描边 rgb(187,247,208) 文字 15px rgb(21,128,61) · 距上 20
+           勾选框 18x18 r6 · 协议文字 12px rgb(100,116,139) · 距上 20
+           免责卡片 bg 白 r16 padding 16/20 描边 rgb(238,242,247) · 距上 16 · 标题 14px rgb(15,23,42) · 正文 12px rgb(100,116,139)
+           页脚 11px rgb(148,163,184)
+         ?scenario=guard 只跑校验门（1~4 相，全程不应产生任何 POST）
+         ?scenario=（缺省）跑全量 1~5 相（含真实 POST sms/send + sms/login → 写 token + 跳工作台）
+         ?noaction / ?shot=1 只取 phase1（供截图）
+         ⚠️ 触发方式必须用 waitFor 轮询（iframe onload 会因监听注册过晚而错过 → 取数脚本静默拿到 pending）
+         ⚠️ 是否发请求不看页面自报，以 serve 日志为准（evidence/requests-序号*.txt） -->
+    <iframe id="f" src="/index.html#/pages/login/index"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var acc = {}
+
+      function all(d, sel) { return Array.prototype.slice.call(d.querySelectorAll(sel)) }
+      function rect(d, sel) {
+        var el = d.querySelector(sel)
+        if (!el) return null
+        var r = el.getBoundingClientRect()
+        return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+      }
+      function rects(d, sel) {
+        return all(d, sel).map(function (e) {
+          var r = e.getBoundingClientRect()
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+        })
+      }
+      function textOf(d, sel) { var e = d.querySelector(sel); return e ? e.textContent.trim() : null }
+      function texts(d, sel) { return all(d, sel).map(function (e) { return e.textContent.trim() }) }
+      function css(d, w, sel, prop) { var el = d.querySelector(sel); return el ? w.getComputedStyle(el)[prop] : null }
+      function stylesOf(d, w, sel, prop) { return all(d, sel).map(function (e) { return w.getComputedStyle(e)[prop] }) }
+      function rectFor(d, sel) { var el = d.querySelector(sel); return el ? el.getBoundingClientRect() : null }
+
+      /** 设计稿里每一个独立文本图层（逐字抄自 page-1-2 design.tree.json，去掉图标字形与重复项） */
+      var needText = [
+        '云算接入', 'SUPPLIER ONBOARDING', 'API 供应商一站式接入', '注册即开通，检测 · 报价 · 结算全流程线上化',
+        '手机号登录 / 注册', '未注册的手机号将自动创建账号',
+        '手机号', '+86', '图形验证码', 'A7K9', '短信验证码', '获取验证码', '验证码 5 分钟内有效，请注意查收',
+        '登录 / 注册', '其他登录方式', '微信一键登录',
+        '我已阅读并同意《服务协议》与《隐私政策》',
+        '免责与合规说明',
+        '本平台仅提供 API 接入检测与报价撮合服务，不对供应商上游资源合法性及稳定性作担保，请如实提交资料。',
+        '登录即代表您已满 18 周岁', '© 2024 云算接入平台 · 保留所有权利'
+      ]
+
+      /** 归一化：48px → 48；rgba(29,78,216,1) / rgb(29, 78, 216) → 'rgb(29,78,216)' */
+      function norm(v) {
+        if (v === null || v === undefined) return v
+        var s = String(v).trim()
+        var m = s.match(/^(-?\d+(?:\.\d+)?)px$/)
+        if (m) return Number(m[1])
+        var r = s.match(/^rgba?\(([^)]+)\)$/)
+        if (r) {
+          var p = r[1].split(',').map(function (x) { return Number(String(x).trim()) })
+          return 'rgb(' + p.slice(0, 3).join(',') + ')'
+        }
+        return s
+      }
+
+      function build(doc, win) {
+        var checks = []
+        function chk(k, got, want) {
+          var g = norm(got), w2 = norm(want)
+          checks.push({ k: k, got: g, want: w2, ok: g === w2 })
+        }
+        function g(sel, prop) { return css(doc, win, sel, prop) }
+        function dim(sel, d) { var r = rectFor(doc, sel); return r ? Math.round(r[d]) : null }
+
+        /* 品牌头部 */
+        chk('brand.paddingTop', g('.brand', 'paddingTop'), '56px')
+        chk('brand.paddingRight', g('.brand', 'paddingRight'), '24px')
+        chk('brand.paddingBottom', g('.brand', 'paddingBottom'), '64px')
+        chk('brand.bg', g('.brand', 'backgroundColor'), 'rgba(29,78,216,1)')
+        chk('brandLogo.w', dim('.brand__logo', 'width'), 54)
+        chk('brandLogo.h', dim('.brand__logo', 'height'), 54)
+        chk('brandLogo.radius', g('.brand__logo', 'borderRadius'), '16px')
+        chk('brandName.fontSize', g('.brand__name', 'fontSize'), '20px')
+        chk('brandName.color', g('.brand__name', 'color'), 'rgb(255,255,255)')
+        chk('brandEn.fontSize', g('.brand__en', 'fontSize'), '12px')
+        chk('brandEn.color', g('.brand__en', 'color'), 'rgba(191,219,254,1)')
+        chk('brandTitle.fontSize', g('.brand__title', 'fontSize'), '26px')
+        chk('brandSubtitle.fontSize', g('.brand__subtitle', 'fontSize'), '14px')
+        chk('brandSubtitle.color', g('.brand__subtitle', 'color'), 'rgba(199,215,254,1)')
+        var logoR = rectFor(doc, '.brand__logo'), titleR = rectFor(doc, '.brand__title'), subR = rectFor(doc, '.brand__subtitle')
+        var nameR = rectFor(doc, '.brand__name'), enR = rectFor(doc, '.brand__en')
+        /* 设计：Logo行 = [Logo方块 54x54] + spacer 12 + 品牌名块(名称/英文 竖排)，水平 alignItems=center */
+        chk('brand.logoToNameGapX', logoR && nameR ? Math.round(nameR.left - logoR.right) : null, 12)
+        chk('brand.nameToEn', nameR && enR ? Math.round(enR.top - nameR.bottom) : null, 0)
+        chk('brand.rowCenteredY', logoR && nameR && enR
+          ? Math.abs(Math.round((logoR.top + logoR.bottom) / 2 - (nameR.top + enR.bottom) / 2))
+          : null, 0)
+        /* 设计：Logo行(高 54) 之后 spacer 28，才是定位语块 */
+        chk('brand.logoRowToTitle', logoR && titleR ? Math.round(titleR.top - logoR.bottom) : null, 28)
+        chk('brand.titleToSubtitle', titleR && subR ? Math.round(subR.top - titleR.bottom) : null, 6)
+
+        /* 表单卡片 */
+        chk('card.radius', g('.card', 'borderRadius'), '20px')
+        chk('card.paddingTop', g('.card', 'paddingTop'), '24px')
+        chk('card.paddingLeft', g('.card', 'paddingLeft'), '20px')
+        chk('card.bg', g('.card', 'backgroundColor'), 'rgb(255,255,255)')
+        var brandR = rectFor(doc, '.brand'), cardR = rectFor(doc, '.card')
+        chk('brandBottomToCardTop', brandR && cardR ? Math.round(cardR.top - brandR.bottom) : null, 0)
+        chk('card.left', cardR ? Math.round(cardR.left) : null, 16)
+        chk('card.right', cardR ? Math.round(cardR.right) : null, 414)
+        chk('cardTitle.fontSize', g('.card__title', 'fontSize'), '20px')
+        chk('cardHint.fontSize', g('.card__hint', 'fontSize'), '12px')
+        chk('cardHint.color', g('.card__hint', 'color'), 'rgba(100,116,139,1)')
+
+        /* 字段 */
+        chk('fieldLabel.fontSize', g('.field__label', 'fontSize'), '13px')
+        chk('fieldLabel.color', g('.field__label', 'color'), 'rgba(51,65,85,1)')
+        chk('fieldBox.h', dim('.field__box', 'height'), 48)
+        chk('fieldBox.radius', g('.field__box', 'borderRadius'), '12px')
+        chk('fieldBox.bg', g('.field__box', 'backgroundColor'), 'rgba(248,250,252,1)')
+        chk('fieldBox.borderColor', g('.field__box', 'borderTopColor'), 'rgba(226,232,240,1)')
+        chk('fieldBox.borderWidth', g('.field__box', 'borderTopWidth'), '1px')
+        chk('fieldBox.paddingLeft', g('.field__box', 'paddingLeft'), '12px')
+        chk('fieldPrefix.fontSize', g('.field__prefix', 'fontSize'), '14px')
+        chk('fieldPrefix.color', g('.field__prefix', 'color'), 'rgba(51,65,85,1)')
+        chk('fieldDivider.w', dim('.field__divider', 'width'), 2)
+        chk('fieldDivider.h', dim('.field__divider', 'height'), 18)
+        chk('fieldDivider.bg', g('.field__divider', 'backgroundColor'), 'rgba(226,232,240,1)')
+        /* 设计：字段之间的 spacer 16（用「字段 frame」量，不是输入框 frame） */
+        var flds = rects(doc, '.field')
+        chk('fieldGap', flds.length >= 2 ? flds[1].top - flds[0].bottom : null, 16)
+
+        /* 图形验证码块 */
+        chk('captcha.w', dim('.captcha', 'width'), 112)
+        chk('captcha.h', dim('.captcha', 'height'), 48)
+        chk('captcha.radius', g('.captcha', 'borderRadius'), '12px')
+        chk('captcha.bg', g('.captcha', 'backgroundColor'), 'rgba(238,242,255,1)')
+        chk('captcha.borderColor', g('.captcha', 'borderTopColor'), 'rgba(224,231,255,1)')
+        chk('captchaText.fontSize', g('.captcha__text', 'fontSize'), '16px')
+        chk('captchaText.color', g('.captcha__text', 'color'), 'rgba(79,70,229,1)')
+
+        /* 获取验证码按钮 */
+        chk('smsBtn.w', dim('.sms-btn', 'width'), 112)
+        chk('smsBtn.h', dim('.sms-btn', 'height'), 48)
+        chk('smsBtn.radius', g('.sms-btn', 'borderRadius'), '12px')
+        chk('smsBtn.bg', g('.sms-btn', 'backgroundColor'), 'rgba(239,246,255,1)')
+        chk('smsBtn.borderColor', g('.sms-btn', 'borderTopColor'), 'rgba(191,219,254,1)')
+        chk('smsBtnText.fontSize', g('.sms-btn__text', 'fontSize'), '13px')
+        chk('smsBtnText.color', g('.sms-btn__text', 'color'), 'rgba(37,99,235,1)')
+        chk('fieldTipText.fontSize', g('.field__tip-text', 'fontSize'), '12px')
+        chk('fieldTipText.color', g('.field__tip-text', 'color'), 'rgba(148,163,184,1)')
+
+        /* 主按钮 / 分隔 / 微信 / 协议 */
+        var tipR = rectFor(doc, '.field__tip'), submitR = rectFor(doc, '.submit'), dividerR = rectFor(doc, '.divider'), wechatR = rectFor(doc, '.wechat'), agreeR = rectFor(doc, '.agree')
+        chk('submit.h', dim('.submit', 'height'), 50)
+        chk('submit.radius', g('.submit', 'borderRadius'), '14px')
+        chk('submit.bg', g('.submit', 'backgroundColor'), 'rgba(37,99,235,1)')
+        chk('submitText.fontSize', g('.submit__text', 'fontSize'), '16px')
+        chk('submitGap', tipR && submitR ? Math.round(submitR.top - tipR.bottom) : null, 24)
+        chk('dividerGap', submitR && dividerR ? Math.round(dividerR.top - submitR.bottom) : null, 20)
+        chk('dividerText.fontSize', g('.divider__text', 'fontSize'), '12px')
+        chk('dividerText.color', g('.divider__text', 'color'), 'rgba(148,163,184,1)')
+        chk('wechatGap', dividerR && wechatR ? Math.round(wechatR.top - dividerR.bottom) : null, 20)
+        chk('wechat.h', dim('.wechat', 'height'), 50)
+        chk('wechat.radius', g('.wechat', 'borderRadius'), '14px')
+        chk('wechat.bg', g('.wechat', 'backgroundColor'), 'rgba(240,253,244,1)')
+        chk('wechat.borderColor', g('.wechat', 'borderTopColor'), 'rgba(187,247,208,1)')
+        chk('wechatText.fontSize', g('.wechat__text', 'fontSize'), '15px')
+        chk('wechatText.color', g('.wechat__text', 'color'), 'rgba(21,128,61,1)')
+        chk('agreeGap', wechatR && agreeR ? Math.round(agreeR.top - wechatR.bottom) : null, 20)
+        chk('agreeBox.w', dim('.agree__box', 'width'), 18)
+        chk('agreeBox.h', dim('.agree__box', 'height'), 18)
+        chk('agreeBox.radius', g('.agree__box', 'borderRadius'), '6px')
+        chk('agreeText.fontSize', g('.agree__text', 'fontSize'), '12px')
+        chk('agreeText.color', g('.agree__text', 'color'), 'rgba(100,116,139,1)')
+
+        /* 免责卡片 / 页脚 */
+        var cardR2 = rectFor(doc, '.card'), discR = rectFor(doc, '.disclaimer')
+        chk('disclaimerGap', cardR2 && discR ? Math.round(discR.top - cardR2.bottom) : null, 16)
+        chk('disclaimer.bg', g('.disclaimer', 'backgroundColor'), 'rgb(255,255,255)')
+        chk('disclaimer.radius', g('.disclaimer', 'borderRadius'), '16px')
+        chk('disclaimer.paddingTop', g('.disclaimer', 'paddingTop'), '16px')
+        chk('disclaimer.paddingLeft', g('.disclaimer', 'paddingLeft'), '20px')
+        chk('disclaimer.borderColor', g('.disclaimer', 'borderTopColor'), 'rgba(238,242,247,1)')
+        chk('disclaimerTitle.fontSize', g('.disclaimer__title', 'fontSize'), '14px')
+        chk('disclaimerTitle.color', g('.disclaimer__title', 'color'), 'rgba(15,23,42,1)')
+        chk('disclaimerBody.fontSize', g('.disclaimer__body', 'fontSize'), '12px')
+        chk('disclaimerBody.color', g('.disclaimer__body', 'color'), 'rgba(100,116,139,1)')
+        chk('page.bg', g('.login-page', 'backgroundColor'), 'rgba(248,250,252,1)')
+        chk('footerText.fontSize', g('.footer__text', 'fontSize'), '11px')
+        chk('footerText.color', g('.footer__text', 'color'), 'rgba(148,163,184,1)')
+
+        return checks
+      }
+
+      function collect(doc, win) {
+        var de = doc.documentElement
+        var out = {}
+        out.innerWidth = win.innerWidth
+        out.innerHeight = win.innerHeight
+        out.docScrollWidth = de.scrollWidth
+        out.docScrollHeight = de.scrollHeight
+
+        /* 溢出统计：uni-app 内部测量元素（uni-resize-sensor / uni-picker 空 div）不计入（见 dev SKILL §5） */
+        var raw = []
+        var overflowing = all(doc, '*').filter(function (e) {
+          var r = e.getBoundingClientRect()
+          if (!(r.width > 0 && (r.right > win.innerWidth + 0.5 || r.left < -0.5))) return false
+          var host = e.closest && e.closest('uni-resize-sensor, uni-picker')
+          if (host) {
+            raw.push({ tag: e.tagName, cls: String(e.className), left: Math.round(r.left), right: Math.round(r.right), w: Math.round(r.width), uniInternal: host.tagName })
+            return false
+          }
+          return true
+        })
+        out.overflowingCount = overflowing.length
+        out.uniInternalNoiseCount = raw.length
+        out.uniInternalNoise = raw.slice(0, 6)
+        out.overflowing = overflowing.slice(0, 6).map(function (e) {
+          var r = e.getBoundingClientRect()
+          return { tag: e.tagName, cls: String(e.className), left: Math.round(r.left), right: Math.round(r.right), w: Math.round(r.width) }
+        })
+
+        var body = doc.body.innerText
+        out.missingTexts = needText.filter(function (t) { return body.indexOf(t) < 0 })
+        out.needTextCount = needText.length
+        out.placeholders = all(doc, 'input').map(function (e) { return e.getAttribute('placeholder') })
+        out.inputCount = all(doc, 'input').length
+        out.buttons = texts(doc, '.submit__text, .sms-btn__text, .wechat__text')
+        out.fieldLabels = texts(doc, '.field__label')
+        out.dividers = all(doc, '.field__divider').length
+        out.captchaText = textOf(doc, '.captcha__text')
+        out.toast = toastText(doc)
+        out.hash = hashNow()
+        out.storageToken = storageToken()
+        out.checks = build(doc, win)
+        out.checkFails = out.checks.filter(function (c) { return !c.ok }).map(function (c) { return c.k + ': got ' + JSON.stringify(c.got) + ' want ' + JSON.stringify(c.want) })
+        out.checkFailCount = out.checkFails.length
+        out.checkCount = out.checks.length
+        out.brand = rect(doc, '.brand')
+        out.card = rect(doc, '.card')
+        out.submit = rect(doc, '.submit')
+        out.wechat = rect(doc, '.wechat')
+        out.agreeBox = rect(doc, '.agree__box')
+        out.disclaimer = rect(doc, '.disclaimer')
+        out.footer = rect(doc, '.footer')
+        out.fieldBoxRects = rects(doc, '.field__box')
+        out.captcha = rect(doc, '.captcha')
+        out.smsBtn = rect(doc, '.sms-btn')
+        out.userAgent = win.navigator.userAgent
+        return out
+      }
+
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
+
+      function clickIn(sel) {
+        var doc = f.contentDocument
+        var el = doc.querySelector(sel)
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+      /** uni-app H5 的 <input> 渲染成 <uni-input> 宿主 → 必须写内层原生 input 才触发 v-model（见 dev SKILL §4.2） */
+      function typeIn(sel, value) {
+        var host = f.contentDocument.querySelector(sel)
+        if (!host) return 'NOT_FOUND'
+        var el = host.tagName === 'INPUT' ? host : host.querySelector('input')
+        if (!el) return 'NO_NATIVE_INPUT'
+        el.focus()
+        el.value = value
+        el.dispatchEvent(new Event('input', { bubbles: true }))
+        return 'TYPED'
+      }
+      function toastText(doc) {
+        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
+        return el ? el.textContent.trim() : ''
+      }
+      function hashNow() { try { return String(f.contentWindow.location.hash) } catch (e) { return 'ERR:' + e.message } }
+      function storageToken() {
+        try { return String(f.contentWindow.localStorage.getItem('aap_token')) } catch (e) { return 'ERR:' + e.message }
+      }
+
+      function waitFor(sel, maxTries) {
+        return new Promise(function (resolve) {
+          var n = 0
+          function tick() {
+            n++
+            var ok = false
+            try { ok = !!f.contentDocument.querySelector(sel) } catch (e) { ok = false }
+            if (ok) return resolve('READY(tries=' + n + ')')
+            if (n >= (maxTries || 40)) return resolve('TIMEOUT(tries=' + n + ')')
+            setTimeout(tick, 200)
+          }
+          tick()
+        })
+      }
+
+      function scenario() {
+        var m = location.search.match(/scenario=([a-zA-Z-]+)/)
+        return m ? m[1] : ''
+      }
+
+      async function main() {
+        await waitFor('[data-test="btn-login"]')
+        await sleep(1500)
+        var ready = null
+        try {
+          ready = collect(f.contentDocument, f.contentWindow)
+          f.style.height = ready.docScrollHeight + 'px'
+          ready.iframeHeightForShot = ready.docScrollHeight
+          sink(1, ready)
+        } catch (e) {
+          sink(1, { error: String(e && e.message) })
+          return
+        }
+        var sc = scenario()
+        if (location.search.indexOf('noaction') !== -1 || location.search.indexOf('shot=1') !== -1) return
+
+        /* phase2：空表单点「登录 / 注册」→ 只提示，不应发请求 */
+        var cLoginEmpty = clickIn('[data-test="btn-login"]')
+        await sleep(900)
+        var toastEmpty = toastText(f.contentDocument)
+        sink(2, {
+          scenario: 'login-empty',
+          clicked: cLoginEmpty,
+          toast: toastEmpty,
+          hash: hashNow(),
+          storageToken: storageToken(),
+          requestHint: '本轮不应出现任何 POST /api/v1/auth/*（以 evidence/requests-序号1*.txt 为准）'
+        })
+
+        /* phase3：只填手机号 → 短信码缺失提示 */
+        var tPhone = typeIn('[data-test="phone"] input', '13800138000')
+        await sleep(300)
+        var cLoginNoSms = clickIn('[data-test="btn-login"]')
+        await sleep(900)
+        sink(3, {
+          scenario: 'login-no-sms',
+          typedPhone: tPhone,
+          clicked: cLoginNoSms,
+          toast: toastText(f.contentDocument),
+          hash: hashNow(),
+          storageToken: storageToken(),
+          requestHint: '同上：不应出现 POST'
+        })
+
+        /* phase4：手机号+短信码齐备但未勾协议 → 同意门前置提示；微信登录同样被拦 */
+        var tSms = typeIn('[data-test="smsCode"] input', '123456')
+        await sleep(300)
+        var cLoginNoAgree = clickIn('[data-test="btn-login"]')
+        await sleep(900)
+        var toastNoAgree = toastText(f.contentDocument)
+        var cWechatNoAgree = clickIn('[data-test="btn-wechat"]')
+        await sleep(900)
+        sink(4, {
+          scenario: 'login-no-agree',
+          typedSms: tSms,
+          clicked: cLoginNoAgree,
+          toast: toastNoAgree,
+          clickedWechat: cWechatNoAgree,
+          toastWechat: toastText(f.contentDocument),
+          hash: hashNow(),
+          storageToken: storageToken(),
+          requestHint: '同意门未过：不应出现 POST /auth/sms/send 或 /auth/sms/login'
+        })
+
+        if (sc === 'guard') return
+
+        /* phase5：勾协议 → 获取验证码（真实 POST）→ 登录（真实 POST）→ 写 token + 跳工作台 */
+        var cAgree = clickIn('[data-test="agree-box"]')
+        await sleep(300)
+        var tCaptcha = typeIn('[data-test="captcha"] input', 'A7K9')
+        await sleep(300)
+        var cSend = clickIn('[data-test="btn-send-sms"]')
+        await sleep(1200)
+        var toastSend = toastText(f.contentDocument)
+        var smsLabel = textOf(f.contentDocument, '.sms-btn__text')
+        sink(5, {
+          scenario: 'send-sms',
+          clickedAgree: cAgree,
+          typedCaptcha: tCaptcha,
+          clicked: cSend,
+          toast: toastSend,
+          smsLabel: smsLabel,
+          smsBtnDisabledClass: !!(f.contentDocument.querySelector('.sms-btn--disabled')),
+          requestHint: '应有且仅有 1 条 POST /api/v1/auth/sms/send'
+        })
+
+        var cLoginOk = clickIn('[data-test="btn-login"]')
+        await sleep(2000)
+        sink(6, {
+          scenario: 'login-ok',
+          clicked: cLoginOk,
+          toast: toastText(f.contentDocument),
+          hash: hashNow(),
+          storageToken: storageToken(),
+          navigatedToWorkbench: hashNow().indexOf('/pages/workbench/index') >= 0,
+          requestHint: '应有且仅有 1 条 POST /api/v1/auth/sms/login'
+        })
+      }
+      main()
+    </script>
+  </body>
+</html>

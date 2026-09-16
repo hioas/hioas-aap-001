@@ -1,12 +1,16 @@
 <template>
   <view class="login-page">
-    <!-- 品牌头部 -->
+    <!-- 品牌头部（设计 品牌头部 = Logo行[Logo方块 54x54 + spacer 12 + 品牌名块] + spacer 28 + 定位语块） -->
     <view class="brand">
-      <view class="brand__logo">
-        <view class="brand__logo-mark" />
+      <view class="brand__row">
+        <view class="brand__logo">
+          <view class="brand__logo-mark" />
+        </view>
+        <view class="brand__id">
+          <text class="brand__name">云算接入</text>
+          <text class="brand__en">SUPPLIER ONBOARDING</text>
+        </view>
       </view>
-      <text class="brand__name">云算接入</text>
-      <text class="brand__en">SUPPLIER ONBOARDING</text>
       <text class="brand__title">API 供应商一站式接入</text>
       <text class="brand__subtitle">注册即开通，检测 · 报价 · 结算全流程线上化</text>
     </view>
@@ -111,13 +115,15 @@
       </view>
     </view>
 
-    <!-- 免责与合规说明 -->
-    <view class="disclaimer">
-      <view class="disclaimer__head">
-        <view class="disclaimer__mark" />
-        <text class="disclaimer__title">免责与合规说明</text>
+    <!-- 免责与合规说明（设计：container padding 0/16 里的一张白卡） -->
+    <view class="disclaimer-wrap">
+      <view class="disclaimer">
+        <view class="disclaimer__head">
+          <view class="disclaimer__mark" />
+          <text class="disclaimer__title">免责与合规说明</text>
+        </view>
+        <text class="disclaimer__body">本平台仅提供 API 接入检测与报价撮合服务，不对供应商上游资源合法性及稳定性作担保，请如实提交资料。</text>
       </view>
-      <text class="disclaimer__body">本平台仅提供 API 接入检测与报价撮合服务，不对供应商上游资源合法性及稳定性作担保，请如实提交资料。</text>
     </view>
 
     <view class="footer">
@@ -241,10 +247,17 @@ function onWechatLogin() {
   align-items: flex-start;
   box-sizing: border-box;
 
+  /* Logo行：Logo方块 + spacer 12 + 品牌名块（设计 layout=horizontal alignItems=center） */
+  &__row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
   &__logo {
-    width: 48px;
-    height: 48px;
-    border-radius: $radius-md;
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
     background: $color-bg-card;
     display: flex;
     align-items: center;
@@ -260,41 +273,49 @@ function onWechatLogin() {
     transform: rotate(45deg);
   }
 
+  /* 品牌名块：名称 / 英文行竖排（设计 品牌名块 宽 137，字号 20/12） */
+  &__id {
+    margin-left: $gap-md;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   &__name {
-    margin-top: $gap-lg;
     font-size: $font-2xl;
     line-height: 1.2;
     color: $color-bg-card;
   }
 
   &__en {
-    margin-top: $gap-xs;
     font-size: $font-xs;
     line-height: 1.2;
     letter-spacing: 1px;
-    color: rgba(255, 255, 255, 0.75);
+    color: $color-brand-en;
   }
 
+  /* 定位语块：Logo行 之后 spacer 28 */
   &__title {
-    margin-top: $gap-lg;
+    margin-top: 28px;
     font-size: $font-title;
     line-height: 1.25;
     color: $color-bg-card;
   }
 
   &__subtitle {
-    margin-top: $gap-sm;
+    margin-top: 6px;
     font-size: $font-base;
     line-height: 1.4;
-    color: rgba(255, 255, 255, 0.85);
+    color: $color-brand-subtitle;
   }
 }
 
 .card {
-  margin: -32px 16px 0;
+  /* 设计：表单卡片紧接品牌头部之下（无负外边距），container padding 0/16 */
+  margin: 0 16px;
   padding: 24px 20px;
   background: $color-bg-card;
-  border-radius: $radius-lg;
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -315,7 +336,7 @@ function onWechatLogin() {
     margin-top: $gap-xs;
     font-size: $font-xs;
     line-height: 1.3;
-    color: $color-text-secondary;
+    color: $color-text-muted;
   }
 }
 
@@ -327,15 +348,17 @@ function onWechatLogin() {
   &__label {
     font-size: $font-sm;
     line-height: 1.3;
-    color: $color-text-secondary;
+    color: $color-text-secondary-2;
   }
 
+  /* 设计：输入框 h48 / r12 / 底 rgba(248,250,252,1) / 描边 rgba(226,232,240,1) / padding 0 12 */
   &__box {
     margin-top: $gap-sm;
-    height: $tap-min;
+    height: 48px;
     padding: 0 $gap-md;
+    background: $color-bg-page;
     border: 1px solid $color-border;
-    border-radius: $radius-md;
+    border-radius: 12px;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -368,13 +391,14 @@ function onWechatLogin() {
 
   &__prefix {
     font-size: $font-base;
-    color: $color-text-primary;
+    color: $color-text-secondary-2;
     flex-shrink: 0;
   }
 
+  /* 设计：竖分隔 2x18，色 rgba(226,232,240,1) */
   &__divider {
-    width: 1px;
-    height: 20px;
+    width: 2px;
+    height: 18px;
     margin: 0 $gap-md;
     background: $color-border;
     flex-shrink: 0;
@@ -414,16 +438,19 @@ function onWechatLogin() {
     min-width: 0;
     font-size: $font-xs;
     line-height: 1.3;
-    color: $color-text-secondary;
+    color: $color-text-placeholder;
   }
 }
 
+/* 设计：图形验证码图 112x48 r12 底 rgba(238,242,255,1) 描边 rgba(224,231,255,1) 文字 rgba(79,70,229,1) */
 .captcha {
-  width: 72px;
-  height: 32px;
+  width: 112px;
+  height: 48px;
   flex-shrink: 0;
-  border-radius: $radius-sm;
+  border-radius: 12px;
   background: $color-primary-weak-2;
+  border: 1px solid $color-captcha-border;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -431,16 +458,19 @@ function onWechatLogin() {
   &__text {
     font-size: $font-lg;
     letter-spacing: 2px;
-    color: $color-brand;
+    color: $color-captcha-text;
   }
 }
 
+/* 设计：获取验证码按钮 112x48 r12 底 rgba(239,246,255,1) 描边 rgba(191,219,254,1) 文字 13 rgba(37,99,235,1) */
 .sms-btn {
-  padding: 0 $gap-md;
-  height: 32px;
+  width: 112px;
+  height: 48px;
   flex-shrink: 0;
-  border-radius: $radius-sm;
+  border-radius: 12px;
   background: $color-primary-weak;
+  border: 1px solid $color-brand-en;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -456,10 +486,11 @@ function onWechatLogin() {
   }
 }
 
+/* 设计：主按钮 h50 r14（距上 24） */
 .submit {
   margin-top: 24px;
-  height: 48px;
-  border-radius: $radius-md;
+  height: 50px;
+  border-radius: 14px;
   background: $color-primary;
   display: flex;
   align-items: center;
@@ -471,8 +502,9 @@ function onWechatLogin() {
   }
 }
 
+/* 设计：主按钮之后 spacer 20 */
 .divider {
-  margin-top: 24px;
+  margin-top: 20px;
   display: flex;
   align-items: center;
 
@@ -489,11 +521,14 @@ function onWechatLogin() {
   }
 }
 
+/* 设计：微信登录按钮 h50 r14 底 rgba(240,253,244,1) 描边 rgba(187,247,208,1)，距上 20 */
 .wechat {
-  margin-top: $gap-lg;
-  height: 48px;
-  border-radius: $radius-md;
+  margin-top: 20px;
+  height: 50px;
+  border-radius: 14px;
   background: $color-wechat-weak;
+  border: 1px solid $color-wechat-border;
+  box-sizing: border-box;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -510,12 +545,12 @@ function onWechatLogin() {
 
   &__text {
     font-size: $font-md;
-    color: $color-wechat;
+    color: $color-wechat-text;
   }
 }
 
 .agree {
-  margin-top: $gap-lg;
+  margin-top: 20px;
 
   &__row {
     display: flex;
@@ -523,15 +558,17 @@ function onWechatLogin() {
     align-items: flex-start;
   }
 
+  /* 设计：勾选框 18x18 r6（含 1px 描边的外框尺寸） */
   &__box {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     margin-right: $gap-sm;
     margin-top: 2px;
     flex-shrink: 0;
     border: 1px solid $color-border;
-    border-radius: 3px;
+    border-radius: 6px;
     background: $color-bg-card;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -553,7 +590,7 @@ function onWechatLogin() {
     min-width: 0;
     font-size: $font-xs;
     line-height: 1.5;
-    color: $color-text-secondary;
+    color: $color-text-muted;
   }
 
   &__link {
@@ -561,8 +598,19 @@ function onWechatLogin() {
   }
 }
 
+/* 设计：免责说明 = container(padding 0/16) 内一张白卡，卡 padding 16/20 r16 描边 rgba(238,242,247,1)，距表单卡片 16 */
+.disclaimer-wrap {
+  margin-top: $gap-lg;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
 .disclaimer {
-  margin: 24px 20px 0;
+  padding: 16px 20px;
+  background: $color-bg-card;
+  border: 1px solid $color-border-chip;
+  border-radius: 16px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
 
@@ -577,7 +625,7 @@ function onWechatLogin() {
     height: 14px;
     border-radius: 50%;
     border: 1px solid $color-text-placeholder;
-    margin-right: $gap-xs;
+    margin-right: 6px;
     flex-shrink: 0;
   }
 
@@ -590,12 +638,13 @@ function onWechatLogin() {
     margin-top: $gap-sm;
     font-size: $font-xs;
     line-height: 1.6;
-    color: $color-text-secondary;
+    color: $color-text-muted;
   }
 }
 
+/* 设计：底部说明 padding 32/0/32/0 */
 .footer {
-  margin: 24px 0 32px;
+  padding: 32px 0;
   display: flex;
   flex-direction: column;
   align-items: center;

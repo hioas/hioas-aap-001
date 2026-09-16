@@ -1,0 +1,11 @@
+warning: Failed to set cwd to temp dir
+PASS  GET  /api/v1/quotes/q9/items          code=0  ← 序号 9 保存并继续 → /pages/model-pricing/index?quoteId=q9 的回落入口（src/api/quote.ts listItems）
+PASS  GET  /api/v1/quotes                   code=0  ← 序号 8 报价单列表（quoteApi.list）
+PASS  GET  /api/v1/credentials              code=0  ← 序号 3/4/9 凭证列表（credentialApi.list）
+PASS  GET  /api/v1/usage/summary            code=0  ← 序号 2 工作台 / 序号 22 用量概览（usageApi.summary）
+PASS  GET  /api/v1/provider/profile         code=0  ← 序号 2 工作台企业信息 / 序号 23 账号信息（providerApi.profile）
+PASS  POST /api/v1/auth/sms/send            code=0  ← 序号 1 登录注册「获取验证码」（src/api/auth.ts sendSms）
+PASS  POST /api/v1/auth/sms/login           code=0  ← 序号 1 登录注册「登录 / 注册」（src/api/auth.ts login；无 token → afterLogin 写空 token）
+PASS  反向体检：mock 目录 api 下所有 fixture 均可按路径取到
+---
+结论：全部 PASS（FAIL 0）
