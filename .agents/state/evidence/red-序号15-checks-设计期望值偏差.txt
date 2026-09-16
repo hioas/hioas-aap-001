@@ -1,0 +1,25 @@
+===== 红基线转录 · 序号 15（page-15-2「【合同与通知】合同签署 2」→ /pages/contract/index）
+===== 载体页 __measure-contract.html（430 宽 iframe + 239 条设计期望值 checks）· 修复前源码 + 最终版探针
+===== 两次独立测量 run1/run2：全等字段 37/37，不一致 0（cmp-measure-runs.py … phase1）
+
+file: .agents/state/evidence/review-序号15-checks-red-run2.json
+phase1 : scenario=- state=- checkCount=239 checkFailCount=5 overflowing=0 docH=1231 docW=430
+    FAIL page.card1Shadow: got "rgba(15, 23, 42, 0.05) 0px 2px 10px 0px" want "rgba(15, 23, 42, 0.06) 0px 6px 20px 0px"
+    FAIL status.iconGlyph.w: got null want 26
+    FAIL status.iconGlyph.h: got null want 36
+    FAIL status.chip.text.lh: got 22 want 13.2
+    FAIL bar.pdf.ring: got "rgb(203, 213, 225) 0px 0px 0px 0.8px" want "rgb(203, 213, 225) 0px 0px 0px 1px"
+    missingTexts=[]
+
+===== 分诊（红 → 谁的责任）
+真页面偏差（本轮修）5 条：
+ ① page.card1Shadow：合同状态卡设计 effects = drop_shadow(0,6,20,rgba(15,23,42,0.06))，实现写成近似值 0 2px 10px rgba(15,23,42,0.05)
+    （旧台账备注「设计树读不到投影参数」作废 —— 本轮 dump-layout 实测 design.json 里 a05669ed 的 effects 就是 (0,6,20,.06)）
+ ②③ status.iconGlyph.w/h：状态图标字形（864f86d5 fs24 w26）缺 26×36 字形行盒（与同页顶部栏返回字形、提示卡/按钮字形的做法不一致）
+ ④ status.chip.text.lh：待签署标文字设计 lineHeight 1.2（= 13.2），实现写 22（= 标高）
+ ⑤ bar.pdf.ring：下载 PDF 按钮设计 stroke thickness = 1，实现写 0.8px
+探针自身期望值 bug（本轮同步修正，不计页面账）4 条：
+ · page.cardRadius：want 写 '16px'，而探针 norm() 把 computed '16px' 归一成数值 16 → chkStrs 的 String() 比较必失败
+ · status.content.inkX / rec.body.inkX：原按「后元素盒子左边 − 前元素右边」断 12，但这页的 padding-left 挂在后元素自身（容器 0 间距）→ 改为断墨迹左界 94 / 59
+ · status.deadline.toCardBottom：want 写 20，实际是卡 padding-bottom 20 + 内容列(42) 在 46 高盒里的居中余量 2 = 22
+ · tip.text.w：want 写盒子宽 276，而该元素 padding-left 8 → 盒子 284、内容宽 276 → 改判 computed width

@@ -1,0 +1,65 @@
+===== 序号 15 · page-15-2「【合同与通知】合同签署 2」→ /pages/contract/index =====
+===== 载体页 __measure-contract.html（430 宽 iframe + 239 条设计期望值 checks）· 绿基线（修复后源码 + 最终版探针）
+
+[1] 绿基线两轮（review-measure.sh 15-checks … 5315，无 scenario 只取 phase1）
+  轮1 review-序号15-checks-run1.json：
+  phase1: checkCount=239 checkFailCount=0 docH=1231 docW=430 overflowing=0 missingTexts=[]
+  轮2 review-序号15-checks-run2.json：
+  phase1: checkCount=239 checkFailCount=0 docH=1231 docW=430 overflowing=0 missingTexts=[]
+
+[2] 两次独立测量一致性（cmp-measure-runs.py … phase1）：见 cmp-序号15-checks-两轮一致性.txt
+
+[3] 像素对账（设计 PNG 430x1231 vs 实现截图 430x1231，±3）：见 cmp-序号15-设计PNGvs实现截图-结构带.txt
+  序号 6 像素对账：设计 PNG 430x1231 vs 实现 430 宽整页截图 430x1231
+  
+  --- 卡片内容区 x=36..394 ---
+    设计带起点 38 个（首 [57, 96, 102] 末 [1077, 1097, 1158]）
+    实现带起点 33 个（首 [58, 99, 103] 末 [1077, 1098, 1158]）
+    命中(±3) 35 / 未命中 3
+    命中处位移：中位 1 · 最小 -3 · 最大 3 · 0 位移 11 个
+      y 0..1000：30 个命中，位移 min -3 max 3 中位 1
+      y 1000..1425：5 个命中，位移 min 0 max 1 中位 0
+    未命中清单 → [208, 211, 217]
+  --- 明细条/进度条列 x=194..356 ---
+    设计带起点 17 个（首 [60, 130, 158] 末 [899, 928, 1176]）
+    实现带起点 17 个（首 [60, 130, 159] 末 [899, 928, 1176]）
+    命中(±3) 17 / 未命中 0
+    命中处位移：中位 0 · 最小 0 · 最大 1 · 0 位移 13 个
+      y 0..1000：16 个命中，位移 min 0 max 1 中位 0
+      y 1000..1425：1 个命中，位移 min 0 max 0 中位 0
+    未命中清单 → []
+  
+  结构带未命中合计: 3（命中 52）
+
+[4] 交互三出口（每口两轮，requests 逐字节相同）
+  ?scenario=pdf（下载 PDF = GET 文件地址 + uni.downloadFile 真取本地 PDF 200）
+  phase1: checkCount=239 checkFailCount=0 docH=1231 docW=430 overflowing=0 missingTexts=[]
+  phase2: {"scenario": "pdf", "clicked": "CLICKED", "apiProbe": {"windowUniDownloadFile": "undefined", "windowUniOpenDocument": "undefined"}, "toast": "", "hash": "#/pages/contract/index?contractId=c1"}
+  serve 实收 run1：
+  "GET /api/v1/contracts/c1 HTTP/1.1" 200 -
+  "GET /api/v1/contracts/c1/file HTTP/1.1" 200 -
+  serve 实收 run2（与 run1 diff 为空）：
+  "GET /api/v1/contracts/c1 HTTP/1.1" 200 -
+  "GET /api/v1/contracts/c1/file HTTP/1.1" 200 -
+  原始 serve 日志中的文件下载行（/files/ 不在 /api/ 过滤里，单独取证）：
+    [serve] "GET /files/CT-2024-0613-008.pdf HTTP/1.1" 200 -
+  ?scenario=sign（去签署 = uni-modal 二次确认 + POST /contracts/c1/sign + 重载）
+  phase1: checkCount=239 checkFailCount=0 docH=1231 docW=430 overflowing=0 missingTexts=[]
+  phase2: {"scenario": "sign", "clicked": "CLICKED", "confirmed": "CONFIRMED", "modalText": "确认签署确认对当前合同发起签署？取消确定", "toast": "签署申请已提交", "hash": "#/pages/contract/index?contractId=c1", "statusChip": "待签署"}
+  serve 实收 run1：
+  "GET /api/v1/contracts/c1 HTTP/1.1" 200 -
+  POST /api/v1/contracts/c1/sign body=
+  "POST /api/v1/contracts/c1/sign HTTP/1.1" 200 -
+  "GET /api/v1/contracts/c1 HTTP/1.1" 200 -
+  serve 实收 run2（与 run1 diff 为空）：
+  "GET /api/v1/contracts/c1 HTTP/1.1" 200 -
+  POST /api/v1/contracts/c1/sign body=
+  "POST /api/v1/contracts/c1/sign HTTP/1.1" 200 -
+  "GET /api/v1/contracts/c1 HTTP/1.1" 200 -
+  ?scenario=back（返回 = uni.navigateBack；栈内无上一页 → hash 不变 + 零额外请求）
+  phase1: checkCount=239 checkFailCount=0 docH=1231 docW=430 overflowing=0 missingTexts=[]
+  phase2: {"scenario": "back", "clicked": "CLICKED", "hash": "#/pages/contract/index?contractId=c1"}
+  serve 实收 run1：
+  "GET /api/v1/contracts/c1 HTTP/1.1" 200 -
+  "GET /api/v1/contracts/c1 HTTP/1.1" 200 -
+

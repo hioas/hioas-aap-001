@@ -15,7 +15,9 @@
     <view class="ct__body">
       <!-- 1) 合同状态卡（20 + max(46, 42) + 20 = 86） -->
       <view class="card card--status" data-testid="card-status">
-        <view class="status__icon"><view class="ic-contract" /></view>
+        <view class="status__icon">
+          <view class="icon-line icon-line--24"><view class="ic-contract" /></view>
+        </view>
         <view class="status__content">
           <view class="status__row">
             <text class="status__title" data-testid="status-title">{{ view.title }}</text>
@@ -330,12 +332,12 @@ async function doSign() {
 .card--records {
   box-shadow: 0 0 0 1px $color-border-chip;
 }
-/* 合同状态卡（设计树无 stroke，截图像素显示其下 12px 间隙有柔和投影 → 近似值，已记台账） */
+/* 合同状态卡（设计 a05669ed 声明 effects = drop_shadow(0,6,20,rgba(15,23,42,0.06)) → box-shadow） */
 .card--status {
   padding: 20px;
   display: flex;
   align-items: center;
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
 }
 .status__icon {
   width: 46px;
@@ -378,7 +380,8 @@ async function doSign() {
 .status-chip__text {
   font-size: 11px;
   font-weight: 500;
-  line-height: 22px;
+  /* 设计 4c410aee lineHeight 1.2 → 13.2（标高 22 由 .status-chip 定；文字在 22 高盒里居中） */
+  line-height: 13.2px;
 }
 .status__deadline {
   padding-top: 4px;
@@ -398,7 +401,8 @@ async function doSign() {
   padding-left: 8px;
   width: 276px;
   font-size: 11px;
-  line-height: 13.2px;
+  /* PNG 实测：设计文案墨迹 221..232（行盒 16），13.2 会让整行墨迹高 2px（对账抓出） */
+  line-height: 16px;
   color: $color-text-muted;
 }
 
@@ -528,8 +532,8 @@ async function doSign() {
 .btn--ghost {
   width: 126px;
   background: $color-bg-card;
-  /* 描边在盒外 → ring，保持固定高 48 */
-  box-shadow: 0 0 0 0.8px $color-border-strong;
+  /* 设计 stroke{align:center, thickness:1} #CBD5E1 → ring 1px（描边在盒外，不占布局） */
+  box-shadow: 0 0 0 1px $color-border-strong;
   flex-shrink: 0;
 }
 .btn--primary {

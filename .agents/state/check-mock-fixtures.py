@@ -187,6 +187,30 @@ CHECKS = [
         "must": ["items"],
         "check": lambda d: isinstance(d.get("items"), list) and len(d["items"]) > 0,
     },
+    {
+        "mock": "api-15",
+        "method": "GET",
+        "path": "/api/v1/contracts/c1",
+        "why": "序号 15 合同签署页取数 /pages/contract/index（contractApi.detail；缺则整页空态 + 错误 toast）",
+        "must": ["contract_no", "title"],
+        "check": lambda d: bool(d.get("contract_no")) and bool(d.get("title")),
+    },
+    {
+        "mock": "api-15",
+        "method": "GET",
+        "path": "/api/v1/contracts/c1/file",
+        "why": "序号 15「下载 PDF」先按 /contracts/{id}/file 取地址再 uni.downloadFile（缺则只 toast 不下载）",
+        "must": ["url"],
+        "check": lambda d: bool(d.get("url")),
+    },
+    {
+        "mock": "api-15",
+        "method": "POST",
+        "path": "/api/v1/contracts/c1/sign",
+        "why": "序号 15「去签署」二次确认后发起签署（缺则 serve 对未定义 POST 兜底假成功，签署结果不可辨）",
+        "must": ["status"],
+        "check": lambda d: bool(d.get("status")),
+    },
 ]
 
 
@@ -237,12 +261,19 @@ def run_group(only, exact=False):
         if not wait_ready(port):
             print("FAIL  serve.py 未就绪（port=%d）" % port)
             return 1
-        # --mock 允许传变体目录名（如 api-tmp-noauth）：按前缀归到基础 mock 名，否则变体会一条检查都不跑
+        # --mock 允许传变体目录名（如 api-tmp-noauth / api-tmp-d3-nomedia）：按前缀归到基础 mock 名，
+        # 否则变体会一条检查都不跑。⚠️ 只对 `-tmp-` 变体生效：早年写成「只要以 base- 开头就算变体」，
+        # 会让 api-15 这类「页面专属 mock 目录」误匹配到 api 的所有检查（2026-09-16 序号 15 轮修）。
+        def _is_variant(base):
+            return only is not None and only.startswith(base + "-tmp-")
+
         checks = [
             c
             for c in CHECKS
-            if only is None or c["mock"] == only or (not exact and only not in KNOWN and only.startswith(c["mock"] + "-"))
+            if only is None or c["mock"] == only or (not exact and only not in KNOWN and _is_variant(c["mock"]))
         ]
+        if only is not None and not checks:
+            print("WARN  mock 目录 %s 没有任何 check（只跑反向体检）—— 若该页会调接口，请往 CHECKS 里补一条" % only)
         for c in checks:
             status, raw = request(port, c["method"], c["path"])
             if status != 200:
