@@ -1,0 +1,77 @@
+# 序号 1（登录注册）与 序号 2（工作台）修前红基线 —— 逐字节转录
+
+**来源与可信度**：下面两段是**本轮修前**（2026-09-16 08:38 / 08:42）载体页 430 宽实测的
+`checkFails` 字段，由 `.agents/state/show-measure-fields.py` 直接打印的当轮工具输出逐字节转录。
+被转录的 `review-序号1-run{1,2}.json` / `review-序号2-run{1,2}.json` 已在**修后复跑**中被覆盖
+（同一探针同一路径，无法同时保存修前/修后，见 .agents/state/aap-tdd-state.md §3 命名约定）。
+修后数字见同目录 `review-序号1-run{1,2}.json`（checkFailCount 0）、`review-序号2-run{1,2}.json`（checkFailCount 0）。
+
+```
+# 序号 1 · phase1 · checkCount=93 checkFailCount=49（run1 / run2 完全一致）
+["brandLogo.w: got \"48\" want \"54\"",
+ "brandLogo.h: got \"48\" want \"54\"",
+ "brandLogo.radius: got 10 want 16",
+ "brandEn.color: got \"rgb(255,255,255)\" want \"rgb(191,219,254)\"",
+ "brandSubtitle.color: got \"rgb(255,255,255)\" want \"rgb(199,215,254)\"",
+ "brand.logoToNameGapX: got \"-48\" want \"12\"",
+ "brand.nameToEn: got \"4\" want \"0\"",
+ "brand.rowCenteredY: got \"61\" want \"0\"",
+ "brand.logoRowToTitle: got \"74\" want \"28\"",
+ "brand.titleToSubtitle: got \"8\" want \"6\"",
+ "card.radius: got 14 want 20",
+ "brandBottomToCardTop: got \"-32\" want \"0\"",
+ "cardHint.color: got \"rgb(71,85,105)\" want \"rgb(100,116,139)\"",
+ "fieldLabel.color: got \"rgb(71,85,105)\" want \"rgb(51,65,85)\"",
+ "fieldBox.h: got \"44\" want \"48\"",
+ "fieldBox.radius: got 10 want 12",
+ "fieldBox.bg: got \"rgb(0,0,0)\" want \"rgb(248,250,252)\"",
+ "fieldPrefix.color: got \"rgb(15,23,42)\" want \"rgb(51,65,85)\"",
+ "fieldDivider.w: got \"1\" want \"2\"",
+ "fieldDivider.h: got \"20\" want \"18\"",
+ "fieldGap: got \"41\" want \"16\"（该 want 为探针口径错误，已改为按 .field frame 量＝16，见 __measure-login.html）",
+ "captcha.w: got \"72\" want \"112\"",
+ "captcha.h: got \"32\" want \"48\"",
+ "captcha.radius: got 6 want 12",
+ "captcha.borderColor: got \"rgb(0,0,0)\" want \"rgb(224,231,255)\"",
+ "captchaText.color: got \"rgb(29,78,216)\" want \"rgb(79,70,229)\"",
+ "smsBtn.w: got \"89\" want \"112\"",
+ "smsBtn.h: got \"32\" want \"48\"",
+ "smsBtn.radius: got 6 want 12",
+ "smsBtn.borderColor: got \"rgb(0,0,0)\" want \"rgb(191,219,254)\"",
+ "fieldTipText.color: got \"rgb(71,85,105)\" want \"rgb(148,163,184)\"",
+ "submit.h: got \"48\" want \"50\"",
+ "submit.radius: got 10 want 14",
+ "dividerGap: got \"24\" want \"20\"",
+ "wechatGap: got \"16\" want \"20\"",
+ "wechat.h: got \"48\" want \"50\"",
+ "wechat.radius: got 10 want 14",
+ "wechat.borderColor: got \"rgb(0,0,0)\" want \"rgb(187,247,208)\"",
+ "wechatText.color: got \"rgb(22,163,74)\" want \"rgb(21,128,61)\"",
+ "agreeGap: got \"16\" want \"20\"",
+ "agreeBox.radius: got 3 want 6",
+ "agreeText.color: got \"rgb(71,85,105)\" want \"rgb(100,116,139)\"",
+ "disclaimerGap: got \"24\" want \"16\"",
+ "disclaimer.bg: got \"rgb(0,0,0)\" want \"rgb(255,255,255)\"",
+ "disclaimer.radius: got 0 want 16",
+ "disclaimer.paddingTop: got 0 want 16",
+ "disclaimer.paddingLeft: got 0 want 20",
+ "disclaimer.borderColor: got \"rgb(0,0,0)\" want \"rgb(238,242,247)\"",
+ "disclaimerBody.color: got \"rgb(71,85,105)\" want \"rgb(100,116,139)\""]
+
+# 序号 2 · phase1 · checkCount=92 checkFailCount=7（run1 / run2 完全一致）
+["cardTitleSm.color: got \"rgb(71,85,105)\" want \"rgb(100,116,139)\"",
+ "legendValue.color: got \"rgb(100,116,139)\" want \"rgb(148,163,184)\"",
+ "metricsLabel.color: got \"rgb(100,116,139)\" want \"rgb(148,163,184)\"",
+ "modelRankText.colors: got \"rgb(15,23,42)|rgb(15,23,42)|rgb(15,23,42)|rgb(15,23,42)\" want \"rgb(37,99,235)|rgb(22,163,74)|rgb(217,119,6)|rgb(100,116,139)\"",
+ "modelCalls.color: got \"rgb(100,116,139)\" want \"rgb(148,163,184)\"",
+ "modelFooter.color: got \"rgb(100,116,139)\" want \"rgb(148,163,184)\"",
+ "todoText.color: got \"rgb(15,23,42)\" want \"rgb(51,65,85)\""]
+```
+
+修前另有两条与页面无关的探针口径修正（已在本轮改掉，避免误判为页面缺陷）：
+
+1. `fieldGap` 的 want 由「两输入框 frame 间距＝16」改为「两 `.field` frame 间距＝16」——
+   设计里 16 是**字段 frame 之间**的 spacer；按输入框量会额外带上「标签 18 + 间隔 8」。
+2. 修后第一次复跑还捞出两处真偏差（`brandEn.color` 得到 rgb(191,220,254)、`agreeBox` 20x20）——
+   前者是本轮新 token 的十六进制手误（`#bfdcfe` 应为 `#bfdbfe`），后者是勾选框缺 `box-sizing: border-box`
+   （设计 18x18 已含 1px 描边）；两处按「先红后绿」修完再复跑即 0 项。

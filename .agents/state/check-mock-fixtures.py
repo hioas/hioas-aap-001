@@ -73,6 +73,22 @@ CHECKS = [
         "check": None,
     },
     {
+        "mock": "api",
+        "method": "POST",
+        "path": "/api/v1/auth/sms/send",
+        "why": "序号 1 登录注册「获取验证码」（src/api/auth.ts sendSms）",
+        "must": ["ttl"],
+        "check": None,
+    },
+    {
+        "mock": "api",
+        "method": "POST",
+        "path": "/api/v1/auth/sms/login",
+        "why": "序号 1 登录注册「登录 / 注册」（src/api/auth.ts login；无 token → afterLogin 写空 token）",
+        "must": ["token", "role"],
+        "check": lambda d: bool(d.get("token")),
+    },
+    {
         "mock": "api-11",
         "method": "GET",
         "path": "/api/v1/quotes/items/qi1",
@@ -130,7 +146,12 @@ def main():
         if not wait_ready(port):
             print("FAIL  serve.py 未就绪（port=%d）" % port)
             return 1
-        checks = [c for c in CHECKS if only is None or c["mock"] == only]
+        # --mock 允许传变体目录名（如 api-tmp-noauth）：按前缀归到基础 mock 名，否则变体会一条检查都不跑
+        checks = [
+            c
+            for c in CHECKS
+            if only is None or c["mock"] == only or only.startswith(c["mock"] + "-")
+        ]
         for c in checks:
             status, raw = request(port, c["method"], c["path"])
             if status != 200:
