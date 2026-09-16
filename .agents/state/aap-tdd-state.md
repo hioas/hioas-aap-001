@@ -1,4 +1,4 @@
-STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D3 图例百分比统一口径本轮落地、D4/D5 的循环侧小改本轮落地；D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 2026-09-16 09:38（160 条 checks · 偏差 15→0 · 4 类偏差已修）→ 下一轮开工做 序号 4** ②队列 1 逐页复核（4~23 行的 checks 维度待补） ③队列 7（uni-picker 溢出口径） ④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。历史流水归档在 aap-notes-archive-2026-09-16.md，**不要每轮读**。
+STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D3 图例百分比统一口径本轮落地、D4/D5 的循环侧小改本轮落地；D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 2026-09-16 09:38（160 条 checks · 偏差 15→0）· 序号 4 已完成 2026-09-16 09:55（212 条 checks · 偏差 45→0 · 卡片边界像素级对齐设计 PNG）→ 下一轮开工做 序号 4-v1** ②队列 1 逐页复核（4~23 行的 checks 维度待补） ③队列 7（uni-picker 溢出口径） ④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。历史流水归档在 aap-notes-archive-2026-09-16.md，**不要每轮读**。
 LEASE: free until -
 
 # AAP TDD 推进 · 状态与目标（自驱动循环的单一事实来源）
@@ -118,6 +118,19 @@ LEASE: free until -
      修掉 4 类偏差：顶部栏 1px 分隔由 border 改为设计声明的 `drop_shadow(0,1,0,#F1F5F9)`（border 把栏高撑成 69，设计 68 → 整页 docScrollHeight 944→943）、
      顶部栏按设计 `3ad1d267` 加「顶部左侧」组（返回按钮 + 标题块 gap 12；修前被 space-between 撑到 99）、8 处字重按设计 fontFamily 对齐（Bold→700 ×3 / SemiBold→600 ×3 / Medium→500 ×2）、
      底部 TabBar 四项按设计各 76 宽 + space_between（修前 flex:1 = 100）。**下一轮：序号 4**。
+   - ✅ **序号 4 已完成 2026-09-16 09:55**：`__measure-submit.html` 重写为 430 宽 iframe + **212 条 checks**（红基线 **45/206** → 绿 **0/212**，两轮独立测量 33/33 全等）。
+     设计期望值口径升级为**两类来源**：①声明值（design.tree.json + node-probe/dump-node-fields）；
+     ②fit_content 行的**真实高度**取设计 PNG 色带实测（新增 `png-rows.py`/`png-profile.py`/`png-xruns.py`）。
+     据此修掉 7 类偏差，其中**卡边界做到像素级一致**：顶部栏 84→96（返回图标盒 24×24→26×36 = remixicon 24px 行框）、
+     卡高 126/169/132/343→**133/172/137/354**（= 设计 PNG 108/241·253/425·437/574·586/940）、
+     卡片描边 border→box-shadow（Figma center 描边不占布局，内容宽 356→358）、图标占位盒按设计声明尺寸（26/20/16/14/22 宽，字号×1.5 行框）、
+     提示文本左移 6→4、已配置字重 600→500、编辑图标盒 24×24→20×27。**关键模型**：设计里 fit_content 行高 = 图标字形行框（fontSize×1.5）。
+     证据：`evidence/review-序号4-checks-run{1,2}.json` · `red/green-序号4-checks-设计期望值*.txt` · `cmp-序号4-上一轮vs本轮.txt` ·
+     报告 `evidence/review-序号4-checks-报告.md` · 430 宽截图 `evidence/20260916-0955-序号4-提交接入凭证-checks轮-h5-430宽.png`。
+     设计帧重抓（09:59）sha256 逐字节相同（`29757a6f…`，无漂移）。**下一轮：序号 4-v1**（`__measure-form.html`，先补成 430 宽 iframe 体例）。
+   - ⚠️ 本轮踩到并写进 §5 的坑：重抓前必须先确认 Calicat 编辑器在浏览器里打开（否则 22 帧全 FAIL `请先在浏览器中打开文件`）；
+     `cmp-measure-runs.py` 对扁平文件也要传 phase 名（传 `flat`）；Chrome `--screenshot` 的中文路径会被 MSYS 弄坏 → 先写 ASCII 临时名再 `cp`；
+     探针自身 4 处口径错误（`.card__hint` 只有 2 处不是 3 处、`.card__title-row` 首个是 APIKey 卡、`.card__field` 的 8px 是 padding 不是间距、`declared()` 不认 `[data-testid=...]`）。
    - ⚠️ 本轮踩到并写进探针的 3 条口径（**探针自身**的坑，不是页面缺陷）：①设计里 chip 的「待检测 3」是 dot+label+count 三个节点用 flex `gap` 隔开，`textContent` **没有空格** → 分开断言 `chip__label`/`chip__count`；
      ②在 `padding` 容器内的卡片，左右边要按容器内边算（序号 3 的卡是 20/410，不是 16/414）；③`0.8px` 描边的 computed 是 **used value**（Chrome 取整成 1px）→ 判「样式表声明值」（探针新增 `declared(sel, prop)` 读 CSSOM），used 值另记一条；
      ④box-shadow 颜色 alpha=1 时 Chrome 序列化成 `rgb()`（`norm()` 已改成 alpha 感知，否则误报）。
@@ -221,6 +234,26 @@ LEASE: free until -
      与旧留证（`measure-序号3-无滚动条430.json`）差异**全部**为「垂直 1px 平移 + 新增探针维度」，`overflowingCount 0` · `docScrollWidth 430` 不变。
   ⑦**下轮开工第一件事**：队列 8 的 **序号 4**（= page-4-2「提交接入凭证」→ `/pages/credential-submit/index`，载体页 = `__measure-submit.html`（旧的、无 iframe 版式，需先补成 430 宽 iframe 体例）、mock 目录 = `api`）；其后 **4-v1**（page-24「接入凭证-表单」→ `/pages/credential-submit/form`，载体页 = `__measure-form.html`）。对照表见 `python .agents/state/survey-harness-routes.py`。
 
+- 2026-09-16 09:55（cron 轮 `aap-tdd-run-20260916-0945`）· **队列 8 第 2 页：序号 4 载体页补「设计期望值 checks」维度（212 条 · 偏差 45→0）+ 卡片边界做到与设计 PNG 像素级一致**：
+  ①**改名**：未执行 —— 队列 0 已被决策 D6 挂起（`hioas-*` 是仓库名约定，勿再重试），按「人类决策 > prompt」处理。
+  ②**设计帧重抓（人工指令 C）**：整包 22 帧先全 FAIL（`请先在浏览器中打开文件`）→ `cmd /c start ""` 拉起编辑器后重抓 page-4-2，
+     `design.json` **sha256 逐字节相同** `29757a6f…` → 画布当前状态 = 实现所依据的版本，无漂移。
+  ③**TDD 红→绿（本轮主交付）**：`__measure-submit.html` 从 175 行的旧体例重写为 430 宽 iframe + **212 条 checks**；
+     红基线 **checkFailCount 45/206**（两轮完全一致，转录 `evidence/red-序号4-checks-设计期望值偏差.txt`）→ 修后 **0/212**（`green-序号4-checks-设计期望值.txt`），
+     两轮独立测量 **33/33 字段全等**。
+  ④**期望值口径升级**：声明值（design.tree.json + `node-probe.py` + 新增 `dump-node-fields.py` 全字段 dump）+ fit_content 行的**真实高度**（设计 PNG 色带实测：
+     新增 `png-rows.py`（可打印 1 行长带）/`png-profile.py`（行剖面判文字行数）/`png-xruns.py`（行内 x 区间判换行））。**关键设计模型**：fit_content 行高 = 图标字形行框 = fontSize×1.5。
+  ⑤**修掉 7 类偏差**（`src/pages/credential-submit/index.vue`）：顶部栏高 84→**96**（返回图标盒 24×24→26×36 = 24px 行框 36）；
+     卡高 126/169/132/343→**133/172/137/354**（= 设计 PNG 卡边界 108/241·253/425·437/574·586/940，逐项相同；行框 18/16/21、安全提示盒 56）；
+     卡片描边 `border`→`box-shadow: 0 0 0 1px`（设计 stroke 为 Figma center 不占布局 → 内容宽 356→**358**，设计 358；
+     连带 inputBox/vendor/已配置 chip 右边 393→394）；图标占位盒按设计声明（26/20/16/14/22 宽 + 字号×1.5 行框，形状移入 `::before`，D5 仍为 CSS 占位）；
+     提示文本左移 6→**4**；「已配置」字重 600→**500**（设计 Medium）；编辑图标盒 24×24→20×27。
+  ⑥**像素对账（实现截图 vs 设计 PNG，同列 x=30 逐带）**：0..95/96..106/109..239/242..251/254..423/426..435/438..572/575..584/587..938 **逐带相同**；
+     唯一有意偏离 = 操作条 fixed（设计在文档流末尾 956..1040），栏高 84 与 `barPinned` 一致、`atBottom.lastCardFullyAboveBar true`。
+  ⑦**质量门**：`npm test` **1168/1168 · 72 files 连跑两轮** · `type-check` exit 0 · `build:mp-weixin` DONE（产物含 `box-shadow:0 0 0 1px`/`line-height:18px`/`26x36`/`16x21`）· `build:h5` DONE · `review-artifacts.py` 22/22 路由三件套齐备。
+  ⑧**与上一轮留证对比**：公共字段 14 全等、53 处差异全部可解释（本轮的 7 类修复 + 探针字段集升级 + 脱敏值口径）→ `evidence/cmp-序号4-上一轮vs本轮.txt`；报告 `evidence/review-序号4-checks-报告.md`。
+  ⑨**下轮开工第一件事**：队列 8 的 **序号 4-v1**（page-24「接入凭证-表单」→ `/pages/credential-submit/form`，载体页 `__measure-form.html` 需先补成 430 宽 iframe 体例）。
+
 ## 5. 关键命令（照抄可用）
 
 - 项目根：`E:\workspaces\hioas\hioas-aap-001`（远端 https://github.com/hioas/hioas-aap-001）
@@ -232,10 +265,19 @@ LEASE: free until -
 - **本轮新增探针**：`__measure-model-pricing-q9.html`（q9 回落：序号 9 保存并继续的落点）· `__diag-report-overflow.html`（溢出元素祖先链定位）
 - **生成复核报告**：`bash .agents/state/gen-review-report.sh <轮次id> <输出文件名>`
 - 设计树探针：`python .agents/state/node-probe.py <page-id>`（产出 `.agents/state/<page-id>-nodes.txt`，含几何/填充/内边距/文字）
+- **节点字段全量 dump**：`python .agents/state/dump-node-fields.py <page-id> <名字或文案片段>`（打印该节点在 design.json 里的**全部字段**：lineHeight / content / stroke / padding / gap / textAlignVertical …，判「声明值」的硬依据）
 - 设计截图像素量尺：`python .agents/state/png-bands.py <png> v|h <idx> [from] [to]`（同色色带 = 盒子边界；定卡高/间距/栏高最硬的依据）
+  - `python .agents/state/png-rows.py <png> v <x> <from> <to> [minLen]` —— 同族但**可打印长度 1 的色带**（1px 描边/子像素边界就藏在这些 1 行带里）
+  - `python .agents/state/png-profile.py <png> <x0> <y0> <x1> <y1> [minInk]` —— 区块**行剖面**（每行与主色不同的像素数 → 判文字行数/图标墨迹范围）
+  - `python .agents/state/png-xruns.py <png> <y> <x0> <x1>` —— 某一行「非主色」像素的 x 区间（判换行/文本覆盖宽度）
+- **设计帧重抓（复核前必做）**：先确认 Calicat 编辑器开在浏览器里（`cmd /c start "" https://www.calicat.cn/design/2095515676955668480`，否则整包重抓 22 帧全 FAIL「请先在浏览器中打开文件」），再
+  `python C:/Users/laitz/AppData/Local/hermes/skills/calicat/scripts/calicat_source.py page --url https://www.calicat.cn/design/2095515676955668480 --layer-id <layer_id> --page-id <id> --out "$LOCALAPPDATA/Temp/aap-live"` + `sha256sum` 与留证逐字节比对；整包用 `python E:/agent/aap-tools/recapture-all.py`（仓库外）。
+- 一次实测的关键字段速览：`python .agents/state/show-snapshot.py <run.json>`；页面元信息：`python .agents/state/show-page-meta.py <page-id>`（layer_id/name/截图 URL/抓取文件）
+- 430 宽截图：`bash .agents/state/shot-430.sh <输出.png> [载体页=__measure.html] [查询串=?shot=1]`
+  —— ⚠️ **输出路径用 ASCII**（Chrome 的 `--screenshot` 收到含中文的 MSYS 相对路径会写不出来，静默失败）：先写到 `$LOCALAPPDATA/Temp/x.png` 再 `cp` 成中文名。
 - 像素对账：`python .agents/state/text-rows.py`（同一脚本跑设计与实现，逐行文本带对比）
 - 台账取件：`python .agents/state/list-pending.py`（按序号列出未完成页面）
-- 两次独立测量一致性：`python .agents/state/cmp-measure-runs.py <runA.json> <runB.json> [phase]`（扁平单段文件自动兼容）
+- 两次独立测量一致性：`python .agents/state/cmp-measure-runs.py <runA.json> <runB.json> <phase>`（扁平单段文件自动兼容，**但仍必须传第 3 个参数，传 `flat`**）
 - **逐页复核一条龙**（本轮新增）：
   - 一页跑两轮 430 宽实测：`bash .agents/state/review-measure.sh <序号> <__measure-*.html> <mock目录> <端口>`
     → 证据 `.agents/state/evidence/review-序号<序号>-run{1,2}.json`

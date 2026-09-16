@@ -342,8 +342,10 @@ onMounted(load)
 }
 
 .submit-page__icon-btn {
-  width: 24px;
-  height: 24px;
+  /* 设计 a01faac9 返回图标 = remixicon 24px：盒宽 26，行框 24×1.5 = 36
+     —— 36 撑出顶部导航高 48+36+12 = 96（设计 PNG 实测 96；修前 24×24 → 栏高 84，全页上移 12） */
+  width: 26px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -391,6 +393,8 @@ onMounted(load)
 
 .chip__text--success {
   color: $color-success-text;
+  /* 设计 157197ab「已配置」= SourceHanSans-Medium（500）；主凭证仍为 SemiBold（600） */
+  font-weight: 500;
 }
 
 /* 表单区（design 0b3224f1） */
@@ -404,7 +408,9 @@ onMounted(load)
 .card {
   width: 100%;
   background: $color-bg-card;
-  border: 1px solid $color-border-chip;
+  /* 设计 stroke 是 Figma center 描边（不占布局）：用 border 会把内容宽压成 356，
+     而设计声明的内容宽是 358（= 398 - 20×2，design.tree.json 卡 padding [16,20,16,20]）→ 用 box-shadow 表达描边 */
+  box-shadow: 0 0 0 1px $color-border-chip;
   border-radius: 16px;
   padding: 16px 20px;
   display: flex;
@@ -424,7 +430,9 @@ onMounted(load)
   font-size: $font-sm;
   font-weight: 500;
   color: $color-text-secondary-2;
-  line-height: 1.2;
+  /* 设计「凭证名称/BaseURL/APIKey/模型清单」文本层声明 height=18（13px 字，行框 18）→ 行高必须给 18px，
+     否则卡片比设计矮 2.4px，下面所有元素整体上移 */
+  line-height: 18px;
 }
 
 .card__title-row {
@@ -448,7 +456,8 @@ onMounted(load)
 .card__note {
   font-size: $font-2xs;
   color: $color-text-placeholder;
-  line-height: 1.2;
+  /* 设计「说明行」声明 height=16（11px 字）→ 行框 16px */
+  line-height: 16px;
 }
 
 .card__field {
@@ -503,8 +512,9 @@ onMounted(load)
 }
 
 .input-box__action {
-  width: 24px;
-  height: 24px;
+  /* 设计 236156ed 编辑图标 = remixicon 18px（盒宽 20 · 行框 18×1.5=27） */
+  width: 20px;
+  height: 27px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -520,7 +530,8 @@ onMounted(load)
 }
 
 .card__hint-text {
-  margin-left: 6px;
+  /* 设计 名称校验提示/APIKey提示 的文本容器 padding=[0,0,0,4] → 与图标盒左间距 4（修前 6，文本整体右移 2） */
+  margin-left: 4px;
   font-size: $font-xs;
   color: $color-text-placeholder;
   line-height: 1.2;
@@ -547,7 +558,9 @@ onMounted(load)
   flex: 1;
   font-size: $font-xs;
   color: $color-warning-text-2;
-  line-height: 1.4;
+  /* 设计安全提示盒实测 56 高（padding 10 + 文本 2 行 × 18 行框，PNG 353..408）；
+     行框 = 12 × 1.5 = 18 —— 与图标字形行框同一口径 */
+  line-height: 18px;
 }
 
 /* 厂商分组（design 60022084 / ddfd78b5） */
@@ -567,7 +580,8 @@ onMounted(load)
   font-size: $font-sm;
   font-weight: 700;
   color: $color-text-primary;
-  line-height: 1.2;
+  /* 设计「厂商名」声明 height=18（13px 字 Bold）→ 行框 18px */
+  line-height: 18px;
 }
 
 .model-row {
@@ -603,7 +617,8 @@ onMounted(load)
   font-size: $font-sm;
   font-weight: 500;
   color: $color-text-tertiary;
-  line-height: 1.2;
+  /* 设计「模型名」声明 height=18（13px 字 Medium）→ 行框 18px（= 勾选框高，模型行高 18） */
+  line-height: 18px;
 }
 
 .model-row__name--checked {
@@ -622,7 +637,8 @@ onMounted(load)
   text-align: center;
   font-size: $font-2xs;
   color: $color-text-placeholder;
-  line-height: 1.2;
+  /* 设计「底部提示」声明 height=16（11px 字）→ 行框 16px */
+  line-height: 16px;
 }
 
 /* 底部固定操作条（design c735e46e） */
@@ -683,8 +699,21 @@ onMounted(load)
   line-height: 1.2;
 }
 
-/* 图标占位（设计稿为 remixicon 矢量图标，PRD08 禁 emoji → CSS 形状占位，与序号 1/2/3 一致） */
-.glyph--back {
+/* 图标占位（设计稿为 remixicon 矢量图标，PRD08 禁 emoji → CSS 形状占位，与序号 1/2/3 一致）
+   ⚠️ 占位形状画进 ::before，外层 .glyph--* 的**盒子**尺寸 = 设计图层的声明盒
+   （宽 = 图层 width；高 = 字号 × 1.5 行框）—— 图标盒撑起所在行的高度，
+   盒子给错会让图标后的文本与整张卡片的高度都对不上（见 __measure-submit.html 的 overriddenByDecision） */
+.glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+/* 返回图标（设计 a01faac9：24px → 26×36） */
+.glyph--back { width: 26px; height: 36px; }
+.glyph--back::before {
+  content: '';
   width: 9px;
   height: 9px;
   border-left: 2px solid $color-text-secondary-2;
@@ -693,34 +722,43 @@ onMounted(load)
   margin-left: 3px;
 }
 
-.glyph--name {
+/* 凭证名称图标（设计 20c5e850：18px → 20×27） */
+.glyph--name { width: 20px; height: 27px; }
+.glyph--name::before {
+  content: '';
   width: 14px;
   height: 14px;
   border: 1.5px solid $color-text-placeholder;
   border-radius: 3px;
   box-sizing: border-box;
-  flex: none;
 }
 
-.glyph--link {
+/* BaseURL 图标（设计 93df1e70：18px → 20×27） */
+.glyph--link { width: 20px; height: 27px; }
+.glyph--link::before {
+  content: '';
   width: 14px;
   height: 14px;
   border: 1.5px solid $color-text-placeholder;
   border-radius: 50%;
   box-sizing: border-box;
-  flex: none;
 }
 
-.glyph--key {
+/* APIKey 图标（设计 f29363b4：18px → 20×27） */
+.glyph--key { width: 20px; height: 27px; }
+.glyph--key::before {
+  content: '';
   width: 12px;
   height: 12px;
   border: 2px solid $color-text-placeholder;
   border-radius: 50%;
   box-sizing: border-box;
-  flex: none;
 }
 
-.glyph--edit {
+/* 脱敏框编辑图标（设计 236156ed：18px → 20×27） */
+.glyph--edit { width: 20px; height: 27px; }
+.glyph--edit::before {
+  content: '';
   width: 13px;
   height: 9px;
   border: 1.5px solid $color-text-placeholder;
@@ -729,24 +767,31 @@ onMounted(load)
   transform: rotate(-45deg);
 }
 
-.glyph--hint {
+/* 提示图标（设计 2fc23292 / a7fa3830：14px → 16×21；21 即设计提示行高） */
+.glyph--hint { width: 16px; height: 21px; }
+.glyph--hint::before {
+  content: '';
   width: 12px;
   height: 12px;
   border: 1.5px solid $color-text-placeholder;
   border-radius: 50%;
   box-sizing: border-box;
-  flex: none;
 }
 
-.glyph--shield {
+/* 安全提示图标（设计 346a4a81：18px → 20×27） */
+.glyph--shield { width: 20px; height: 27px; }
+.glyph--shield::before {
+  content: '';
   width: 14px;
   height: 14px;
   background: $color-warning-text;
   border-radius: 3px 3px 7px 7px;
-  flex: none;
 }
 
-.glyph--check {
+/* 「已配置」勾（设计 0464d2d8：12px → 14×18） */
+.glyph--check { width: 14px; height: 18px; }
+.glyph--check::before {
+  content: '';
   width: 7px;
   height: 4px;
   border-left: 1.5px solid $color-success;
@@ -754,6 +799,7 @@ onMounted(load)
   transform: rotate(-45deg);
 }
 
+/* 模型勾选态对勾（设计 cce69f8f：框 18×18 已由 .model-row__box 占位，形状保持原尺寸） */
 .glyph--tick {
   width: 8px;
   height: 4px;
@@ -763,17 +809,18 @@ onMounted(load)
   margin-bottom: 2px;
 }
 
+/* 提交检测图标（设计 863cb3fd：20px → 22×30） */
 .glyph--rocket {
-  width: 14px;
-  height: 14px;
+  width: 22px;
+  height: 30px;
   position: relative;
 }
 
 .glyph--rocket::before {
   content: '';
   position: absolute;
-  left: 0;
-  top: 3px;
+  left: 4px;
+  top: 11px;
   width: 9px;
   height: 8px;
   background: #ffffff;
@@ -783,8 +830,8 @@ onMounted(load)
 .glyph--rocket::after {
   content: '';
   position: absolute;
-  right: 0;
-  top: 0;
+  left: 13px;
+  top: 8px;
   width: 6px;
   height: 6px;
   border-top: 2px solid #ffffff;

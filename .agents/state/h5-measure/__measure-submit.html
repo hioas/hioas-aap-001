@@ -6,38 +6,476 @@
     <style>
       body { margin: 0; font: 12px monospace; }
       iframe { width: 430px; height: 900px; border: 0; }
-      pre { white-space: pre-wrap; }
+      /* 取数 <pre> 包进 0 尺寸 overflow:hidden：textContent 可读但不渲染、不会被 --screenshot 截进图 */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
     </style>
   </head>
   <body>
     <!-- 430x900 iframe 模拟小程序视口；只给 DOM 数字，不靠 vision 猜
-         页面 4：/pages/credential-submit/index ，凭证 id 走 uni storage 兜底（同源 localStorage 互通） -->
-    <iframe id="f" src="about:blank"></iframe>
-    <pre id="m">pending</pre>
+         页面 4：/pages/credential-submit/index（【检测验真】提交接入凭证 2，帧名「4. 报价端·小程序 ｜ 【检测验真】提交接入凭证 2」
+                  layer_id 9eaacf9c-a873-4046-b8b5-f7e695d18cca · 抓取 id page-4-2）
+         设计真源（两类，逐条对应）：
+           A. 声明值 = .calicat/raw/pages/page-4-2/design.tree.json + .agents/state/page-4-2-nodes.txt
+              （padding / gap / 固定宽高 / cornerRadius / stroke / fills / fontSize / fontFamily / 文案）
+           B. 盒子高度 = 设计 PNG 色带实测（fit_content 行的真实高度；命令可复现）：
+              curl -o design.png https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/2099898044323852288/canvas/image/2099898044323852288.png
+              python .agents/state/png-rows.py design.png v 30 90 960 1     # 卡边界：108/241 · 253/425 · 437/574 · 586/940
+              python .agents/state/png-rows.py design.png v 44 100 260 1    # 输入框 150..196（46 高）
+              python .agents/state/png-profile.py design.png 36 353 394 409  # 安全提示盒 353..408（56 高）
+              实测结果：顶部导航 96 · 卡高 133/172/137/354 · 卡间距 12 · 底部操作条 84
+              说明：设计里 fit_content 行的真实高度由**图标字形的行框**决定（remixicon fontSize×1.5：
+              顶部返回 24→36 撑出 栏高 96；提示行图标 14→21 撑出 卡1/卡3 的 21 高提示行）；
+              设计文本节点自带固定高 18（13px 标签/厂商名/模型名）与 16（11px 说明行/底部提示）。
+         期望值逐条写进 checks（got = 实现 DOM 实测，want = 上表声明值/实测高度）：
+           页面容器 430 宽 bg rgb(248,250,252)
+           顶部导航 padding 48/16/12/16 · bg 白 · 高 96（PNG）· 返回图标盒 26x36（remixicon 24px 行框 36）
+             · 标题块左移 12 · 标题 17px/700 rgb(15,23,42) · 主凭证 chip h22 r11 padding 0/8 bg rgb(239,246,255) 文字 11px/600 rgb(37,99,235)
+           表单区 padding 12/16/0/16（底部改为 108 避开固定条 = 有意偏离，见 overriddenByDecision）
+           卡片：白底 · r16 · padding 16/20 · 描边 1px rgb(238,242,247) · 左右 16/414 · 间距 12 · 高 133/172/137/354
+           标签 13px/500 rgb(51,65,85) 行高 18 · 字段行 上边距 8 · 输入框 46 高 r12 padding 0/12 bg rgb(248,250,252) 描边 rgb(226,232,240)
+             · 图标盒 20 宽 · 文本左移 8 · 值 14px/400 rgb(51,65,85)（脱敏值 14px/500）· 编辑图标盒 20x27
+           提示行 上边距 8 · 高 21 · 图标盒 16 宽 · 文本左移 4 · 文字 12px rgb(148,163,184)
+           安全提示 上边距 12 · bg rgb(255,251,235) r12 padding 10 · 盒高 56 · 图标盒 20 · 文本左移 8 · 文字 12px rgb(146,64,14)
+           已配置 chip h22 r11 padding 0/8 bg rgb(236,253,245) · 图标盒 14 · 间隙 4 · 文字 11px/500 rgb(21,128,61)
+           模型清单卡片 gap 12 · 标题行高 18 · 「已选 3 个」12px/600 rgb(37,99,235) · 说明行 高16 11px rgb(148,163,184)
+             · 厂商分组 bg rgb(248,250,252) r12 padding 12 gap 10 · 厂商名 13px/700 rgb(15,23,42) 高18
+             · 模型行 gap 10 · 勾选框 18x18 r5（选中 rgb(37,99,235) / 未选 白底 + 1.5px rgb(203,213,225)）
+             · 模型名 13px/500（选中 rgb(15,23,42) / 未选 rgb(71,85,105)）行高 18 · 规格 11px rgb(148,163,184)
+             · 底部提示 居中小字 11px rgb(148,163,184) 行高 16
+           底部固定操作条 高 84 · padding 12/16/24/16 · 保存草稿 156x48 r12 白底 1px rgb(203,213,225) · 文字 14px/500 rgb(71,85,105)
+             · 提交检测 230x48 r12 bg rgb(37,99,235) · 间隙 6 · 文字 15px/600 白
+         字重映射（设计 fontFamily 名 → CSS）：SourceHanSans-Bold→700 · SemiBold→600 · Medium→500 · Regular→400
+         overriddenByDecision（有意偏离，不计入偏差）：
+           - 图标形状 = D5 决策：CSS 形状占位（设计为 remixicon 矢字形）；但**盒子尺寸**按设计声明（宽 26/20/16/14、行框 高 fontSize×1.5），
+             否则图标后的文本整体偏移，且卡片高度不再等于设计
+           - 表单区 padding-bottom 108（设计 0 + 16 间隔）：设计里操作条在文档流末尾，实现用 position:fixed（小程序固定底栏），需留白避免遮挡
+           - 顶部导航 padding-top 加 var(--status-bar-height)（H5=0；小程序状态栏安全区，设计帧未含）
+           - 脱敏值按服务端 api_key_mask 渲染（mock 为 sk-prod-••••••••2f9a，设计稿 16 圆点 + 4f2a）→ 已知 mock/设计冲突，记 knownMockConflicts，不计偏差
+         ?shot=1 只渲染 iframe（不写 JSON），供截图
+         ⚠️ 触发方式必须用轮询取数（iframe onload 会因监听注册过晚而错过 → 静默拿到 pending） -->
+    <iframe id="f" src="/index.html#/pages/credential-submit/index?id=c1"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
     <script>
-      var PAGE = '/index.html#/pages/credential-submit/index?id=c1'
-      var f = document.getElementById('f')
-      var prepared = false
+      var SHOT_ONLY = /(\?|&)shot=1/.test(location.search)
 
-      f.addEventListener('load', function () {
-        if (!prepared) {
-          prepared = true
-          try {
-            f.contentWindow.uni.setStorageSync('aap_credential_id', 'c1')
-            f.contentWindow.location.hash = '#/pages/credential-submit/index'
-            f.contentWindow.location.reload()
-            return
-          } catch (e) {
-            /* storage 注入失败则直接用带 query 的地址继续 */
+      function all(d, sel) { return Array.prototype.slice.call(d.querySelectorAll(sel)) }
+      function rectEl(el) {
+        if (!el) return null
+        var r = el.getBoundingClientRect()
+        return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+      }
+      function rect(d, sel) { return rectEl(d.querySelector(sel)) }
+      function rects(d, sel) { return all(d, sel).map(rectEl) }
+      function textOf(d, sel) { var e = d.querySelector(sel); return e ? e.textContent.trim() : null }
+      function texts(d, sel) { return all(d, sel).map(function (e) { return e.textContent.trim() }) }
+      function styleOf(w, el, prop) { return el ? w.getComputedStyle(el)[prop] : null }
+      function c(d, w, sel, prop) { return styleOf(w, d.querySelector(sel), prop) }
+
+      /** 设计 PNG 色带实测（fit_content 行的真实高度，命令见文件头注释） */
+      var DESIGN = {
+        frameW: 430, topbarH: 96, barH: 84,
+        cardTop: [108, 253, 437, 586],
+        cardH: [133, 172, 137, 354],
+        cardGap: 12, cardLeft: 16, cardRight: 414,
+        noteH: 56, hintRowH: 21, labelH: 18, noteLineH: 16,
+        barPaddingTop: 12, barPaddingBottom: 24, barPaddingX: 16,
+        ghostW: 156, ghostH: 48, primaryW: 230, primaryH: 48, primaryGap: 6
+      }
+
+      /** 设计里每个独立文本图层（逐字抄自 design.tree.json，page-4-2）
+       *  ⚠️ 两个输入框的**值**（华东主线路 · GPT 通道 / https://api.example-llm.com/v1）不在 innerText 里
+       *  （<input> 的 value 不是文本节点）→ 由 aliasValue / baseUrlValue 两条 checks 直接断言，不放这里 */
+      var needText = [
+        '接入凭证', '主凭证',
+        '凭证名称', '建议 6–24 字',
+        'BaseURL',
+        '凭证仅用于平台检测与转发调用，全程加密存储，不会对外泄露。',
+        'APIKey', '已配置',
+        '如已轮换密钥，请在此更新后重新检测',
+        '模型清单', '已选 3 个', '按厂商勾选，自动生成本次接入检测清单',
+        'OpenAI', 'gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo',
+        'Anthropic', 'claude-3-5-sonnet', 'claude-3-opus',
+        '128K · 500 RPM', '16K · 200 RPM', '200K · 300 RPM', '200K · 120 RPM',
+        '仅展示 2 个厂商，查看更多厂商 ›',
+        '保存草稿', '提交检测'
+      ]
+
+      /** 设计行顺序 / 规格 / 勾选态（逐行抄自 design.tree.json） */
+      var designModelOrder = ['gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo', 'claude-3-5-sonnet', 'claude-3-opus']
+      var designSpecOrder = ['128K · 500 RPM', '128K · 500 RPM', '16K · 200 RPM', '200K · 300 RPM', '200K · 120 RPM']
+      var designChecked = [true, true, false, true, false]
+      var designVendorOrder = ['OpenAI', 'Anthropic']
+
+      /** 已知 mock/设计冲突（同一份共享 mock 无法同时满足两帧设计值，非页面缺陷）：
+       *  脱敏值：设计稿 page-4-2 为 sk-••••••••••••••••4f2a；共享 mock c1 为 sk-prod-••••••••2f9a（page-9 需求） */
+      var knownMockConflicts = {
+        apiKeyMask: { design: 'sk-••••••••••••••••4f2a', mock: 'sk-prod-••••••••2f9a' }
+      }
+
+      /** 归一化：48px → 48；rgba(29,78,216,1) → 'rgb(29,78,216)'（alpha=1 时 Chrome 序列化成 rgb()）；
+       *  alpha≠1 保留 'rgba(r,g,b,a)' */
+      function norm(v) {
+        if (v === null || v === undefined) return v
+        var s = String(v).trim()
+        var m = s.match(/^(-?\d+(?:\.\d+)?)px$/)
+        if (m) return Number(m[1])
+        var r = s.match(/^rgba?\(([^)]+)\)$/)
+        if (r) {
+          var p = r[1].split(',').map(function (x) { return Number(String(x).trim()) })
+          if (p.length > 3 && p[3] !== 1) return 'rgba(' + p[0] + ',' + p[1] + ',' + p[2] + ',' + p[3] + ')'
+          return 'rgb(' + p.slice(0, 3).join(',') + ')'
+        }
+        return s
+      }
+
+      function build(doc, win) {
+        var checks = []
+        function chk(k, got, want) {
+          var gg = norm(got), ww = norm(want)
+          checks.push({ k: k, got: gg, want: ww, ok: gg === ww })
+        }
+        function chkS(k, got, want) { checks.push({ k: k, got: got, want: want, ok: got === want }) }
+        function dim(sel, key) { var r = rect(doc, sel); return r ? r[key] : null }
+        function c(sel, prop) { return styleOf(win, doc.querySelector(sel), prop) }
+        function cs(sel, prop) { return all(doc, sel).map(function (e) { return styleOf(win, e, prop) }) }
+        /** 读样式表里的**声明值**（computed 是 used value：Chrome 会把 1.5px/0.8px 取整） */
+        function declared(sel, prop) {
+          var sheets = doc.styleSheets
+          for (var s = 0; s < sheets.length; s++) {
+            var rules
+            try { rules = sheets[s].cssRules } catch (e) { continue }
+            for (var r = 0; r < rules.length; r++) {
+              var rule = rules[r]
+              var st = rule.selectorText
+              if (!st || !rule.style) continue
+              var parts = st.split(',')
+              for (var p = 0; p < parts.length; p++) {
+                var base = parts[p].replace(/\[[^\]]*\]/g, '').trim()
+                if (base === sel) {
+                  var v = rule.style[prop]
+                  if (v) return v
+                }
+              }
+            }
+          }
+          return null
+        }
+        /** box-shadow → {x,y,blur,spread,color}（Chrome 序列化为「颜色 偏移 模糊 扩散」，颜色在前） */
+        function shadowOf(sel) {
+          var el = doc.querySelector(sel)
+          var none = { x: null, y: null, blur: null, spread: null, color: null }
+          if (!el) return none
+          var s = win.getComputedStyle(el).boxShadow
+          if (!s || s === 'none') return none
+          var m = s.match(/^(rgba?\([^)]*\)|\S+)\s+(-?[\d.]+)px\s+(-?[\d.]+)px\s+(-?[\d.]+)px(?:\s+(-?[\d.]+)px)?/)
+          if (!m) return { x: null, y: null, blur: null, spread: null, color: s.replace(/\s+/g, '') }
+          return {
+            x: Number(m[2]), y: Number(m[3]), blur: Number(m[4]),
+            spread: m[5] === undefined ? 0 : Number(m[5]),
+            color: m[1].replace(/\s+/g, '')
           }
         }
-        setTimeout(measure, 4000)
-      })
-      f.src = PAGE
+
+        /* ── 页面容器（设计 f4c725a0 提交接入凭证页） ─────────────── */
+        chk('page.frameWidth', dim('.submit-page', 'w'), DESIGN.frameW)
+        chk('page.bg', c('.submit-page', 'backgroundColor'), 'rgba(248,250,252,1)')
+        chk('page.flexDir', c('.submit-page', 'flexDirection'), 'column')
+
+        /* ── 顶部导航（设计 0fa01a4a · padding 48/16/12/16 · 高 96） ── */
+        chk('topbar.paddingTop', c('.submit-page__topbar', 'paddingTop'), '48px')
+        chk('topbar.paddingRight', c('.submit-page__topbar', 'paddingRight'), '16px')
+        chk('topbar.paddingBottom', c('.submit-page__topbar', 'paddingBottom'), '12px')
+        chk('topbar.paddingLeft', c('.submit-page__topbar', 'paddingLeft'), '16px')
+        chk('topbar.bg', c('.submit-page__topbar', 'backgroundColor'), 'rgba(255,255,255,1)')
+        chk('topbar.height', dim('.submit-page__topbar', 'h'), DESIGN.topbarH)
+        chk('topbar.alignItems', c('.submit-page__topbar', 'alignItems'), 'center')
+        chk('topbar.top', dim('.submit-page__topbar', 'top'), 0)
+
+        /* 返回图标盒（设计 a01faac9：remixicon 24px → 盒宽 26 · 行框 24×1.5=36，撑出栏高 96） */
+        var back = rect(doc, '[data-testid="back-btn"]')
+        var title = rect(doc, '.submit-page__title')
+        chk('backBox.w', back && back.w, 26)
+        chk('backBox.h', back && back.h, 36)
+        chk('backBox.left', back && back.x, 16)
+        chk('backBox.centerY', back ? back.top + back.h / 2 : null, 48 + 36 / 2)
+        chk('title.leftGap', back && title ? title.x - back.right : null, 12)
+        chk('title.text', textOf(doc, '.submit-page__title'), '接入凭证')
+        chk('title.fontSize', c('.submit-page__title', 'fontSize'), '17px')
+        chk('title.fontWeight', c('.submit-page__title', 'fontWeight'), '700')
+        chk('title.color', c('.submit-page__title', 'color'), 'rgba(15,23,42,1)')
+
+        /* 主凭证 chip（设计 62c388f2：h22 · r11 · padding 0/8 · bg rgb(239,246,255)） */
+        var chip = rect(doc, '[data-testid="primary-chip"]')
+        chk('primaryChip.h', chip && chip.h, 22)
+        chk('primaryChip.radius', c('[data-testid="primary-chip"]', 'borderRadius'), '11px')
+        chk('primaryChip.paddingLeft', c('[data-testid="primary-chip"]', 'paddingLeft'), '8px')
+        chk('primaryChip.bg', c('[data-testid="primary-chip"]', 'backgroundColor'), 'rgba(239,246,255,1)')
+        chk('primaryChip.right', chip && chip.right, 414)
+        chk('primaryChip.text', textOf(doc, '.chip--primary .chip__text'), '主凭证')
+        chk('primaryChip.fontSize', c('.chip--primary .chip__text', 'fontSize'), '11px')
+        chk('primaryChip.fontWeight', c('.chip--primary .chip__text', 'fontWeight'), '600')
+        chk('primaryChip.color', c('.chip--primary .chip__text', 'color'), 'rgba(37,99,235,1)')
+
+        /* ── 表单区（设计 0b3224f1 · padding 12/16/0/16） ─────────── */
+        chk('form.paddingTop', c('.submit-page__form', 'paddingTop'), '12px')
+        chk('form.paddingLeft', c('.submit-page__form', 'paddingLeft'), '16px')
+        chk('form.paddingRight', c('.submit-page__form', 'paddingRight'), '16px')
+        chk('form.flexDir', c('.submit-page__form', 'flexDirection'), 'column')
+
+        /* ── 四张卡片的绝对几何（设计 PNG 色带实测） ─────────────── */
+        var cards = rects(doc, '.card')
+        chk('card.count', cards.length, 4)
+        chk('card0.top', cards[0] && cards[0].top, DESIGN.cardTop[0])
+        chk('card0.h', cards[0] && cards[0].h, DESIGN.cardH[0])
+        chk('card1.top', cards[1] && cards[1].top, DESIGN.cardTop[1])
+        chk('card1.h', cards[1] && cards[1].h, DESIGN.cardH[1])
+        chk('card2.top', cards[2] && cards[2].top, DESIGN.cardTop[2])
+        chk('card2.h', cards[2] && cards[2].h, DESIGN.cardH[2])
+        chk('card3.top', cards[3] && cards[3].top, DESIGN.cardTop[3])
+        chk('card3.h', cards[3] && cards[3].h, DESIGN.cardH[3])
+        chk('card0.bottom', cards[0] && cards[0].bottom, DESIGN.cardTop[1] - DESIGN.cardGap)
+        chk('card.gap0to1', cards[0] && cards[1] ? cards[1].top - cards[0].bottom : null, DESIGN.cardGap)
+        chk('card.gap1to2', cards[1] && cards[2] ? cards[2].top - cards[1].bottom : null, DESIGN.cardGap)
+        chk('card.gap2to3', cards[2] && cards[3] ? cards[3].top - cards[2].bottom : null, DESIGN.cardGap)
+        chk('card3.bottom', cards[3] && cards[3].bottom, 940)
+        chk('card.left0', cards[0] && cards[0].x, DESIGN.cardLeft)
+        chk('card.right0', cards[0] && cards[0].right, DESIGN.cardRight)
+        chk('card.bg', c('.card', 'backgroundColor'), 'rgba(255,255,255,1)')
+        chk('card.radius', c('.card', 'borderRadius'), '16px')
+        chk('card.paddingTop', c('.card', 'paddingTop'), '16px')
+        chk('card.paddingBottom', c('.card', 'paddingBottom'), '16px')
+        chk('card.paddingLeft', c('.card', 'paddingLeft'), '20px')
+        chk('card.paddingRight', c('.card', 'paddingRight'), '20px')
+        /* 设计 stroke = Figma center 1px rgb(238,242,247)（不占布局）→ 实现用 box-shadow 表达：
+           扩散 1 · 模糊 0 · 无偏移；用 border 会把内容宽压成 356（设计 358） */
+        var cardShadow = shadowOf('.card')
+        chk('card.strokeSpread', cardShadow.spread, 1)
+        chk('card.strokeBlur', cardShadow.blur, 0)
+        chk('card.strokeOffsetX', cardShadow.x, 0)
+        chk('card.strokeOffsetY', cardShadow.y, 0)
+        chk('card.strokeColor', cardShadow.color, 'rgb(238,242,247)')
+        chk('card.flow', c('.card', 'flexDirection'), 'column')
+
+        /* 标签（设计 86bddf34 / a94df599 / 4ce95810 内「APIKey」/ 9a25e41e：13px/500 · 行高 18） */
+        chkS('label.texts', texts(doc, '.card__label').join('|'), '凭证名称|BaseURL|APIKey|模型清单')
+        chk('label.fontSize', c('.card__label', 'fontSize'), '13px')
+        chk('label.fontWeight', c('.card__label', 'fontWeight'), '500')
+        chk('label.color', c('.card__label', 'color'), 'rgba(51,65,85,1)')
+        chk('label.lineHeight', c('.card__label', 'lineHeight'), '18px')
+        chk('label.h', dim('.card__label', 'h'), DESIGN.labelH)
+        /* 设计：标签 → 容器 padding-top 8 → 输入框（比较输入框上边与标签下边） */
+        chk('label.rowGapToField', (function () {
+          var l = rect(doc, '.card__label'), f = rect(doc, '.input-box')
+          return l && f ? f.top - l.bottom : null
+        })(), 8)
+
+        /* ── 输入框（设计 fcbd984c / 06d0e6b5：46 高 · r12 · padding 0/12） ── */
+        chk('inputBox.count', all(doc, '.input-box').length, 3)
+        chk('inputBox.h', dim('.input-box', 'h'), 46)
+        chk('inputBox.radius', c('.input-box', 'borderRadius'), '12px')
+        chk('inputBox.bg', c('.input-box', 'backgroundColor'), 'rgba(248,250,252,1)')
+        chk('inputBox.paddingLeft', c('.input-box', 'paddingLeft'), '12px')
+        chk('inputBox.paddingRight', c('.input-box', 'paddingRight'), '12px')
+        chkS('inputBox.strokeDeclaredWidth', declared('.input-box', 'borderWidth'), '1px')
+        chk('inputBox.strokeColor', c('.input-box', 'borderTopColor'), 'rgba(226,232,240,1)')
+        chk('inputBox.alignItems', c('.input-box', 'alignItems'), 'center')
+        chk('inputBox.w', dim('.input-box', 'w'), 358)
+        /* 图标盒：设计 20c5e850 / 93df1e70 / f29363b4 = remixicon 18px → 盒宽 20 */
+        chk('fieldGlyph.w', dim('.glyph--name', 'w'), 20)
+        chk('fieldGlyph2.w', dim('.glyph--link', 'w'), 20)
+        chk('keyGlyph.w', dim('.glyph--key', 'w'), 20)
+        chk('inputText.gap', c('.input-box__input', 'marginLeft'), '8px')
+        /* 输入值（设计 1c7f8d8e / 1cb50980：14px Regular rgb(51,65,85)） */
+        chk('aliasInput.fontSize', c('[data-testid="alias-input"]', 'fontSize'), '14px')
+        chk('aliasInput.fontWeight', c('[data-testid="alias-input"]', 'fontWeight'), '400')
+        chk('aliasInput.color', c('[data-testid="alias-input"]', 'color'), 'rgba(51,65,85,1)')
+        chkS('aliasValue', (function () {
+          var e = doc.querySelector('[data-testid="alias-input"]')
+          if (!e) return null
+          var inner = e.querySelector('input')
+          return (inner ? inner.value : e.value) || ''
+        })(), '华东主线路 · GPT 通道')
+        chkS('baseUrlValue', (function () {
+          var e = doc.querySelector('[data-testid="baseurl-input"]')
+          if (!e) return null
+          var inner = e.querySelector('input')
+          return (inner ? inner.value : e.value) || ''
+        })(), 'https://api.example-llm.com/v1')
+
+        /* ── 提示行（设计 eb662ead / 73400b98：上边距 8 · 高 21 · 图标盒 16 · 文本左移 4） ── */
+        chk('hint.count', all(doc, '.card__hint').length, 2)
+        /* 设计里 8 是外层容器的 padding-top，内层提示行高 21（由 14px 图标行框撑起）→ 断言内容行高 = h - paddingTop */
+        chk('hint.contentH', (function () {
+          var e = doc.querySelector('.card__hint')
+          if (!e) return null
+          var r = e.getBoundingClientRect()
+          return Math.round(r.height - parseFloat(win.getComputedStyle(e).paddingTop))
+        })(), DESIGN.hintRowH)
+        chk('hint.paddingTop', c('.card__hint', 'paddingTop'), '8px')
+        chk('hint.alignItems', c('.card__hint', 'alignItems'), 'center')
+        chk('hintGlyph.w', dim('.glyph--hint', 'w'), 16)
+        chk('hintGlyph.h', dim('.glyph--hint', 'h'), DESIGN.hintRowH)
+        chk('hintText.gap', c('.card__hint-text', 'marginLeft'), '4px')
+        chkS('hintTexts', texts(doc, '.card__hint-text').join('|'), '建议 6–24 字|如已轮换密钥，请在此更新后重新检测')
+        chk('hintText.fontSize', c('.card__hint-text', 'fontSize'), '12px')
+        chk('hintText.color', c('.card__hint-text', 'color'), 'rgba(148,163,184,1)')
+        chk('hintText.fontWeight', c('.card__hint-text', 'fontWeight'), '400')
+
+        /* ── 安全提示（设计 7014d7f1：bg rgb(255,251,235) r12 padding 10 · 盒高 56） ── */
+        var note = rect(doc, '.note')
+        chk('note.h', note && note.h, DESIGN.noteH)
+        chk('note.bg', c('.note', 'backgroundColor'), 'rgba(255,251,235,1)')
+        chk('note.radius', c('.note', 'borderRadius'), '12px')
+        chk('note.padding', c('.note', 'paddingTop'), '10px')
+        chk('note.paddingLeft', c('.note', 'paddingLeft'), '10px')
+        chk('note.topGap', (function () {
+          var boxes = rects(doc, '.input-box')
+          var n = rect(doc, '.note')
+          return boxes.length > 1 && n ? n.top - boxes[1].bottom : null
+        })(), 12)
+        chk('noteGlyph.w', dim('.glyph--shield', 'w'), 20)
+        chk('noteText.gap', c('.note__text', 'marginLeft'), '8px')
+        chkS('noteText', textOf(doc, '.note__text'), '凭证仅用于平台检测与转发调用，全程加密存储，不会对外泄露。')
+        chk('noteText.fontSize', c('.note__text', 'fontSize'), '12px')
+        chk('noteText.color', c('.note__text', 'color'), 'rgba(146,64,14,1)')
+        chk('noteText.lineHeight', c('.note__text', 'lineHeight'), '18px')
+
+        /* ── 已配置 chip（设计 15e5aeea：h22 r11 padding 0/8 bg rgb(236,253,245)） ── */
+        var conf = rect(doc, '[data-testid="configured-chip"]')
+        chk('confChip.h', conf && conf.h, 22)
+        chk('confChip.radius', c('[data-testid="configured-chip"]', 'borderRadius'), '11px')
+        chk('confChip.paddingLeft', c('[data-testid="configured-chip"]', 'paddingLeft'), '8px')
+        chk('confChip.bg', c('[data-testid="configured-chip"]', 'backgroundColor'), 'rgba(236,253,245,1)')
+        chk('confChip.gap', c('[data-testid="configured-chip"]', 'gap'), '4px')
+        chk('confChip.right', conf && conf.right, 394)
+        chk('confChipGlyph.w', dim('.chip--success .glyph--check', 'w'), 14)
+        chk('confChip.fontSize', c('.chip--success .chip__text', 'fontSize'), '11px')
+        chk('confChip.fontWeight', c('.chip--success .chip__text', 'fontWeight'), '500')
+        chk('confChip.color', c('.chip--success .chip__text', 'color'), 'rgba(21,128,61,1)')
+        chkS('confChip.text', textOf(doc, '.chip--success .chip__text'), '已配置')
+
+        /* APIKey 脱敏框（设计 7198fdce：图标盒 20 · 编辑图标盒 20 · 值 14px/500 单行） */
+        chk('mask.fontSize', c('[data-testid="apikey-mask"]', 'fontSize'), '14px')
+        chk('mask.fontWeight', c('[data-testid="apikey-mask"]', 'fontWeight'), '500')
+        chk('mask.color', c('[data-testid="apikey-mask"]', 'color'), 'rgba(51,65,85,1)')
+        chk('mask.h', dim('[data-testid="apikey-mask"]', 'h'), 17)
+        chk('mask.right', dim('[data-testid="apikey-mask"]', 'x') !== null ? rect(doc, '[data-testid="apikey-mask"]').right : null,
+          rect(doc, '.input-box__action') ? rect(doc, '.input-box__action').x : null)
+        chk('editBox.w', dim('.input-box__action', 'w'), 20)
+        chk('editBox.h', dim('.input-box__action', 'h'), 27)
+        chkS('mask.text', textOf(doc, '[data-testid="apikey-mask"]'), knownMockConflicts.apiKeyMask.mock)
+
+        /* ── 模型清单卡片（设计 f3529902：gap 12） ────────────────── */
+        chk('modelsCard.gap', c('.card--models', 'gap'), '12px')
+        chk('modelsCard.titleRowH', dim('.card--models .card__title-row', 'h'), DESIGN.labelH)
+        /* APIKey 卡标题行由「已配置」chip 的 22 高决定（设计 4ce95810 行高 22） */
+        chk('apiKeyTitleRowH', (function () {
+          var rows = rects(doc, '.card__title-row')
+          return rows.length ? rows[0].h : null
+        })(), 22)
+        chk('modelsCount.fontSize', c('.card__count', 'fontSize'), '12px')
+        chk('modelsCount.fontWeight', c('.card__count', 'fontWeight'), '600')
+        chk('modelsCount.color', c('.card__count', 'color'), 'rgba(37,99,235,1)')
+        chkS('modelsCount.text', textOf(doc, '[data-testid="selected-count"]'), '已选 3 个')
+        chk('modelsNote.h', dim('.card__note', 'h'), DESIGN.noteLineH)
+        chk('modelsNote.fontSize', c('.card__note', 'fontSize'), '11px')
+        chk('modelsNote.color', c('.card__note', 'color'), 'rgba(148,163,184,1)')
+        chkS('modelsNote.text', textOf(doc, '.card__note'), '按厂商勾选，自动生成本次接入检测清单')
+
+        /* 厂商分组（设计 60022084 / ddfd78b5：bg rgb(248,250,252) r12 padding 12 gap 10） */
+        var vendors = rects(doc, '[data-testid="vendor-group"]')
+        chk('vendor.count', vendors.length, 2)
+        chk('vendor.w', vendors[0] && vendors[0].w, 358)
+        chk('vendor.h0', vendors[0] && vendors[0].h, 126)
+        chk('vendor.h1', vendors[1] && vendors[1].h, 98)
+        chk('vendor.bg', c('.vendor', 'backgroundColor'), 'rgba(248,250,252,1)')
+        chk('vendor.radius', c('.vendor', 'borderRadius'), '12px')
+        chk('vendor.padding', c('.vendor', 'paddingTop'), '12px')
+        chk('vendor.gap', c('.vendor', 'gap'), '10px')
+        chk('vendor.flexDir', c('.vendor', 'flexDirection'), 'column')
+        chkS('vendorNames', texts(doc, '.vendor__name').join('|'), designVendorOrder.join('|'))
+        chk('vendorName.fontSize', c('.vendor__name', 'fontSize'), '13px')
+        chk('vendorName.fontWeight', c('.vendor__name', 'fontWeight'), '700')
+        chk('vendorName.color', c('.vendor__name', 'color'), 'rgba(15,23,42,1)')
+        chk('vendorName.lineHeight', c('.vendor__name', 'lineHeight'), '18px')
+        chk('vendorName.h', dim('.vendor__name', 'h'), DESIGN.labelH)
+
+        /* 模型行（设计 40bddf37 等：gap 10 · 勾选框 18x18 r5） */
+        chk('modelRow.count', all(doc, '[data-testid="model-row"]').length, 5)
+        chk('modelRow.gap', c('.model-row', 'gap'), '10px')
+        chk('modelRow.alignItems', c('.model-row', 'alignItems'), 'center')
+        chk('checkBox.w', dim('.model-row__box', 'w'), 18)
+        chk('checkBox.h', dim('.model-row__box', 'h'), 18)
+        chk('checkBox.radius', c('.model-row__box', 'borderRadius'), '5px')
+        chk('checkBox.uncheckedBg', c('.model-row__box:not(.model-row__box--checked)', 'backgroundColor'), 'rgba(255,255,255,1)')
+        chkS('checkBox.uncheckedStrokeWidth', declared('.model-row__box', 'borderWidth'), '1.5px')
+        chk('checkBox.uncheckedStrokeColor', c('.model-row__box:not(.model-row__box--checked)', 'borderTopColor'), 'rgba(203,213,225,1)')
+        chk('checkBox.checkedBg', c('.model-row__box--checked', 'backgroundColor'), 'rgba(37,99,235,1)')
+        chk('checkBox.checkedCount', all(doc, '.model-row__box--checked').length, 3)
+        chk('modelName.fontSize', c('.model-row__name', 'fontSize'), '13px')
+        chk('modelName.fontWeight', c('.model-row__name', 'fontWeight'), '500')
+        chk('modelName.lineHeight', c('.model-row__name', 'lineHeight'), '18px')
+        chk('modelName.uncheckedColor', c('.model-row__name:not(.model-row__name--checked)', 'color'), 'rgba(71,85,105,1)')
+        chk('modelName.checkedColor', c('.model-row__name--checked', 'color'), 'rgba(15,23,42,1)')
+        chk('modelSpec.fontSize', c('.model-row__spec', 'fontSize'), '11px')
+        chk('modelSpec.color', c('.model-row__spec', 'color'), 'rgba(148,163,184,1)')
+        chk('modelSpec.fontWeight', c('.model-row__spec', 'fontWeight'), '400')
+        chkS('modelNames', texts(doc, '.model-row__name').join('|'), designModelOrder.join('|'))
+        chkS('modelSpecs', texts(doc, '.model-row__spec').join('|'), designSpecOrder.join('|'))
+        var checkedFlags = all(doc, '.model-row__box').map(function (e) { return e.className.indexOf('--checked') !== -1 })
+        chkS('modelCheckedFlags', checkedFlags.join('|'), designChecked.join('|'))
+
+        /* 底部提示（设计 05ed9600：居中 · 11px · 行高 16） */
+        chk('more.h', dim('.card__more', 'h'), DESIGN.noteLineH)
+        chk('more.textAlign', c('.card__more', 'textAlign'), 'center')
+        chk('more.fontSize', c('.card__more', 'fontSize'), '11px')
+        chk('more.color', c('.card__more', 'color'), 'rgba(148,163,184,1)')
+        chkS('more.text', textOf(doc, '[data-testid="catalog-more"]'), '仅展示 2 个厂商，查看更多厂商 ›')
+
+        /* ── 底部固定操作条（设计 c735e46e：padding 12/16/24/16 · 高 84） ── */
+        var bar = rect(doc, '.submit-bar')
+        var ghost = rect(doc, '[data-testid="save-btn"]')
+        var primary = rect(doc, '[data-testid="submit-btn"]')
+        chk('bar.h', bar && bar.h, DESIGN.barH)
+        chk('bar.bg', c('.submit-bar', 'backgroundColor'), 'rgba(255,255,255,1)')
+        chk('bar.paddingTop', c('.submit-bar', 'paddingTop'), DESIGN.barPaddingTop + 'px')
+        chk('bar.paddingBottom', c('.submit-bar', 'paddingBottom'), DESIGN.barPaddingBottom + 'px')
+        chk('bar.paddingLeft', c('.submit-bar', 'paddingLeft'), DESIGN.barPaddingX + 'px')
+        chk('bar.paddingRight', c('.submit-bar', 'paddingRight'), DESIGN.barPaddingX + 'px')
+        chk('bar.alignItems', c('.submit-bar', 'alignItems'), 'center')
+        chk('ghost.w', ghost && ghost.w, DESIGN.ghostW)
+        chk('ghost.h', ghost && ghost.h, DESIGN.ghostH)
+        chk('ghost.left', ghost && ghost.x, DESIGN.barPaddingX)
+        chk('ghost.radius', c('[data-testid="save-btn"]', 'borderRadius'), '12px')
+        chk('ghost.bg', c('[data-testid="save-btn"]', 'backgroundColor'), 'rgba(255,255,255,1)')
+        chkS('ghost.strokeDeclaredWidth', declared('.submit-bar__ghost', 'borderWidth'), '1px')
+        chk('ghost.strokeColor', c('[data-testid="save-btn"]', 'borderTopColor'), 'rgba(203,213,225,1)')
+        chkS('ghost.text', textOf(doc, '.submit-bar__ghost-text'), '保存草稿')
+        chk('ghostText.fontSize', c('.submit-bar__ghost-text', 'fontSize'), '14px')
+        chk('ghostText.fontWeight', c('.submit-bar__ghost-text', 'fontWeight'), '500')
+        chk('ghostText.color', c('.submit-bar__ghost-text', 'color'), 'rgba(71,85,105,1)')
+        chk('primary.w', primary && primary.w, DESIGN.primaryW)
+        chk('primary.h', primary && primary.h, DESIGN.primaryH)
+        chk('primary.radius', c('[data-testid="submit-btn"]', 'borderRadius'), '12px')
+        chk('primary.bg', c('[data-testid="submit-btn"]', 'backgroundColor'), 'rgba(37,99,235,1)')
+        chk('primary.gap', c('[data-testid="submit-btn"]', 'gap'), DESIGN.primaryGap + 'px')
+        chk('primary.right', primary && primary.right, 414)
+        chk('primary.gapFromGhost', ghost && primary ? primary.x - ghost.right : null, 12)
+        chk('submitGlyph.w', dim('.glyph--rocket', 'w'), 22)
+        chkS('primary.text', textOf(doc, '.submit-bar__primary-text'), '提交检测')
+        chk('primaryText.fontSize', c('.submit-bar__primary-text', 'fontSize'), '15px')
+        chk('primaryText.fontWeight', c('.submit-bar__primary-text', 'fontWeight'), '600')
+        chk('primaryText.color', c('.submit-bar__primary-text', 'color'), 'rgba(255,255,255,1)')
+
+        return checks
+      }
 
       function collect(doc, win) {
         var over = []
         doc.querySelectorAll('*').forEach(function (el) {
+          /* uni-app 内部测量元素（uni-resize-sensor / uni-picker 空 div）不算页面溢出 */
+          if (el.closest && el.closest('uni-resize-sensor')) return
+          if (el.tagName === 'UNI-RESIZE-SENSOR') return
           var r = el.getBoundingClientRect()
           if (r.width > 0 && r.right > win.innerWidth + 0.5) {
             over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), right: Math.round(r.right) })
@@ -47,42 +485,13 @@
           var el = doc.querySelector(sel)
           if (!el) return null
           var r = el.getBoundingClientRect()
-          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
-        }
-        function texts(sel) {
-          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return e.textContent.trim() })
-        }
-        function colors(sel) {
-          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return win.getComputedStyle(e).backgroundColor })
-        }
-        function styleOf(sel, prop) {
-          var el = doc.querySelector(sel)
-          return el ? win.getComputedStyle(el)[prop] : null
+          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width) }
         }
         var text = (doc.body && doc.body.innerText) || ''
-        var need = [
-          '接入凭证', '主凭证',
-          '凭证名称', '华东主线路 · GPT 通道', '建议 6–24 字',
-          'BaseURL', 'https://api.example-llm.com/v1',
-          '凭证仅用于平台检测与转发调用，全程加密存储，不会对外泄露。',
-          'APIKey', '已配置', 'sk-••••••••••••••••4f2a', '如已轮换密钥，请在此更新后重新检测',
-          '模型清单', '已选 3 个', '按厂商勾选，自动生成本次接入检测清单',
-          'OpenAI', 'gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo', '128K · 500 RPM', '16K · 200 RPM',
-          'Anthropic', 'claude-3-5-sonnet', 'claude-3-opus', '200K · 300 RPM', '200K · 120 RPM',
-          '仅展示 2 个厂商，查看更多厂商 ›',
-          '保存草稿', '提交检测'
-        ]
-        function inputValue(sel) {
-          // uni-app H5 会把 <input> 渲染成 <uni-input> 包装元素，真实值在内层原生 input 上
-          var el = doc.querySelector(sel)
-          if (!el) return null
-          if (typeof el.value === 'string' && el.value !== '') return el.value
-          var inner = el.querySelector('input, textarea')
-          return inner ? inner.value : (typeof el.value === 'string' ? el.value : null)
-        }
-        var bar = rect('.submit-bar')
-        var card = rect('.card')
+        var barR = rect('.submit-bar')
         var viewportH = win.innerHeight
+        var checks = build(doc, win)
+        var fails = checks.filter(function (c) { return !c.ok })
         var snapshot = {
           innerWidth: win.innerWidth,
           innerHeight: viewportH,
@@ -90,61 +499,35 @@
           docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
           overflowingCount: over.length,
           overflowing: over.slice(0, 20),
-          missingTexts: need.filter(function (t) { return text.indexOf(t) === -1 }),
-          bodyBg: styleOf('.submit-page', 'backgroundColor'),
-          topbarBg: styleOf('.submit-page__topbar', 'backgroundColor'),
-          topbarPaddingTop: styleOf('.submit-page__topbar', 'paddingTop'),
-          titleText: texts('.submit-page__title'),
-          primaryChipText: texts('.chip--primary'),
-          configuredChipText: texts('.chip--success'),
-          configuredChipBg: styleOf('.chip--success', 'backgroundColor'),
-          configuredTextColor: styleOf('.chip__text--success', 'color'),
-          aliasValue: inputValue('[data-testid="alias-input"]'),
-          baseUrlValue: inputValue('[data-testid="baseurl-input"]'),
-          apiKeyMaskText: texts('[data-testid="apikey-mask"]'),
-          securityNoteText: texts('[data-testid="security-note"]'),
-          securityNoteBg: styleOf('.note', 'backgroundColor'),
-          securityNoteColor: styleOf('.note__text', 'color'),
-          cardLabels: texts('.card__label'),
-          cardCount: doc.querySelectorAll('.card').length,
-          selectedCountText: texts('[data-testid="selected-count"]'),
-          vendorGroupCount: doc.querySelectorAll('[data-testid="vendor-group"]').length,
-          modelRowCount: doc.querySelectorAll('[data-testid="model-row"]').length,
-          checkedCount: doc.querySelectorAll('.model-row__box--checked').length,
-          checkedBoxBg: styleOf('.model-row__box--checked', 'backgroundColor'),
-          uncheckedBoxBorder: styleOf('.model-row__box:not(.model-row__box--checked)', 'borderTopColor'),
-          catalogMoreText: texts('[data-testid="catalog-more"]'),
-          saveBtnText: texts('[data-testid="save-btn"]'),
-          saveBtnBorder: styleOf('.submit-bar__ghost', 'borderTopColor'),
-          submitBtnText: texts('[data-testid="submit-btn"]'),
-          submitBtnBg: styleOf('[data-testid="submit-btn"]', 'backgroundColor'),
-          bar: bar,
-          barPinned: bar ? Math.abs(bar.bottom - viewportH) <= 2 : null,
-          barHeight: bar ? bar.h : null,
-          firstCard: card,
-          cardW: card ? card.w : null,
-          firstModelRow: rect('[data-testid="model-row"]'),
-          apikeyMaskRect: rect('[data-testid="apikey-mask"]'),
-          apikeyMaskHeight: (function () { var e = doc.querySelector('[data-testid="apikey-mask"]'); return e ? Math.round(e.getBoundingClientRect().height) : null })(),
-          apikeyMaskLineHeight: styleOf('[data-testid="apikey-mask"]', 'lineHeight'),
-          apikeyMaskFontSize: styleOf('[data-testid="apikey-mask"]', 'fontSize'),
-          apikeyMaskFontFamily: styleOf('[data-testid="apikey-mask"]', 'fontFamily'),
-          apikeyMaskText_: texts('[data-testid="apikey-mask"]'),
+          missingTexts: needText.filter(function (t) { return text.indexOf(t) === -1 }),
+          checkCount: checks.length,
+          checkFailCount: fails.length,
+          checkFails: fails,
+          checkKeys: checks.map(function (c) { return c.k }),
+          knownMockConflicts: knownMockConflicts,
           cardRects: Array.prototype.map.call(doc.querySelectorAll('.card'), function (e) {
             var r = e.getBoundingClientRect()
             return { top: Math.round(r.top), bottom: Math.round(r.bottom), h: Math.round(r.height) }
           }),
-          barTopAbs: bar ? bar.top : null,
-          firstInputBox: rect('.input-box'),
-          firstVendor: rect('.vendor'),
-          firstCheckBox: rect('.model-row__box'),
+          topbarRect: rect('.submit-page__topbar'),
+          cardCount: doc.querySelectorAll('.card').length,
+          vendorGroupCount: doc.querySelectorAll('[data-testid="vendor-group"]').length,
+          modelRowCount: doc.querySelectorAll('[data-testid="model-row"]').length,
+          checkedCount: doc.querySelectorAll('.model-row__box--checked').length,
+          selectedCountText: (function () { var e = doc.querySelector('[data-testid="selected-count"]'); return e ? e.textContent.trim() : null })(),
+          catalogMoreText: (function () { var e = doc.querySelector('[data-testid="catalog-more"]'); return e ? e.textContent.trim() : null })(),
+          apikeyMaskText: (function () { var e = doc.querySelector('[data-testid="apikey-mask"]'); return e ? e.textContent.trim() : null })(),
+          apikeyMaskHeight: (function () { var e = doc.querySelector('[data-testid="apikey-mask"]'); return e ? Math.round(e.getBoundingClientRect().height) : null })(),
+          primaryChipText: (function () { var e = doc.querySelector('[data-testid="primary-chip"]'); return e ? e.textContent.trim() : null })(),
+          configuredChipText: (function () { var e = doc.querySelector('.chip--success'); return e ? e.textContent.trim() : null })(),
+          barPinned: barR ? Math.abs(barR.bottom - viewportH) <= 2 : null,
+          barTop: barR ? barR.top : null,
+          barHeight: barR ? barR.h : null,
           ghostBtn: rect('[data-testid="save-btn"]'),
           submitBtnRect: rect('[data-testid="submit-btn"]'),
-          topbarRect: rect('.submit-page__topbar'),
-          glyphCount: doc.querySelectorAll('.glyph').length,
           emojiInText: /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(text)
         }
-        // 固定操作条是否遮挡内容：滚到底后再取一次
+        /* 固定操作条是否遮挡内容：滚到底后再取一次 */
         win.scrollTo(0, 1e6)
         var last = doc.querySelectorAll('.card')
         var lastCard = last.length ? last[last.length - 1].getBoundingClientRect() : null
@@ -159,17 +542,27 @@
         return snapshot
       }
 
-      function measure() {
+      /* 轮询取数：iframe 的 load 事件常因监听注册过晚而错过 → 静默拿到 pending */
+      var tries = 0
+      var timer = setInterval(function () {
+        tries++
+        var f = document.getElementById('f')
+        var payload = null
         try {
-          var payload = collect(f.contentDocument, f.contentWindow)
-          var fr = f.getBoundingClientRect()
-          payload.iframeRect = { x: Math.round(fr.x), y: Math.round(fr.y), w: Math.round(fr.width), h: Math.round(fr.height) }
-          payload.outerInnerWidth = window.innerWidth
-          document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(payload)
+          payload = collect(f.contentDocument, f.contentWindow)
         } catch (e) {
-          document.getElementById('m').textContent = 'MEASURE_JSON:{"error":"' + e.message + '"}'
+          payload = { error: String(e && e.message) }
         }
-      }
+        var ready = payload && payload.checkCount > 0 && payload.modelRowCount === 5
+        if (ready || tries > 40) {
+          clearInterval(timer)
+          if (!SHOT_ONLY) {
+            payload.iframeRect = null
+            payload.outerInnerWidth = window.innerWidth
+            document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(payload)
+          }
+        }
+      }, 500)
     </script>
   </body>
 </html>
