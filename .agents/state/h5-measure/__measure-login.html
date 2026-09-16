@@ -234,11 +234,53 @@
         chk('disclaimer.radius', g('.disclaimer', 'borderRadius'), '16px')
         chk('disclaimer.paddingTop', g('.disclaimer', 'paddingTop'), '16px')
         chk('disclaimer.paddingLeft', g('.disclaimer', 'paddingLeft'), '20px')
-        chk('disclaimer.borderColor', g('.disclaimer', 'borderTopColor'), 'rgba(238,242,247,1)')
         chk('disclaimerTitle.fontSize', g('.disclaimer__title', 'fontSize'), '14px')
         chk('disclaimerTitle.color', g('.disclaimer__title', 'color'), 'rgba(15,23,42,1)')
         chk('disclaimerBody.fontSize', g('.disclaimer__body', 'fontSize'), '12px')
         chk('disclaimerBody.color', g('.disclaimer__body', 'color'), 'rgba(100,116,139,1)')
+
+        /* —— 本节（18:45 轮）新增：设计期望值（字段间距 / 图标字形盒 / 免责正文行盒 / 分隔与协议行）——
+           ① 设计 spacer 节点：卡片标题(头) → 首字段 = 20（9113d86d h20）；字段之间 = 16（1e64457c / b87793a2 h16）
+           ② 验证码提示行 856c5ed7 = [图标 c7f5db13 w16 fs14 remixicon] + spacer 4x18 + [文本 345fa279 fs12]
+              → 行高由图标字形行框定 = 字号×1.5 = 21（设计模型：图标字形行框 = fontSize×1.5）
+              设计 PNG 实测：图标字形墨迹 x37..49(13) y630..642(13)，居中于盒 x36..52 y626..647；
+              字形填充 = rgba(148,163,184,1)（灰，与同行文本同色）→ D5 占位形状也必须是灰
+           ③ 免责摘要卡片 cbc3730e = padding 16/20 + [标题行 40e497e5，图标 477e4b3f w20 fs18 → 盒 20×27] + spacer 8
+              + [正文 e5e24331 **显式 height 40** fs12 lh1.2 textAlignVertical=middle → 两行 14.4 在 40 高盒内垂直居中]
+              + padding 16 → 卡高 107（设计 PNG 实测：标题墨迹带 928..944 · 正文两行 964..976 / 979..991 = 行距 15）
+              图标字形墨迹实测 x38..52(15) y928..944(17)，填充 = rgba(37,99,235,1)（蓝）
+              卡描边 = stroke{align:center,thickness:1} → 只能 box-shadow（border 占布局会把卡高撑成 109）
+           ④ 分隔行 = spacer 18（669abf96 h18）· 协议行 = 勾选框 18（927a3b46）
+           ⑤ 整页：设计帧高 1114 = 品牌 268 + 卡 623 + 16 + 免责卡 107 + 页脚 100 */
+        function pseudo(sel, prop) { var el = doc.querySelector(sel); return el ? win.getComputedStyle(el, '::before')[prop] : null }
+        function ringColor(v) {
+          var m = String(v).match(/rgba?\(([^)]+)\)/)
+          if (!m) return null
+          return 'rgb(' + m[1].split(',').slice(0, 3).map(function (x) { return Number(String(x).trim()) }).join(',') + ')'
+        }
+        var fieldRs = rects(doc, '.field'), headRs = rectFor(doc, '.card__head')
+        chk('field1Gap', fieldRs[0] && headRs ? Math.round(fieldRs[0].top - headRs.bottom) : null, 20)
+        chk('field2Gap', fieldRs.length > 1 ? Math.round(fieldRs[1].top - fieldRs[0].bottom) : null, 16)
+        chk('field3Gap', fieldRs.length > 2 ? Math.round(fieldRs[2].top - fieldRs[1].bottom) : null, 16)
+        chk('tipRow.h', dim('.field__tip', 'height'), 21)
+        chk('tipIcon.w', dim('.field__tip-mark', 'width'), 16)
+        chk('tipIcon.h', dim('.field__tip-mark', 'height'), 21)
+        chk('tipIcon.bg', pseudo('.field__tip-mark', 'backgroundColor'), 'rgba(148,163,184,1)')
+        chk('discHead.h', dim('.disclaimer__head', 'height'), 27)
+        chk('discIcon.w', dim('.disclaimer__mark', 'width'), 20)
+        chk('discIcon.h', dim('.disclaimer__mark', 'height'), 27)
+        chk('discIcon.bg', pseudo('.disclaimer__mark', 'backgroundColor'), 'rgba(37,99,235,1)')
+        chk('discBody.h', dim('.disclaimer__body', 'height'), 40)
+        chk('discBody.lineHeight', g('.disclaimer__body', 'lineHeight'), '14.4px')
+        chk('disclaimer.borderTopWidth', g('.disclaimer', 'borderTopWidth'), '0px')
+        chk('disclaimer.ringNums', String(g('.disclaimer', 'boxShadow')).match(/-?[\d.]+px/g)
+          ? String(g('.disclaimer', 'boxShadow')).match(/-?[\d.]+px/g).join(' ') : null, '0px 0px 0px 1px')
+        chk('disclaimer.ringColor', ringColor(g('.disclaimer', 'boxShadow')), 'rgb(238,242,247)')
+        chk('dividerRow.h', dim('.divider', 'height'), 18)
+        chk('agreeRow.h', dim('.agree__row', 'height'), 18)
+        chk('discCard.h', dim('.disclaimer', 'height'), 107)
+        chk('card.h', dim('.card', 'height'), 623)
+        chk('docH', Math.round(doc.documentElement.scrollHeight), 1114)
         chk('page.bg', g('.login-page', 'backgroundColor'), 'rgba(248,250,252,1)')
         chk('footerText.fontSize', g('.footer__text', 'fontSize'), '11px')
         chk('footerText.color', g('.footer__text', 'color'), 'rgba(148,163,184,1)')
@@ -296,6 +338,15 @@
         out.wechat = rect(doc, '.wechat')
         out.agreeBox = rect(doc, '.agree__box')
         out.disclaimer = rect(doc, '.disclaimer')
+        out.disclaimerHead = rect(doc, '.disclaimer__head')
+        out.disclaimerMark = rect(doc, '.disclaimer__mark')
+        out.disclaimerBody = rect(doc, '.disclaimer__body')
+        out.disclaimerBodyLineHeight = css(doc, win, '.disclaimer__body', 'lineHeight')
+        out.cardHead = rect(doc, '.card__head')
+        out.fields = rects(doc, '.field')
+        out.tipRow = rect(doc, '.field__tip')
+        out.tipMark = rect(doc, '.field__tip-mark')
+        out.tipText = rect(doc, '.field__tip-text')
         out.footer = rect(doc, '.footer')
         out.fieldBoxRects = rects(doc, '.field__box')
         out.captcha = rect(doc, '.captcha')

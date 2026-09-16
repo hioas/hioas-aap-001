@@ -341,6 +341,11 @@ function onWechatLogin() {
     line-height: 20px; /* 设计 d6c0472f h=20（fs12） */
     color: $color-text-muted;
   }
+
+  /* 设计 spacer 9113d86d h=20：卡片标题块 → 首个字段 = 20（其余字段之间 = 16，见 .field） */
+  &__head + .field {
+    margin-top: 20px;
+  }
 }
 
 .field {
@@ -431,12 +436,23 @@ function onWechatLogin() {
   }
 
   &__tip-mark {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: $color-primary;
+    width: 16px; /* 设计图标层 c7f5db13 声明宽 16 */
+    height: 21px; /* 字形行框 = fs14 × 1.5（设计模型：图标字形行框 = 字号×1.5）→ 提示行高 21 */
     margin-right: $gap-xs;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* 占位形状按设计字形墨迹画在盒内（PNG 实测 x37..49 / y630..642 = 13×13）；
+       颜色 = 设计字形填充 rgba(148,163,184,1)（灰，与同行文本同色）→ 由伪元素承载（D5） */
+    &::before {
+      content: '';
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: $color-text-placeholder;
+    }
   }
 
   &__tip-text {
@@ -514,6 +530,7 @@ function onWechatLogin() {
 /* 设计：主按钮之后 spacer 20 */
 .divider {
   margin-top: 20px;
+  min-height: 18px; /* 设计分隔行 = spacer 669abf96 h18（行内文本 fs12 行盒 17.4 → 行高由设计 spacer 定 18） */
   display: flex;
   align-items: center;
 
@@ -565,7 +582,7 @@ function onWechatLogin() {
   &__row {
     display: flex;
     flex-direction: row;
-    align-items: flex-start;
+    align-items: center; /* 设计协议行 07a3c1d3 layout=horizontal alignItems=center（行高 = 勾选框 18） */
   }
 
   /* 设计：勾选框 18x18 r6（含 1px 描边的外框尺寸） */
@@ -573,7 +590,6 @@ function onWechatLogin() {
     width: 18px;
     height: 18px;
     margin-right: $gap-sm;
-    margin-top: 2px;
     flex-shrink: 0;
     border: 1px solid $color-border;
     border-radius: 6px;
@@ -618,7 +634,9 @@ function onWechatLogin() {
 .disclaimer {
   padding: 16px 20px;
   background: $color-bg-card;
-  border: 1px solid $color-border-chip;
+  /* 设计 stroke{align:center,thickness:1,rgba(238,242,247,1)} → 必须用 box-shadow 表达：
+     border 会占布局（卡高被撑成 109，设计 107；内容宽被挤掉 2px）—— 同族页既有口径 */
+  box-shadow: 0 0 0 1px $color-border-chip;
   border-radius: 16px;
   box-sizing: border-box;
   display: flex;
@@ -631,12 +649,23 @@ function onWechatLogin() {
   }
 
   &__mark {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    border: 1px solid $color-text-placeholder;
+    width: 20px; /* 设计图标层 477e4b3f 声明宽 20 */
+    height: 27px; /* 字形行框 = fs18 × 1.5 → 标题行高 27（设计卡高 107 = 16+27+8+40+16） */
     margin-right: 6px;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* 占位形状按设计字形墨迹画在盒内（PNG 实测 x38..52 / y928..944 = 15×17）；
+       颜色 = 设计字形填充 rgba(37,99,235,1) → 由伪元素承载（D5） */
+    &::before {
+      content: '';
+      width: 15px;
+      height: 17px;
+      border-radius: 3px;
+      background: $color-primary;
+    }
   }
 
   &__title {
@@ -647,9 +676,12 @@ function onWechatLogin() {
 
   &__body {
     margin-top: $gap-sm;
+    height: 40px; /* 设计 e5e24331 显式 height 40 = 两行（fs12 lh1.2 → 行盒 14.4，块在盒内垂直居中 = 设计 textAlignVertical=middle） */
     font-size: $font-xs;
-    line-height: 1.6;
+    line-height: 14.4px;
     color: $color-text-muted;
+    display: flex; /* 让承载文本的 span 在 40 高盒内垂直居中 */
+    align-items: center;
   }
 }
 

@@ -1,0 +1,24 @@
+feat(aap-client): 1-登录注册 16px 残差收口 + 19 条设计期望值 checks（红 19/133 → 绿 0/133 · docH 1098→1114）
+
+范围：序号 1（page-1-2 登录注册 → /pages/login/index）一页；先红后绿、同一份最终版探针两轮。
+
+TDD
+- 红：__measure-login.html 再扩 19 条设计期望值 checks（合计 133 条）→ 19/133 失败 · docH 1098（同版探针两轮一致）
+- 绿：0/133 · docH 1114 = 设计帧高；两轮独立测量 phase1 全字段逐字节相同 · 溢出 0 · 文案缺失 0
+
+修 6 类偏差（want 全部取 design.tree.json 声明值 + 设计 PNG 430x1114 实测）
+- 首字段前间距 16→20（设计 spacer 9113d86d h20；其余字段之间仍 16）
+- 验证码提示行 14.4→21 且图标占位盒 12x12→16x21（设计图标层 c7f5db13 w16 fs14；形状 13x13 按 PNG 墨迹 x37..49/y630..642），
+  颜色由 $color-primary 改设计字形填充灰 rgba(148,163,184,1) 并改由 ::before 承载
+- 免责卡标题行 20→27（图标盒 14x14→20x27，设计 477e4b3f w20 fs18；形状 15x17 蓝 rgba(37,99,235,1)）
+- 免责正文 38→40（设计 e5e24331 显式 height 40 = 两行；line-height 1.6→14.4px 且垂直居中 → 墨迹行距 15 与设计逐行相同）
+- 免责卡描边 border→box-shadow 0 0 0 1px（设计 stroke align=center；border 会把卡高撑成 109、内容宽挤掉 2px）
+- 分隔行 17→18（设计 spacer 669abf96 h18）· 协议行 20→18（设计 row alignItems=center，去掉勾选框 margin-top 2px）
+
+证据
+- 转录 evidence/redgreen-序号1-16px残差-20260916.txt · 报告 .agents/state/evidence/review-序号1-16px-checks-报告.md
+- 像素对账 cmp-序号1-设计PNGvs实现截图-结构带.txt：命中 42 / 未命中 6（逐条判读=投影衰减 656/891 · 设计导出软染色 914/920 · 带分割阈值效应 819/415）
+- 截图 evidence/20260916-1945-序01-登录注册-16px残差对齐-h5-430宽.png（430x1114 = 设计帧尺寸）
+- 质量门：npm test 1182/1182 x2 · type-check exit 0 · build:mp-weixin / build:h5 DONE · review-artifacts 22/22 ·
+  共用消费方回归门 序号 2 工作台两轮 103 条 0 失败
+- 下轮待办（本轮留证未改）：5 处 center 描边 border→ring · 3 个输入框图标盒 16x16→20x27 且填充改灰（设计占位文本左界 76 vs 实现 73）

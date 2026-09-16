@@ -1,0 +1,80 @@
+序号 1（page-1-2 登录注册）· 16px 残差 RED→GREEN 证据（2026-09-16 18:45 轮 · cron aap-tdd-run-20260916-1845）
+载体页 .agents/state/h5-measure/__measure-login.html（430 宽 iframe，mock=api）· 每步两轮独立测量
+红/绿同一份最终版探针（133 条 checks）：「先建探针 → 两轮红 → 改源码 → 两轮绿」
+
+RED  : run1 checks=133 fails=19 docH=1098 overflow=0
+        run2 checks=133 fails=19 docH=1098 overflow=0
+        run1 == run2（phase1 全字段逐字节比对）: YES
+    FAIL field1Gap: got "16" want "20"
+    FAIL tipRow.h: got "14" want "21"
+    FAIL tipIcon.w: got "12" want "16"
+    FAIL tipIcon.h: got "12" want "21"
+    FAIL tipIcon.bg: got "rgb(0,0,0)" want "rgb(148,163,184)"
+    FAIL discHead.h: got "20" want "27"
+    FAIL discIcon.w: got "16" want "20"
+    FAIL discIcon.h: got "16" want "27"
+    FAIL discIcon.bg: got "rgb(0,0,0)" want "rgb(37,99,235)"
+    FAIL discBody.h: got "38" want "40"
+    FAIL discBody.lineHeight: got 19.2 want 14.4
+    FAIL disclaimer.borderTopWidth: got 1 want 0
+    FAIL disclaimer.ringNums: got null want "0px 0px 0px 1px"
+    FAIL disclaimer.ringColor: got null want "rgb(238,242,247)"
+    FAIL dividerRow.h: got "17" want "18"
+    FAIL agreeRow.h: got "20" want "18"
+    FAIL discCard.h: got "100" want "107"
+    FAIL card.h: got "613" want "623"
+    FAIL docH: got "1098" want "1114"
+        run2 失败清单与 run1 相同: YES
+
+GREEN: run1 checks=133 fails=0 docH=1114 overflow=0
+        run2 checks=133 fails=0 docH=1114 overflow=0
+        run1 == run2（phase1 全字段逐字节比对）: YES
+
+交互回放（同一次绿轮，phase2..6）与 serve 实收请求行（两轮逐字节比对）
+  phase2: {"scenario": "login-empty", "toast": "请输入正确的手机号", "hash": "#/pages/login/index", "storageToken": "null"}
+  phase3: {"scenario": "login-no-sms", "typedPhone": "TYPED", "toast": "请输入 6 位短信验证码", "hash": "#/pages/login/index", "storageToken": "null"}
+  phase4: {"scenario": "login-no-agree", "typedSms": "TYPED", "toast": "请先阅读并同意服务协议与隐私政策", "hash": "#/pages/login/index", "storageToken": "null"}
+  phase5: {"scenario": "send-sms", "typedCaptcha": "TYPED", "clickedAgree": "CLICKED", "toast": "验证码已发送", "smsLabel": "59s 后重发"}
+  requests run1 == run2（逐字节）: YES · 行数 6
+    POST /api/v1/auth/sms/send body={"phone":"13800138000","captcha":"A7K9"}
+    "POST /api/v1/auth/sms/send HTTP/1.1" 200 -
+    POST /api/v1/auth/sms/login body={"phone":"13800138000","smsCode":"123456"}
+    "POST /api/v1/auth/sms/login HTTP/1.1" 200 -
+    "GET /api/v1/provider/profile HTTP/1.1" 200 -
+    "GET /api/v1/usage/summary HTTP/1.1" 200 -
+
+像素对账（实现截图 evidence/20260916-1945-序01-登录注册-16px残差对齐-h5-430宽.png 430x1114）
+
+  未命中逐条判读（cmp-pixel-rows.py 同列取色，x=200）：
+    y656/657 设计 (254,254,255) vs 实现 (255,255,255) → 主按钮 drop_shadow(0,8,20,.28) 的 Figma/Chrome 衰减起点差 1~2/255（阴影类，非页面缺陷）
+    y891 设计 (235,237,240) vs 实现 (248,250,252) → 卡片底边（设计 268..891，实现 [268,891) 半开区间）亚像素边界 + 卡投影（阴影类）
+    y914/920 设计 (253,253,253) vs 实现 (255,255,255) → 设计导出图在免责卡上方 908..921 的均匀软染色（同族已在 page-15 记录）
+    y819（内容列）与 y415（条列）→ 取值两侧完全相同（分别为微信按钮填充 (240,253,244) 与输入框底色 (248,250,252)），属带分割阈值效应，非几何差
+
+文本行对账（text-rows.py x36..394 · 设计 20 行 / 实现 21 行；逐行按最近 y 对齐）
+  设计 text 0..267 h=268 maxDark=358      实现 text 0..267 h=268 maxDark=358
+  设计 text 297..315 h=19 maxDark=100     实现 text 297..316 h=20 maxDark=107
+  设计 text 329..339 h=11 maxDark=75      实现 text 329..339 h=11 maxDark=97
+  设计 text 367..378 h=12 maxDark=29      实现 text 367..378 h=12 maxDark=29
+  设计 text 407..421 h=15 maxDark=60      实现 text 408..420 h=13 maxDark=57
+  设计 text 457..468 h=12 maxDark=50      实现 text 457..468 h=12 maxDark=53
+  设计 text 497..511 h=15 maxDark=67      实现 text 498..510 h=13 maxDark=65
+  设计 text 547..558 h=12 maxDark=42      实现 text 547..558 h=12 maxDark=48
+  设计 text 587..599 h=13 maxDark=96      实现 text 588..600 h=13 maxDark=94
+  设计 text 601..602 h=2 maxDark=13       实现 text 630..642 h=13 maxDark=92
+  设计 text 631..642 h=12 maxDark=75      实现 text 671..720 h=50 maxDark=358
+  设计 text 671..720 h=50 maxDark=358     实现 text 746..756 h=11 maxDark=37
+  设计 text 745..755 h=11 maxDark=36      实现 text 779..779 h=1 maxDark=330
+  设计 text 796..811 h=16 maxDark=83      实现 text 795..812 h=18 maxDark=87
+  设计 text 849..866 h=18 maxDark=113     实现 text 828..828 h=1 maxDark=330
+  设计 text 929..943 h=15 maxDark=78      实现 text 853..863 h=11 maxDark=115
+  设计 text 965..975 h=11 maxDark=153     实现 text 928..944 h=17 maxDark=99
+  设计 text 980..990 h=11 maxDark=89      实现 text 966..976 h=11 maxDark=194
+  设计 text 1050..1059 h=10 maxDark=73    实现 text 980..990 h=11 maxDark=113
+  设计 text 1068..1077 h=10 maxDark=84    实现 text 1051..1060 h=10 maxDark=74
+  （实现多出行）                          text 1069..1078 h=10 maxDark=91
+  判读：两行免责正文墨迹 设计 965..975 / 980..990 与实现 966..976 / 980..990（行距 15，±1 内）；
+        设计 601..602（h=2, maxDark=13）为设计字形图标墨迹、实现为 D5 浅色占位形状 → 该行不计为差异；
+        设计 849..866 vs 实现 853..863 = 协议行勾选框「设计帧静态为选中态（蓝底+tick）」而实现按 PRD 校验门默认未选中 —— 状态差非几何差（guard 证据见上）。
+
+共用消费方回归门（未改共用组件，仍复跑）：__measure-workbench.html（序号 2）两轮 103 条 0 失败 · docH 1146
