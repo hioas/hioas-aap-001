@@ -35,7 +35,8 @@ import {
   VERDICT_TITLE,
   WEIGHT_NOTE,
   buildReportFailedModel,
-  scoreColor
+  scoreColor,
+  scoreTextColor
 } from '@/utils/report-failed-model'
 import { PLACEHOLDER } from '@/utils/format'
 import { DESIGN_REPORT_FAILED } from '../fixtures/report-failed-fixture'
@@ -161,6 +162,41 @@ describe('序号 7 · 模型：分项总览 8 行（设计稿逐条）', () => {
     expect(m.dims[0].scoreText).toBe(PLACEHOLDER)
     expect(m.dims[0].score).toBeNull()
     expect(m.dims[0].barPercent).toBe(0)
+  })
+})
+
+describe('序号 7 · 模型：分项分值**文字**色（设计稿第二套色板，与条填色不同）', () => {
+  it('高分 #334155 · 中 #D97706 · 低 #B91C1C（逐行对上设计 8 行 fontFill）', () => {
+    const m = buildReportFailedModel(DESIGN_REPORT_FAILED)
+    expect(m.dims.map((d) => d.textColor)).toEqual([
+      '#334155',
+      '#B91C1C',
+      '#D97706',
+      '#334155',
+      '#D97706',
+      '#D97706',
+      '#D97706',
+      '#B91C1C'
+    ])
+    /* 条填色仍是三态绿/琥珀/红：两套色板并存，文字色不得覆盖条填色 */
+    expect(m.dims.map((d) => d.color)).toEqual([
+      '#16A34A',
+      '#DC2626',
+      '#F59E0B',
+      '#16A34A',
+      '#F59E0B',
+      '#F59E0B',
+      '#F59E0B',
+      '#DC2626'
+    ])
+  })
+
+  it('文字色阈值与条填一致（通过线 70 / 否决线 40）；分值缺失用占位灰', () => {
+    expect(scoreTextColor(70)).toBe('#334155')
+    expect(scoreTextColor(69)).toBe('#D97706')
+    expect(scoreTextColor(40)).toBe('#D97706')
+    expect(scoreTextColor(39)).toBe('#B91C1C')
+    expect(scoreTextColor(null)).toBe('#94A3B8')
   })
 })
 

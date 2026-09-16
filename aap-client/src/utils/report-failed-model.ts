@@ -75,6 +75,18 @@ export const COLOR_WARN = '#F59E0B'
 export const COLOR_FAIL = '#DC2626'
 export const COLOR_TRACK = '#E2E8F0'
 
+/**
+ * 分项**分值文字**色是设计稿里的**第二套**色板（条填色另有一套）：
+ *   design D1 89 / D4 82 → rgba(51,65,85,1) #334155（高分：中性石板）
+ *   design D3 55 / D5 61 / D6 66 / D7 58 → rgba(217,119,6,1) #D97706（中分：琥珀 700）
+ *   design D2 12 / D8 0 → rgba(185,28,28,1) #B91C1C（低分：红 700）
+ * 阈值与条填共用（通过线 70 / 否决线 40）；分值缺失设计无样例 → 用占位灰 #94A3B8。
+ */
+export const COLOR_DIM_TEXT_HIGH = '#334155'
+export const COLOR_DIM_TEXT_WARN = '#D97706'
+export const COLOR_DIM_TEXT_FAIL = '#B91C1C'
+export const COLOR_DIM_TEXT_PLACEHOLDER = '#94A3B8'
+
 /** 结果三态文案（09-PRD §3：通过 / 未通过 / 人工复核） */
 export const RESULT_LABELS: Record<string, string> = {
   PASS: '通过',
@@ -132,7 +144,10 @@ export interface FailedDimRow {
   score: number | null
   scoreText: string
   barPercent: number
+  /** 条填色（三态绿/琥珀/红，设计条底层取色） */
   color: string
+  /** 分值文字色（设计第二套色板：#334155 / #D97706 / #B91C1C） */
+  textColor: string
 }
 
 export interface FailedDetailView {
@@ -185,6 +200,14 @@ export function scoreColor(score: number | null): string {
   return COLOR_FAIL
 }
 
+/** 分项分值**文字**颜色：阈值同上，但取值来自设计稿第二套色板（见 COLOR_DIM_TEXT_* 注释） */
+export function scoreTextColor(score: number | null): string {
+  if (score === null) return COLOR_DIM_TEXT_PLACEHOLDER
+  if (score >= PASS_SCORE) return COLOR_DIM_TEXT_HIGH
+  if (score >= VETO_SCORE) return COLOR_DIM_TEXT_WARN
+  return COLOR_DIM_TEXT_FAIL
+}
+
 function toDim(raw: FailedDimRaw): FailedDimRow {
   const code = str(raw.code)
   const name = str(raw.name)
@@ -195,7 +218,8 @@ function toDim(raw: FailedDimRaw): FailedDimRow {
     score,
     scoreText: score === null ? PLACEHOLDER : String(Math.round(score)),
     barPercent: score === null ? 0 : clampPercent(Math.round(score)),
-    color: scoreColor(score)
+    color: scoreColor(score),
+    textColor: scoreTextColor(score)
   }
 }
 

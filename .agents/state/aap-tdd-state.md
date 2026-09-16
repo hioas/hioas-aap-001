@@ -1,4 +1,4 @@
-STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 09:38（160 条 · 15→0）· 序号 4 已完成 09:55（212 条 · 45→0）· 序号 4-v1 已完成 10:20（249 条 · 78→0）· 序号 5 已完成 10:42（237 条 · 95→0）· 序号 6 已完成 2026-09-16 11:5x（221 条 · 45→0，docH 4886→5343 = 设计帧高 5342，报告 `evidence/review-序号6-checks-报告.md`）→ 下一轮开工做 序号 7**（`page-7-2`「检测未通过报告」→ `/pages/report-failed/index`，载体页 `__measure-report-failed.html`，mock 目录 `api`；对照表 `python .agents/state/survey-harness-routes.py`） ②队列 1 逐页复核（7~23 行的 checks 维度待补） ③队列 7（uni-picker 溢出口径） ④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。历史流水归档在 `aap-notes-archive-2026-09-16.md`，**不要每轮读**。
+STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 09:38（160 条 · 15→0）· 序号 4 已完成 09:55（212 条 · 45→0）· 序号 4-v1 已完成 10:20（249 条 · 78→0）· 序号 5 已完成 10:42（237 条 · 95→0）· 序号 6 已完成 2026-09-16 11:5x（221 条 · 45→0，docH 4886→5343 = 设计帧高 5342，报告 `evidence/review-序号6-checks-报告.md`）· 序号 7 已完成 2026-09-16 11:3x（196 条 · 51→0，docH 1063→1111 = 设计帧高 1110，报告 `evidence/review-序号7-checks-报告.md`）→ 下一轮开工做 序号 8**（`page-8-2`「报价单列表」→ `/pages/quotes/index`，载体页 `__measure-quotes.html`，mock 目录 `api`；对照表 `python .agents/state/survey-harness-routes.py`） ②队列 1 逐页复核（7~23 行的 checks 维度待补） ③队列 7（uni-picker 溢出口径） ④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。历史流水归档在 `aap-notes-archive-2026-09-16.md`，**不要每轮读**。
 LEASE: free until -
 
 # AAP TDD 推进 · 状态与目标（自驱动循环的单一事实来源）
@@ -338,6 +338,34 @@ LEASE: free until -
      并修掉探针自身 3 处口径（`chk()` 数值直通、`sel@@N` 取第 N 个匹配、`rectField` 由 key 末段决定字段）。
   ⑩**下轮开工第一件事**：队列 8 的 **序号 7**（`page-7-2`「检测未通过报告」→ `/pages/report-failed/index`，载体页 `__measure-report-failed.html`，mock 目录 `api`）。
 
+   - ✅ **序号 7 已完成 2026-09-16 11:3x**：`__measure-report-failed.html` 由 273 行旧体例重写为 430 宽 iframe + **196 条 checks**
+     （want = page-7-2 `design.tree.json` 声明值 + `dump-node-fields.py` 全字段 + 设计 PNG 430×1110 像素实测）。
+     红基线（`git stash push` 复现修复前代码、同一份探针两轮）**51/196**（`evidence/red-序号7-checks-设计期望值偏差.txt`）→ 绿 **0/196**
+     （`green-序号7-checks-设计期望值.txt`），两轮独立测量 **30/30 字段全等**；`git stash pop` 复位后复跑仍 0 且与复位前逐字段相同。
+     整页 `docScrollHeight` **1063 → 1111**（设计帧 1110 = Figma 小数坐标链取整后 +1）。
+     修掉 13 类偏差：顶部栏 89→**96**（图标盒 26×36）· 封面卡补 `drop_shadow(0,6,20,…)` · 三张卡 + 次按钮描边 `border`→`box-shadow 0 0 0 1px`
+     （内容宽 356→**358**）· 封面标题行 14.4→**18** · 综合分 46→**57** · 「综合评分/满分 100」两行 **18+16** · 分项行高 14→**18**、行距 26→**30** ·
+     分值文字色改用设计**第二套色板**（新增 `scoreTextColor()` + `FailedDimRow.textColor`：#334155/#D97706/#B91C1C）· 结论胶囊 76→**83** ·
+     否决条/结论措辞/免责图标盒 → **20×27 / 20×27 / 22×30**（形状入 `::before`）· 「导出 PDF」删掉设计里没有的图标 · D2 详情卡标题行 20、卡高 166。
+     交互相：`?scenario=actions` 两轮 → 导出 PDF 实收 `GET /reports/DR-7/export 200` + hash 不变；重新提交检测 → `POST /detection-jobs body={credential_id:c1}`
+     → 跳 `detecting?jobId=j7`；纯测量轮两轮各只 **1 行**请求（`GET /reports/DR-7`）。
+     像素对账 `cmp-bands-6`：内容列命中 34/38 · 条填列 19/19 · 位移中位 +1；4 条未命中 = 投影 AA 带（y376/379/385）+ H5 回退字体换行差 1 字（y707）。
+     质量门：`npm test` **1170/1170 ×2** · `type-check` exit 0 · `build:mp-weixin` / `build:h5` DONE · `check-mock-fixtures` FAIL 0 · `review-artifacts` 22/22。
+
+- 2026-09-16 11:20（cron 轮 `aap-tdd-run-20260916-1120`）· **队列 8 第 6 页：序号 7「检测未通过报告」载体页补「设计期望值 checks」维度（196 条 · 偏差 51→0）+ 13 类设计偏差修复 + 整页对齐设计帧 1110**：
+  ①**设计帧重抓（人工指令 C）**：重抓 `page-7-2` → `design.json` sha256 `f2780416…` **逐字节相同**（无漂移）。
+  ②**TDD 红→绿（本轮主交付）**：载体页重写为 430 宽 iframe + 196 条 checks；红基线（`git stash` 复现修复前代码、同一份探针两轮）**51/196**、`docH 1063` → 绿 **0/196**、`docH 1111`；
+     两轮独立测量 30/30 全等；复位后复跑同值（stash 循环干净）。
+  ③**修掉 13 类偏差**（清单见台账序号 7 行 / `review-序号7-checks-报告.md` §4）：顶部栏 89→96 · 封面卡补投影 · 描边 `border`→`box-shadow`（内容宽 356→358）·
+     封面标题行 18 · 综合分 57 · 评分说明 18+16 · 分项行高 18 行距 30 · **分值文字色改设计第二套色板**（新增 `scoreTextColor`，先红后绿 2 条新用例）·
+     结论胶囊 83 · 图标盒按设计图层 20×27/20×27/22×30 · 「导出 PDF」删掉设计里没有的图标 · D2 详情卡 166。
+  ④**本页定标**：文本行框 = fontSize×1.5（显式 height 优先）；图标字形行框 = fontSize×1.5；Figma center 描边 → `box-shadow: 0 0 0 1px`；分项行 18+12=30。
+  ⑤**新增工具** `png-rowclass.py`（逐行判卡片/间隙，不受双份投影染色影响，本页靠它定出卡1 108..362 / 卡2 374..756 等）。
+  ⑥**探针自纠 3 处**（写进 §5.4）：boxShadow 不能用 normColor（会把整串压成只剩颜色）· `rectField` 不认 `left` · 数组比对要 `chkList` 容差。
+  ⑦**质量门**：`npm test` **1170/1170 · 72 files ×2** · `type-check` exit 0 · `build:mp-weixin` DONE（wxss 含 `box-shadow:0 0 0 1px #eef2f7`、`line-height:57px`）· `build:h5` DONE ·
+     `check-mock-fixtures --mock api` FAIL 0 · `review-artifacts` 22/22 · 截图 `logs/screenshots/20260916-序07-检测未通过报告-checks轮-h5-430宽.png`。
+  ⑧**下轮开工第一件事**：队列 8 的 **序号 8**（`page-8-2`「报价单列表」→ `/pages/quotes/index`，载体页 `__measure-quotes.html`，mock 目录 `api`）。
+
 ## 5. 关键命令（照抄可用）
 
 - 项目根：`E:\workspaces\hioas\hioas-aap-001`（远端 https://github.com/hioas/hioas-aap-001）
@@ -442,3 +470,23 @@ LEASE: free until -
   - `stroke{align:center,thickness:0.8}` → `box-shadow: 0 0 0 .8px <color>`；`effects.drop_shadow(0,6,20,c)` → `box-shadow: 0 6px 20px c`（`border` 会占布局、把内容宽挤掉 2px）。
   - 明细类长列表：行高 29（12px 标签 16 + 10px 副标 13）+ 行间隔 14；组标题行 18 + 组内 14；**分组之间 16**；组前提示盒/文末说明盒行框 16。
   - **同一页里同名类可以有不同字号/字重**（结论封面卡标题 12px/500 vs 其余卡 15px/700）→ 探针必须按「卡 + 类」分别断言，不能只断言第一个 `.card__title`。
+
+### 5.4 本轮（11:20 轮 · 序号 7）新增的工具与口径
+
+- **逐行判「卡片行 / 间隙行」**：`python .agents/state/png-rowclass.py <png> [--x0 16] [--x1 414] [--white FFFFFF] [--minfrac 0.7]`
+  —— 按行统计区间内「等于卡片底色」的像素占比，≥minfrac 判卡片行。**这是判卡片上下边界的第一工具**：
+  设计导出图上两张卡之间的间隙会被**两张卡各自的 drop_shadow 同时染色**，所以「等于页面底色」的旧判据会把卡+间隙+卡连成一段
+  （本页 `png-cardmap --x 30` 就把卡1/卡2 连成 98..756 一整段）；`png-textbands.py` 则用于盒内文字带。三者互补：
+  rowclass 判卡片边界 · textbands 判盒内文字/条目行 · png-rows 判单列色带。
+- ⚠️ **探针 `css(sel,'boxShadow')` 不能走 `normColor()`**：normColor 只回 `rgba(...)` 片段，会把
+  `rgba(15, 23, 42, 0.06) 0px 6px 20px 0px` 压成 `rgba(15, 23, 42, 0.06)` → **每条 box-shadow 检查都假失败**（本页踩到 5 条）。
+  正解：`normShadow()` 只替换颜色片段、保留偏移/模糊/扩散。
+- ⚠️ **`rectField()` 要认 `left`**：只认 `x` 时，key 写成 `xxx.left` 会返回**整个 rect 对象**并与数字比较 → 永久失败（本页踩到 6 条）。
+- ⚠️ **数组类断言用 `chkList(key, got, want, tol)`**：设计帧是 Figma 小数坐标链（本页卡1 真值 254.5、整页 1110.5），
+  落地取整后卡顶/卡高整体 +1；把数组 `join(',')` 精确比字符串会把取整差报成页面缺陷。
+- **本页记录的设计模型**：`stroke{align:center,thickness:1}` → `box-shadow: 0 0 0 1px <color>`（`border` 会占布局，内容宽 356→358）·
+  `effects.drop_shadow(0,6,20,rgba(15,23,42,.06))` → `box-shadow`（本页只有封面卡有投影，其余卡是描边 —— 探针要按卡分别断言）·
+  文本行框 = `fontSize × 1.5`，但**显式 height 优先**（同一页里「综合评分」18 与「满分 100」16 不同，不能一刀切）·
+  分项行：行高 18 + 间距 12 = 行距 30（首行前 16）；总览卡尾部说明盒 = 12 + 2×18 + 12 = 60。
+- **一个页面的同一组数据可以有两套色板**：本页分项**条填色**（绿/琥珀/红）与**分值文字色**（#334155 / #D97706 / #B91C1C）
+  在设计稿里是两组不同图层填充 → 探针必须分别断言，实现侧用 `dim.color` / `dim.textColor` 两个字段（阈值同一套 70/40）。

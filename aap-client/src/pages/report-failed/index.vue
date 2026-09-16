@@ -11,9 +11,9 @@
     </view>
 
     <view class="rf-page__body">
-      <!-- 未通过封面卡：design id=07b82bea（白 r18 padding 20） -->
+      <!-- 未通过封面卡：design id=07b82bea（白 r18 padding 20 · drop_shadow(0,6,20,rgba(15,23,42,.06))） -->
       <view class="block">
-        <view class="card">
+        <view class="card card--cover">
           <view class="card__title-row">
             <text class="card__label" data-testid="verdict-title">{{ VERDICT_TITLE }}</text>
             <view class="card__spacer" />
@@ -71,7 +71,7 @@
               />
             </view>
             <view class="dim__score-box">
-              <text class="dim__score" :style="{ color: dim.color }" data-testid="dim-score">{{ dim.scoreText }}</text>
+              <text class="dim__score" :style="{ color: dim.textColor }" data-testid="dim-score">{{ dim.scoreText }}</text>
             </view>
           </view>
 
@@ -117,7 +117,6 @@
       <view class="action">
         <view class="action__inner">
           <view class="action__ghost" data-testid="export-btn" @tap="onExport">
-            <view class="glyph glyph--download" aria-hidden="true" />
             <text class="action__ghost-text">{{ EXPORT_TEXT }}</text>
           </view>
           <view class="action__primary" data-testid="resubmit-btn" @tap="onResubmit">
@@ -301,9 +300,9 @@ onMounted(async () => {
 }
 
 .rf-page__icon-btn {
-  /* 设计稿返回图标段落 26×28.8（24px 字号 × lineHeight 1.2）→ 顶栏总高 48+29+12=89 */
+  /* design 79944b4c：remixicon 24px 行框 = 24×1.5 = 36（顶部栏内容高，撑起 48+36+12=96） */
   width: 26px;
-  height: 29px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -346,12 +345,19 @@ onMounted(async () => {
   box-sizing: border-box;
 }
 
+/* 封面卡为设计里唯一带投影的卡（drop_shadow(0,6,20,rgba(15,23,42,.06)) → box-shadow） */
+.card--cover {
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+}
+
+/* 其余三张卡是 Figma center 描边（thickness 1）：用 box-shadow 而非 border ——
+   border 会占布局，把内容宽从设计的 358 挤成 356，右侧元素整体左移 1px */
 .card--outlined {
-  border: 1px solid $color-border-chip;
+  box-shadow: 0 0 0 1px $color-border-chip;
 }
 
 .card--danger {
-  border: 1px solid $color-danger-border;
+  box-shadow: 0 0 0 1px $color-danger-border;
 }
 
 .card__title-row {
@@ -369,13 +375,13 @@ onMounted(async () => {
   font-size: 12px;
   font-weight: 500;
   color: $color-text-muted;
-  line-height: 1.2;
+  line-height: 18px; /* 设计文本行框 = fontSize × 1.5（12→18），撑起封面顶行 18 */
 }
 
 .card__sub {
   font-size: 12px;
   color: $color-text-placeholder;
-  line-height: 1.2;
+  line-height: 18px;
 }
 
 .card__title {
@@ -398,7 +404,7 @@ onMounted(async () => {
   font-size: 38px;
   font-weight: 800;
   color: $color-danger-strong;
-  line-height: 1.2;
+  line-height: 57px; /* 38px 文本行框 = 38×1.5 = 57（综合分块高 57，撑起整卡高度） */
 }
 
 .score__meta {
@@ -411,7 +417,12 @@ onMounted(async () => {
 .score__meta-text {
   font-size: 12px;
   color: $color-text-placeholder;
-  line-height: 1.2;
+  line-height: 18px; /* design 6119ce70 显式 height=18 */
+}
+
+/* design 65d88c24：「满分 100」显式 height=16（与上一行 18 不同，不能一刀切） */
+.score__meta-text:last-child {
+  line-height: 16px;
 }
 
 /* 结论标签（design 16f0f3cf：h28 r14 #FEF2F2） */
@@ -457,7 +468,7 @@ onMounted(async () => {
   min-width: 0;
   font-size: 12px;
   color: $color-danger-text;
-  line-height: 1.5;
+  line-height: 18px;
 }
 
 /* 结论措辞（design d5ad8ecf） */
@@ -475,7 +486,7 @@ onMounted(async () => {
   min-width: 0;
   font-size: 12px;
   color: $color-text-secondary;
-  line-height: 1.5;
+  line-height: 18px;
 }
 
 /* 分项总览 8 行（design 8d9285cb 等；首行 padding-top 16、其余 12） */
@@ -496,7 +507,7 @@ onMounted(async () => {
   flex-shrink: 0;
   font-size: 12px;
   color: $color-text-tertiary;
-  line-height: 1.2;
+  line-height: 18px; /* 撑起分项行高 18（+ 间距 12 = 行距 30，设计 PNG 实测） */
 }
 
 .dim__track {
@@ -521,11 +532,11 @@ onMounted(async () => {
 }
 
 .dim__score {
-  /* uni-app H5 里 <text> 默认是 inline，父级 UNI-VIEW 继承 16px 字号 → 行盒被撑到 24px（设计行高 14.4） */
+  /* uni-app H5 里 <text> 默认是 inline，父级 UNI-VIEW 继承 16px 字号 → 行盒被撑到 24px */
   display: block;
   font-size: 12px;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 18px; /* 同上：行高 18 = 设计行高（分值色由视图模型给 dim.textColor） */
 }
 
 /* 权重说明盒（design def3b414） */
@@ -563,14 +574,14 @@ onMounted(async () => {
   font-size: 14px;
   font-weight: 600;
   color: $color-text-primary;
-  line-height: 1.2;
+  line-height: 20px; /* 标题行高 20（设计 PNG：卡顶 768+20 → 标题行 788..808，首行解释从 816 起） */
 }
 
 .detail__score {
   font-size: 14px;
   font-weight: 700;
   color: $color-danger-strong;
-  line-height: 1.2;
+  line-height: 20px;
 }
 
 .detail__line-row {
@@ -637,7 +648,8 @@ onMounted(async () => {
   height: 44px;
   border-radius: 12px;
   background: $color-bg-card;
-  border: 1px solid $color-border-strong;
+  /* design adc9d8c6 stroke 为 Figma center 1px → box-shadow（border 会把 193×44 撑成 195×46 并挤掉内容） */
+  box-shadow: 0 0 0 1px $color-border-strong;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -646,7 +658,6 @@ onMounted(async () => {
 }
 
 .action__ghost-text {
-  margin-left: 6px;
   font-size: 14px;
   font-weight: 500;
   color: $color-text-tertiary;
@@ -672,7 +683,8 @@ onMounted(async () => {
   color: $color-bg-card;
 }
 
-/* 图标：设计为矢量图标，PRD 08 禁 emoji → CSS 形状占位（同序号 1/2/3/5/6 做法） */
+/* 图标：设计为矢量图标，PRD 08 禁 emoji → CSS 形状占位（同序号 1/2/3/5/6 做法）
+   盒子一律按设计图层尺寸（= 字号×1.5 行框），形状画在 ::before 里居中 */
 .glyph {
   width: 16px;
   height: 16px;
@@ -689,6 +701,16 @@ onMounted(async () => {
 }
 
 .glyph--chip {
+  /* design 8609903a：16px remixicon 行框 = 18×24 */
+  width: 18px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.glyph--chip::before {
+  content: '';
   width: 12px;
   height: 12px;
   border-radius: 50%;
@@ -696,6 +718,16 @@ onMounted(async () => {
 }
 
 .glyph--alert {
+  /* design b3aa817b：18px remixicon 行框 = 20×27 */
+  width: 20px;
+  height: 27px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.glyph--alert::before {
+  content: '';
   width: 18px;
   height: 18px;
   border-radius: 50%;
@@ -703,26 +735,36 @@ onMounted(async () => {
 }
 
 .glyph--red-dot {
+  /* design 89987677：18px remixicon 行框 = 20×27（行内 align-start，图标贴顶） */
+  width: 20px;
+  height: 27px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.glyph--red-dot::before {
+  content: '';
   width: 14px;
   height: 14px;
   border-radius: 50%;
   border: 1.5px solid $color-danger-strong;
-  margin-top: 2px;
 }
 
 .glyph--info {
+  /* design 831e1d09：20px remixicon 行框 = 22×30 */
+  width: 22px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.glyph--info::before {
+  content: '';
   width: 20px;
   height: 20px;
   border-radius: 50%;
   border: 1.5px solid $color-text-placeholder;
-}
-
-.glyph--download {
-  width: 14px;
-  height: 14px;
-  border-bottom: 2px solid $color-text-muted;
-  border-left: 2px solid $color-text-muted;
-  border-right: 2px solid $color-text-muted;
-  border-radius: 0 0 2px 2px;
 }
 </style>
