@@ -1,4 +1,4 @@
-STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D3 图例百分比统一口径本轮落地、D4/D5 的循环侧小改本轮落地；D6 挂起=不重命名）。当前在办：①**队列 8（给序号 3 起的载体页补「设计期望值 checks」维度，一页一轮）** ②队列 1 逐页复核（3~23 行的 checks 维度待补） ③队列 7（uni-picker 溢出口径） ④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。历史流水归档在 aap-notes-archive-2026-09-16.md，**不要每轮读**。
+STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D3 图例百分比统一口径本轮落地、D4/D5 的循环侧小改本轮落地；D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 2026-09-16 09:38（160 条 checks · 偏差 15→0 · 4 类偏差已修）→ 下一轮开工做 序号 4** ②队列 1 逐页复核（4~23 行的 checks 维度待补） ③队列 7（uni-picker 溢出口径） ④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。历史流水归档在 aap-notes-archive-2026-09-16.md，**不要每轮读**。
 LEASE: free until -
 
 # AAP TDD 推进 · 状态与目标（自驱动循环的单一事实来源）
@@ -110,7 +110,18 @@ LEASE: free until -
 6. ✅ **给 序号 1（登录注册）、2（工作台）补 430 宽载体页（已完成 2026-09-16 08:58）**：新增 `__measure-login.html`（93 条设计期望值 checks + 6 相交互：空表单 / 缺短信码 / 未勾协议×2 / 获取验证码 / 登录成功；`?scenario=guard` 只跑校验门）与 `__measure-workbench.html`（92 条 checks + 交互回放 2-actions）；两页均**两轮独立测量全等**且 `checkFails` 49→0 / 7→0；配套补 `api/v1/auth/sms/{send,login}/post` fixture（红 FAIL 2 → 绿 FAIL 0）；新增证据维度 `evidence/requests-序号<tag>-run{1,2}.txt`（serve 实收请求行，写请求带 body）——「校验门有没有偷偷发请求」由 **guard 场景 requests 0 行**直接证明，不再靠页面自报。（脚本升级：`review-measure.sh` 支持第 5 个参数 url 查询串 + 落 requests 证据；`check-mock-fixtures.py` 新增两条 POST 检查并把变体目录名（`api-tmp-noauth`）归到基础 mock；新增 `cmp-flat-phase.py`（扁平老留证 vs 新 phase 跨代对比）、`text-list.py`、`append-login-structure-tests.py`）
    两轮 dump-dom + 与建页留证对比；这两页此前只有截图/产物证据，是逐页复核里唯一没有客观 DOM 数字的两行。**← 下轮开工第一件事**
 7. （工具卫生）把「uni-app 内部测量元素不计入溢出统计」的口径补到序号 22 的载体页（`uni-picker`），与序号 6 已修的 `uni-resize-sensor` 同族；
-8. **给其余 20 个载体页补「设计期望值 checks」维度**（本轮新立，从序号 3 开始，一页一轮）：现有 3~23 的载体页只测「文案齐、溢出 0、两轮一致」，本轮登录页的经验说明**还能量出与设计树的逐项偏差**（序号 1 就量出 49 条）。做法照 `__measure-login.html` 的 `chk(k, got, want)`：want 一律取 `.calicat/raw/pages/<page>/design.tree.json` + `node-probe.py` 的声明值，不许凭截图目测。
+8. **给其余 20 个载体页补「设计期望值 checks」维度**（本轮新立，从序号 3 开始，一页一轮）：现有载体页只测「文案齐、溢出 0、两轮一致」，
+   本轮登录页的经验说明**还能量出与设计树的逐项偏差**（序号 1 就量出 49 条）。做法照 `__measure-login.html` 的 `chk(k, got, want)`：
+   want 一律取 `.calicat/raw/pages/<page>/design.tree.json` + `node-probe.py` 的声明值，不许凭截图目测。
+   - ✅ **序号 3 已完成 2026-09-16 09:38**：`__measure.html` 内置 **160 条 checks**（含 effects 声明：`probe-effects.py` 读 design.json 的 drop_shadow），
+     红基线 **15/160**（`evidence/red-序号3-checks-设计期望值偏差.txt`）→ 绿 **0/160**（`evidence/green-序号3-checks-设计期望值.txt`），两轮独立测量全等 47/47。
+     修掉 4 类偏差：顶部栏 1px 分隔由 border 改为设计声明的 `drop_shadow(0,1,0,#F1F5F9)`（border 把栏高撑成 69，设计 68 → 整页 docScrollHeight 944→943）、
+     顶部栏按设计 `3ad1d267` 加「顶部左侧」组（返回按钮 + 标题块 gap 12；修前被 space-between 撑到 99）、8 处字重按设计 fontFamily 对齐（Bold→700 ×3 / SemiBold→600 ×3 / Medium→500 ×2）、
+     底部 TabBar 四项按设计各 76 宽 + space_between（修前 flex:1 = 100）。**下一轮：序号 4**。
+   - ⚠️ 本轮踩到并写进探针的 3 条口径（**探针自身**的坑，不是页面缺陷）：①设计里 chip 的「待检测 3」是 dot+label+count 三个节点用 flex `gap` 隔开，`textContent` **没有空格** → 分开断言 `chip__label`/`chip__count`；
+     ②在 `padding` 容器内的卡片，左右边要按容器内边算（序号 3 的卡是 20/410，不是 16/414）；③`0.8px` 描边的 computed 是 **used value**（Chrome 取整成 1px）→ 判「样式表声明值」（探针新增 `declared(sel, prop)` 读 CSSOM），used 值另记一条；
+     ④box-shadow 颜色 alpha=1 时 Chrome 序列化成 `rgb()`（`norm()` 已改成 alpha 感知，否则误报）。
+   - 探针工具：`python .agents/state/show-checks.py <run.json> [out.txt]` 打印 checks 概览 + 失败清单（红/绿基线转录）；拍 430 宽截图 `bash .agents/state/shot-430.sh <输出.png>`（自带静态服务器，用完即关）。
 9. **决策台账 `aap-decisions.md` 的待执行项优先于本队列**（前台会话 2026-09-16 建立该文件，状态文件顶部已加提醒）：
    - ✅ **D3 · 图例百分比统一且最优** —— **已完成 2026-09-16 09:26**（口径落在 `src/utils/percentage.ts`，执行证据见 `aap-decisions.md` D3）。**下轮第一件事 = 队列 8**（给序号 3 的载体页补「设计期望值 checks」维度，照 `__measure-login.html` 的 `chk(k,got,want)` 做法）。
    - **D1 的循环侧收尾**：把台账里 `missing-prd` 的接口备注改成「依据 `docs/api/接口字段级schema.md` §x」，并核对已实现页面字段名与该 schema 是否一致（不一致以 schema 为准改代码）。
@@ -195,7 +206,20 @@ LEASE: free until -
   ③**质量门**：`npm test` **1168/1168 · 72 files 连跑两轮**（`green-D3-全量轮1/2.txt`）· `type-check` exit 0 · `build:mp-weixin` / `build:h5` DONE（`pages/workbench` 四件套齐备）·
   截图 `logs/screenshots/20260916-0921-序号2-工作台-图例统一口径D3-h5-430宽.png`。
   ④**队列 2**：全仓库核对「新建/填写报价」落点确为 `/pages/quote-models/index`，无遗漏；顺手修掉 `tests/pages/report.spec.ts` 头部旧注释。⑤**D4/D5 循环侧小改**：tokens.scss 顶部注释 + 页面计划 §4 冲突表更新。
-  ⑥**下轮第一件事**：队列 8 —— 给序号 3 的载体页补「设计期望值 checks」维度（照 `__measure-login.html` 的 chk 做法，每页一轮）。
+- 2026-09-16 09:38（cron 轮 `aap-tdd-run-20260916-0930`）· **队列 8 第 1 页：序号 3 载体页补「设计期望值 checks」维度（160 条 · 偏差 15→0）+ 修 4 类设计偏差**：
+  ①**改名**：本轮**未执行**——队列 0 已被决策 D6 挂起（`hioas-*` 是仓库名约定，勿再重试），按「人类决策 > prompt」处理。
+  ②**TDD 红→绿**（本轮主交付）：`__measure.html` 从「只在快照里报文案/溢出」升级为 **160 条设计期望值 checks**（want 全部取 `page-3 design.tree.json` + `node-probe.py` + 新增 `probe-effects.py` 读到的 effects 声明）。
+     红基线 **checkFailCount 15/160**（`evidence/red-序号3-checks-设计期望值偏差.txt`，两轮一致）→ 修后 **0/160**（`green-序号3-checks-设计期望值.txt`），两轮独立测量全等 `47/47`（`review-compare --tag 3-checks`）。
+  ③**修掉的 4 类偏差**（`src/pages/credentials/index.vue`）：顶部栏 1px 分隔由 `border-bottom` 改为设计声明的 `drop_shadow(0,1,0,#F1F5F9)`（border 把栏高撑成 **69**，设计 **68**；连带整页 docScrollHeight 944→943、卡片 top 227→226）；
+     顶部栏按设计 `3ad1d267` 加 `cred__topbar-left` 组（返回按钮 + 标题块 横排 gap 12；修前标题块被 `space-between` 撑到距返回按钮 **99px**）；
+     8 处字重按设计 fontFamily 对齐（Bold→700 ×3 · SemiBold→600 ×3 · Medium→500 ×2）；底部 TabBar 四项按设计「各 76 宽 + space_between」（修前 `flex:1` = **100** 宽）。
+  ④**同轮修正 3 条探针口径**（经核对属探针自身错误、非页面缺陷，已在探针里写明）：chip 文案设计用 flex `gap` 无空格 → 分开断言 label/count；卡在 `padding` 容器内 → 左右边 20/410；
+     `0.8px` 描边的 computed 是 used value（Chrome 取整 1px）→ 新增 `declared(sel, prop)` 判样式表声明值；另修 `norm()` 的 alpha 感知（alpha=1 的 shadow 颜色 Chrome 序列化成 `rgb()`）。
+  ⑤**质量门**（修后）：`npm test` **1168/1168 ×2**（`green-序号3-checks-全量轮{1,2}.txt`）· `type-check` exit 0 · `build:mp-weixin` DONE（产物 `pages/credentials/index.{js,json,wxml,wxss}`，
+     wxml 含 `cred__topbar-left`、wxss 含 `font-weight 500/600/700` 与 `.tabbar__item{width:76px}`）· `build:h5` DONE · 台账路由核对 `review-artifacts.py`：22/22 三件套齐备且注册。
+  ⑥**证据**：430 宽截图 `logs/screenshots/20260916-0938-序号3-凭证列表-checks轮-h5-430宽.png`（另存一份到 `.agents/state/evidence/` 随本提交入库，因 `logs/` 被 ignore）；
+     与旧留证（`measure-序号3-无滚动条430.json`）差异**全部**为「垂直 1px 平移 + 新增探针维度」，`overflowingCount 0` · `docScrollWidth 430` 不变。
+  ⑦**下轮开工第一件事**：队列 8 的 **序号 4**（= page-4-2「提交接入凭证」→ `/pages/credential-submit/index`，载体页 = `__measure-submit.html`（旧的、无 iframe 版式，需先补成 430 宽 iframe 体例）、mock 目录 = `api`）；其后 **4-v1**（page-24「接入凭证-表单」→ `/pages/credential-submit/form`，载体页 = `__measure-form.html`）。对照表见 `python .agents/state/survey-harness-routes.py`。
 
 ## 5. 关键命令（照抄可用）
 

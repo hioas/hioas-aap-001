@@ -6,84 +6,400 @@
     <style>
       body { margin: 0; font: 12px monospace; }
       iframe { width: 430px; height: 900px; border: 0; }
-      pre { white-space: pre-wrap; }
+      /* 取数 <pre> 包进 0 尺寸 overflow:hidden：textContent 可读但不渲染、不会被 --screenshot 截进图（§4.1） */
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
     </style>
   </head>
   <body>
-    <!-- 430x900 iframe 模拟小程序视口；只给 DOM 数字，不靠 vision 猜 -->
+    <!-- 430x900 iframe 模拟小程序视口；只给 DOM 数字，不靠 vision 猜
+         页面 3：/pages/credentials/index（【工作台与我的】凭证列表-有数据，frame/page-3）
+         设计真源：.calicat/raw/pages/page-3/design.tree.json + .agents/state/page-3-nodes.txt
+                    + probe-effects.py（effects 声明）
+         期望值（design 声明值，逐条写进 checks，got/want 一一对应）：
+           页面容器 bg rgb(245,247,251) · 帧宽 430
+           顶部栏 padding 16/20/16/20 · bg 白 · 高 68 · drop_shadow(0,1,0,#F1F5F9)
+             顶部左侧（返回按钮 + 标题块）成组 gap 12，帮助按钮靠右（space_between 的两端）
+           返回/帮助按钮 36x36 r18 bg rgb(241,245,249) · 标题块 w120 竖排
+           标题 18px/700 rgb(15,23,42) · 副标题 12px rgb(148,163,184)
+           内容区 padding 16/20/16/20 · 垂直 gap 16（三处相邻间距均为 16）
+           接入凭证按钮 390x48 r12 bg rgb(37,99,235) gap 6 · drop_shadow(0,6,16,rgba(37,99,235,0.28)) · 文字 15px/600 白
+           列表标题 15px/700 rgb(15,23,42) · 共 N 条 12px rgb(148,163,184) · 两端对齐
+           状态统计 4 chip gap 8 · chip bg 白 描边 0.8 rgb(238,242,247) r10 padding 6/10 gap 6
+             · 点 9x8 r4（待检测灰148,163,184 / 检测中蓝37,99,235 / 不通过红239,68,68 / 通过绿22,163,74）
+             · 标签 12px rgb(71,85,105) · 计数 12px/700 rgb(15,23,42) · 文案 待检测 3 / 检测中 2 / 不通过 1 / 通过 4
+           凭证列表卡 bg 白 r16 padding 2/16 · drop_shadow(0,4,16,rgba(15,23,42,0.06)) · 左右 20/410（在 内容区 padding 20 之内）
+             · 表头高 44 · 列宽 226/48/42/42 · 表头 12px/600 rgb(148,163,184)
+             · 行 padding 12/0 · 名称列 w226 gap2（13px/600 rgb(15,23,42) + 11px rgb(148,163,184)）
+             · 模型数 w48 13px/500 rgb(15,23,42) · 状态 w42 点 9x8 r4 · 查看 w42 「报告」13px/500 rgb(37,99,235)
+             · 底部说明 padding 4/0 gap 6 居中 · 文字 11px rgb(148,163,184)
+           底部 TabBar padding 10/16/14/16 · bg 白 · 4 项各宽 76 两端对齐 · 标签 11px（当前页 600 rgb(37,99,235) / 其余 rgb(148,163,184)）
+         字重映射（设计 fontFamily 名 → CSS）：SourceHanSans-Bold→700 · SemiBold→600 · Medium→500 · Regular→400
+         overriddenByDecision（有意偏离，不计入偏差）：
+           - TabBar / 按钮 / 返回 / 帮助 / 信息图标 = D5 决策：CSS 形状占位（设计为 remixicon 矢字形）
+           - 内容区 padding-bottom 96px（设计 16px）：固定 TabBar 不遮挡内容所需
+           - 底部 TabBar 用 position:fixed（设计帧里它在文档流末尾），与序号 2 口径一致
+         ?shot=1 只渲染 iframe（不写 JSON），供截图
+         ⚠️ 触发方式必须用轮询取数（iframe onload 会因监听注册过晚而错过 → 静默拿到 pending） -->
     <iframe id="f" src="/index.html#/pages/credentials/index"></iframe>
-    <pre id="m">pending</pre>
+    <div id="sink"><pre id="m">pending</pre></div>
     <script>
+      var SHOT_ONLY = /(\?|&)shot=1/.test(location.search)
+
+      function all(d, sel) { return Array.prototype.slice.call(d.querySelectorAll(sel)) }
+      function rectEl(el) {
+        if (!el) return null
+        var r = el.getBoundingClientRect()
+        return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+      }
+      function rect(d, sel) { return rectEl(d.querySelector(sel)) }
+      function rects(d, sel) { return all(d, sel).map(rectEl) }
+      function textOf(d, sel) { var e = d.querySelector(sel); return e ? e.textContent.trim() : null }
+      function texts(d, sel) { return all(d, sel).map(function (e) { return e.textContent.trim() }) }
+      function styleOf(w, el, prop) { return el ? w.getComputedStyle(el)[prop] : null }
+      function g(d, w, sel, prop) { return styleOf(w, d.querySelector(sel), prop) }
+      function gs(d, w, sel, prop) { return all(d, sel).map(function (e) { return styleOf(w, e, prop) }) }
+
+      /** 设计期望截图里的每一个独立文本图层（逐字抄自 page-3 design.tree.json） */
+      var needText = [
+        '凭证列表', '统一管理客户检测凭证', '接入凭证', '共 10 条',
+        '待检测', '检测中', '不通过', '通过',
+        '凭证名称', '模型数', '状态', '查看', '报告',
+        '华东主线路 · GPT 通道', '华北备用 · Claude 通道', '华南专线 · Gemini 通道', '华东测试 · GPT 通道',
+        '华中主线路 · Claude 通道', '华南备用 · GPT 通道', '西南专线 · 通义通道', '华北主线路 · Gemini 通道',
+        '华东灰度 · DeepSeek 通道', '港澳线路 · GPT 通道',
+        '2026-07-10 14:08:21', '仅展示最近接入的 10 条凭证记录',
+        '工作台', '报价', '我的'
+      ]
+      /** 设计行顺序 / 行模型数 / 行状态色（凭证行1..10 逐行抄自 design.tree.json） */
+      var designAliasOrder = [
+        '华东主线路 · GPT 通道', '华北备用 · Claude 通道', '华南专线 · Gemini 通道', '华东测试 · GPT 通道', '华中主线路 · Claude 通道',
+        '华南备用 · GPT 通道', '西南专线 · 通义通道', '华北主线路 · Gemini 通道', '华东灰度 · DeepSeek 通道', '港澳线路 · GPT 通道'
+      ]
+      var designModelCounts = ['2', '5', '3', '1', '4', '6', '2', '3', '5', '4']
+      var designRowDotColors = ['rgb(22,163,74)', 'rgb(37,99,235)', 'rgb(148,163,184)', 'rgb(239,68,68)']
+
+      /** 归一化：48px → 48；rgba(29,78,216,1) → 'rgb(29,78,216)'（alpha=1 时 Chrome 会序列化成 rgb()）；
+       *  alpha≠1 时保留 'rgba(r,g,b,a)'（box-shadow 颜色需要按 alpha 判定） */
+      function norm(v) {
+        if (v === null || v === undefined) return v
+        var s = String(v).trim()
+        var m = s.match(/^(-?\d+(?:\.\d+)?)px$/)
+        if (m) return Number(m[1])
+        var r = s.match(/^rgba?\(([^)]+)\)$/)
+        if (r) {
+          var p = r[1].split(',').map(function (x) { return Number(String(x).trim()) })
+          if (p.length > 3 && p[3] !== 1) return 'rgba(' + p[0] + ',' + p[1] + ',' + p[2] + ',' + p[3] + ')'
+          return 'rgb(' + p.slice(0, 3).join(',') + ')'
+        }
+        return s
+      }
+      /** box-shadow 解析：Chrome 序列化为 "rgba(..) 0px 6px 16px 0px"（颜色在前） */
+
+      function build(doc, win) {
+        var checks = []
+        function chk(k, got, want) {
+          var gg = norm(got), ww = norm(want)
+          checks.push({ k: k, got: gg, want: ww, ok: gg === ww })
+        }
+        function chkS(k, got, want) { checks.push({ k: k, got: got, want: want, ok: got === want }) }
+        function dim(sel, key) { var r = rect(doc, sel); return r ? r[key] : null }
+        function shadow(sel, idx) {
+          var el = doc.querySelector(sel)
+          if (!el) return { x: null, y: null, blur: null, color: null }
+          var s = win.getComputedStyle(el).boxShadow
+          if (!s || s === 'none') return { x: null, y: null, blur: null, color: null }
+          var m = s.match(/^(rgba?\([^)]*\)|\S+)\s+(-?[\d.]+)px\s+(-?[\d.]+)px\s+(-?[\d.]+)px(?:\s+(-?[\d.]+)px)?/)
+          if (!m) return { x: null, y: null, blur: null, color: s.replace(/\s+/g, '') }
+          return { x: Number(m[2]), y: Number(m[3]), blur: Number(m[4]), color: m[1].replace(/\s+/g, '') }
+        }
+        function c(sel, prop) { return styleOf(win, doc.querySelector(sel), prop) }
+        function cs(sel, prop) { return gs(doc, win, sel, prop) }
+        /** 读样式表里的**声明值**（computed 是 used value：Chrome 会把 0.8px 描边取整成 1px） */
+        function declared(sel, prop) {
+          var sheets = doc.styleSheets
+          for (var s = 0; s < sheets.length; s++) {
+            var rules
+            try { rules = sheets[s].cssRules } catch (e) { continue }
+            for (var r = 0; r < rules.length; r++) {
+              var rule = rules[r]
+              var st = rule.selectorText
+              if (!st || !rule.style) continue
+              var parts = st.split(',')
+              for (var p = 0; p < parts.length; p++) {
+                var base = parts[p].replace(/\[[^\]]*\]/g, '').trim()
+                if (base === sel) {
+                  var v = rule.style[prop]
+                  if (v) return v
+                }
+              }
+            }
+          }
+          return null
+        }
+
+        /* ── 页面容器（设计 57ba953d） ───────────────────────────── */
+        chk('page.frameWidth', dim('.cred', 'w'), 430)
+        chk('page.bg', c('.cred', 'backgroundColor'), 'rgba(245,247,251,1)')
+
+        /* ── 顶部栏（设计 69130ec6） ─────────────────────────────── */
+        chk('topbar.paddingTop', c('.cred__topbar', 'paddingTop'), '16px')
+        chk('topbar.paddingRight', c('.cred__topbar', 'paddingRight'), '20px')
+        chk('topbar.paddingBottom', c('.cred__topbar', 'paddingBottom'), '16px')
+        chk('topbar.paddingLeft', c('.cred__topbar', 'paddingLeft'), '20px')
+        chk('topbar.bg', c('.cred__topbar', 'backgroundColor'), 'rgba(255,255,255,1)')
+        chk('topbar.height', dim('.cred__topbar', 'h'), 68)
+        chk('topbar.flexDir', c('.cred__topbar', 'flexDirection'), 'row')
+        chk('topbar.alignItems', c('.cred__topbar', 'alignItems'), 'center')
+        chk('topbar.justify', c('.cred__topbar', 'justifyContent'), 'space-between')
+        /* 设计声明 drop_shadow(offsetX 0, offsetY 1, blur 0, rgba(241,245,249,1))；用 border 表达会把栏高撑成 69 */
+        var topShadow = shadow('.cred__topbar')
+        chk('topbar.hairlineY', topShadow.y, 1)
+        chk('topbar.hairlineBlur', topShadow.blur, 0)
+        chk('topbar.hairlineColor', topShadow.color, 'rgba(241,245,249,1)')
+
+        /* 返回/帮助按钮（36x36 r18 bg rgb(241,245,249)） */
+        var back = rect(doc, '[data-testid="back-btn"]')
+        var help = rect(doc, '[data-testid="help-btn"]')
+        var tblock = rect(doc, '.cred__title-block')
+        chk('backBtn.w', back && back.w, 36)
+        chk('backBtn.h', back && back.h, 36)
+        chk('backBtn.radius', c('[data-testid="back-btn"]', 'borderRadius'), '18px')
+        chk('backBtn.bg', c('[data-testid="back-btn"]', 'backgroundColor'), 'rgba(241,245,249,1)')
+        chk('backBtn.left', back && back.x, 20)
+        chk('helpBtn.w', help && help.w, 36)
+        chk('helpBtn.h', help && help.h, 36)
+        chk('helpBtn.bg', c('[data-testid="help-btn"]', 'backgroundColor'), 'rgba(241,245,249,1)')
+        chk('helpBtn.right', help && help.right, 410)
+        /* 设计 顶部左侧 gap=12（返回按钮 → 标题块） */
+        chk('topLeft.gap', back && tblock ? tblock.x - back.right : null, 12)
+        chk('titleBlock.w', tblock && tblock.w, 120)
+        chk('titleBlock.flexDir', c('.cred__title-block', 'flexDirection'), 'column')
+        chk('title.text', textOf(doc, '.cred__title'), '凭证列表')
+        chk('title.fontSize', c('.cred__title', 'fontSize'), '18px')
+        chk('title.color', c('.cred__title', 'color'), 'rgba(15,23,42,1)')
+        chk('title.fontWeight', c('.cred__title', 'fontWeight'), '700')
+        chk('subtitle.text', textOf(doc, '.cred__subtitle'), '统一管理客户检测凭证')
+        chk('subtitle.fontSize', c('.cred__subtitle', 'fontSize'), '12px')
+        chk('subtitle.color', c('.cred__subtitle', 'color'), 'rgba(148,163,184,1)')
+
+        /* ── 内容区（设计 827a9db0：padding 16/20/16/20 · 垂直 gap 16） ── */
+        chk('content.paddingTop', c('.cred__content', 'paddingTop'), '16px')
+        chk('content.paddingLeft', c('.cred__content', 'paddingLeft'), '20px')
+        chk('content.paddingRight', c('.cred__content', 'paddingRight'), '20px')
+        var submit = rect(doc, '[data-testid="submit-btn"]')
+        var lhead = rect(doc, '.cred__list-head')
+        var stats = rect(doc, '.cred__stats')
+        var card = rect(doc, '.cred-card')
+        chk('content.gap.submitToHead', submit && lhead ? lhead.top - submit.bottom : null, 16)
+        chk('content.gap.headToStats', lhead && stats ? stats.top - lhead.bottom : null, 16)
+        chk('content.gap.statsToCard', stats && card ? card.top - stats.bottom : null, 16)
+
+        /* 接入凭证按钮（设计 ddcec724） */
+        chk('submit.w', submit && submit.w, 390)
+        chk('submit.h', submit && submit.h, 48)
+        chk('submit.left', submit && submit.x, 20)
+        chk('submit.radius', c('[data-testid="submit-btn"]', 'borderRadius'), '12px')
+        chk('submit.bg', c('[data-testid="submit-btn"]', 'backgroundColor'), 'rgba(37,99,235,1)')
+        chk('submit.gap', c('[data-testid="submit-btn"]', 'gap'), '6px')
+        var sbShadow = shadow('[data-testid="submit-btn"]')
+        chk('submit.shadowY', sbShadow.y, 6)
+        chk('submit.shadowBlur', sbShadow.blur, 16)
+        chk('submit.shadowColor', sbShadow.color, 'rgba(37,99,235,0.28)')
+        chk('submitText.fontSize', c('.cred__submit-text', 'fontSize'), '15px')
+        chk('submitText.color', c('.cred__submit-text', 'color'), 'rgba(255,255,255,1)')
+        chk('submitText.fontWeight', c('.cred__submit-text', 'fontWeight'), '600')
+
+        /* 列表标题行（设计 f89b39ae） */
+        chk('listHead.justify', c('.cred__list-head', 'justifyContent'), 'space-between')
+        chk('listHead.w', lhead && lhead.w, 390)
+        chk('listTitle.text', textOf(doc, '.cred__list-title'), '凭证列表')
+        chk('listTitle.fontSize', c('.cred__list-title', 'fontSize'), '15px')
+        chk('listTitle.color', c('.cred__list-title', 'color'), 'rgba(15,23,42,1)')
+        chk('listTitle.fontWeight', c('.cred__list-title', 'fontWeight'), '700')
+        chk('listTotal.text', textOf(doc, '[data-testid="list-total"]'), '共 10 条')
+        chk('listTotal.fontSize', c('.cred__list-total', 'fontSize'), '12px')
+        chk('listTotal.color', c('.cred__list-total', 'color'), 'rgba(148,163,184,1)')
+
+        /* 状态统计行（设计 9da021fa） */
+        chk('stats.gap', c('.cred__stats', 'gap'), '8px')
+        chk('chip.count', all(doc, '.chip').length, 4)
+        chk('chip.bg', c('.chip', 'backgroundColor'), 'rgba(255,255,255,1)')
+        /* 设计 stroke thickness=0.8：以样式表声明值为准；computed（used value）会被 Chrome 取整成 1px */
+        chkS('chip.borderDeclaredWidth', declared('.chip', 'borderWidth'), '0.8px')
+        chk('chip.borderUsedWidth', c('.chip', 'borderTopWidth'), '1px')
+        chk('chip.borderColor', c('.chip', 'borderTopColor'), 'rgba(238,242,247,1)')
+        chk('chip.radius', c('.chip', 'borderRadius'), '10px')
+        chk('chip.paddingTop', c('.chip', 'paddingTop'), '6px')
+        chk('chip.paddingLeft', c('.chip', 'paddingLeft'), '10px')
+        chk('chip.gap', c('.chip', 'gap'), '6px')
+        chk('chipDot.w', dim('.chip__dot', 'w'), 9)
+        chk('chipDot.h', dim('.chip__dot', 'h'), 8)
+        chk('chipDot.radius', c('.chip__dot', 'borderRadius'), '4px')
+        var chipDots = cs('.chip__dot', 'backgroundColor')
+        var wantChipDots = ['rgba(148,163,184,1)', 'rgba(37,99,235,1)', 'rgba(239,68,68,1)', 'rgba(22,163,74,1)']
+        for (var i = 0; i < 4; i++) chk('chipDot.color[' + i + ']', chipDots[i], wantChipDots[i])
+        chk('chipLabel.fontSize', c('.chip__label', 'fontSize'), '12px')
+        chk('chipLabel.color', c('.chip__label', 'color'), 'rgba(71,85,105,1)')
+        chk('chipCount.fontSize', c('.chip__count', 'fontSize'), '12px')
+        chk('chipCount.color', c('.chip__count', 'color'), 'rgba(15,23,42,1)')
+        chk('chipCount.fontWeight', c('.chip__count', 'fontWeight'), '700')
+        chkS('chipLabels', texts(doc, '.chip__label').join('|'), '待检测|检测中|不通过|通过')
+        chkS('chipCounts', texts(doc, '.chip__count').join('|'), '3|2|1|4')
+
+        /* ── 凭证列表卡（设计 cb9ceb72） ─────────────────────────── */
+        chk('card.bg', c('.cred-card', 'backgroundColor'), 'rgba(255,255,255,1)')
+        chk('card.radius', c('.cred-card', 'borderRadius'), '16px')
+        chk('card.paddingTop', c('.cred-card', 'paddingTop'), '2px')
+        chk('card.paddingLeft', c('.cred-card', 'paddingLeft'), '16px')
+        /* 卡在 内容区（padding 16/20/16/20）之内，故左右边 = 20 / 410 */
+        chk('card.left', card && card.x, 20)
+        chk('card.right', card && card.right, 410)
+        var cardShadow = shadow('.cred-card')
+        chk('card.shadowY', cardShadow.y, 4)
+        chk('card.shadowBlur', cardShadow.blur, 16)
+        chk('card.shadowColor', cardShadow.color, 'rgba(15,23,42,0.06)')
+
+        /* 表头（设计 c1940840：高 44 · 列宽 226/48/42/42） */
+        chk('head.height', dim('.cred-card__head', 'h'), 44)
+        chk('head.thCount', all(doc, '.cred-card__th').length, 4)
+        chkS('head.thTexts', texts(doc, '.cred-card__th').join(' | '), '凭证名称 | 模型数 | 状态 | 查看')
+        chk('head.thFontSize', c('.cred-card__th', 'fontSize'), '12px')
+        chk('head.thColor', c('.cred-card__th', 'color'), 'rgba(148,163,184,1)')
+        chk('head.thFontWeight', c('.cred-card__th', 'fontWeight'), '600')
+        chk('head.colName.w', dim('.cred-card__th--name', 'w'), 226)
+        chk('head.colModels.w', dim('.cred-card__th--models', 'w'), 48)
+        chk('head.colStatus.w', dim('.cred-card__th--status', 'w'), 42)
+        chk('head.colView.w', dim('.cred-card__th--view', 'w'), 42)
+
+        /* 数据行（设计 02850966：padding 12/0；名称列 w226 gap2） */
+        chk('row.count', all(doc, '[data-testid="cred-row"]').length, 10)
+        chk('row.paddingTop', c('.cred-row', 'paddingTop'), '12px')
+        chk('row.paddingBottom', c('.cred-row', 'paddingBottom'), '12px')
+        chk('row.nameCol.w', dim('.cred-row__name-col', 'w'), 226)
+        chk('row.nameCol.gap', c('.cred-row__name-col', 'gap'), '2px')
+        chk('row.nameCol.flexDir', c('.cred-row__name-col', 'flexDirection'), 'column')
+        chk('row.alias.fontSize', c('.cred-row__alias', 'fontSize'), '13px')
+        chk('row.alias.color', c('.cred-row__alias', 'color'), 'rgba(15,23,42,1)')
+        chk('row.alias.fontWeight', c('.cred-row__alias', 'fontWeight'), '600')
+        chk('row.time.fontSize', c('.cred-row__time', 'fontSize'), '11px')
+        chk('row.time.color', c('.cred-row__time', 'color'), 'rgba(148,163,184,1)')
+        chk('row.models.w', dim('.cred-row__models', 'w'), 48)
+        chk('row.models.fontSize', c('.cred-row__models', 'fontSize'), '13px')
+        chk('row.models.color', c('.cred-row__models', 'color'), 'rgba(15,23,42,1)')
+        chk('row.models.fontWeight', c('.cred-row__models', 'fontWeight'), '500')
+        chk('row.status.w', dim('.cred-row__status', 'w'), 42)
+        chk('row.status.gap', c('.cred-row__status', 'gap'), '6px')
+        chk('row.dot.w', dim('.cred-row__dot', 'w'), 9)
+        chk('row.dot.h', dim('.cred-row__dot', 'h'), 8)
+        chk('row.dot.radius', c('.cred-row__dot', 'borderRadius'), '4px')
+        var rowDots = cs('.cred-row__dot', 'backgroundColor').slice(0, 4)
+        for (var j = 0; j < 4; j++) chk('row.dot.color[' + j + ']', rowDots[j], designRowDotColors[j])
+        chk('row.view.w', dim('.cred-row__view', 'w'), 42)
+        chk('row.report.fontSize', c('.cred-row__report', 'fontSize'), '13px')
+        chk('row.report.color', c('.cred-row__report', 'color'), 'rgba(37,99,235,1)')
+        chk('row.report.fontWeight', c('.cred-row__report', 'fontWeight'), '500')
+        chk('row.reportCount', all(doc, '[data-testid^="row-report-"]').length, 5)
+        chkS('row.aliasOrder', texts(doc, '.cred-row__alias').join('|'), designAliasOrder.join('|'))
+        chkS('row.modelCounts', texts(doc, '.cred-row__models').join('|'), designModelCounts.join('|'))
+        chkS('row.timeText', textOf(doc, '.cred-row__time'), '2026-07-10 14:08:21')
+
+        /* 列表底部说明（设计 3bf43b00：padding 4/0 · gap 6 · 居中） */
+        chk('footer.paddingTop', c('.cred-card__footer', 'paddingTop'), '4px')
+        chk('footer.paddingBottom', c('.cred-card__footer', 'paddingBottom'), '4px')
+        chk('footer.gap', c('.cred-card__footer', 'gap'), '6px')
+        chk('footer.justify', c('.cred-card__footer', 'justifyContent'), 'center')
+        chk('footer.text', textOf(doc, '.cred-card__footer-text'), '仅展示最近接入的 10 条凭证记录')
+        chk('footer.textFontSize', c('.cred-card__footer-text', 'fontSize'), '11px')
+        chk('footer.textColor', c('.cred-card__footer-text', 'color'), 'rgba(148,163,184,1)')
+        chk('footer.iconBorderColor', c('.glyph--info', 'borderTopColor'), 'rgba(148,163,184,1)')
+
+        /* ── 底部 TabBar（设计 f084a5c4：padding 10/16/14/16 · 4 项各宽 76 两端对齐） ── */
+        chk('tabbar.bg', c('.tabbar', 'backgroundColor'), 'rgba(255,255,255,1)')
+        chk('tabbar.paddingTop', c('.tabbar', 'paddingTop'), '10px')
+        chk('tabbar.paddingRight', c('.tabbar', 'paddingRight'), '16px')
+        chk('tabbar.paddingBottom', c('.tabbar', 'paddingBottom'), '14px')
+        chk('tabbar.paddingLeft', c('.tabbar', 'paddingLeft'), '16px')
+        chk('tabbar.justify', c('.tabbar', 'justifyContent'), 'space-between')
+        var items = rects(doc, '.tabbar__item')
+        chk('tabbar.itemCount', items.length, 4)
+        chk('tabbar.item0.w', items[0] && items[0].w, 76)
+        chk('tabbar.item3.w', items[3] && items[3].w, 76)
+        chk('tabbar.item0.left', items[0] && items[0].x, 16)
+        chk('tabbar.item3.right', items[3] && items[3].right, 414)
+        chkS('tabbar.labels', texts(doc, '.tabbar__label').join('|'), '工作台|报告|报价|我的')
+        chk('tabbar.labelFontSize', c('.tabbar__label', 'fontSize'), '11px')
+        chk('tabbar.activeLabelColor', c('.tabbar__label--active', 'color'), 'rgba(37,99,235,1)')
+        chk('tabbar.activeLabelWeight', c('.tabbar__label--active', 'fontWeight'), '600')
+        var inactive = cs('.tabbar__label', 'color').filter(function (v) { return v !== 'rgb(37, 99, 235)' && v !== 'rgb(37,99,235)' })
+        chkS('tabbar.inactiveLabels', inactive.length, 3)
+        chkS('tabbar.inactiveLabelColor', inactive[0], 'rgb(148, 163, 184)')
+
+        return checks
+      }
+
       function collect(doc, win) {
-        const over = []
+        var over = []
         doc.querySelectorAll('*').forEach(function (el) {
-          const r = el.getBoundingClientRect()
+          /* uni-app 内部测量元素（uni-resize-sensor / uni-picker 空 div）不算页面溢出：宽带 100000 的负偏移 div */
+          if (el.closest && el.closest('uni-resize-sensor')) return
+          if (el.tagName === 'UNI-RESIZE-SENSOR') return
+          var r = el.getBoundingClientRect()
           if (r.width > 0 && r.right > win.innerWidth + 0.5) {
             over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), right: Math.round(r.right) })
           }
         })
         function rect(sel) {
-          const el = doc.querySelector(sel)
+          var el = doc.querySelector(sel)
           if (!el) return null
-          const r = el.getBoundingClientRect()
+          var r = el.getBoundingClientRect()
           return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width) }
         }
-        function texts(sel) {
-          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return e.textContent.trim() })
-        }
-        function colors(sel) {
-          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return win.getComputedStyle(e).backgroundColor })
-        }
-        const text = (doc.body && doc.body.innerText) || ''
-        const need = [
-          '凭证列表', '统一管理客户检测凭证', '接入凭证', '共 10 条',
-          '待检测', '检测中', '不通过', '通过',
-          '凭证名称', '模型数', '状态', '查看', '报告',
-          '华东主线路 · GPT 通道', '华北备用 · Claude 通道', '华南专线 · Gemini 通道', '华东测试 · GPT 通道',
-          '华中主线路 · Claude 通道', '华南备用 · GPT 通道', '西南专线 · 通义通道', '华北主线路 · Gemini 通道',
-          '华东灰度 · DeepSeek 通道', '港澳线路 · GPT 通道',
-          '2026-07-10 14:08:21', '仅展示最近接入的 10 条凭证记录',
-          '工作台', '报价', '我的'
-        ]
-        const tabbar = rect('.tabbar')
-        const card = rect('.cred-card')
-        const viewportH = win.innerHeight
-        const snapshot = {
+        var text = (doc.body && doc.body.innerText) || ''
+        var tabbarR = rect('.tabbar')
+        var cardR = rect('.cred-card')
+        var viewportH = win.innerHeight
+        var checks = build(doc, win)
+        var fails = checks.filter(function (c) { return !c.ok })
+        var snapshot = {
           innerWidth: win.innerWidth,
           innerHeight: viewportH,
           docScrollWidth: doc.documentElement.scrollWidth,
           docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
           overflowingCount: over.length,
           overflowing: over.slice(0, 20),
-          missingTexts: need.filter(function (t) { return text.indexOf(t) === -1 }),
+          missingTexts: needText.filter(function (t) { return text.indexOf(t) === -1 }),
+          checkCount: checks.length,
+          checkFailCount: fails.length,
+          checkFails: fails,
+          checkKeys: checks.map(function (c) { return c.k }),
           chipCount: doc.querySelectorAll('.chip').length,
-          chipTexts: texts('.chip'),
-          chipColors: colors('.chip__dot'),
+          chipTexts: Array.prototype.map.call(doc.querySelectorAll('.chip'), function (e) { return e.textContent.trim() }),
+          chipColors: Array.prototype.map.call(doc.querySelectorAll('.chip__dot'), function (e) { return win.getComputedStyle(e).backgroundColor }),
           rowCount: doc.querySelectorAll('[data-testid="cred-row"]').length,
           reportCount: doc.querySelectorAll('[data-testid^="row-report-"]').length,
-          rowDotColors: colors('.cred-row__dot').slice(0, 4),
-          caption: texts('.cred-card__footer-text'),
-          listTotal: (function () { const e = doc.querySelector('[data-testid="list-total"]'); return e ? e.textContent.trim() : null })(),
-          firstRow: texts('[data-testid="cred-row"]')[0] || null,
-          headTexts: texts('.cred-card__th'),
-          card: card,
+          rowDotColors: Array.prototype.map.call(doc.querySelectorAll('.cred-row__dot'), function (e) { return win.getComputedStyle(e).backgroundColor }).slice(0, 4),
+          caption: Array.prototype.map.call(doc.querySelectorAll('.cred-card__footer-text'), function (e) { return e.textContent.trim() }),
+          listTotal: (function () { var e = doc.querySelector('[data-testid="list-total"]'); return e ? e.textContent.trim() : null })(),
+          firstRow: Array.prototype.map.call(doc.querySelectorAll('[data-testid="cred-row"]'), function (e) { return e.textContent.trim() })[0] || null,
+          headTexts: Array.prototype.map.call(doc.querySelectorAll('.cred-card__th'), function (e) { return e.textContent.trim() }),
+          card: cardR,
           nameColW: (rect('.cred-row__name-col') || {}).w,
           modelsColW: (rect('.cred-row__models') || {}).w,
           statusColW: (rect('.cred-row__status') || {}).w,
           viewColW: (rect('.cred-row__view') || {}).w,
-          tabbarTop: tabbar ? tabbar.top : null,
-          tabbarBottom: tabbar ? tabbar.bottom : null,
-          tabbarPinned: tabbar ? Math.abs(tabbar.bottom - viewportH) <= 2 : null,
-          cardBottom: card ? card.bottom : null,
+          tabbarTop: tabbarR ? tabbarR.top : null,
+          tabbarBottom: tabbarR ? tabbarR.bottom : null,
+          tabbarPinned: tabbarR ? Math.abs(tabbarR.bottom - viewportH) <= 2 : null,
+          cardBottom: cardR ? cardR.bottom : null,
           submitBtn: rect('[data-testid="submit-btn"]'),
           bodyBg: win.getComputedStyle(doc.querySelector('.cred')).backgroundColor,
           topbarBg: win.getComputedStyle(doc.querySelector('.cred__topbar')).backgroundColor,
           submitBg: win.getComputedStyle(doc.querySelector('[data-testid="submit-btn"]')).backgroundColor
         }
-        // 固定 TabBar 在滚动到顶时会盖住卡片尾部，故滚到底再取一次几何（此时应完全不遮挡）
+        /* 固定 TabBar 在滚动到顶时会盖住卡片尾部，故滚到底再取一次几何（此时应完全不遮挡） */
         win.scrollTo(0, 1e6)
-        const cardAtBottom = rect('.cred-card')
-        const tbAtBottom = rect('.tabbar')
+        var cardAtBottom = rect('.cred-card')
+        var tbAtBottom = rect('.tabbar')
         snapshot.scrollYMax = win.scrollY
         snapshot.atBottom = {
           cardTop: cardAtBottom ? cardAtBottom.top : null,
@@ -94,18 +410,28 @@
         win.scrollTo(0, 0)
         return snapshot
       }
-      setTimeout(function () {
+
+      /* 轮询取数：iframe 的 load 事件常因监听注册过晚而错过 → 静默拿到 pending（§4.3） */
+      var tries = 0
+      var timer = setInterval(function () {
+        tries++
+        var f = document.getElementById('f')
+        var payload = null
         try {
-          const f = document.getElementById('f')
-          const payload = collect(f.contentDocument, f.contentWindow)
-          const fr = document.getElementById('f').getBoundingClientRect()
-          payload.iframeRect = { x: Math.round(fr.x), y: Math.round(fr.y), w: Math.round(fr.width), h: Math.round(fr.height) }
-          payload.outerInnerWidth = window.innerWidth
-          document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(payload)
+          payload = collect(f.contentDocument, f.contentWindow)
         } catch (e) {
-          document.getElementById('m').textContent = 'MEASURE_JSON:{"error":"' + e.message + '"}'
+          payload = { error: String(e && e.message) }
         }
-      }, 5000)
+        var ready = payload && payload.rowCount === 10
+        if (ready || tries > 40) {
+          clearInterval(timer)
+          if (!SHOT_ONLY) {
+            payload.iframeRect = null
+            payload.outerInnerWidth = window.innerWidth
+            document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(payload)
+          }
+        }
+      }, 500)
     </script>
   </body>
 </html>

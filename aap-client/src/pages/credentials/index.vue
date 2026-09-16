@@ -1,14 +1,17 @@
 <template>
   <view class="cred">
-    <!-- 顶部栏：design id=69130ec6（white · padding 16/20 · 底部 1px #F1F5F9 分隔） -->
+    <!-- 顶部栏：design id=69130ec6（white · padding 16/20 · drop_shadow 0/1/0 #F1F5F9 · 两端对齐） -->
     <view class="cred__topbar">
-      <view class="cred__icon-btn" data-testid="back-btn" @tap="goBack">
-        <view class="glyph glyph--back" aria-hidden="true" />
-      </view>
-      <!-- 标题块：design id=fdab1cad（w=120 · 垂直） -->
-      <view class="cred__title-block">
-        <text class="cred__title">凭证列表</text>
-        <text class="cred__subtitle">统一管理客户检测凭证</text>
+      <!-- 顶部左侧：design id=3ad1d267（横排 gap 12：返回按钮 + 标题块） -->
+      <view class="cred__topbar-left">
+        <view class="cred__icon-btn" data-testid="back-btn" @tap="goBack">
+          <view class="glyph glyph--back" aria-hidden="true" />
+        </view>
+        <!-- 标题块：design id=fdab1cad（w=120 · 垂直） -->
+        <view class="cred__title-block">
+          <text class="cred__title">凭证列表</text>
+          <text class="cred__subtitle">统一管理客户检测凭证</text>
+        </view>
       </view>
       <view class="cred__icon-btn" data-testid="help-btn" @tap="openHelp">
         <text class="glyph--help" aria-hidden="true">?</text>
@@ -197,8 +200,18 @@ onMounted(async () => {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid $color-bg-subtle;
+  /* 设计声明 drop_shadow(0,1,0,#F1F5F9)：用 box-shadow 而非 border，否则栏高被撑成 69（设计 68） */
+  box-shadow: 0 1px 0 $color-bg-subtle;
   box-sizing: border-box;
+}
+
+/* 顶部左侧（design 3ad1d267：返回按钮 + 标题块 横排 gap 12） */
+.cred__topbar-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  flex: none;
 }
 
 .cred__icon-btn {
@@ -221,7 +234,7 @@ onMounted(async () => {
 
 .cred__title {
   font-size: $font-xl;
-  font-weight: 600;
+  font-weight: 700; /* design fontFamily SourceHanSans-Bold */
   color: $color-text-primary;
   line-height: 1.2;
 }
@@ -308,6 +321,7 @@ onMounted(async () => {
 
 .cred__submit-text {
   font-size: $font-md;
+  font-weight: 600; /* design fontFamily SourceHanSans-SemiBold */
   color: #ffffff;
   line-height: 1.2;
 }
@@ -322,7 +336,7 @@ onMounted(async () => {
 
 .cred__list-title {
   font-size: $font-md;
-  font-weight: 600;
+  font-weight: 700; /* design fontFamily SourceHanSans-Bold */
   color: $color-text-primary;
   line-height: 1.2;
 }
@@ -367,6 +381,7 @@ onMounted(async () => {
 
 .chip__count {
   font-size: $font-xs;
+  font-weight: 700; /* design fontFamily SourceHanSans-Bold */
   color: $color-text-primary;
   line-height: 1.2;
 }
@@ -393,6 +408,7 @@ onMounted(async () => {
 
 .cred-card__th {
   font-size: $font-xs;
+  font-weight: 600; /* design fontFamily SourceHanSans-SemiBold */
   color: $color-text-placeholder;
   line-height: 1.2;
 }
@@ -437,6 +453,7 @@ onMounted(async () => {
 
 .cred-row__alias {
   font-size: $font-sm;
+  font-weight: 600; /* design fontFamily SourceHanSans-SemiBold */
   color: $color-text-primary;
   line-height: 1.2;
 }
@@ -451,6 +468,7 @@ onMounted(async () => {
   width: 48px;
   flex: none;
   font-size: $font-sm;
+  font-weight: 500; /* design fontFamily SourceHanSans-Medium */
   color: $color-text-primary;
   line-height: 1.2;
 }
@@ -481,6 +499,7 @@ onMounted(async () => {
 
 .cred-row__report {
   font-size: $font-sm;
+  font-weight: 500; /* design fontFamily SourceHanSans-Medium */
   color: $color-primary;
   line-height: 1.2;
   padding: 8px 0;
@@ -535,7 +554,9 @@ onMounted(async () => {
 }
 
 .tabbar__item {
-  flex: 1;
+  /* design Tab工作台/报告/报价/我的 各 76 宽 + 容器 space_between（不是 flex:1 等分） */
+  width: 76px;
+  flex: none;
   display: flex;
   flex-direction: column;
   align-items: center;
