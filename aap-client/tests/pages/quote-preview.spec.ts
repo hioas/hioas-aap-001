@@ -248,3 +248,27 @@ describe('序号 12 · 交互：确认门禁与提交', () => {
     expect(toasts()).toEqual(['参数校验失败'])
   })
 })
+
+describe('序号 12 · 设计骨架类（430 宽 DOM 实测口径 / 设计 PNG 佐证）', () => {
+  /* 设计稿逐卡不同，不静默统一：
+       · 卡1（39fed800）只有 effects drop_shadow(0,6,20,rgba(15,23,42,.06))，**未声明 stroke**
+       · 卡2/卡3/确认卡 stroke{align:center,thickness:1,#EEF2F7}，**未声明 effects**
+       PNG 佐证：卡1 下方 381..391 有投影染色、其余卡下方是纯页面底色；x=16 处卡1 无描边像素。 */
+  it('卡1 带投影类（无描边类），卡2/卡3/确认卡带中心描边类', async () => {
+    const wrapper = await mountPage()
+    const cards = wrapper.findAll('.card')
+    expect(cards).toHaveLength(4)
+    expect(cards[0].classes()).toContain('card--lead')
+    expect(cards[0].classes()).not.toContain('card--ring')
+    expect(cards[1].classes()).toContain('card--ring')
+    expect(cards[2].classes()).toContain('card--ring')
+    expect(cards[3].classes()).toContain('card--ring')
+  })
+
+  /* 请求规则行 40 高（设计 PNG 321..360 / 553..592 / 729..768），峰谷/阶梯行 44 */
+  it('请求规则行带紧凑类，峰谷/阶梯行不带（卡1 [否,否,是] · 卡2 [否,是] · 卡3 [是]）', async () => {
+    const wrapper = await mountPage()
+    const compact = wrapper.findAll('.rule').map((n) => n.classes().includes('rule--compact'))
+    expect(compact).toEqual([false, false, true, false, true, true])
+  })
+})

@@ -1,0 +1,114 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+ [31m❯[39m tests/unit/quote-preview-model.spec.ts [2m([22m[2m33 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[90m 21[2mms[22m[39m
+[31m   [31m×[31m 规则行 kind：请求规则行是紧凑行（设计 PNG 实测行高 40，峰谷/阶梯行 44）[2m > [22m卡1 三行 kind = time / tier / request[90m 9[2mms[22m[31m[39m
+[31m     → expected [ undefined, undefined, undefined ] to deeply equal [ 'time', 'tier', 'request' ][39m
+[31m   [31m×[31m 规则行 kind：请求规则行是紧凑行（设计 PNG 实测行高 40，峰谷/阶梯行 44）[2m > [22m卡2 = tier / request；卡3 = request（设计稿各卡规则数 3 / 2 / 1）[90m 1[2mms[22m[31m[39m
+[31m     → expected [ undefined, undefined ] to deeply equal [ 'tier', 'request' ][39m
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+ [31m❯[39m tests/pages/quote-preview.spec.ts [2m([22m[2m18 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[90m 163[2mms[22m[39m
+[31m   [31m×[31m 序号 12 · 设计骨架类（430 宽 DOM 实测口径 / 设计 PNG 佐证）[2m > [22m卡1 带投影类（无描边类），卡2/卡3/确认卡带中心描边类[90m 13[2mms[22m[31m[39m
+[31m     → expected [ 'card' ] to include 'card--lead'[39m
+[31m   [31m×[31m 序号 12 · 设计骨架类（430 宽 DOM 实测口径 / 设计 PNG 佐证）[2m > [22m请求规则行带紧凑类，峰谷/阶梯行不带（卡1 [否,否,是] · 卡2 [否,是] · 卡3 [是]）[90m 7[2mms[22m[31m[39m
+[31m     → expected [ false, false, false, false, …(2) ] to deeply equal [ false, false, true, false, …(2) ][39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 4 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-preview.spec.ts[2m > [22m序号 12 · 设计骨架类（430 宽 DOM 实测口径 / 设计 PNG 佐证）[2m > [22m卡1 带投影类（无描边类），卡2/卡3/确认卡带中心描边类
+[31m[1mAssertionError[22m: expected [ 'card' ] to include 'card--lead'[39m
+[36m [2m❯[22m tests/pages/quote-preview.spec.ts:[2m261:32[22m[39m
+    [90m259| [39m    [35mconst[39m cards [33m=[39m wrapper[33m.[39m[34mfindAll[39m([32m'.card'[39m)
+    [90m260| [39m    [34mexpect[39m(cards)[33m.[39m[34mtoHaveLength[39m([34m4[39m)
+    [90m261| [39m    [34mexpect[39m(cards[[34m0[39m][33m.[39m[34mclasses[39m())[33m.[39m[34mtoContain[39m([32m'card--lead'[39m)
+    [90m   | [39m                               [31m^[39m
+    [90m262| [39m    [34mexpect[39m(cards[[34m0[39m][33m.[39m[34mclasses[39m())[33m.[39mnot[33m.[39m[34mtoContain[39m([32m'card--ring'[39m)
+    [90m263| [39m    [34mexpect[39m(cards[[34m1[39m][33m.[39m[34mclasses[39m())[33m.[39m[34mtoContain[39m([32m'card--ring'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/quote-preview.spec.ts[2m > [22m序号 12 · 设计骨架类（430 宽 DOM 实测口径 / 设计 PNG 佐证）[2m > [22m请求规则行带紧凑类，峰谷/阶梯行不带（卡1 [否,否,是] · 卡2 [否,是] · 卡3 [是]）
+[31m[1mAssertionError[22m: expected [ false, false, false, false, …(2) ] to deeply equal [ false, false, true, false, …(2) ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Array [[22m
+[2m    false,[22m
+[2m    false,[22m
+[32m-   true,[39m
+[2m    false,[22m
+[32m-   true,[39m
+[32m-   true,[39m
+[31m+   false,[39m
+[31m+   false,[39m
+[31m+   false,[39m
+[2m  ][22m
+
+[36m [2m❯[22m tests/pages/quote-preview.spec.ts:[2m272:21[22m[39m
+    [90m270| [39m    [35mconst[39m wrapper [33m=[39m [35mawait[39m [34mmountPage[39m()
+    [90m271| [39m    [35mconst[39m compact [33m=[39m wrapper[33m.[39m[34mfindAll[39m([32m'.rule'[39m)[33m.[39m[34mmap[39m((n) [33m=>[39m n[33m.[39m[34mclasses[39m()[33m.[39m[34min[39m…
+    [90m272| [39m    [34mexpect[39m(compact)[33m.[39m[34mtoEqual[39m([[35mfalse[39m[33m,[39m [35mfalse[39m[33m,[39m [35mtrue[39m[33m,[39m [35mfalse[39m[33m,[39m [35mtrue[39m[33m,[39m [35mtrue[39m])
+    [90m   | [39m                    [31m^[39m
+    [90m273| [39m  })
+    [90m274| [39m})
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-preview-model.spec.ts[2m > [22m规则行 kind：请求规则行是紧凑行（设计 PNG 实测行高 40，峰谷/阶梯行 44）[2m > [22m卡1 三行 kind = time / tier / request
+[31m[1mAssertionError[22m: expected [ undefined, undefined, undefined ] to deeply equal [ 'time', 'tier', 'request' ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Array [[22m
+[32m-   "time",[39m
+[32m-   "tier",[39m
+[32m-   "request",[39m
+[31m+   undefined,[39m
+[31m+   undefined,[39m
+[31m+   undefined,[39m
+[2m  ][22m
+
+[36m [2m❯[22m tests/unit/quote-preview-model.spec.ts:[2m276:60[22m[39m
+    [90m274| [39m       · 请求规则行 内容 20（同页实测，与图标图层 fit_content 自洽） */[39m
+    [90m275| [39m  [34mit[39m([32m'卡1 三行 kind = time / tier / request'[39m[33m,[39m () [33m=>[39m {
+    [90m276| [39m    [34mexpect[39m([34mpreviewRuleLines[39m([33mITEM_MINI[39m)[33m.[39m[34mmap[39m((l) [33m=>[39m l[33m.[39mkind))[33m.[39m[34mtoEqual[39m([[32m't[39m…
+    [90m   | [39m                                                           [31m^[39m
+    [90m277| [39m  })
+    [90m278| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/quote-preview-model.spec.ts[2m > [22m规则行 kind：请求规则行是紧凑行（设计 PNG 实测行高 40，峰谷/阶梯行 44）[2m > [22m卡2 = tier / request；卡3 = request（设计稿各卡规则数 3 / 2 / 1）
+[31m[1mAssertionError[22m: expected [ undefined, undefined ] to deeply equal [ 'tier', 'request' ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Array [[22m
+[32m-   "tier",[39m
+[32m-   "request",[39m
+[31m+   undefined,[39m
+[31m+   undefined,[39m
+[2m  ][22m
+
+[36m [2m❯[22m tests/unit/quote-preview-model.spec.ts:[2m280:62[22m[39m
+    [90m278| [39m
+    [90m279| [39m  [34mit[39m([32m'卡2 = tier / request；卡3 = request（设计稿各卡规则数 3 / 2 / 1[39m…
+    [90m280| [39m    [34mexpect[39m([34mpreviewRuleLines[39m([33mITEM_SONNET[39m)[33m.[39m[34mmap[39m((l) [33m=>[39m l[33m.[39mkind))[33m.[39m[34mtoEqual[39m([…
+    [90m   | [39m                                                             [31m^[39m
+    [90m281| [39m    [34mexpect[39m([34mpreviewRuleLines[39m([33mITEM_GPT4O[39m)[33m.[39m[34mmap[39m((l) [33m=>[39m l[33m.[39mkind))[33m.[39m[34mtoEqual[39m([[32m'[39m…
+    [90m282| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m47 passed[39m[22m[90m (51)[39m
+[2m   Start at [22m 13:40:23
+[2m   Duration [22m 1.82s[2m (transform 435ms, setup 79ms, collect 639ms, tests 184ms, environment 1.35s, prepare 236ms)[22m
+

@@ -75,7 +75,11 @@ export interface PriceColumn {
 
 export type RuleTone = 'amber' | 'primary'
 
+/** 规则行种类（决定行高，见 previewRuleLines 注释） */
+export type RuleKind = 'time' | 'tier' | 'request'
+
 export interface RuleLine {
+  kind: RuleKind
   tone: RuleTone
   text: string
 }
@@ -212,15 +216,23 @@ export function tierRuleText(rules?: TierRulesRaw | null): string {
   return `${(tiers as unknown[]).length}${TIER_FALLBACK_PREFIX}`
 }
 
-/** 规则行集合（时段 → 阶梯 → 请求规则，与设计稿顺序一致） */
+/**
+ * 规则行集合（时段 → 阶梯 → 请求规则，与设计稿顺序一致）。
+ *
+ * `kind` 决定行高（设计 PNG 实测，逐行不同，不静默统一）：
+ *   · time / tier 行 = **44**（padding 10 + 内容 24（图标盒 fs16×1.5）+ 10）
+ *   · request 行   = **40**（padding 10 + 内容 20 + 10）
+ *     设计树里请求规则行的图标图层是 `width=fit_content`（其余两条为固定 18），
+ *     PNG 实测：卡1 217..260 / 269..312 / **321..360** · 卡2 501..544 / **553..592** · 卡3 **729..768**。
+ */
 export function previewRuleLines(item?: QuoteItemLike | null): RuleLine[] {
   const r = item ?? {}
   const lines: RuleLine[] = []
   const time = timeRuleText(r.price_time_rules as TimeRulesRaw | undefined)
-  if (time) lines.push({ tone: 'amber', text: time })
+  if (time) lines.push({ kind: 'time', tone: 'amber', text: time })
   const tier = tierRuleText(r.price_tier_rules as TierRulesRaw | undefined)
-  if (tier) lines.push({ tone: 'primary', text: tier })
-  if (hasItems(r.request_rules)) lines.push({ tone: 'primary', text: REQUEST_RULE_TEXT })
+  if (tier) lines.push({ kind: 'tier', tone: 'primary', text: tier })
+  if (hasItems(r.request_rules)) lines.push({ kind: 'request', tone: 'primary', text: REQUEST_RULE_TEXT })
   return lines
 }
 

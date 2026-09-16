@@ -13,7 +13,7 @@
     <!-- 内容区（设计 5320463d padding[12,16,0,16]，卡间距 12 由包裹层 padding-top 承担） -->
     <view class="preview__body">
       <view v-for="(card, ci) in cards" :key="card.itemId || ci" class="card-wrap">
-        <view class="card" data-testid="model-card">
+        <view class="card" :class="ci === 0 ? 'card--lead' : 'card--ring'" data-testid="model-card">
           <!-- 头行（设计 fit_content；卡高反推 26） -->
           <view class="card__head">
             <view class="ic ic-model" />
@@ -44,14 +44,15 @@
             </view>
           </view>
 
-          <!-- 规则行：首个规则块 padding-top 12、其后 8（设计稿逐块如此） -->
+          <!-- 规则行：首个规则块 padding-top 12、其后 8（设计稿逐块如此）
+               行高逐行不同：峰谷/阶梯行 44、请求规则行 40（见 utils/quote-preview-model.ts 注释） -->
           <view
             v-for="(line, li) in card.rules"
             :key="li"
             class="card__block"
             :class="ruleBlockClass(li, card.rules.length)"
           >
-            <view class="rule">
+            <view class="rule" :class="{ 'rule--compact': line.kind === 'request' }">
               <view class="ic" :class="line.tone === 'amber' ? 'ic-time' : 'ic-rule'" />
               <view class="rule__wrap">
                 <text class="rule__text" data-testid="rule-line">{{ line.text }}</text>
@@ -63,7 +64,7 @@
 
       <!-- 确认提交卡（设计 a059de31 padding20 r16 stroke #EEF2F7） -->
       <view class="card-wrap">
-        <view class="card">
+        <view class="card card--ring">
           <view class="confirm" data-testid="confirm-row">
             <view
               class="check"
@@ -301,7 +302,19 @@ async function onSubmit() {
   padding: 20px;
   border-radius: 16px;
   background: $color-bg-card;
-  /* 设计稿 3/4 张卡声明 stroke 1px #EEF2F7（卡1 未声明，属设计自身不自洽 → 统一用 ring，不占布局） */
+}
+
+/* 卡片效果按设计**逐卡不同**（不静默统一，PNG 已佐证）：
+   卡1（设计 39fed800）只声明 effects drop_shadow(0,6,20,rgba(15,23,42,.06))，无 stroke
+     → PNG：卡1 下方 381..391 有投影染色、x=16 行内无描边像素
+   卡2/卡3/确认卡声明 stroke{align:center,thickness:1,#EEF2F7}，无 effects
+     → PNG：卡2 上下描边在 y=392 / 612，卡3 624 / 788，确认卡 800 / 926；卡片下方是纯页面底色
+   Figma 的 center 描边不占布局 → 用 ring（box-shadow）而非 border（border 会把内容宽挤掉 2px） */
+.card--lead {
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+}
+
+.card--ring {
   box-shadow: 0 0 0 1px $color-border-chip;
 }
 
@@ -398,10 +411,10 @@ async function onSubmit() {
   padding-top: 8px;
 }
 
-/* ---------- 基础价行（34 = 标签 12 + 值 22） ---------- */
+/* ---------- 基础价行（38 = 标签 16 + 值 22，两值均为设计显式 height） ---------- */
 
 .prices {
-  height: 34px;
+  height: 38px;
   display: flex;
   flex-direction: row;
   align-items: flex-start;
@@ -421,9 +434,9 @@ async function onSubmit() {
 .prices__label {
   display: block;
   width: 100%;
-  height: 12px;
+  height: 16px;
   font-size: 10px;
-  line-height: 12px;
+  line-height: 16px;
   text-align: center;
   color: $color-text-placeholder;
 }
@@ -439,7 +452,7 @@ async function onSubmit() {
   color: $color-text-primary;
 }
 
-/* ---------- 规则行（44 = padding 10 + 内容 24） ---------- */
+/* ---------- 规则行（峰谷/阶梯 44 = padding 10 + 内容 24 + 10；请求规则 40 = 内容 20） ---------- */
 
 .rule {
   height: 44px;
@@ -452,6 +465,11 @@ async function onSubmit() {
   align-items: flex-start;
 }
 
+/* 请求规则行内容高 20（设计该行图标图层 width=fit_content），PNG 实测行高 40 */
+.rule--compact {
+  height: 40px;
+}
+
 .ic-time,
 .ic-rule {
   width: 18px;
@@ -459,6 +477,11 @@ async function onSubmit() {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.rule--compact .ic-time,
+.rule--compact .ic-rule {
+  height: 20px;
 }
 
 .ic-time::after,
@@ -478,22 +501,31 @@ async function onSubmit() {
 .rule__wrap {
   padding-left: 6px;
   flex: 1;
+  min-width: 0;
+  /* 设计里该容器是 alignItems=start 的行 → 文字贴着内容顶（不要 min-height + center，
+     那会把 11px 文字的行框在 24 高盒里居中，墨迹整体下沉 3.5px，见 cmp-序号12 像素对账） */
   display: flex;
-  align-items: center;
-  min-height: 24px;
+  align-items: flex-start;
 }
 
 .rule__text {
   display: block;
   font-size: 11px;
-  line-height: 13.2px;
+  /* 行框按设计行**逐行不同**（PNG 墨迹实测，见 .agents/state/evidence/cmp-序号12-*）：
+     峰谷/阶梯行（行高 44）文字带在设计里位于行顶 +13 → 行框 18（11 × 1.636）
+     请求规则行（行高 40）文字带位于行顶 +11 → 行框 13.2（= 设计声明 lineHeight 1.2） */
+  line-height: 18px;
   color: $color-text-secondary;
 }
 
-/* ---------- 确认提交卡（127 = 20 + 22 + 12 + 53 + 20） ---------- */
+.rule--compact .rule__text {
+  line-height: 13.2px;
+}
+
+/* ---------- 确认提交卡（127 = 20 + 确认行 19 + 12 + 提示条 56 + 20） ---------- */
 
 .confirm {
-  height: 22px;
+  height: 19px; /* = fs12 文本行框 19.2（设计 PNG 确认行 820..838） */
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -532,18 +564,18 @@ async function onSubmit() {
 .confirm__text {
   display: block;
   font-size: 12px;
-  line-height: 22px;
+  line-height: 19px; /* 设计行框 = 12 × 1.6（撑起确认行 19） */
   color: $color-text-secondary;
 }
 
-/* ---------- 提示条（53 = padding 10 + 两行 33 + padding 10） ---------- */
+/* ---------- 提示条（56 = padding 10 + 两行 × 18 + padding 10） ---------- */
 
 .hint {
   box-sizing: border-box;
   padding: 10px;
   border-radius: 10px;
   background: $color-warning-weak-2;
-  min-height: 53px;
+  min-height: 56px;
   display: flex;
   flex-direction: row;
   align-items: flex-start;
@@ -573,10 +605,11 @@ async function onSubmit() {
 
 .hint__text {
   display: block;
-  /* 设计稿该文本层声明宽度 316（卡片内宽 358），按声明宽度换行为两行 —— 与设计截图一致 */
+  /* 设计稿该文本层声明宽度 316（卡片内宽 358），按声明宽度换行为两行 —— 与设计截图一致
+     设计行框 = 11 × 1.636 ≈ 18 → 提示条 56 = 10 + 2×18 + 10（PNG 实测 851..906） */
   max-width: 316px;
   font-size: 11px;
-  line-height: 16.5px;
+  line-height: 18px;
   color: $color-warning-text-2;
 }
 

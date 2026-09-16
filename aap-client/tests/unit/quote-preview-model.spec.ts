@@ -201,7 +201,7 @@ describe('规则行集合：图标配色 + 渲染顺序（时段 → 阶梯 → 
   })
 
   it('卡3 只有请求规则一行（设计稿如此）', () => {
-    expect(previewRuleLines(ITEM_GPT4O)).toEqual([{ tone: 'primary', text: REQUEST_RULE_TEXT }])
+    expect(previewRuleLines(ITEM_GPT4O)).toEqual([{ kind: 'request', tone: 'primary', text: REQUEST_RULE_TEXT }])
   })
 
   it('没有任何规则 → 空数组', () => {
@@ -262,5 +262,26 @@ describe('ruleBlockClass：规则块间距（设计逐卡如此）', () => {
 
   it('只有一条规则 → 用 8（设计卡3 的唯一规则行 wrapper padding-top=8，与卡1/卡2 首个规则行 12 不一致）', () => {
     expect(ruleBlockClass(0, 1)).toBe('card__block--tight')
+  })
+})
+
+describe('规则行 kind：请求规则行是紧凑行（设计 PNG 实测行高 40，峰谷/阶梯行 44）', () => {
+  /* 设计树：请求规则行的图标图层 width=fit_content（其余为固定 18），
+     对应 PNG 实测行高 —— 卡1 217..260(44) / 269..312(44) / 321..360(**40**)；
+     卡2 501..544(44) / 553..592(**40**)；卡3 729..768(**40**)。
+     行高 = padding 10 + 内容 + 10，内容 = max(图标盒, 文本行框)：
+       · 峰谷/阶梯行 内容 24（图标盒 fs16×1.5=24）
+       · 请求规则行 内容 20（同页实测，与图标图层 fit_content 自洽） */
+  it('卡1 三行 kind = time / tier / request', () => {
+    expect(previewRuleLines(ITEM_MINI).map((l) => l.kind)).toEqual(['time', 'tier', 'request'])
+  })
+
+  it('卡2 = tier / request；卡3 = request（设计稿各卡规则数 3 / 2 / 1）', () => {
+    expect(previewRuleLines(ITEM_SONNET).map((l) => l.kind)).toEqual(['tier', 'request'])
+    expect(previewRuleLines(ITEM_GPT4O).map((l) => l.kind)).toEqual(['request'])
+  })
+
+  it('无规则 → 空数组（不因为 kind 而多渲染空行）', () => {
+    expect(previewRuleLines({ item_id: 'x', model_name: 'm' }).map((l) => l.kind)).toEqual([])
   })
 })

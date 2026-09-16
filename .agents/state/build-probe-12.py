@@ -1,4 +1,68 @@
-<!doctype html>
+"""Build __measure-quote-preview.html (序号 12 · page-12-2) as a 430-wide iframe probe with
+design-expectation checks (chk/chkR/chkC/chkList/chkStrs).
+
+做法与 build-probe-11.py 同：从 __measure-model-pricing.html 切出三段「与页面无关的骨架」
+（顶部作用域 / collect() helpers / 溢出统计），逐字节复用，保证全仓库只有一个实现；
+本文件只写 page-12-2 自己的 checks / return / phases。
+
+want 两类来源：
+  (a) 声明值 .calicat/raw/pages/page-12-2/{design.json,design.tree.json}
+      python .agents/state/tree-view.py page-12-2 --types all      # 几何/内边距/圆角/stroke/effects
+      python .agents/state/text-lineheight.py page-12-2            # 文本叶子 fontSize/lineHeight/宽高/字色
+  (b) 设计截图 PNG 实测（430×1027）：.agents/state/design-shots/page-12-2-design.png
+      python .agents/state/stroke-rows.py <png> eef2f7 6 150      # 卡片上下描边所在行（卡边界）
+      python .agents/state/png-colorat.py <png> v 100 f8fafc 3 2  # 规则行 / 页面底（#F8FAFC）色带
+      python .agents/state/png-colorat.py <png> h 880 fffbeb 4 2  # 提示条横向边界
+      python .agents/state/png-textbands.py <png> 46 217 384 261  # 盒内文字带（行数/行位）
+      python .agents/state/png-xruns.py <png> <y> 36 394          # 某行墨迹 x 区间
+      python .agents/state/png-profile.py <png> 70 217 394 261    # 逐行墨迹（判文字行数）
+
+设计骨架（PNG 实测 · 设计帧高 1027）：
+  顶部导航 0..96 · 内容区 padding-top 12 → 卡1 108..380(273) · 卡2 392..612(221) · 卡3 624..788(165) ·
+  确认卡 800..926(127) · 底栏容器 padding-top 16 → 操作条 943..1027(84)
+  卡内模型（与 design.json 声明自洽）：
+    · 头行 26（标签胶囊 h20 居中 → 128..154）· 头行图标盒 20 宽
+    · 基础价行 = 标签 16 + 值 22 = 38（设计显式 height 16/22）· wrapper padding-top 12
+    · 规则行 = padding 10 + 内容 + 10；「峰谷行/阶梯行」内容 24（图标 18×24）→ 44；
+      「请求规则行」内容 20（该图标图层 width=fit_content）→ **40**（PNG 实测 321..360 / 553..592 / 729..768）
+    · 首个规则块 wrapper padding-top 12、其后 8（卡3 只有 1 条 → 8）
+    · 确认行 19（= fs12 文本行框 19.2 取整）· 提示条 56 = 10 + 2×18 + 10（文本 11px 两行）
+  卡片投影/描边（design 声明逐卡不同，不静默统一）：
+    · 卡1 effects drop_shadow(0,6,20,rgba(15,23,42,0.06)) → box-shadow，**无描边**
+    · 卡2/卡3/确认卡 stroke{align:center,thickness:1,#EEF2F7} → box-shadow 0 0 0 1px，**无投影**
+      （PNG 佐证：卡1 下方 381..391 有投影染色、卡2/卡3/确认卡下方是纯页面底色；x=16 处
+        卡1 行内无描边像素、卡2/3/确认卡有）
+"""
+import io
+import os
+
+ROOT = r"E:/workspaces/hioas/hioas-aap-001"
+HM = os.path.join(ROOT, ".agents/state/h5-measure")
+SRC = os.path.join(HM, "__measure-model-pricing.html")
+DST = os.path.join(HM, "__measure-quote-preview.html")
+
+with io.open(SRC, encoding="utf-8") as fh:
+    src = fh.read().split("\n")
+
+
+def find(needle, start=0):
+    for i in range(start, len(src)):
+        if needle in src[i]:
+            return i
+    raise SystemExit("not found: " + needle)
+
+
+i_var = find("var f = document.getElementById('f')")
+i_collect = find("function collect(doc, win, withChecks) {")
+i_over = find("/* ============ 溢出")
+i_checks = find("/* ===================== 整页 ===================== */")
+
+top = "\n".join(src[i_var:i_collect])
+top = top.replace("if (SHOT_ONLY) f.style.height = '1541px'", "if (SHOT_ONLY) f.style.height = '1027px'")
+preamble = "\n".join(src[i_collect:i_over])          # collect 签名 + helpers（未闭合）
+overflow = "\n".join(src[i_over:i_checks])           # over / missing 统计（引用 NEED_TEXT）
+
+HEAD = r"""<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -23,190 +87,9 @@
     <iframe id="f" src="/index.html#/pages/quote-preview/index?quoteId=q7"></iframe>
     <div id="sink"><pre id="m">pending</pre></div>
     <script>
-      var f = document.getElementById('f')
-      var acc = {}
-      var reloadSeq = 0
-      var SCENARIO = (location.search.match(/scenario=([a-z]+)/) || [])[1] || ''
-      var SHOT_ONLY = location.search.indexOf('shot') !== -1
-      var NO_ACTION = location.search.indexOf('noaction') !== -1
-      if (SHOT_ONLY) f.style.height = '1027px' /* = 设计帧高 */
+"""
 
-      /* 选择器语法：`sel@@N` = 该选择器的第 N 个匹配（也接受 CSS 里非法的 `sel#N` 写法，先归一化成 @@N）。
-         `A@@N B` = 在第 N 个 A 里查 B。 */
-      function splitSel(sel) {
-        var s = String(sel).replace(/#(\d+)(?=\s|$)/g, '@@$1')
-        var i = s.indexOf('@@')
-        if (i === -1) return { base: s, n: 0, tail: '' }
-        var head = s.slice(0, i)
-        var rest = s.slice(i + 2).split(/\s+/)
-        return { base: head.trim(), n: Number(rest[0]), tail: rest.slice(1).join(' ') }
-      }
-
-      var CARD = '.card'
-      var NEED_TEXT = [
-        '模型定价', '保存',
-        '1', 'gpt-4o', '始终匹配（默认档位）· 输入 $2.50 输出 $10.00 / 1M token',
-        '档位', '按 token', '添加计费分支',
-        'Token 价格', '$/1M token',
-        '输入价格', '输出价格', '缓存读取价格', '缓存写入价格', '1 小时缓存写入价格',
-        '媒体定价', '图像输入价格', '图片缓存输入价格', '图像输出价格', '音频输入价格', '音频输出价格',
-        '请求规则计费', '条件满足时，最终价格乘以 X；多条命中的倍率会相乘；小于 1 的值为折扣。',
-        '规则组 #1', '时间', '小时', 'Asia/Shanghai', '大于等于', '值',
-        '新增参数/Header', '新增时间条件', '倍率', '匹配条件时，最终费用 = 基础费用 × 倍率',
-        '新增规则组', '保存价格'
-      ]
-      function collect(doc, win, withChecks) {
-        var fails = []
-        var checks = 0
-
-        function norm(v) {
-          if (typeof v === 'number') return v
-          var s = String(v == null ? '' : v).trim()
-          if (/^-?\d+(\.\d+)?px$/.test(s)) return Number(s.replace('px', ''))
-          return s
-        }
-        function normColor(s) {
-          var m = String(s || '').match(/rgba?\(([^)]+)\)/)
-          if (!m) return String(s || '')
-          var p = m[1].split(',').map(function (t) { return Number(t.trim()) })
-          var a = p.length > 3 ? p[3] : 1
-          return a === 1 ? 'rgb(' + p[0] + ', ' + p[1] + ', ' + p[2] + ')' : 'rgba(' + p.join(', ') + ')'
-        }
-        function normShadow(s) {
-          return String(s == null ? '' : s).replace(/rgba?\([^)]+\)/g, function (m) { return normColor(m) })
-        }
-        function splitSel(sel) {
-          var s = String(sel).replace(/#(\d+)(?=\s|$)/g, '@@$1')
-          var i = s.indexOf('@@')
-          if (i === -1) return { base: s, n: 0, tail: '' }
-          var head = s.slice(0, i)
-          var rest = s.slice(i + 2).split(/\s+/)
-          return { base: head.trim(), n: Number(rest[0]), tail: rest.slice(1).join(' ') }
-        }
-        function el(sel) {
-          var sp = splitSel(sel)
-          if (!sp.n && !sp.tail) return doc.querySelector(sp.base)
-          var roots = doc.querySelectorAll(sp.base)
-          var root = roots[sp.n]
-          if (!root) return null
-          return sp.tail ? root.querySelector(sp.tail) : root
-        }
-        function resolveAll(sel) {
-          var sp = splitSel(sel)
-          if (!sp.n && !sp.tail) return Array.prototype.slice.call(doc.querySelectorAll(sp.base))
-          var roots = doc.querySelectorAll(sp.base)
-          var root = roots[sp.n]
-          if (!root) return []
-          if (!sp.tail) return [root]
-          return Array.prototype.slice.call(root.querySelectorAll(sp.tail))
-        }
-        function rect(sel) {
-          var e = el(sel)
-          if (!e) return null
-          var r = e.getBoundingClientRect()
-          return {
-            x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right),
-            bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height)
-          }
-        }
-        function rects(sel) {
-          return resolveAll(sel).map(function (e) {
-            var r = e.getBoundingClientRect()
-            return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
-          })
-        }
-        function css(sel, prop) {
-          var e = el(sel)
-          if (!e) return null
-          var v = win.getComputedStyle(e)[prop]
-          if (prop === 'boxShadow') return normShadow(v)
-          return prop.toLowerCase().indexOf('color') >= 0 ? normColor(v) : norm(v)
-        }
-        function declared(sel, prop) {
-          var sp = splitSel(sel)
-          if (!el(sel)) return null
-          for (var i = 0; i < doc.styleSheets.length; i++) {
-            var rules
-            try { rules = doc.styleSheets[i].cssRules } catch (e) { continue }
-            for (var j = 0; j < rules.length; j++) {
-              var r = rules[j]
-              if (!r.selectorText || r.selectorText.indexOf('[') === 0) continue
-              var sels = r.selectorText.split(',').map(function (s) { return s.trim().replace(/\[data-v-[^\]]+\]/g, '') })
-              if (sels.indexOf(sp.base) === -1) continue
-              var v = r.style && r.style[prop]
-              if (v) return v
-            }
-          }
-          return null
-        }
-        function chk(key, got, want, tol) {
-          if (!withChecks) return got
-          checks++
-          var t = tol == null ? 0 : tol
-          var g = norm(got)
-          var w = norm(want)
-          var gn = typeof g === 'number' ? g : (typeof g === 'string' && /^-?\d+(\.\d+)?$/.test(g) ? Number(g) : null)
-          var wn = typeof w === 'number' ? w : (typeof w === 'string' && /^-?\d+(\.\d+)?$/.test(w) ? Number(w) : null)
-          var ok
-          if (gn !== null && wn !== null) ok = Math.abs(gn - wn) <= t
-          else ok = g === w
-          if (!ok) fails.push({ k: key, got: got, want: want })
-          return got
-        }
-        function rectField(sel, key) {
-          var r = rect(sel)
-          if (!r) return null
-          var f = String(key).split('.').pop()
-          if (f === 'x' || f === 'left') return r.x
-          if (f === 'right') return r.right
-          if (f === 'top') return r.top
-          if (f === 'bottom') return r.bottom
-          if (f === 'w' || f === 'width') return r.w
-          if (f === 'h' || f === 'height') return r.h
-          return r
-        }
-        function chkR(key, sel, want, tol) { return chk(key, rectField(sel, key), want, tol) }
-        function chkC(key, sel, prop, want, tol) { return chk(key, css(sel, prop), want, tol) }
-        function chkD(key, sel, prop, want) { return chk(key, declared(sel, prop), want) }
-        /* 数值数组逐项比较（设计帧小数坐标链取整后会有 ±1..2 差） */
-        function chkList(key, got, want, tol) {
-          if (!withChecks) return got
-          checks++
-          var t = tol == null ? 0 : tol
-          var ok = got.length === want.length
-          if (ok) {
-            for (var i = 0; i < got.length; i++) {
-              if (got[i] == null || Math.abs(got[i] - want[i]) > t) { ok = false; break }
-            }
-          }
-          if (!ok) fails.push({ k: key, got: got.join(','), want: want.join(',') })
-          return got
-        }
-        /* 字符串数组逐项比较（chkList 只做数值比较，字符串会被静默放过） */
-        function chkStrs(key, got, want) {
-          if (!withChecks) return got
-          checks++
-          var ok = got.length === want.length
-          if (ok) {
-            for (var i = 0; i < got.length; i++) {
-              if (String(got[i]) !== String(want[i])) { ok = false; break }
-            }
-          }
-          if (!ok) fails.push({ k: key, got: got.join(' | '), want: want.join(' | ') })
-          return got
-        }
-        function texts(sel) { return resolveAll(sel).map(function (e) { return e.textContent.trim() }) }
-        function colors(sel) { return resolveAll(sel).map(function (e) { return normColor(win.getComputedStyle(e).backgroundColor) }) }
-        function textOf(sel) { var e = el(sel); return e ? e.textContent.trim() : null }
-        function inputValue(sel) {
-          var host = el(sel)
-          if (!host) return null
-          if (host.tagName === 'INPUT' || host.tagName === 'TEXTAREA') return host.value
-          var inner = host.querySelector('input,textarea')
-          return inner ? inner.value : null
-        }
-        function byTestId(id) { return doc.querySelector('[data-testid="' + id + '"]') }
-
+BODY = r"""
         var CARDS = '.card'
         /* 本页要断言文本字色（前导 helpers 里只有 backgroundColor 版 colors）——与 __measure-profile.html 同实现 */
         function textColors(sel) {
@@ -226,18 +109,7 @@
           '提交后进入运营审核，审核通过将自动编译计费表达式并同步渠道。',
           '返回编辑', '提交报价'
         ]
-        /* ============ 溢出（uni-app 内置测量元素不计入，见 §3 口径） ============ */
-        var over = []
-        Array.prototype.slice.call(doc.querySelectorAll('*')).forEach(function (e) {
-          var r = e.getBoundingClientRect()
-          if (r.width <= 0 || r.right <= win.innerWidth + 0.5) return
-          if (e.closest && e.closest('uni-resize-sensor')) return
-          if (String(e.tagName).toLowerCase() === 'uni-resize-sensor') return
-          over.push({ tag: e.tagName, cls: String(e.className || '').slice(0, 70), left: Math.round(r.x), w: Math.round(r.width), right: Math.round(r.right) })
-        })
-        var bodyText = (doc.body && doc.body.innerText) || ''
-        var missing = NEED_TEXT.filter(function (t) { return bodyText.indexOf(t) === -1 })
-
+__OVERFLOW__
 
         /* ===================== 整页（设计帧 430×1027） ===================== */
         var docH = Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight)
@@ -556,6 +428,16 @@
       }
 
       main()
-    </script>
+"""
+
+TAIL = """    </script>
   </body>
 </html>
+"""
+
+body = BODY.replace("__OVERFLOW__", overflow)
+
+with io.open(DST, "w", encoding="utf-8", newline="\n") as fh:
+    fh.write(HEAD + top + preamble + body + TAIL)
+print("wrote", DST)
+print("top lines:", len(top.split("\n")), "preamble lines:", len(preamble.split("\n")), "overflow lines:", len(overflow.split("\n")))
