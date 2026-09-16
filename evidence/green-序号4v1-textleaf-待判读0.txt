@@ -1,0 +1,20 @@
+== 序号 4-v1    page-24      文本叶子 27 · 匹配 26 · 未渲染 3 · 待判读 class 0 · 已核定 8
+   card__tip                          n=1   已核定(非偏差): 判据①同帧显式 height：本帧 fs11 的两个叶子 `d09f9feb`（单个文件不超过 10MB）与 `919871df`（2.4 MB）在设计里都**
+                                        leaf=['bac124d8'] sample='支持 jpg / png / pdf' al=['start'] fs=11.0 chain=card__tip | card__head card__head--between | card | access-form__conte
+   card__title                        n=4   已核定(非偏差): 判据②盒算术：四张卡高设计与实现同为 388/98/274/118，且闭合到整页 1137 = 74 + 16 + 388 + 16 + 98 + 16 + 2
+                                        leaf=['5e4ff247', '8e3bc840', '9201ad1e', '99b6172b'] sample='基本信息' al=['start'] fs=14.0 chain=card__title | card__head | card card--basic | access-form__content
+   field__label                       n=4   已核定(非偏差): 判据②盒算术：字段步进 70 = 标签行 18 + gap 8 + 输入框 44，四字段 280 与卡高 388 自洽；按 14.4 会让卡 1 短 14.4p
+                                        leaf=['0fdf7dac', '1d204a9e', '3e4c5e5b', 'b0317376'] sample='客户名称' al=['start'] fs=12.0 chain=field__label | field__label-row | field | card card--basic
+   field__star                        n=4   已核定(非偏差): 同一标签行（`field__label-row`，gap 4）内的必填星号：行盒由该行两个 fs12 文本的渲染行盒定，字段步进 70 与卡高 388 同样要求
+                                        leaf=['42c14930', '7f0d4be1'] sample='*' al=['start'] fs=12.0 chain=field__star | field__label-row | field | card card--basic
+   footnote__text                     n=1   已核定(非偏差): 判据①+②不承重：提交提示行 `3f8c7ae8`（horizontal / align center / fit_content）的行高由同排 remixic
+                                        leaf=['5735195f'] sample='提交后系统将自动发起检测，预计 5 分钟内完成' al=['start'] fs=11.0 chain=footnote__text | footnote | access-form__content | access-form
+   type-chip__text                    n=3   已核定(非偏差): 判据②盒算术：chip = padding 8 + 行盒 + 8 = 34，检测类型卡 98 = 16 + 标题行 20 + 12 + 34 + 16 自洽；按
+                                        leaf=['54a77ad5', 'ab52b55a', 'bdc95860'] sample='基础检测' al=['start'] fs=12.0 chain=type-chip__text | type-chip type-chip--checked | type-row | card
+   uni-input-placeholder input-box__p n=3   已核定(非偏差): 判据①同帧显式 height：本帧 fs13 的 `ee12aef8`（点击上传凭证文件）**显式 height=20**；且输入框是定高 44 + align
+                                        leaf=['0addea4c', 'a23f19b0', 'e2ca95fb'] sample='请输入 18 位统一社会信用代码' al=['start'] fs=13.0 chain=uni-input-placeholder input-box__placeholder | uni-input-wrapper | inp
+   uni-textarea-placeholder input-box n=1   已核定(非偏差): 判据②盒算术：备注框 `0e5a46b9` padding [12, 12, 24, 12] + 备注卡 118 = 16 + 标题行 20 + 10 + 备注
+                                        leaf=['3901f022'] sample='补充说明，例如客户所属行业、检测用途等' al=['start'] fs=13.0 chain=uni-textarea-placeholder input-box__placeholder | uni-textarea-wrapper
+   未渲染叶子(3): 深圳市恒信科技有限公司 / 营业执照扫描件.pdf / 2.4 MB
+
+合计: 设计文本叶子 27 · 匹配 24 · 未渲染 3 · 待判读 class 0 · 已核定 8（有偏差行合计 8，含已核定）

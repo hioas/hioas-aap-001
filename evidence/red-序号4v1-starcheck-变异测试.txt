@@ -1,0 +1,49 @@
+序号 4-v1 文本叶子维度收口 · 新增断言「star.lineHeight」的**源码变异测试**证明有牙齿
+================================================================================
+轮次：cron aap-tdd-run-20260916-2046（2026-09-16 21:0x）
+目的：本轮新增的 `star.lineHeight`（`.field__star` 行盒 = 18px）天生是绿的 —— 按 §5.16 / §5.26 的
+      既有口径，**禁止型/锁定型断言必须用变异证明有牙齿**，否则等于没断言。
+
+一、探针新增（.agents/state/h5-measure/__measure-form.html）
+--------------------------------------------------------------------------------
+    chk('star.color', c('.field__star', 'color'), 'rgba(239,68,68,1)')
++   /* 文本叶子维度（2026-09-16 21:0x 轮）：设计 leaf 7f0d4be1/42c14930 是 fit_content + lh1.2（声明模型 14.4），
++      但同帧 fs12 的行盒由「字段步进 70 = 标签行 18 + 8 + 输入框 44」与卡高 388 的盒算术定死为 18；
++      本页检查项此前只覆盖了 .field__label，星号这一条此前无断言 → 补上并做源码变异证明有牙齿。 */
++   chk('star.lineHeight', c('.field__star', 'lineHeight'), '18px')
+
+   ⇒ phase2 checkCount 249 → **250**（phase1 空态仍 6 条）。
+
+二、变异（aap-client/src/pages/credential-submit/form.vue，判据「声明模型 14.4」的落地形态）
+--------------------------------------------------------------------------------
+ .field__star {
+   font-size: $font-xs;
+   color: $color-danger;
+-  line-height: 18px;
++  line-height: 14.4px; /* MUTATION-TEST 临时变异 */
+ }
+
+三、红基线（`npm run build:h5` → `review-measure.sh 4v1-tlmut __measure-form.html … 5361`）
+--------------------------------------------------------------------------------
+ phase1 : scenario=- state=empty  checkCount=6   checkFailCount=0  overflowing=0 docH=1071 docW=430
+                    missingTexts=['营业执照扫描件.pdf', '2.4 MB']
+ phase2 : scenario=- state=filled checkCount=250 checkFailCount=1  overflowing=0 docH=1137 docW=430
+                    FAIL star.lineHeight: got 14.4 want 18
+                    missingTexts=[]
+
+ 证据 JSON：.agents/state/evidence/review-序号4v1-tlmut-run{1,2}.json（两轮红清单逐条相同）
+
+四、还原 + 绿（`git checkout -- aap-client/src/pages/credential-submit/form.vue` → `build:h5` →
+   `review-measure.sh 4v1-tl __measure-form.html … 5362`）
+--------------------------------------------------------------------------------
+ phase1 : checkCount=6   checkFailCount=0  overflowing=0 docH=1071 docW=430
+ phase2 : checkCount=250 checkFailCount=0  overflowing=0 docH=1137 docW=430 · missingTexts=[]
+ 两轮独立测量（cmp-measure-runs.py）：phase1 全等字段 32 个 · phase2 全等字段 33 个 · **不一致 0**
+ serve 实收请求行：两轮各 12 行，**排序后集合逐字节相同**（1 条真实 POST /api/v1/provider/qualifications
+ + 落地页 detecting 的 5 对轮询 GET；落盘顺序因 Promise.all 抖动，口径见状态文件 §5.14）
+ 证据 JSON：.agents/state/evidence/review-序号4v1-tl-run{1,2}.json
+
+五、结论
+--------------------------------------------------------------------------------
+ 变异 → 1 条红（正是新增的那条）→ 还原 → 250 条全绿两轮 ⇒ 新断言确实在测「星号行盒 18」这件事，
+ 而不是恒真。还原后 `git status` 对 src 干净（本轮最终**无源码改动**）。

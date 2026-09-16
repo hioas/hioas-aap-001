@@ -914,6 +914,94 @@
       "reason": "「未渲染叶子 13」= 设计把趋势图拆成 13 个内联 SVG 层（4 网格线 3×#F1F5F9 + 末条 #E2E8F0 · 折线 #2563EB sw3 `M 30 118 L 82 96 L 134 104 L 186 72 L 238 58 L 290 44 L 340 30` · 面积 rgba(191,219,254,.35) · 6 点 r4 #2563EB + 末点 r5 rgb(29,78,216)）。实现因 **mp-weixin 不能渲染内联 svg**（同序号 6 雷达图）改用 data-URI 交给 <image>，逐元素等价 13 ↔ 13（元素计数/色值/线宽/半径/填充全部相同，y 与设计路径经 Figma transform 映射后 |Δ| ≤ 0.79px）。像素侧：网格线行两侧同为 425/460（n=306/306、194/191）、点列中心 66..374.5 vs 66..373.5。已加 8 条 checks 锁死并以源码变异证明有牙齿。",
       "evidence": "evidence/review-序号22-textleaf-报告.md + evidence/cmp-序号22-文本叶子-逐类带.txt + evidence/cmp-序号22-趋势图区-设计SVGvs实现dataURI.txt + design-shots/page-22-2.png（430×1138） + .agents/state/evidence/review-序号22-tl-run{1,2}.json + 20260916-2100-序22-用量概览-textleaf轮-h5-430宽.png",
       "at": "2026-09-16 21:00"
+    },
+    {
+      "page": "page-24",
+      "tag": "4-v1",
+      "class": "card__title",
+      "declared": "fs14 × lh1.2 = 16.8（fit_content，全部四张卡的标题行）",
+      "impl": "line-height 20",
+      "verdict": "not-a-deviation",
+      "reason": "判据②盒算术：设计与实现在同一列 x=25 的白卡段**逐段相同**（94..473 / 498..587 / 612..877 / 902..1011）⇒ 卡片边界一致；卡 pitch 404/114/290 = 卡高 388/98/274 + 卡片间距 16（内容区 gap=16 为设计声明），且闭合到整页 1137 = 74 + 16 + 388 + 16 + 98 + 16 + 274 + 16 + 118 + 16 + 48 + 16 + 25 + 16；按声明模型会让四卡各短 3.2~5.6px。 四张卡的「卡高 = 16 + 标题行 + gap + … + 16」都要标题行 = 20 才成立（基本信息 388 = 16+20+14+280+42+16 · 检测类型 98 = 16+20+12+34+16 · 资料上传 274 = 16+20+12+144+12+54+16 · 备注 118 = 16+20+10+56+16）。逐类墨迹（4 处窗口）：基本信息 设计 109..122(51) vs 实现 110..123(51) · 检测类型 513..526(50) vs 514..527(50) · 凭证资料 627..640(50) vs 628..641(51) · 备注 834..848 vs 834..847（±1 = H5 回退字体墨迹）。",
+      "evidence": "evidence/cmp-序号4v1-文本叶子-逐类带.txt + evidence/review-序号4v1-textleaf-报告.md + .agents/state/evidence/review-序号4v1-tl-run{1,2}.json + design-shots/page-24.png（430×1137 · sha256 f77955ca…，与重抓帧的新导出图逐字节相同）",
+      "at": "2026-09-16 21:10"
+    },
+    {
+      "page": "page-24",
+      "tag": "4-v1",
+      "class": "card__tip",
+      "declared": "fs11 × lh1.2 = 13.2（fit_content）",
+      "impl": "line-height 16",
+      "verdict": "not-a-deviation",
+      "reason": "判据①同帧显式 height：本帧 fs11 的两个叶子 `d09f9feb`（单个文件不超过 10MB）与 `919871df`（2.4 MB）在设计里都**显式 height=16**（同名同字号 → 该帧 fs11 渲染行盒 = 16）。墨迹：设计 628..640(maxink 66) vs 实现 629..641(66) —— 带长相同、起点 +1（H5 回退字体）。",
+      "evidence": "evidence/cmp-序号4v1-文本叶子-逐类带.txt + evidence/review-序号4v1-textleaf-报告.md + .agents/state/evidence/review-序号4v1-tl-run{1,2}.json + design-shots/page-24.png（430×1137 · sha256 f77955ca…，与重抓帧的新导出图逐字节相同）",
+      "at": "2026-09-16 21:10"
+    },
+    {
+      "page": "page-24",
+      "tag": "4-v1",
+      "class": "field__label",
+      "declared": "fs12 × lh1.2 = 14.4（fit_content）",
+      "impl": "line-height 18",
+      "verdict": "not-a-deviation",
+      "reason": "判据②盒算术：字段步进 70 = 标签行 18 + gap 8 + 输入框 44，四字段 280 与卡高 388 自洽；按 14.4 会让卡 1 短 14.4px。逐类墨迹（2 处）：客户名称 设计 143..154(43) vs 实现 143..154(42)（**起点逐值相同**）· 统一社会信用代码 227..239(85) vs 227..239(88)。",
+      "evidence": "evidence/cmp-序号4v1-文本叶子-逐类带.txt + evidence/review-序号4v1-textleaf-报告.md + .agents/state/evidence/review-序号4v1-tl-run{1,2}.json + design-shots/page-24.png（430×1137 · sha256 f77955ca…，与重抓帧的新导出图逐字节相同）",
+      "at": "2026-09-16 21:10"
+    },
+    {
+      "page": "page-24",
+      "tag": "4-v1",
+      "class": "field__star",
+      "declared": "fs12 × lh1.2 = 14.4（fit_content）",
+      "impl": "line-height 18",
+      "verdict": "not-a-deviation",
+      "reason": "同一标签行（`field__label-row`，gap 4）内的必填星号：行盒由该行两个 fs12 文本的渲染行盒定，字段步进 70 与卡高 388 同样要求 18。墨迹（2 处）：设计 144..148(5) = 实现 144..148(6) · 228..232(5) = 实现 228..232(6)（**起点逐值相同**）。⚠️ 本条此前在载体页无断言 → 本轮新增 `star.lineHeight` check（250 条）并以**源码变异**证明有牙齿（把 .field__star 的 line-height 临时改成 14.4px → `star.lineHeight: got 14.4 want 18` 1 条红 → git checkout 还原 → 250 条全绿两轮）。",
+      "evidence": "evidence/cmp-序号4v1-文本叶子-逐类带.txt + evidence/review-序号4v1-textleaf-报告.md + .agents/state/evidence/review-序号4v1-tl-run{1,2}.json + design-shots/page-24.png（430×1137 · sha256 f77955ca…，与重抓帧的新导出图逐字节相同）",
+      "at": "2026-09-16 21:10"
+    },
+    {
+      "page": "page-24",
+      "tag": "4-v1",
+      "class": "type-chip__text",
+      "declared": "fs12 × lh1.2 = 14.4（fit_content）",
+      "impl": "line-height 18",
+      "verdict": "not-a-deviation",
+      "reason": "判据②盒算术：chip = padding 8 + 行盒 + 8 = 34，检测类型卡 98 = 16 + 标题行 20 + 12 + 34 + 16 自洽；按 14.4 会让 chip 30.8、卡 94.8（与 design PNG（430×1137） 的卡片边界冲突）。逐类墨迹（3 处）：基础检测 553..564(46) vs 553..564(47) · 深度检测 553..564(46) 两侧相同 · 合规检测 553..564(45) vs 553..564(46)（**起点逐值相同**）。",
+      "evidence": "evidence/cmp-序号4v1-文本叶子-逐类带.txt + evidence/review-序号4v1-textleaf-报告.md + .agents/state/evidence/review-序号4v1-tl-run{1,2}.json + design-shots/page-24.png（430×1137 · sha256 f77955ca…，与重抓帧的新导出图逐字节相同）",
+      "at": "2026-09-16 21:10"
+    },
+    {
+      "page": "page-24",
+      "tag": "4-v1",
+      "class": "footnote__text",
+      "declared": "fs11 × lh1.2 = 13.2（fit_content）",
+      "impl": "line-height 16",
+      "verdict": "not-a-deviation",
+      "reason": "判据①+②不承重：提交提示行 `3f8c7ae8`（horizontal / align center / fit_content）的行高由同排 remixicon 字形盒定 —— `a048d0c6` fs14 → 字形行盒 14×1.5 = 21；盒算术 提交提示 = 21 + padding-bottom 4 = 25，而整页 1137 的闭合正需要 25（见 card__title 条）。文本行盒 16 与 13.2 都不承重（居中盒内墨迹同解）。墨迹：设计 1101..1111(len 11) vs 实现 1102..1112(len 11)（起点 +1、带长相同）。",
+      "evidence": "evidence/cmp-序号4v1-文本叶子-逐类带.txt + evidence/review-序号4v1-textleaf-报告.md + .agents/state/evidence/review-序号4v1-tl-run{1,2}.json + design-shots/page-24.png（430×1137 · sha256 f77955ca…，与重抓帧的新导出图逐字节相同）",
+      "at": "2026-09-16 21:10"
+    },
+    {
+      "page": "page-24",
+      "tag": "4-v1",
+      "class": "uni-input-placeholder",
+      "declared": "fs13 × lh1.2 = 15.6（fit_content，3 个输入框占位）",
+      "impl": "line-height 20",
+      "verdict": "not-a-deviation",
+      "reason": "判据①同帧显式 height：本帧 fs13 的 `ee12aef8`（点击上传凭证文件）**显式 height=20**；且输入框是定高 44 + alignItems=center ⇒ 占位行盒不参与布局，两模型对墨迹同解（差 <1px）。逐类墨迹（4 处）：请输入客户名称 设计 182..193(111) vs 实现 183..194(108)（+1）· 请输入 18 位统一社会信用代码 266..277(130) vs 266..277(129)（**起点逐值相同**）· 请输入联系人姓名 350..362(81) vs 350..361(79) · 请输入手机号 434..445(64) = 434..445(64)（**逐值相同**）。",
+      "evidence": "evidence/cmp-序号4v1-文本叶子-逐类带.txt + evidence/review-序号4v1-textleaf-报告.md + .agents/state/evidence/review-序号4v1-tl-run{1,2}.json + design-shots/page-24.png（430×1137 · sha256 f77955ca…，与重抓帧的新导出图逐字节相同）",
+      "at": "2026-09-16 21:10"
+    },
+    {
+      "page": "page-24",
+      "tag": "4-v1",
+      "class": "uni-textarea-placeholder",
+      "declared": "fs13 × lh1.2 = 15.6（fit_content）",
+      "impl": "line-height 20",
+      "verdict": "not-a-deviation",
+      "reason": "判据②盒算术：备注框 `0e5a46b9` padding [12, 12, 24, 12] + 备注卡 118 = 16 + 标题行 20 + 10 + 备注框 56 + 16 ⇒ 备注框 56 = 12 + 行盒 + 24 ⇒ **行盒 = 20**（声明模型 15.6 会给出 51.6，与 PNG 的卡 4 边界冲突）。墨迹：设计 917..923 vs 实现 918..923（起点 +1，窗口内带高相同）。",
+      "evidence": "evidence/cmp-序号4v1-文本叶子-逐类带.txt + evidence/review-序号4v1-textleaf-报告.md + .agents/state/evidence/review-序号4v1-tl-run{1,2}.json + design-shots/page-24.png（430×1137 · sha256 f77955ca…，与重抓帧的新导出图逐字节相同）",
+      "at": "2026-09-16 21:10"
     }
   ]
 }

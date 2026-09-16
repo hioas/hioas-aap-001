@@ -319,6 +319,10 @@
         chk('labelRow.gap', c('.field__label-row', 'gap'), '4px')
         chkS('star.text', textOf(doc, '[data-testid="field-star"]'), '*')
         chk('star.color', c('.field__star', 'color'), 'rgba(239,68,68,1)')
+        /* 文本叶子维度（2026-09-16 21:0x 轮）：设计 leaf 7f0d4be1/42c14930 是 fit_content + lh1.2（声明模型 14.4），
+           但同帧 fs12 的行盒由「字段步进 70 = 标签行 18 + 8 + 输入框 44」与卡高 388 的盒算术定死为 18；
+           本页检查项此前只覆盖了 .field__label，星号这一条此前无断言 → 补上并做源码变异证明有牙齿。 */
+        chk('star.lineHeight', c('.field__star', 'lineHeight'), '18px')
         chk('label.fontSize', c('.field__label', 'fontSize'), '12px')
         chk('label.fontWeight', c('.field__label', 'fontWeight'), '600')
         chk('label.color', c('.field__label', 'color'), 'rgba(51,65,85,1)')
