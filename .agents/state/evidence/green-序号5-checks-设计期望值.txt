@@ -1,0 +1,92 @@
+序号 5 · 修复后绿（同探针 235 条 checks）
+
+=== run1 ===
+phase1: checkCount=237 checkFailCount=0 overflowing=0 docH=934 docW=430
+    state=running missingTexts=[] percent=58% finished=已完成 7 / 12 个检测项 eta=预计剩余 42 分钟
+    （无失败项）
+phase2: checkCount=237 checkFailCount=0 overflowing=0 docH=934 docW=430
+    state=running missingTexts=[] percent=58% finished=已完成 7 / 12 个检测项 eta=预计剩余 42 分钟
+    （无失败项）
+
+=== run2 ===
+phase1: checkCount=237 checkFailCount=0 overflowing=0 docH=934 docW=430
+    state=running missingTexts=[] percent=58% finished=已完成 7 / 12 个检测项 eta=预计剩余 42 分钟
+    （无失败项）
+phase2: checkCount=237 checkFailCount=0 overflowing=0 docH=934 docW=430
+    state=running missingTexts=[] percent=58% finished=已完成 7 / 12 个检测项 eta=预计剩余 42 分钟
+    （无失败项）
+
+序号 5 · 交互相（?scenario=interaction：查看历史检测报告 = client-only）
+
+=== run1 ===
+phase1: checkCount=237 checkFailCount=0 overflowing=0 docH=934 docW=430
+    state=running missingTexts=[] percent=58% finished=已完成 7 / 12 个检测项 eta=预计剩余 42 分钟
+    （无失败项）
+phase2: checkCount=237 checkFailCount=0 overflowing=0 docH=934 docW=430
+    state=running missingTexts=[] percent=58% finished=已完成 7 / 12 个检测项 eta=预计剩余 42 分钟
+    （无失败项）
+phase3: checkCount=None checkFailCount=None overflowing=None docH=None docW=None
+    interaction={"scenario": "interaction", "hashBefore": "#/pages/detecting/index?jobId=j1", "clickHistory": "CLICKED", "toast": "历史检测报告可在凭证列表中查看", "hashAfter": "#/pages/detecting/index?jobId=j1", "hashUnchanged": true, "rowCountStill": 8, "requestHint": "client-only → 本相不应出现任何 /api 写请求（见 requests-*.txt）"}
+    （无失败项）
+
+=== run2 ===
+phase1: checkCount=237 checkFailCount=0 overflowing=0 docH=934 docW=430
+    state=running missingTexts=[] percent=58% finished=已完成 7 / 12 个检测项 eta=预计剩余 42 分钟
+    （无失败项）
+phase2: checkCount=237 checkFailCount=0 overflowing=0 docH=934 docW=430
+    state=running missingTexts=[] percent=58% finished=已完成 7 / 12 个检测项 eta=预计剩余 42 分钟
+    （无失败项）
+phase3: checkCount=None checkFailCount=None overflowing=None docH=None docW=None
+    interaction={"scenario": "interaction", "hashBefore": "#/pages/detecting/index?jobId=j1", "clickHistory": "CLICKED", "toast": "历史检测报告可在凭证列表中查看", "hashAfter": "#/pages/detecting/index?jobId=j1", "hashUnchanged": true, "rowCountStill": 8, "requestHint": "client-only → 本相不应出现任何 /api 写请求（见 requests-*.txt）"}
+    （无失败项）
+
+=== requests 序号5-checks-run1（serve.py 实收，10 行） ===
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+
+=== requests 序号5-checks-run2（serve.py 实收，12 行） ===
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+
+=== requests 序号5-int-run1（serve.py 实收，10 行） ===
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+
+=== requests 序号5-int-run2（serve.py 实收，10 行） ===
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1/results HTTP/1.1" 200 -
+    "GET /api/v1/detection-jobs/j1 HTTP/1.1" 200 -
+

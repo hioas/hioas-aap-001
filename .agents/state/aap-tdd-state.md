@@ -1,4 +1,4 @@
-STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 2026-09-16 09:38（160 条 checks · 偏差 15→0）· 序号 4 已完成 2026-09-16 09:55（212 条 · 45→0）· 序号 4-v1 已完成 2026-09-16 10:20（249 条 · 78→0，整页 1079→1137 与设计 PNG 逐带相同）→ 下一轮开工做 序号 5**（page-5-2 检测进行中 → `/pages/detecting/index`，载体页 `__measure-detecting.html`，mock `api`） ②队列 1 逐页复核（4~23 行的 checks 维度待补） ③队列 7（uni-picker 溢出口径） ④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。历史流水归档在 `aap-notes-archive-2026-09-16.md`，**不要每轮读**。
+STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 2026-09-16 09:38（160 条 checks · 偏差 15→0）· 序号 4 已完成 2026-09-16 09:55（212 条 · 45→0）· 序号 4-v1 已完成 2026-09-16 10:20（249 条 · 78→0，整页 1079→1137 与设计 PNG 逐带相同）· 序号 5 已完成 2026-09-16 10:42（237 条 · 95→0，整页 900→934 = 设计帧高，9 类偏差）→ 下一轮开工做 序号 6**（`page-6`「大模型检测报告 · 多维度专业版」→ `/pages/report/index`，载体页 `__measure-report.html`，mock 目录 `api`；对照表 `python .agents/state/survey-harness-routes.py`） ②队列 1 逐页复核（6~23 行的 checks 维度待补） ③队列 7（uni-picker 溢出口径） ④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。历史流水归档在 `aap-notes-archive-2026-09-16.md`，**不要每轮读**。
 LEASE: free until -
 
 # AAP TDD 推进 · 状态与目标（自驱动循环的单一事实来源）
@@ -136,7 +136,18 @@ LEASE: free until -
      上传区 dashed→**实线**、备注框 52→56、文件行 48→54、删除盒 20×20→20×27。
      交互相：guard 场景两轮 **0 行 /api 请求**；补必填后真实 POST `/provider/qualifications` → 跳 `/pages/detecting/index?jobId=j1`（mock fixture 本轮补齐，先红后绿）。
      证据 `evidence/review-序号4v1-checks-报告.md` · `red/green-序号4v1-*` · `cmp-序号4v1-*` · 截图 `evidence/20260916-1022-序号4v1-…-h5-430宽.png`。
-     设计帧重抓 sha256 `bd249858…` **逐字节相同**（无漂移）。**下一轮：序号 5**（page-5-2「检测进行中」→ `/pages/detecting/index`，载体页 `__measure-detecting.html`）。
+     设计帧重抓 sha256 `bd249858…` **逐字节相同**（无漂移）。
+   - ✅ **序号 5 已完成 2026-09-16 10:42**：`__measure-detecting.html` 由 129 行旧体例重写为 430 宽 iframe + **237 条 checks**
+     （want = page-5-2 `design.json` 声明值 + 设计 PNG 色带/墨迹实测：顶部栏 96 · 卡高 196/434/72 · 行高 34/行距 46 · 成本块 58 · 提示卡 72 · 底栏 84；
+     进度填充 PNG 实测 **208**，设计树写 209 是陈旧值）。
+     红基线（`git stash push -- src/pages/detecting/index.vue` 复现修复前代码、同一份探针两轮）**phase1/phase2 各 95/237**（`red-序号5-checks-设计期望值偏差.txt`）→ 绿 **0/237**
+     （`green-序号5-checks-设计期望值.txt`），两轮独立测量 **32/32 字段全等**，`docH 934`（= 设计帧高，修前 900）。
+     修掉 9 类偏差：顶部栏 84→96（返回图标盒 26×36）· 卡1 184→196（标题行 26）· 卡2 416→434（行高 34/行距 46）· 提示卡 68→72（文案行高 16 + `align-self:center`）·
+     成本块 52→58 · 元信息行 14→18 · 描边 `border`→`box-shadow 0 0 0 1px`（内容宽 356→358、行左 37→36）· 卡1 补设计 `drop_shadow(0,6,20,rgba(15,23,42,0.06))` ·
+     7 个图标盒按设计图层（26×36 / 22×30 / 20×27 / 22×30 / 22×30，形状移入 `::before`）。
+     像素对账 `cmp-序号5-设计PNGvs实现截图-色带.txt`（±1 容差）：x=62 列 41 个粗边界 36 命中，全部关键结构行命中；未命中 22 行全为「卡1 投影渐变台阶（Figma vs Chrome 衰减差异）」
+     与「H5 回退字体墨迹边界（块级几何与居中位置逐项相同）」两类 → 非页面缺陷。交互相：历史报告按钮 client-only → toast + hash 不变 + serve 实收 10 行全为成对轮询 GET、零写请求。
+     **下一轮：序号 6**（`page-6`「大模型检测报告 · 多维度专业版」→ `/pages/report/index`，载体页 `__measure-report.html`，mock 目录 `api`）。
    - ⚠️ 本轮踩到并写进 §5 的坑：重抓前必须先确认 Calicat 编辑器在浏览器里打开（否则 22 帧全 FAIL `请先在浏览器中打开文件`）；
      `cmp-measure-runs.py` 对扁平文件也要传 phase 名（传 `flat`）；Chrome `--screenshot` 的中文路径会被 MSYS 弄坏 → 先写 ASCII 临时名再 `cp`；
      探针自身 4 处口径错误（`.card__hint` 只有 2 处不是 3 处、`.card__title-row` 首个是 APIKey 卡、`.card__field` 的 8px 是 padding 不是间距、`declared()` 不认 `[data-testid=...]`）。
@@ -282,6 +293,27 @@ LEASE: free until -
      **uni-app H5 的 placeholder 是 `.uni-input-placeholder` 文本节点而非 attribute**；另 chip 文字宽度改 ±3 容差断言。
   ⑩**下轮开工第一件事**：队列 8 的 **序号 5**（page-5-2「检测进行中」→ `/pages/detecting/index`，载体页 `__measure-detecting.html`，mock 目录 `api`）。
 
+- 2026-09-16 10:42（cron 轮 `aap-tdd-run-20260916-1025`）· **队列 8 第 4 页：序号 5 载体页补「设计期望值 checks」维度（237 条 · 偏差 95→0）+ 9 类设计偏差修复 + 整页对齐设计帧 934**：
+  ①**改名**：本轮开工按 prompt 试了一次 `git mv aap-client hioas-aap-client` → 仍 `Permission denied`（用户 `npm run dev:h5` 持句柄）→ 记一行顺延，**未杀用户进程**；决策 D6 仍为「勿再重试」，下轮按人类决策处理。
+  ②**设计帧重抓（人工指令 C）**：先 `cmd /c start ""` 拉起编辑器（否则整包 `请先在浏览器中打开文件`），重抓 page-5-2 → `design.json` sha256 `4ed8ad58…` **逐字节相同**（`cmp` 报 BYTE-IDENTICAL）→ 画布当前状态 = 实现所依据版本，**无漂移**。
+  ③**期望值口径**：声明值（`design.json` / `node-probe.py` / `dump-node-fields.py`）+ 设计 PNG 色带与墨迹实测（`png-rows.py` / `png-xruns.py` / `png-profile.py`，命令写进载体页头注释可复现）。
+     本页新定标：**fit_content 文本行框 = 设计显式 height**（13→18 · 12→18 · 11→16 · 15→22）· 顶部栏内容高 = 图标字形行框 36（24×1.5）· 提示卡文案在卡内垂直居中（ink 784..810）。
+  ④**TDD 红→绿（本轮主交付）**：`__measure-detecting.html` 由 129 行旧体例重写为 430 宽 iframe + **237 条 checks**；
+     红基线（`git stash push -- aap-client/src/pages/detecting/index.vue` 复现修复前代码、同一份探针两轮）**phase1/phase2 各 95/237** · docH 900 → 绿 **0/237** · docH **934**（= 设计帧高）；
+     两轮独立测量 **32/32 字段全等**（`cmp-measure-runs.py`，phase1 + phase2 各一次，红基线两轮同样全等）。
+  ⑤**修掉 9 类偏差**（详见台账序号 5 行 / `review-序号5-checks-报告.md` §4）：顶部栏 84→96 · 卡1 184→196 · 卡2 416→434 · 提示卡 68→72 · 成本块 52→58 · 元信息行 14→18 ·
+     描边 `border`→`box-shadow 0 0 0 1px` · 卡1 补设计 `effects` 投影 · 7 个图标盒按设计图层尺寸（形状移入 `::before`）。
+  ⑥**像素对账**：新增 `cmp-bands-5-design-vs-impl.py`（±1 容差 + 自动判命中 + 文案 ink 行对比）→ x=62 列 41 个粗边界 **36 命中**，全部关键结构行命中；
+     未命中 22 行逐条判读 = 「卡1 投影渐变台阶（Figma vs Chrome 衰减步长）」+「H5 回退字体字形墨迹边界」，**非页面缺陷**；提示卡文案 ink 修后与设计逐行相同（第二行 +1）。
+  ⑦**交互相有牙齿**：`?scenario=interaction` 点「查看历史检测报告」→ client-only toast「历史检测报告可在凭证列表中查看」· `hashUnchanged true` · 行数仍 8 ·
+     serve 实收 **10 行全为成对 `GET /api/v1/detection-jobs/j1` + `/results`**（5s 轮询 5 次）、**零写请求**。
+  ⑧**质量门**：`npm test` **1168/1168 ×2** · `type-check` exit 0 · `build:mp-weixin` DONE（`pages/detecting/index.{js,json,wxml,wxss}` 齐备）· `build:h5` DONE ·
+     截图 `logs/screenshots/20260916-1042-序号5-检测进行中-checks轮-h5-430宽.png`（同件入 `.agents/state/evidence/`）。
+  ⑨**探针自纠 2 处口径**（写进 §5.2）：`norm()` 增加「数值直通」（number 与 `'32px'` 不可比 → 出现过 got 32 / want "32" 的假失败）；`tip.textLines` 改读 computed `height`。
+  ⑩**下轮开工第一件事**：队列 8 的 **序号 6**（`page-6`「大模型检测报告 · 多维度专业版」→ `/pages/report/index`，载体页 `__measure-report.html`，mock 目录 `api`）。
+  ⑪**流程自纠**：本轮开工时 §0 租约是 `free`，但**没有即时写成本轮 id 再开工**（缺了一步），收尾时它仍是 `free` —— 本 job 每 5 分钟触发而本轮做了约 20 分钟，理论上存在并发窗口；
+     下轮起恢复「开工先写租约、提交后改回 free」的动作（若人类把周期调长可忽略）。
+
 ## 5. 关键命令（照抄可用）
 
 - 项目根：`E:\workspaces\hioas\hioas-aap-001`（远端 https://github.com/hioas/hioas-aap-001）
@@ -342,3 +374,19 @@ LEASE: free until -
 - ⚠️ **Chrome 对 box-shadow 声明值的序列化**：`rule.style.boxShadow` 读出来是 `rgb(238, 242, 247) 0px 0px 0px 0.8px`（颜色在前、逗号后带空格）→ 用 `declaredNorm()` 归一化空白再比；`declared()` 只认**类名选择器**，传 `[data-testid=...]` 永远取不到。
 - 口径（本轮定标，后续页面复用）：**fit_content 文本行框 ≈ 字号度量行框**（18→24 · 14→20 · 13→20 · 12→18 · 11→16）；
   **图标字形行框 = 字号×1.5**（24→36 · 22→33 · 20→30 · 18→27 · 14→21）；形状画 `::before`、盒子按设计图层尺寸。
+
+### 5.2 本轮（10:25 轮）新增的工具与口径
+
+- **像素对账（±1 容差、自动判命中）**：`python .agents/state/cmp-bands-5-design-vs-impl.py <设计PNG> <实现PNG> [out.txt]`
+  —— 逐列取「粗色带边界」（长度 ≥2 的色带起点，滤掉 AA/渐变 1 行带），设计的每个边界在实现里 ±1 行内命中即算过；另打印文案 ink 行对比（提示卡 / 底栏）。
+  设计 PNG 下载：`curl -o design5.png https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/2099906439898591232/canvas/image/2099906439898591232.png`
+- **红基线复现（第二例，模式固定）**：`git stash push -- aap-client/src/pages/detecting/index.vue` → `npm run build:h5` → `review-measure.sh <tag>-red …` → `show-phases.py` 存转录 → `git stash pop` → 再 `build:h5` 复位 → 跑正式两轮。
+  （比 `git stash` 全量安全：只 stash 该页文件，探针/证据不被牵连。）
+- **证据转录合成**：`python .agents/state/gen-5-checks-evidence.py`（红/绿两轮的 phase 概览 + 失败清单 + serve 实收请求行 → `red-序号5-checks-*.txt` / `green-序号5-checks-*.txt`；后续页面照抄改 tag）。
+- ⚠️ **探针 `norm()` 必须让数值直通**：`dim()`/`rect` 给 number、computed style 给 `'32px'` 字符串 → 不直通时 `32 !== '32'` 报假失败（本轮踩到，已加 `if (typeof v === 'number') return v`）。
+- ⚠️ **设计树里的固定宽高可能是陈旧值**：page-5-2 进度填充设计树写 `width 209`，设计 PNG 实际渲染 **208**（= 58% × 358）→ 固定尺寸也要用 PNG 复核一次再写进 checks。
+- ⚠️ **行框优先取设计显式 `height`**（13→18 · 12→18 · 11→16 · 15→22），**没有**显式 height 才用 PNG 反推（元信息行 18 · 标题行 26 · 提示卡文案 16）。
+- ⚠️ **Figma 的 center 描边与投影**：`stroke{align:center}` → `box-shadow: 0 0 0 1px`（`border` 会占布局）；`effects drop_shadow` → `box-shadow`。
+  Chrome 与 Figma 的阴影衰减步长不同（±3px 内），像素对账会把渐变台阶行列为差异 —— 判读时看**关键结构行**是否命中，不要逐行追究阴影。
+- ⚠️ **H5 回退字体的墨迹与设计字体不同**：同为 12px，设计字体在行框内的 ink 偏低约 4px（本页提示卡文案）→ 用 `align-self:center` 把 ink 对齐到设计位置。
+  这类差异 checks 探针量不到（它只测盒子），**只能靠像素对账发现**。

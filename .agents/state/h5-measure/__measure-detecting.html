@@ -5,125 +5,533 @@
     <title>measure-detecting</title>
     <style>
       body { margin: 0; font: 12px monospace; }
-      /* 高度由脚本按 docScrollHeight 动态设置（整页截图用） */
+      /* 430 宽 iframe 模拟小程序视口（整页 docScrollHeight 设计 = 934）；只给 DOM 数字，不靠 vision 猜 */
       iframe { width: 430px; height: 900px; border: 0; }
-      /* 取数用的 <pre> 包在 0 尺寸 overflow:hidden 容器里：textContent 仍可读，但不参与渲染
-         （负坐标 off-screen 会被 --screenshot 截进图里，vision 会误报成"调试条"假象） */
+      /* 取数 <pre> 包进 0 尺寸 overflow:hidden：textContent 可读但不渲染、不会被 --screenshot 截进图 */
       #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
     </style>
   </head>
   <body>
-    <!-- 430 宽 iframe 模拟小程序视口；只给 DOM 数字，不靠 vision 猜
-         页面 5：/pages/detecting/index（检测进行中，page-5-2）
-         两段测量：phase1（首次加载后）· phase2（跨过一次 5s 轮询后）→ 数字应一致 -->
+    <!-- 页面 5：/pages/detecting/index?jobId=j1（检测进行中 2）
+         帧名「5. 报价端·小程序 ｜ 【检测验真】检测进行中 2」· frame layer_id b2d065a3-34a0-45e3-8e2e-b9bd9a810126 · 抓取 id page-5-2
+         设计真源（两类，逐条对应）：
+           A. 声明值 = .calicat/raw/pages/page-5-2/design.json（+ design.tree.json / page-5-2-nodes.txt）
+              padding/gap/固定宽高/cornerRadius/stroke/effects/fontSize/fontFamily/文案
+           B. 盒子高度 = 设计 PNG 色带实测（fit_content 行的真实高度；命令可复现）：
+              curl -o design5.png https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/2099906439898591232/canvas/image/2099906439898591232.png
+              python .agents/state/png-rows.py design5.png v 8 0 934 1     # 顶部栏 0..95（高 96）· 底栏 850..933（高 84）· 页底 934
+              python .agents/state/png-rows.py design5.png v 215 0 934 1   # 卡1 108..303（196）· 进度条 170..179（10）· 成本块 226..283（58）· 卡2 316..749（434）· 提示卡 762..833（72）
+              python .agents/state/png-rows.py design5.png v 44 330 770 1  # 8 个 32×32 图标块 375/421/467/513（行距 46 = 行高 34 + 间隔 12）
+              python .agents/state/png-xruns.py design5.png 66 10 420     # 返回图标 ink 20..36 · 标题 ink 起于 x=54 · chip 351..413（宽 63）
+              python .agents/state/png-xruns.py design5.png 175 20 410    # 进度填充 36..243（**208** = 58% × 358）· 轨道到 393
+              python .agents/state/png-xruns.py design5.png 390 30 420    # 图标块 36..67 · 状态 chip 355..393（宽 39 = 「完成」23 + 8×2）
+              python .agents/state/png-profile.py design5.png 60 770 400 825 1  # 提示卡文案两行 ink 784..795 / 800..810（行距 16）
+              实测：顶部栏 96 · 卡高 196/434/72，卡间距 12 · 行高 34、行距 46 · 成本块 58 · 提示卡 72 · 底栏 84 · 整页 934
+              说明：fit_content 文本行框 = 设计显式 height（13→18 · 12→18 · 11→16 · 15→22）· 图标字形行框 = 字号×1.5（24→36 · 20→30 · 18→27）
+         期望值逐条写进 checks（got = 实现 DOM 实测，want = 上表声明值/实测高度）：
+           页面容器 430 宽 bg rgb(248,250,252) · flex column · 整页高 934
+           顶部导航 padding 48/16/12/16 · 白底 · **高 96**（= 48 + 图标行框 36 + 12）· alignItems center
+             · 返回图标盒 26x36（设计 594997da width 26 / fontSize 24→36）ink 色 rgb(51,65,85)
+             · 标题「检测进行中」@x54（= 16 + 26 + 12）17px/700 rgb(15,23,42)
+             · 状态 chip 63x24 r12 bg rgb(239,246,255) padding 0 8 · 右缘 414 · 中点 y66 · 圆点 9x7 r4 rgb(37,99,235) · 文字「进行中」11px/500 rgb(37,99,235)
+           卡1 总进度 @108 高 196 r18 padding 20 · 影(0,6,20,rgba(15,23,42,0.06))（设计 effects）
+             · 标题行 高 26（「58%」20px/700 line 26 · 「总进度」15px/600 line 22）
+             · 进度条 @170 高 10 r5 轨道 rgb(226,232,240) · 填充 w208 rgb(37,99,235)（= 「58%」× 358）
+             · 元信息行 @192 高 18：「已完成 7 / 12 个检测项」12px/400 rgb(100,116,139) · 「预计剩余 42 分钟」12px/400 rgb(148,163,184)
+             · 成本块 @226 高 58 r12 bg rgb(236,253,245) padding 12 · 图标盒 22x30 rgb(22,163,74)
+               标题 12px/600 rgb(21,128,61) line 18 · 副文案 11px/400 rgb(22,163,74) line 16 · 文字块左移 12
+           卡2 分项检测 @316 高 434 r18 padding 20 · 描边 → box-shadow 0 0 0 1px rgb(238,242,247)（Figma center 描边不占布局）
+             · 标题「分项检测」15px/600 line 22 · 行区 gap 16
+             · 8 行 @374/420/466/512/558/604/650/696，行高 34、行距 46（行间隔 12）
+             · 图标块 32x32 r10：D1/D2 rgb(236,253,245) · D3–D5 rgb(239,246,255) · D6–D8 rgb(248,250,252) · 字形盒 20x27
+             · 行名 13px/600 line 18（D1–D5 rgb(15,23,42) · D6–D8 rgb(100,116,139)）· 详情 11px/400 line 16 rgb(148,163,184)
+             · 状态 chip 高 22 r11 padding 0 8 右缘 394 · 文字 11px/500
+               完成 rgb(236,253,245)/rgb(21,128,61) · 进行中 rgb(239,246,255)/rgb(37,99,235) · 排队中 rgb(241,245,249)/rgb(100,116,139)
+           提示卡 @762 高 72 r18 padding 16/20 · 描边 box-shadow 1px rgb(238,242,247) · 图标盒 22x30 rgb(217,119,6)
+             · 文案 12px/400 rgb(100,116,139) line 16 两行（左移 8）
+           底部操作条 @850 高 84 白底 padding 12/16/24/16 · 按钮 398x48 r12 bg rgb(241,245,249)
+             · 图标盒 22x30 rgb(100,116,139) · 文字「查看历史检测报告」14px/500 rgb(71,85,105)（左移 6）
+         字重映射（设计 fontFamily 名 → CSS）：SourceHanSans-Bold→700 · SemiBold→600 · Medium→500 · Regular→400
+         overriddenByDecision（有意偏离，不计入偏差）：
+           - 图标形状 = D5 决策：CSS 形状占位（设计为 remixicon 矢字形）；但**盒子尺寸**按设计声明（宽 = 该图层 width、行框高 = fontSize×1.5），
+             否则图标后的文本整体偏移、卡片高度不再等于设计
+           - 顶部栏 padding-top 加 var(--status-bar-height)（H5=0；小程序状态栏安全区，设计帧未含）
+           - 状态 chip 文案取自服务端 status 映射（QUEUED/RUNNING→排队中/进行中）；设计帧示例值 = 进行中
+         ?scenario=interaction 只跑 1~2 相 + 交互相（「查看历史检测报告」client-only：**零** /api 写请求且 hash 不变）
+         ?shot=1 只渲染 iframe（不写 JSON），供 430 宽整页截图
+         ⚠️ 触发方式必须用轮询取数（iframe onload 会因监听注册过晚而错过 → 静默拿到 pending） -->
     <iframe id="f" src="/index.html#/pages/detecting/index?jobId=j1"></iframe>
     <div id="sink"><pre id="m">pending</pre></div>
     <script>
+      var SHOT_ONLY = /(\?|&)shot=1/.test(location.search)
+      var SCENARIO = (location.search.match(/scenario=([a-zA-Z-]+)/) || [])[1] || 'full'
       var f = document.getElementById('f')
       var acc = {}
-      f.addEventListener('load', function () {
-        setTimeout(function () { phase(1) }, 2500)
-        setTimeout(function () { phase(2) }, 9500)
-      })
+      /* 取数用 900 高视口：页面 min-height:100vh → docScrollHeight = 内容高（= 设计 934），
+         否则 >934 高的视口会把 scrollHeight 顶成视口高，量不到整页高。截图才用 1200。 */
+      if (!SHOT_ONLY) f.style.height = '900px'
+      else f.style.height = '960px'
+
+      function all(d, sel) { return Array.prototype.slice.call(d.querySelectorAll(sel)) }
+      function rectEl(el) {
+        if (!el) return null
+        var r = el.getBoundingClientRect()
+        return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+      }
+      function rect(d, sel) { return rectEl(d.querySelector(sel)) }
+      function rects(d, sel) { return all(d, sel).map(rectEl) }
+      function textOf(d, sel) { var e = d.querySelector(sel); return e ? e.textContent.trim() : null }
+      function texts(d, sel) { return all(d, sel).map(function (e) { return e.textContent.trim() }) }
+      function styleOf(w, el, prop) { return el ? w.getComputedStyle(el)[prop] : null }
+
+      /** 设计 PNG 色带实测（fit_content 行的真实高度，命令见文件头注释） */
+      var DESIGN = {
+        frameW: 430, pageH: 934,
+        topbarH: 96, topbarPad: [48, 16, 12, 16],
+        backBox: [26, 36], titleLeft: 54,
+        chipW: 63, chipH: 24, chipRight: 414, chipCenterY: 66,
+        cardX: 16, cardRight: 414, cardW: 398, cardPad: 20,
+        cardTop: [108, 316, 762], cardH: [196, 434, 72], cardGap: 12,
+        titleRowH: 26, progressTop: 170, progressH: 10, fillW: 208,
+        metaTop: 192, metaH: 18,
+        costTop: 226, costH: 58,
+        rowsTop: [374, 420, 466, 512, 558, 604, 650, 696], rowH: 34, rowGap: 12,
+        chipRowH: 22, iconProbe: [20, 27], iconBack: [26, 36], iconCost: [22, 30], iconTip: [22, 30], iconHistory: [22, 30],
+        tipTop: 762, tipH: 72, tipPadY: 16, tipTextH: 32,
+        bottomTop: 850, bottomH: 84, btnH: 48, btnW: 398
+      }
+
+      /** 设计里每个独立文本图层（逐字抄自 page-5-2 design.tree.json） */
+      var needText = [
+        '检测进行中', '进行中', '总进度', '58%',
+        '已完成 7 / 12 个检测项', '预计剩余 42 分钟',
+        '检测期间已启用成本保护', '本次检测由平台承担费用，不会计入你的账单',
+        '分项检测',
+        'D1 网络连通性', 'D2 鉴权有效性', 'D3 模型清单一致性', 'D4 上下文长度',
+        'D5 稳定性与错误率', 'D6 计费口径核验', 'D7 合规与内容安全', 'D8 峰值并发压测',
+        '已通过 · 236ms', '已通过 · 密钥有效', '进行中 · 2/2 模型已核验',
+        '进行中 · 长文本压测中', '进行中 · 采样 30 / 100',
+        '完成', '排队中',
+        '检测期间你可以先完善供应商档案，检测完成后会自动通知你，无需停留本页。',
+        '查看历史检测报告'
+      ]
+
+      /** 归一化：48px → 48；rgba(29,78,216,1) → 'rgb(29,78,216)'（alpha=1 时 Chrome 序列化成 rgb()）；
+       *  alpha≠1 保留 'rgba(r,g,b,a)' */
+      function norm(v) {
+        if (v === null || v === undefined) return v
+        /* 数值直通：`dim()`/`rect` 给的是 number，computed style 给的是 '32px' 字符串 —— 两者必须可比较 */
+        if (typeof v === 'number') return v
+        var s = String(v).trim()
+        var m = s.match(/^(-?\d+(?:\.\d+)?)px$/)
+        if (m) return Number(m[1])
+        var r = s.match(/^rgba?\(([^)]+)\)$/)
+        if (r) {
+          var p = r[1].split(',').map(function (x) { return Number(String(x).trim()) })
+          if (p.length > 3 && p[3] !== 1) return 'rgba(' + p[0] + ',' + p[1] + ',' + p[2] + ',' + p[3] + ')'
+          return 'rgb(' + p.slice(0, 3).join(',') + ')'
+        }
+        return s
+      }
+
+      function build(doc, win) {
+        var checks = []
+        function chk(k, got, want) {
+          var gg = norm(got), ww = norm(want)
+          checks.push({ k: k, got: gg, want: ww, ok: gg === ww })
+        }
+        /** 文字/字形驱动尺寸的容差断言（H5 字体与设计字体的度量差不可避免，容差写进 key） */
+        function chkNear(k, got, want, tol) {
+          var ok = typeof got === 'number' && Math.abs(got - want) <= tol
+          checks.push({ k: k + '~±' + tol, got: got, want: want, ok: ok })
+        }
+        function dim(sel, key) { var r = rect(doc, sel); return r ? r[key] : null }
+        function c(sel, prop) { return styleOf(win, doc.querySelector(sel), prop) }
+        function cs(sel, prop) { return all(doc, sel).map(function (e) { return styleOf(win, e, prop) }) }
+        function cAt(sel, i, prop) { return styleOf(win, all(doc, sel)[i], prop) }
+        function dimAt(sel, i, key) { var r = rects(doc, sel)[i]; return r ? r[key] : null }
+        /** box-shadow → {x,y,blur,spread,color}（Chrome 序列化为「颜色 偏移 模糊 扩散」，颜色在前） */
+        function shadowOf(sel) {
+          var el = doc.querySelector(sel)
+          var none = { x: null, y: null, blur: null, spread: null, color: null }
+          if (!el) return none
+          var s = win.getComputedStyle(el).boxShadow
+          if (!s || s === 'none') return none
+          var m = s.match(/^(rgba?\([^)]*\)|\S+)\s+(-?[\d.]+)px\s+(-?[\d.]+)px\s+(-?[\d.]+)px(?:\s+(-?[\d.]+)px)?/)
+          if (!m) return { x: null, y: null, blur: null, spread: null, color: s.replace(/\s+/g, '') }
+          return {
+            x: Number(m[2]), y: Number(m[3]), blur: Number(m[4]),
+            spread: m[5] === undefined ? 0 : Number(m[5]),
+            color: m[1].replace(/\s+/g, '')
+          }
+        }
+        /** 伪元素上的形状颜色（D5：形状画在 ::before 里 → 颜色读伪元素） */
+        function before(sel, prop) {
+          var el = doc.querySelector(sel)
+          return el ? win.getComputedStyle(el, '::before')[prop] : null
+        }
+
+        /* ── 页面容器（设计 2882fa3c / b2d065a3） ─────────────────── */
+        chk('page.frameWidth', dim('.detecting-page', 'w'), DESIGN.frameW)
+        chk('page.bg', c('.detecting-page', 'backgroundColor'), 'rgba(248,250,252,1)')
+        chk('page.flexDir', c('.detecting-page', 'flexDirection'), 'column')
+        chk('page.docHeight', Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight), DESIGN.pageH)
+        chk('page.noTabbar', all(doc, '.tabbar').length, 0)
+
+        /* ── 顶部导航（设计 c2a2498d：padding 48/16/12/16 · 白底 · 高 96） ── */
+        chk('topbar.paddingTop', c('.detecting-page__topbar', 'paddingTop'), '48px')
+        chk('topbar.paddingRight', c('.detecting-page__topbar', 'paddingRight'), '16px')
+        chk('topbar.paddingBottom', c('.detecting-page__topbar', 'paddingBottom'), '12px')
+        chk('topbar.paddingLeft', c('.detecting-page__topbar', 'paddingLeft'), '16px')
+        chk('topbar.bg', c('.detecting-page__topbar', 'backgroundColor'), 'rgba(255,255,255,1)')
+        chk('topbar.height', dim('.detecting-page__topbar', 'h'), DESIGN.topbarH)
+        chk('topbar.alignItems', c('.detecting-page__topbar', 'alignItems'), 'center')
+        /* 返回图标盒 = 设计 594997da 的图层盒（宽 26 / fontSize 24 → 行框 36）→ 顶部栏 96 = 48 + 36 + 12 */
+        chk('back.w', dim('[data-testid="back-btn"]', 'w'), DESIGN.backBox[0])
+        chk('back.h', dim('[data-testid="back-btn"]', 'h'), DESIGN.backBox[1])
+        chk('back.left', dim('[data-testid="back-btn"]', 'x'), 16)
+        chk('back.centerY', (function () { var r = rect(doc, '[data-testid="back-btn"]'); return r ? Math.round(r.top + r.h / 2) : null })(), DESIGN.topbarPad[0] + DESIGN.backBox[1] / 2)
+        chk('iconBack.w', dim('.glyph--back', 'w'), DESIGN.iconBack[0])
+        chk('iconBack.h', dim('.glyph--back', 'h'), DESIGN.iconBack[1])
+        chk('iconBack.color', before('.glyph--back', 'borderLeftColor'), 'rgba(51,65,85,1)')
+        chk('pageTitle.text', textOf(doc, '.detecting-page__title'), '检测进行中')
+        chk('pageTitle.left', dim('.detecting-page__title', 'x'), DESIGN.titleLeft)
+        chk('pageTitle.fontSize', c('.detecting-page__title', 'fontSize'), '17px')
+        chk('pageTitle.fontWeight', c('.detecting-page__title', 'fontWeight'), '700')
+        chk('pageTitle.color', c('.detecting-page__title', 'color'), 'rgba(15,23,42,1)')
+        /* 状态 chip（设计 70d01d00：h24 r12 padding 0 8 · 9×7 圆点 + 11px/500 文字） */
+        var chip = rect(doc, '[data-testid="status-chip"]')
+        /* chip 宽 = 9 + 4 + 文字 + 8×2（设计文字层宽 34 → 63；H5 字体度量差 → 容差 2） */
+        chkNear('chip.w', chip && chip.w, DESIGN.chipW, 2)
+        chk('chip.h', chip && chip.h, DESIGN.chipH)
+        chk('chip.right', chip && chip.right, DESIGN.chipRight)
+        chk('chip.centerY', chip ? Math.round(chip.top + chip.h / 2) : null, DESIGN.chipCenterY)
+        chk('chip.radius', c('[data-testid="status-chip"]', 'borderRadius'), '12px')
+        chk('chip.bg', c('[data-testid="status-chip"]', 'backgroundColor'), 'rgba(239,246,255,1)')
+        chk('chip.paddingLeft', c('[data-testid="status-chip"]', 'paddingLeft'), '8px')
+        chk('chip.text', textOf(doc, '.chip__text'), '进行中')
+        chk('chip.textFontSize', c('.chip__text', 'fontSize'), '11px')
+        chk('chip.textFontWeight', c('.chip__text', 'fontWeight'), '500')
+        chk('chip.textColor', c('.chip__text', 'color'), 'rgba(37,99,235,1)')
+        chk('chip.dot.w', dim('.chip__dot', 'w'), 9)
+        chk('chip.dot.h', dim('.chip__dot', 'h'), 7)
+        chk('chip.dot.radius', c('.chip__dot', 'borderRadius'), '4px')
+        chk('chip.dot.bg', c('.chip__dot', 'backgroundColor'), 'rgba(37,99,235,1)')
+        chk('chip.dotGap', (function () { var d = rect(doc, '.chip__dot'), t = rect(doc, '.chip__text'); return d && t ? t.x - d.right : null })(), 4)
+
+        /* ── 三张卡的绝对几何（设计 PNG 色带实测：108 / 316 / 762） ───── */
+        var cards = rects(doc, '.card')
+        chk('card.count', cards.length, 3)
+        for (var ci = 0; ci < 3; ci++) {
+          chk('card' + ci + '.left', cards[ci] && cards[ci].x, DESIGN.cardX)
+          chk('card' + ci + '.right', cards[ci] && cards[ci].right, DESIGN.cardRight)
+          chk('card' + ci + '.w', cards[ci] && cards[ci].w, DESIGN.cardW)
+          chk('card' + ci + '.top', cards[ci] && cards[ci].top, DESIGN.cardTop[ci])
+          chk('card' + ci + '.h', cards[ci] && cards[ci].h, DESIGN.cardH[ci])
+          chk('card' + ci + '.radius', cAt('.card', ci, 'borderRadius'), '18px')
+          chk('card' + ci + '.bg', cAt('.card', ci, 'backgroundColor'), 'rgba(255,255,255,1)')
+        }
+        chk('card.gap01', cards[1] && cards[0] ? cards[1].top - cards[0].bottom : null, DESIGN.cardGap)
+        chk('card.gap12', cards[2] && cards[1] ? cards[2].top - cards[1].bottom : null, DESIGN.cardGap)
+        chk('body.paddingLeft', c('.detecting-page__body', 'paddingLeft'), '16px')
+        chk('body.paddingRight', c('.detecting-page__body', 'paddingRight'), '16px')
+        chk('body.paddingTop', c('.detecting-page__body', 'paddingTop'), '12px')
+
+        /* 卡1 padding 与 design effects（drop_shadow(0,6,20,rgba(15,23,42,0.06))） */
+        chk('card0.paddingFour', [c('.card', 'paddingTop'), c('.card', 'paddingRight'), c('.card', 'paddingBottom'), c('.card', 'paddingLeft')].join('|'), '20px|20px|20px|20px')
+        var cardShadow = shadowOf('.card')
+        chk('card0.shadowX', cardShadow.x, 0)
+        chk('card0.shadowY', cardShadow.y, 6)
+        chk('card0.shadowBlur', cardShadow.blur, 20)
+        chk('card0.shadowSpread', cardShadow.spread, 0)
+        chk('card0.shadowColor', cardShadow.color, 'rgba(15,23,42,0.06)')
+
+        /* ── 卡1 总进度（设计 88f1ee17 / 66ca51c1 / 61993aa5 / dac2c177 / 257b52bf） ── */
+        chk('total.label', textOf(doc, '[data-testid="total-label"]'), '总进度')
+        chk('total.labelFontSize', c('.card__title', 'fontSize'), '15px')
+        chk('total.labelFontWeight', c('.card__title', 'fontWeight'), '600')
+        chk('total.labelColor', c('.card__title', 'color'), 'rgba(15,23,42,1)')
+        chk('total.labelLineHeight', c('.card__title', 'lineHeight'), '22px')
+        chk('total.percent', textOf(doc, '[data-testid="total-percent"]'), '58%')
+        chk('total.percentFontSize', c('.card__percent', 'fontSize'), '20px')
+        chk('total.percentFontWeight', c('.card__percent', 'fontWeight'), '700')
+        chk('total.percentColor', c('.card__percent', 'color'), 'rgba(37,99,235,1)')
+        chk('total.percentLineHeight', c('.card__percent', 'lineHeight'), '26px')
+        /* 标题行 26 = 「58%」line 26（设计 PNG：卡顶 108 + padding 20 + 行 26 + gap 16 = 进度条 170） */
+        chk('total.titleRowH', dim('.card__title-row', 'h'), DESIGN.titleRowH)
+        chk('total.percentRight', dim('[data-testid="total-percent"]', 'right'), 394)
+        /* 进度条（设计 61993aa5 / ab1875c5：轨道 358 高 10 r5 rgb(226,232,240)，填充 208 rgb(37,99,235)） */
+        var bar = rect(doc, '.bar')
+        chk('bar.top', bar && bar.top, DESIGN.progressTop)
+        chk('bar.h', bar && bar.h, DESIGN.progressH)
+        chk('bar.w', bar && bar.w, 358)
+        chk('bar.radius', c('.bar', 'borderRadius'), '5px')
+        chk('bar.bg', c('.bar', 'backgroundColor'), 'rgba(226,232,240,1)')
+        chk('bar.fillW', dim('.bar__fill', 'w'), DESIGN.fillW)
+        chk('bar.fillH', dim('.bar__fill', 'h'), DESIGN.progressH)
+        chk('bar.fillBg', c('.bar__fill', 'backgroundColor'), 'rgba(37,99,235,1)')
+        chk('bar.fillRadius', c('.bar__fill', 'borderRadius'), '5px')
+        /* 元信息行（设计 dac2c177：12px/400 · 左 rgb(100,116,139) 右 rgb(148,163,184) · 行高 18） */
+        chk('meta.top', dim('.meta', 'top'), DESIGN.metaTop)
+        chk('meta.h', dim('.meta', 'h'), DESIGN.metaH)
+        chk('meta.done.text', textOf(doc, '[data-testid="progress-finished"]'), '已完成 7 / 12 个检测项')
+        chk('meta.done.fontSize', c('.meta__done', 'fontSize'), '12px')
+        chk('meta.done.fontWeight', c('.meta__done', 'fontWeight'), '400')
+        chk('meta.done.color', c('.meta__done', 'color'), 'rgba(100,116,139,1)')
+        chk('meta.done.lineHeight', c('.meta__done', 'lineHeight'), '18px')
+        chk('meta.eta.text', textOf(doc, '[data-testid="eta-text"]'), '预计剩余 42 分钟')
+        chk('meta.eta.fontSize', c('.meta__eta', 'fontSize'), '12px')
+        chk('meta.eta.fontWeight', c('.meta__eta', 'fontWeight'), '400')
+        chk('meta.eta.color', c('.meta__eta', 'color'), 'rgba(148,163,184,1)')
+        chk('meta.eta.lineHeight', c('.meta__eta', 'lineHeight'), '18px')
+        chk('meta.etaRight', dim('[data-testid="eta-text"]', 'right'), 394)
+        /* 成本保护块（设计 257b52bf：padding 12 r12 rgb(236,253,245) · 图标 22x30 rgb(22,163,74)）
+           高 58 = 12 + (标题 18 + 副文案 16) + 12（设计 PNG 226..283） */
+        var cost = rect(doc, '[data-testid="cost-block"]')
+        chk('cost.top', cost && cost.top, DESIGN.costTop)
+        chk('cost.h', cost && cost.h, DESIGN.costH)
+        chk('cost.radius', c('[data-testid="cost-block"]', 'borderRadius'), '12px')
+        chk('cost.bg', c('[data-testid="cost-block"]', 'backgroundColor'), 'rgba(236,253,245,1)')
+        chk('cost.padding', c('[data-testid="cost-block"]', 'paddingTop'), '12px')
+        chk('cost.iconW', dim('.glyph--shield', 'w'), DESIGN.iconCost[0])
+        chk('cost.iconH', dim('.glyph--shield', 'h'), DESIGN.iconCost[1])
+        chk('cost.iconColor', before('.glyph--shield', 'backgroundColor'), 'rgba(22,163,74,1)')
+        chk('cost.textGap', (function () { var t = rect(doc, '.cost__text'), i = rect(doc, '.glyph--shield'); return t && i ? t.x - i.right : null })(), 12)
+        chk('cost.title.text', textOf(doc, '.cost__title'), '检测期间已启用成本保护')
+        chk('cost.title.fontSize', c('.cost__title', 'fontSize'), '12px')
+        chk('cost.title.fontWeight', c('.cost__title', 'fontWeight'), '600')
+        chk('cost.title.color', c('.cost__title', 'color'), 'rgba(21,128,61,1)')
+        chk('cost.title.lineHeight', c('.cost__title', 'lineHeight'), '18px')
+        chk('cost.sub.text', textOf(doc, '.cost__sub'), '本次检测由平台承担费用，不会计入你的账单')
+        chk('cost.sub.fontSize', c('.cost__sub', 'fontSize'), '11px')
+        chk('cost.sub.fontWeight', c('.cost__sub', 'fontWeight'), '400')
+        chk('cost.sub.color', c('.cost__sub', 'color'), 'rgba(22,163,74,1)')
+        chk('cost.sub.lineHeight', c('.cost__sub', 'lineHeight'), '16px')
+
+        /* ── 卡2 分项检测（设计 2138c3d3 / 073af6ea / 301d0f9a / d1fa51b9 …） ── */
+        chk('card1.padding', cAt('.card', 1, 'paddingTop'), '20px')
+        /* Figma center 描边不占布局 → 必须用 box-shadow：用 border 会把内容宽从 358 压到 356、整卡内容右移 */
+        var strokeShadow = shadowOf('.card--stroke')
+        chk('card1.strokeSpread', strokeShadow.spread, 1)
+        chk('card1.strokeBlur', strokeShadow.blur, 0)
+        chk('card1.strokeColor', strokeShadow.color, 'rgb(238,242,247)')
+        chk('card1.borderWidth', cAt('.card', 1, 'borderTopWidth'), '0px')
+        chk('card1.contentW', dim('[data-testid="section-label"]', 'w'), 358)
+        chk('section.label', textOf(doc, '[data-testid="section-label"]'), '分项检测')
+        chk('section.labelLineHeight', c('[data-testid="section-label"]', 'lineHeight'), '22px')
+        chk('section.labelTop', dim('[data-testid="section-label"]', 'top'), 336)
+        /* 8 行：行高 34 · 行距 46（设计 PNG 图标块 375/421/467/513 ⇒ 行顶 374…） */
+        var rows = rects(doc, '[data-testid="probe-row"]')
+        chk('row.count', rows.length, 8)
+        for (var ri = 0; ri < 8; ri++) {
+          chk('row' + ri + '.top', rows[ri] && rows[ri].top, DESIGN.rowsTop[ri])
+          chk('row' + ri + '.h', rows[ri] && rows[ri].h, DESIGN.rowH)
+          chk('row' + ri + '.left', rows[ri] && rows[ri].x, 36)
+          chk('row' + ri + '.right', rows[ri] && rows[ri].right, 394)
+          if (ri > 0) chk('row' + ri + '.gap', rows[ri] && rows[ri - 1] ? rows[ri].top - rows[ri - 1].bottom : null, DESIGN.rowGap)
+        }
+        /* 图标块 32×32 r10（设计 301d0f9a 等）· 三态底色 */
+        chk('rowBox.w', dimAt('.probe-row__box', 0, 'w'), 32)
+        chk('rowBox.h', dimAt('.probe-row__box', 0, 'h'), 32)
+        chk('rowBox.radius', cAt('.probe-row__box', 0, 'borderRadius'), '10px')
+        chk('rowBox.bgs', cs('.probe-row__box', 'backgroundColor').map(function (v) { return norm(v) }).join('|'),
+          'rgb(236,253,245)|rgb(236,253,245)|rgb(239,246,255)|rgb(239,246,255)|rgb(239,246,255)|rgb(248,250,252)|rgb(248,250,252)|rgb(248,250,252)')
+        chk('rowGlyph.w', dimAt('.probe-row__box .glyph', 0, 'w'), DESIGN.iconProbe[0])
+        chk('rowGlyph.h', dimAt('.probe-row__box .glyph', 0, 'h'), DESIGN.iconProbe[1])
+        /* 行名（设计：13px SemiBold line 18；D1–D5 #0F172A · D6–D8 #64748B） */
+        chk('rowNames.text', texts(doc, '[data-testid="probe-name"]').join('|'),
+          'D1 网络连通性|D2 鉴权有效性|D3 模型清单一致性|D4 上下文长度|D5 稳定性与错误率|D6 计费口径核验|D7 合规与内容安全|D8 峰值并发压测')
+        chk('rowNames.fontSize', c('.probe-row__name', 'fontSize'), '13px')
+        chk('rowNames.fontWeight', c('.probe-row__name', 'fontWeight'), '600')
+        chk('rowNames.lineHeight', c('.probe-row__name', 'lineHeight'), '18px')
+        chk('rowNames.colors', cs('.probe-row__name', 'color').map(function (v) { return norm(v) }).join('|'),
+          'rgb(15,23,42)|rgb(15,23,42)|rgb(15,23,42)|rgb(15,23,42)|rgb(15,23,42)|rgb(100,116,139)|rgb(100,116,139)|rgb(100,116,139)')
+        /* 详情行（设计：11px Regular line 16 #94A3B8） */
+        chk('rowDetails.text', texts(doc, '[data-testid="probe-detail"]').join('|'),
+          '已通过 · 236ms|已通过 · 密钥有效|进行中 · 2/2 模型已核验|进行中 · 长文本压测中|进行中 · 采样 30 / 100|排队中|排队中|排队中')
+        chk('rowDetails.fontSize', c('.probe-row__detail', 'fontSize'), '11px')
+        chk('rowDetails.fontWeight', c('.probe-row__detail', 'fontWeight'), '400')
+        chk('rowDetails.color', c('.probe-row__detail', 'color'), 'rgba(148,163,184,1)')
+        chk('rowDetails.lineHeight', c('.probe-row__detail', 'lineHeight'), '16px')
+        chk('rowContent.gap', dimAt('.probe-row__content', 0, 'x') - (dimAt('.probe-row__box', 0, 'x') + 32), 12)
+        /* 状态 chip（设计 d1fa51b9 等：h22 r11 padding 0 8 文字 11px/500） */
+        chk('rowChip.h', dimAt('.probe-chip', 0, 'h'), DESIGN.chipRowH)
+        chk('rowChip.radius', cAt('.probe-chip', 0, 'borderRadius'), '11px')
+        chk('rowChip.paddingLeft', cAt('.probe-chip', 0, 'paddingLeft'), '8px')
+        chk('rowChip.right', dimAt('.probe-chip', 0, 'right'), 394)
+        chk('rowChip.top0', dimAt('.probe-chip', 0, 'top'), DESIGN.rowsTop[0] + 6)
+        chk('rowChip.labels', texts(doc, '.probe-chip__text').join('|'), '完成|完成|进行中|进行中|进行中|排队中|排队中|排队中')
+        chk('rowChip.fontSize', cAt('.probe-chip__text', 0, 'fontSize'), '11px')
+        chk('rowChip.fontWeight', cAt('.probe-chip__text', 0, 'fontWeight'), '500')
+        chk('rowChip.bgs', cs('.probe-chip', 'backgroundColor').map(function (v) { return norm(v) }).join('|'),
+          'rgb(236,253,245)|rgb(236,253,245)|rgb(239,246,255)|rgb(239,246,255)|rgb(239,246,255)|rgb(241,245,249)|rgb(241,245,249)|rgb(241,245,249)')
+        chk('rowChip.colors', cs('.probe-chip__text', 'color').map(function (v) { return norm(v) }).join('|'),
+          'rgb(21,128,61)|rgb(21,128,61)|rgb(37,99,235)|rgb(37,99,235)|rgb(37,99,235)|rgb(100,116,139)|rgb(100,116,139)|rgb(100,116,139)')
+        /* chip 宽 = 文字 + 8×2（设计「完成」23+16=39；H5 字体度量差 → 容差 3） */
+        chkNear('rowChip.w0', dimAt('.probe-chip', 0, 'w'), 39, 3)
+        chkNear('rowChip.w2', dimAt('.probe-chip', 2, 'w'), 50, 3)
+
+        /* ── 提示卡（设计 c960eff4：padding 16/20 r18 描边 rgb(238,242,247) · 高 72） ── */
+        var tip = rect(doc, '[data-testid="tip-card"]')
+        chk('tip.top', tip && tip.top, DESIGN.tipTop)
+        chk('tip.h', tip && tip.h, DESIGN.tipH)
+        chk('tip.paddingTop', c('[data-testid="tip-card"]', 'paddingTop'), '16px')
+        chk('tip.paddingLeft', c('[data-testid="tip-card"]', 'paddingLeft'), '20px')
+        chk('tip.radius', c('[data-testid="tip-card"]', 'borderRadius'), '18px')
+        chk('tip.iconW', dim('[data-testid="tip-card"] .glyph', 'w'), DESIGN.iconTip[0])
+        chk('tip.iconH', dim('[data-testid="tip-card"] .glyph', 'h'), DESIGN.iconTip[1])
+        chk('tip.iconColor', before('[data-testid="tip-card"] .glyph', 'borderBottomColor'), 'rgba(217,119,6,1)')
+        chk('tip.text', textOf(doc, '.tip__text'), '检测期间你可以先完善供应商档案，检测完成后会自动通知你，无需停留本页。')
+        chk('tip.textLeft', dim('.tip__text', 'x'), 66)
+        chk('tip.textFontSize', c('.tip__text', 'fontSize'), '12px')
+        chk('tip.textFontWeight', c('.tip__text', 'fontWeight'), '400')
+        chk('tip.textColor', c('.tip__text', 'color'), 'rgba(100,116,139,1)')
+        chk('tip.textLineHeight', c('.tip__text', 'lineHeight'), '16px')
+        chk('tip.textLines', c('.tip__text', 'height'), DESIGN.tipTextH)
+        /* 设计 PNG 实测：文案 ink 784..810 位于卡 762..833 的垂直中心（图标按声明 alignItems=start 贴顶 → ink 785..802）
+           → 文案自身 align-self:center（盒顶 782），图标盒顶 = padding 16 = 778 */
+        chk('tip.iconTop', dim('[data-testid="tip-card"] .glyph', 'top'), DESIGN.tipTop + DESIGN.tipPadY)
+        chk('tip.textTop', dim('.tip__text', 'top'), DESIGN.tipTop + 20)
+
+        /* 底部操作条（设计 ed66b6f1 / 73a98024 / 8a6e4016） ── */
+        chk('bar2.top', dim('.history-bar', 'top'), DESIGN.bottomTop)
+        chk('bar2.h', dim('.history-bar', 'h'), DESIGN.bottomH)
+        chk('bar2.bg', c('.history-bar', 'backgroundColor'), 'rgba(255,255,255,1)')
+        chk('bar2.padding', [c('.history-bar', 'paddingTop'), c('.history-bar', 'paddingRight'), c('.history-bar', 'paddingBottom'), c('.history-bar', 'paddingLeft')].join('|'), '12px|16px|24px|16px')
+        var hb = rect(doc, '[data-testid="history-btn"]')
+        chk('history.w', hb && hb.w, DESIGN.btnW)
+        chk('history.h', hb && hb.h, DESIGN.btnH)
+        chk('history.radius', c('[data-testid="history-btn"]', 'borderRadius'), '12px')
+        chk('history.bg', c('[data-testid="history-btn"]', 'backgroundColor'), 'rgba(241,245,249,1)')
+        chk('history.iconW', dim('.glyph--history', 'w'), DESIGN.iconHistory[0])
+        chk('history.iconH', dim('.glyph--history', 'h'), DESIGN.iconHistory[1])
+        chk('history.iconColor', before('.glyph--history', 'borderTopColor'), 'rgba(100,116,139,1)')
+        chk('history.text', textOf(doc, '.history-bar__text'), '查看历史检测报告')
+        chk('history.textFontSize', c('.history-bar__text', 'fontSize'), '14px')
+        chk('history.textFontWeight', c('.history-bar__text', 'fontWeight'), '500')
+        chk('history.textColor', c('.history-bar__text', 'color'), 'rgba(71,85,105,1)')
+        chk('history.textGap', (function () { var t = rect(doc, '.history-bar__text'), i = rect(doc, '.glyph--history'); return t && i ? t.x - i.right : null })(), 6)
+
+        return checks
+      }
 
       function collect(doc, win) {
         var over = []
-        doc.querySelectorAll('*').forEach(function (el) {
+        all(doc, '*').forEach(function (el) {
+          /* uni-app 内部测量元素（uni-resize-sensor / uni-picker 空 div）不算页面溢出（见 dev SKILL §5） */
+          if (el.closest && el.closest('uni-resize-sensor, uni-picker')) return
           var r = el.getBoundingClientRect()
-          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
-            over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), right: Math.round(r.right) })
+          if (r.width > 0 && (r.right > win.innerWidth + 0.5 || r.left < -0.5)) {
+            over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), left: Math.round(r.left), right: Math.round(r.right) })
           }
         })
-        function rect(sel) {
-          var el = doc.querySelector(sel)
-          if (!el) return null
-          var r = el.getBoundingClientRect()
-          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
-        }
-        function texts(sel) {
-          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return e.textContent.trim() })
-        }
-        function colors(sel) {
-          return Array.prototype.map.call(doc.querySelectorAll(sel), function (e) { return win.getComputedStyle(e).backgroundColor })
-        }
-        function colorOf(sel, prop) {
-          var el = doc.querySelector(sel)
-          return el ? win.getComputedStyle(el)[prop] : null
-        }
         var text = (doc.body && doc.body.innerText) || ''
-        var need = [
-          '检测进行中', '总进度', '58%', '已完成 7 / 12 个检测项', '预计剩余 42 分钟',
-          '检测期间已启用成本保护', '本次检测由平台承担费用，不会计入你的账单',
-          '分项检测',
-          'D1 网络连通性', 'D2 鉴权有效性', 'D3 模型清单一致性', 'D4 上下文长度',
-          'D5 稳定性与错误率', 'D6 计费口径核验', 'D7 合规与内容安全', 'D8 峰值并发压测',
-          '已通过 · 236ms', '已通过 · 密钥有效', '进行中 · 2/2 模型已核验',
-          '进行中 · 长文本压测中', '进行中 · 采样 30 / 100',
-          '完成', '进行中', '排队中',
-          '检测期间你可以先完善供应商档案，检测完成后会自动通知你，无需停留本页。',
-          '查看历史检测报告'
-        ]
+        var checks = build(doc, win)
+        var fails = checks.filter(function (x) { return !x.ok })
         return {
+          state: 'running',
           innerWidth: win.innerWidth,
+          innerHeight: win.innerHeight,
           docScrollWidth: doc.documentElement.scrollWidth,
           docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
           overflowingCount: over.length,
-          overflowing: over.slice(0, 20),
-          missingTexts: need.filter(function (t) { return text.indexOf(t) === -1 }),
-          rowCount: doc.querySelectorAll('[data-testid="probe-row"]').length,
-          probeNames: texts('[data-testid="probe-name"]'),
-          probeDetails: texts('[data-testid="probe-detail"]'),
-          probeChips: texts('[data-testid="probe-chip"]'),
-          rowClasses: Array.prototype.map.call(doc.querySelectorAll('[data-testid="probe-row"]'), function (e) { return String(e.className) }),
-          chipLabels: texts('[data-testid="status-chip"]'),
-          statusDotRect: rect('.chip__dot'),
-          percentText: (function () { var e = doc.querySelector('[data-testid="total-percent"]'); return e ? e.textContent.trim() : null })(),
-          fillWidthPct: (function () { var e = doc.querySelector('[data-testid="progress-fill"]'); return e ? e.style.width : null })(),
-          finishedText: (function () { var e = doc.querySelector('[data-testid="progress-finished"]'); return e ? e.textContent.trim() : null })(),
-          etaText: (function () { var e = doc.querySelector('[data-testid="eta-text"]'); return e ? e.textContent.trim() : null })(),
-          topbar: rect('.detecting-page__topbar'),
-          body: rect('.detecting-page__body'),
-          totalCard: rect('.card'),
-          bar: rect('.bar'),
-          fill: rect('.bar__fill'),
-          barBg: colorOf('.bar', 'backgroundColor'),
-          fillBg: colorOf('.bar__fill', 'backgroundColor'),
-          costBlock: rect('[data-testid="cost-block"]'),
-          costBg: colorOf('[data-testid="cost-block"]', 'backgroundColor'),
-          probeBox: rect('.probe-row__box'),
-          probeBoxBgs: colors('.probe-row__box'),
-          probeChipBg: colors('.probe-chip'),
-          probeChipTextColors: Array.prototype.map.call(doc.querySelectorAll('.probe-chip__text'), function (e) { return win.getComputedStyle(e).color }),
-          probeChipRect: rect('.probe-chip'),
-          rowRects: Array.prototype.map.call(doc.querySelectorAll('[data-testid="probe-row"]'), function (e) {
-            var r = e.getBoundingClientRect(); return { top: Math.round(r.top), h: Math.round(r.height) }
-          }),
-          tipCard: rect('[data-testid="tip-card"]'),
-          tipBg: colorOf('[data-testid="tip-card"]', 'backgroundColor'),
-          historyBar: rect('.history-bar'),
-          historyBtn: rect('[data-testid="history-btn"]'),
-          historyBtnBg: colorOf('[data-testid="history-btn"]', 'backgroundColor'),
-          historyBtnText: (function () { var e = doc.querySelector('[data-testid="history-btn"]'); return e ? e.textContent.trim() : null })(),
-          pageBg: colorOf('.detecting-page', 'backgroundColor'),
-          topbarBg: colorOf('.detecting-page__topbar', 'backgroundColor'),
-          userAgent: win.navigator.userAgent
+          overflowing: over.slice(0, 10),
+          missingTexts: needText.filter(function (t) { return text.indexOf(t) === -1 }),
+          needTextCount: needText.length,
+          checkCount: checks.length,
+          checkFailCount: fails.length,
+          checkFails: fails,
+          checkKeys: checks.map(function (x) { return x.k }),
+          cardRects: rects(doc, '.card'),
+          rowRects: rects(doc, '[data-testid="probe-row"]'),
+          chipRect: rect(doc, '[data-testid="status-chip"]'),
+          topbarRect: rect(doc, '.detecting-page__topbar'),
+          barRect: rect(doc, '.bar'),
+          fillRect: rect(doc, '.bar__fill'),
+          costRect: rect(doc, '[data-testid="cost-block"]'),
+          tipRect: rect(doc, '[data-testid="tip-card"]'),
+          historyRect: rect(doc, '.history-bar'),
+          percentText: textOf(doc, '[data-testid="total-percent"]'),
+          finishedText: textOf(doc, '[data-testid="progress-finished"]'),
+          etaText: textOf(doc, '[data-testid="eta-text"]'),
+          rowCount: all(doc, '[data-testid="probe-row"]').length,
+          probeNames: texts(doc, '[data-testid="probe-name"]'),
+          probeChips: texts(doc, '.probe-chip__text'),
+          rowStateClasses: all(doc, '[data-testid="probe-row"]').map(function (e) { return String(e.className) }),
+          toast: toastText(doc),
+          hash: hashNow(),
+          emojiInText: /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(text)
         }
       }
 
-      function phase(n) {
-        try {
-          var payload = collect(f.contentDocument, f.contentWindow)
-          acc['phase' + n] = payload
-          // 整页截图：把 iframe 高度设成文档高度（先看数字再截，避免折叠区被误判成"被裁掉"）
-          if (n === 2) {
-            f.style.height = payload.docScrollHeight + 'px'
-            acc.iframeHeightForShot = payload.docScrollHeight
+      /* ── 交互 / 相 ───────────────────────────────────────────── */
+      function toastText(doc) {
+        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
+        return el ? el.textContent.trim() : ''
+      }
+      function hashNow() { try { return String(f.contentWindow.location.hash) } catch (e) { return 'ERR:' + e.message } }
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        if (!SHOT_ONLY) document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
+      function clickIn(sel) {
+        var doc = f.contentDocument
+        var el = doc.querySelector(sel)
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+      function waitFor(fn, maxTries) {
+        return new Promise(function (resolve) {
+          var n = 0
+          function tick() {
+            n++
+            var ok = false
+            try { ok = !!fn() } catch (e) { ok = false }
+            if (ok) return resolve('READY(tries=' + n + ')')
+            if (n >= (maxTries || 40)) return resolve('TIMEOUT(tries=' + n + ')')
+            setTimeout(tick, 250)
           }
-          document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
-        } catch (e) {
-          document.getElementById('m').textContent = 'MEASURE_JSON:{"error":"' + e.message + '"}'
+          tick()
+        })
+      }
+
+      async function main() {
+        /* phase1：首屏（等 8 行渲染完 = 两个接口都已回来） */
+        await waitFor(function () { return all(f.contentDocument, '[data-testid="probe-row"]').length === 8 })
+        await sleep(500)
+        sink(1, collect(f.contentDocument, f.contentWindow))
+
+        /* phase2：跨过一次 5s 轮询后数字应完全一致（页面轮询为 client-only，服务端返回同一 job）
+           —— 同时 serve.py 请求日志可证连续成对 GET /detection-jobs/j1 + /results） */
+        await sleep(6200)
+        sink(2, collect(f.contentDocument, f.contentWindow))
+
+        if (SCENARIO === 'interaction') {
+          /* phase3：交互相 —— 「查看历史检测报告」= client-only（画布 30 页无该页）
+             → 只 toast：「历史检测报告可在凭证列表中查看」，且 hash 不变、零 /api 写请求 */
+          var hashBefore = hashNow()
+          var clickHistory = clickIn('[data-testid="history-btn"]')
+          await sleep(900)
+          var hashAfter = hashNow()
+          sink(3, {
+            scenario: 'interaction',
+            hashBefore: hashBefore,
+            clickHistory: clickHistory,
+            toast: toastText(f.contentDocument),
+            hashAfter: hashAfter,
+            hashUnchanged: hashBefore === hashAfter,
+            rowCountStill: all(f.contentDocument, '[data-testid="probe-row"]').length,
+            requestHint: 'client-only → 本相不应出现任何 /api 写请求（见 requests-*.txt）'
+          })
         }
       }
+
+      /* 轮询取数：iframe 的 load 事件常因监听注册过晚而错过 → 静默拿到 pending */
+      main()
     </script>
   </body>
 </html>

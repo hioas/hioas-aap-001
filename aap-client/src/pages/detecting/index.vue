@@ -15,8 +15,8 @@
     </view>
 
     <view class="detecting-page__body">
-      <!-- 总进度卡片：design id=88f1ee17（白 · r18 · padding 20） -->
-      <view class="card">
+      <!-- 总进度卡片：design id=88f1ee17（白 · r18 · padding 20 · effects drop_shadow(0,6,blur 20,rgba(15,23,42,0.06))） -->
+      <view class="card card--shadow">
         <view class="card__title-row">
           <text class="card__title" data-testid="total-label">{{ TOTAL_LABEL }}</text>
           <view class="card__spacer" />
@@ -229,7 +229,8 @@ onUnmounted(stopPolling)
   box-sizing: border-box;
 }
 
-/* 顶部导航（design c2a2498d） */
+/* 顶部导航（design c2a2498d：padding 48/16/12/16 · 白底 · 返回图标层 594997da 宽 26 / fontSize 24 → 行框 36
+   → 栏高 96 = 48 + 36 + 12；修前图标盒 24×24 使栏高只有 84、标题/徽章整体上移 6px） */
 .detecting-page__topbar {
   background: $color-bg-card;
   /* --status-bar-height 由 uni-app 提供（H5 = 0）：设计帧未含状态栏偏移，此处补平台安全区 */
@@ -240,9 +241,10 @@ onUnmounted(stopPolling)
   box-sizing: border-box;
 }
 
+/* 返回图标盒 = 设计图层盒（宽 26 × 行框 36；形状画在 ::before 里，D5 仍为 CSS 占位） */
 .detecting-page__icon-btn {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -286,7 +288,8 @@ onUnmounted(stopPolling)
   font-size: $font-2xs;
   font-weight: 500;
   color: $color-primary;
-  line-height: 1.2;
+  /* 设计 797ccbbc 图层行框 = 11 → 16（文本行框 ≈ 字号度量行框） */
+  line-height: 16px;
 }
 
 /* 内容区：各区段容器 padding-top 12（design 65309096 / 9c8019ba / 72d58ad4） */
@@ -307,8 +310,15 @@ onUnmounted(stopPolling)
   box-sizing: border-box;
 }
 
+/* 卡1 = design 88f1ee17：effects drop_shadow(0,6,blur 20,rgba(15,23,42,0.06))（卡片投影，不占布局） */
+.card--shadow {
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+}
+
+/* 设计 2138c3d3 / c960eff4 的 stroke = Figma **center** 描边 → CSS 必须用 box-shadow：
+   用 border 会占掉 1px 布局（内容宽 358 → 356、卡内所有右/下元素各偏 1px） */
 .card--stroke {
-  border: 1px solid $color-border-chip;
+  box-shadow: 0 0 0 1px $color-border-chip;
 }
 
 .card--gap {
@@ -330,14 +340,16 @@ onUnmounted(stopPolling)
   font-size: $font-md;
   font-weight: 600;
   color: $color-text-primary;
-  line-height: 1.2;
+  /* 设计「分项检测」ea3a0a0d 显式 height=22（15px SemiBold 行框）；「总进度」同字号同族 → 同值 */
+  line-height: 22px;
 }
 
 .card__percent {
   font-size: $font-2xl;
   font-weight: 700;
   color: $color-primary;
-  line-height: 1.2;
+  /* 设计 PNG 实测：卡顶 108 + padding 20 + 标题行 26 + gap 16 = 进度条 170 → 行框 = 26（20px Bold） */
+  line-height: 26px;
 }
 
 /* 进度条（design 61993aa5 / ab1875c5） */
@@ -368,7 +380,8 @@ onUnmounted(stopPolling)
 .meta__done {
   font-size: $font-xs;
   color: $color-text-muted;
-  line-height: 1.2;
+  /* 设计 dac2c177 元信息行行框 = 18（设计 PNG：条底 179 + 12 = 192，行高 18，+16 = 成本块 226） */
+  line-height: 18px;
 }
 
 .meta__spacer {
@@ -378,7 +391,7 @@ onUnmounted(stopPolling)
 .meta__eta {
   font-size: $font-xs;
   color: $color-text-placeholder;
-  line-height: 1.2;
+  line-height: 18px;
 }
 
 /* 成本保护行（design 257b52bf / ff72fdea / f44b1675） */
@@ -406,13 +419,15 @@ onUnmounted(stopPolling)
   font-size: $font-xs;
   font-weight: 600;
   color: $color-success-text;
-  line-height: 1.2;
+  /* 设计 ff72fdea 显式 height=18（12px SemiBold） */
+  line-height: 18px;
 }
 
 .cost__sub {
   font-size: $font-2xs;
   color: $color-success;
-  line-height: 1.2;
+  /* 设计 f44b1675 显式 height=16（11px Regular）→ 成本块内容 34 + padding 24 = 58（设计 PNG 226..283） */
+  line-height: 16px;
 }
 
 /* 分项检测行（design 073af6ea / 301d0f9a / d1fa51b9 等） */
@@ -458,13 +473,15 @@ onUnmounted(stopPolling)
   font-size: $font-sm;
   font-weight: 600;
   color: $color-text-primary;
-  line-height: 1.2;
+  /* 设计 1fe5e490 等显式 height=18（13px SemiBold） */
+  line-height: 18px;
 }
 
 .probe-row__detail {
   font-size: $font-2xs;
   color: $color-text-placeholder;
-  line-height: 1.2;
+  /* 设计 cc4105a8 等显式 height=16（11px Regular）→ 行内容 34 = 行高（设计 PNG 行距 46 = 34 + 12） */
+  line-height: 16px;
 }
 
 .probe-chip {
@@ -480,7 +497,7 @@ onUnmounted(stopPolling)
 .probe-chip__text {
   font-size: $font-2xs;
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 16px;
 }
 
 /* 三态配色（design：完成 #ECFDF5/#15803D · 进行中 #EFF6FF/#2563EB · 排队中 #F8FAFC+#F1F5F9/#64748B） */
@@ -488,7 +505,7 @@ onUnmounted(stopPolling)
   background: $color-success-weak;
 }
 
-.probe-row--done .glyph--probe-done {
+.probe-row--done .glyph--probe-done::before {
   border-left: 2px solid $color-success;
   border-bottom: 2px solid $color-success;
 }
@@ -505,7 +522,7 @@ onUnmounted(stopPolling)
   background: $color-primary-weak;
 }
 
-.probe-row--running .glyph--probe-running {
+.probe-row--running .glyph--probe-running::before {
   border: 2px solid $color-primary;
   border-top-color: transparent;
   border-radius: 50%;
@@ -523,7 +540,7 @@ onUnmounted(stopPolling)
   background: $color-bg-page;
 }
 
-.probe-row--queued .glyph--probe-queued {
+.probe-row--queued .glyph--probe-queued::before {
   border: 1.5px solid $color-text-placeholder;
   border-radius: 50%;
 }
@@ -545,7 +562,7 @@ onUnmounted(stopPolling)
   background: $color-bg-subtle;
 }
 
-.probe-row--other .glyph--probe-other {
+.probe-row--other .glyph--probe-other::before {
   border: 1.5px solid $color-text-muted;
   border-radius: 3px;
 }
@@ -558,9 +575,10 @@ onUnmounted(stopPolling)
   color: $color-text-muted;
 }
 
-/* 提示卡片（design c960eff4 / 051f76fc：padding 16/20 —— 与其它卡片的 20 均不同） */
+/* 提示卡片（design c960eff4 / 051f76fc：padding 16/20 · 高 72 = 16 + 内容 40 + 16，设计 PNG 762..833） */
 .tip {
   padding: 16px 20px;
+  min-height: 72px;
   flex-direction: row;
   align-items: flex-start;
 }
@@ -571,7 +589,11 @@ onUnmounted(stopPolling)
   min-width: 0;
   font-size: $font-xs;
   color: $color-text-muted;
-  line-height: 1.4;
+  /* 设计 PNG 实测行距 16（两行 ink 784..795 / 800..810 → 内容 32） */
+  line-height: 16px;
+  /* 设计 c960eff4 声明 alignItems=start（图标贴顶 ink 785..802 ✓），但文案 ink 784..810 落在卡的垂直中心
+     → 文案自身居中（盒顶 782 = 卡顶 762 + (72-32)/2）；H5 字体行框内的墨迹偏移与设计字体不同，靠这条对齐 ink */
+  align-self: center;
 }
 
 /* 底部操作条（design ed66b6f1 / 73a98024） */
@@ -602,87 +624,141 @@ onUnmounted(stopPolling)
   font-size: $font-base;
   font-weight: 500;
   color: $color-text-secondary;
-  line-height: 1.2;
+  /* 设计 85053dbd 图层行框 = 14 → 20 */
+  line-height: 20px;
 }
 
-/* 图标占位（设计稿为 remixicon 矢量图标，PRD08 禁 emoji → CSS 形状占位，与序号 1/2/3/4 一致） */
+/* 图标占位（设计稿为 remixicon 矢量图标，PRD08 禁 emoji → CSS 形状占位，与序号 1/2/3/4 一致）
+   ⚠️ 盒子尺寸必须按设计图层：宽 = 该图层 width、高 = 字号×1.5 行框（序号 4 定标），形状一律画进 ::before。
+   历史实现把形状直接画在盒子上（如返回 9×9、盾牌 14×14）→ 盒子 ≠ 设计尺寸，栏高/卡高与图标后文本整体偏移。 */
 .glyph {
   flex: none;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+.glyph::before,
+.glyph::after {
+  box-sizing: border-box;
+}
+
+/* 顶部返回（设计 594997da：盒 26×36，字形 24px） */
 .glyph--back {
-  width: 9px;
-  height: 9px;
+  width: 26px;
+  height: 36px;
+}
+
+.glyph--back::before {
+  content: '';
+  width: 12px;
+  height: 12px;
   border-left: 2px solid $color-text-secondary-2;
   border-bottom: 2px solid $color-text-secondary-2;
   transform: rotate(45deg);
   margin-left: 3px;
 }
 
+/* 成本保护盾牌（设计 3c6df7a9：盒 22×30，字形 20px） */
 .glyph--shield {
+  width: 22px;
+  height: 30px;
+}
+
+.glyph--shield::before {
+  content: '';
   width: 14px;
   height: 14px;
   background: $color-success;
   border-radius: 3px 3px 7px 7px;
-  margin-top: 2px;
 }
 
-.glyph--probe-done {
+/* 分项图标（设计 9d54ad21 等：盒 20×27，字形 18px）· 三态形状与配色见上方 .probe-row--* 规则 */
+.glyph--probe-done,
+.glyph--probe-running,
+.glyph--probe-queued,
+.glyph--probe-other {
+  width: 20px;
+  height: 27px;
+}
+
+.glyph--probe-done::before {
+  content: '';
   width: 8px;
   height: 4px;
   transform: rotate(-45deg);
   margin-bottom: 2px;
 }
 
-.glyph--probe-running {
+.glyph--probe-running::before {
+  content: '';
   width: 13px;
   height: 13px;
 }
 
-.glyph--probe-queued {
+.glyph--probe-queued,
+.glyph--probe-other {
+  position: relative;
+}
+
+.glyph--probe-queued::before {
+  content: '';
   width: 13px;
   height: 13px;
-  position: relative;
 }
 
 .glyph--probe-queued::after {
   content: '';
   position: absolute;
-  left: 5px;
-  top: 2px;
+  left: 9px;
+  top: 9px;
   width: 1.5px;
   height: 4px;
   background: $color-text-placeholder;
 }
 
-.glyph--probe-other {
+.glyph--probe-other::before {
+  content: '';
   width: 12px;
   height: 12px;
 }
 
+/* 提示三角（设计 05b50545：盒 22×30，字形 20px） */
 .glyph--tip {
+  width: 22px;
+  height: 30px;
+}
+
+.glyph--tip::before {
+  content: '';
   width: 0;
   height: 0;
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
   border-bottom: 14px solid $color-warning-text;
-  margin-top: 1px;
 }
 
+/* 历史报告表盘（设计 ca7fa21f：盒 22×30，字形 20px） */
 .glyph--history {
+  width: 22px;
+  height: 30px;
+  position: relative;
+}
+
+.glyph--history::before {
+  content: '';
   width: 13px;
   height: 13px;
   border: 1.5px solid $color-text-muted;
   border-radius: 50%;
-  position: relative;
 }
 
 .glyph--history::after {
   content: '';
   position: absolute;
-  left: 4px;
-  top: 2px;
+  left: 10px;
+  top: 11px;
   width: 1.5px;
   height: 4px;
   background: $color-text-muted;
