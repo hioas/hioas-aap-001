@@ -244,6 +244,12 @@ LEASE: free until -
 
 ### 本轮小结（追加式，一行一轮）
 
+- 2026-09-16 17:20（cron 轮 `aap-tdd-run-20260916-1710`）· **队列 1 余下行质量门 + 队列 7（uni-picker 溢出口径）+ D1 循环侧收尾**：
+  ①**队列 1**：`npm test` **1181/1181 · 72 files 连跑两轮**（17:12 / 17:13）· `npm run type-check` exit 0 · `build:mp-weixin` DONE（22 路由产物齐备）· `build:h5` DONE · `review-artifacts` **22/22 三件套齐备且注册**。
+  ②**队列 7（uni-picker 溢出口径）**：`__measure-usage.html` 的溢出统计排除谓词由 `uni-resize-sensor` 扩为 `uni-resize-sensor, uni-picker`（同族口径，与其它 5 个载体页一致）；改后复跑两轮独立测量 **50/50 字段全等、不一致 0、checkFailCount 0/267、overflowing 0、docH 1138 = 设计帧高**（`evidence/review-序号22-q7-run{1,2}.json` + `requests-序号22-q7-run{1,2}.txt` 各 1 行只读 GET）。
+  ③**D1 循环侧收尾（字段级 schema 备注 + 字段名一致性核对）**：台账序号 2 / 22 行的 `missing-prd` 接口备注改为引用 `docs/api/接口字段级schema.md` §1/§2/§3；字段名核对结论——用量域（total_tokens/request_count/amount_total/mom_rate/platform_fee_rate/cache_read_tokens/cache_hit_rate/quota_raw/stat_hour 等）与档案域（provider_code/company_name/phone_masked/qualification_files/recheck_interval_days）**全部与 schema 一致**；唯一别名：schema §3 写 `uscc`，实现与 15-数据字典用 `unified_social_credit_code`（符合 D1「1:1 与字典同名」规则本身），已在上文登记待人类定夺是否统一。
+  ④提交 `b016502`（先误把 `.playwright-mcp/` + 两个 pnpm 残留 `git add -A` 卷进来，已 `git rm --cached` 后 amend 还原，现工作区只剩这 3 个规定的不跟踪项）。**下轮**：队列 1 若还有余行则续跑；否则队列 3（15 条待拍板缺口——只做可自主部分）或等人类指示。
+
 - 2026-09-16 08:0x（前台会话，非 cron 轮）· **收纳用户在做中的改动 + 循环复位**：
   ①发现 `hioas-aap-client/`（用户 07:45 建）是空目录、代码在 `aap-client/` → 判定为**目录命名问题而非重建**，
   改用 `git mv` 对齐；实测被用户自己的 `npm run dev:h5`（PID 30432，cwd=aap-client，07:04 起）+ esbuild 子进程 +
