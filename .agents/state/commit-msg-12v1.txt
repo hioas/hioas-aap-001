@@ -1,0 +1,19 @@
+feat(aap-client): 12-v1-新增报价单初始态 补设计期望值 checks 维度（286 条 · 偏差 45→0）+ 7 类设计偏差修复（6 处 effects 投影 / 4 处 center 描边 border→ring / 13 处图标盒按设计图层）+ 整页对齐设计帧 1238（队列 8 第 13 页）
+
+- 设计帧重抓 page-26（layer_id e9214640-519e-4671-a23e-ac03e92add54）sha256 2e8d879b… 逐字节相同（无漂移）
+- __measure-quote-form.html 由 277 行旧体例重写为 430 宽 iframe + 286 条设计期望值 checks
+  want = design.tree.json 声明值 + 设计 PNG 430×1238 像素实测（两类来源口径写进探针头部注释）
+- 红基线（git stash 复现修复前源码 + 同一份最终版探针两轮）45/286 → 绿 0/286
+  两轮独立测量 28/28 字段全等 · docScrollHeight 1241（设计 1238 + 提示卡 CJK 换行 3）· 溢出 0 · 文案缺失 0
+- 修掉 7 类偏差：6 处 effects 投影（步骤卡/3 卡/操作条 + 保存按钮）· 4 处 center 描边 border→box-shadow ring ·
+  13 处图标盒 = 声明宽 × 字号1.5 行盒（形状移入 ::before）+ 返回/帮助圆角 50%→18px ·
+  须知卡标题图标行盒 27→24 · 须知条目文案行盒 14.4→18（PNG 实测两行 36）·
+  模型列表 chip 文案 10px/600→11px/500 · 标签行行盒 18→17.5
+- 本页定标：图标字形行盒 = 字号 × 1.5（四处交叉验证）· 文本行盒 11px→16.5 / 12px 空态说明 14.4 / 12px 须知条目 18
+  （设计自身两套口径，各按 PNG 实测落地并登记 designLiteralDiff）
+- 像素对账 cmp-序号12v1-设计PNGvs实现截图-结构带.txt 命中 60 / 未命中 11（3 条投影衰减步长 + 8 条卡2 以下 +3~4 顺延，非页面缺陷）
+- 交互相 ?scenario=actions 两轮逐字段相同 + serve 实收请求行逐字节相同（7 行/轮）：首屏零请求 ·
+  GET /credentials + GET /credentials/c1 → chip「已选 1 / 2」· POST /quotes + POST /quotes/q9/items → toast「保存成功」
+  → #/pages/model-pricing/index?quoteId=q9；fixture 缺口先红后绿（补 api-12-v1/v1/quotes/q9/items）
+- 质量门：npm test 1178/1178 ×2 · type-check exit 0 · build:mp-weixin / build:h5 DONE · review-artifacts 22/22
+- 探针自身 8 条期望值 bug 已修正留证；共用组件 QuoteFormView.vue 的改动连带 12-v2 帧（已核对 effects 一致，登记待重锚）

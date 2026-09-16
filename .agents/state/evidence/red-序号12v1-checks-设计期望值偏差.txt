@@ -1,0 +1,113 @@
+序号 12-v1「新增报价单-初始态」载体页 checks 红基线（修复前源码 + 最终版探针；两轮独立测量）
+红基线口径：red = git stash 掉本轮源码改动（QuoteFormView.vue / quote-form-model.ts）后 build:h5 × 最终版 __measure-quote-form.html
+  → 最终版探针 286 条 · 红 45 条（全部为页面缺陷，探针自身期望值 bug 已在红基线前修掉）
+  → 记录：探针初版（281 条）跑未修改源码时红 53 条，其中 8 条是探针期望值 bug，修正后并入本转录末尾「探针自身」段
+
+=== RED run1 :: .agents/state\evidence\review-序号12v1-checks-red-run1.json
+phase1   checkCount=286 checkFailCount=45 docScrollHeight=1235 overflowing=0 missingTexts=[]
+    FAIL page.cardHeights: got 424,291,152 want 425,291,156
+    FAIL page.stepShadow: got none want rgba(15, 23, 42, 0.05) 0px 4px 16px 0px
+    FAIL page.card1Shadow: got none want rgba(15, 23, 42, 0.06) 0px 4px 16px 0px
+    FAIL page.card2Shadow: got none want rgba(15, 23, 42, 0.06) 0px 4px 16px 0px
+    FAIL page.card3Shadow: got none want rgba(15, 23, 42, 0.05) 0px 4px 16px 0px
+    FAIL nav.back.radius: got 50% want 18px
+    FAIL nav.backIcon.w: got 17 want 20
+    FAIL nav.backIcon.h: got 17 want 27
+    FAIL nav.help.radius: got 50% want 18px
+    FAIL nav.helpIcon.w: got 16 want 20
+    FAIL nav.helpIcon.h: got 16 want 27
+    FAIL basic.head.h: got 20,20,27 want 20,20,24
+    FAIL basic.reqIcon.h: got 12 want 15
+    FAIL name.box.ring: got none want rgb(226, 232, 240) 0px 0px 0px 0.8px
+    FAIL name.box.noBorder: got 0.8px solid rgb(226, 232, 240) want None
+    FAIL qno.box.ring: got none want rgb(203, 213, 225) 0px 0px 0px 0.8px
+    FAIL qno.icon.w: got 16 want 18
+    FAIL qno.icon.h: got 14 want 24
+    FAIL qno.hintIcon.w: got 12 want 14
+    FAIL qno.hintIcon.h: got 12 want 18
+    FAIL cred.select.ring: got none want rgb(226, 232, 240) 0px 0px 0px 0.8px
+    FAIL cred.keyIcon.w: got 14 want 17
+    FAIL cred.keyIcon.h: got 14 want 22.5
+    FAIL cred.chevron.w: got 14 want 22
+    FAIL cred.chevron.h: got 14 want 30
+    FAIL cred.hintIcon.w: got 12 want 14
+    FAIL cred.hintIcon.h: got 12 want 18
+    FAIL models.chipText.fs: got 10 want 11
+    FAIL models.chipText.fw: got 600 want 500
+    FAIL empty.glyph.w: got 24 want 29
+    FAIL empty.glyph.h: got 24 want 39
+    FAIL tip.icon.w: got 14 want 17
+    FAIL tip.icon.h: got 14 want 22.5
+    FAIL notice.icon.h: got 18 want 24
+    FAIL notice.text.lh: got 14.4 want 18
+    FAIL notice.rowH: got 18,18,29 want 18,18,36
+    FAIL notice.rowTops: got 1000,1026,1052 want 995,1021,1047
+    FAIL bar.shadow: got none want rgba(15, 23, 42, 0.05) 0px -4px 16px 0px
+    FAIL bar.hintIcon.w: got 13 want 15
+    FAIL bar.hintIcon.h: got 13 want 19.5
+    FAIL bar.hint.h: got 13 want 19.5
+    FAIL bar.draft.ring: got none want rgb(226, 232, 240) 0px 0px 0px 0.8px
+    FAIL bar.save.shadow: got none want rgba(37, 99, 235, 0.28) 0px 6px 16px 0px
+    FAIL bar.saveIcon.w: got 14 want 20
+    FAIL bar.saveIcon.h: got 14 want 27
+
+=== RED run2 :: .agents/state\evidence\review-序号12v1-checks-red-run2.json
+phase1   checkCount=286 checkFailCount=45 docScrollHeight=1235 overflowing=0 missingTexts=[]
+    FAIL page.cardHeights: got 424,291,152 want 425,291,156
+    FAIL page.stepShadow: got none want rgba(15, 23, 42, 0.05) 0px 4px 16px 0px
+    FAIL page.card1Shadow: got none want rgba(15, 23, 42, 0.06) 0px 4px 16px 0px
+    FAIL page.card2Shadow: got none want rgba(15, 23, 42, 0.06) 0px 4px 16px 0px
+    FAIL page.card3Shadow: got none want rgba(15, 23, 42, 0.05) 0px 4px 16px 0px
+    FAIL nav.back.radius: got 50% want 18px
+    FAIL nav.backIcon.w: got 17 want 20
+    FAIL nav.backIcon.h: got 17 want 27
+    FAIL nav.help.radius: got 50% want 18px
+    FAIL nav.helpIcon.w: got 16 want 20
+    FAIL nav.helpIcon.h: got 16 want 27
+    FAIL basic.head.h: got 20,20,27 want 20,20,24
+    FAIL basic.reqIcon.h: got 12 want 15
+    FAIL name.box.ring: got none want rgb(226, 232, 240) 0px 0px 0px 0.8px
+    FAIL name.box.noBorder: got 0.8px solid rgb(226, 232, 240) want None
+    FAIL qno.box.ring: got none want rgb(203, 213, 225) 0px 0px 0px 0.8px
+    FAIL qno.icon.w: got 16 want 18
+    FAIL qno.icon.h: got 14 want 24
+    FAIL qno.hintIcon.w: got 12 want 14
+    FAIL qno.hintIcon.h: got 12 want 18
+    FAIL cred.select.ring: got none want rgb(226, 232, 240) 0px 0px 0px 0.8px
+    FAIL cred.keyIcon.w: got 14 want 17
+    FAIL cred.keyIcon.h: got 14 want 22.5
+    FAIL cred.chevron.w: got 14 want 22
+    FAIL cred.chevron.h: got 14 want 30
+    FAIL cred.hintIcon.w: got 12 want 14
+    FAIL cred.hintIcon.h: got 12 want 18
+    FAIL models.chipText.fs: got 10 want 11
+    FAIL models.chipText.fw: got 600 want 500
+    FAIL empty.glyph.w: got 24 want 29
+    FAIL empty.glyph.h: got 24 want 39
+    FAIL tip.icon.w: got 14 want 17
+    FAIL tip.icon.h: got 14 want 22.5
+    FAIL notice.icon.h: got 18 want 24
+    FAIL notice.text.lh: got 14.4 want 18
+    FAIL notice.rowH: got 18,18,29 want 18,18,36
+    FAIL notice.rowTops: got 1000,1026,1052 want 995,1021,1047
+    FAIL bar.shadow: got none want rgba(15, 23, 42, 0.05) 0px -4px 16px 0px
+    FAIL bar.hintIcon.w: got 13 want 15
+    FAIL bar.hintIcon.h: got 13 want 19.5
+    FAIL bar.hint.h: got 13 want 19.5
+    FAIL bar.draft.ring: got none want rgb(226, 232, 240) 0px 0px 0px 0.8px
+    FAIL bar.save.shadow: got none want rgba(37, 99, 235, 0.28) 0px 6px 16px 0px
+    FAIL bar.saveIcon.w: got 14 want 20
+    FAIL bar.saveIcon.h: got 14 want 27
+
+红基线失败分诊（探针 bug vs 页面缺陷）——
+  · 页面缺陷（本轮已修，见 review-序号12v1-checks-报告.md §3）：
+      5 处卡片/操作条/保存按钮缺设计 effects 投影 · 4 处 center 描边用 border 而非 ring ·
+      13 处图标占位盒未按设计图层尺寸（含 nav 返回/帮助圆角 50%→18px）·
+      填写须知卡标题图标行盒 27→24（iconLineBox(18)→(16)）· 须知条目文案行盒 14.4→18（PNG 实测两行 36）·
+      模型列表 chip 文案 10px/600→11px/500（设计 c26a8591）· 标签行行盒 18→17.5（PNG 实测）
+  · 探针自身期望值 bug（已在探针内修正，不计页面账）：
+      nav.back.top 48→51（顶部左侧 alignItems=center：48+(42-36)/2）·
+      name.counter.h/lh 13.2→16.5（PNG 盒 330..346.5，用 13.2 时分隔线落 359 而非 362.5）·
+      name.counter.right 382→398 / qno.pill.right 382→384（卡片内容右界 398、padding 14）·
+      qno.box.top 404→406（描边行 405/406）· qno/cred hint 盒高 18→24（容器 pt6 + 行盒 18）·
+      page.card2Height 287→291（提示卡 CJK 换行 +3.9）· page.docHeight/bar.top/cardTops 容差 2→4（同上顺延）

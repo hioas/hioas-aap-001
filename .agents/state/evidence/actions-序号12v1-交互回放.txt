@@ -1,0 +1,33 @@
+序号 12-v1 交互回放（?scenario=actions，两轮）
+
+=== ACTIONS run1 :: .agents/state\evidence\review-序号12v1-actions-run1.json
+phase1   checkCount=286 checkFailCount=0 docScrollHeight=1241 overflowing=0 missingTexts=[]
+phase2   {"clickedSelect": "CLICKED", "panelRowCount": 2, "clickedOption": "CLICKED", "chipAfterPick": "已选 1 / 2", "credValue": "主线路 Key", "modelRowCount": 2, "modelRows": ["gpt-4o", "gpt-4o-mini"], "emptyStillThere": false, "docH": 1192}
+phase3   {"typed": "TYPED", "countAfterType": "12/30", "clickedSave": "CLICKED", "toastAfterSave": "保存成功", "hashAfterSave": "#/pages/model-pricing/index?quoteId=q9", "pricingRendered": true}
+
+=== ACTIONS run2 :: .agents/state\evidence\review-序号12v1-actions-run2.json
+phase1   checkCount=286 checkFailCount=0 docScrollHeight=1241 overflowing=0 missingTexts=[]
+phase2   {"clickedSelect": "CLICKED", "panelRowCount": 2, "clickedOption": "CLICKED", "chipAfterPick": "已选 1 / 2", "credValue": "主线路 Key", "modelRowCount": 2, "modelRows": ["gpt-4o", "gpt-4o-mini"], "emptyStillThere": false, "docH": 1192}
+phase3   {"typed": "TYPED", "countAfterType": "12/30", "clickedSave": "CLICKED", "toastAfterSave": "保存成功", "hashAfterSave": "#/pages/model-pricing/index?quoteId=q9", "pricingRendered": true}
+
+两轮一致性：phase2 逐字段相同 = True · phase3 逐字段相同 = True · serve 实收请求行逐字节相同 = True
+
+=== serve 实收请求行（run1 / run2）===
+--- .agents/state\evidence\requests-序号12v1-actions-run1.txt
+"GET /api/v1/credentials?page=1&pageSize=20 HTTP/1.1" 200 -
+"GET /api/v1/credentials/c1 HTTP/1.1" 200 -
+POST /api/v1/quotes body={"name":"2024Q3 主线路报价","credential_id":"c1"}
+"POST /api/v1/quotes HTTP/1.1" 200 -
+POST /api/v1/quotes/q9/items body={"items":[{"model_name":"gpt-4o"}]}
+"POST /api/v1/quotes/q9/items HTTP/1.1" 200 -
+"GET /api/v1/quotes/q9/items HTTP/1.1" 200 -
+--- .agents/state\evidence\requests-序号12v1-actions-run2.txt
+"GET /api/v1/credentials?page=1&pageSize=20 HTTP/1.1" 200 -
+"GET /api/v1/credentials/c1 HTTP/1.1" 200 -
+POST /api/v1/quotes body={"name":"2024Q3 主线路报价","credential_id":"c1"}
+"POST /api/v1/quotes HTTP/1.1" 200 -
+POST /api/v1/quotes/q9/items body={"items":[{"model_name":"gpt-4o"}]}
+"POST /api/v1/quotes/q9/items HTTP/1.1" 200 -
+"GET /api/v1/quotes/q9/items HTTP/1.1" 200 -
+
+纯测量轮（无 scenario）实收请求：0 行（首屏空态不发任何请求）· 见 requests-序号12v1-checks-run{1,2}.txt

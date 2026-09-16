@@ -6,166 +6,594 @@
     <style>
       body { margin: 0; font: 12px monospace; }
       iframe { width: 430px; height: 900px; border: 0; }
-      /* 取数用 <pre> 包进 0 尺寸 overflow:hidden 容器：textContent 可读，但不渲染、不会被 --screenshot 截进图里 */
+      /* 取数用 <pre> 包在 0 尺寸 overflow:hidden 容器：textContent 可读，但不参与渲染、也不会被 --screenshot 截进图里 */
       #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
     </style>
   </head>
   <body>
     <!-- 430 宽 iframe 模拟小程序视口；数字优先，不靠 vision 猜
-         页面 12-v1：/pages/quote-form/index（【报价管理】新增报价单-初始态，page-26）
-         设计基线（设计截图 1:1 · 430x1238 像素量尺 + 色带反推，见 .agents/state/design-shots/page-26.png）：
-           顶栏 0..101(102) · 内容区 padding 16/16/20/16 gap 16 · 卡 padding16 r16 #FFFFFF
-           步骤卡 118..183(65) · 基本信息卡 199..624(425) · 模型列表卡 640..927(287) · 填写须知卡 943..1102(159)
-           底栏 1120..1237(118, padding 12/16/28/16) · 页高 1238
-           卡内锚点：名称输入框 top 276 h48 · 分隔线 362/493 · 单号只读框 ~407 h48 · 凭证选择框 ~536 h48
-                     空态盒 692..860(168, padding 28/16) · 提示卡 873 起(2 行 11px) · 须知条目 998/1024/1050(第三条两行)
-         phase1 = 首屏（空态，无请求）· 整页高度回填 iframe 供截图
-         phase2 = 点凭证选择框（GET /api/v1/credentials）→ 选 c1（GET /api/v1/credentials/c1）→ 模型行带出、chip 变「已选 N / M」
-         phase3 = 填名称（走内层原生 input）→ 点「保存并继续」→ 真实 POST /api/v1/quotes → toast + 跳模型定价页
-         截图另跑 ?noaction=1（交互回放会把 iframe 导航走） -->
+         序号 12-v1：/pages/quote-form/index（帧名「新增报价单-初始态」，page-26 ·
+         layer_id e9214640-519e-4671-a23e-ac03e92add54）
+         设计帧重抓 2026-09-16 14:0x：design.json sha256 2e8d879b…，与实现所依据的一份**逐字节相同**（无漂移）
+         want 口径（两类来源）：
+           ① 声明值 = .calicat/raw/pages/page-26/design.tree.json（node-by-id.py / text-lineheight.py 逐节点读）
+           ② fit_content 真实尺寸 = 设计 PNG（.agents/state/design-shots/page-26.png，430×1238）像素实测：
+              png-rows / scan-col / png-textbands / png-profile / png-colorat
+              实测锚点：顶栏 0..101(102) · 步骤卡 118..183(65) · 卡1 199..624(425) · 卡2 640..927(287)
+                       卡3 943..1099(156) · 底栏 1120.5..1238(117.5) · 页高 1238
+                       名称输入框 top 276 · 字数提示 330..343.2(13.2) · 分隔线 362/493 · 单号只读框 404..452
+                       凭证选择框 536..584 · 空态盒 692..856.4(164.4) · 提示卡 868.5..911(42.5, 设计一行)
+                       须知条目 995/1021/1047（条目3 两行 36）· 保存按钮 1162..1210
+              icon 行盒 = 字号 × 1.5（本页三处交叉验证：底栏 13→19.5 使底栏高恰为 117.5、卡3 标题 16→24 使卡3 恰为 156、
+              提示卡 15→22.5 使卡高 42.5）；文本行盒 = 字号 × 1.2（空态说明 12→14.4 使空态盒 164.4）
+              —— 例外：须知条目文案 12px 在设计稿里渲染成 18 行盒（PNG 行距实测 1052/1067 两行），按实测落地
+         phase1 = 首屏（空态，零请求）→ 设计期望值 checks 全量
+         ?scenario=actions → phase2（点凭证选择框 → GET /api/v1/credentials → 选 c1 → GET /api/v1/credentials/c1 带出模型）
+           · phase3（填名称 → 保存并继续 → 真实 POST /api/v1/quotes + POST /api/v1/quotes/q9/items → toast + 跳模型定价页）
+         ?noaction=1 → 只跑 phase1（纯测量轮）· ?shot=1 → iframe 高 = 设计帧高 1238（截图用，不跳页） -->
     <iframe id="f" src="/index.html#/pages/quote-form/index"></iframe>
     <div id="sink"><pre id="m">pending</pre></div>
     <script>
       var f = document.getElementById('f')
       var acc = {}
+      var SCENARIO = (location.search.match(/scenario=([a-z-]+)/) || [])[1] || ''
+      var SHOT_ONLY = location.search.indexOf('shot') !== -1
+      var NO_ACTION = location.search.indexOf('noaction') !== -1
+      if (SHOT_ONLY) f.style.height = '1238px' /* = 设计帧高 */
 
-      function all(doc, sel) { return Array.prototype.slice.call(doc.querySelectorAll(sel)) }
-      function rect(doc, sel) {
-        var el = doc.querySelector(sel)
-        if (!el) return null
-        var r = el.getBoundingClientRect()
-        return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+      /* 选择器语法：`sel@@N` = 该选择器的第 N 个匹配（也接受 CSS 里非法的 `sel#N` 写法，先归一化成 @@N）。
+         `A@@N B` = 在第 N 个 A 里查 B。 */
+      function splitSel(sel) {
+        var s = String(sel).replace(/#(\d+)(?=\s|$)/g, '@@$1')
+        var i = s.indexOf('@@')
+        if (i === -1) return { base: s, n: 0, tail: '' }
+        var head = s.slice(0, i)
+        var rest = s.slice(i + 2).split(/\s+/)
+        return { base: head.trim(), n: Number(rest[0]), tail: rest.slice(1).join(' ') }
       }
-      function rects(doc, sel) {
-        return all(doc, sel).map(function (e) {
+
+      function collect(doc, win, withChecks) {
+        var fails = []
+        var checks = 0
+
+        function norm(v) {
+          if (typeof v === 'number') return v
+          var s = String(v == null ? '' : v).trim()
+          if (/^-?\d+(\.\d+)?px$/.test(s)) return Number(s.replace('px', ''))
+          return s
+        }
+        function normColor(s) {
+          var m = String(s || '').match(/rgba?\(([^)]+)\)/)
+          if (!m) return String(s || '')
+          var p = m[1].split(',').map(function (t) { return Number(t.trim()) })
+          var a = p.length > 3 ? p[3] : 1
+          return a === 1 ? 'rgb(' + p[0] + ', ' + p[1] + ', ' + p[2] + ')' : 'rgba(' + p.join(', ') + ')'
+        }
+        function normShadow(s) {
+          return String(s == null ? '' : s).replace(/rgba?\([^)]+\)/g, function (m) { return normColor(m) })
+        }
+        function el(sel) {
+          var sp = splitSel(sel)
+          if (!sp.n && !sp.tail) return doc.querySelector(sp.base)
+          var roots = doc.querySelectorAll(sp.base)
+          var root = roots[sp.n]
+          if (!root) return null
+          return sp.tail ? root.querySelector(sp.tail) : root
+        }
+        function resolveAll(sel) {
+          var sp = splitSel(sel)
+          if (!sp.n && !sp.tail) return Array.prototype.slice.call(doc.querySelectorAll(sp.base))
+          var roots = doc.querySelectorAll(sp.base)
+          var root = roots[sp.n]
+          if (!root) return []
+          if (!sp.tail) return [root]
+          return Array.prototype.slice.call(root.querySelectorAll(sp.tail))
+        }
+        function rect(sel) {
+          var e = el(sel)
+          if (!e) return null
           var r = e.getBoundingClientRect()
-          return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), w: Math.round(r.width), h: Math.round(r.height) }
-        })
-      }
-      function texts(doc, sel) { return all(doc, sel).map(function (e) { return e.textContent.trim() }) }
-      function textOf(doc, sel) { var e = doc.querySelector(sel); return e ? e.textContent.trim() : null }
-      function colorOf(doc, win, sel, prop) { var el = doc.querySelector(sel); return el ? win.getComputedStyle(el)[prop] : null }
-      function styleOf(doc, win, sel) {
-        var el = doc.querySelector(sel)
-        if (!el) return null
-        var cs = win.getComputedStyle(el)
-        return { fontSize: cs.fontSize, fontWeight: cs.fontWeight, color: cs.color, lineHeight: cs.lineHeight, display: cs.display, borderRadius: cs.borderRadius, padding: cs.padding, backgroundColor: cs.backgroundColor, boxShadow: cs.boxShadow, maxWidth: cs.maxWidth }
-      }
-      function bgsOf(doc, win, sel) {
-        return all(doc, sel).map(function (e) { return win.getComputedStyle(e).backgroundColor })
-      }
-
-      /** 设计稿里每一个独立文本图层（文案完整性检查清单，逐字抄自 design.tree.json） */
-      var needText = [
-        '新增报价单', '填写基本信息并设置模型报价',
-        '填写信息', '名称 / 密钥 / 单号', '设置报价', '模型定价',
-        '基本信息', '为必填项', '报价单名称', '*',
-        '请输入报价单名称，如：2024Q3 主线路报价', '0/30',
-        '报价单号', '系统生成', '保存后自动生成', 'QT-XXXXXXXX-XXXX',
-        '报价单号由系统按日期与序号规则自动生成，无需手动填写',
-        '凭证名称', '请选择凭证', '选择凭证后，系统将自动带出该凭证下可用的模型列表',
-        '模型列表', '待带出', '尚未加载模型', '请先在上方选择凭证，系统将自动带出可用模型列表',
-        '带出的模型数量与凭证权限相关，可在「我的设置」中管理凭证权限范围。',
-        '填写须知', '报价单名称建议包含季度或用途，便于后续在列表中检索。',
-        '凭证决定可报价的模型范围，选择后模型列表自动刷新。',
-        '首次保存成功后，系统将自动生成报价单号并进入设置报价环节。',
-        '保存成功后系统将自动生成报价单号', '存为草稿', '保存并继续'
-      ]
-
-      function collect(doc, win) {
-        var over = []
-        all(doc, '*').forEach(function (el) {
-          var r = el.getBoundingClientRect()
-          if (r.width > 0 && r.right > win.innerWidth + 0.5) {
-            over.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 70), left: Math.round(r.x), w: Math.round(r.width), right: Math.round(r.right), html: String(el.outerHTML || '').slice(0, 140) })
+          return {
+            x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right),
+            bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height)
           }
+        }
+        function rects(sel) {
+          return resolveAll(sel).map(function (e) {
+            var r = e.getBoundingClientRect()
+            return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+          })
+        }
+        function css(sel, prop) {
+          var e = el(sel)
+          if (!e) return null
+          var v = win.getComputedStyle(e)[prop]
+          if (prop === 'boxShadow') return normShadow(v)
+          return prop.toLowerCase().indexOf('color') >= 0 ? normColor(v) : norm(v)
+        }
+        function declared(sel, prop) {
+          var sp = splitSel(sel)
+          if (!el(sel)) return null
+          for (var i = 0; i < doc.styleSheets.length; i++) {
+            var rules
+            try { rules = doc.styleSheets[i].cssRules } catch (e) { continue }
+            for (var j = 0; j < rules.length; j++) {
+              var r = rules[j]
+              if (!r.selectorText || r.selectorText.indexOf('[') === 0) continue
+              var sels = r.selectorText.split(',').map(function (s) { return s.trim().replace(/\[data-v-[^\]]+\]/g, '') })
+              if (sels.indexOf(sp.base) === -1) continue
+              var v = r.style && r.style[prop]
+              if (v) return v
+            }
+          }
+          return null
+        }
+        function chk(key, got, want, tol) {
+          if (!withChecks) return got
+          checks++
+          var t = tol == null ? 0 : tol
+          var g = norm(got)
+          var w = norm(want)
+          var gn = typeof g === 'number' ? g : (typeof g === 'string' && /^-?\d+(\.\d+)?$/.test(g) ? Number(g) : null)
+          var wn = typeof w === 'number' ? w : (typeof w === 'string' && /^-?\d+(\.\d+)?$/.test(w) ? Number(w) : null)
+          var ok
+          if (gn !== null && wn !== null) ok = Math.abs(gn - wn) <= t
+          else ok = g === w
+          if (!ok) fails.push({ k: key, got: got, want: want })
+          return got
+        }
+        function rectField(sel, key) {
+          var r = rect(sel)
+          if (!r) return null
+          var f = String(key).split('.').pop()
+          if (f === 'x' || f === 'left') return r.x
+          if (f === 'right') return r.right
+          if (f === 'top') return r.top
+          if (f === 'bottom') return r.bottom
+          if (f === 'w' || f === 'width') return r.w
+          if (f === 'h' || f === 'height') return r.h
+          return r
+        }
+        function chkR(key, sel, want, tol) { return chk(key, rectField(sel, key), want, tol) }
+        function chkC(key, sel, prop, want, tol) { return chk(key, css(sel, prop), want, tol) }
+        function chkD(key, sel, prop, want) { return chk(key, declared(sel, prop), want) }
+        /* 数值数组逐项比较（设计帧小数坐标链取整后会有 ±1..2 差） */
+        function chkList(key, got, want, tol) {
+          if (!withChecks) return got
+          checks++
+          var t = tol == null ? 0 : tol
+          var ok = got.length === want.length
+          if (ok) {
+            for (var i = 0; i < got.length; i++) {
+              if (got[i] == null || Math.abs(got[i] - want[i]) > t) { ok = false; break }
+            }
+          }
+          if (!ok) fails.push({ k: key, got: got.join(','), want: want.join(',') })
+          return got
+        }
+        /* 字符串数组逐项比较（chkList 只做数值比较，字符串会被静默放过） */
+        function chkStrs(key, got, want) {
+          if (!withChecks) return got
+          checks++
+          var ok = got.length === want.length
+          if (ok) {
+            for (var i = 0; i < got.length; i++) {
+              if (String(got[i]) !== String(want[i])) { ok = false; break }
+            }
+          }
+          if (!ok) fails.push({ k: key, got: got.join(' | '), want: want.join(' | ') })
+          return got
+        }
+        function texts(sel) { return resolveAll(sel).map(function (e) { return e.textContent.trim() }) }
+        function textOf(sel) { var e = el(sel); return e ? e.textContent.trim() : null }
+        function colors(sel) { return resolveAll(sel).map(function (e) { return normColor(win.getComputedStyle(e).backgroundColor) }) }
+        function textColors(sel) { return resolveAll(sel).map(function (e) { return normColor(win.getComputedStyle(e).color) }) }
+        function byTestId(id) { return doc.querySelector('[data-testid="' + id + '"]') }
+
+        var CARDS = '.card'
+        /* 设计树里每一个独立文本图层（文案完整性检查清单，逐字抄自 design.tree.json；图标字形层 content 为空不进清单） */
+        var NEED_TEXT = [
+          '新增报价单', '填写基本信息并设置模型报价',
+          '填写信息', '名称 / 密钥 / 单号', '设置报价', '模型定价', '1', '2',
+          '基本信息', '为必填项',
+          '报价单名称', '*', '请输入报价单名称，如：2024Q3 主线路报价', '0/30',
+          '报价单号', '系统生成', '保存后自动生成', 'QT-XXXXXXXX-XXXX',
+          '报价单号由系统按日期与序号规则自动生成，无需手动填写',
+          '凭证名称', '请选择凭证', '选择凭证后，系统将自动带出该凭证下可用的模型列表',
+          '模型列表', '待带出', '尚未加载模型', '请先在上方选择凭证，系统将自动带出可用模型列表',
+          '带出的模型数量与凭证权限相关，可在「我的设置」中管理凭证权限范围。',
+          '填写须知',
+          '报价单名称建议包含季度或用途，便于后续在列表中检索。',
+          '凭证决定可报价的模型范围，选择后模型列表自动刷新。',
+          '首次保存成功后，系统将自动生成报价单号并进入设置报价环节。',
+          '保存成功后系统将自动生成报价单号', '存为草稿', '保存并继续'
+        ]
+
+        /* ============ 溢出（uni-app 内置测量元素不计入，见 uni-app 技能 §3 口径） ============ */
+        var over = []
+        Array.prototype.slice.call(doc.querySelectorAll('*')).forEach(function (e) {
+          var r = e.getBoundingClientRect()
+          if (r.width <= 0 || r.right <= win.innerWidth + 0.5) return
+          if (e.closest && e.closest('uni-resize-sensor')) return
+          if (String(e.tagName).toLowerCase() === 'uni-resize-sensor') return
+          over.push({ tag: e.tagName, cls: String(e.className || '').slice(0, 70), left: Math.round(r.x), w: Math.round(r.width), right: Math.round(r.right) })
         })
-        var text = (doc.body && doc.body.innerText) || ''
+        var bodyText = (doc.body && doc.body.innerText) || ''
+        var missing = NEED_TEXT.filter(function (t) { return bodyText.indexOf(t) === -1 })
+
+        /* ===================== 整页（设计帧 430×1238） ===================== */
+        var docH = Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight)
+        chk('page.innerWidth', win.innerWidth, 430)
+        chk('page.docScrollWidth', doc.documentElement.scrollWidth, 430)
+        chk('page.docHeight', docH, 1238, 4) /* 设计帧高 1238；实测 +3 全部来自提示卡文案 CJK 换行（见下 card2 注释） */
+        chk('page.overflowingCount', over.length, 0)
+        chk('page.missingTextCount', missing.length, 0)
+        chkC('page.bg', '.qf', 'backgroundColor', 'rgb(245, 247, 251)') /* design 页面容器 ac646f45 fills rgba(245,247,251,1) */
+        chk('page.cardCount', doc.querySelectorAll(CARDS).length, 3)
+        chk('page.stepCardCount', doc.querySelectorAll('.step-card').length, 1)
+        chk('page.tabbarAbsent', !!doc.querySelector('.tabbar'), false)
+        /* PNG 实测：步骤卡 118..183 · 卡1 199..624.5 · 卡2 640..927.5 · 卡3 943..1099
+           卡2 的 want 291 = 设计 287.5 + 3.9（提示卡文案在设计稿里是一行、浏览器 CJK 必然两行 → 盒 46 vs 42.5，见 designLiteralDiff） */
+        chkR('stepCard.top', '.step-card', 118, 2)
+        chkR('stepCard.h', '.step-card', 65, 2)
+        chkList('page.cardTops', rects(CARDS).map(function (r) { return r.top }), [199, 640, 943], 4)
+        chkList('page.cardHeights', rects(CARDS).map(function (r) { return r.h }), [425, 291, 156], 2)
+        /* 卡间距 / 卡3 到操作条 = 设计声明值（不受累计取整影响，容差 1） */
+        chk('page.gap12', rect(CARDS + '@@1').top - rect(CARDS + '@@0').bottom, 16, 1)
+        chk('page.gap23', rect(CARDS + '@@2').top - rect(CARDS + '@@1').bottom, 16, 1)
+        chk('page.gapToBar', rect('.qf__bar').top - rect(CARDS + '@@2').bottom, 20, 1)
+        chkList('page.cardX', rects(CARDS).map(function (r) { return r.x }), [16, 16, 16], 1)
+        chkList('page.cardW', rects(CARDS).map(function (r) { return r.w }), [398, 398, 398], 1)
+        chkC('page.cardPad', '.card@@0', 'padding', '16px')
+        chkC('page.cardRadius', '.card@@0', 'borderRadius', '16px')
+        chkC('page.cardBg', '.card@@0', 'backgroundColor', 'rgb(255, 255, 255)')
+        /* design effects：步骤卡 7acff570(0,4,16,.05) · 基本信息卡 82bbea2b(0,4,16,.06) ·
+           模型列表卡 9fabffe3(0,4,16,.06) · 填写须知卡 f4fab5a4(0,4,16,.05) · 底栏 0bf8e01d(0,-4,16,.05) */
+        chkC('page.stepShadow', '.step-card', 'boxShadow', 'rgba(15, 23, 42, 0.05) 0px 4px 16px 0px')
+        chkC('page.card1Shadow', '.card@@0', 'boxShadow', 'rgba(15, 23, 42, 0.06) 0px 4px 16px 0px')
+        chkC('page.card2Shadow', '.card@@1', 'boxShadow', 'rgba(15, 23, 42, 0.06) 0px 4px 16px 0px')
+        chkC('page.card3Shadow', '.card@@2', 'boxShadow', 'rgba(15, 23, 42, 0.05) 0px 4px 16px 0px')
+
+        /* ===================== 顶部导航（design c36637be padding[48,16,12,16]） ===================== */
+        chkR('nav.h', '.qf__nav', 102, 1) /* 48 + 标题块(24+18=42) + 12 */
+        chkC('nav.pad', '.qf__nav', 'padding', '48px 16px 12px')
+        chkC('nav.bg', '.qf__nav', 'backgroundColor', 'rgb(255, 255, 255)')
+        chkR('nav.back.x', '.nav__back', 16, 1)
+        chkR('nav.back.top', '.nav__back', 51, 2) /* 顶部左侧 alignItems=center：48 + (42-36)/2 = 51（设计 PNG 实测圆 51..87） */
+        chkR('nav.back.w', '.nav__back', 36, 1)
+        chkR('nav.back.h', '.nav__back', 36, 1)
+        chkC('nav.back.radius', '.nav__back', 'borderRadius', '18px')
+        chkC('nav.back.bg', '.nav__back', 'backgroundColor', 'rgb(241, 245, 249)')
+        /* 返回字形 图层 0848e539 fs18 w20 → 盒 20×27（1.5 行盒） */
+        chkR('nav.backIcon.w', '.ic-back', 20, 1)
+        chkR('nav.backIcon.h', '.ic-back', 27, 1)
+        /* 顶部左侧 gap12 → 标题块 x = 16+36+12 = 64；标题 图层 03388cf8 fs18 Bold #0F172A h24 */
+        chkR('nav.title.x', '.nav__title', 64, 1)
+        chkC('nav.title.fs', '.nav__title', 'fontSize', 18)
+        chkC('nav.title.fw', '.nav__title', 'fontWeight', 700)
+        chkC('nav.title.lh', '.nav__title', 'lineHeight', 24)
+        chkC('nav.title.color', '.nav__title', 'color', 'rgb(15, 23, 42)')
+        chkStrs('nav.title.text', [textOf('.nav__title')], ['新增报价单'])
+        /* 副标题 图层 e5875426 fs12 #94A3B8 h18 */
+        chkC('nav.sub.fs', '.nav__subtitle', 'fontSize', 12)
+        chkC('nav.sub.fw', '.nav__subtitle', 'fontWeight', 400)
+        chkC('nav.sub.lh', '.nav__subtitle', 'lineHeight', 18)
+        chkC('nav.sub.color', '.nav__subtitle', 'color', 'rgb(148, 163, 184)')
+        chkStrs('nav.sub.text', [textOf('.nav__subtitle')], ['填写基本信息并设置模型报价'])
+        chkR('nav.help.right', '.nav__help', 414, 1)
+        chkR('nav.help.w', '.nav__help', 36, 1)
+        chkR('nav.help.h', '.nav__help', 36, 1)
+        chkC('nav.help.radius', '.nav__help', 'borderRadius', '18px')
+        chkC('nav.help.bg', '.nav__help', 'backgroundColor', 'rgb(241, 245, 249)')
+        chkR('nav.helpIcon.w', '.ic-help', 20, 1) /* 图层 f85b3b09 fs18 w20 */
+        chkR('nav.helpIcon.h', '.ic-help', 27, 1)
+
+        /* ===================== 步骤卡（design 7acff570 padding16 r16） ===================== */
+        chkC('step.pad', '.step-card', 'padding', '16px')
+        chkC('step.radius', '.step-card', 'borderRadius', '16px')
+        chkC('step.bg', '.step-card', 'backgroundColor', 'rgb(255, 255, 255)')
+        chkList('step.dots', rects('.step__dot').map(function (r) { return r.w }), [26, 26], 1)
+        chkList('step.dotHs', rects('.step__dot').map(function (r) { return r.h }), [26, 26], 1)
+        chkC('step.dot.radius', '.step__dot@@0', 'borderRadius', '13px')
+        chkC('step.dot.bgOn', '.step__dot@@0', 'backgroundColor', 'rgb(37, 99, 235)') /* 步骤1圆点 216f18be #2563EB */
+        chkC('step.dot.bgOff', '.step__dot@@1', 'backgroundColor', 'rgb(241, 245, 249)') /* 步骤2圆点 448fe0e9 #F1F5F9 */
+        chkStrs('step.nos', texts('.step__no'), ['1', '2'])
+        chkC('step.no.fs', '.step__no@@0', 'fontSize', 12)
+        chkC('step.no.fw', '.step__no@@0', 'fontWeight', 700)
+        chkC('step.no.lh', '.step__no@@0', 'lineHeight', 18)
+        chkC('step.no.colorOn', '.step__no@@0', 'color', 'rgb(255, 255, 255)') /* ba2be698 白字 */
+        chkC('step.no.colorOff', '.step__no@@1', 'color', 'rgb(148, 163, 184)') /* f47952e8 #94A3B8 */
+        chkStrs('step.titles', texts('.step__title'), ['填写信息', '设置报价'])
+        chkC('step.title.fs', '.step__title@@0', 'fontSize', 13)
+        chkC('step.title.fw', '.step__title@@0', 'fontWeight', 600)
+        chkC('step.title.lh', '.step__title@@0', 'lineHeight', 18)
+        chkC('step.title.colorOn', '.step__title@@0', 'color', 'rgb(15, 23, 42)') /* 8a98e2cf #0F172A */
+        chkC('step.title.colorOff', '.step__title@@1', 'color', 'rgb(148, 163, 184)') /* 56ced044 #94A3B8 */
+        chkStrs('step.descs', texts('.step__desc'), ['名称 / 密钥 / 单号', '模型定价'])
+        chkC('step.desc.fs', '.step__desc@@0', 'fontSize', 11)
+        chkC('step.desc.lh', '.step__desc@@0', 'lineHeight', 15) /* 图层 7c835e6a h15 */
+        chkC('step.desc.colorOn', '.step__desc@@0', 'color', 'rgb(148, 163, 184)')
+        chkC('step.desc.colorOff', '.step__desc@@1', 'color', 'rgb(203, 213, 225)') /* 3eb8ce8f #CBD5E1 */
+        chkR('step.line.h', '.step-line', 2, 1)
+        chkC('step.line.bg', '.step-line', 'backgroundColor', 'rgb(226, 232, 240)')
+
+        /* ===================== 基本信息卡 · 标题行（design 7cc9c0fe） ===================== */
+        chkList('basic.head.h', rects('.card__head').map(function (r) { return r.h }), [20, 20, 24], 1)
+        chkR('basic.bar.w', '.card__bar', 5, 1) /* 标题竖条 803a0d01 w5 h16 r2 #2563EB */
+        chkR('basic.bar.h', '.card__bar', 16, 1)
+        chkC('basic.bar.radius', '.card__bar', 'borderRadius', '2px')
+        chkC('basic.bar.bg', '.card__bar', 'backgroundColor', 'rgb(37, 99, 235)')
+        chkList('basic.headGap', [css('.card__head@@0', 'columnGap')], [8], 0) /* 卡片标题行 gap 8 */
+        chkC('basic.title.fs', '.card__title@@0', 'fontSize', 15) /* 标题文本 69c638aa fs15 Bold */
+        chkC('basic.title.fw', '.card__title@@0', 'fontWeight', 700)
+        chkC('basic.title.color', '.card__title@@0', 'color', 'rgb(15, 23, 42)')
+        chkC('basic.title.lh', '.card__title@@0', 'lineHeight', 20) /* 图层 h20 */
+        chkR('basic.reqIcon.w', '.ic-required', 12, 1) /* 必填字形 a5fa8e6b fs10 w12 → 12×15 */
+        chkR('basic.reqIcon.h', '.ic-required', 15, 1)
+        chkC('basic.reqText.fs', '.required__text', 'fontSize', 11)
+        chkC('basic.reqText.color', '.required__text', 'color', 'rgb(148, 163, 184)') /* 4affd41e #94A3B8 */
+        chkStrs('basic.reqText', [textOf('.required__text')], ['为必填项'])
+
+        /* ===================== 字段「报价单名称」 ===================== */
+        chkR('name.label.x', '.label__text@@0', 32, 1)
+        chkC('name.label.fs', '.label__text@@0', 'fontSize', 13) /* 10a9695d fs13 SemiBold #334155 */
+        chkC('name.label.fw', '.label__text@@0', 'fontWeight', 600)
+        chkC('name.label.color', '.label__text@@0', 'color', 'rgb(51, 65, 85)')
+        chkC('name.star.color', '.label__star@@0', 'color', 'rgb(239, 68, 68)') /* 4961bd22 #EF4444 */
+        chkC('name.star.fs', '.label__star@@0', 'fontSize', 13)
+        chkStrs('name.labelTexts', texts('.label__text'), ['报价单名称', '报价单号', '凭证名称'])
+        chkR('name.box.top', '.input-box', 276, 2) /* PNG 实测 276（设计字面 276.x） */
+        chkR('name.box.h', '.input-box', 48, 1)
+        chkR('name.box.w', '.input-box', 366, 1)
+        chkC('name.box.radius', '.input-box', 'borderRadius', '12px')
+        chkC('name.box.bg', '.input-box', 'backgroundColor', 'rgb(248, 250, 252)') /* d2fd0412 #F8FAFC */
+        chkC('name.box.pad', '.input-box', 'padding', '0px 14px')
+        /* 设计 d2fd0412 stroke{align:center,thickness:0.8} → ring（border 会占布局，内容左界会右移 0.8） */
+        chkC('name.box.ring', '.input-box', 'boxShadow', 'rgb(226, 232, 240) 0px 0px 0px 0.8px')
+        chk('name.box.noBorder', declared('.input-box', 'border'), null) /* 设计 stroke 用 ring 表达 → 样式表里不得再声明 border */
+        chkR('name.placeholder.x', '.input-box__placeholder', 46, 1) /* 32 + 14 */
+        chkC('name.placeholder.fs', '.input-box__placeholder', 'fontSize', 14) /* 45951788 fs14 #CBD5E1 */
+        chkC('name.placeholder.color', '.input-box__placeholder', 'color', 'rgb(203, 213, 225)')
+        chkStrs('name.placeholder.text', [textOf('.input-box__placeholder')], ['请输入报价单名称，如：2024Q3 主线路报价'])
+        /* 字数提示 41eee63e fs11 #94A3B8：PNG 实测盒 330..346.5 = 16.5（= 字号×1.5，用 13.2 会让分隔线落 359 而非 362.5） */
+        chkR('name.counter.h', '.counter__text', 16.5, 1)
+        chkC('name.counter.fs', '.counter__text', 'fontSize', 11)
+        chkC('name.counter.lh', '.counter__text', 'lineHeight', 16.5)
+        chkC('name.counter.color', '.counter__text', 'color', 'rgb(148, 163, 184)')
+        chkR('name.counter.right', '.counter__text', 398, 1) /* PNG：「0/30」墨迹右缘 397 = 卡片内容右界 398 */
+        chkStrs('name.counter.text', [textOf('.counter__text')], ['0/30'])
+        chk('name.clearIconAbsent', !!byTestId('name-clear'), false) /* 空态无清除图标（design 只在有值时） */
+
+        /* ===================== 分隔线（design 8a24ef57 / d70ccd96 pad-top 16 + 1px） ===================== */
+        chkList('divider.tops', rects('.divider').map(function (r) { return r.top }), [362, 493], 2) /* PNG 实测 362/493 */
+        chkList('divider.h', rects('.divider').map(function (r) { return r.h }), [1, 1], 0)
+        chkC('divider.bg', '.divider@@0', 'backgroundColor', 'rgb(241, 245, 249)')
+
+        /* ===================== 字段「报价单号」 ===================== */
+        chkR('qno.tag.h', '.tag--blue', 18, 1) /* 系统生成标 5a5721ea h18 r9 #EFF6FF */
+        chkC('qno.tag.radius', '.tag--blue', 'borderRadius', '9px')
+        chkC('qno.tag.bg', '.tag--blue', 'backgroundColor', 'rgb(239, 246, 255)')
+        chkC('qno.tag.text.fs', '.tag--blue .tag__text', 'fontSize', 10) /* 513571ab fs10 SemiBold #2563EB */
+        chkC('qno.tag.text.fw', '.tag--blue .tag__text', 'fontWeight', 600)
+        chkC('qno.tag.text.color', '.tag--blue .tag__text', 'color', 'rgb(37, 99, 235)')
+        chkStrs('qno.tag.text', [textOf('.tag--blue .tag__text')], ['系统生成'])
+        chkR('qno.box.top', '.readonly-box', 406, 2) /* PNG：描边行 405/406 → 盒顶 405.5 */
+        chkR('qno.box.h', '.readonly-box', 48, 1)
+        chkC('qno.box.radius', '.readonly-box', 'borderRadius', '12px')
+        chkC('qno.box.bg', '.readonly-box', 'backgroundColor', 'rgb(241, 245, 249)') /* bdd719bb #F1F5F9 */
+        chkC('qno.box.ring', '.readonly-box', 'boxShadow', 'rgb(203, 213, 225) 0px 0px 0px 0.8px') /* stroke 0.8 #CBD5E1 */
+        chkR('qno.icon.w', '.ic-doc', 18, 1) /* 字形 da005976 fs16 w18 → 18×24 */
+        chkR('qno.icon.h', '.ic-doc', 24, 1)
+        chkC('qno.iconWrap.gap', '.readonly-box__left', 'columnGap', 8) /* 单号占位 537b1d1a gap8 */
+        chkC('qno.text.fs', '.readonly-box__text', 'fontSize', 14) /* 7eaae1fe fs14 Medium #94A3B8 */
+        chkC('qno.text.fw', '.readonly-box__text', 'fontWeight', 500)
+        chkC('qno.text.color', '.readonly-box__text', 'color', 'rgb(148, 163, 184)')
+        chkStrs('qno.text', [textOf('.readonly-box__text')], ['保存后自动生成'])
+        chkR('qno.pill.h', '.sample-pill', 20, 1) /* 单号示例标 a7975188 h20 r10 #FFFFFF */
+        chkC('qno.pill.radius', '.sample-pill', 'borderRadius', '10px')
+        chkC('qno.pill.bg', '.sample-pill', 'backgroundColor', 'rgb(255, 255, 255)')
+        chkR('qno.pill.right', '.sample-pill', 384, 1) /* 398 - 14（设计 stroke 不占布局） */
+        chkC('qno.pillText.fs', '.sample-pill__text', 'fontSize', 10) /* 8e80b31c fs10 Medium #94A3B8 */
+        chkC('qno.pillText.fw', '.sample-pill__text', 'fontWeight', 500)
+        chkC('qno.pillText.color', '.sample-pill__text', 'color', 'rgb(148, 163, 184)')
+        chkStrs('qno.pillText', [textOf('.sample-pill__text')], ['QT-XXXXXXXX-XXXX'])
+        /* 单号说明（design 字段-报价单号/container[pad-top 6]/单号说明：行盒 = 图标 fs12×1.5 = 18，盒高 = 6 + 18 = 24） */
+        chkR('qno.hint.h', '.hint@@0', 24, 1)
+        chkR('qno.hintIcon.w', '.ic-info-sm', 14, 1) /* 字形 75897c47 fs12 w14 */
+        chkR('qno.hintIcon.h', '.ic-info-sm', 18, 1)
+        chkC('qno.hintText.fs', '.hint__text@@0', 'fontSize', 11) /* 6a6c7f2d fs11 #94A3B8 */
+        chkC('qno.hintText.lh', '.hint__text@@0', 'lineHeight', 16.5) /* 11px × 1.5（同页字数提示实测 16.5） */
+        chkC('qno.hintText.color', '.hint__text@@0', 'color', 'rgb(148, 163, 184)')
+        chkStrs('qno.hintText', [textOf('.hint__text@@0')], ['报价单号由系统按日期与序号规则自动生成，无需手动填写'])
+
+        /* ===================== 字段「凭证名称」 ===================== */
+        chkR('cred.select.top', '.select', 536, 2) /* PNG 实测 536..584 */
+        chkR('cred.select.h', '.select', 48, 1)
+        chkC('cred.select.radius', '.select', 'borderRadius', '12px')
+        chkC('cred.select.bg', '.select', 'backgroundColor', 'rgb(255, 255, 255)') /* 6d71d189 #FFFFFF */
+        chkC('cred.select.ring', '.select', 'boxShadow', 'rgb(226, 232, 240) 0px 0px 0px 0.8px')
+        chkR('cred.keybox.w', '.select__keybox', 28, 1) /* 钥匙图标底 6a90497b 28×28 r8 #F1F5F9 */
+        chkR('cred.keybox.h', '.select__keybox', 28, 1)
+        chkC('cred.keybox.radius', '.select__keybox', 'borderRadius', '8px')
+        chkC('cred.keybox.bg', '.select__keybox', 'backgroundColor', 'rgb(241, 245, 249)')
+        chkR('cred.keyIcon.w', '.ic-key', 17, 1) /* 字形 f1d3c758 fs15 w17 → 17×22.5 */
+        chkR('cred.keyIcon.h', '.ic-key', 22.5, 1)
+        chkC('cred.left.gap', '.select__left', 'columnGap', 8) /* 选择框左侧 62c0fc94 gap8 */
+        chkC('cred.value.fs', '.select__value', 'fontSize', 14) /* ebcb28ef fs14 #CBD5E1 */
+        chkC('cred.value.color', '.select__value', 'color', 'rgb(203, 213, 225)')
+        chkStrs('cred.value', [textOf('.select__value')], ['请选择凭证'])
+        chkR('cred.chevron.w', '.ic-chevron', 22, 1) /* 字形 d338b2d8 fs20 w22 → 22×30 */
+        chkR('cred.chevron.h', '.ic-chevron', 30, 1)
+        chkR('cred.hint.h', '.hint@@1', 24, 1)
+        chkR('cred.hintIcon.w', '.ic-info-blue', 14, 1) /* 字形 4158bae3 fs12 w14 #2563EB */
+        chkR('cred.hintIcon.h', '.ic-info-blue', 18, 1)
+        chkC('cred.hintText.fs', '.hint__text@@1', 'fontSize', 11) /* 384bdea8 fs11 #64748B */
+        chkC('cred.hintText.lh', '.hint__text@@1', 'lineHeight', 16.5)
+        chkC('cred.hintText.color', '.hint__text@@1', 'color', 'rgb(100, 116, 139)')
+        chkStrs('cred.hintText', [textOf('.hint__text@@1')], ['选择凭证后，系统将自动带出该凭证下可用的模型列表'])
+
+        /* ===================== 模型列表卡（design 9fabffe3） ===================== */
+        chkC('models.title.fs', '.card__title@@1', 'fontSize', 15) /* 7e4a3a74 fs15 Bold #0F172A */
+        chkC('models.title.fw', '.card__title@@1', 'fontWeight', 700)
+        chkStrs('models.title', [textOf('.card__title@@1')], ['模型列表'])
+        chkR('models.chip.h', byTestId('chip-model') ? '[data-testid="chip-model"]' : '.tag', 20, 1) /* 待带出标 a7bc950f h20 r10 #F1F5F9 */
+        chkC('models.chip.bg', '[data-testid="chip-model"]', 'backgroundColor', 'rgb(241, 245, 249)')
+        chkC('models.chip.radius', '[data-testid="chip-model"]', 'borderRadius', '10px')
+        chkR('models.chip.right', '[data-testid="chip-model"]', 398, 1)
+        chkC('models.chipText.fs', '[data-testid="chip-model"] .tag__text', 'fontSize', 11) /* c26a8591 fs11 Medium #94A3B8 */
+        chkC('models.chipText.fw', '[data-testid="chip-model"] .tag__text', 'fontWeight', 500)
+        chkC('models.chipText.color', '[data-testid="chip-model"] .tag__text', 'color', 'rgb(148, 163, 184)')
+        chkStrs('models.chipText', [textOf('[data-testid="chip-model"] .tag__text')], ['待带出'])
+        /* 空态盒 dbdd7d3d：padding[28,16,28,16] r12 bg#FAFCFF stroke0.8 #E2E8F0（PNG 692..856.4 = 164.4） */
+        chkR('empty.top', '[data-testid="model-empty"]', 692, 2)
+        chkR('empty.h', '[data-testid="model-empty"]', 164, 2)
+        chkC('empty.pad', '[data-testid="model-empty"]', 'padding', '28px 16px')
+        chkC('empty.radius', '[data-testid="model-empty"]', 'borderRadius', '12px')
+        chkC('empty.bg', '[data-testid="model-empty"]', 'backgroundColor', 'rgb(250, 252, 255)') /* 空态底 #FAFCFF（token 新增） */
+        chkC('empty.ring', '[data-testid="model-empty"]', 'boxShadow', 'rgb(226, 232, 240) 0px 0px 0px 0.8px')
+        chkR('empty.icon.w', '.empty__icon', 56, 1) /* 空态图标 eaaab2f7 56×56 r28 #EFF6FF */
+        chkR('empty.icon.h', '.empty__icon', 56, 1)
+        chkC('empty.icon.radius', '.empty__icon', 'borderRadius', '28px')
+        chkC('empty.icon.bg', '.empty__icon', 'backgroundColor', 'rgb(239, 246, 255)')
+        chkR('empty.glyph.w', '.ic-empty', 29, 1) /* 字形 01ec37e6 fs26 w29 → 29×39 */
+        chkR('empty.glyph.h', '.ic-empty', 39, 1)
+        chkC('empty.title.fs', '.empty__title', 'fontSize', 14) /* fa2e1638 fs14 SemiBold #334155 h20 */
+        chkC('empty.title.fw', '.empty__title', 'fontWeight', 600)
+        chkC('empty.title.lh', '.empty__title', 'lineHeight', 20)
+        chkC('empty.title.color', '.empty__title', 'color', 'rgb(51, 65, 85)')
+        chkStrs('empty.title', [textOf('.empty__title')], ['尚未加载模型'])
+        chkR('empty.desc.h', '.empty__desc', 14.4, 1) /* 字形 8a2f0dfe fs12 lh1.2 → 14.4（PNG 空态盒 164.4 反证） */
+        chkC('empty.desc.fs', '.empty__desc', 'fontSize', 12)
+        chkC('empty.desc.lh', '.empty__desc', 'lineHeight', 14.4)
+        chkC('empty.desc.color', '.empty__desc', 'color', 'rgb(148, 163, 184)')
+        chkC('empty.desc.align', '.empty__desc', 'textAlign', 'center')
+        chkStrs('empty.desc', [textOf('.empty__desc')], ['请先在上方选择凭证，系统将自动带出可用模型列表'])
+        /* 提示卡 ffd5c7d1 padding[10,12,10,12] r10 #EFF6FF（设计一行墨迹 328px、盒 42.5）
+           —— 浏览器 CJK 11px/字 必然两行 → 盒 46（设计字面 42.5 记入 designLiteralDiff，不照抄） */
+        chkR('tip.h', '.tip', 46, 2)
+        chkC('tip.pad', '.tip', 'padding', '10px 12px')
+        chkC('tip.radius', '.tip', 'borderRadius', '10px')
+        chkC('tip.bg', '.tip', 'backgroundColor', 'rgb(239, 246, 255)')
+        chkR('tip.icon.w', '.ic-tip', 17, 1) /* 字形 70e950fc fs15 w17 → 17×22.5 */
+        chkR('tip.icon.h', '.ic-tip', 22.5, 1)
+        chkC('tip.text.fs', '.tip__text', 'fontSize', 11) /* b2ffc0b8 fs11 #1D4ED8 */
+        chkC('tip.text.color', '.tip__text', 'color', 'rgb(29, 78, 216)')
+        chkC('tip.text.lh', '.tip__text', 'lineHeight', 13.2)
+        chk('tip.textLines', Math.round(rect('.tip__text').h / 13.2), 2)
+        chkStrs('tip.text', [textOf('.tip__text')], ['带出的模型数量与凭证权限相关，可在「我的设置」中管理凭证权限范围。'])
+
+        /* ===================== 填写须知卡（design f4fab5a4） ===================== */
+        chkC('notice.title.fs', '.card__title@@2', 'fontSize', 13) /* 792ce0fc fs13 SemiBold #334155 */
+        chkC('notice.title.fw', '.card__title@@2', 'fontWeight', 600)
+        chkC('notice.title.color', '.card__title@@2', 'color', 'rgb(51, 65, 85)')
+        chkC('notice.title.lh', '.card__title@@2', 'lineHeight', 18)
+        chkStrs('notice.title', [textOf('.card__title@@2')], ['填写须知'])
+        chkR('notice.icon.w', '.ic-notice', 18, 1) /* 字形 3987dfa6 fs16 w18 → 18×24 */
+        chkR('notice.icon.h', '.ic-notice', 24, 1)
+        chkList('notice.dotW', rects('.notice__dot').map(function (r) { return r.w }), [18, 18, 18], 1) /* 序号点 18×18 r9 #F1F5F9 */
+        chkList('notice.dotH', rects('.notice__dot').map(function (r) { return r.h }), [18, 18, 18], 1)
+        chkC('notice.dot.radius', '.notice__dot@@0', 'borderRadius', '9px')
+        chkC('notice.dot.bg', '.notice__dot@@0', 'backgroundColor', 'rgb(241, 245, 249)')
+        chkStrs('notice.nos', texts('.notice__no'), ['1', '2', '3'])
+        chkC('notice.no.fs', '.notice__no@@0', 'fontSize', 10) /* e2f06f68 fs10 Bold #64748B */
+        chkC('notice.no.fw', '.notice__no@@0', 'fontWeight', 700)
+        chkC('notice.no.color', '.notice__no@@0', 'color', 'rgb(100, 116, 139)')
+        /* 须知条目文案 12px：设计 PNG 两处行距实测 1052→1067 与行盒 18 一致（pitch 15≠14.4）→ 行盒 18 */
+        chkC('notice.text.fs', '.notice__text@@0', 'fontSize', 12) /* d2f89933 fs12 #64748B */
+        chkC('notice.text.color', '.notice__text@@0', 'color', 'rgb(100, 116, 139)')
+        chkC('notice.text.lh', '.notice__text@@0', 'lineHeight', 18)
+        chkStrs('notice.texts', texts('.notice__text'), [
+          '报价单名称建议包含季度或用途，便于后续在列表中检索。',
+          '凭证决定可报价的模型范围，选择后模型列表自动刷新。',
+          '首次保存成功后，系统将自动生成报价单号并进入设置报价环节。'
+        ])
+        /* PNG 实测：条目1/2 盒高 18，条目3 两行 36；条目1 前 12、条目间 8 */
+        chkList('notice.rowH', rects('.notice').map(function (r) { return r.h }), [18, 18, 36], 1)
+        chkList('notice.rowTops', rects('.notice').map(function (r) { return r.top }), [995, 1021, 1047], 4)
+        chkList('notice.wrapPadTop',
+          [css('.notice-wrap@@0', 'paddingTop'), css('.notice-wrap@@1', 'paddingTop'), css('.notice-wrap@@2', 'paddingTop')],
+          [12, 8, 8], 0)
+
+        /* ===================== 底部操作条（design 0bf8e01d padding[12,16,28,16]） ===================== */
+        chkR('bar.top', '.qf__bar', 1120, 4) /* PNG 实测 1120.5..1238（含卡2 的 CJK 换行 +3 顺延） */
+        chkR('bar.h', '.qf__bar', 118, 2)
+        chkC('bar.pad', '.qf__bar', 'padding', '12px 16px 28px')
+        chkC('bar.bg', '.qf__bar', 'backgroundColor', 'rgb(255, 255, 255)')
+        chkC('bar.shadow', '.qf__bar', 'boxShadow', 'rgba(15, 23, 42, 0.05) 0px -4px 16px 0px')
+        chkR('bar.hintIcon.w', '.ic-save-info', 15, 1) /* 字形 05adee9c fs13 w15 → 15×19.5 */
+        chkR('bar.hintIcon.h', '.ic-save-info', 19.5, 1)
+        chkR('bar.hint.h', '.ic-save-info', 19.5, 1)
+        chkC('bar.hintText.fs', '.bar__hint-text', 'fontSize', 11) /* 78d2e066 fs11 #94A3B8 */
+        chkC('bar.hintText.color', '.bar__hint-text', 'color', 'rgb(148, 163, 184)')
+        chkStrs('bar.hintText', [textOf('.bar__hint-text')], ['保存成功后系统将自动生成报价单号'])
+        chkC('bar.row.padTop', '.bar__row', 'paddingTop', 10) /* container 785ba40c pad-top 10 */
+        chkC('bar.row.gap', '.bar__row', 'columnGap', 12) /* 按钮行 fe5e77ac gap12 */
+        chkR('bar.draft.x', '.btn--ghost', 16, 1)
+        chkR('bar.draft.w', '.btn--ghost', 128, 1) /* 存草稿按钮 dbfc6853 128×48 r12 stroke0.8 #E2E8F0 */
+        chkR('bar.draft.h', '.btn--ghost', 48, 1)
+        chkC('bar.draft.radius', '.btn--ghost', 'borderRadius', '12px')
+        chkC('bar.draft.bg', '.btn--ghost', 'backgroundColor', 'rgb(255, 255, 255)')
+        chkC('bar.draft.ring', '.btn--ghost', 'boxShadow', 'rgb(226, 232, 240) 0px 0px 0px 0.8px')
+        chkC('bar.draft.fs', '.btn--ghost', 'fontSize', 14) /* e17eb15f fs14 SemiBold #64748B */
+        chkC('bar.draft.fw', '.btn--ghost', 'fontWeight', 600)
+        chkC('bar.draft.color', '.btn--ghost', 'color', 'rgb(100, 116, 139)')
+        chkStrs('bar.draftText', [textOf('.btn--ghost')], ['存为草稿'])
+        chkR('bar.save.x', '.btn--primary', 156, 1) /* 16 + 128 + 12 */
+        chkR('bar.save.w', '.btn--primary', 258, 1)
+        chkR('bar.save.h', '.btn--primary', 48, 1)
+        chkC('bar.save.radius', '.btn--primary', 'borderRadius', '12px')
+        chkC('bar.save.bg', '.btn--primary', 'backgroundColor', 'rgb(37, 99, 235)')
+        chkC('bar.save.shadow', '.btn--primary', 'boxShadow', 'rgba(37, 99, 235, 0.28) 0px 6px 16px 0px') /* d88fa94a effects */
+        chkC('bar.save.gap', '.btn--primary', 'columnGap', 8)
+        chkR('bar.saveIcon.w', '.ic-save', 20, 1) /* 字形 e286703a fs18 w20 → 20×27 */
+        chkR('bar.saveIcon.h', '.ic-save', 27, 1)
+        chkC('bar.saveText.fs', '.btn__text', 'fontSize', 15) /* 19a6626c fs15 SemiBold #FFFFFF */
+        chkC('bar.saveText.fw', '.btn__text', 'fontWeight', 600)
+        chkC('bar.saveText.color', '.btn__text', 'color', 'rgb(255, 255, 255)')
+        chkStrs('bar.saveText', [textOf('.btn__text')], ['保存并继续'])
+
         return {
-          innerWidth: win.innerWidth,
-          docScrollWidth: doc.documentElement.scrollWidth,
-          docScrollHeight: Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight),
+          checks: checks,
+          checkCount: checks,
+          checkFailCount: fails.length,
+          checkFails: fails.slice(0, 400),
           overflowingCount: over.length,
-          overflowing: over.slice(0, 12),
-          missingTexts: needText.filter(function (t) { return text.indexOf(t) === -1 }),
-          pageBg: colorOf(doc, win, '.qf', 'backgroundColor'),
-          page: rect(doc, '.qf'),
-          nav: rect(doc, '.qf__nav'),
-          navPad: colorOf(doc, win, '.qf__nav', 'padding'),
-          navBack: rect(doc, '[data-testid="back"]'),
-          navTitle: textOf(doc, '[data-testid="nav-title"]'),
-          navTitleStyle: styleOf(doc, win, '.nav__title'),
-          navSubtitleStyle: styleOf(doc, win, '.nav__subtitle'),
-          bodyPad: colorOf(doc, win, '.qf__body', 'padding'),
-          bodyGap: colorOf(doc, win, '.qf__body', 'gap'),
-          stepCard: rect(doc, '.step-card'),
-          stepPad: colorOf(doc, win, '.step-card', 'padding'),
-          steps: rects(doc, '.step'),
-          stepDots: rects(doc, '.step__dot'),
-          stepDotBgs: bgsOf(doc, win, '.step__dot'),
-          stepActive: all(doc, '.step').map(function (e) { return e.getAttribute('data-active') }),
-          stepLine: rect(doc, '.step-line'),
-          stepLineBg: colorOf(doc, win, '.step-line', 'backgroundColor'),
-          cards: rects(doc, '.card'),
-          cardPadding: colorOf(doc, win, '.card', 'padding'),
-          cardTitle: textOf(doc, '[data-testid="card-basic-title"]'),
-          cardHead: rects(doc, '.card__head'),
-          required: rect(doc, '[data-testid="chip-required"]'),
-          nameLabel: rect(doc, '[data-testid="name-label"]'),
-          nameBox: rect(doc, '.input-box'),
-          nameBoxBg: colorOf(doc, win, '.input-box', 'backgroundColor'),
-          nameBoxBorder: colorOf(doc, win, '.input-box', 'border'),
-          nameCounter: rect(doc, '[data-testid="name-count"]'),
-          nameCounterStyle: styleOf(doc, win, '.counter__text'),
-          dividers: rects(doc, '.divider'),
-          quoteNoLabel: rect(doc, '[data-testid="quote-no-label"]'),
-          quoteNoTag: rect(doc, '[data-testid="quote-no-tag"]'),
-          quoteNoTagBg: colorOf(doc, win, '.tag--blue', 'backgroundColor'),
-          quoteNoBox: rect(doc, '[data-testid="quote-no-box"]'),
-          quoteNoBoxBg: colorOf(doc, win, '.readonly-box', 'backgroundColor'),
-          samplePill: rect(doc, '.sample-pill'),
-          samplePillBg: colorOf(doc, win, '.sample-pill', 'backgroundColor'),
-          quoteNoHint: rect(doc, '[data-testid="quote-no-hint"]'),
-          hintStyle: styleOf(doc, win, '.hint__text'),
-          credLabel: rect(doc, '[data-testid="cred-label"]'),
-          credSelect: rect(doc, '[data-testid="cred-select"]'),
-          credKeybox: rect(doc, '.select__keybox'),
-          credKeyboxBg: colorOf(doc, win, '.select__keybox', 'backgroundColor'),
-          credValue: textOf(doc, '[data-testid="cred-value"]'),
-          credValueStyle: styleOf(doc, win, '.select__value'),
-          credHint: rect(doc, '[data-testid="cred-hint"]'),
-          chipModel: rect(doc, '[data-testid="chip-model"]'),
-          chipModelText: textOf(doc, '[data-testid="chip-model"]'),
-          chipModelBg: colorOf(doc, win, '.tag', 'backgroundColor'),
-          empty: rect(doc, '[data-testid="model-empty"]'),
-          emptyPad: colorOf(doc, win, '.empty', 'padding'),
-          emptyBg: colorOf(doc, win, '.empty', 'backgroundColor'),
-          emptyIcon: rect(doc, '.empty__icon'),
-          emptyIconBg: colorOf(doc, win, '.empty__icon', 'backgroundColor'),
-          emptyTitle: rect(doc, '[data-testid="model-empty-title"]'),
-          emptyTitleStyle: styleOf(doc, win, '.empty__title'),
-          emptyDesc: rect(doc, '[data-testid="model-empty-desc"]'),
-          tip: rect(doc, '.tip'),
-          tipBg: colorOf(doc, win, '.tip', 'backgroundColor'),
-          tipPad: colorOf(doc, win, '.tip', 'padding'),
-          tipText: rect(doc, '[data-testid="model-empty-tip"]'),
-          tipTextStyle: styleOf(doc, win, '.tip__text'),
-          noticeTitle: rect(doc, '[data-testid="card-notice-title"]'),
-          noticeDots: rects(doc, '.notice__dot'),
-          noticeTexts: rects(doc, '[data-testid="notice-text"]'),
-          noticeTextStyle: styleOf(doc, win, '.notice__text'),
-          bar: rect(doc, '.qf__bar'),
-          barPad: colorOf(doc, win, '.qf__bar', 'padding'),
-          barHint: rect(doc, '[data-testid="bar-hint"]'),
-          barRow: rect(doc, '.bar__row'),
-          draftBtn: rect(doc, '[data-testid="btn-draft"]'),
-          draftBtnBorder: colorOf(doc, win, '.btn--ghost', 'border'),
-          saveBtn: rect(doc, '[data-testid="btn-save"]'),
-          saveBtnBg: colorOf(doc, win, '[data-testid="btn-save"]', 'backgroundColor'),
-          saveBtnTextStyle: styleOf(doc, win, '.btn__text'),
-          modelRows: rects(doc, '[data-testid^="model-row-"]'),
-          inputCount: all(doc, 'input,textarea').length,
-          tabbarExists: !!doc.querySelector('.tabbar'),
+          overflowing: over.slice(0, 10),
+          missingTexts: missing,
+          docScrollWidth: doc.documentElement.scrollWidth,
+          docScrollHeight: docH,
+          innerWidth: win.innerWidth,
+          nav: rect('.qf__nav'),
+          stepCard: rect('.step-card'),
+          cards: rects(CARDS),
+          cardStyles: [css('.card@@0', 'boxShadow'), css('.card@@1', 'boxShadow'), css('.card@@2', 'boxShadow')],
+          nameBox: rect('.input-box'),
+          counter: rect('.counter__text'),
+          dividers: rects('.divider'),
+          quoteNoBox: rect('.readonly-box'),
+          select: rect('.select'),
+          empty: rect('[data-testid="model-empty"]'),
+          emptyIcon: rect('.empty__icon'),
+          tip: rect('.tip'),
+          notices: rects('.notice'),
+          bar: rect('.qf__bar'),
+          draft: rect('.btn--ghost'),
+          save: rect('.btn--primary'),
+          iconBoxes: {
+            back: rect('.ic-back'), help: rect('.ic-help'), required: rect('.ic-required'),
+            doc: rect('.ic-doc'), infoSm: rect('.ic-info-sm'), infoBlue: rect('.ic-info-blue'),
+            key: rect('.ic-key'), chevron: rect('.ic-chevron'), empty: rect('.ic-empty'),
+            tip: rect('.ic-tip'), notice: rect('.ic-notice'), saveInfo: rect('.ic-save-info'), save: rect('.ic-save')
+          },
+          texts: {
+            navTitle: textOf('.nav__title'), navSub: textOf('.nav__subtitle'),
+            steps: texts('.step__title'), placeholder: textOf('.input-box__placeholder'),
+            counter: textOf('.counter__text'), quoteNo: textOf('.readonly-box__text'),
+            credValue: textOf('.select__value'), chip: textOf('[data-testid="chip-model"] .tag__text'),
+            emptyTitle: textOf('.empty__title'), emptyDesc: textOf('.empty__desc'),
+            tip: textOf('.tip__text'), notices: texts('.notice__text'),
+            barHint: textOf('.bar__hint-text'), draft: textOf('.btn--ghost'), save: textOf('.btn__text')
+          },
           userAgent: win.navigator.userAgent
         }
       }
@@ -174,18 +602,17 @@
         acc['phase' + n] = payload
         document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
       }
-      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
 
-      function collect1() {
+      function phase(n) {
         try {
-          var payload = collect(f.contentDocument, f.contentWindow)
-          f.style.height = payload.docScrollHeight + 'px'
-          acc.iframeHeightForShot = payload.docScrollHeight
-          sink(1, payload)
-          return payload
+          var payload = collect(f.contentDocument, f.contentWindow, n === 1)
+          if (n === 1 && !SHOT_ONLY) {
+            f.style.height = '900px' /* 保持取数高度：min-height:100vh 会把测量高度顶到 iframe 高 */
+            acc.iframeHeightForShot = payload.docScrollHeight
+          }
+          sink(n, payload)
         } catch (e) {
-          sink(1, { error: String(e && e.message) })
-          return null
+          sink(n, { error: String(e && e.message) })
         }
       }
 
@@ -198,11 +625,27 @@
         el.dispatchEvent(ev)
         return 'CLICKED'
       }
+
+      /** uni-app H5 的 <input> 渲染成 <uni-input> 宿主 → 必须写内层原生 input 才触发 v-model */
+      function typeName(value) {
+        var host = f.contentDocument.querySelector('[data-testid="name-input"]')
+        if (!host) return 'NOT_FOUND'
+        var el = host.tagName === 'INPUT' ? host : host.querySelector('input')
+        if (!el) return 'NO_NATIVE_INPUT'
+        el.focus()
+        el.value = value
+        el.dispatchEvent(new Event('input', { bubbles: true }))
+        return 'TYPED'
+      }
+
       function toastText(doc) {
         var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
         return el ? el.textContent.trim() : ''
       }
-      function hashNow() { try { return String(f.contentWindow.location.hash) } catch (e) { return 'ERR:' + e.message } }
+
+      function hashNow() {
+        try { return String(f.contentWindow.location.hash) } catch (e) { return 'ERR:' + e.message }
+      }
 
       function waitFor(sel, maxTries) {
         return new Promise(function (resolve) {
@@ -219,56 +662,64 @@
         })
       }
 
-      /** uni-app H5 的 <input> 渲染成 <uni-input> 宿主 → 必须写内层原生 input 才触发 v-model（见 dev SKILL §4.2） */
-      function typeName(value) {
-        var host = f.contentDocument.querySelector('[data-testid="name-input"]')
-        if (!host) return 'NOT_FOUND'
-        var el = host.tagName === 'INPUT' ? host : host.querySelector('input')
-        if (!el) return 'NO_NATIVE_INPUT'
-        el.focus()
-        el.value = value
-        el.dispatchEvent(new Event('input', { bubbles: true }))
-        return 'TYPED'
+      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
+      function textIn(sel) {
+        try { var e = f.contentDocument.querySelector(sel); return e ? e.textContent.trim() : null } catch (err) { return 'ERR:' + err.message }
+      }
+      function countIn(sel) {
+        try { return f.contentDocument.querySelectorAll(sel).length } catch (err) { return -1 }
       }
 
       async function main() {
-        await waitFor('.step-card')
-        await sleep(1200)
-        collect1()
-        if (location.search.indexOf('noaction') !== -1) return
+        try {
+          await waitFor('[data-testid="card-basic"]')
+          await sleep(1300)
+          phase(1)
+          if (NO_ACTION || SCENARIO !== 'actions') return
 
-        /* phase2：凭证选择（真实 GET /api/v1/credentials → /credentials/c1）→ 模型行带出 */
-        var openPanel = clickIn('[data-testid="cred-select"]')
-        await waitFor('[data-testid="cred-option-c1"]')
-        var panelVisible = !!f.contentDocument.querySelector('[data-testid="cred-panel"]')
-        var pick = clickIn('[data-testid="cred-option-c1"]')
-        await waitFor('[data-testid="model-row-gpt-4o"]')
-        await sleep(900)
-        sink(2, {
-          clickedSelect: openPanel,
-          panelVisible: panelVisible,
-          clickedOption: pick,
-          chipAfterPick: textOf(f.contentDocument, '[data-testid="chip-model"]'),
-          credValue: textOf(f.contentDocument, '[data-testid="cred-value"]'),
-          modelRows: texts(f.contentDocument, '[data-testid^="model-row-"]'),
-          modelRowCount: all(f.contentDocument, '[data-testid^="model-row-"]').length,
-          emptyStillThere: !!f.contentDocument.querySelector('[data-testid="model-empty"]')
-        })
+          /* phase2：凭证选择（真实 GET /api/v1/credentials → 选中 GET /api/v1/credentials/c1 → 模型行带出） */
+          var openPanel = clickIn('[data-testid="cred-select"]')
+          await waitFor('[data-testid="cred-option-c1"]')
+          var panelRows = countIn('[data-testid="cred-panel"] .panel__row')
+          var pick = clickIn('[data-testid="cred-option-c1"]')
+          await waitFor('[data-testid="model-row-gpt-4o"]')
+          await sleep(900)
+          sink(2, {
+            clickedSelect: openPanel,
+            panelRowCount: panelRows,
+            clickedOption: pick,
+            chipAfterPick: textIn('[data-testid="chip-model"] .tag__text'),
+            credValue: textIn('[data-testid="cred-value"]'),
+            modelRowCount: countIn('[data-testid^="model-row-"]'),
+            modelRows: (function () {
+              try {
+                return Array.prototype.slice.call(f.contentDocument.querySelectorAll('[data-testid^="model-row-"] .model__name')).map(function (e) { return e.textContent.trim() })
+              } catch (err) { return ['ERR:' + err.message] }
+            })(),
+            emptyStillThere: !!f.contentDocument.querySelector('[data-testid="model-empty"]'),
+            docH: Math.max(f.contentDocument.documentElement.scrollHeight, f.contentDocument.body.scrollHeight)
+          })
 
-        /* phase3：填名称 → 保存并继续 → 真实 POST /api/v1/quotes → toast + 跳模型定价页 */
-        var typed = typeName('2024Q3 主线路报价')
-        await sleep(1200)
-        var countText = textOf(f.contentDocument, '[data-testid="name-count"]')
-        var saveClick = clickIn('[data-testid="btn-save"]')
-        await sleep(2200)
-        sink(3, {
-          typed: typed,
-          countAfterType: countText,
-          clickedSave: saveClick,
-          toastAfterSave: toastText(f.contentDocument),
-          hashAfterSave: hashNow(),
-          pricingRendered: !!f.contentDocument.querySelector('[data-testid="pricing-title"], .pricing, .mp')
-        })
+          /* phase3：填名称 → 保存并继续 → 真实 POST /quotes → toast + 跳模型定价页
+             toast 必须在跳转前采样（1.5s 后会被 uni 收起；落地页自己的取数 toast 也会覆盖它） */
+          var typed = typeName('2024Q3 主线路报价')
+          await sleep(1200)
+          var countText = textIn('[data-testid="name-count"]')
+          var saveClick = clickIn('[data-testid="btn-save"]')
+          await sleep(900)
+          var toastAfterSave = toastText(f.contentDocument)
+          await sleep(1500)
+          sink(3, {
+            typed: typed,
+            countAfterType: countText,
+            clickedSave: saveClick,
+            toastAfterSave: toastAfterSave,
+            hashAfterSave: hashNow(),
+            pricingRendered: countIn('[data-testid="pricing-title"], .pricing, .mp') > 0
+          })
+        } catch (e) {
+          sink('error', { message: String(e && e.message), stack: String((e && e.stack) || '').slice(0, 600) })
+        }
       }
 
       main()

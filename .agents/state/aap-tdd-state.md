@@ -1,4 +1,4 @@
-STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 09:38（160 条 · 15→0）· 序号 4 已完成 09:55（212 条 · 45→0）· 序号 4-v1 已完成 10:20（249 条 · 78→0）· 序号 5 已完成 10:42（237 条 · 95→0）· 序号 6 已完成 11:5x（221 条 · 45→0，docH 4886→5343 = 设计帧高 5342）· 序号 7 已完成 11:3x（196 条 · 51→0，docH 1063→1111 = 设计帧高 1110）· 序号 8 已完成 11:5x（138 条 · 27→0，docH 1198→1206 = 设计帧高 1206）· 序号 9 已完成 2026-09-16 12:21（272 条 · 53→0，docH 1202→1212 = 设计帧高 1211，像素对账 68/68 命中，报告 `evidence/review-序号9-checks-报告.md`）· 序号 10 已完成 2026-09-16 12:5x（229 条 · 36→0，docH 1409 = 设计帧高，像素对账 56/56 命中 · 未命中 0，报告 `evidence/review-序号10-checks-报告.md`）· 序号 10.1 已完成 2026-09-16 13:0x（271 条 · 22→0，docH 1414 = 设计帧高，像素对账 31/33 = 97% 命中，报告 `evidence/review-序号10.1-checks-报告.md`）· **序号 11 已完成 2026-09-16 13:2x（`page-11`「【报价管理】模型定价-详情」：271 条 · 偏差 21→0，docH 1540，像素对账 内容列 59/62 + 条列 19/19（未命中 3 条 = ≤2px 小数坐标 / AA 带起点边界），报告 `evidence/review-序号11-checks-报告.md`）· **序号 12 已完成 2026-09-16 13:5x（`page-12-2`「报价预览与提交 2」→ `/pages/quote-preview/index`：126 条 checks · 偏差 10→0，docH 1027 = 设计帧高，像素对账 55 命中 / 3 未命中（投影衰减 + AA 阈值，非页面缺陷），报告 `evidence/review-序号12-checks-报告.md`）→ 下一轮开工做 序号 12-v1**（`page-26`「新增报价单-初始态」→ `/pages/quote-form/index`，载体页 `__measure-quote-form.html`，mock 目录 `api-12-v1`；对照表 `python .agents/state/survey-harness-routes.py`） ②队列 1 逐页复核（余下行的 checks 维度待补） ③队列 7（uni-picker 溢出口径）④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。⚠️ **序号↔路由映射一律以台账「目标路由」列为准**（序号 9 = `/pages/quote-models/index`；`/pages/model-pricing/index` 是序号 11）——此前在办项写错过一次（2026-09-16 12:05 轮已改正），勿再沿用。历史流水归档在 `aap-notes-archive-2026-09-16.md`，**不要每轮读**。
+STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 09:38（160 条 · 15→0）· 序号 4 已完成 09:55（212 条 · 45→0）· 序号 4-v1 已完成 10:20（249 条 · 78→0）· 序号 5 已完成 10:42（237 条 · 95→0）· 序号 6 已完成 11:5x（221 条 · 45→0，docH 4886→5343 = 设计帧高 5342）· 序号 7 已完成 11:3x（196 条 · 51→0，docH 1063→1111 = 设计帧高 1110）· 序号 8 已完成 11:5x（138 条 · 27→0，docH 1198→1206 = 设计帧高 1206）· 序号 9 已完成 2026-09-16 12:21（272 条 · 53→0，docH 1202→1212 = 设计帧高 1211，像素对账 68/68 命中，报告 `evidence/review-序号9-checks-报告.md`）· 序号 10 已完成 2026-09-16 12:5x（229 条 · 36→0，docH 1409 = 设计帧高，像素对账 56/56 命中 · 未命中 0，报告 `evidence/review-序号10-checks-报告.md`）· 序号 10.1 已完成 2026-09-16 13:0x（271 条 · 22→0，docH 1414 = 设计帧高，像素对账 31/33 = 97% 命中，报告 `evidence/review-序号10.1-checks-报告.md`）· **序号 11 已完成 2026-09-16 13:2x（`page-11`「【报价管理】模型定价-详情」：271 条 · 偏差 21→0，docH 1540，像素对账 内容列 59/62 + 条列 19/19（未命中 3 条 = ≤2px 小数坐标 / AA 带起点边界），报告 `evidence/review-序号11-checks-报告.md`）· **序号 12 已完成 2026-09-16 13:5x（`page-12-2`「报价预览与提交 2」→ `/pages/quote-preview/index`：126 条 checks · 偏差 10→0，docH 1027 = 设计帧高，像素对账 55 命中 / 3 未命中（投影衰减 + AA 阈值，非页面缺陷），报告 `evidence/review-序号12-checks-报告.md`）· **序号 12-v1 已完成 2026-09-16 14:1x（`page-26`「新增报价单-初始态」→ `/pages/quote-form/index`：286 条 · 偏差 45→0，docH 1241 = 设计 1238 + 提示卡 CJK 换行 3，像素对账 60 命中 / 11 未命中（投影衰减步长 + 卡2 以下 +3~4 顺延，非页面缺陷），报告 `evidence/review-序号12v1-checks-报告.md`）→ 下一轮开工做 序号 12-v2**（`page-apikey`「新增报价单-APIKey下拉展开」→ `/pages/quote-form/apikey`，载体页 `__measure-quote-form.html` 扩 iframe src 或另立 `__measure-quote-apikey.html`，mock 目录 `api-12-v2`；⚠️ `src/components/quote-form/QuoteFormView.vue` 是 12-v1/12-v2 **共用组件**，本轮样式改动连带该帧，需按 page-apikey 自己的 PNG 重锚） ②队列 1 逐页复核（余下行的 checks 维度待补） ③队列 7（uni-picker 溢出口径）④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。⚠️ **序号↔路由映射一律以台账「目标路由」列为准**（序号 9 = `/pages/quote-models/index`；`/pages/model-pricing/index` 是序号 11）——此前在办项写错过一次（2026-09-16 12:05 轮已改正），勿再沿用。历史流水归档在 `aap-notes-archive-2026-09-16.md`，**不要每轮读**。
 LEASE: free until -
 
 # AAP TDD 推进 · 状态与目标（自驱动循环的单一事实来源）
@@ -191,6 +191,17 @@ LEASE: free until -
      坑：list 助手对 `A@@N B` 型选择器必须走新增的 `resolveAll()`（否则拿到「全部 A 的文本」）· `collect()` 内的 `textOf` 在外层作用域不可见 ·
      `check-mock-fixtures.py` 默认模式会把 api-11 的路径打到 api 目录上假 FAIL（已改为「按每条 check 自带的 mock 目录分组、各起一次 serve」，2 组 FAIL 0）。
 
+   - ✅ **序号 12-v1 已完成 2026-09-16 14:1x**（cron 轮 `aap-tdd-run-20260916-1355`）：`__measure-quote-form.html` 由 277 行旧体例重写为 430 宽 iframe + **286 条 checks**
+     （want = `page-26` design.tree.json 声明值 + 设计 PNG 430×1238 像素实测）。红基线（`git stash` 复现修复前源码 + 同一份最终版探针两轮）**45/286** → 绿 **0/286**；
+     两轮独立测量 **28/28 字段全等**；`docScrollHeight 1241`（= 设计 1238 + 提示卡 CJK 换行 3）· 溢出 0 · 文案缺失 0。
+     修掉 **7 类偏差**：6 处 effects 投影（4 卡/条 + 保存按钮）· 4 处 center 描边 `border`→ring · 13 处图标盒（盒 = 声明宽 × 字号1.5，形状入 `::before`）+
+     返回/帮助圆角 50%→18px · 须知卡标题图标行盒 27→24 · 须知条目文案行盒 14.4→18 · 模型 chip 文案 10px/600→11px/500 · 标签行行盒 18→17.5。
+     像素对账 `cmp-序号12v1-设计PNGvs实现截图-结构带.txt` **命中 60 / 未命中 11**（3 条投影衰减步长 + 8 条卡2 以下 +3~4 顺延，均非页面缺陷）。
+     交互相两轮逐字段相同 + serve 实收请求行逐字节相同（7 行/轮）：首屏零请求 · 选择凭证 → `GET /credentials` + `GET /credentials/c1` → chip「已选 1 / 2」·
+     保存并继续 → 真实 `POST /quotes` + `POST /quotes/q9/items` → toast「保存成功」→ `#/pages/model-pricing/index?quoteId=q9`。
+     质量门：`npm test` 1178/1178 ×2 · `type-check` exit 0 · `build:mp-weixin` / `build:h5` DONE · `review-artifacts` 22/22 ·
+     报告 `evidence/review-序号12v1-checks-报告.md` · 截图 `logs/screenshots/20260916-1412-序12v1-新增报价单初始态-checks轮-h5-430宽.png`。
+     **下一轮开工第一件事**：队列 8 的 **序号 12-v2**（`page-apikey` → `/pages/quote-form/apikey`，mock `api-12-v2`；注意共用组件连带）。
    - ⚠️ 本轮踩到并写进 §5 的坑：重抓前必须先确认 Calicat 编辑器在浏览器里打开（否则 22 帧全 FAIL `请先在浏览器中打开文件`）；
      `cmp-measure-runs.py` 对扁平文件也要传 phase 名（传 `flat`）；Chrome `--screenshot` 的中文路径会被 MSYS 弄坏 → 先写 ASCII 临时名再 `cp`；
      探针自身 4 处口径错误（`.card__hint` 只有 2 处不是 3 处、`.card__title-row` 首个是 APIKey 卡、`.card__field` 的 8px 是 padding 不是间距、`declared()` 不认 `[data-testid=...]`）。
@@ -714,6 +725,33 @@ LEASE: free until -
 - **落地页的 fixture 也算本页的测量面**：提交成功 → `/pages/quotes/index` 会取 `GET /api/v1/quotes`，缺 fixture 时落地页弹错误 toast 并让「提交成功」证据失真 → 一并补进该页 mock 目录。
 - **本轮新增脚本**：`shot-12.sh`（430×1027 整页截图）· `append-12-note.py`（台账第 12 行回写，走文件避免引号转义问题）。
 
+### 5.9 本轮（13:55 轮 · 序号 12-v1）新增的工具与口径
+
+- **读 design.json（原始，非 tree）里某节点的完整 JSON**：`python .agents/state/raw-node.py <pageId> <idPrefix> ...`
+  —— `node-by-id.py` 打的是 tree 且值截断（220 字符），判「设计到底声明了什么」的最终依据用这个
+  （本轮靠它确认「空态说明」与「须知条目」两处 12px 文本的声明**完全一样**：fs12 / lineHeight 1.2 / fit_content，只有 width 不同）。
+- **PNG 尺寸**：`python .agents/state/png-size.py <a.png> [b.png]`（读 IHDR，比开图快）。
+- ⚠️ **同一页里同字号文本可以有不同行盒，且都从 PNG 反推**：page-26 实测 11px 文本行盒 **16.5**（字数提示盒 330..346.5，用 13.2 会把分隔线拉到 359 而非 362.5）、
+  12px 空态说明 **14.4**（空态盒 164.4 反证）、12px 须知条目 **18**（条目3 两行 36；用 14.4 只给 26 行墨迹而实测 31 行）。
+  → **不要用「1.2 还是 1.5」一刀切**：先量「该节点所在盒子的边界」再定行盒；同一页出现两套口径时**各按实测落地并登记 `designLiteralDiff`**（不统一、也不照抄）。
+- ⚠️ **判「卡片上下边界」的容差链**：卡片带 `drop_shadow(0,4,16)` 时，卡与卡之间 16px 间隙会被两张卡的投影同时染色 →
+  `png-rowclass`（白占比阈值）比 `png-rows`（同色带）稳，但两者都会把 AA/阴影首行并入相邻段；**定卡边界要用「卡内避文字的列」做 `scan-col` 并容忍 ±1**。
+- ⚠️ **`declared()` 的用途**：本轮用它把「设计 stroke 只能用 ring 表达」写成**反向断言**（`declared('.input-box','border') === null`），
+  比只断言 ring 更硬 —— 既锁住现值，也锁住「别再用 border 实现中心描边」。
+- ⚠️ **红基线要跑两遍（探针版本必须与绿一致）**：先建立探针 → 立刻用 `git stash push -- <源码文件>` + `build:h5` 跑红（两轮），
+  再 `git stash pop` + `build:h5` 跑绿（两轮）。本轮因此发现**探针初版自身 8 条期望值 bug**（nav.back.top 48→51、counter 行盒 13.2→16.5、
+  counter.right 382→398、pill.right 382→384、qno.box.top 404→406、hint 盒高 18→24、card2 高 287→291、若干容差）——
+  若不重跑，红基线数字（53）里混着探针 bug，红/绿不同版探针也失去意义（重跑后红 45 全为页面缺陷）。
+- ⚠️ **累计位移要拆开表述**：本页「卡2 以下整体 +3~4px」**唯一来源**是提示卡文案在设计稿里一行、浏览器 CJK 必然两行（盒 46 vs 42.5）；
+  因此 `page.cardHeights`/`docHeight`/`bar.top`/`notice.rowTops` 的绝对 want 只能给容差 2→4，
+  同时**补三条相对断言**（`page.gap12`/`gap23`/`gapToBar` = 16/16/20，容差 1）—— 相对断言不受累计取整影响，才是真的有牙齿。
+- **截面断言 vs 墨迹断言**：本页 `chkR('.hint@@0', 24)` 这类「容器 pad-top + 行盒」的合计必须**算在一起**（6 + 18），
+  只断行盒会漏掉 padding（此前轮次也踩过同一坑）。
+- **本轮新增脚本**：`shot-12v1.sh`（430×1241 整页截图）· `gen-12v1-checks-evidence.py`（红/绿/交互三段转录合成，含两轮一致性 + serve 实收请求行）·
+  `raw-node.py` / `png-size.py`（已在上一节说明）。
+- **共用组件帧的连带影响必须显式登记**：`QuoteFormView.vue` 由 12-v2 帧与 12-v1 共用 → 本轮改样式同时作用于 page-apikey 帧；
+  已核对 page-apikey 的卡/栏 effects 与本帧一致（0,4,16,.06 ×2 + 0,-4,16,.05，无冲突），但**标签行行盒 −0.5 会让该帧卡高微移**，写在台账备注里留给 12-v2 轮按本帧 PNG 重锚。
+
 - 2026-09-16 13:5x（cron 轮 `aap-tdd-run-20260916-1330`）· **队列 8 第 12 页：序号 12「报价预览与提交 2」载体页补「设计期望值 checks」维度（126 条 · 偏差 10→0）+ 7 类设计偏差修复 + 整页对齐设计帧 1027（像素对账 55 命中 / 3 未命中）**：
   ①**设计帧重抓（人工指令 C）**：重抓 `page-12-2`（layer_id `55b40659-f198-4a04-b36b-ce699c55c75d`）→ `design.json` sha256 `20f0f362…` **逐字节相同**（cmp 报 BYTE-IDENTICAL，无漂移）。
   ②**TDD 红→绿（本轮主交付）**：`__measure-quote-preview.html` 由 241 行旧体例重写为 **430 宽 iframe + 126 条 checks**（构建脚本 `build-probe-12.py`，三段骨架取自 `__measure-model-pricing.html`）；
@@ -728,3 +766,29 @@ LEASE: free until -
      纯测量轮两轮各只 1 行请求。**fixture 缺口先红后绿**：补 `api-12/v1/quotes/index`（落地页取数，缺则 404 且错误 toast 盖掉提交成功 toast）。
   ⑦**质量门**：`npm test` 1178/1178 ×2 · `type-check` exit 0 · `build:mp-weixin` DONE（wxss 含本轮设计值）· `build:h5` DONE · `review-artifacts` 22/22 · `check-mock-fixtures --mock api-12` 本页三条 PASS。
   ⑧**下轮开工第一件事**：队列 8 的 **序号 12-v1**（`page-26`「新增报价单-初始态」→ `/pages/quote-form/index`，载体页 `__measure-quote-form.html`，mock 目录 `api-12-v1`）。
+
+- 2026-09-16 14:1x（cron 轮 `aap-tdd-run-20260916-1355`）· **队列 8 第 13 页：序号 12-v1「新增报价单-初始态」载体页补「设计期望值 checks」维度（286 条 · 偏差 45→0）+ 7 类设计偏差修复（6 处 effects 投影 / 4 处 center 描边 border→ring / 13 处图标盒按设计图层）+ 整页对齐设计帧 1238（像素对账 60 命中 / 11 未命中）**：
+  ①**设计帧重抓（人工指令 C）**：重抓 `page-26`（layer_id `e9214640-519e-4671-a23e-ac03e92add54`）→ `design.json` sha256 `2e8d879b…` **逐字节相同**（无漂移）。
+  ②**TDD 红→绿（本轮主交付）**：`__measure-quote-form.html` 由 277 行旧体例重写为 **430 宽 iframe + 286 条 checks**
+     （want = `design.tree.json` 声明值 + 设计 PNG 430×1238 像素实测；两类来源口径写进探针头部注释）；
+     红基线（`git stash` 复现修复前源码 + **同一份最终版探针**两轮）**45/286** → 绿 **0/286**；两轮独立测量 **28/28 字段全等**；
+     `docScrollHeight 1241`（= 设计 1238 + 提示卡 CJK 换行 3）· 溢出 0 · 文案缺失 0。
+  ③**修掉 7 类偏差**（清单见 `evidence/review-序号12v1-checks-报告.md` §3）：6 处 effects 投影（4 卡/条 + 保存按钮）· 4 处 center 描边 `border`→ring ·
+     13 处图标盒（盒 = 声明宽 × 字号1.5，形状入 `::before`）+ 返回/帮助圆角 50%→18px · 须知卡标题图标行盒 27→24 ·
+     须知条目文案行盒 14.4→18（PNG 实测两行 36）· 模型 chip 文案 10px/600→11px/500 · 标签行行盒 18→17.5。
+  ④**本页定标**：图标字形行盒 = 字号 × 1.5（四处交叉验证：底栏 fs13→19.5 使底栏恰 117.5 · 卡3 标题 fs16→24 使卡3 恰 156 · 提示卡 fs15→22.5 使卡高 42.5 · nav fs18→27）·
+     文本行盒 11px→**16.5** / 12px 空态说明→**14.4** / 12px 须知条目→**18**（设计自身两套口径，各按 PNG 实测落地并登记）；
+     卡高：步骤卡 65 · 卡1 425.5 · 卡2 287.5 · 卡3 156 · 底栏 117.5 = 12 + 19.5 + 10 + 48 + 28。
+  ⑤**像素对账**：`cmp-bands-6`（±3）**命中 60 / 未命中 11**；未命中逐条 `scan-col` 判读 —— 3 条在卡片投影**渐变**上（Figma/Chrome 阴影衰减步长差）·
+     8 条全落在**卡2 以下**（+3~4，唯一来源 = 提示卡文案「带出的模型数量与凭证权限相关…」设计稿一行、浏览器 CJK 必然两行，盒 46 vs 42.5）→ 已 `designLiteralDiff` 登记，不在 1–4px 上 churn。
+  ⑥**交互相有牙齿**：`?scenario=actions` 两轮逐字段相同 + serve 实收请求行**逐字节相同**（7 行/轮）——
+     首屏**零请求**（guard 证明）· 点选择框 `GET /credentials` → 选 c1 `GET /credentials/c1` → chip「已选 1 / 2」+ 2 行模型 ·
+     填名称「12/30」→ 保存并继续 → 真实 `POST /quotes`（body `{name, credential_id}`）+ `POST /quotes/q9/items` → toast「保存成功」→ `#/pages/model-pricing/index?quoteId=q9` 落地页渲染。
+     **fixture 缺口先红后绿**：补 `api-12-v1/v1/quotes/q9/items`（落地页取数，缺则 404 且错误 toast 盖掉成功 toast）。
+  ⑦**质量门**：`npm test` **1178/1178 · 72 files 连跑两轮**（14:08 / 14:13）· `type-check` exit 0 · `build:mp-weixin` DONE（组件 wxss 含本轮设计值：ring ×4/×1/×1 · 投影 ×4 ·
+     `width:29px;height:39px` · `height:22.5px` ×2 · `line-height:17.5px` ×2 · `line-height:18px` ×5）· `build:h5` DONE · `review-artifacts` 22/22 ·
+     截图 `logs/screenshots/20260916-1412-序12v1-新增报价单初始态-checks轮-h5-430宽.png`（430×1241）。
+  ⑧**探针自身 8 条期望值 bug** 已修正并留证（见 §5.9 与报告 §5）；**共用组件连带**：`QuoteFormView.vue` 同批改动也作用于 12-v2 帧（page-apikey 的卡/栏 effects 与本帧一致，
+     无冲突；标签行行盒 −0.5 会让该帧卡高微移，留给 12-v2 轮按本帧 PNG 重锚）。
+  ⑨**下轮开工第一件事**：队列 8 的 **序号 12-v2**（`page-apikey`「新增报价单-APIKey下拉展开」→ `/pages/quote-form/apikey`，
+     载体页需扩 `__measure-quote-form.html`（iframe src 切 `#/pages/quote-form/apikey`）或另立 `__measure-quote-apikey.html`，mock 目录 `api-12-v2`）。

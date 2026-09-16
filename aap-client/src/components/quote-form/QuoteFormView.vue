@@ -192,7 +192,7 @@
           <text class="card__title" data-testid="card-models-title">{{ CARD_MODELS }}</text>
           <view class="card__spacer" />
           <view class="tag" data-testid="chip-model">
-            <text class="tag__text tag__text--muted">{{ modelChip }}</text>
+            <text class="tag__text tag__text--chip">{{ modelChip }}</text>
           </view>
         </view>
 
@@ -255,9 +255,9 @@
       </view>
 
       <!-- 填写须知卡（f4fab5a4；本帧有 / page-apikey 帧无 → 见 variantFlags）-->
-      <view v-if="flags.showNotice" class="card" data-testid="card-notice">
+      <view v-if="flags.showNotice" class="card card--notice" data-testid="card-notice">
         <view class="card__head">
-          <view class="head-icon" :style="{ height: iconLineBox(18) + 'px' }">
+          <view class="head-icon" :style="{ height: iconLineBox(16) + 'px' }">
             <view class="ic ic-notice" />
           </view>
           <text class="card__title card__title--sm" data-testid="card-notice-title">{{ CARD_NOTICE }}</text>
@@ -272,7 +272,7 @@
             <view class="notice__dot">
               <text class="notice__no" data-testid="notice-index">{{ i + 1 }}</text>
             </view>
-            <text class="notice__text" data-testid="notice-text" :style="{ lineHeight: textLineBox(12) + 'px' }">{{
+            <text class="notice__text" data-testid="notice-text" :style="{ lineHeight: NOTICE_TEXT_LINE_BOX + 'px' }">{{
               item
             }}</text>
           </view>
@@ -331,6 +331,7 @@ import {
   NAME_MAX,
   NAME_PLACEHOLDER,
   NOTICES,
+  NOTICE_TEXT_LINE_BOX,
   PAGE_SUBTITLE,
   PAGE_TITLE,
   QUOTE_NO_HINT,
@@ -506,7 +507,7 @@ async function submit(advance: boolean) {
 .nav__help {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: 18px; /* design 018ac574/a6afa87b cornerRadius 18（不写 50%，圆角取设计声明值） */
   background: $color-bg-subtle;
   display: flex;
   align-items: center;
@@ -548,8 +549,14 @@ async function submit(advance: boolean) {
   padding: 16px;
   border-radius: 16px;
   background: $color-bg-card;
+  /* design effects：基本信息卡 82bbea2b / 模型列表卡 9fabffe3 = drop_shadow(0,4,16,rgba(15,23,42,0.06)) */
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
   display: flex;
   flex-direction: column;
+}
+/* design effects：填写须知卡 f4fab5a4 = drop_shadow(0,4,16,rgba(15,23,42,0.05)) */
+.card--notice {
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
 }
 .card__head {
   display: flex;
@@ -590,13 +597,14 @@ async function submit(advance: boolean) {
   flex-shrink: 0;
 }
 
-/* 步骤卡 */
+/* 步骤卡（design 7acff570 effects drop_shadow(0,4,16,rgba(15,23,42,0.05))） */
 .step-card {
   width: 100%;
   box-sizing: border-box;
   padding: 16px;
   border-radius: 16px;
   background: $color-bg-card;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
   display: flex;
   align-items: center;
 }
@@ -692,13 +700,13 @@ async function submit(advance: boolean) {
   font-size: 13px;
   font-weight: 600;
   color: $color-text-secondary-2;
-  line-height: 18px;
+  line-height: 17.5px; /* PNG 实测：标签行 17.5（输入框顶 276.5 = 251 + 17.5 + 8；取 18 会让卡1 与下方锚点整体 +0.5） */
 }
 .label__star {
   font-size: 13px;
   font-weight: 600;
   color: $color-danger;
-  line-height: 18px;
+  line-height: 17.5px;
 }
 .field__inner {
   padding-top: 8px;
@@ -712,7 +720,7 @@ async function submit(advance: boolean) {
   background: $color-bg-subtle;
 }
 
-/* 名称输入框 */
+/* 名称输入框（design d2fd0412：bg #F8FAFC · stroke{align:center,thickness:0.8} #E2E8F0 → ring，border 会占布局） */
 .input-box {
   width: 100%;
   height: 48px;
@@ -720,7 +728,7 @@ async function submit(advance: boolean) {
   padding: 0 14px;
   border-radius: 12px;
   background: $color-bg-page;
-  border: 0.8px solid $color-border;
+  box-shadow: 0 0 0 0.8px $color-border;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -755,7 +763,7 @@ async function submit(advance: boolean) {
   padding: 0 14px;
   border-radius: 12px;
   background: $color-bg-subtle;
-  border: 0.8px solid $color-border-strong;
+  box-shadow: 0 0 0 0.8px $color-border-strong; /* design bdd719bb stroke 0.8 #CBD5E1 → ring（不占布局） */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -830,14 +838,14 @@ async function submit(advance: boolean) {
   padding: 0 14px;
   border-radius: 12px;
   background: $color-bg-card;
-  border: 0.8px solid $color-border;
+  box-shadow: 0 0 0 0.8px $color-border; /* design 6d71d189 stroke 0.8 #E2E8F0 → ring */
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 .select--open {
   border-radius: 12px 12px 0 0;
-  border-color: $color-primary;
+  box-shadow: 0 0 0 0.8px $color-primary;
 }
 .select--open .select__keybox {
   background: $color-primary-weak;
@@ -1073,6 +1081,12 @@ async function submit(advance: boolean) {
   font-weight: 600;
   color: $color-text-placeholder;
 }
+/* 模型列表卡标题行 chip「待带出 / 已选 N / M」（design c26a8591 fs11 Medium #94A3B8，h20 r10 #F1F5F9） */
+.tag__text--chip {
+  font-size: 11px;
+  font-weight: 500;
+  color: $color-text-placeholder;
+}
 
 /* 说明行 */
 .hint {
@@ -1194,10 +1208,11 @@ async function submit(advance: boolean) {
   line-height: 14.4px; /* 设计 lineHeight 1.2（见 textLineBox(12)） */
 }
 
-/* 底部操作条 */
+/* 底部操作条（design 0bf8e01d effects drop_shadow(0,-4,16,rgba(15,23,42,0.05))） */
 .qf__bar {
   background: $color-bg-card;
   padding: 12px 16px 28px;
+  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.05);
 }
 .bar__hint {
   display: flex;
@@ -1227,7 +1242,7 @@ async function submit(advance: boolean) {
   width: 128px;
   box-sizing: border-box;
   background: $color-bg-card;
-  border: 0.8px solid $color-border;
+  box-shadow: 0 0 0 0.8px $color-border; /* design dbfc6853 stroke 0.8 #E2E8F0 → ring */
   font-size: 14px;
   font-weight: 600;
   color: $color-text-muted;
@@ -1236,6 +1251,7 @@ async function submit(advance: boolean) {
 .btn--primary {
   flex: 1;
   background: $color-primary;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28); /* design d88fa94a effects drop_shadow(0,6,16,rgba(37,99,235,0.28)) */
   gap: 8px;
 }
 .btn__text {
@@ -1244,70 +1260,119 @@ async function submit(advance: boolean) {
   color: #ffffff;
 }
 
-/* 图标（设计稿为 remixicon 字形 → CSS 形状占位，见台账登记） */
+/* 图标（设计稿为 remixicon 字形 → CSS 形状占位，见台账登记）
+   盒 = 设计图层声明宽 × 字号×1.5 行盒（形状画进 ::before，盒子尺寸即设计图层尺寸） */
 .ic {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
+  position: relative;
 }
+.ic::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+/* 返回（字形 0848e539 fs18 w20 → 20×27） */
 .ic-back {
+  width: 20px;
+  height: 27px;
+}
+.ic-back::before {
   width: 10px;
   height: 10px;
   border-left: 2px solid $color-text-secondary-2;
   border-bottom: 2px solid $color-text-secondary-2;
-  transform: rotate(45deg);
+  transform: translate(-50%, -50%) rotate(45deg);
 }
+/* 帮助（字形 f85b3b09 fs18 w20 → 20×27） */
 .ic-help {
+  width: 20px;
+  height: 27px;
+}
+.ic-help::before {
   width: 16px;
   height: 16px;
   border-radius: 50%;
   border: 2px solid $color-text-muted;
   box-sizing: border-box;
 }
+/* 必填（字形 a5fa8e6b fs10 w12 → 12×15） */
 .ic-required {
+  width: 12px;
+  height: 15px;
+}
+.ic-required::before {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   border: 2px solid $color-danger;
   box-sizing: border-box;
 }
+/* 名称清除（字形 b6d94567 fs16 w18 → 18×24） */
 .ic-clear {
+  width: 18px;
+  height: 24px;
+}
+.ic-clear::before {
   width: 14px;
   height: 14px;
   border-radius: 50%;
   background: $color-border-strong;
 }
+/* 单号文档（字形 da005976 fs16 w18 → 18×24） */
 .ic-doc {
+  width: 18px;
+  height: 24px;
+}
+.ic-doc::before {
   width: 16px;
   height: 14px;
   border-radius: 2px;
   background: $color-text-placeholder;
 }
+/* 单号说明 info（字形 75897c47 fs12 w14 → 14×18） */
 .ic-info-sm {
+  width: 14px;
+  height: 18px;
+}
+.ic-info-sm::before {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   border: 1.5px solid $color-text-placeholder;
   box-sizing: border-box;
 }
+/* 凭证说明 info（字形 4158bae3 fs12 w14 → 14×18） */
 .ic-info-blue {
+  width: 14px;
+  height: 18px;
+}
+.ic-info-blue::before {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   border: 1.5px solid $color-primary;
   box-sizing: border-box;
 }
+/* 凭证选择 chevron（字形 d338b2d8 fs20 w22 → 22×30） */
 .ic-chevron {
+  width: 22px;
+  height: 30px;
+}
+.ic-chevron::before {
   width: 8px;
   height: 8px;
   border-right: 2px solid $color-text-placeholder;
   border-bottom: 2px solid $color-text-placeholder;
-  transform: rotate(45deg);
+  transform: translate(-50%, -50%) rotate(45deg);
 }
 /* 展开态：箭头朝上 + 主色（设计 566c12d1 的 chevron #2563EB） */
-.ic-chevron--up {
+.ic-chevron--up::before {
   border-color: $color-primary;
-  transform: rotate(-135deg);
+  transform: translate(-50%, -50%) rotate(-135deg);
 }
 /* 面板候选项图标（设计 34×34 底内的 17px 字形 → CSS 形状占位；选中为白）
    注：用「实心圆」而不是描边方块 —— 描边方块在 430 宽截图里会被误读成复选框（vision 实测），
@@ -1358,7 +1423,12 @@ async function submit(advance: boolean) {
   height: 7px;
   transform: translate(-50%, -50%);
 }
+/* 凭证选择钥匙（字形 f1d3c758 fs15 w17 → 17×22.5） */
 .ic-key {
+  width: 17px;
+  height: 22.5px;
+}
+.ic-key::before {
   width: 14px;
   height: 14px;
   border-radius: 50%;
@@ -1378,32 +1448,57 @@ async function submit(advance: boolean) {
   border: 1.5px solid $color-border-strong;
   box-sizing: border-box;
 }
+/* 空态字形（01ec37e6 fs26 w29 → 29×39） */
 .ic-empty {
+  width: 29px;
+  height: 39px;
+}
+.ic-empty::before {
   width: 24px;
   height: 24px;
   border-radius: 4px;
   background: $color-primary-border-light;
 }
+/* 提示卡 info（字形 70e950fc fs15 w17 → 17×22.5） */
 .ic-tip {
+  width: 17px;
+  height: 22.5px;
+}
+.ic-tip::before {
   width: 14px;
   height: 14px;
   border-radius: 50%;
   border: 2px solid $color-primary;
   box-sizing: border-box;
 }
+/* 填写须知标题（字形 3987dfa6 fs16 w18 → 18×24） */
 .ic-notice {
+  width: 18px;
+  height: 24px;
+}
+.ic-notice::before {
   width: 18px;
   height: 18px;
   border-radius: 3px;
   background: $color-text-muted;
 }
+/* 底栏保存说明（字形 05adee9c fs13 w15 → 15×19.5） */
 .ic-save-info {
+  width: 15px;
+  height: 19.5px;
+}
+.ic-save-info::before {
   width: 13px;
   height: 13px;
   border-radius: 50%;
   background: $color-border-strong;
 }
+/* 保存按钮（字形 e286703a fs18 w20 → 20×27） */
 .ic-save {
+  width: 20px;
+  height: 27px;
+}
+.ic-save::before {
   width: 14px;
   height: 14px;
   background: #ffffff;

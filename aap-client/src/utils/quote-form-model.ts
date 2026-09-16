@@ -100,6 +100,12 @@ export function textLineBox(fontSize: number): number {
   return fontSize * TEXT_LINE_RATIO
 }
 
+/**
+ * 须知条目文案行盒 = 18（page-26 设计 PNG 实测：条目3 两行 1047..1083 = 36，行距 15→18 才对得上；
+ * 同页空态说明 12px 走 1.2 = 14.4，设计自身两套口径 → 按各自 PNG 实测落地，不统一也不照抄）
+ */
+export const NOTICE_TEXT_LINE_BOX = 18
+
 export const STEP_ACTIVE = { no: 1, title: '填写信息', desc: '名称 / 密钥 / 单号' }
 export const STEP_INACTIVE = { no: 2, title: '设置报价', desc: '模型定价' }
 
