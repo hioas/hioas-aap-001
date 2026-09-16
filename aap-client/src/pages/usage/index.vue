@@ -5,6 +5,10 @@
       顶部导航 0..96 · 12 · 本月汇总卡 108..336(228) · 12 · 近 7 日用量趋势卡 348..570(222) ·
       12 · 模型用量分布卡 582..766(184) · 12 · 成本构成卡 778..985(207) · 12 · 明细入口卡 997..1057(60) ·
       底部说明 1057..1138（padding 24/0/24/0）
+    checks 复核轮（载体页 __measure-usage.html · 267 条设计期望值 checks · 红 8 → 绿 0）修 5 类偏差：
+      汇总卡 padding 20 → 20/16（宫格 36..175 → 32..178.5）· 补设计 effects drop_shadow(0,6,20,.06) ·
+      月份日历字形盒 17×15 → 17×22.5 · 下箭头字形盒 18×15 → 18×24（并去掉形状的 margin-bottom 3 让墨迹居中）·
+      月份文字行盒 18 → 14.4（设计 lineHeight 1.2）
   -->
   <view class="usage">
     <!-- 顶部导航（design 30e7ff99：白底 padding 48/16/12/16 · 内容行 36 = 24px 图标 × 1.5） -->
@@ -312,7 +316,7 @@ onMounted(load)
   display: block;
   font-size: $font-xs;
   font-weight: 500;
-  line-height: 18px;
+  line-height: 14.4px; /* 设计 lineHeight 1.2 × 12 */
   color: $color-text-secondary;
 }
 
@@ -346,10 +350,10 @@ onMounted(load)
   }
 }
 
-/* 设计声明宽 17（remixicon 15px）→ 外盒 17×15，内层形状 12×12 贴墨迹 12×12 */
+/* 设计声明宽 17（remixicon 15px）→ 外盒 17×22.5（= 字号 × 1.5 字形行盒），内层形状 12×12 贴墨迹 14×13 */
 .glyph--calendar {
   width: 17px;
-  height: 15px;
+  height: 22.5px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -364,10 +368,10 @@ onMounted(load)
   }
 }
 
-/* 设计声明宽 18（remixicon 16px）→ 外盒 18×15，内层形状 8×8 */
+/* 设计声明宽 18（remixicon 16px）→ 外盒 18×24（= 字号 × 1.5 字形行盒），内层形状 8×8 */
 .glyph--chevron-down {
   width: 18px;
-  height: 15px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -376,7 +380,6 @@ onMounted(load)
     content: '';
     width: 8px;
     height: 8px;
-    margin-bottom: 3px;
     border-right: 1.5px solid $color-text-placeholder;
     border-bottom: 1.5px solid $color-text-placeholder;
     transform: rotate(45deg);
@@ -414,6 +417,13 @@ onMounted(load)
 .card--cost,
 .card--detail {
   box-shadow: 0 0 0 1px $color-border-chip;
+}
+
+/* 本月汇总卡（design 811a53eb）：padding 20/16（左右 16 → 宫格 32..398 宽 178.5）、
+   只有 effects drop_shadow(0,6,20,rgba(15,23,42,.06))、无 stroke → 与其余四卡相反，逐帧按设计走 */
+.card--summary {
+  padding: 20px 16px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
 }
 
 .card__title {

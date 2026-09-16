@@ -324,6 +324,55 @@ CHECKS = [
         "must": ["phone"],
         "check": lambda d: bool(d.get("phone")),
     },
+    # ---- 序号 22「【工作台与我的】我的与用量概览 2」/pages/usage/index（唯一读接口 /usage/summary，
+    #      月份维度用查询串区分：首屏取当前月、picker 确认后取所选月）----
+    {
+        "mock": "api-22",
+        "method": "GET",
+        "path": "/api/v1/usage/summary?month=2026-09",
+        "why": "序号 22 首屏取数：四宫格（请求数 / Token / 费用 / 较上月节省）",
+        "must": ["month", "request_count", "total_tokens", "amount_total", "mom_saved_amount", "daily", "models", "cost"],
+        "check": lambda d: d.get("month") == "2024-06" and d.get("request_count") == 1240000 and d.get("total_tokens") == 3860000000,
+    },
+    {
+        "mock": "api-22",
+        "method": "GET",
+        "path": "/api/v1/usage/summary?month=2024-06",
+        "why": "序号 22 月份 picker 确认后的第二次取数（本轮交互证据：serve 实收 ?month=2024-06）",
+        "must": ["month"],
+        "check": lambda d: d.get("month") == "2024-06",
+    },
+    {
+        "mock": "api-22",
+        "method": "GET",
+        "path": "/api/v1/usage/summary",
+        "why": "序号 22 趋势卡：7 个逐日点（stat_date + total_tokens → 折线 / 面积 / 横轴标签）",
+        "must": ["daily"],
+        "check": lambda d: len(d.get("daily") or []) == 7
+        and all(x.get("stat_date") and x.get("total_tokens") for x in d["daily"]),
+    },
+    {
+        "mock": "api-22",
+        "method": "GET",
+        "path": "/api/v1/usage/summary",
+        "why": "序号 22 模型用量分布卡：4 行占比 42/31/21/6（share → 条宽 / 百分比）",
+        "must": ["models"],
+        "check": lambda d: [m.get("model_name") for m in (d.get("models") or [])]
+        == ["gpt-4o-mini", "claude-3-5-sonnet", "gpt-4o", "其他"]
+        and [m.get("share") for m in d["models"]] == [42, 31, 21, 6],
+    },
+    {
+        "mock": "api-22",
+        "method": "GET",
+        "path": "/api/v1/usage/summary",
+        "why": "序号 22 成本构成卡：输入/输出/平台服务费（费率 8）+ 合计",
+        "must": ["cost"],
+        "check": lambda d: d["cost"].get("input") == 4120
+        and d["cost"].get("output") == 8240
+        and d["cost"].get("platform_fee") == 500
+        and d["cost"].get("platform_fee_rate") == 8
+        and d["cost"].get("total") == 12860,
+    },
 ]
 
 

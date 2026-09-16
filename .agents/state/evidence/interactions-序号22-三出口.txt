@@ -1,0 +1,22 @@
+序号 22 交互相（三出口 · 各两轮 · serve 实收请求行逐字节比对）
+
+==== back：返回 = navigation（navigateBack；H5 无栈 → hash 不变 + 零写请求） ====
+  run1 phase2: {"scenario": "back", "clicked": "CLICKED", "hash": "#/pages/usage/index", "toast": "", "cardCount": 5, "windowMark": null}
+  run1 requests(2): "GET /api/v1/usage/summary?month=2026-09 HTTP/1.1" 200 - | "GET /api/v1/usage/summary?month=2026-09 HTTP/1.1" 200 -
+  run2 phase2: {"scenario": "back", "clicked": "CLICKED", "hash": "#/pages/usage/index", "toast": "", "cardCount": 5, "windowMark": null}
+  run2 requests(2): "GET /api/v1/usage/summary?month=2026-09 HTTP/1.1" 200 - | "GET /api/v1/usage/summary?month=2026-09 HTTP/1.1" 200 -
+  两轮 requests：逐字节相同
+
+==== month：月份 picker = client-only + 重新取数（uni-picker 覆盖层 → 确认 → 第二次 GET 带新 month） ====
+  run1 phase2: {"scenario": "month", "clickedHost": "CLICKED", "overlay": [{"tag": "UNI-PICKER", "cls": "nav__picker"}, {"tag": "DIV", "cls": "uni-picker-container uni-date-select"}, {"tag": "DIV", "cls": "uni-mask uni-picker-mask uni-fade-enter-from uni-fade-enter-active"}, {"tag": "DIV", "cls": "uni-picker-toggle uni-picker-custom"}, {"tag": "DIV", "cls": "uni-picker-header"}, {"tag": "DIV", "cls": "uni-picker-action uni-picker-a
+  run1 requests(2): "GET /api/v1/usage/summary?month=2026-09 HTTP/1.1" 200 - | "GET /api/v1/usage/summary?month=2024-06 HTTP/1.1" 200 -
+  run2 phase2: {"scenario": "month", "clickedHost": "CLICKED", "overlay": [{"tag": "UNI-PICKER", "cls": "nav__picker"}, {"tag": "DIV", "cls": "uni-picker-container uni-date-select"}, {"tag": "DIV", "cls": "uni-mask uni-picker-mask uni-fade-enter-from uni-fade-enter-active"}, {"tag": "DIV", "cls": "uni-picker-toggle uni-picker-custom"}, {"tag": "DIV", "cls": "uni-picker-header"}, {"tag": "DIV", "cls": "uni-picker-action uni-picker-a
+  run2 requests(2): "GET /api/v1/usage/summary?month=2026-09 HTTP/1.1" 200 - | "GET /api/v1/usage/summary?month=2024-06 HTTP/1.1" 200 -
+  两轮 requests：逐字节相同
+
+==== detail：「查看逐日 / 逐模型明细」= 无落点（画布无明细页）→ no-op：hash 不变 / 无 toast / 无新请求 ====
+  run1 phase2: {"scenario": "detail", "clicked": "CLICKED", "hash": "#/pages/usage/index", "toast": "", "detailText": "查看逐日 / 逐模型明细"}
+  run1 requests(1): "GET /api/v1/usage/summary?month=2026-09 HTTP/1.1" 200 -
+  run2 phase2: {"scenario": "detail", "clicked": "CLICKED", "hash": "#/pages/usage/index", "toast": "", "detailText": "查看逐日 / 逐模型明细"}
+  run2 requests(1): "GET /api/v1/usage/summary?month=2026-09 HTTP/1.1" 200 -
+  两轮 requests：逐字节相同
