@@ -159,7 +159,7 @@
           </view>
           <text class="detail-summary" data-testid="detail-summary">{{ model.detailSummary }}</text>
 
-          <view v-for="section in model.sections" :key="section.code" class="group">
+          <view v-for="(section, index) in model.sections" :key="section.code" class="group">
             <view class="group__head">
               <view class="group__bar" :style="{ background: section.color }" />
               <text class="group__title" data-testid="section-title">{{ section.title }}</text>
@@ -187,10 +187,16 @@
               <view v-if="row.statusKey === 'scored'" class="item__score">
                 <text class="item__score-text" data-testid="item-score">{{ row.scoreText }}</text>
               </view>
-              <view v-else class="item__pill" :class="`item__pill--${row.statusKey}`">
+              <view
+                v-else
+                class="item__pill"
+                :class="[`item__pill--${row.statusKey}`, { 'item__pill--value': row.statusIsValue }]"
+              >
                 <text class="item__pill-text" data-testid="item-status">{{ row.scoreText }}</text>
               </view>
             </view>
+            <!-- design：分组之间补 1px 分隔线（分隔线A–F），末组与权重说明盒之间无 -->
+            <view v-if="index < model.sections.length - 1" class="group__sep" />
           </view>
 
           <view class="note-box">{{ model.weightNote }}</view>
@@ -861,6 +867,7 @@ onMounted(async () => {
 .dim__text {
   margin-left: 6px;
   font-size: 12px;
+  font-weight: 500; /* design 177b7f5f fontFamily=SourceHanSans-Medium */
   line-height: 16px; /* design：均分行高 16（PNG 实测行距 28 = 16 + 12） */
   color: $color-text-secondary-2;
 }
@@ -884,6 +891,7 @@ onMounted(async () => {
   text-align: right;
   margin-left: 8px;
   font-size: 12px;
+  font-weight: 700; /* design 0947f700 fontFamily=SourceHanSans-Bold */
   line-height: 16px;
   color: $color-text-primary;
 }
@@ -923,7 +931,10 @@ onMounted(async () => {
   padding-top: 8px;
   font-size: 11px;
   color: $color-text-placeholder;
-  line-height: 24px;
+  /* design 8485b93b「明细说明」frame h=24 = padding-top 8 + 行盒 16（叶子 068c8976 fs11）
+     修前把 frame 的 24 当成行盒 → 盒高 32、说明行墨迹比设计低 4px、其下 7 个分组整体低 8px
+     （设计 PNG 实测 1476..1486 vs 修前实现 1480..1490，evidence/cmp-序号6-明细卡纵向对账.txt） */
+  line-height: 16px;
 }
 
 .group {
@@ -933,10 +944,15 @@ onMounted(async () => {
   width: 100%;
 }
 
-/* design：分组之间（以及最后一个分组与权重说明盒之间）有 16 高间隔条
-   （design.tree.json 的 spacer 8a882495 = 357×16；PNG 实测组标题 ink 间距 A→B = 437 与 421+16 自洽） */
-.group + .group {
+/* design：分组之间 = spacer 16（如 79fe8295）+ 1px 分隔线（分隔线A–F，rgba(238,242,247,1)）；
+   末组与权重说明盒之间只有 spacer 16（design 8a882495）。
+   旧注释「PNG 实测组标题 ink 间距 A→B = 437」是拿实现自己的算术（421+16）反证自己 —— 漏了这条 1px 分隔线；
+   设计 PNG 实测 A→B = 438，分隔线落在 1926..1927（evidence/cmp-序号6-明细卡纵向对账.txt）。 */
+.group__sep {
   margin-top: 16px;
+  height: 1px;
+  flex-shrink: 0;
+  background: $color-border-chip; /* rgba(238,242,247,1) */
 }
 
 .group__head {
@@ -1082,6 +1098,13 @@ onMounted(async () => {
   color: $color-text-muted;
 }
 
+/* G 组各类的「值 pill」：设计里值是**数据**图层（ef69fd0e 等 fs11 / Regular），
+   与状态标签 pill（未申报/仅证据/不可测，fs10 / SemiBold）不是同一套字号字重 */
+.item__pill--value .item__pill-text {
+  font-size: 11px;
+  font-weight: 400;
+}
+
 .item__pill--not_declared,
 .item__pill--not_measurable {
   background: $color-warning-weak-2;
@@ -1094,6 +1117,8 @@ onMounted(async () => {
 
 .item__pill-text {
   font-size: 10px;
+  /* design 状态标签 pill：e247efe0「未申报」/ 66800e15「不可测」/ 1b3c9a9f「仅证据」均 SemiBold */
+  font-weight: 600;
   color: $color-text-muted;
 }
 
@@ -1149,7 +1174,7 @@ onMounted(async () => {
 
 .finding__title {
   font-size: 12px;
-  font-weight: 700; /* design：发现标题 Bold */
+  font-weight: 600; /* design 2ba0333a fontFamily=SourceHanSans-SemiBold */
   color: $color-text-primary;
   line-height: 18px;
 }
@@ -1251,6 +1276,7 @@ onMounted(async () => {
 .action__ghost-text {
   margin-left: 6px;
   font-size: 14px;
+  font-weight: 500; /* design a3023014 fontFamily=SourceHanSans-Medium */
   color: $color-text-secondary-2;
 }
 

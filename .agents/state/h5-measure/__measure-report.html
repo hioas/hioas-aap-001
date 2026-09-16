@@ -136,6 +136,13 @@
           if (f === 'h' || f === 'height') return r.h
           return r
         }
+        function chkArr(key, got, want, tol) {
+          checks++
+          var t = tol == null ? 0 : tol
+          var ok = got && want && got.length === want.length && want.every(function (w, i) { return Math.abs(got[i] - w) <= t })
+          if (!ok) fails.push({ k: key, got: got ? got.join(',') : null, want: want.join(','), tol: t })
+          return got ? got.join(',') : null
+        }
         function chkR(key, sel, want, tol) { return chk(key, rectField(sel, key), want, tol) }
         function chkC(key, sel, prop, want, tol) { return chk(key, css(sel, prop), want, tol) }
         function rects(sel) {
@@ -313,7 +320,8 @@
           'rgb(238, 242, 247) 0px 0px 0px 0.8px', 0)
         chkR('card4.titleRow.h', '.card#3 .card__title-row', 20)
         chkC('card4.summary.padTop', '.detail-summary', 'paddingTop', 8)
-        chkC('card4.summary.h', '.detail-summary', 'height', 24)
+        chkC('card4.summary.h', '.detail-summary', 'height', 16)
+        /* design 明细说明 8485b93b：frame h=24 = padding-top 8 + 行盒 16（叶子 068c8976 fs11） */
         chkC('card4.summary.fs', '.detail-summary', 'fontSize', 11)
         chkC('card4.summary.color', '.detail-summary', 'color', 'rgb(148, 163, 184)')
         chkR('card4.group.head.h', '.group__head', 18, 1)
@@ -355,7 +363,7 @@
         chk('card4.groupPitch', (function () {
           var g = Array.prototype.map.call(doc.querySelectorAll('.group'), function (e) { return Math.round(e.getBoundingClientRect().top) })
           return g.length > 1 ? g[1] - g[0] : null
-        })(), 437, 2) /* = 组高 421（16+18+14+9 项 373）+ 组间间隔 16 */
+        })(), 438, 1) /* = 组高 421 + spacer 16 + 分隔线 1（design 分隔线A；PNG 实测组标题 ink 间距 438） */
         chkR('card4.item.row0.w', '.item', 358, 1)
         chkR('card4.item.pill.w', '.item__pill', 62, 2)
         chkR('card4.item.pill.h', '.item__pill', 18, 1)
@@ -382,7 +390,7 @@
         chkC('card5.finding.pad', '.finding', 'paddingTop', 12)
         chkC('card5.finding.radius', '.finding', 'borderRadius', 12)
         chkC('card5.finding.title.fs', '.finding__title', 'fontSize', 12)
-        chkC('card5.finding.title.fw', '.finding__title', 'fontWeight', 700)
+        chkC('card5.finding.title.fw', '.finding__title', 'fontWeight', 600)
         chkC('card5.finding.title.lh', '.finding__title', 'lineHeight', 18)
         chkC('card5.finding.body.fs', '.finding__body', 'fontSize', 11)
         chkC('card5.finding.body.lh', '.finding__body', 'lineHeight', 17)
@@ -428,6 +436,28 @@
         chkC('bar.quoteText.fs', '.action__primary-text', 'fontSize', 15)
         chkC('bar.quoteText.fw', '.action__primary-text', 'fontWeight', 700)
         chkC('bar.exportText.fs', '.action__ghost-text', 'fontSize', 14)
+
+        /* ---------- 文本叶子维度（设计叶子声明值 ↔ 实现 computed；审计 27 class 收口） ---------- */
+        /* want 来源：page-6 design.tree.json 的 fontFamily→字重 / fontSize / 显式 height；
+           行盒另有设计 PNG 实测（.agents/state/design-shots/page-6.png vs 实现截图），
+           逐类对账见 evidence/cmp-序号6-设计PNGvs实现截图-行盒判读.txt 与 …明细卡纵向对账.txt */
+        chkC('tl.ghostExport.fw', '.action__ghost-text', 'fontWeight', 500)   /* design a3023014 Medium */
+        chkC('tl.findingTitle.fw', '.finding__title', 'fontWeight', 600)      /* design 2ba0333a SemiBold */
+        chkC('tl.dimText.fw', '.dim__text', 'fontWeight', 500)                /* design 177b7f5f Medium */
+        chkC('tl.dimScore.fw', '.dim__score', 'fontWeight', 700)              /* design 0947f700 Bold */
+        chkC('tl.pillStatus.fs', '.item__pill:not(.item__pill--value) .item__pill-text', 'fontSize', 10)
+        chkC('tl.pillStatus.fw', '.item__pill:not(.item__pill--value) .item__pill-text', 'fontWeight', 600)
+        /* design e247efe0「未申报」/ 66800e15「不可测」/ 1b3c9a9f「仅证据」= fs10 + SemiBold（状态标签 pill） */
+        chkC('tl.pillValue.fs', '.item__pill--value .item__pill-text', 'fontSize', 11)
+        chkC('tl.pillValue.fw', '.item__pill--value .item__pill-text', 'fontWeight', 400)
+        /* design ef69fd0e「20.42.xx.xx · AS8075 Azure」= fs11 w142（G 组的值 pill，是数据不是标签） */
+        chkC('tl.summary.lh', '.detail-summary', 'lineHeight', 16)
+        chkR('tl.summary.outer.h', '.detail-summary', 24, 1)                  /* = pad-top 8 + 行盒 16（design frame h=24） */
+        chk('tl.groupSep.count', doc.querySelectorAll('.group__sep').length, 6) /* design 分隔线A–F（G 之后无） */
+        chkC('tl.groupSep.h', '.group__sep', 'height', 1)
+        chkC('tl.groupSep.bg', '.group__sep', 'backgroundColor', 'rgb(238, 242, 247)')
+        chkR('tl.groupTitle.top', '.group__title', 1504, 1)                   /* design PNG A 组标题 ink 1508 → 盒顶 1504 */
+        chkArr('tl.cardTops', rects('.card').map(function (r) { return r.top }), [105, 533, 896, 1425, 4400, 4822, 5120], 1)
 
         /* ---------- 整页 ---------- */
         chk('page.docHeight', Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight), 5342, 6)

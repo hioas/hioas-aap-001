@@ -1,0 +1,29 @@
+feat(aap-client): 6-检测报告 文本叶子维度收口（27 待判读 → 0 · 243 条 checks 绿）
+
+设计真源：page-6（layer_id 0f0755e4-…，帧名「【检测验真】大模型检测报告 · 多维度专业版」）
+want = design.tree.json 声明值 + 设计 PNG（430×5342）像素实测。
+
+修 7 组声明值偏差（设计 fontFamily/fontSize → 实现）：
+- .action__ghost-text 字重 500（a3023014 Medium）
+- .finding__title 700→600（2ba0333a SemiBold）
+- .dim__text 字重 500（177b7f5f Medium）
+- .dim__score 字重 700（0947f700 Bold）
+- 状态标签 pill 字重 600（e247efe0/1b3c9a9f/66800e15 SemiBold）
+- G 组「值 pill」fs 10→11 / 400（ef69fd0e fs11 w142）→ 模型新增 statusIsValue + item__pill--value
+- .detail-summary 行盒 24→16（design 8485b93b frame h=24 = padding-top 8 + 行盒 16）
+
+修 2 处结构偏差（像素对账抓出）：
+- 分组之间补 design 的 1px 分隔线（分隔线A–F）→ .group__sep（原只有 margin 16，每组少 1px）
+- .detail-summary 把 frame 的 24 当行盒 → 盒高 32、说明行墨迹低 4px、其下 7 组整体低 8px
+
+18 组经设计 PNG 逐类 ink 带实测判定为非偏差，登记 textleaf-accept.json（19 条）。
+
+证据：载体页 228→243 条 checks，红基线 16/243（源码 stash 复现 + 同版探针两轮 JSON 逐字节相同）
+→ 绿 0/243 · docH 5343→5341（设计 5342）· cardTops 与设计逐项相同 · 两轮 25/25 字段全等；
+像素对账 14 类 ink 带设计=实现逐条相同；六个分隔线落在与设计相同的行。
+单测 3 条新用例（红 3 failed → 1185/1185 · 72 files 连跑两轮）· type-check exit 0 ·
+build:mp-weixin（wxml 含 group__sep、js 含 item__pill--value/statusIsValue、wxss 含 font-size:11px/font-weight:600/line-height:16px）·
+build:h5 · review-artifacts 22/22 · check-mock-fixtures --mock api FAIL 0 ·
+?scenario=actions 两轮 requests 逐字节相同（export 200 + toast + hash 不变；填写报价 → quote-models）。
+
+报告：evidence/review-序号6-textleaf-报告.md

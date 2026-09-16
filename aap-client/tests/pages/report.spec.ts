@@ -132,6 +132,19 @@ describe('序号 6 · 页面：关键指标 / 维度总览 / 明细三卡', () =
     expect(texts(w, '[data-testid="item-metric"]')[0]).toBe('P50 268 ms')
   })
 
+  it('分组之间有 6 条 1px 分隔线（design 分隔线A–F），末组与权重说明盒之间没有', async () => {
+    const w = await mountPage()
+    expect(w.findAll('.group__sep')).toHaveLength(6)
+  })
+
+  it('证据组的值 pill 走值样式（item__pill--value），状态标签 pill 不走', async () => {
+    const w = await mountPage()
+    const valuePills = w.findAll('.item__pill--value')
+    expect(valuePills).toHaveLength(6)
+    expect(valuePills.map((n) => n.text())).toContain('20.42.xx.xx · AS8075 Azure')
+    expect(valuePills.some((n) => n.text() === '仅证据')).toBe(false)
+  })
+
   it('未申报 / 仅证据 / 不可测 三类状态词出现在明细里', async () => {
     const w = await mountPage()
     const all = w.findAll('[data-testid="section-item"]').map((n) => n.text())

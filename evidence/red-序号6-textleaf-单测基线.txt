@@ -1,0 +1,81 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+ [31m❯[39m tests/unit/report-model.spec.ts [2m([22m[2m34 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[90m 22[2mms[22m[39m
+[31m   [31m×[31m 序号 6 · 模型：全维度明细卡（55 项 / 7 分组）[2m > [22m区分「值 pill」与「状态标签 pill」：G 组各项的值是数据，F 组的仅证据/不可测是标签[90m 7[2mms[22m[31m[39m
+[31m     → expected false to be true // Object.is equality[39m
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+ [31m❯[39m tests/pages/report.spec.ts [2m([22m[2m19 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 563[2mms[22m[39m
+[31m   [31m×[31m 序号 6 · 页面：关键指标 / 维度总览 / 明细三卡[2m > [22m分组之间有 6 条 1px 分隔线（design 分隔线A–F），末组与权重说明盒之间没有[90m 35[2mms[22m[31m[39m
+[31m     → expected [] to have a length of 6 but got +0[39m
+[31m   [31m×[31m 序号 6 · 页面：关键指标 / 维度总览 / 明细三卡[2m > [22m证据组的值 pill 走值样式（item__pill--value），状态标签 pill 不走[90m 30[2mms[22m[31m[39m
+[31m     → expected [] to have a length of 6 but got +0[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 3 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/report.spec.ts[2m > [22m序号 6 · 页面：关键指标 / 维度总览 / 明细三卡[2m > [22m分组之间有 6 条 1px 分隔线（design 分隔线A–F），末组与权重说明盒之间没有
+[31m[1mAssertionError[22m: expected [] to have a length of 6 but got +0[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 6[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/pages/report.spec.ts:[2m137:38[22m[39m
+    [90m135| [39m  [34mit[39m([32m'分组之间有 6 条 1px 分隔线（design 分隔线A–F），末组与权重说明盒[39m…
+    [90m136| [39m    [35mconst[39m w [33m=[39m [35mawait[39m [34mmountPage[39m()
+    [90m137| [39m    [34mexpect[39m(w[33m.[39m[34mfindAll[39m([32m'.group__sep'[39m))[33m.[39m[34mtoHaveLength[39m([34m6[39m)
+    [90m   | [39m                                     [31m^[39m
+    [90m138| [39m  })
+    [90m139| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/report.spec.ts[2m > [22m序号 6 · 页面：关键指标 / 维度总览 / 明细三卡[2m > [22m证据组的值 pill 走值样式（item__pill--value），状态标签 pill 不走
+[31m[1mAssertionError[22m: expected [] to have a length of 6 but got +0[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 6[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/pages/report.spec.ts:[2m143:24[22m[39m
+    [90m141| [39m    [35mconst[39m w [33m=[39m [35mawait[39m [34mmountPage[39m()
+    [90m142| [39m    [35mconst[39m valuePills [33m=[39m w[33m.[39m[34mfindAll[39m([32m'.item__pill--value'[39m)
+    [90m143| [39m    [34mexpect[39m(valuePills)[33m.[39m[34mtoHaveLength[39m([34m6[39m)
+    [90m   | [39m                       [31m^[39m
+    [90m144| [39m    [34mexpect[39m(valuePills[33m.[39m[34mmap[39m((n) [33m=>[39m n[33m.[39m[34mtext[39m()))[33m.[39m[34mtoContain[39m([32m'20.42.xx.xx · A[39m…
+    [90m145| [39m    [34mexpect[39m(valuePills[33m.[39m[34msome[39m((n) [33m=>[39m n[33m.[39m[34mtext[39m() [33m===[39m [32m'仅证据'[39m))[33m.[39m[34mtoBe[39m([35mfalse[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/report-model.spec.ts[2m > [22m序号 6 · 模型：全维度明细卡（55 项 / 7 分组）[2m > [22m区分「值 pill」与「状态标签 pill」：G 组各项的值是数据，F 组的仅证据/不可测是标签
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/unit/report-model.spec.ts:[2m270:67[22m[39m
+    [90m268| [39m    [90m// 而 F 组标签 pill 的图层（1b3c9a9f「仅证据」/ 66800e15「不可测」[39m…
+    [90m269| [39m    [90m// → 两者必须能在视图模型里被区分（否则实现只能二选一，必然错一半）[39m
+    [90m270| [39m    [34mexpect[39m(model[33m.[39msections[[34m6[39m][33m.[39mitems[33m.[39m[34mevery[39m((i) [33m=>[39m i[33m.[39mstatusIsValue))[33m.[39m[34mtoBe[39m…
+    [90m   | [39m                                                                  [31m^[39m
+    [90m271| [39m    [35mconst[39m f2 [33m=[39m model[33m.[39msections[[34m5[39m][33m.[39mitems[[34m1[39m]
+    [90m272| [39m    [34mexpect[39m(f2[33m.[39mscoreText)[33m.[39m[34mtoBe[39m([32m'仅证据'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m50 passed[39m[22m[90m (53)[39m
+[2m   Start at [22m 19:23:07
+[2m   Duration [22m 2.19s[2m (transform 469ms, setup 79ms, collect 670ms, tests 585ms, environment 1.29s, prepare 226ms)[22m
+

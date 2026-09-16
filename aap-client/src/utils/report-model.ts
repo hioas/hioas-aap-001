@@ -229,6 +229,9 @@ export interface ReportItemRow {
   barPercent: number
   color: string
   statusKey: ItemStatusKey
+  /** true = pill 里显示的是该项的**服务端值**（G 组「真实源证据」各类），
+   *  不是「未申报 / 仅证据 / 不可测」这类状态标签 —— 两者字体规格不同（设计：值 fs11/Regular，标签 fs10/SemiBold） */
+  statusIsValue: boolean
 }
 
 export interface ReportSectionView {
@@ -468,7 +471,8 @@ function toItem(raw: ReportSectionItemRaw, index: number, sectionScored: boolean
     scoreText,
     barPercent: statusKey === 'scored' && score !== null ? Math.round(score) : 0,
     color,
-    statusKey
+    statusKey,
+    statusIsValue: !meta && !status && !sectionScored && value !== ''
   }
 }
 

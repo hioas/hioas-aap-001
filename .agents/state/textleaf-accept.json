@@ -34,6 +34,182 @@
       "reason": "该行高由设计声明决定 = 渲染 19.5（与标题同族：SourceHanSans CJK 行框）；行两侧墨迹带 214..226 完全相同。",
       "evidence": "evidence/textleaf-accept-序号8-png-pitch.txt",
       "at": "2026-09-16 18:40"
+    },
+    {
+      "page": "page-6",
+      "tag": "6",
+      "class": "card__title",
+      "declared": "fs15 × lh1.2 = 18（封面卡 fs12 → 14.4）",
+      "impl": "封面卡 18 / 其余卡 20",
+      "verdict": "not-a-deviation",
+      "reason": "design PNG 实测：综合检测结论 x56..134 → 设计 131..142 = 实现 131..142；关键指标 x46..112 → 设计 556..570 = 实现 556..570。行盒若缩到 18/14.4 会把卡高与卡间距拉离设计 PNG 的 pitch。",
+      "evidence": "evidence/cmp-序号6-设计PNGvs实现截图-行盒判读-修后.txt + evidence/cmp-序号6-明细卡纵向对账-修后.txt",
+      "at": "2026-09-16 19:30"
+    },
+    {
+      "page": "page-6",
+      "tag": "6",
+      "class": "metric__label",
+      "declared": "fs10.5 × lh1.2 = 12.6",
+      "impl": "line-height 15",
+      "verdict": "not-a-deviation",
+      "reason": "design PNG 实测 x45..124：设计 604..613 = 实现 604..613（模型指纹相似度行）。",
+      "evidence": "evidence/cmp-序号6-设计PNGvs实现截图-行盒判读-修后.txt + evidence/cmp-序号6-明细卡纵向对账-修后.txt",
+      "at": "2026-09-16 19:30"
+    },
+    {
+      "page": "page-6",
+      "tag": "6",
+      "class": "metric__sub",
+      "declared": "fs10 × lh1.2 = 12",
+      "impl": "line-height 14",
+      "verdict": "not-a-deviation",
+      "reason": "design PNG 实测 x229..308：设计 830..831 + 840..849 = 实现 830..831 + 840..849（30 分钟观测窗口行）。",
+      "evidence": "evidence/cmp-序号6-设计PNGvs实现截图-行盒判读-修后.txt + evidence/cmp-序号6-明细卡纵向对账-修后.txt",
+      "at": "2026-09-16 19:30"
+    },
+    {
+      "page": "page-6",
+      "tag": "6",
+      "class": "metric__value",
+      "declared": "fs19 × lh1.2 = 22.8",
+      "impl": "line-height 24",
+      "verdict": "not-a-deviation",
+      "reason": "design PNG 实测 x45..92：设计 612..613 + 625..640 = 实现同值（0.93 值行；Extrabold 19px 的自然行盒 24）。",
+      "evidence": "evidence/cmp-序号6-设计PNGvs实现截图-行盒判读-修后.txt + evidence/cmp-序号6-明细卡纵向对账-修后.txt",
+      "at": "2026-09-16 19:30"
+    },
+    {
+      "page": "page-6",
+      "tag": "6",
+      "class": "group__title",
+      "declared": "fs13 × lh1.2 = 15.6",
+      "impl": "line-height 18",
+      "verdict": "not-a-deviation",
+      "reason": "design PNG 实测 x46..214 七个组标题 ink：A 1508..1520 / B 1946..1958 / C 2341..2353 / D 2735..2748 / E 3217..3229 / F 3611..3624 / G 4006..4019 —— 实现修后逐条相同（修前整体 +8，根因是明细说明行盒，不是组标题）。",
+      "evidence": "evidence/cmp-序号6-设计PNGvs实现截图-行盒判读-修后.txt + evidence/cmp-序号6-明细卡纵向对账-修后.txt",
+      "at": "2026-09-16 19:30"
+    },
+    {
+      "page": "page-6",
+      "tag": "6",
+      "class": "score__meta-text",
+      "declared": "fs12 × lh1.2 = 14.4",
+      "impl": "line-height 17",
+      "verdict": "not-a-deviation",
+      "reason": "design PNG 实测 x93..148：设计 173..184 + 191..201 = 实现同值（综合评分 / 满分 100 两行）。",
+      "evidence": "evidence/cmp-序号6-设计PNGvs实现截图-行盒判读-修后.txt + evidence/cmp-序号6-明细卡纵向对账-修后.txt",
+      "at": "2026-09-16 19:30"
+    },
+    {
+      "page": "page-6",
+      "tag": "6",
+      "class": "radar__label",
+      "declared": "design 叶子 8c889494 自身 h=12.43 与 lh=1.31（11×1.31=14.41）互相矛盾",
+      "impl": "line-height 1.31（=14.41）",
+      "verdict": "not-a-deviation",
+      "reason": "设计树里该 paragraph 自己声明 lineHeight=1.31，实现按 1.31 落地；design PNG x204..232：设计 962..972 = 实现 962..972。",
+      "evidence": "evidence/cmp-序号6-设计PNGvs实现截图-行盒判读-修后.txt + evidence/cmp-序号6-明细卡纵向对账-修后.txt",
+      "at": "2026-09-16 19:30"
+    },
+    {
+      "page": "page-6",
+      "tag": "6",
+      "class": "report-page__no",
+      "declared": "fs11 × lh1.2 = 13.2",
+      "impl": "line-height 16",
+      "verdict": "not-a-deviation",
+      "reason": "该帧的顶部栏文本是 frame 5d860a4b 显式 h=16（叶子 202cd360 为 fill_container）→ 判据①显式 height 优先；2026-09-16 17:45 轮已按 design PNG 墨迹 x318..412 w95 核定并加口径锁（evidence/序号6-报告编号前缀核定.txt）。",
+      "evidence": "evidence/cmp-序号6-设计PNGvs实现截图-行盒判读-修后.txt + evidence/cmp-序号6-明细卡纵向对账-修后.txt",
+      "at": "2026-09-16 19:30"
+    },
+    {
+      "page": "page-6",
+      "tag": "6",
+      "class": "disclaimer__body",
+      "declared": "设计叶子 h=51（块高，不是单行行盒）",
+      "impl": "line-height 17 · 块高 50",
+      "verdict": "not-a-deviation",
+      "reason": "51 = 3 行 × 17；实现块高 50（±1 = 设计小数坐标链取整）。审计把「多行块高」与「单行行盒」直接比较，属模型口径差。",
+      "evidence": "evidence/cmp-序号6-设计PNGvs实现截图-行盒判读-修后.txt + evidence/cmp-序号6-明细卡纵向对账-修后.txt",
+      "at": "2026-09-16 19:30"
+    },
+    {
+      "page": "page-6",
+      "tag": "6",
+      "class": "evidence-row__value",
+      "declared": "设计叶子 h=32（块高）",
+      "impl": "line-height 16 · 块高 32",
+      "verdict": "not-a-deviation",
+      "reason": "32 = 2 行 × 16；实现块高 32（逐行相同）。",
+      "evidence": "evidence/cmp-序号6-设计PNGvs实现截图-行盒判读-修后.txt + evidence/cmp-序号6-明细卡纵向对账-修后.txt",
+      "at": "2026-09-16 19:30"
+    },
+    {
+      "page": "page-6",
+      "tag": "6",
+      "class": "finding__body",
+      "declared": "设计叶子 h=34（块高）",
+      "impl": "line-height 17 · 块高 33",
+      "verdict": "not-a-deviation",
+      "reason": "34 = 2 行 × 17；实现块高 33（±1）。",
+      "evidence": "evidence/cmp-序号6-设计PNGvs实现截图-行盒判读-修后.txt + evidence/cmp-序号6-明细卡纵向对账-修后.txt",
+      "at": "2026-09-16 19:30"
+    },
+    {
+      "page": "page-6",
+      "tag": "6",
+      "class": "note-box",
+      "declared": "设计叶子 h=48（块高）",
+      "impl": "line-height 16 · 块高 72",
+      "verdict": "not-a-deviation",
+      "reason": "48 = 3 行 × 16；实现 3 行 × 16 + padding 12×2 = 72（design 104230be frame = 同值）。",
+      "evidence": "evidence/cmp-序号6-设计PNGvs实现截图-行盒判读-修后.txt + evidence/cmp-序号6-明细卡纵向对账-修后.txt",
+      "at": "2026-09-16 19:30"
+    },
+    {
+      "page": "page-6",
+      "tag": "6",
+      "class": "verdict-box__text",
+      "declared": "设计叶子 h=38（块高）",
+      "impl": "line-height 19 · 块高 36",
+      "verdict": "not-a-deviation",
+      "reason": "38 = 2 行 × 19；实现块高 36（±2 = 设计小数坐标 + H5 回退字体），17:45 轮已逐行核对墨迹。",
+      "evidence": "evidence/cmp-序号6-设计PNGvs实现截图-行盒判读-修后.txt + evidence/cmp-序号6-明细卡纵向对账-修后.txt",
+      "at": "2026-09-16 19:30"
+    },
+    {
+      "page": "page-6",
+      "tag": "6",
+      "class": "detail-summary",
+      "declared": "fs11 × lh1.2 = 13.2",
+      "impl": "line-height 16（本轮按设计 frame 修正）",
+      "verdict": "not-a-deviation",
+      "reason": "design 明细说明 8485b93b frame h=24 = padding-top 8 + 行盒 16 → 行盒 16；design PNG 1476..1486 = 实现 1476..1486。",
+      "evidence": "evidence/cmp-序号6-设计PNGvs实现截图-行盒判读-修后.txt + evidence/cmp-序号6-明细卡纵向对账-修后.txt",
+      "at": "2026-09-16 19:30"
+    },
+    {
+      "page": "page-6",
+      "tag": "6",
+      "class": "dim__text",
+      "declared": "fs12 × lh1.2 = 14.4",
+      "impl": "line-height 16",
+      "verdict": "not-a-deviation",
+      "reason": "design PNG 实测 x46..120 六行维度名 ink：设计 1208..1219 / 1236..1247 / 1264..1275 / 1292..1303 / 1320..1331 / 1348..1359 = 实现逐行相同（行距 28 = 行盒 16 + 12；缩到 14.4 会破坏 28 的行距）。",
+      "evidence": "evidence/cmp-序号6-设计PNGvs实现截图-行盒判读-修后.txt + evidence/cmp-序号6-明细卡纵向对账-修后.txt",
+      "at": "2026-09-16 19:30"
+    },
+    {
+      "page": "page-6",
+      "tag": "6",
+      "class": "dim__score",
+      "declared": "fs12 × lh1.2 = 14.4",
+      "impl": "line-height 16",
+      "verdict": "not-a-deviation",
+      "reason": "design PNG 实测 x366..400 六行分值 ink：设计 1210..1219 / 1238..1247 / 1266..1275 / 1294..1303 / 1322..1331 / 1350..1359 = 实现逐行相同（与维度名列同一行盒）。",
+      "evidence": "evidence/cmp-序号6-设计PNGvs实现截图-行盒判读-修后.txt + evidence/cmp-序号6-明细卡纵向对账-修后.txt",
+      "at": "2026-09-16 19:30"
     }
   ]
 }

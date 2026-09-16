@@ -263,7 +263,22 @@ describe('序号 6 · 模型：全维度明细卡（55 项 / 7 分组）', () =>
     expect(model.sections[6].items[5].scoreText).toBe('未检出 cf-ray')
   })
 
-  it('明细说明行由真实条数派生（46 计入总分 · 7 仅证据 · 1 未申报 · 1 不可测 · 打分 0–100）', () => {
+  it('区分「值 pill」与「状态标签 pill」：G 组各项的值是数据，F 组的仅证据/不可测是标签', () => {
+    // 设计依据：G 组各项的值图层（如 ef69fd0e「20.42.xx.xx · AS8075 Azure」）声明 fs=11 / Regular，
+    // 而 F 组标签 pill 的图层（1b3c9a9f「仅证据」/ 66800e15「不可测」）声明 fs=10 / SemiBold(600)
+    // → 两者必须能在视图模型里被区分（否则实现只能二选一，必然错一半）
+    expect(model.sections[6].items.every((i) => i.statusIsValue)).toBe(true)
+    const f2 = model.sections[5].items[1]
+    expect(f2.scoreText).toBe('仅证据')
+    expect(f2.statusIsValue).toBe(false)
+    const f7 = model.sections[5].items[6]
+    expect(f7.scoreText).toBe('不可测')
+    expect(f7.statusIsValue).toBe(false)
+    // 计分行的分值不是 pill，也不许被标成值 pill
+    expect(model.sections[0].items[0].statusIsValue).toBe(false)
+  })
+
+  it('明细说明行由真实条数派生（46 计入总分 · 7 仅证据 · 1 项未申报 · 1 项不可测 · 打分 0–100）', () => {
     expect(model.detailSummary).toBe('46 项计入总分 · 7 项仅证据 · 1 项未申报 · 1 项不可测 · ' + DETAIL_SCORE_HINT)
     expect(DETAIL_SCORE_HINT).toBe('打分 0–100')
     expect(model.itemCountText).toBe('共 55 项')
