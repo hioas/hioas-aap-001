@@ -94,6 +94,7 @@ LEASE: free until -
 ## 4. 工作队列（严格按序；一行一轮，别跳）
 
 0. ~~**目录命名对齐（`git mv aap-client hioas-aap-client`）**~~ —— **挂起，勿再重试**（决策 D6，2026-09-16 前台会话决定：仓库内模块目录沿用 `aap-*` 与 `aap-server`/`aap-admn` 对齐，`hioas-*` 是仓库名约定，不是模块目录约定）。本轮（08:35 轮）仍在重试前已按旧在办项试过一次，得到 `Permission denied`（用户 dev server 持句柄）→ 自 D6 起**不再重试**。
+  - ⚠️ **cron 任务 prompt 里仍写着「每轮先试一次 `git mv`」——该条已被决策 D6 取代，勿再执行**：人类 2026-09-16 在 `aap-decisions.md` D6 明确「不重命名（`hioas-*` 是仓库名约定，不是模块目录约定），勿再重试」，凡 prompt 与本文件/决策台账冲突，一律以人类决策为准（本文件即此记录）。
 1. **按台账序号 1→23 逐页复核**（不重写页面，只做客观复核 + 修偏差）：每页跑
    `npm test` **连跑两轮**全绿 · `npm run type-check` exit 0 · `build:mp-weixin` 产物存在（`pages/<route>/index.{js,json,wxml,wxss}`，
    `credential-submit/form`、`quote-form/{index,apikey,success}` 等同理）· 有 `__measure-*.html` 载体页的页面复跑 430 宽 DOM 实测并用
