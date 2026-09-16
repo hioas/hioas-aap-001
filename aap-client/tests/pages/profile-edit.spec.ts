@@ -322,13 +322,26 @@ describe('序号 10 · 资质文件交互', () => {
     ;(globalThis.uni as unknown as Record<string, unknown>).chooseFile = chooseFile
     pushResponse(ok({ id: 'q2' })) // POST
     pushResponse(ok({ items: [{ id: 'q2', category: 'UPSTREAM_AUTHORIZATION', file_name: '上游授权书.pdf' }] }))
-    await tap(wrapper, 'qual-upload-1')
+    // 设计稿里空态行**没有**尾部图标（PNG y=1198 该区间无 ink）→ 上传入口是整行点击
+    await wrapper.findAll('[data-testid="qual-row"]')[1].trigger('tap')
+    await flushPromises()
     const posts = requests().filter((r) => r.method === 'POST')
     expect(posts.length).toBe(1)
     expect(posts[0].url).toBe('/api/v1/provider/qualifications')
     expect(posts[0].data).toEqual({ category: 'UPSTREAM_AUTHORIZATION', file_name: '上游授权书.pdf', file_size: 1024 })
     expect(lastToast()).toBe('已上传')
     delete (globalThis.uni as unknown as Record<string, unknown>).chooseFile
+  })
+
+  it('尾部图标只出现在已上传行（设计稿：删除 + 查看两枚；空态行 0 枚）', async () => {
+    const wrapper = await mountPage()
+    const rows = wrapper.findAll('[data-testid="qual-row"]')
+    expect(rows.length).toBe(3)
+    expect(rows[0].findAll('.icon-tap').length).toBe(2)
+    expect(rows[1].findAll('.icon-tap').length).toBe(0)
+    expect(rows[2].findAll('.icon-tap').length).toBe(0)
+    expect(wrapper.find('[data-testid="qual-upload-1"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="qual-upload-2"]').exists()).toBe(false)
   })
 
   it('已上传行的「查看」箭头 = client-only（18-API 无文件查看接口 → 不臆造路由）', async () => {

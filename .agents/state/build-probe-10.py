@@ -1,4 +1,40 @@
-<!doctype html>
+"""Build __measure-profile-edit.html (序号 10 · page-10-2) from the 序号 9 probe idiom.
+
+head/helpers/tail are lifted verbatim from __measure-quote-setup.html so the two probes
+share exactly one implementation of chk()/rect()/declared()/splitSel().
+"""
+import io
+import os
+
+ROOT = r"E:/workspaces/hioas/hioas-aap-001"
+HM = os.path.join(ROOT, ".agents/state/h5-measure")
+SRC = os.path.join(HM, "__measure-quote-setup.html")
+DST = os.path.join(HM, "__measure-profile-edit.html")
+
+with io.open(SRC, encoding="utf-8") as fh:
+    src = fh.read().split("\n")
+
+
+def find(needle, start=0):
+    for i in range(start, len(src)):
+        if needle in src[i]:
+            return i
+    raise SystemExit("not found: " + needle)
+
+
+i_var = find("var f = document.getElementById('f')")
+i_helpers_end = find("var CARDS = '.card'")
+i_tail_start = find("function sink(n, payload)")
+i_load = find("f.addEventListener('load'")
+i_end = find("</script>")
+
+helpers = "\n".join(src[i_var:i_helpers_end])
+helpers = helpers.replace("f.style.height = '1211px'", "f.style.height = '1409px'")  # 本页设计帧高 1409
+tail = "\n".join(src[i_tail_start:i_load])
+# 本页 checks 跑在 phase1（设计稿态），不是 phase2
+tail = tail.replace("n === 2)", "n === 1)")
+
+HEAD = r"""<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -49,220 +85,9 @@
     <script>
       /* quote-setup 的帮手块里没有顶层 all()（它内部用 doc.querySelectorAll + map.call）→ 本页补齐 */
       function all(doc, sel) { return Array.prototype.slice.call(doc.querySelectorAll(sel)) }
-      var f = document.getElementById('f')
-      var acc = {}
-      var SCENARIO = (location.search.match(/scenario=([a-z]+)/) || [])[1] || ''
-      var SHOT_ONLY = location.search.indexOf('shot') !== -1
-      if (SHOT_ONLY) f.style.height = '1409px' /* = 设计帧高 */
+"""
 
-      /* 选择器语法：`sel@@N` = 该选择器的第 N 个匹配（也接受 CSS 里非法的 `sel#N` 写法，先归一化成 @@N）。
-         `A@@N B` = 在第 N 个 A 里查 B。 */
-      function splitSel(sel) {
-        var s = String(sel).replace(/#(\d+)(?=\s|$)/g, '@@$1')
-        var i = s.indexOf('@@')
-        if (i === -1) return { base: s, n: 0, tail: '' }
-        var head = s.slice(0, i)
-        var rest = s.slice(i + 2).split(/\s+/)
-        return { base: head.trim(), n: Number(rest[0]), tail: rest.slice(1).join(' ') }
-      }
-
-      function collect(doc, win, withChecks) {
-        var fails = []
-        var checks = 0
-
-        function norm(v) {
-          if (typeof v === 'number') return v
-          var s = String(v == null ? '' : v).trim()
-          if (/^-?\d+(\.\d+)?px$/.test(s)) return Number(s.replace('px', ''))
-          return s
-        }
-        function normColor(s) {
-          var m = String(s || '').match(/rgba?\(([^)]+)\)/)
-          if (!m) return String(s || '')
-          var p = m[1].split(',').map(function (t) { return Number(t.trim()) })
-          var a = p.length > 3 ? p[3] : 1
-          return a === 1 ? 'rgb(' + p[0] + ', ' + p[1] + ', ' + p[2] + ')' : 'rgba(' + p.join(', ') + ')'
-        }
-        /* box-shadow 的颜色要归一化，但偏移/模糊/扩散必须保留 —— 走 normColor() 会把整串压成只剩颜色 */
-        function normShadow(s) {
-          return String(s == null ? '' : s).replace(/rgba?\([^)]+\)/g, function (m) { return normColor(m) })
-        }
-        function declared(sel, prop) {
-          /* CSSOM 声明值（非 used 值）：0.8px 描边的 computed 会被 Chrome 取整成 1px，所以判声明值 */
-          var sp = splitSel(sel)
-          if (!el(sel)) return null
-          for (var i = 0; i < doc.styleSheets.length; i++) {
-            var rules
-            try { rules = doc.styleSheets[i].cssRules } catch (e) { continue }
-            for (var j = 0; j < rules.length; j++) {
-              var r = rules[j]
-              if (!r.selectorText || r.selectorText.indexOf('[') === 0) continue
-              var sels = r.selectorText.split(',').map(function (s) { return s.trim().replace(/\[data-v-[^\]]+\]/g, '') })
-              if (sels.indexOf(sp.base) === -1) continue
-              var v = r.style && r.style[prop]
-              if (v) return v
-            }
-          }
-          return null
-        }
-        function el(sel) {
-          var sp = splitSel(sel)
-          if (!sp.n && !sp.tail) return doc.querySelector(sp.base)
-          var roots = doc.querySelectorAll(sp.base)
-          var root = roots[sp.n]
-          if (!root) return null
-          return sp.tail ? root.querySelector(sp.tail) : root
-        }
-        function rect(sel) {
-          var e = el(sel)
-          if (!e) return null
-          var r = e.getBoundingClientRect()
-          return {
-            x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right),
-            bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height)
-          }
-        }
-        function rects(sel) {
-          return Array.prototype.map.call(doc.querySelectorAll(splitSel(sel).base), function (e) {
-            var r = e.getBoundingClientRect()
-            return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
-          })
-        }
-        function css(sel, prop) {
-          var e = el(sel)
-          if (!e) return null
-          var v = win.getComputedStyle(e)[prop]
-          if (prop === 'boxShadow') return normShadow(v)
-          return prop.toLowerCase().indexOf('color') >= 0 ? normColor(v) : norm(v)
-        }
-        function chk(key, got, want, tol) {
-          if (!withChecks) return got
-          checks++
-          var t = tol == null ? 0 : tol
-          var g = norm(got)
-          var w = norm(want)
-          var gn = typeof g === 'number' ? g : (typeof g === 'string' && /^-?\d+(\.\d+)?$/.test(g) ? Number(g) : null)
-          var wn = typeof w === 'number' ? w : (typeof w === 'string' && /^-?\d+(\.\d+)?$/.test(w) ? Number(w) : null)
-          var ok
-          if (gn !== null && wn !== null) ok = Math.abs(gn - wn) <= t
-          else ok = g === w
-          if (!ok) fails.push({ k: key, got: got, want: want })
-          return got
-        }
-        /* chkR 的字段由 key 末段决定：.h/.w/.x/.left/.right/.top/.bottom */
-        function rectField(sel, key) {
-          var r = rect(sel)
-          if (!r) return null
-          var f = String(key).split('.').pop()
-          if (f === 'x' || f === 'left') return r.x
-          if (f === 'right') return r.right
-          if (f === 'top') return r.top
-          if (f === 'bottom') return r.bottom
-          if (f === 'w' || f === 'width') return r.w
-          if (f === 'h' || f === 'height') return r.h
-          return r
-        }
-        function chkR(key, sel, want, tol) { return chk(key, rectField(sel, key), want, tol) }
-        function chkC(key, sel, prop, want, tol) { return chk(key, css(sel, prop), want, tol) }
-        /* 数值数组逐项比较（设计帧小数坐标链取整后会有 ±1..2 差） */
-        function chkList(key, got, want, tol) {
-          if (!withChecks) return got
-          checks++
-          var t = tol == null ? 0 : tol
-          var ok = got.length === want.length
-          if (ok) {
-            for (var i = 0; i < got.length; i++) {
-              if (got[i] == null || Math.abs(got[i] - want[i]) > t) { ok = false; break }
-            }
-          }
-          if (!ok) fails.push({ k: key, got: got.join(','), want: want.join(',') })
-          return got
-        }
-        function texts(sel) {
-          return Array.prototype.map.call(doc.querySelectorAll(splitSel(sel).base), function (e) { return e.textContent.trim() })
-        }
-        function colors(sel) {
-          return Array.prototype.map.call(doc.querySelectorAll(splitSel(sel).base), function (e) { return normColor(win.getComputedStyle(e).backgroundColor) })
-        }
-        function textColors(sel) {
-          return Array.prototype.map.call(doc.querySelectorAll(splitSel(sel).base), function (e) { return normColor(win.getComputedStyle(e).color) })
-        }
-        function textOf(sel) {
-          var e = el(sel)
-          return e ? e.textContent.trim() : null
-        }
-        function groupOf(sel, groupSel) {
-          return Array.prototype.map.call(doc.querySelectorAll(groupSel), function (g) { return g.querySelector(sel) })
-        }
-        function grpCss(groupSel, sel, prop) {
-          return groupOf(sel, groupSel).map(function (e) {
-            if (!e) return null
-            var v = win.getComputedStyle(e)[prop]
-            if (prop === 'boxShadow') return normShadow(v)
-            return prop.toLowerCase().indexOf('color') >= 0 ? normColor(v) : norm(v)
-          })
-        }
-        function grpRects(groupSel, sel) {
-          return groupOf(sel, groupSel).map(function (e) {
-            if (!e) return null
-            var r = e.getBoundingClientRect()
-            return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
-          })
-        }
-        function grpField(groupSel, sel, field) {
-          return grpRects(groupSel, sel).map(function (r) {
-            if (!r) return null
-            var f = String(field).split('.').pop()
-            if (f === 'x' || f === 'left') return r.x
-            if (f === 'right') return r.right
-            if (f === 'top') return r.top
-            if (f === 'bottom') return r.bottom
-            if (f === 'w' || f === 'width') return r.w
-            if (f === 'h' || f === 'height') return r.h
-            return null
-          })
-        }
-        function inputValue(testid) {
-          var host = doc.querySelector('[data-testid="' + testid + '"]')
-          if (!host) return null
-          if (host.tagName === 'INPUT' || host.tagName === 'TEXTAREA') return host.value
-          var inner = host.querySelector('input,textarea')
-          return inner ? inner.value : null
-        }
-        /* 「框内内容左界」= 设计声明的 padding（Figma center 描边不占布局 → box-shadow） */
-        function contentLeft(boxSel, innerSel) {
-          var a = rect(boxSel), b = rect(innerSel)
-          return a && b ? b.x - a.x : null
-        }
-        function gapBetween(aSel, bSel) {
-          var a = rect(aSel), b = rect(bSel)
-          return a && b ? b.top - a.bottom : null
-        }
-
-        function selTop(sels) { return sels.map(function (s) { var r = rect(s); return r ? r.top : null }) }
-        function selX(sels) { return sels.map(function (s) { var r = rect(s); return r ? r.x : null }) }
-        function selW(sels) { return sels.map(function (s) { var r = rect(s); return r ? r.w : null }) }
-        function selH(sels) { return sels.map(function (s) { var r = rect(s); return r ? r.h : null }) }
-        function selCss(sels, prop) { return sels.map(function (s) { return css(s, prop) }) }
-        function selText(sels) { return sels.map(function (s) { return textOf(s) }) }
-        /* 横向间距：b 的左界 − a 的右界（gapBetween 是纵向的，横排元素上会得负数） */
-        function hgap(aSel, bSel) {
-          var a = rect(aSel), b = rect(bSel)
-          return a && b ? b.x - a.right : null
-        }
-        /* 字符串数组逐项比较（chkList 只做数值比较，字符串会被 Math.abs(NaN) 静默放过） */
-        function chkStrs(key, got, want) {
-          if (!withChecks) return got
-          checks++
-          var ok = got.length === want.length
-          if (ok) {
-            for (var i = 0; i < got.length; i++) { if (norm(got[i]) !== norm(want[i])) { ok = false; break } }
-          }
-          if (!ok) fails.push({ k: key, got: got.join(' | '), want: want.join(' | ') })
-          return got
-        }
-
-        /* ===================== 整页（设计帧 430×1409） ===================== */
+CHECKS = r"""        /* ===================== 整页（设计帧 430×1409） ===================== */
         chk('page.docHeight', Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight), 1409, 2)
         chk('page.innerWidth', win.innerWidth, 430)
         chk('page.docScrollWidth', doc.documentElement.scrollWidth, 430)
@@ -612,52 +437,9 @@
           userAgent: win.navigator.userAgent
         }
       }
+"""
 
-      function sink(n, payload) {
-        acc['phase' + n] = payload
-        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
-      }
-
-      function phase(n) {
-        try {
-          var payload = collect(f.contentDocument, f.contentWindow, n === 1)
-          if (n === 2 && !SHOT_ONLY) {
-            f.style.height = '900px' /* 保持取数高度：min-height:100vh 会把测量高度顶到 iframe 高 */
-            acc.iframeHeightForShot = payload.docScrollHeight
-          }
-          sink(n, payload)
-        } catch (e) {
-          sink(n, { error: String(e && e.message) })
-        }
-      }
-
-      function clickIn(sel) {
-        var doc = f.contentDocument
-        var el = doc.querySelector(sel)
-        if (!el) return 'NOT_FOUND'
-        var ev = doc.createEvent('MouseEvents')
-        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
-        el.dispatchEvent(ev)
-        return 'CLICKED'
-      }
-
-      function fillName(value) {
-        /* uni-app H5：<input> 渲染为 <uni-input> 宿主 + 内层原生 input；必须写内层并派发 input 事件 */
-        var host = f.contentDocument.querySelector('uni-input[data-testid="name-input"]')
-        var el = host ? host.querySelector('input') : null
-        if (!el) return 'NOT_FOUND'
-        el.focus()
-        el.value = value
-        el.dispatchEvent(new Event('input', { bubbles: true }))
-        return 'FILLED'
-      }
-
-      function toastText(doc) {
-        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
-        return el ? el.textContent.trim() : ''
-      }
-
-      function clickAll(sel, index) {
+LOAD = r"""      function clickAll(sel, index) {
         var doc = f.contentDocument
         var el = all(doc, sel)[index]
         if (!el) return 'NOT_FOUND'
@@ -809,3 +591,38 @@
     </script>
   </body>
 </html>
+"""
+
+EXTRA_HELPERS = r"""        function selTop(sels) { return sels.map(function (s) { var r = rect(s); return r ? r.top : null }) }
+        function selX(sels) { return sels.map(function (s) { var r = rect(s); return r ? r.x : null }) }
+        function selW(sels) { return sels.map(function (s) { var r = rect(s); return r ? r.w : null }) }
+        function selH(sels) { return sels.map(function (s) { var r = rect(s); return r ? r.h : null }) }
+        function selCss(sels, prop) { return sels.map(function (s) { return css(s, prop) }) }
+        function selText(sels) { return sels.map(function (s) { return textOf(s) }) }
+        /* 横向间距：b 的左界 − a 的右界（gapBetween 是纵向的，横排元素上会得负数） */
+        function hgap(aSel, bSel) {
+          var a = rect(aSel), b = rect(bSel)
+          return a && b ? b.x - a.right : null
+        }
+        /* 字符串数组逐项比较（chkList 只做数值比较，字符串会被 Math.abs(NaN) 静默放过） */
+        function chkStrs(key, got, want) {
+          if (!withChecks) return got
+          checks++
+          var ok = got.length === want.length
+          if (ok) {
+            for (var i = 0; i < got.length; i++) { if (norm(got[i]) !== norm(want[i])) { ok = false; break } }
+          }
+          if (!ok) fails.push({ k: key, got: got.join(' | '), want: want.join(' | ') })
+          return got
+        }
+"""
+
+out = HEAD + helpers + "\n" + EXTRA_HELPERS + "\n" + CHECKS + "\n" + tail + "\n" + LOAD
+
+# quote-setup tail defines clickIn/clickAll/toastText; drop our duplicates if the tail
+# already provides them (checked by grep below).
+with io.open(DST, "w", encoding="utf-8", newline="\n") as fh:
+    fh.write(out)
+print("wrote", DST, len(out), "bytes")
+for name in ["function clickIn", "function clickAll", "function toastText", "function fillField", "function sink", "function phase", "function chk(", "function declared("]:
+    print(name, out.count("function " + name.replace("function ", "")))

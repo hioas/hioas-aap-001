@@ -277,9 +277,6 @@
               <view class="glyph glyph--chevron" aria-hidden="true" />
             </view>
           </template>
-          <view v-else class="icon-tap" :data-testid="`qual-upload-${index}`">
-            <view class="glyph glyph--chevron" aria-hidden="true" />
-          </view>
         </view>
       </view>
     </view>
@@ -745,7 +742,9 @@ function onRemove(row: QualificationRow, _index: number) {
   margin-top: 8px;
   padding: 0 12px;
   background: $color-bg-page;
-  border: 1px solid $color-border;
+  /* 设计 stroke{align:center,thickness:1,#E2E8F0} 画在盒子上（Figma 中心描边不占布局）
+     → 用 ring 而不是 border：border 会把内容左界从设计声明 12 挤成 13、内容宽少 2px */
+  box-shadow: 0 0 0 1px $color-border;
   border-radius: 12px;
   display: flex;
   flex-direction: row;
@@ -906,11 +905,11 @@ function onRemove(row: QualificationRow, _index: number) {
   box-sizing: border-box;
 }
 
-/* 未上传行的图标框：设计声明 46 而可见 44 → 描边画在盒内（与输入框一致），保留 border */
+/* 未上传行的图标框：设计声明 46 而可见 47 → 描边画在盒子中心外沿用 ring（同上） */
 .qual-row__thumb--empty {
   width: 46px;
   background: $color-bg-page;
-  border: 1px solid $color-border-strong;
+  box-shadow: 0 0 0 1px $color-border-strong;
   box-sizing: border-box;
 }
 
@@ -1006,6 +1005,11 @@ function onRemove(row: QualificationRow, _index: number) {
   flex: none;
 }
 
+/* 行内尾部两枚图标之间 8px（设计 609c6cb5 padding-left 8 → 删除盒 346..366、查看盒 374..394） */
+.icon-tap + .icon-tap {
+  margin-left: 8px;
+}
+
 /* ===== 底部操作条（design 1648cc81：padding 12/16/24/16 · 草稿 156×48 · 保存 自适应×48） ===== */
 .bar-wrap {
   width: 100%;
@@ -1037,7 +1041,8 @@ function onRemove(row: QualificationRow, _index: number) {
   width: 156px;
   flex: none;
   background: $color-bg-card;
-  border: 1px solid $color-border-strong;
+  /* 设计 stroke{align:center,#CBD5E1} → ring（不占布局） */
+  box-shadow: 0 0 0 1px $color-border-strong;
   font-size: $font-base; /* 14 */
   font-weight: 500;
   color: $color-text-tertiary;
@@ -1052,6 +1057,10 @@ function onRemove(row: QualificationRow, _index: number) {
 }
 
 .btn__text {
+  /* 设计 下一步按钮 子节点：文本声明宽 91 且 textAlign=left → 组合 [91][4][箭头 22] = 117 居中
+     → 文案 ink 落在 240（PNG y=1360 实测 240..270） */
+  width: 91px;
+  text-align: left;
   font-size: $font-md; /* 15 */
   font-weight: 600;
   color: #ffffff;
@@ -1070,48 +1079,98 @@ function onRemove(row: QualificationRow, _index: number) {
 .glyph--basic,
 .glyph--contact,
 .glyph--files {
+  /* 设计图层：w=20 · fs=18 → 字形行框 18×1.5 = 27（形状移入 ::before，盒按设计尺寸） */
+  width: 20px;
+  height: 27px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-primary;
+}
+
+.glyph--basic::before,
+.glyph--contact::before,
+.glyph--files::before {
+  content: '';
+  display: block;
   width: 18px;
   height: 18px;
   border-radius: 5px;
-  background: $color-primary;
-  flex: none;
+  background: currentColor;
 }
 
-.glyph--contact {
+.glyph--contact::before {
   border-radius: 9px;
 }
 
-.glyph--files {
+.glyph--files::before {
   border-radius: 4px;
 }
 
 .glyph--check {
+  /* 设计 9b1ba6ce：w=20 · fs=18 → 盒 20×27 */
+  width: 20px;
+  height: 27px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-success;
+}
+
+.glyph--check::before {
+  content: '';
+  display: block;
   width: 12px;
   height: 7px;
-  border-left: 2px solid $color-success;
-  border-bottom: 2px solid $color-success;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
   transform: rotate(-45deg);
   margin-bottom: 3px;
-  flex: none;
 }
 
 .glyph--check-sm {
+  /* 设计 acdea136：w=13 · fs=11 → 盒 13×16 */
+  width: 13px;
+  height: 16px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-success;
+}
+
+.glyph--check-sm::before {
+  content: '';
+  display: block;
   width: 7px;
   height: 4px;
-  border-left: 1.5px solid $color-success;
-  border-bottom: 1.5px solid $color-success;
+  border-left: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
   transform: rotate(-45deg);
   margin-bottom: 1px;
-  flex: none;
 }
 
 .glyph--chevron {
+  /* 设计 fbc191db/1556519d/696d9911：w=20 · fs=18 → 盒 20×27（地区框内右贴、行内 .icon-tap 居中） */
+  width: 20px;
+  height: 27px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-text-placeholder;
+}
+
+.glyph--chevron::before {
+  content: '';
+  display: block;
   width: 7px;
   height: 7px;
-  border-right: 1.5px solid $color-text-placeholder;
-  border-top: 1.5px solid $color-text-placeholder;
+  border-right: 1.5px solid currentColor;
+  border-top: 1.5px solid currentColor;
   transform: rotate(45deg);
-  flex: none;
 }
 
 .glyph--trash {
@@ -1146,11 +1205,23 @@ function onRemove(row: QualificationRow, _index: number) {
 }
 
 .glyph--arrow-white {
+  /* 设计 02ec6401：w=22 · fs=20 → 盒 22×30 */
+  width: 22px;
+  height: 30px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+}
+
+.glyph--arrow-white::before {
+  content: '';
+  display: block;
   width: 8px;
   height: 8px;
-  border-right: 2px solid #ffffff;
-  border-top: 2px solid #ffffff;
+  border-right: 2px solid currentColor;
+  border-top: 2px solid currentColor;
   transform: rotate(45deg);
-  flex: none;
 }
 </style>

@@ -1,4 +1,4 @@
-STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 09:38（160 条 · 15→0）· 序号 4 已完成 09:55（212 条 · 45→0）· 序号 4-v1 已完成 10:20（249 条 · 78→0）· 序号 5 已完成 10:42（237 条 · 95→0）· 序号 6 已完成 11:5x（221 条 · 45→0，docH 4886→5343 = 设计帧高 5342）· 序号 7 已完成 11:3x（196 条 · 51→0，docH 1063→1111 = 设计帧高 1110）· 序号 8 已完成 11:5x（138 条 · 27→0，docH 1198→1206 = 设计帧高 1206）· 序号 9 已完成 2026-09-16 12:21（272 条 · 53→0，docH 1202→1212 = 设计帧高 1211，像素对账 68/68 命中，报告 `evidence/review-序号9-checks-报告.md`）→ 下一轮开工做 序号 10**（`page-10-2`「供应商档案编辑 2」→ `/pages/profile-edit/index`，载体页 `__measure-profile-edit.html`，mock 目录 `api-10-2`；对照表 `python .agents/state/survey-harness-routes.py`） ②队列 1 逐页复核（余下行的 checks 维度待补） ③队列 7（uni-picker 溢出口径）④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。⚠️ **序号↔路由映射一律以台账「目标路由」列为准**（序号 9 = `/pages/quote-models/index`；`/pages/model-pricing/index` 是序号 11）——此前在办项写错过一次（2026-09-16 12:05 轮已改正），勿再沿用。历史流水归档在 `aap-notes-archive-2026-09-16.md`，**不要每轮读**。
+STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。**每轮先读 `aap-decisions.md`**（待执行决策优先于本文件在办项）。**D1~D6 已全部执行完**（D6 挂起=不重命名）。当前在办：①**队列 8（给载体页补「设计期望值 checks」维度，一页一轮）：序号 3 已完成 09:38（160 条 · 15→0）· 序号 4 已完成 09:55（212 条 · 45→0）· 序号 4-v1 已完成 10:20（249 条 · 78→0）· 序号 5 已完成 10:42（237 条 · 95→0）· 序号 6 已完成 11:5x（221 条 · 45→0，docH 4886→5343 = 设计帧高 5342）· 序号 7 已完成 11:3x（196 条 · 51→0，docH 1063→1111 = 设计帧高 1110）· 序号 8 已完成 11:5x（138 条 · 27→0，docH 1198→1206 = 设计帧高 1206）· 序号 9 已完成 2026-09-16 12:21（272 条 · 53→0，docH 1202→1212 = 设计帧高 1211，像素对账 68/68 命中，报告 `evidence/review-序号9-checks-报告.md`）· 序号 10 已完成 2026-09-16 12:5x（229 条 · 36→0，docH 1409 = 设计帧高，像素对账 56/56 命中 · 未命中 0，报告 `evidence/review-序号10-checks-报告.md`）→ 下一轮开工做 序号 10.1**（`page-10-1-2`「供应商档案 2」→ `/pages/profile/index`，载体页 `__measure-profile.html`，mock 目录 `api-10-1-2`；对照表 `python .agents/state/survey-harness-routes.py`） ②队列 1 逐页复核（余下行的 checks 维度待补） ③队列 7（uni-picker 溢出口径）④D1 循环侧收尾余项（台账 `missing-prd` 接口备注改成「依据 `docs/api/接口字段级schema.md` §x」+ 字段名一致性核对；D1 本体的 schema 文档已由前台会话建好）。⚠️ **序号↔路由映射一律以台账「目标路由」列为准**（序号 9 = `/pages/quote-models/index`；`/pages/model-pricing/index` 是序号 11）——此前在办项写错过一次（2026-09-16 12:05 轮已改正），勿再沿用。历史流水归档在 `aap-notes-archive-2026-09-16.md`，**不要每轮读**。
 LEASE: free until -
 
 # AAP TDD 推进 · 状态与目标（自驱动循环的单一事实来源）
@@ -417,6 +417,29 @@ LEASE: free until -
   设计字面量登记在 `designLiteralDiff`（同族于 D3 图例百分比，不照抄）。
   ⑨**下轮开工第一件事**：队列 8 的 **序号 10**（`page-10-2`「供应商档案编辑 2」→ `/pages/profile-edit/index`，载体页 `__measure-profile-edit.html`，mock 目录 `api-10-2`）。
 
+- 2026-09-16 12:5x（cron 轮 `aap-tdd-run-20260916-1231`）· **队列 8 第 9 页：序号 10「供应商档案编辑」载体页补「设计期望值 checks」维度（229 条 · 偏差 36→0）+ 9 类设计偏差修复 + 整页对齐设计帧 1409（像素对账 56/56 命中 · 未命中 0）**：
+  ①**改名**：未执行 —— 队列 0 已被决策 D6 挂起（`hioas-*` 是仓库名约定，勿再重试），按「人类决策 > prompt」处理。
+  ②**设计帧重抓（人工指令 C）**：先 `cmd /c start ""` 拉起编辑器，再重抓 `page-10-2`（layer_id `45f4d7f9-…`）→ `design.json` sha256 `46e9cfee…` **逐字节相同**（无漂移）。
+  ③**TDD 红→绿（本轮主交付）**：`__measure-profile-edit.html` 由 355 行旧体例重写为 **430 宽 iframe + 229 条 checks**
+     （want = `design.tree.json` 声明值 + `show-node-json.py`/`show-children.py` 节点子树 + 设计 PNG 430×1409 色带/墨迹实测）；
+     红基线（`git stash` 复现修复前源码、同一份探针两轮）**36/229**、`docH 1409` → 绿 **0/229**；两轮独立测量 **28/28 字段全等**；`git stash pop` 后重建复跑**逐字段相同**（stash 循环干净）。
+  ④**修掉 9 类偏差**（清单见台账序号 10 行 / `review-序号10-checks-报告.md` §3）：卡头图标盒 18×18→**20×27**（形状入 `::before`）·
+     卡标题左界 60→**62** · 输入框/半栏框描边 `border`→**ring**（内容左界 13→12、内容宽 332→**334**）· 地区 chevron 盒 11×11→**20×27**（x 186/371→**176/362**）·
+     已上传角标勾盒 9×9→**13×16**（角标宽 56→**62**、右边 255→**263**）· 资质行尾部两枚图标间距 0→**8**（删除盒 354..374→**346..366**）·
+     **删掉空态行设计里没有的「上传」chevron**（PNG 该区间无 ink + 设计节点 children 只有 [图标][信息容器]）· 草稿按钮描边 `border`→ring ·
+     保存按钮按设计节点组合 **[文案 91 宽左对齐][padding-left 4][箭头 22×30]**（文案 ink 277→**240**、箭头 x 309→**335**）。
+  ⑤**本页定标**：remixicon 字形行框 = fontSize × 1.5（本页三处自洽：顶部栏 24→36 定内容行、卡头 18→27 定头部行、已上传勾 11→16）·
+     文本行框**显式 height 优先**（标签 18 / 文件名与提示 16 / 简介文本 40），`lineHeight:1.2` 不决定行框 ·
+     **字段步进 86（标签 18+8+框 44+16），但类型 chip 行只有 40 → 该组 82**（第一轮 want 按统一 86 写错，量成 4px 假偏差）。
+  ⑥**交互相有牙齿**：`?scenario=guard` 两轮 serve 实收 **0 行写请求**（校验门证明）；`?scenario=actions` 两轮逐字节相同 →
+     chip 切换 · 计数 5/200 · 清空企业名称点保存 toast「请输入企业名称」+ 草稿写 localStorage · `PUT /provider/profile`（12 字段 body）→ 完整度 72%→**78%** ·
+     uni-modal「删除资质文件」→ `DELETE /provider/qualifications/q1` → toast「已删除」→ 重拉列表；纯测量轮各 2 行 GET。
+  ⑦**质量门**：`npm test` **1173/1173 · 72 files 连跑两轮**（+1 新用例）· `type-check` exit 0 · `build:mp-weixin` DONE（`pages/profile-edit` 四件套 + app.json 已注册）·
+     `build:h5` DONE · 像素对账 `cmp-bands-6`（±3）结构带 **56/56 命中 · 未命中 0** · 截图 `evidence/20260916-序10-供应商档案编辑-checks轮-h5-430宽.png`。
+  ⑧**跨代对比**：与上一轮留证（`review-序号10-run1.json`）公共几何块 `topbar`/`bar`/`draftBtn`/`saveBtn`/`chip` **完全相同**、
+     `fieldBoxes` 除新增 `bottom` 字段外逐项相同 → 本轮修的全是盒内细节，没动页面骨架；`evidence/cmp-序号10-checks-上一轮vs本轮.txt`（`review-compare --tag 10-checks`）。
+  ⑨**下轮开工第一件事**：队列 8 的 **序号 10.1**（`page-10-1-2`「【档案与凭证】供应商档案 2」→ `/pages/profile/index`，载体页 `__measure-profile.html`，mock 目录 `api-10-1-2`）。
+
 ## 5. 关键命令（照抄可用）
 
 - 项目根：`E:\workspaces\hioas\hioas-aap-001`（远端 https://github.com/hioas/hioas-aap-001）
@@ -573,3 +596,22 @@ LEASE: free until -
   不要用 `inline-block` 收窄宽度。
 - ⚠️ **`lease-set.py` 第二个参数**：纯数字会被当**分钟数**（旧版直接写进去 → 租约行成 `until 45` 非法时间戳）；
   现改为 `lease-set.py <holder> --minutes 45` 自动算子时间戳，`lease-set.py free` 直接释放。
+
+### 5.6 本轮（12:31 轮 · 序号 10）新增的工具与口径
+
+- **按 id/名字读设计节点子树**：`python .agents/state/show-node-json.py <design.json> <节点名> [limit]`
+  —— 打印该节点（含 children）的完整 JSON（`dump-node-fields.py` 的 children 会被截断）。
+- **读一行的布局骨架**：`python .agents/state/show-children.py <design.json> <节点名>`
+  —— 打印该节点**直接子节点**（+ 孙节点）的 name/id/type/width/height/padding/fills/fs/文案，
+  一眼看清「行 = [缩略图][信息容器][删除盒][container padding-left 8 → 查看盒]」这类结构（本页靠它定出尾部图标间距 8）。
+- **探针语法自检**：`python .agents/state/js-depth.py <extracted.js>`（`extract-inline-js.py` 之后跑）
+  —— 大括号净值必须为 0；载体页从别的探针**切片拼接**时最容易漏掉 `collect()` 的收尾 `}`（本轮踩到，`node --check` 只报「Unexpected end of input」不给行号）。
+- ⚠️ **`chkList` 只做数值比较**：字符串数组会被 `Math.abs(NaN) > tol` → false **静默放过** → 颜色/字号这类字符串数组必须用 `chkStrs()`。
+- ⚠️ **横排元素不能用 `gapBetween()`**（它算 `b.top − a.bottom`，横排得负值）→ 用 `hgap(a, b) = b.x − a.right`。
+- ⚠️ **`splitSel` 只认第一个 `@@`**：`A@@0 B@@1` 会拼进 `root.querySelector()` 抛「不是合法选择器」→ 需要「第几个匹配」时改用**全局序**（`.field__box--half@@0` / `.icon-tap@@0`）。
+- ⚠️ **`collect()` 内的 `textOf(sel)` 闭包了 `doc`**，外层 `load` 回调用它会 `doc is not defined` 而**静默不 sink**（本轮 phase2/phase4 整相丢失，页面动作却照跑）→ 载体页另给顶层 `textIn(sel)`；
+  排查法：`show-phases.py` 打印的 `phases=[…]` 少了哪一相，就去那一相的 sink 参数里找外层借用的 collect 内部函数。
+- ⚠️ **字段步进不能一刀切**：卡片里 `标签 18 + 8 + 框 44 + 16 = 86`，但**控件行高度不同时整段会偏**（本页类型 chip 行只有 40 → 该组步进 82、其后恢复 86）；
+  写 want 前先用 PNG 引一条「框 ink 起点」序列，别用统一步进递推。
+- **本页新增脚本**：`build-probe-10.py`（从 `__measure-quote-setup.html` 切 head/helpers/tail 拼本页载体页）· `shot-10.sh`（430×1409 整页截图）·
+  `check-js-balance.py` / `js-depth.py`（载体页内联脚本体检）· `show-node-json.py` / `show-children.py`（设计节点子树）。
