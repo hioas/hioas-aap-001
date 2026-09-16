@@ -373,6 +373,24 @@ CHECKS = [
         and d["cost"].get("platform_fee_rate") == 8
         and d["cost"].get("total") == 12860,
     },
+    {
+        "mock": "api-23",
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "why": "序号 23 账号信息卡三行数据源：手机号/微信绑定/短信通知开关",
+        "must": ["phone", "wechat_bound", "sms_two_factor"],
+        "check": lambda d: d.get("phone") == "13812346621"
+        and d.get("wechat_bound") is True
+        and d.get("sms_two_factor") is True
+        and d.get("wechat_subscribed") is True,
+    },
+    {
+        "mock": "api-23",
+        "method": "POST",
+        "path": "/api/v1/auth/logout",
+        "why": "序号 23 退出登录：二次确认后 POST /auth/logout（body 无需字段）",
+        "check": lambda d: True,
+    },
 ]
 
 

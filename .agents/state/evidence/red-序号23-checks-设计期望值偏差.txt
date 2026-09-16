@@ -1,0 +1,23 @@
+序号 23「【工作台与我的】我的设置 2」（page-23-2 / /pages/settings/index）设计期望值 checks —— 红基线
+载体页 __measure-settings.html（430 宽 iframe · 207 条 checks）· 源码未改（修复前）+ 同一份最终版探针两轮
+命令: bash .agents/state/review-measure.sh 23-checks __measure-settings.html .agents/state/h5-measure/api-23 539x
+
+---- run1（review-序号23-checks-run1.json · checkFailCount=1）----
+file: E:/workspaces/hioas/hioas-aap-001\.agents/state/evidence\review-序号23-checks-run1.json
+phase1 : scenario=- state={'switchDataOn': 'true', 'switchBg': 'rgb(37, 99, 235)', 'hash': '#/pages/settings/index'} checkCount=207 checkFailCount=1 overflowing=0 docH=797 docW=430
+    FAIL account.shadow: got "none" want "rgba(15, 23, 42, 0.06) 0px 6px 20px 0px"
+    missingTexts=[]
+warning: Failed to set cwd to temp dir
+
+---- run2（review-序号23-checks-run2.json · checkFailCount=1）----
+file: E:/workspaces/hioas/hioas-aap-001\.agents/state/evidence\review-序号23-checks-run2.json
+phase1 : scenario=- state={'switchDataOn': 'true', 'switchBg': 'rgb(37, 99, 235)', 'hash': '#/pages/settings/index'} checkCount=207 checkFailCount=1 overflowing=0 docH=797 docW=430
+    FAIL account.shadow: got "none" want "rgba(15, 23, 42, 0.06) 0px 6px 20px 0px"
+    missingTexts=[]
+warning: Failed to set cwd to temp dir
+
+---- 两轮独立测量逐字段比对（cmp-measure-runs.py phase1）----
+phase=phase1 · 全等字段 38 个
+全等: account, accountChevrons, accountHead, accountLabels, accountPill, accountRows, accountSeps, badge, checkCount, checkFailCount, checkFails, counts, designLiteralDiff, docScrollHeight, docScrollWidth, entries, entryChevrons, entryIcons, entryLabels, entryRows, entrySeps, footer, footerCopyright, footerVersion, innerWidth, missingTexts, nav, navBack, navTitle, notify, notifyRows, notifySeps, overflowing, overflowingCount, state, switch, switchKnob, texts
+不一致 0 个:
+warning: Failed to set cwd to temp dir

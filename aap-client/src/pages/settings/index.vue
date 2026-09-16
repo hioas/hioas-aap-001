@@ -328,7 +328,14 @@ onMounted(load)
   background: $color-bg-card;
 }
 
-/* 通知设置卡 / 功能入口卡在设计帧里有 1px 描边（#EEF2F7）；账号信息卡**无**描边（设计树未声明 stroke） */
+/* 账号信息卡在设计帧里**只有** effects drop_shadow(0,6,20,rgba(15,23,42,.06))、**无** stroke
+   （设计树 a2608b12）；通知设置卡 / 功能入口卡（63885808 / befb43af）只有 stroke #EEF2F7、无 effects。
+   → 逐卡实现，不许统一（PNG 实测：卡1 下方 12px 间隙最暗 241 = 投影带，卡2 下方间隙 = 页面底色 248/250/252）。
+   投影漏实现由载体页 __measure-settings.html 的 account.shadow 断言抓出（红基线 2026-09-16）。 */
+.card--account {
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+}
+
 .card--notify,
 .card--entries {
   box-shadow: 0 0 0 1px $color-border-chip;

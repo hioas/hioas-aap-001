@@ -1,0 +1,435 @@
+{
+ "iframeHeightForShot": 797,
+ "phase1": {
+  "checkCount": 207,
+  "checkFailCount": 1,
+  "checkFails": [
+   {
+    "k": "account.shadow",
+    "got": "none",
+    "want": "rgba(15, 23, 42, 0.06) 0px 6px 20px 0px"
+   }
+  ],
+  "overflowingCount": 0,
+  "overflowing": [],
+  "missingTexts": [],
+  "designLiteralDiff": [
+   "账号信息卡只有 effects drop_shadow(0,6,20,rgba(15,23,42,.06))、无 stroke；通知设置卡 / 功能入口卡只有 stroke(#EEF2F7)、无 effects → 逐卡断言，不统一（PNG 实测：卡1 下方 12px 间隙最暗 241 有投影带，卡2 下方间隙 = 页面底色 248,250,252）",
+   "卡片描边用 ring（盒外 1px）→ 可见描边行比设计中心描边（跨边各半）外移 0.5px（卡内容盒与设计逐值相等）",
+   "短信通知开关：设计帧只给「开」态（#2563EB），关态色设计未给 → 用中性 #CBD5E1 占位（台账备注④，client-only 无接口依据 missing-prd）",
+   "「审核结果、账单与合同提醒」设计声明容器宽 132（11px × 13 字 = 143）→ 实现按 flex:none 单行渲染（设计帧该行同样是单行，行高 34 自洽）；未写死 132",
+   "图标为 CSS 绘制占位形状（决策 D5：不引入图标字体库，R-26 禁 emoji）→ 返回箭头墨迹 16 宽、卡片人像/铃铛/盾牌/文档/门 16×16，形状近似非真实 remixicon 字形",
+   "账号信息三行（手机号 / 微信绑定 / 登录安全）设计帧有 chevron，但画布 30 页无对应页 → 点击 no-op（不跳转、不弹占位 toast、不臆造路由，台账待拍板）",
+   "「服务协议与隐私政策」同样无画布页且 PRD 无外链地址 → 无落点（不臆造 URL，台账待拍板）",
+   "退出登录二次确认弹窗文案（「退出登录 / 确认退出当前账号？退出后需重新登录。」）设计帧无弹窗稿 → 占位（同序号 8「删除」口径）",
+   "页面数据来自 GET /api/v1/auth/me（mock api-23）；响应字段级 schema 18-API 未定义 → 手机号/微信绑定/登录安全/订阅授权逐字段容错读取，缺字段渲染「—」不冒充状态（台账备注②③）"
+  ],
+  "docScrollWidth": 430,
+  "docScrollHeight": 797,
+  "innerWidth": 430,
+  "nav": {
+   "x": 0,
+   "top": 0,
+   "right": 430,
+   "bottom": 96,
+   "w": 430,
+   "h": 96
+  },
+  "navBack": {
+   "x": 16,
+   "top": 48,
+   "right": 42,
+   "bottom": 84,
+   "w": 26,
+   "h": 36
+  },
+  "navTitle": {
+   "x": 54,
+   "top": 56,
+   "right": 139,
+   "bottom": 76,
+   "w": 85,
+   "h": 20
+  },
+  "account": {
+   "x": 16,
+   "top": 108,
+   "right": 414,
+   "bottom": 331,
+   "w": 398,
+   "h": 223
+  },
+  "accountHead": {
+   "x": 36,
+   "top": 128,
+   "right": 394,
+   "bottom": 155,
+   "w": 358,
+   "h": 27
+  },
+  "accountRows": [
+   {
+    "x": 36,
+    "top": 171,
+    "right": 394,
+    "bottom": 201,
+    "w": 358,
+    "h": 30
+   },
+   {
+    "x": 36,
+    "top": 226,
+    "right": 394,
+    "bottom": 256,
+    "w": 358,
+    "h": 30
+   },
+   {
+    "x": 36,
+    "top": 281,
+    "right": 394,
+    "bottom": 311,
+    "w": 358,
+    "h": 30
+   }
+  ],
+  "accountLabels": [
+   {
+    "x": 36,
+    "top": 178,
+    "right": 123,
+    "bottom": 194,
+    "w": 87,
+    "h": 16
+   },
+   {
+    "x": 36,
+    "top": 233,
+    "right": 123,
+    "bottom": 249,
+    "w": 87,
+    "h": 16
+   },
+   {
+    "x": 36,
+    "top": 288,
+    "right": 123,
+    "bottom": 304,
+    "w": 87,
+    "h": 16
+   }
+  ],
+  "accountSeps": [
+   {
+    "x": 36,
+    "top": 213,
+    "right": 394,
+    "bottom": 214,
+    "w": 358,
+    "h": 1
+   },
+   {
+    "x": 36,
+    "top": 268,
+    "right": 394,
+    "bottom": 269,
+    "w": 358,
+    "h": 1
+   }
+  ],
+  "accountPill": {
+   "x": 123,
+   "top": 230,
+   "right": 190,
+   "bottom": 252,
+   "w": 67,
+   "h": 22
+  },
+  "accountChevrons": [
+   {
+    "x": 372,
+    "top": 171,
+    "right": 394,
+    "bottom": 201,
+    "w": 22,
+    "h": 30
+   },
+   {
+    "x": 372,
+    "top": 226,
+    "right": 394,
+    "bottom": 256,
+    "w": 22,
+    "h": 30
+   },
+   {
+    "x": 372,
+    "top": 281,
+    "right": 394,
+    "bottom": 311,
+    "w": 22,
+    "h": 30
+   }
+  ],
+  "notify": {
+   "x": 16,
+   "top": 343,
+   "right": 414,
+   "bottom": 519,
+   "w": 398,
+   "h": 176
+  },
+  "notifyRows": [
+   {
+    "x": 36,
+    "top": 406,
+    "right": 394,
+    "bottom": 440,
+    "w": 358,
+    "h": 34
+   },
+   {
+    "x": 36,
+    "top": 465,
+    "right": 394,
+    "bottom": 499,
+    "w": 358,
+    "h": 34
+   }
+  ],
+  "notifySeps": [
+   {
+    "x": 36,
+    "top": 452,
+    "right": 394,
+    "bottom": 453,
+    "w": 358,
+    "h": 1
+   }
+  ],
+  "switch": {
+   "x": 348,
+   "top": 410,
+   "right": 394,
+   "bottom": 436,
+   "w": 46,
+   "h": 26
+  },
+  "switchKnob": {
+   "x": 368,
+   "top": 413,
+   "right": 390,
+   "bottom": 433,
+   "w": 22,
+   "h": 20
+  },
+  "badge": {
+   "x": 327,
+   "top": 471,
+   "right": 394,
+   "bottom": 493,
+   "w": 67,
+   "h": 22
+  },
+  "entries": {
+   "x": 16,
+   "top": 531,
+   "right": 414,
+   "bottom": 717,
+   "w": 398,
+   "h": 186
+  },
+  "entryRows": [
+   {
+    "x": 36,
+    "top": 539,
+    "right": 394,
+    "bottom": 595,
+    "w": 358,
+    "h": 56
+   },
+   {
+    "x": 36,
+    "top": 596,
+    "right": 394,
+    "bottom": 652,
+    "w": 358,
+    "h": 56
+   },
+   {
+    "x": 36,
+    "top": 653,
+    "right": 394,
+    "bottom": 709,
+    "w": 358,
+    "h": 56
+   }
+  ],
+  "entryIcons": [
+   {
+    "x": 36,
+    "top": 551,
+    "right": 68,
+    "bottom": 583,
+    "w": 32,
+    "h": 32
+   },
+   {
+    "x": 36,
+    "top": 608,
+    "right": 68,
+    "bottom": 640,
+    "w": 32,
+    "h": 32
+   },
+   {
+    "x": 36,
+    "top": 665,
+    "right": 68,
+    "bottom": 697,
+    "w": 32,
+    "h": 32
+   }
+  ],
+  "entryLabels": [
+   {
+    "x": 78,
+    "top": 559,
+    "right": 169,
+    "bottom": 575,
+    "w": 91,
+    "h": 16
+   },
+   {
+    "x": 78,
+    "top": 616,
+    "right": 195,
+    "bottom": 632,
+    "w": 117,
+    "h": 16
+   },
+   {
+    "x": 78,
+    "top": 673,
+    "right": 130,
+    "bottom": 689,
+    "w": 52,
+    "h": 16
+   }
+  ],
+  "entrySeps": [
+   {
+    "x": 36,
+    "top": 595,
+    "right": 394,
+    "bottom": 596,
+    "w": 358,
+    "h": 1
+   },
+   {
+    "x": 36,
+    "top": 652,
+    "right": 394,
+    "bottom": 653,
+    "w": 358,
+    "h": 1
+   }
+  ],
+  "entryChevrons": [
+   {
+    "x": 372,
+    "top": 552,
+    "right": 394,
+    "bottom": 582,
+    "w": 22,
+    "h": 30
+   },
+   {
+    "x": 372,
+    "top": 609,
+    "right": 394,
+    "bottom": 639,
+    "w": 22,
+    "h": 30
+   },
+   {
+    "x": 372,
+    "top": 666,
+    "right": 394,
+    "bottom": 696,
+    "w": 22,
+    "h": 30
+   }
+  ],
+  "footer": {
+   "x": 0,
+   "top": 717,
+   "right": 430,
+   "bottom": 797,
+   "w": 430,
+   "h": 80
+  },
+  "footerVersion": {
+   "x": 166,
+   "top": 741,
+   "right": 264,
+   "bottom": 757,
+   "w": 99,
+   "h": 16
+  },
+  "footerCopyright": {
+   "x": 163,
+   "top": 757,
+   "right": 267,
+   "bottom": 773,
+   "w": 105,
+   "h": 16
+  },
+  "texts": {
+   "navTitle": "账号与设置",
+   "accountTitle": "账号信息",
+   "accountLabels": [
+    "手机号",
+    "微信绑定",
+    "登录安全"
+   ],
+   "accountValue": "138 **** 6621",
+   "accountPillText": "已绑定",
+   "notifyTitle": "通知设置",
+   "notifyTitles": [
+    "短信通知",
+    "微信订阅消息"
+   ],
+   "notifyDescs": [
+    "审核结果、账单与合同提醒",
+    "检测进度与用量周报"
+   ],
+   "badgeText": "已授权",
+   "entryLabels": [
+    "实名与主体信息",
+    "服务协议与隐私政策",
+    "退出登录"
+   ],
+   "footerVersion": "云算接入平台 v1.4.2",
+   "footerCopyright": "© 2024 保留所有权利"
+  },
+  "state": {
+   "switchDataOn": "true",
+   "switchBg": "rgb(37, 99, 235)",
+   "hash": "#/pages/settings/index"
+  },
+  "counts": {
+   "cards": 3,
+   "accountRows": 3,
+   "accountChevrons": 3,
+   "notifyRows": 2,
+   "notifyChevrons": 0,
+   "switches": 1,
+   "entryRows": 3,
+   "entryChevrons": 3,
+   "tabbar": 0,
+   "inputs": 0
+  },
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36"
+ }
+}
