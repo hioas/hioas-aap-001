@@ -110,7 +110,8 @@
  * 页面入参：contractId 优先页面栈 query（?contractId=），其次 storage 键 aap_contract_id。
  * 取数：GET /contracts/{contractId}（18-API「Contract」Tag 的真实路径，前缀 /api/v1；方法为 REST 推断 missing-prd）。
  *
- * ⚠️ 设计帧「电子签章 / 短信验证码签署」与 10-PRD §4.2 / 17-spec R-41「合同线下」冲突 → 按设计稿实现，冲突记台账等拍板。
+ * ✅ 设计帧「电子签章 / 短信验证码签署」与 10-PRD §4.2 / 17-spec R-41「合同线下」冲突 → **已拍板（决策 D7）**：
+ *    保留电子签入口，按设计稿实现（不改只读、不下架「去签署」）。
  */
 import { onMounted, ref } from 'vue'
 import { contractApi } from '@/api/contract'
@@ -238,8 +239,8 @@ async function onPdf() {
 }
 
 /**
- * 去签署：设计帧的「签署方式 = 短信验证码签署」与 10-PRD §4.2 / R-41「合同线下」冲突（已记台账）→
- * 本轮按设计稿发起签署（POST /contracts/{id}/sign，18-API 无请求体 schema → 不带字段），二次确认后执行。
+ * 去签署：设计帧的「签署方式 = 短信验证码签署」与 10-PRD §4.2 / R-41「合同线下」冲突 → 已拍板（决策 D7「保留 a 电子签入口」），
+ * 保留本入口，按设计稿发起签署（POST /contracts/{id}/sign，18-API 无请求体 schema → 不带字段），二次确认后执行。
  */
 function onSign() {
   if (!contractId) {

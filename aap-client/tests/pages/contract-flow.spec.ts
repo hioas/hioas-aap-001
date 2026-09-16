@@ -4,7 +4,8 @@
  * 交互真源：`.calicat/raw/pages/page-15-2/interaction.json` = 「不存在图层交互数据」
  *   → 交互按设计稿控件语义 + 18-API「Contract」路径推断（记 missing-prd）：
  *     返回 = navigateBack（无栈时不变）；PDF = GET /contracts/{id}/file；去签署 = POST /contracts/{id}/sign。
- * 设计帧与 PRD 冲突（电子签 vs R-41 线下签署）已在 contract-model.ts / 台账序号 15 登记，不在此静默解决。
+ * 设计帧与 PRD 冲突（电子签 vs R-41 线下签署）已在 contract-model.ts / 台账序号 15 登记；**已拍板 = 决策 D7「保留 a 电子签入口」**，
+ * 故本文件保留「去签署」4 例作为回归锁定（入口存在 + 二次确认 + POST /contracts/c1/sign + 失败保持状态），不再按线下签署口径下架该入口。
  */
 import { describe, expect, it } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
