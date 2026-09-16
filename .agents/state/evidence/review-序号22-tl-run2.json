@@ -1,0 +1,656 @@
+{
+ "iframeHeightForShot": 1138,
+ "phase1": {
+  "checkCount": 275,
+  "checkFailCount": 0,
+  "checkFails": [],
+  "overflowingCount": 0,
+  "overflowing": [],
+  "missingTexts": [],
+  "designLiteralDiff": [
+   "占比条填充宽 = 百分比 × 轨道宽（本页 42%→81px）：设计声明填充 167/125/86/25 = 百分比 × 卡外层宽 398（轨道实际 192）→ 设计自身不自洽，按语义取轨道宽（与序号 6「分项条宽按分值%」同口径，台账序号 22 备注①）",
+   "横轴末位日期标签：设计帧自行左移 8px 以免出血（导出墨迹止于 ~356），实现按数据点 x 居中（末标签盒 363.94..384.06）→ 登记（台账备注⑧）",
+   "趋势图：设计为内联矢量（4 网格线 + 折线 #2563EB 3px + 面积 rgba(191,219,254,.35) + 7 数据点）；实现编码为 data-URI &lt;image&gt;（mp-weixin 不支持内联 svg，同序号 6 雷达图）+ 横轴标签作 DOM 文本（绝对定位按数据点 x 居中）",
+   "图标为 CSS 绘制占位形状（决策 D5：不引入图标字体库，R-26 禁 emoji）→ 返回箭头墨迹 16 宽 vs 设计 17 宽、日历 12×12 vs 设计墨迹 14×13，形状近似非真实图标",
+   "「查看逐日 / 逐模型明细」画布 30 页无明细页（18-API 只有 /usage/hourly 数据接口而无页面）→ 点击 no-op（不跳转、不弹占位 toast、不臆造路由，台账待拍板）",
+   "月份选择为原生 uni-picker（mode=date fields=month）→ client-only + 重新取数；H5 下 uni-picker 会挂一个空内部 div（父级 overflow:hidden）→ 页面自身溢出为 0",
+   "卡片描边用 ring（盒外 1px）→ 可见描边行比设计中心描边（跨边各半）外移 0.5px（卡内容盒与设计逐值相等）",
+   "汇总卡只有 effects drop_shadow(0,6,20,rgba(15,23,42,.06))、无 stroke；其余四卡只有 stroke、无 effects → 逐卡断言，不统一",
+   "页面数据全部来自 GET /api/v1/usage/summary（mock api-22/v1/usage/summary）；响应字段级 schema 18-API 未定义 → 逐日/占比/成本字段名为推断、缺字段渲染「—」（台账备注②③）",
+   "「较上月节省」「平台服务费（8%）」在 22 份 PRD 零命中 → 服务端优先；费率取 cost.platform_fee_rate，缺省用设计帧常量 8%（文案随费率走）（台账备注④⑤）"
+  ],
+  "docScrollWidth": 430,
+  "docScrollHeight": 1138,
+  "innerWidth": 430,
+  "nav": {
+   "x": 0,
+   "top": 0,
+   "right": 430,
+   "bottom": 96,
+   "w": 430,
+   "h": 96
+  },
+  "navBack": {
+   "x": 16,
+   "top": 48,
+   "right": 42,
+   "bottom": 84,
+   "w": 26,
+   "h": 36
+  },
+  "navTitle": {
+   "x": 54,
+   "top": 56,
+   "right": 122,
+   "bottom": 76,
+   "w": 68,
+   "h": 20
+  },
+  "month": {
+   "x": 301,
+   "top": 51,
+   "right": 414,
+   "bottom": 81,
+   "w": 113,
+   "h": 30
+  },
+  "monthCal": {
+   "x": 313,
+   "top": 55,
+   "right": 330,
+   "bottom": 77,
+   "w": 17,
+   "h": 23
+  },
+  "monthChev": {
+   "x": 384,
+   "top": 54,
+   "right": 402,
+   "bottom": 78,
+   "w": 18,
+   "h": 24
+  },
+  "summary": {
+   "x": 16,
+   "top": 108,
+   "right": 414,
+   "bottom": 336,
+   "w": 398,
+   "h": 228
+  },
+  "summaryTitle": {
+   "x": 32,
+   "top": 128,
+   "right": 398,
+   "bottom": 148,
+   "w": 366,
+   "h": 20
+  },
+  "tiles": [
+   {
+    "x": 32,
+    "top": 164,
+    "right": 211,
+    "bottom": 236,
+    "w": 179,
+    "h": 72
+   },
+   {
+    "x": 220,
+    "top": 164,
+    "right": 398,
+    "bottom": 236,
+    "w": 179,
+    "h": 72
+   },
+   {
+    "x": 32,
+    "top": 244,
+    "right": 211,
+    "bottom": 316,
+    "w": 179,
+    "h": 72
+   },
+   {
+    "x": 220,
+    "top": 244,
+    "right": 398,
+    "bottom": 316,
+    "w": 179,
+    "h": 72
+   }
+  ],
+  "tilesFirst": {
+   "x": 32,
+   "top": 148,
+   "right": 398,
+   "bottom": 236,
+   "w": 366,
+   "h": 88
+  },
+  "tilesSecond": {
+   "x": 32,
+   "top": 236,
+   "right": 398,
+   "bottom": 316,
+   "w": 366,
+   "h": 80
+  },
+  "trend": {
+   "x": 16,
+   "top": 348,
+   "right": 414,
+   "bottom": 570,
+   "w": 398,
+   "h": 222
+  },
+  "trendHead": {
+   "x": 36,
+   "top": 368,
+   "right": 394,
+   "bottom": 388,
+   "w": 358,
+   "h": 20
+  },
+  "legendDot": {
+   "x": 323,
+   "top": 374,
+   "right": 332,
+   "bottom": 382,
+   "w": 9,
+   "h": 8
+  },
+  "legendText": {
+   "x": 336,
+   "top": 371,
+   "right": 394,
+   "bottom": 386,
+   "w": 58,
+   "h": 15
+  },
+  "chart": {
+   "x": 36,
+   "top": 400,
+   "right": 394,
+   "bottom": 550,
+   "w": 358,
+   "h": 150
+  },
+  "chartImg": {
+   "x": 36,
+   "top": 400,
+   "right": 394,
+   "bottom": 550,
+   "w": 358,
+   "h": 150
+  },
+  "trendLabels": [
+   {
+    "x": 56,
+    "top": 523,
+    "right": 76,
+    "bottom": 536,
+    "w": 20,
+    "h": 13
+   },
+   {
+    "x": 107,
+    "top": 523,
+    "right": 127,
+    "bottom": 536,
+    "w": 20,
+    "h": 13
+   },
+   {
+    "x": 159,
+    "top": 523,
+    "right": 179,
+    "bottom": 536,
+    "w": 20,
+    "h": 13
+   },
+   {
+    "x": 210,
+    "top": 523,
+    "right": 230,
+    "bottom": 536,
+    "w": 20,
+    "h": 13
+   },
+   {
+    "x": 261,
+    "top": 523,
+    "right": 281,
+    "bottom": 536,
+    "w": 20,
+    "h": 13
+   },
+   {
+    "x": 313,
+    "top": 523,
+    "right": 333,
+    "bottom": 536,
+    "w": 20,
+    "h": 13
+   },
+   {
+    "x": 364,
+    "top": 523,
+    "right": 384,
+    "bottom": 536,
+    "w": 20,
+    "h": 13
+   }
+  ],
+  "models": {
+   "x": 16,
+   "top": 582,
+   "right": 414,
+   "bottom": 766,
+   "w": 398,
+   "h": 184
+  },
+  "modelRows": [
+   {
+    "x": 36,
+    "top": 622,
+    "right": 394,
+    "bottom": 656,
+    "w": 358,
+    "h": 34
+   },
+   {
+    "x": 36,
+    "top": 656,
+    "right": 394,
+    "bottom": 686,
+    "w": 358,
+    "h": 30
+   },
+   {
+    "x": 36,
+    "top": 686,
+    "right": 394,
+    "bottom": 716,
+    "w": 358,
+    "h": 30
+   },
+   {
+    "x": 36,
+    "top": 716,
+    "right": 394,
+    "bottom": 746,
+    "w": 358,
+    "h": 30
+   }
+  ],
+  "modelNames": [
+   {
+    "x": 36,
+    "top": 638,
+    "right": 167,
+    "bottom": 656,
+    "w": 131,
+    "h": 18
+   },
+   {
+    "x": 36,
+    "top": 668,
+    "right": 167,
+    "bottom": 686,
+    "w": 131,
+    "h": 18
+   },
+   {
+    "x": 36,
+    "top": 698,
+    "right": 167,
+    "bottom": 716,
+    "w": 131,
+    "h": 18
+   },
+   {
+    "x": 36,
+    "top": 728,
+    "right": 167,
+    "bottom": 746,
+    "w": 131,
+    "h": 18
+   }
+  ],
+  "modelTracks": [
+   {
+    "x": 167,
+    "top": 642,
+    "right": 360,
+    "bottom": 652,
+    "w": 193,
+    "h": 10
+   },
+   {
+    "x": 167,
+    "top": 672,
+    "right": 360,
+    "bottom": 682,
+    "w": 193,
+    "h": 10
+   },
+   {
+    "x": 167,
+    "top": 702,
+    "right": 360,
+    "bottom": 712,
+    "w": 193,
+    "h": 10
+   },
+   {
+    "x": 167,
+    "top": 732,
+    "right": 367,
+    "bottom": 742,
+    "w": 200,
+    "h": 10
+   }
+  ],
+  "modelFills": [
+   {
+    "x": 167,
+    "top": 642,
+    "right": 248,
+    "bottom": 652,
+    "w": 81,
+    "h": 10
+   },
+   {
+    "x": 167,
+    "top": 672,
+    "right": 227,
+    "bottom": 682,
+    "w": 60,
+    "h": 10
+   },
+   {
+    "x": 167,
+    "top": 702,
+    "right": 208,
+    "bottom": 712,
+    "w": 41,
+    "h": 10
+   },
+   {
+    "x": 167,
+    "top": 732,
+    "right": 179,
+    "bottom": 742,
+    "w": 12,
+    "h": 10
+   }
+  ],
+  "modelPcts": [
+   {
+    "x": 368,
+    "top": 638,
+    "right": 394,
+    "bottom": 656,
+    "w": 26,
+    "h": 18
+   },
+   {
+    "x": 368,
+    "top": 668,
+    "right": 394,
+    "bottom": 686,
+    "w": 26,
+    "h": 18
+   },
+   {
+    "x": 368,
+    "top": 698,
+    "right": 394,
+    "bottom": 716,
+    "w": 26,
+    "h": 18
+   },
+   {
+    "x": 375,
+    "top": 728,
+    "right": 394,
+    "bottom": 746,
+    "w": 19,
+    "h": 18
+   }
+  ],
+  "cost": {
+   "x": 16,
+   "top": 778,
+   "right": 414,
+   "bottom": 985,
+   "w": 398,
+   "h": 207
+  },
+  "costRows": [
+   {
+    "x": 36,
+    "top": 818,
+    "right": 394,
+    "bottom": 852,
+    "w": 358,
+    "h": 34
+   },
+   {
+    "x": 36,
+    "top": 852,
+    "right": 394,
+    "bottom": 882,
+    "w": 358,
+    "h": 30
+   },
+   {
+    "x": 36,
+    "top": 882,
+    "right": 394,
+    "bottom": 912,
+    "w": 358,
+    "h": 30
+   }
+  ],
+  "costLabels": [
+   {
+    "x": 36,
+    "top": 834,
+    "right": 167,
+    "bottom": 852,
+    "w": 131,
+    "h": 18
+   },
+   {
+    "x": 36,
+    "top": 864,
+    "right": 167,
+    "bottom": 882,
+    "w": 131,
+    "h": 18
+   },
+   {
+    "x": 36,
+    "top": 894,
+    "right": 167,
+    "bottom": 912,
+    "w": 131,
+    "h": 18
+   }
+  ],
+  "costValues": [
+   {
+    "x": 355,
+    "top": 834,
+    "right": 394,
+    "bottom": 852,
+    "w": 39,
+    "h": 18
+   },
+   {
+    "x": 355,
+    "top": 864,
+    "right": 394,
+    "bottom": 882,
+    "w": 39,
+    "h": 18
+   },
+   {
+    "x": 366,
+    "top": 894,
+    "right": 394,
+    "bottom": 912,
+    "w": 28,
+    "h": 18
+   }
+  ],
+  "costTotal": {
+   "x": 36,
+   "top": 924,
+   "right": 394,
+   "bottom": 965,
+   "w": 358,
+   "h": 41
+  },
+  "costTotalValue": {
+   "x": 328,
+   "top": 934,
+   "right": 384,
+   "bottom": 955,
+   "w": 56,
+   "h": 21
+  },
+  "detail": {
+   "x": 16,
+   "top": 997,
+   "right": 414,
+   "bottom": 1057,
+   "w": 398,
+   "h": 60
+  },
+  "detailIcon": {
+   "x": 36,
+   "top": 1014,
+   "right": 56,
+   "bottom": 1041,
+   "w": 20,
+   "h": 27
+  },
+  "detailIconShape": {
+   "x": 38,
+   "top": 1019,
+   "right": 54,
+   "bottom": 1035,
+   "w": 16,
+   "h": 16
+  },
+  "detailText": {
+   "x": 64,
+   "top": 1017,
+   "right": 192,
+   "bottom": 1037,
+   "w": 128,
+   "h": 20
+  },
+  "detailChev": {
+   "x": 372,
+   "top": 1013,
+   "right": 394,
+   "bottom": 1041,
+   "w": 22,
+   "h": 28
+  },
+  "footer": {
+   "x": 0,
+   "top": 1057,
+   "right": 430,
+   "bottom": 1137,
+   "w": 430,
+   "h": 80
+  },
+  "footerNote": {
+   "x": 111,
+   "top": 1081,
+   "right": 320,
+   "bottom": 1097,
+   "w": 209,
+   "h": 16
+  },
+  "footerUpdated": {
+   "x": 144,
+   "top": 1097,
+   "right": 286,
+   "bottom": 1113,
+   "w": 141,
+   "h": 16
+  },
+  "texts": {
+   "navTitle": "用量概览",
+   "month": "2024-06",
+   "summaryTitle": "本月汇总",
+   "tileValues": [
+    "1.24M",
+    "3.86B",
+    "¥12,860",
+    "¥2,140"
+   ],
+   "tileLabels": [
+    "请求数",
+    "Token",
+    "费用",
+    "较上月节省"
+   ],
+   "trendTitle": "近 7 日用量趋势",
+   "legend": "Token（亿）",
+   "trendLabels": [
+    "6-08",
+    "6-09",
+    "6-10",
+    "6-11",
+    "6-12",
+    "6-13",
+    "6-14"
+   ],
+   "modelTitle": "模型用量分布",
+   "modelNames": [
+    "gpt-4o-mini",
+    "claude-3-5-sonnet",
+    "gpt-4o",
+    "其他"
+   ],
+   "modelPcts": [
+    "42%",
+    "31%",
+    "21%",
+    "6%"
+   ],
+   "costTitle": "成本构成",
+   "costLabels": [
+    "输入 Token 成本",
+    "输出 Token 成本",
+    "平台服务费（8%）"
+   ],
+   "costValues": [
+    "¥4,120",
+    "¥8,240",
+    "¥500"
+   ],
+   "costTotal": "¥12,860",
+   "detailText": "查看逐日 / 逐模型明细",
+   "footerNote": "数据每小时更新一次，最终以结算账单为准",
+   "footerUpdated": "更新时间：2024-06-14 16:20"
+  },
+  "counts": {
+   "cards": 5,
+   "tiles": 4,
+   "modelRows": 4,
+   "costRows": 3,
+   "trendLabels": 7,
+   "tabbar": 0,
+   "inputs": 0
+  },
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36"
+ }
+}

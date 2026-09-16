@@ -461,6 +461,40 @@
         chk('trend.img.dotCount', (trendSvg.match(/<circle /g) || []).length, 7) /* design 7 个数据点 */
         chk('trend.img.lineColor', trendSvg.indexOf('#2563EB') >= 0, true) /* design 折线 #2563EB 3px */
         chk('trend.img.areaFill', trendSvg.indexOf('rgba(191,219,254,0.35)') >= 0, true) /* design 面积填充 */
+        /* ---- 设计内联 SVG 13 层 ↔ 实现 data-URI 逐元素等价（文本叶子维度的「未渲染叶子」判定）----
+           设计侧 13 个 SVG 叶子：4 网格线（a8d382a7 等 ×3 为 #F1F5F9 + 末条 462095fa #E2E8F0）· 折线 a8d382a7
+           `M 30 118 L 82 96 L 134 104 L 186 72 L 238 58 L 290 44 L 340 30`（#2563EB sw3）· 面积 54d06be8
+           `rgba(191,219,254,.35)` · 6 点 r4 #2563EB（911f3c82 等）+ 末点 3e2e1b83 r5 rgb(29,78,216)。
+           实现侧 = usageTrendSvg() 的 data-URI（同族画法，13 个元素）。设计坐标经 Figma transform
+           （matrix 0.9944 + translate）映射到实现几何 30..338 × 25.28..129.69 —— 逐点比对。 */
+        var trendLines = trendSvg.match(/<line [^>]*>/g) || []
+        chkList('trend.grid.ys', trendLines.map(function (s) { return parseFloat((s.match(/y1="([0-9.]+)"/) || [0, 'NaN'])[1]) }),
+                [25.28, 60.08, 94.89, 129.69], 0.01)
+        chkStrs('trend.grid.strokes', trendLines.map(function (s) { return (s.match(/stroke="([^"]+)"/) || [0, ''])[1] }),
+                ['#F1F5F9', '#F1F5F9', '#F1F5F9', '#E2E8F0'])
+        var DESIGN_PATH_X = [30, 82, 134, 186, 238, 290, 340]   /* 设计折线 d= 的 x */
+        var DESIGN_PATH_Y = [118, 96, 104, 72, 58, 44, 30]      /* 设计折线 d= 的 y */
+        var trendPts = ((trendSvg.match(/<polyline points="([^"]+)"/) || [0, ''])[1] || '')
+          .split(' ').filter(Boolean).map(function (p) { return p.split(',').map(Number) })
+        chk('trend.line.pointCount', trendPts.length, 7)
+        chkList('trend.line.vsDesignY', trendPts.map(function (p, i) {
+          return Math.round(Math.abs(p[1] - (DESIGN_PATH_Y[i] * 0.99438 + 0.4205)) * 100) / 100
+        }), [0, 0, 0, 0, 0, 0, 0], 0.8)
+        /* x 方向：设计折线的 x 步距是 52/52/52/52/52/50（非等距，末点收口），映射到实现几何后与实现
+           的等距点（51.33/步）最大差 1.84px —— 实现取等距是因为**设计自己的横轴标签**就是等距
+           （56/107/159/210/261/313/364 → 中心 66..374），若改成设计点距会让数据点与横轴标签错开 2px。
+           故实现取等距（与标签一致），偏差按「设计自身点距 vs 标签步距」登记并锁死在上表（容差 0.35）；
+           若将来改为按设计字面坐标（52 步距）落地，本 check 会红 —— 那时属有意变更，重写 want 数组。 */
+        chkList('trend.line.vsDesignX', trendPts.map(function (p, i) {
+          return Math.round(Math.abs(p[0] - (30 + (DESIGN_PATH_X[i] - 30) * 0.99438)) * 100) / 100
+        }), [0, 0.38, 0.74, 1.11, 1.48, 1.84, 0.26], 0.35)
+        var trendDots = trendSvg.match(/<circle [^>]*>/g) || []
+        chkStrs('trend.dots.radii', trendDots.map(function (s) { return (s.match(/r="([0-9.]+)"/) || [0, ''])[1] }),
+                ['4', '4', '4', '4', '4', '4', '5'])
+        chkStrs('trend.dots.fills', trendDots.map(function (s) { return (s.match(/fill="([^"]+)"/) || [0, ''])[1] }),
+                ['#2563EB', '#2563EB', '#2563EB', '#2563EB', '#2563EB', '#2563EB', '#1D4ED8'])
+        chk('trend.img.elemCount', (trendLines.length + trendDots.length +
+            (trendSvg.match(/<polyline /g) || []).length + (trendSvg.match(/<polygon /g) || []).length), 13)
         chk('trend.labelCount', doc.querySelectorAll('.trend__label').length, 7)
         chkStrs('trend.labelTexts', texts('.trend__label'), ['6-08', '6-09', '6-10', '6-11', '6-12', '6-13', '6-14'])
         chkList('trend.labelX', rects('.trend__label').map(function (r) { return r.x }), [56, 107, 159, 210, 261, 313, 364], 1) /* 36 + (30 + 51.33i) − 10.06 */

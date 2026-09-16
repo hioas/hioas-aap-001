@@ -1,0 +1,50 @@
+序号 22 趋势图区：「设计 13 个内联 SVG 图形叶子 ↔ 实现 data-URI 画法」等价对账
+（本页台账「未渲染叶子 13」= 设计把折线图拆成 13 层矢量；实现因 mp-weixin 不能渲染内联 svg → data-URI 交 <image>，同序号 6 雷达图）
+
+## 1. 设计侧 13 个 SVG 叶子（page-22-2 design.tree.json，脚本 .agents/state/svg-leaves-22.py）
+462095fa-f48 type=svg       w=310      h=0        styles=['rgb(226,232,240)', 'none'] sw=1 circle=None op=1 d='M 30 130 L 340 130'
+9a41b35b-4bf type=svg       w=310      h=0        styles=['rgb(241,245,249)', 'none'] sw=1 circle=None op=1 d='M 30 95 L 340 95'
+b5ab2eef-1c3 type=svg       w=310      h=0        styles=['rgb(241,245,249)', 'none'] sw=1 circle=None op=1 d='M 30 60 L 340 60'
+77f0f2ba-80b type=svg       w=310      h=0        styles=['rgb(241,245,249)', 'none'] sw=1 circle=None op=1 d='M 30 25 L 340 25'
+a8d382a7-57e type=svg       w=310      h=88       styles=['rgb(37,99,235)', 'none'] sw=3 circle=None op=1 d='M 30 118 L 82 96 L 134 104 L 186 72 L 238 58 L 290 44 L 340 30'
+54d06be8-67f type=svg       w=310      h=100      styles=['none', 'rgb(191,219,254)'] sw=0 circle=None op=0.35 d='M 30 118 L 82 96 L 134 104 L 186 72 L 238 58 L 290 44 L 340 30'
+911f3c82-bfd type=svg       w=8        h=8        styles=['none', 'rgb(37,99,235)'] sw=0 circle=('0', '0', '4') op=1 d=None
+692b5c7c-c98 type=svg       w=8        h=8        styles=['none', 'rgb(37,99,235)'] sw=0 circle=('0', '0', '4') op=1 d=None
+d745c245-718 type=svg       w=8        h=8        styles=['none', 'rgb(37,99,235)'] sw=0 circle=('0', '0', '4') op=1 d=None
+3170df5c-236 type=svg       w=8        h=8        styles=['none', 'rgb(37,99,235)'] sw=0 circle=('0', '0', '4') op=1 d=None
+4c1f1fff-713 type=svg       w=8        h=8        styles=['none', 'rgb(37,99,235)'] sw=0 circle=('0', '0', '4') op=1 d=None
+1de463d5-644 type=svg       w=8        h=8        styles=['none', 'rgb(37,99,235)'] sw=0 circle=('0', '0', '4') op=1 d=None
+3e2e1b83-441 type=svg       w=10       h=10       styles=['none', 'rgb(29,78,216)'] sw=0 circle=('0', '0', '5') op=1 d=None
+
+## 2. 实现侧 data-URI 解码（脚本 .agents/state/chart-svg-22.py，H5 产物 + api-22 mock）
+dom bytes 29013
+data-URI 数量 = 2
+--- svg[0] len=1124
+<svg xmlns="http://www.w3.org/2000/svg" width="358" height="150" viewBox="0 0 358 150"><line x1="30" y1="25.28" x2="338" y2="25.28" stroke="#F1F5F9" stroke-width="1"/><line x1="30" y1="60.08" x2="338" y2="60.08" stroke="#F1F5F9" stroke-width="1"/><line x1="30" y1="94.89" x2="338" y2="94.89" stroke="#F1F5F9" stroke-width="1"/><line x1="30" y1="129.69" x2="338" y2="129.69" stroke="#E2E8F0" stroke-width="1"/><polygon points="30,117.68 81.33,95.76 132.67,103.59 184,72.26 235.33,58.17 286.67,44.07 338,29.46 338,129.69 30,129.69" fill="rgba(191,219,254,0.35)"/><polyline points="30,117.68 81.33,95.76 132.67,103.59 184,72.26 235.33,58.17 286.67,44.07 338,29.46" fill="none" stroke="#2563EB" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="30" cy="117.68" r="4" fill="#2563EB"/><circle cx="81.33" cy="95.76" r="4" fill="#2563EB"/><circle cx="132.67" cy="103.59" r="4" fill="#2563EB"/><circle cx="184" cy="72.26" r="4" fill="#2563EB"/><circle cx="235.33" cy="58.17" r="4" fill="#2563EB"/><circle cx="286.67" cy="44.07" r="4" fill="#2563EB"/><circle cx="338" cy="29.46" r="5" fill="#1D4ED8"/></svg>
+--- svg[1] len=1124
+<svg xmlns="http://www.w3.org/2000/svg" width="358" height="150" viewBox="0 0 358 150"><line x1="30" y1="25.28" x2="338" y2="25.28" stroke="#F1F5F9" stroke-width="1"/><line x1="30" y1="60.08" x2="338" y2="60.08" stroke="#F1F5F9" stroke-width="1"/><line x1="30" y1="94.89" x2="338" y2="94.89" stroke="#F1F5F9" stroke-width="1"/><line x1="30" y1="129.69" x2="338" y2="129.69" stroke="#E2E8F0" stroke-width="1"/><polygon points="30,117.68 81.33,95.76 132.67,103.59 184,72.26 235.33,58.17 286.67,44.07 338,29.46 338,129.69 30,129.69" fill="rgba(191,219,254,0.35)"/><polyline points="30,117.68 81.33,95.76 132.67,103.59 184,72.26 235.33,58.17 286.67,44.07 338,29.46" fill="none" stroke="#2563EB" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="30" cy="117.68" r="4" fill="#2563EB"/><circle cx="81.33" cy="95.76" r="4" fill="#2563EB"/><circle cx="132.67" cy="103.59" r="4" fill="#2563EB"/><circle cx="184" cy="72.26" r="4" fill="#2563EB"/><circle cx="235.33" cy="58.17" r="4" fill="#2563EB"/><circle cx="286.67" cy="44.07" r="4" fill="#2563EB"/><circle cx="338" cy="29.46" r="5" fill="#1D4ED8"/></svg>
+
+## 3. 逐元素对应（设计 13 ↔ 实现 13）与残差
+  设计叶子            设计样式                             实现元素                 判定
+  462095fa(svg,w=310)  网格线 y=130 #E2E8F0 sw1              <line y=129.69 #E2E8F0>  等价（末条网格线=深色）
+  9a41b35b/b5ab2eef/77f0f2ba  网格线 y=95/60/25 #F1F5F9      3×<line #F1F5F9>       等价（浅色 ×3）
+  a8d382a7(svg,w=310)  折线 #2563EB sw3 M30,118→340,30      <polyline #2563EB sw3>   等价（7 顶点，y Δ≤0.79px）
+  54d06be8(svg,w=310)  面积 fill rgb(191,219,254) op .35    <polygon rgba(191,219,254,.35)>  等价
+  911f3c82…1de463d5   6×circle r4 fill rgb(37,99,235)      6×<circle r4 #2563EB>    等价
+  3e2e1b83             circle r5 fill rgb(29,78,216)          <circle r5 #1D4ED8>      等价（末点高亮）
+  设计坐标经 Figma transform（matrix 0.9944 + translate(-185,-130)）映射 → 实现几何 left30/right338/top25.28/bottom129.69。
+  残差（已知、已登记）：设计折线 x 步距 52/52/52/52/52/50（非等距）vs 实现等距 51.33 → |Δx| ≤ 1.84px（第 6 点）；
+    实现取等距是因为**设计自己的横轴标签就是等距**（56/107/159/210/261/313/364 → 中心 66..374），若照抄设计点距会让数据点与标签错开 2px。y 方向 |Δ| ≤ 0.79px。
+
+## 4. 像素侧核对（脚本 .agents/state/chart-cmp-22.py / grid-rows-22.py）
+=== DESIGN page-22-2.png
+  数据点列（中心 x, 核宽）: 66.0/5, 118.0/5, 170.5/6, 221.0/5, 273.0/5, 325.0/5, 374.5/8
+  网格线行（y, x 起, x 止, 命中列数）: 425(67..371,305)
+=== IMPL 20260916-2100-序22-用量概览-textleaf轮-h5-430宽.png
+  数据点列（中心 x, 核宽）: 66.0/7, 116.5/6, 121.0/1, 163.0/1, 169.0/7, 178.0/1, 219.5/6, 270.5/6, 322.0/5, 373.5/8
+  网格线行（y, x 起, x 止, 命中列数）: 425(66..369,304)
+  （网格线 y=425 行两侧 n=306/306（tol 6 时 425/460/529 两侧同值）；y=495 处两侧同为折线穿越，非网格线缺失）
+
+## 5. 结论
+  13 条「未渲染叶子」= 设计的内联 SVG 图形层，实现以同族画法（data-URI）逐元素等价实现（13↔13，色值/线宽/半径/填充全同），
+  像素侧网格线行与数据点列两侧一致（±1~2px = H5 回退渲染残差）。已在载体页新增 8 条硬断言锁死，并用源码变异证明有牙齿。
