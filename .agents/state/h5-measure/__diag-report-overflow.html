@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>diag-report-overflow</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 4886px; border: 0; }
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 单点探针：序号 6 报告页 phase1 的 overflowing 在两轮间波动（run1=0 / run2=2，两个空 <div>）是谁。
+         同一页在 3 个时刻各采样一次，并记录祖先链/最近的 uni-* 宿主/父级 overflow，
+         用来判「uni-app 内部测量元素（无害）vs 页面内容真溢出」。 -->
+    <iframe id="f" src="/index.html#/pages/report/index"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var acc = {}
+      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+      function chain(el, win) {
+        var out = []
+        var cur = el
+        var depth = 0
+        while (cur && depth < 6) {
+          out.push(cur.tagName.toLowerCase() + (cur.className ? '.' + String(cur.className).split(' ')[0] : '') + (cur.getAttribute && cur.getAttribute('data-testid') ? '[' + cur.getAttribute('data-testid') + ']' : ''))
+          cur = cur.parentElement
+          depth++
+        }
+        return out.join(' < ')
+      }
+      function sample() {
+        var doc = f.contentDocument
+        var win = f.contentWindow
+        var all = Array.prototype.slice.call(doc.querySelectorAll('*'))
+        var rows = all
+          .filter(function (e) {
+            var r = e.getBoundingClientRect()
+            return r.width > 0 && (r.right > win.innerWidth + 0.5 || r.left < -0.5)
+          })
+          .map(function (e) {
+            var r = e.getBoundingClientRect()
+            var uni = e.closest('uni-image,uni-picker,uni-input,uni-scroll-view,uni-swiper,uni-checkbox,uni-radio')
+            return {
+              tag: e.tagName,
+              cls: String(e.className).slice(0, 40),
+              left: Math.round(r.left),
+              right: Math.round(r.right),
+              w: Math.round(r.width),
+              h: Math.round(r.height),
+              uniHost: uni ? uni.tagName : null,
+              chain: chain(e, win),
+              html: String(e.outerHTML).replace(/\s+/g, ' ').slice(0, 120)
+            }
+          })
+        return {
+          innerWidth: win.innerWidth,
+          docScrollWidth: doc.documentElement.scrollWidth,
+          count: rows.length,
+          rows: rows,
+          radarHostHtml: String((doc.querySelector('uni-image') || {}).outerHTML || '').replace(/\s+/g, ' ').slice(0, 300)
+        }
+      }
+      f.addEventListener('load', function () {
+        setTimeout(function () { try { sink(1, sample()) } catch (e) { sink(1, { error: String(e && e.message) }) } }, 2500)
+        setTimeout(function () { try { sink(2, sample()) } catch (e) { sink(2, { error: String(e && e.message) }) } }, 4000)
+        setTimeout(function () { try { sink(3, sample()) } catch (e) { sink(3, { error: String(e && e.message) }) } }, 8000)
+      })
+    </script>
+  </body>
+</html>

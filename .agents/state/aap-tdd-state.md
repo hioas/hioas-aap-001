@@ -1,4 +1,4 @@
-STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。三条在办：①**目录命名对齐 hioas-aap-client**（用户 dev server 持句柄 → 每轮重试，锁一放就搬）②**按序号逐页复核**（430 宽 DOM 实测已覆盖 20/22 页且连跑两轮一致；剩 序号 1 登录注册 / 2 工作台 待补载体页）③**序号 9 测量面 fixture 缺口**（api mock 缺 GET /quotes/q9/items）待补，补后需回跑所有用 `api` 目录的页面。历史流水归档在 aap-notes-archive-2026-09-16.md，**不要每轮读**。
+STATUS: RUNNING — 报价端小程序 22 页已全部实现（台账待取件 0）。三条在办：①**目录命名对齐 hioas-aap-client**（用户 dev server 持句柄 → 每轮重试，锁一放就搬）②**按序号逐页复核**（430 宽 DOM 实测已覆盖 20/22 页且连跑两轮一致；剩 序号 1 登录注册 / 2 工作台 待补载体页）③**序号 9 测量面 fixture 缺口已补并复跑**（补 `api/v1/quotes/q9/items/index` + 同探针 before/after；用 `api` 目录的 8 页 3/4/4-v1/5/6/7/8/9 已两轮复跑，与上轮留证逐字节一致）④**载体页溢出统计的 uni-app 内部测量元素噪音已修**（序号 6 的 `uni-resize-sensor`；序号 22 的 `uni-picker` 仍为老口径，见队列 7）。历史流水归档在 aap-notes-archive-2026-09-16.md，**不要每轮读**。
 LEASE: free until -
 
 # AAP TDD 推进 · 状态与目标（自驱动循环的单一事实来源）
@@ -100,10 +100,13 @@ LEASE: free until -
    有则按同口径改（**先红后绿**，别只改注释）。
 3. **15 条待人类拍板缺口**：只做**可自主**的部分；未拍板的**保持原样**，每轮简报只列 1 条最该拍的，不擅自改设计稿口径。
 4. 画布余下 **8 个管理端 PC 页（`aap-admn`）** —— **本轮范围外**，除非人类放行，不要开工。
-5. **补 序号 9 的测量面 fixture**：`api/v1/quotes/q9/items/index`（GET 明细行；页面按 `src/api/quote.ts:90` 的回落入口取数）。
-   补完必须**回跑所有用 `api` 目录的页面**（3、4、5、6、7、8、9）确认没被 fixture 影响（两轮一致 + 与留证对比）。
+5. ✅ **补 序号 9 的测量面 fixture（已完成 2026-09-16 08:28）**：`api/v1/quotes/q9/items/index`（GET 明细行；页面按 `src/api/quote.ts:90` 的回落入口取数）。
+   已补 fixture + 同探针 before/after（`__measure-model-pricing-q9.html`，red=404 无明细 / green=gpt-4o·2.50·10.00 且 PUT 成功）+ 解析器体检 `check-mock-fixtures.py` 红→绿；
+   **用 `api` 目录的 8 页（3、4、4-v1、5、6、7、8、9）已两轮复跑**：两轮一致，且与上轮 review 留证逐字节相同（仅序号 9 的 phase4 由「404 文案」变回「保存成功 + 跳 model-pricing」，正是本缺口）。
 6. **给 序号 1（登录注册）、2（工作台）补 430 宽载体页**（`__measure-login.html` / `__measure-workbench.html`），
-   两轮 dump-dom + 与建页留证对比；这两页此前只有截图/产物证据，是逐页复核里唯一没有客观 DOM 数字的两行。
+   两轮 dump-dom + 与建页留证对比；这两页此前只有截图/产物证据，是逐页复核里唯一没有客观 DOM 数字的两行。**← 下轮开工第一件事**
+7. （工具卫生）把「uni-app 内部测量元素不计入溢出统计」的口径补到序号 22 的载体页（`uni-picker`），与序号 6 已修的 `uni-resize-sensor` 同族；
+   如果还有别的页面出现「两轮 overflowing 波动但 docScrollWidth 恒等」，先跑 `__diag-report-overflow.html` 那类祖先链探针定位，再决定是探针噪音还是真溢出。
 
 ### 本轮小结（追加式，一行一轮）
 
@@ -136,12 +139,34 @@ LEASE: free until -
   ⑦**下轮开工第一件事**：补 `api/v1/quotes/q9/items/index` fixture（页面按 `src/api/quote.ts:90` 回落取明细行）并回跑用 `api` 目录的页面；
   再给 序号 1/2 补 430 宽载体页。
 
+- 2026-09-16 08:30（cron 轮 `aap-tdd-run-20260916-0820`）· **补 序号 9 测量面 fixture + 复跑 `api` 目录 8 页 + 修探测噪音**：
+  ①**改名**：`git mv aap-client hioas-aap-client` 仍 `Permission denied`（用户 `npm run dev:h5` 持句柄）→ 记一行顺延，**未杀用户进程**（§3.10）。
+  ②**fixture 红→绿**：新增 `.agents/state/check-mock-fixtures.py`（自起 serve.py + http.client 直连校验，另做「mock 目录所有 fixture 均可按路径取到」的反向体检）——
+  红基线 1 FAIL（`GET /api/v1/quotes/q9/items` 404，证据 `evidence/red-mock-fixture-q9items.txt`）→ 补 `api/v1/quotes/q9/items/index`
+  （3 行明细：字段来自 15-数据字典/`QuoteItemRaw`，模型名与单价来自设计 page-9 的行值与上轮实测请求体 `{"items":[{"model_name":"gpt-4o"}]}`，不臆造）→ 全 PASS（`evidence/green-mock-fixture-q9items.txt`）；
+  新增 `.agents/state/make-mock-variant.py` 造「同目录去掉该 fixture」的变体，供**同探针 before/after** 用。
+  ③**同探针 before/after**：新载体页 `__measure-model-pricing-q9.html`（序号 9「保存并继续」落点 `model-pricing?quoteId=q9`）——
+  before（`review-序号11-fallback-red-run{1,2}.json`）toast「mock 未定义该接口: /api/v1/quotes/q9/items」· modelName 空 · 点保存「未找到模型明细，请返回重试」；
+  after（`review-序号11-fallback-run{1,2}.json`）toast 空 · `gpt-4o` · `2.50/10.00` · 档位 base · 规则组 #1，点保存 → serve 日志实测 `GET /quotes/q9/items 200` + `PUT /quotes/items/qi1` body 带 2.5/10 → 「保存成功」。
+  ④**回跑 8 页两轮**：3/4/4-v1/5/6/7/8 的 review JSON 与上轮留证**逐字节相同**（git 判定无改动＝最强一致性证明）；序号 9 仅 phase4 由 404 文案变回「保存成功 + 跳 model-pricing」，正是本缺口。
+  ⑤**修探测工具缺陷**：序号 6 phase1 的 `overflowing` 两轮波动（0/2）由新探针 `__diag-report-overflow.html`（三时刻采样 + 祖先链）定位为
+  `<image mode="widthFix">`（雷达图）挂的 **`uni-resize-sensor`** 内部两个空 div（宽 100000/352，负偏移量测；docScrollWidth 恒 430 = innerWidth）
+  → 在该载体页溢出统计里过滤后 phase1/phase2 全等 65/65 且与留证全等 65/65（`review-序号diag-report-run{1,2}.json`）。
+  另：序号 4 与建页留证的 3 处差异已定位为 shared mock 凭证 `api_key_mask` 在 cc98e23 变更（page-4 的 16 点 → page-9 的 `sk-prod-••••••••2f9a`，同一 mock 无法同时满足两帧设计值）→ 非页面缺陷。
+  ⑥**基线**：`npm test` **1141/1141 · 69 files** 连跑两轮一致 exit 0、`npm run type-check` exit 0（本轮未改 `src/`）。
+  ⑦**产物**：报告 `.agents/state/evidence/review-measure-20260916-0830.md`；台账 4/6/9 行已回写（含命令与证据文件名）。
+  ⑧**下轮开工第一件事**：给 序号 1（登录注册）/ 2（工作台）补 430 宽载体页（队列 6）。
+
 ## 5. 关键命令（照抄可用）
 
 - 项目根：`E:\workspaces\hioas\hioas-aap-001`（远端 https://github.com/hioas/hioas-aap-001）
 - 客户端：`cd aap-client`（改名后为 `hioas-aap-client`）；`npm test`（vitest run）；`npm run build:mp-weixin`；`npm run build:h5`；`npm run dev:h5`；`npm run type-check`
 - **目录对齐**：仓库根 `git mv aap-client hioas-aap-client`（`Permission denied` = 用户进程持有句柄 → 顺延，别 kill）
 - 台账统计：`python .agents/state/gen-ledger.py`
+- **mock fixture 体检**：`python .agents/state/check-mock-fixtures.py [--mock api]`（自起 serve.py + 直连校验 + 反向体检；红=有路径取不到数）
+- **造 before/after mock 变体**：`python .agents/state/make-mock-variant.py <src> <dst> [relpath ...]` / `--clean <dst>`（当轮用完即 clean，别提交）
+- **本轮新增探针**：`__measure-model-pricing-q9.html`（q9 回落：序号 9 保存并继续的落点）· `__diag-report-overflow.html`（溢出元素祖先链定位）
+- **生成复核报告**：`bash .agents/state/gen-review-report.sh <轮次id> <输出文件名>`
 - 设计树探针：`python .agents/state/node-probe.py <page-id>`（产出 `.agents/state/<page-id>-nodes.txt`，含几何/填充/内边距/文字）
 - 设计截图像素量尺：`python .agents/state/png-bands.py <png> v|h <idx> [from] [to]`（同色色带 = 盒子边界；定卡高/间距/栏高最硬的依据）
 - 像素对账：`python .agents/state/text-rows.py`（同一脚本跑设计与实现，逐行文本带对比）

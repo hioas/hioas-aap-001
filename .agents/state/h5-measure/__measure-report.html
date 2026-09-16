@@ -28,6 +28,10 @@
         var over = []
         doc.querySelectorAll('*').forEach(function (el) {
           var r = el.getBoundingClientRect()
+          /* 不计入 uni-app 自身的测量元素：<image mode="widthFix"> 会挂 uni-resize-sensor，
+             它内部两个空 div 的宽度是 100000 / 352 且位置靠负值滚动技巧量测，偶发被算成「右溢出」；
+             实测 docScrollWidth 恒为 430=innerWidth，无可见溢出（见 .agents/state/evidence/review-序号diag-report-run*.json）。 */
+          if (el.closest && el.closest('uni-resize-sensor')) return
           if (r.width > 0 && r.right > win.innerWidth + 0.5) {
             over.push({
               tag: el.tagName,

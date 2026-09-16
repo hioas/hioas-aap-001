@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>measure-model-pricing-q9-fallback</title>
+    <style>
+      body { margin: 0; font: 12px monospace; }
+      iframe { width: 430px; height: 900px; border: 0; }
+      #sink { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- 430 宽 iframe 探针：页面 11 /pages/model-pricing/index?quoteId=q9 —— 即 序号 9「保存并继续」的落点。
+         这条路径走的是 src/api/quote.ts listItems()（无 itemId 时的回落入口 → GET /api/v1/quotes/{quoteId}/items），
+         正是本轮补齐的 mock fixture（api/v1/quotes/q9/items/index）。
+         phase1 = 首屏被回填的明细行（模型名/输入价/输出价/档位/请求规则组 + 错误 toast 是否为空）
+         phase2 = 点顶栏「保存」→ 真实 PUT /api/v1/quotes/items/qi1（明细行 id 来自 listItems 首行）→ toast
+         判读：phase1.toast 含「mock 未定义」= fixture 仍缺；modelName=gpt-4o / input 2.5 / output 10 = fixture 已生效。 -->
+    <iframe id="f" src="/index.html#/pages/model-pricing/index?quoteId=q9"></iframe>
+    <div id="sink"><pre id="m">pending</pre></div>
+    <script>
+      var f = document.getElementById('f')
+      var acc = {}
+
+      function all(doc, sel) { return Array.prototype.slice.call(doc.querySelectorAll(sel)) }
+      function rect(doc, sel) {
+        var el = doc.querySelector(sel)
+        if (!el) return null
+        var r = el.getBoundingClientRect()
+        return { x: Math.round(r.x), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }
+      }
+      function textOf(doc, sel) {
+        var el = doc.querySelector(sel)
+        return el ? el.textContent.trim() : null
+      }
+      function inputValue(doc, id) {
+        var host = doc.querySelector('[data-testid="' + id + '"]')
+        var el = host && (host.tagName === 'INPUT' ? host : host.querySelector('input'))
+        return el ? el.value : null
+      }
+      function toastText(doc) {
+        var el = doc.querySelector('uni-toast .uni-toast__content, .uni-toast__content, uni-toast')
+        return el ? el.textContent.trim() : ''
+      }
+      function hashNow() { try { return String(f.contentWindow.location.hash) } catch (e) { return 'ERR:' + e.message } }
+
+      function collect(doc, win) {
+        return {
+          innerWidth: win.innerWidth,
+          docScrollWidth: doc.documentElement.scrollWidth,
+          docScrollHeight: doc.documentElement.scrollHeight,
+          overflowingCount: all(doc, 'body *').filter(function (el) { return el.getBoundingClientRect().right > doc.documentElement.clientWidth + 0.5 }).length,
+          hash: hashNow(),
+          toast: toastText(doc),
+          navTitle: textOf(doc, '[data-testid="nav-title"]'),
+          modelName: textOf(doc, '[data-testid="model-name"]'),
+          modelBadge: textOf(doc, '[data-testid="model-badge"]'),
+          tierValue: inputValue(doc, 'tier-input'),
+          modeText: textOf(doc, '[data-testid="mode-select"]'),
+          priceInput: inputValue(doc, 'price-input_price'),
+          priceOutput: inputValue(doc, 'price-output_price'),
+          ruleGroupTitles: all(doc, '[data-testid^="rule-group-title-"]').map(function (e) { return e.textContent.trim() }),
+          nav: rect(doc, '.pricing__nav'),
+          bar: rect(doc, '.pricing__bar'),
+          saveTop: rect(doc, '[data-testid="save-top"]'),
+          saveBottom: rect(doc, '[data-testid="save-bottom"]'),
+          inputCount: all(doc, 'input,textarea').length,
+          tabbarExists: !!doc.querySelector('.tabbar'),
+          userAgent: win.navigator.userAgent
+        }
+      }
+
+      function sink(n, payload) {
+        acc['phase' + n] = payload
+        document.getElementById('m').textContent = 'MEASURE_JSON:' + JSON.stringify(acc)
+      }
+      function clickIn(sel) {
+        var doc = f.contentDocument
+        var el = doc.querySelector(sel)
+        if (!el) return 'NOT_FOUND'
+        var ev = doc.createEvent('MouseEvents')
+        ev.initMouseEvent('click', true, true, f.contentWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        el.dispatchEvent(ev)
+        return 'CLICKED'
+      }
+
+      f.addEventListener('load', function () {
+        setTimeout(function () {
+          try {
+            var payload = collect(f.contentDocument, f.contentWindow)
+            f.style.height = payload.docScrollHeight + 'px'
+            acc.iframeHeightForShot = payload.docScrollHeight
+            sink(1, payload)
+          } catch (e) { sink(1, { error: String(e && e.message) }) }
+        }, 6000)
+        setTimeout(function () {
+          var clicked = clickIn('[data-testid="save-top"]')
+          setTimeout(function () {
+            try {
+              var doc = f.contentDocument
+              sink(2, { saveClicked: clicked, toast: toastText(doc), hash: hashNow(), modelName: textOf(doc, '[data-testid="model-name"]') })
+            } catch (e) { sink(2, { error: String(e && e.message) }) }
+          }, 2000)
+        }, 8600)
+      })
+    </script>
+  </body>
+</html>
