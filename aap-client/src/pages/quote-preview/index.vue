@@ -281,7 +281,7 @@ async function onSubmit() {
   display: block;
   font-size: 17px;
   font-weight: 700;
-  line-height: 21px;
+  line-height: 20.4px; /* 设计 0b287a3f fs17 Bold · lineHeight 1.2 → 20.4（文本行盒 = 字号×1.2；×1.5 只用于图标字形层） */
   color: $color-text-primary;
 }
 

@@ -232,7 +232,7 @@ onMounted(load)
   font-size: $font-2xl;
   font-weight: 700; /* design 91be2734 SourceHanSans-Bold */
   color: $color-text-primary;
-  line-height: 30px; /* 20px 行框 = 20 × 1.5（设计 fit_content） */
+  line-height: 24px; /* 设计 91be2734 fs20 Bold · lineHeight 1.2 → 24（文本行盒 = 字号×1.2；×1.5 只用于图标字形层） */
   flex: none;
 }
 

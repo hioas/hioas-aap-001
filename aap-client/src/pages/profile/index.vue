@@ -359,7 +359,7 @@ async function onSave() {
 
 .topbar__title {
   font-size: 17px;
-  line-height: 22px;
+  line-height: 20.4px; /* 设计 4b9b17e2 fs17 Bold · lineHeight 1.2 → 20.4（文本行盒 = 字号×1.2） */
   font-weight: 700;
   color: $color-text-primary;
 }

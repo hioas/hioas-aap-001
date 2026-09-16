@@ -1,0 +1,47 @@
+跨页「导航标题行盒」口径修正 —— 设计声明 vs 实现（红/绿 + 两轮独立测量）
+want 一律取 .calicat/raw/pages/<page-id>/design.tree.json 的标题文本叶子：显式 height 优先，否则 fontSize × lineHeight(1.2)。
+
+===== 序号 8
+  改前（红基线 · 探针期望值先改、源码后改）:
+  RED phase1   checks=138   失败=1   docH=1206   溢出=None  缺文案=0
+        FAIL {"k": "topbar.title.lh", "got": 30, "want": 24}
+  RED phase2   checks=138   失败=1   docH=1206   溢出=None  缺文案=0
+        FAIL {"k": "topbar.title.lh", "got": 30, "want": 24}
+  改后（绿）:
+  GREEN phase1   checks=138   失败=0   docH=1206   溢出=None  缺文案=0
+  GREEN phase2   checks=138   失败=0   docH=1206   溢出=None  缺文案=0
+  两轮独立测量 phase1: 差异字段 0 
+  两轮独立测量 phase2: 差异字段 0 
+
+===== 序号 10
+  改前（红基线 · 探针期望值先改、源码后改）:
+  RED phase1   checks=230   失败=1   docH=1409   溢出=None  缺文案=0
+        FAIL {"k": "nav.title.lh", "got": 22, "want": 20.4}
+  改后（绿）:
+  GREEN phase1   checks=230   失败=0   docH=1409   溢出=None  缺文案=0
+  两轮独立测量 phase1: 差异字段 0 
+
+===== 序号 10.1
+  改前（红基线 · 探针期望值先改、源码后改）:
+  RED phase1   checks=272   失败=1   docH=1414   溢出=None  缺文案=0
+        FAIL {"k": "nav.title.lh", "got": 22, "want": 20.4}
+  改后（绿）:
+  GREEN phase1   checks=272   失败=0   docH=1414   溢出=None  缺文案=0
+  两轮独立测量 phase1: 差异字段 0 
+
+===== 序号 12
+  改前（红基线 · 探针期望值先改、源码后改）:
+  RED phase1   checks=127   失败=1   docH=1027   溢出=0     缺文案=0
+        FAIL {"k": "nav.title.lh", "got": 21, "want": 20.4}
+  改后（绿）:
+  GREEN phase1   checks=127   失败=0   docH=1027   溢出=0     缺文案=0
+  两轮独立测量 phase1: 差异字段 0 
+
+===== 序号 22
+  改前（红基线 · 探针期望值先改、源码后改）:
+  RED phase1   checks=267   失败=1   docH=1138   溢出=0     缺文案=0
+        FAIL {"k": "nav.title.lh", "got": 25.5, "want": 20.4}
+  改后（绿）:
+  GREEN phase1   checks=267   失败=0   docH=1138   溢出=0     缺文案=0
+  两轮独立测量 phase1: 差异字段 0 
+
