@@ -24,6 +24,8 @@ LEASE: free until -
   - **干净度判定请忽略这 3 个未跟踪项**：`.playwright-mcp/`、`aap-client/pnpm-lock.yaml`、`aap-client/pnpm-workspace.yaml`
     （后两个是一次 pnpm 尝试的残留，仓库实际用 npm —— 见 §3.9，不要擅自删/提交）。
 
+> ⚠️ **cron 会话里不要再调 `hermes send -t feishu:oc_7bb40d75cd345875ba9345a4fc599be2`**：实测会被跳过（本 job 的最终回复自动投递到同一目标）。**简报与「⛔ 需要你拍板」都直接写进最终回复**即可，否则白丢一次工具调用（2026-09-16 08:35 轮实测）。
+
 ## 1. 目标
 
 在 `E:\workspaces\hioas\hioas-aap-001` 用 **uni-app（Vue3 + Vite + TS）** 实现 Calicat 画布上
