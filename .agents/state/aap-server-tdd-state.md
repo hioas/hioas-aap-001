@@ -105,10 +105,27 @@
   `CredentialPrecheckRecorder`、`DetectionJobEntity`（C2 载体）、`AdminUserEntity`、`V3__admin_phone.sql`、
   `GlobalExceptionHandler` 补安全异常分支、`SchemaAssert` 修正装载方式
 
+### R06 · T06 检测引擎接入（DET-01…06 / AC-13…17、AC-19/20/47）—— ✅ 完成
+
+- 红：`evidence/T06-run1.txt`（9 例 HTTP + 13 例纯函数，5 条红）→ 逐条修正后
+- 绿：`evidence/green-T06.txt`（`Tests run: 83, Failures: 0`）
+- 关键结论
+  1. **算术必须复核**：D7 五项加权（0.15/0.25/0.35/0.15/0.10）手算成 78.5，实际 78.0；
+     总分 (64.8/0.9)=72.00 也被我算错成 70.53。测试期望值是**用计算器复核后**改的，不是把实现改成迁就错误期望。
+  2. `weight_used` 只有在 `summarize()` 归一化后才算得出 → 落库必须取**汇总后的权重**，
+     否则报告里显示 0 而总分却用了权重（口径不一致的经典坑）。
+  3. 人工放行（AC-20）的语义是「人工介入跳过自动流程」→ 除 `CANCELLED` 外都应允许，
+     不该按"仅终态可放行"收紧（否则运营在排队/进行中想放行会被 E-1601 挡住）。
+  4. 任务状态机新增 `CANCELLED`（17-spec §4 未列，15-数据模型 §4.4 有）→ 记偏差 D-STATE-01，以数据字典为准。
+- 交付：`ProbeScoring`（D1–D8 纯函数 + 权重归一化 + 四分支判定 + 置信度 + 措辞）、`DetectionJobEntity/ResultEntity`
+  + Mapper、`DetectionService`（建/查/取消/放行/引擎回写闭环）、`DetectionController`、`DetectionViews`
+
 ---
 
 ## 未决与下一步
 
-- 下一轮：**R06 · T06 检测引擎接入**（DET-01…06，AC-13…17/19/20/47）——任务状态机、日配额、
-  D1–D8 打分纯函数 + 权重归一化 + 四分支判定 + D7 一票否决、`detection_status` 派生回写。
+- 下一轮：**R07 · T07 检测报告**（RPT-01…04，AC-18/21/49）——报告 1:1 检测任务、四段式解释、
+  免责声明与「禁正品」措辞校验、导出、定期复测。
+- 剩余任务：T08 报价、T09 计费编译、T10 审核、T11 合同/打款、T12 用量、T13 站内信/审计、
+  T14 同步与配置、T15 端到端联调与容器化交付（`docs/backend/03-任务与TDD计划.md` §1 为完整清单）。
 - 待办（跨轮）：`aap-server/README.md` 运行说明；T15 时把 `aap-client` 的 `baseUrl` 指向本服务做联调截图。
