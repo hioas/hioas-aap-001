@@ -15,7 +15,8 @@
 ### R01 · T01 工程骨架与统一契约 —— ✅ 完成
 
 - 红：`mvn -B -ntp test` → 编译失败（`ApiEnvelope`/`ErrorCode`/`ApiException` 不存在）→ 证据 `evidence/red-T01.txt`
-- 绿：`Tests run: 16, Failures: 0, Errors: 0` ×2 轮 → `evidence/green-T01.txt`、`evidence/green-T01-run2.txt`
+- 绿：`Tests run: 16, Failures: 0, Errors: 0` → `evidence/green-T01.txt`
+- ⚠️ **证据更正（R08 复核）**：曾名为 `green-T01-run2.txt` 的文件里其实是 `Errors: 10`（**不是绿**），已重命名为 `evidence/T01-run2-concurrent-dirty.txt` 并撤回「连跑两轮全绿」的宣称。成因见下文「并发跑测试」结论，非产品缺陷。
 - 关键结论
   - Spring Boot 4.1.1 的 `spring-boot-starter-test` **不含** `@AutoConfigureMockMvc`（迁到 `spring-boot-webmvc-test`）
     → 集成测试改用**真实 HTTP**（`@LocalServerPort` + `java.net.http.HttpClient`），更贴近客户端线格式，契约测试才有意义
@@ -30,7 +31,7 @@
 ### R02 · T02 数据库迁移与持久层底座 —— ✅ 完成
 
 - 红：`evidence/red-T02.txt`（迁移首次执行失败：`column "version" specified more than once`）
-- 绿：`Tests run: 26, Failures: 0, Errors: 0` ×2 轮 → `evidence/green-T02.txt`、`green-T02-run2.txt`
+- 绿：`Tests run: 26, Failures: 0, Errors: 0` ×2 轮 → `evidence/green-T02.txt`、`green-T02-run2.txt`（两个文件均已复核：末行汇总均为 `Failures: 0, Errors: 0`）
 - 关键结论
   - `aap_detection_baseline` 的基线版本号列改名 `baseline_version`（与审计乐观锁列 `version` 撞名，PG 报 42701）
   - 幂等 DDL 全量 `create table/index if not exists`，Flyway 重跑 `migrationsExecuted=0`（幂等自愈）
@@ -49,6 +50,7 @@
 
 - 红：`evidence/red-T03.txt`（9 例全红：接口不存在）
 - 绿：`evidence/green-T03.txt`（`Tests run: 35, Failures: 0`）
+- ⚠️ **证据更正（R08 复核）**：曾名为 `green-T03-run2.txt` 的文件里是 `Tests run: 44, Failures: 8`（当时 T03/T04 两套用例被**并发**跑在同一套测试库上，`truncateAll()` 互相清表 → 随机失败），已重命名为 `evidence/T03-run2-concurrent-dirty.txt`；T04 的干净第二轮是 `green-T04-run2.txt`（44/44 绿）。
 - 关键结论（踩坑与修正）
   1. **验证码锁定必须独立事务**：`AuthService.smsLogin` 有外层事务，若把「错误次数 + 锁定时间」写在同事务里，
      抛业务异常会把它们一起回滚 → AC-04 永不生效（实测第 6 次仍登录成功）。
@@ -143,6 +145,21 @@
   维度对照 + 免责声明 + 权重说明 + 一票否决说明）、`NotificationService/NotificationEntity`（AC-21）、
   `RecheckService/RecheckScheduler`（AC-49，报告 30 天到期自动复测，`RECHECK` 不占日配额）、
   引擎回写闭环内嵌报告 1:1 生成（同事务，宁可整体回滚也不留「有任务无报告」）。
+
+---
+
+## 跨轮结论（R08 复核）
+
+### C-01 · 禁止并发跑同一套测试库
+**现象**：`proc_bad3cc109181`/`proc_2b9757f0ff91`/`proc_9bcbfe3fd21d` 等后台任务同时执行 `mvn test`，
+其中一个还先做了 `drop schema public cascade`；结果出现「同一提交的用例本轮绿、下轮红」的随机失败
+（`ApiContractTest` 8 例报错、`ProviderContractTest` 8 例失败、`AuthContractTest` 验证码锁定失败）。
+**根因**：测试基座每例前 `TestDb.truncateAll()` + 集成测试打真实 HTTP，多个 JVM 共享 `aap_server_test` 库时
+互相清表/互删字典数据，失败与被测代码无关。
+**规则**：同一时刻**只允许一个** `mvn test` 进程；确需并行，必须各自独立的库（`aap_server_test_<n>`）
+或给库级锁。历史上的「绿→红」波动一律先怀疑并发，再怀疑代码。
+**证据**：`.agents/state/evidence/T01-run2-concurrent-dirty.txt`、`T03-run2-concurrent-dirty.txt`
+（保留原始内容不改，只改文件名，避免抹掉失败记录）。
 
 ---
 
