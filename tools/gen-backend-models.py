@@ -22,7 +22,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOCS = os.path.join(ROOT, "docs", "backend")
 SCHEMA_DIR = os.path.join(DOCS, "json-schema")
 
-ID = {"type": "string", "description": "雪花 ID（对外 string，避免 JS 精度丢失）"}
+ID = {"type": ["string", "null"], "description": "雪花 ID（对外 string，避免 JS 精度丢失；可空）"}
 TS = {"type": ["string", "null"], "format": "date-time", "description": "RFC3339 UTC"}
 STR = {"type": ["string", "null"]}
 INT = {"type": ["integer", "null"]}
@@ -89,6 +89,7 @@ MODELS: dict[str, dict] = {
     }),
     "provider-profile": dict(required=["provider_id", "status"], properties={
         "provider_id": ID, "id": ID, "provider_no": STR, "provider_code": STR,
+        "providerCode": STR, "etag": STR,
         "short_name": STR, "short_code": STR,
         "company_name": STR, "companyName": STR, "uscc": STR, "unified_social_credit_code": STR,
         "industry_category": STR, "province": STR, "city": STR, "address": STR, "website": STR,

@@ -45,9 +45,48 @@
 
 ---
 
+### R03 · T03 账号接入（AUTH-01…06 / AC-01…05）—— ✅ 完成
+
+- 红：`evidence/red-T03.txt`（9 例全红：接口不存在）
+- 绿：`evidence/green-T03.txt`（`Tests run: 35, Failures: 0`）
+- 关键结论（踩坑与修正）
+  1. **验证码锁定必须独立事务**：`AuthService.smsLogin` 有外层事务，若把「错误次数 + 锁定时间」写在同事务里，
+     抛业务异常会把它们一起回滚 → AC-04 永不生效（实测第 6 次仍登录成功）。
+     修正：拆出 `SmsAttemptRecorder`，用 `@Transactional(REQUIRES_NEW)` 先落库再抛异常。
+  2. `JwtAuthenticationFilter` **不要加 `@Component`**：否则被 Spring Boot 当 Servlet Filter 自动注册，
+     与安全链里的注册重复执行两次；改为在 `SecurityConfig` 里以 Bean 形式装入安全链。
+  3. 测试专用路径放行：`support/TestSecurityConfig`（`securityMatcher("/api/v1/__test/**")`，最高优先级链），
+     让 T01 的契约探针在安全链收紧后仍可用，且不动生产放行清单。
+  4. 测试环境验证码回读：`app.sms.expose-code=true`（**生产默认 false**，仅测试 profile 打开）——
+     端到端验收需要真实走通登录，而短信网关不接真实通道。
+- 交付：`ProviderAccountEntity/SmsCodeEntity/AuthTokenEntity` + Mapper、`JwtService`、`SmsService`、
+  `SmsAttemptRecorder`、`AuthService`、`AuthController`、`JwtAuthenticationFilter`、`AuthPrincipal`、
+  `WechatClient`（确定性桩，未接入微信凭据）、`CryptoService`、`DocNoGenerator`、`AuditService`/`AuditLogEntity`、
+  `AppProperties`、`SecretStartupCheck`、`V2__sequences.sql`
+- 附加修正：**V1 基线补齐 34 张表的 `created_by/updated_by`**（ER 文档 §1 承诺「审计字段业务表通用」，
+  原 DDL 漏列；基线尚未发布，直接修 V1 并重置测试库 schema，未走 V3 补丁）
+
+### R04 · T04 供应商档案与资质（PROV-01…05 / AC-06）—— ✅ 完成
+
+- 红：`evidence/red-T04.txt`（接口不存在 → 404）
+- 绿：`evidence/green-T04.txt`（`Tests run: 44, Failures: 0`）
+- 关键结论
+  1. **幂等必须用过滤器而非拦截器**：Spring Security 的 `HeaderWriterFilter` 会在 MVC 前再包一层响应，
+     `HandlerInterceptor` 里 `response instanceof ContentCachingResponseWrapper` 恒为 false，
+     幂等记录永远停在 `IN_PROGRESS`、第二次请求照旧重复执行（实测复现）。
+  2. **`ContentCachingRequestWrapper` 只缓存不回放**：过滤器读完请求体算哈希后，下游控制器读到空体 → E-1001。
+     自研 `CachedBodyRequestWrapper` 把字节回放给下游。
+  3. `jsonb` 列会规范化键序与空白 → 幂等重放**语义相等但非逐字节相同**；断言改为 JSON 语义比较 + traceId 一致。
+  4. Spring 7 里 `ContentCachingRequestWrapper` 只有双参构造；`copyBodyToResponse()` 要保留**具体类型**才可见。
+- 交付：`ProviderService`/`ProviderController`/`ProviderProfileResponse`、`QualificationEntity`+Mapper、
+  `IdempotencyFilter` + `CachedBodyRequestWrapper` + `IdempotencyRecordEntity/Mapper`、`CachingWrapperFilter`
+- 规则落地：uscc 全局唯一（E-1104）、手机号密文+hash+mask（R-48）、`manual_override` 必填理由（R-47a）、
+  `If-Match` 过期写拒绝（E-1601）、资质扩展名白名单 + ≤10MB、完整度服务端唯一口径
+
+---
+
 ## 未决与下一步
 
-- 下一轮：**R03 · T03 账号接入**（AUTH-01…06，AC-01…05）——JWT 签发与校验、手机号密文+hash+mask、
-  验证码 300s/60s 频控/5 次锁 15 分钟、微信登录、`/auth/me`（含设置页字段）；同时把 `SecurityConfig`
-  收紧为 `anyRequest().authenticated()` + 角色规则。
-- 待办（跨轮）：`logs/` 与 `target/` 不得入库（检查 `.gitignore`）；`aap-server/README.md` 待补运行说明。
+- 下一轮：**R05 · T05 测试凭证**（CRED-01…07，AC-07…13、AC-29/30/48）——AES-256-GCM 落库、指纹唯一、
+  `sk-****abcd` 脱敏、base_url 规范化、SSRF 出站防护、预检、明文 reveal（仅超管 + 二次验证 + 审计）。
+- 待办（跨轮）：`aap-server/README.md` 运行说明；T15 时把 `aap-client` 的 `baseUrl` 指向本服务做联调截图。

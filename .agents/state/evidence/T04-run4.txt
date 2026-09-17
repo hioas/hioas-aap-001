@@ -1,0 +1,632 @@
+[with-env] 已载入 E:\env\aap-server.env 变量：DB_HOST DB_PORT DB_NAME DB_TEST_NAME DB_USER DB_PASSWORD AAP_JWT_SECRET AAP_CREDENTIAL_AES_KEY SERVER_PORT LOG_DIR 
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/E:/workspaces/maven/apache-maven-3.8.6/lib/jansi-2.4.0.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper (file:/E:/workspaces/maven/apache-maven-3.8.6/lib/guava-25.1-android.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------------< com.hioas.aap:aap-server >----------------------
+[INFO] Building aap-server 1.0.0-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-resources-plugin:3.5.0:resources (default-resources) @ aap-server ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 3 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.15.0:compile (default-compile) @ aap-server ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 51 source files with javac [debug parameters release 25] to target\classes
+[INFO] 
+[INFO] --- maven-resources-plugin:3.5.0:testResources (default-testResources) @ aap-server ---
+[INFO] Copying 1 resource from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.15.0:testCompile (default-testCompile) @ aap-server ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 14 source files with javac [debug parameters release 25] to target\test-classes
+[INFO] /E:/workspaces/hioas/hioas-aap-001/aap-server/src/test/java/com/hioas/aap/support/ApiTestBase.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /E:/workspaces/hioas/hioas-aap-001/aap-server/src/test/java/com/hioas/aap/support/ApiTestBase.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] 
+[INFO] --- maven-surefire-plugin:3.5.6:test (default-test) @ aap-server ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.hioas.aap.common.ApiContractTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-09-17 22:41:26.749 INFO  [main] [] com.hioas.aap.common.ApiContractTest - Starting ApiContractTest using Java 25.0.4 with PID 23140 (started by laitz in E:\workspaces\hioas\hioas-aap-001\aap-server)
+2026-09-17 22:41:26.807 INFO  [main] [] com.hioas.aap.common.ApiContractTest - The following 1 profile is active: "test"
+2026-09-17 22:41:26.946 INFO  [background-preinit] [] org.hibernate.validator.internal.util.Version - HV000001: Hibernate Validator 9.1.3.Final
+2026-09-17 22:41:29.188 INFO  [main] [] org.springframework.boot.tomcat.TomcatWebServer - Tomcat initialized with port 0 (http)
+2026-09-17 22:41:29.215 INFO  [main] [] org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-auto-1"]
+2026-09-17 22:41:29.217 INFO  [main] [] org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2026-09-17 22:41:29.217 INFO  [main] [] org.apache.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-09-17 22:41:29.277 INFO  [main] [] org.springframework.boot.web.context.servlet.WebApplicationContextInitializer - Root WebApplicationContext: initialization completed in 2394 ms
+2026-09-17 22:41:29.683 INFO  [main] [] com.zaxxer.hikari.HikariDataSource - aap-pool - Starting...
+2026-09-17 22:41:29.851 INFO  [main] [] com.zaxxer.hikari.pool.HikariPool - aap-pool - Added connection org.postgresql.jdbc.PgConnection@1a914a00
+2026-09-17 22:41:29.853 INFO  [main] [] com.zaxxer.hikari.HikariDataSource - aap-pool - Start completed.
+2026-09-17 22:41:29.875 INFO  [main] [] org.flywaydb.core.FlywayExecutor - Database: jdbc:postgresql://localhost:5432/aap_server_test (PostgreSQL 18.6)
+2026-09-17 22:41:29.969 INFO  [main] [] org.flywaydb.core.internal.command.DbValidate - Successfully validated 2 migrations (execution time 00:00.042s)
+2026-09-17 22:41:29.996 INFO  [main] [] org.flywaydb.core.internal.command.DbMigrate - Current version of schema "public": 2
+2026-09-17 22:41:29.999 INFO  [main] [] org.flywaydb.core.internal.command.DbMigrate - Schema "public" is up to date. No migration necessary.
+2026-09-17 22:41:31.625 INFO  [main] [] org.springframework.boot.actuate.endpoint.web.EndpointLinksResolver - Exposing 3 endpoints beneath base path '/actuator'
+2026-09-17 22:41:31.699 INFO  [main] [] org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-auto-1"]
+2026-09-17 22:41:31.713 INFO  [main] [] org.springframework.boot.tomcat.TomcatWebServer - Tomcat started on port 57996 (http) with context path '/'
+2026-09-17 22:41:31.721 INFO  [main] [] com.hioas.aap.common.ApiContractTest - Started ApiContractTest in 5.541 seconds (process running for 7.558)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (E:\workspaces\maven\repository\net\bytebuddy\byte-buddy-agent\1.18.11\byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-09-17 22:41:32.736 INFO  [http-nio-auto-1-exec-1] [] org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-17 22:41:32.736 INFO  [http-nio-auto-1-exec-1] [] org.springframework.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2026-09-17 22:41:32.738 INFO  [http-nio-auto-1-exec-1] [] org.springframework.web.servlet.DispatcherServlet - Completed initialization in 2 ms
+2026-09-17 22:41:32.930 WARN  [http-nio-auto-1-exec-1] [ac43e7a7414544869db3ca5b7c9bf89c] com.hioas.aap.common.GlobalExceptionHandler - 参数校验失败 details=[ApiErrorDetail[field=smsCode, reason=验证码须为 6 位数字], ApiErrorDetail[field=phone, reason=不能为空]]
+2026-09-17 22:41:33.328 ERROR [http-nio-auto-1-exec-2] [112a6e6a9cbe4d4bb516b4b7708ba32e] com.hioas.aap.common.GlobalExceptionHandler - 未捕获异常，已按 E-2001 处理: java.lang.IllegalStateException: 模拟未捕获异常，含敏感内容 sk-secret-should-not-leak
+java.lang.IllegalStateException: 模拟未捕获异常，含敏感内容 sk-secret-should-not-leak
+	at com.hioas.aap.support.TestErrorController.boom(TestErrorController.java:49)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:252)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:184)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:934)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:853)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:86)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:963)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:866)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1000)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:892)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:622)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:874)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:710)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:132)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:59)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at com.hioas.aap.iam.JwtAuthenticationFilter.doFilterInternal(JwtAuthenticationFilter.java:76)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$2(FilterChainProxy.java:235)
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:491)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:353)
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:84)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:131)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:110)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:96)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:336)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:355)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:272)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at com.hioas.aap.support.idempotency.IdempotencyFilter.doFilterInternal(IdempotencyFilter.java:69)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at com.hioas.aap.config.CachingWrapperFilter.doFilterInternal(CachingWrapperFilter.java:41)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:110)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:199)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at com.hioas.aap.common.TraceIdFilter.doFilterInternal(TraceIdFilter.java:38)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:165)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:77)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:535)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:86)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:71)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:347)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:406)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:71)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:1307)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:2036)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:74)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:949)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:483)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:74)
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+2026-09-17 22:41:33.409 WARN  [http-nio-auto-1-exec-3] [40e0265c308745a4b49cff31a4ce378d] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1001 msg=业务失败：E-1001 details=[]
+2026-09-17 22:41:33.419 WARN  [http-nio-auto-1-exec-4] [05f3c581cd7049afa6746e7dfa44f44a] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1301 msg=业务失败：E-1301 details=[]
+2026-09-17 22:41:33.425 WARN  [http-nio-auto-1-exec-5] [c591484af0484092a1516a13bedc8931] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1902 msg=业务失败：E-1902 details=[]
+2026-09-17 22:41:33.501 INFO  [http-nio-auto-1-exec-6] [82900d919e634db59cba15e6088ed8e4] com.hioas.aap.support.TestErrorController - T01-ECHO 契约探针（traceId 应随日志落盘）
+2026-09-17 22:41:33.725 WARN  [http-nio-auto-1-exec-9] [a7cadf6b02f24a12b11615c38e2a3316] com.hioas.aap.common.GlobalExceptionHandler - 请求体不可解析: JSON parse error: Unexpected character ('n' (code 110)): was expecting double-quote to start property name
+2026-09-17 22:41:33.800 INFO  [http-nio-auto-1-exec-10] [ca9eda602296474aafcf6eb74a25ef04] com.hioas.aap.support.TestErrorController - T01-ECHO 契约探针（traceId 应随日志落盘）
+2026-09-17 22:41:33.808 INFO  [http-nio-auto-1-exec-1] [client-supplied-trace-0001] com.hioas.aap.support.TestErrorController - T01-ECHO 契约探针（traceId 应随日志落盘）
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.778 s -- in com.hioas.aap.common.ApiContractTest
+[INFO] Running com.hioas.aap.common.ApiEnvelopeTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.040 s -- in com.hioas.aap.common.ApiEnvelopeTest
+[INFO] Running com.hioas.aap.common.LoggingAndHealthTest
+2026-09-17 22:41:33.867 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.common.LoggingAndHealthTest]: LoggingAndHealthTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-17 22:41:33.870 INFO  [main] [] org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.hioas.aap.AapServerApplication for test class com.hioas.aap.common.LoggingAndHealthTest
+2026-09-17 22:41:33.877 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.common.LoggingAndHealthTest]: LoggingAndHealthTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-17 22:41:33.882 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.support.ApiTestBase]: ApiTestBase does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-17 22:41:33.897 INFO  [main] [] org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.hioas.aap.AapServerApplication for test class com.hioas.aap.common.LoggingAndHealthTest
+2026-09-17 22:41:34.109 INFO  [http-nio-auto-1-exec-3] [t01-trace-222580096731400] com.hioas.aap.support.TestErrorController - T01-ECHO 契约探针（traceId 应随日志落盘）
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.276 s -- in com.hioas.aap.common.LoggingAndHealthTest
+[INFO] Running com.hioas.aap.common.MigrationTest
+2026-09-17 22:41:34.145 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.common.MigrationTest]: MigrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-17 22:41:34.147 INFO  [main] [] org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.hioas.aap.AapServerApplication for test class com.hioas.aap.common.MigrationTest
+2026-09-17 22:41:34.149 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.common.MigrationTest]: MigrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-17 22:41:34.150 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.support.DbTestBase]: DbTestBase does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-17 22:41:34.155 INFO  [main] [] org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.hioas.aap.AapServerApplication for test class com.hioas.aap.common.MigrationTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-09-17 22:41:34.253 INFO  [main] [] com.hioas.aap.common.MigrationTest - Starting MigrationTest using Java 25.0.4 with PID 23140 (started by laitz in E:\workspaces\hioas\hioas-aap-001\aap-server)
+2026-09-17 22:41:34.254 INFO  [main] [] com.hioas.aap.common.MigrationTest - The following 1 profile is active: "test"
+2026-09-17 22:41:34.885 INFO  [main] [] com.zaxxer.hikari.HikariDataSource - aap-pool - Starting...
+2026-09-17 22:41:34.902 INFO  [main] [] com.zaxxer.hikari.pool.HikariPool - aap-pool - Added connection org.postgresql.jdbc.PgConnection@764bf20d
+2026-09-17 22:41:34.903 INFO  [main] [] com.zaxxer.hikari.HikariDataSource - aap-pool - Start completed.
+2026-09-17 22:41:34.906 INFO  [main] [] org.flywaydb.core.FlywayExecutor - Database: jdbc:postgresql://localhost:5432/aap_server_test (PostgreSQL 18.6)
+2026-09-17 22:41:34.931 INFO  [main] [] org.flywaydb.core.internal.command.DbValidate - Successfully validated 2 migrations (execution time 00:00.008s)
+2026-09-17 22:41:34.963 INFO  [main] [] org.flywaydb.core.internal.command.DbMigrate - Current version of schema "public": 2
+2026-09-17 22:41:34.964 INFO  [main] [] org.flywaydb.core.internal.command.DbMigrate - Schema "public" is up to date. No migration necessary.
+2026-09-17 22:41:35.363 INFO  [main] [] org.springframework.boot.actuate.endpoint.web.EndpointLinksResolver - Exposing 3 endpoints beneath base path '/actuator'
+2026-09-17 22:41:35.382 INFO  [main] [] com.hioas.aap.common.MigrationTest - Started MigrationTest in 1.216 seconds (process running for 11.219)
+2026-09-17 22:41:35.474 INFO  [main] [] org.flywaydb.core.FlywayExecutor - Database: jdbc:postgresql://localhost:5432/aap_server_test (PostgreSQL 18.6)
+2026-09-17 22:41:35.494 INFO  [main] [] org.flywaydb.core.internal.command.DbValidate - Successfully validated 2 migrations (execution time 00:00.006s)
+2026-09-17 22:41:35.505 INFO  [main] [] org.flywaydb.core.internal.command.DbMigrate - Current version of schema "public": 2
+2026-09-17 22:41:35.506 INFO  [main] [] org.flywaydb.core.internal.command.DbMigrate - Schema "public" is up to date. No migration necessary.
+2026-09-17 22:41:35.512 INFO  [main] [] org.flywaydb.core.FlywayExecutor - Database: jdbc:postgresql://localhost:5432/aap_server_test (PostgreSQL 18.6)
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.680 s -- in com.hioas.aap.common.MigrationTest
+[INFO] Running com.hioas.aap.common.PersistenceBaseTest
+2026-09-17 22:41:35.829 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.common.PersistenceBaseTest]: PersistenceBaseTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-17 22:41:35.830 INFO  [main] [] org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.hioas.aap.AapServerApplication for test class com.hioas.aap.common.PersistenceBaseTest
+2026-09-17 22:41:35.831 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.common.PersistenceBaseTest]: PersistenceBaseTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-17 22:41:35.832 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.support.DbTestBase]: DbTestBase does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-17 22:41:35.832 INFO  [main] [] org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.hioas.aap.AapServerApplication for test class com.hioas.aap.common.PersistenceBaseTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.293 s -- in com.hioas.aap.common.PersistenceBaseTest
+[INFO] Running com.hioas.aap.iam.AuthContractTest
+2026-09-17 22:41:37.121 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.iam.AuthContractTest]: AuthContractTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-17 22:41:37.137 INFO  [main] [] org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.hioas.aap.AapServerApplication for test class com.hioas.aap.iam.AuthContractTest
+2026-09-17 22:41:37.139 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.iam.AuthContractTest]: AuthContractTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-17 22:41:37.140 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.support.ApiTestBase]: ApiTestBase does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-17 22:41:37.141 INFO  [main] [] org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.hioas.aap.AapServerApplication for test class com.hioas.aap.iam.AuthContractTest
+2026-09-17 22:41:37.243 INFO  [http-nio-auto-1-exec-7] [faf3d277068641f1be3f1367b2a7779f] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****5678 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-17 22:41:37.275 WARN  [http-nio-auto-1-exec-8] [6774e71b7e9341ea8c4addc5c34ecad9] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1903 msg=验证码发送过于频繁，请 60 秒后重试 details=[]
+2026-09-17 22:41:37.347 INFO  [http-nio-auto-1-exec-9] [26ba2c224b01409ca27f4895ec40f4f3] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****5678 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-17 22:41:37.412 INFO  [http-nio-auto-1-exec-10] [f2c02a6d4d694b659ec3a5d007bac823] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-000072 account_id=458204380753731584
+2026-09-17 22:41:37.492 INFO  [http-nio-auto-1-exec-10] [f2c02a6d4d694b659ec3a5d007bac823] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458204380753731584 actor=458204380753731584 summary=账号登录成功（role=SUPPLIER）
+2026-09-17 22:41:37.639 INFO  [http-nio-auto-1-exec-3] [7be8eb700f7f449b98a4eb4ee0726361] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****5678 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-17 22:41:37.679 INFO  [http-nio-auto-1-exec-4] [c8965a97be38461b89b2508e8812092d] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-000073 account_id=458204381886193664
+2026-09-17 22:41:37.686 INFO  [http-nio-auto-1-exec-4] [c8965a97be38461b89b2508e8812092d] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458204381886193664 actor=458204381886193664 summary=账号登录成功（role=SUPPLIER）
+2026-09-17 22:41:37.754 INFO  [http-nio-auto-1-exec-5] [4c7dcf567e764e6aa6d794ccfb501a04] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458204381886193664 actor=458204381886193664 summary=账号登录成功（role=SUPPLIER）
+2026-09-17 22:41:37.803 WARN  [http-nio-auto-1-exec-7] [add1c85681ae48eb93e96b589ffbf6b5] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1902 msg=未认证或登录已过期 details=[]
+2026-09-17 22:41:37.879 WARN  [http-nio-auto-1-exec-8] [2cf2476a255e40959d1a9c1880e980f7] com.hioas.aap.common.GlobalExceptionHandler - 参数校验失败 details=[ApiErrorDetail[field=phone, reason=手机号格式不正确]]
+2026-09-17 22:41:37.888 WARN  [http-nio-auto-1-exec-9] [0455fa85d5f045dfa81b4710cd5fd536] com.hioas.aap.common.GlobalExceptionHandler - 参数校验失败 details=[ApiErrorDetail[field=smsCode, reason=验证码须为 6 位数字]]
+2026-09-17 22:41:37.971 INFO  [http-nio-auto-1-exec-1] [2cf1a87eeda748f8bfdc2d088ce20bf1] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****5678 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-17 22:41:38.019 INFO  [http-nio-auto-1-exec-2] [c68691724ac14f35a00d6ed96debcfc4] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-000074 account_id=458204383333228544
+2026-09-17 22:41:38.026 INFO  [http-nio-auto-1-exec-2] [c68691724ac14f35a00d6ed96debcfc4] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458204383333228544 actor=458204383333228544 summary=账号登录成功（role=SUPPLIER）
+2026-09-17 22:41:38.114 INFO  [http-nio-auto-1-exec-4] [06de641c712747a392fecaa868d8f6e0] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****5678 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-17 22:41:38.147 INFO  [http-nio-auto-1-exec-5] [91a775f8d0a6497fb67ad7eba2f4fe2c] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-000075 account_id=458204383861710848
+2026-09-17 22:41:38.152 INFO  [http-nio-auto-1-exec-5] [91a775f8d0a6497fb67ad7eba2f4fe2c] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458204383861710848 actor=458204383861710848 summary=账号登录成功（role=SUPPLIER）
+2026-09-17 22:41:38.292 INFO  [http-nio-auto-1-exec-9] [40968602d1da455599fe475687ffd86e] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-000076 account_id=458204384478273536
+2026-09-17 22:41:38.295 INFO  [http-nio-auto-1-exec-9] [40968602d1da455599fe475687ffd86e] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458204384478273536 actor=458204384478273536 summary=账号登录成功（role=SUPPLIER）
+2026-09-17 22:41:38.319 INFO  [http-nio-auto-1-exec-10] [8eb05209d45b4cec8a5438f793094cf5] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458204384478273536 actor=458204384478273536 summary=账号登录成功（role=SUPPLIER）
+2026-09-17 22:41:38.335 INFO  [http-nio-auto-1-exec-1] [d57baae5d5da4793a597ee54e6d613bb] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****5678 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-17 22:41:38.370 INFO  [http-nio-auto-1-exec-2] [340928600fdf44708fab7b4515fb3cdc] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-000077 account_id=458204384788652032
+2026-09-17 22:41:38.373 INFO  [http-nio-auto-1-exec-2] [340928600fdf44708fab7b4515fb3cdc] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458204384788652032 actor=458204384788652032 summary=账号登录成功（role=SUPPLIER）
+2026-09-17 22:41:38.448 INFO  [http-nio-auto-1-exec-3] [11e06662ff2946abb6bead021df0c3da] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****5678 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-17 22:41:38.483 INFO  [http-nio-auto-1-exec-4] [297809436ccb4dab9634405d37f05abb] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-000078 account_id=458204385283579904
+2026-09-17 22:41:38.488 INFO  [http-nio-auto-1-exec-4] [297809436ccb4dab9634405d37f05abb] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458204385283579904 actor=458204385283579904 summary=账号登录成功（role=SUPPLIER）
+2026-09-17 22:41:38.570 INFO  [http-nio-auto-1-exec-5] [cd56eb6a00d9401784f9b2998e808ae8] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****5678 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-17 22:41:38.602 WARN  [http-nio-auto-1-exec-6] [87d18c0bab6d47cab699c36658f2b913] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1001 msg=验证码不正确 details=[ApiErrorDetail[field=smsCode, reason=验证码不正确]]
+2026-09-17 22:41:38.629 WARN  [http-nio-auto-1-exec-7] [1faeab8857994d51a5c01ab663f51c44] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1001 msg=验证码不正确 details=[ApiErrorDetail[field=smsCode, reason=验证码不正确]]
+2026-09-17 22:41:38.649 WARN  [http-nio-auto-1-exec-8] [698770e66627475499d2b0b5336354f2] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1001 msg=验证码不正确 details=[ApiErrorDetail[field=smsCode, reason=验证码不正确]]
+2026-09-17 22:41:38.665 WARN  [http-nio-auto-1-exec-9] [b98ccda5377841a28e83c26833432777] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1001 msg=验证码不正确 details=[ApiErrorDetail[field=smsCode, reason=验证码不正确]]
+2026-09-17 22:41:38.681 WARN  [http-nio-auto-1-exec-10] [fe783ec8697343a19b192a31dd543a2f] com.hioas.aap.iam.SmsService - 验证码连续错误达 5 次，锁定 15 分钟 phone=138****5678
+2026-09-17 22:41:38.682 WARN  [http-nio-auto-1-exec-10] [fe783ec8697343a19b192a31dd543a2f] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1001 msg=验证码不正确 details=[ApiErrorDetail[field=smsCode, reason=验证码不正确]]
+2026-09-17 22:41:38.691 WARN  [http-nio-auto-1-exec-1] [628e5635bfbc44b1afd67e57c0227682] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1903 msg=验证码错误次数过多，请 15 分钟后再试 details=[]
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.581 s -- in com.hioas.aap.iam.AuthContractTest
+[INFO] Running com.hioas.aap.provider.ProviderContractTest
+2026-09-17 22:41:38.704 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.provider.ProviderContractTest]: ProviderContractTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-17 22:41:38.722 INFO  [main] [] org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.hioas.aap.AapServerApplication for test class com.hioas.aap.provider.ProviderContractTest
+2026-09-17 22:41:38.723 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.provider.ProviderContractTest]: ProviderContractTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-17 22:41:38.730 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.support.ApiTestBase]: ApiTestBase does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-17 22:41:38.734 INFO  [main] [] org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.hioas.aap.AapServerApplication for test class com.hioas.aap.provider.ProviderContractTest
+2026-09-17 22:41:38.834 INFO  [http-nio-auto-1-exec-2] [0a055488937b40b6a5d24467f184da20] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0001 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-17 22:41:38.872 INFO  [http-nio-auto-1-exec-3] [ae49384a5d064c879017202f542ad403] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-000079 account_id=458204386894192640
+2026-09-17 22:41:38.878 INFO  [http-nio-auto-1-exec-3] [ae49384a5d064c879017202f542ad403] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458204386894192640 actor=458204386894192640 summary=账号登录成功（role=SUPPLIER）
+2026-09-17 22:41:38.972 INFO  [http-nio-auto-1-exec-4] [9506fb2a880f4652bec58bc36f2824fc] com.hioas.aap.support.AuditService - 审计 action=PROFILE_UPDATE target=provider#458204386927747072 actor=458204386894192640 summary=更新供应商档案
+2026-09-17 22:41:39.009 INFO  [http-nio-auto-1-exec-5] [61adf3c7337840fcb5fb6e80112e3ffe] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0002 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-17 22:41:39.040 INFO  [http-nio-auto-1-exec-6] [1d77d3ecb26b40608266b44819cf9f28] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-000080 account_id=458204387615612928
+2026-09-17 22:41:39.047 INFO  [http-nio-auto-1-exec-6] [1d77d3ecb26b40608266b44819cf9f28] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458204387615612928 actor=458204387615612928 summary=账号登录成功（role=SUPPLIER）
+2026-09-17 22:41:39.069 WARN  [http-nio-auto-1-exec-7] [0fc8840330af4c20b1d5be1432ca24f9] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1104 msg=统一社会信用代码已被其他供应商使用 details=[ApiErrorDetail[field=uscc, reason=统一社会信用代码已被占用]]
+2026-09-17 22:41:39.153 INFO  [http-nio-auto-1-exec-8] [a866aca738fb4a9d8dac6855b1534857] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0001 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-17 22:41:39.196 INFO  [http-nio-auto-1-exec-9] [ec4e372bf9eb418d9eaa4e2380d5148a] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-000081 account_id=458204388257341440
+2026-09-17 22:41:39.211 INFO  [http-nio-auto-1-exec-9] [ec4e372bf9eb418d9eaa4e2380d5148a] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458204388257341440 actor=458204388257341440 summary=账号登录成功（role=SUPPLIER）
+2026-09-17 22:41:39.271 INFO  [http-nio-auto-1-exec-10] [65b3490e63284c328b634341b06a64a0] com.hioas.aap.support.AuditService - 审计 action=PROFILE_UPDATE target=provider#458204388278312960 actor=458204388257341440 summary=更新供应商档案
+2026-09-17 22:41:39.309 INFO  [http-nio-auto-1-exec-1] [c3ad7ae869a64e87b3198567158113ad] com.hioas.aap.support.idempotency.IdempotencyFilter - 幂等重放 key=prov-idem-key-0001 endpoint=PUT /api/v1/provider/profile
+2026-09-17 22:41:39.398 INFO  [http-nio-auto-1-exec-2] [45ebd757ae14471ab6ca8633d2f02489] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0001 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-17 22:41:39.428 INFO  [http-nio-auto-1-exec-3] [6374f6da65aa4c56823300ce4e8a8637] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-000082 account_id=458204389243002880
+2026-09-17 22:41:39.432 INFO  [http-nio-auto-1-exec-3] [6374f6da65aa4c56823300ce4e8a8637] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458204389243002880 actor=458204389243002880 summary=账号登录成功（role=SUPPLIER）
+2026-09-17 22:41:39.468 INFO  [http-nio-auto-1-exec-4] [e6a9ba0f6861478d880cd0d9a970e732] com.hioas.aap.support.AuditService - 审计 action=PROFILE_UPDATE target=provider#458204389268168704 actor=458204389243002880 summary=更新供应商档案
+2026-09-17 22:41:39.509 ERROR [main] [] com.networknt.schema.JsonSchemaFactory - Failed to load json schema from https://hioas.com/aap/schema/file-asset.schema.json
+java.net.UnknownHostException: hioas.com
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:569)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:284)
+	at java.base/java.net.Socket.connect(Socket.java:659)
+	at java.base/sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:304)
+	at java.base/sun.security.ssl.BaseSSLSocketImpl.connect(BaseSSLSocketImpl.java:181)
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:166)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:516)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:604)
+	at java.base/sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.java:207)
+	at java.base/sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:289)
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:196)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:963)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:899)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.connect(HttpURLConnection.java:872)
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:181)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1377)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1302)
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.getInputStream(HttpsURLConnectionImpl.java:223)
+	at com.networknt.schema.resource.UriSchemaLoader.openConnectionCheckRedirects(UriSchemaLoader.java:83)
+	at com.networknt.schema.resource.UriSchemaLoader.lambda$getSchema$0(UriSchemaLoader.java:39)
+	at com.networknt.schema.JsonSchemaFactory.getMappedSchema(JsonSchemaFactory.java:670)
+	at com.networknt.schema.JsonSchemaFactory.loadSchema(JsonSchemaFactory.java:639)
+	at com.networknt.schema.RefValidator.lambda$getRefSchema$0(RefValidator.java:66)
+	at com.networknt.schema.CachedSupplier.get(CachedSupplier.java:41)
+	at com.networknt.schema.JsonSchemaRef.getSchema(JsonSchemaRef.java:32)
+	at com.networknt.schema.RefValidator.preloadJsonSchema(RefValidator.java:233)
+	at com.networknt.schema.JsonSchema.initializeValidators(JsonSchema.java:1333)
+	at com.networknt.schema.ItemsValidator202012.preloadJsonSchema(ItemsValidator202012.java:201)
+	at com.networknt.schema.JsonSchema.initializeValidators(JsonSchema.java:1333)
+	at com.networknt.schema.BaseJsonValidator.preloadJsonSchemas(BaseJsonValidator.java:334)
+	at com.networknt.schema.PropertiesValidator.preloadJsonSchema(PropertiesValidator.java:211)
+	at com.networknt.schema.JsonSchema.initializeValidators(JsonSchema.java:1333)
+	at com.networknt.schema.JsonSchemaFactory.preload(JsonSchemaFactory.java:352)
+	at com.networknt.schema.JsonSchemaFactory.newJsonSchema(JsonSchemaFactory.java:336)
+	at com.networknt.schema.JsonSchemaFactory.getSchema(JsonSchemaFactory.java:589)
+	at com.networknt.schema.JsonSchemaFactory.getSchema(JsonSchemaFactory.java:572)
+	at com.networknt.schema.JsonSchemaFactory.getSchema(JsonSchemaFactory.java:606)
+	at com.hioas.aap.support.SchemaAssert.assertMatches(SchemaAssert.java:39)
+	at com.hioas.aap.support.SchemaAssert.assertModel(SchemaAssert.java:67)
+	at com.hioas.aap.provider.ProviderContractTest.updateProfileComputesCompleteness(ProviderContractTest.java:67)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:701)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:502)
+	at org.junit.jupiter.engine.support.MethodReflectionUtils.invoke(MethodReflectionUtils.java:45)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:61)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:124)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:163)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:148)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:123)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:105)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:99)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:66)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:47)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:39)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:104)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:98)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invokeVoid(InterceptingExecutableInvoker.java:71)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$0(TestMethodTestDescriptor.java:219)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:215)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:157)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:70)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:176)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:36)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:52)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.executeEngine(EngineExecutionOrchestrator.java:246)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:179)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:108)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:66)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:157)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:65)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:125)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$2(InterceptingLauncher.java:57)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:56)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.apache.maven.surefire.api.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:125)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithCancellationToken(LauncherAdapter.java:68)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:54)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+2026-09-17 22:41:39.593 INFO  [http-nio-auto-1-exec-5] [75a24d788cc2482982d2c53e65f2c219] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0001 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-17 22:41:39.628 INFO  [http-nio-auto-1-exec-6] [82e200dd41a24111bdea99918998ccac] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-000083 account_id=458204390086057984
+2026-09-17 22:41:39.632 INFO  [http-nio-auto-1-exec-6] [82e200dd41a24111bdea99918998ccac] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458204390086057984 actor=458204390086057984 summary=账号登录成功（role=SUPPLIER）
+2026-09-17 22:41:39.646 WARN  [http-nio-auto-1-exec-7] [4e32f26a3121498d86303b5111f13622] com.hioas.aap.common.GlobalExceptionHandler - 参数校验失败 details=[ApiErrorDetail[field=uscc, reason=统一社会信用代码需为 18 位大写字母或数字]]
+2026-09-17 22:41:39.656 WARN  [http-nio-auto-1-exec-8] [dd5393a61a234ae28ffd32d6f8915b78] com.hioas.aap.common.GlobalExceptionHandler - 参数校验失败 details=[ApiErrorDetail[field=contact_phone, reason=手机号格式不正确]]
+2026-09-17 22:41:39.728 INFO  [http-nio-auto-1-exec-9] [529c117748f94bfd9bdc33405c4ebc0f] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0001 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-17 22:41:39.773 INFO  [http-nio-auto-1-exec-10] [78f521dead054a38ab33bad3f968dc48] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-000084 account_id=458204390685843456
+2026-09-17 22:41:39.777 INFO  [http-nio-auto-1-exec-10] [78f521dead054a38ab33bad3f968dc48] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458204390685843456 actor=458204390685843456 summary=账号登录成功（role=SUPPLIER）
+2026-09-17 22:41:39.798 INFO  [http-nio-auto-1-exec-1] [e9e409a7c3f641a1ba3d2b6a1bc5c83f] com.hioas.aap.support.AuditService - 审计 action=PROFILE_UPDATE target=provider#458204390715203584 actor=458204390685843456 summary=更新供应商档案
+2026-09-17 22:41:39.818 INFO  [http-nio-auto-1-exec-2] [a54907c51755406a8ed48cd4cdb17f74] com.hioas.aap.support.AuditService - 审计 action=PROFILE_UPDATE target=provider#458204390715203584 actor=458204390685843456 summary=更新供应商档案
+2026-09-17 22:41:39.841 WARN  [http-nio-auto-1-exec-3] [a826db4f08ca4dd9a9ba3ef1246fc698] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1601 msg=档案已被更新，请刷新后重试 details=[]
+2026-09-17 22:41:39.914 INFO  [http-nio-auto-1-exec-4] [229436849d034b598c2bc2746671476f] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0001 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-17 22:41:39.952 INFO  [http-nio-auto-1-exec-5] [f81b1fce7e2e40098532d7f4e6dcd102] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-000085 account_id=458204391428235264
+2026-09-17 22:41:39.956 INFO  [http-nio-auto-1-exec-5] [f81b1fce7e2e40098532d7f4e6dcd102] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458204391428235264 actor=458204391428235264 summary=账号登录成功（role=SUPPLIER）
+2026-09-17 22:41:39.980 ERROR [main] [] com.networknt.schema.JsonSchemaFactory - Failed to load json schema from https://hioas.com/aap/schema/file-asset.schema.json
+java.net.UnknownHostException: hioas.com
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:569)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:284)
+	at java.base/java.net.Socket.connect(Socket.java:659)
+	at java.base/sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:304)
+	at java.base/sun.security.ssl.BaseSSLSocketImpl.connect(BaseSSLSocketImpl.java:181)
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:166)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:516)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:604)
+	at java.base/sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.java:207)
+	at java.base/sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:289)
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:196)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:963)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:899)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.connect(HttpURLConnection.java:872)
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:181)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1377)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1302)
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.getInputStream(HttpsURLConnectionImpl.java:223)
+	at com.networknt.schema.resource.UriSchemaLoader.openConnectionCheckRedirects(UriSchemaLoader.java:83)
+	at com.networknt.schema.resource.UriSchemaLoader.lambda$getSchema$0(UriSchemaLoader.java:39)
+	at com.networknt.schema.JsonSchemaFactory.getMappedSchema(JsonSchemaFactory.java:670)
+	at com.networknt.schema.JsonSchemaFactory.loadSchema(JsonSchemaFactory.java:639)
+	at com.networknt.schema.RefValidator.lambda$getRefSchema$0(RefValidator.java:66)
+	at com.networknt.schema.CachedSupplier.get(CachedSupplier.java:41)
+	at com.networknt.schema.JsonSchemaRef.getSchema(JsonSchemaRef.java:32)
+	at com.networknt.schema.RefValidator.preloadJsonSchema(RefValidator.java:233)
+	at com.networknt.schema.JsonSchema.initializeValidators(JsonSchema.java:1333)
+	at com.networknt.schema.ItemsValidator202012.preloadJsonSchema(ItemsValidator202012.java:201)
+	at com.networknt.schema.JsonSchema.initializeValidators(JsonSchema.java:1333)
+	at com.networknt.schema.BaseJsonValidator.preloadJsonSchemas(BaseJsonValidator.java:334)
+	at com.networknt.schema.PropertiesValidator.preloadJsonSchema(PropertiesValidator.java:211)
+	at com.networknt.schema.JsonSchema.initializeValidators(JsonSchema.java:1333)
+	at com.networknt.schema.JsonSchemaFactory.preload(JsonSchemaFactory.java:352)
+	at com.networknt.schema.JsonSchemaFactory.newJsonSchema(JsonSchemaFactory.java:336)
+	at com.networknt.schema.JsonSchemaFactory.getSchema(JsonSchemaFactory.java:589)
+	at com.networknt.schema.JsonSchemaFactory.getSchema(JsonSchemaFactory.java:572)
+	at com.networknt.schema.JsonSchemaFactory.getSchema(JsonSchemaFactory.java:606)
+	at com.hioas.aap.support.SchemaAssert.assertMatches(SchemaAssert.java:39)
+	at com.hioas.aap.support.SchemaAssert.assertModel(SchemaAssert.java:67)
+	at com.hioas.aap.provider.ProviderContractTest.profileReturnsRegisteredProvider(ProviderContractTest.java:40)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:701)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:502)
+	at org.junit.jupiter.engine.support.MethodReflectionUtils.invoke(MethodReflectionUtils.java:45)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:61)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:124)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:163)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:148)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:123)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:105)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:99)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:66)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:47)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:39)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:104)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:98)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invokeVoid(InterceptingExecutableInvoker.java:71)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$0(TestMethodTestDescriptor.java:219)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:215)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:157)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:70)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:176)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:36)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:52)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.executeEngine(EngineExecutionOrchestrator.java:246)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:179)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:108)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:66)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:157)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:65)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:125)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$2(InterceptingLauncher.java:57)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:56)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.apache.maven.surefire.api.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:125)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithCancellationToken(LauncherAdapter.java:68)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:54)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+2026-09-17 22:41:40.121 INFO  [http-nio-auto-1-exec-8] [fe565a945ba24d3c9fb654606b5b637a] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0001 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-17 22:41:40.154 INFO  [http-nio-auto-1-exec-9] [3f7dc00bf16b47d2bba004dd4b1b1deb] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-000086 account_id=458204392279678976
+2026-09-17 22:41:40.158 INFO  [http-nio-auto-1-exec-9] [3f7dc00bf16b47d2bba004dd4b1b1deb] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458204392279678976 actor=458204392279678976 summary=账号登录成功（role=SUPPLIER）
+2026-09-17 22:41:40.178 WARN  [http-nio-auto-1-exec-10] [7e648e4d108e401699a86ba4e45b9145] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1001 msg=单个文件不超过 10MB details=[ApiErrorDetail[field=file_size, reason=单个文件不超过 10MB]]
+2026-09-17 22:41:40.189 WARN  [http-nio-auto-1-exec-1] [ee7acb79bd34481e97c19a6496fd82cc] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1001 msg=仅支持 jpg / jpeg / png / pdf 格式的资质文件 details=[ApiErrorDetail[field=file_name, reason=仅支持 jpg / jpeg / png / pdf]]
+2026-09-17 22:41:40.268 INFO  [http-nio-auto-1-exec-2] [327fa1b9d9684640a96882a7e0eb875c] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0001 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-17 22:41:40.299 INFO  [http-nio-auto-1-exec-3] [00ecaa02b77440eb810f728a13441bc8] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-000087 account_id=458204392900435968
+2026-09-17 22:41:40.303 INFO  [http-nio-auto-1-exec-3] [00ecaa02b77440eb810f728a13441bc8] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458204392900435968 actor=458204392900435968 summary=账号登录成功（role=SUPPLIER）
+[ERROR] Tests run: 9, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 1.673 s <<< FAILURE! -- in com.hioas.aap.provider.ProviderContractTest
+[ERROR] com.hioas.aap.provider.ProviderContractTest.updateProfileIsIdempotent -- Time elapsed: 0.244 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[重放必须返回首次响应体] 
+expected: "{"code":"0","message":"ok","data":{"provider_id":"458204388278312960","provider_no":"AAP-P-2026-0081","provider_code":"AAP-P-000081","short_name":null,"short_code":"AAP-P-000081","company_name":"幂等公司","uscc":"91310115MA1K3XYZ34","industry_category":null,"province":null,"city":null,"address":null,"website":null,"contact_name":null,"contact_title":null,"contact_phone_masked":null,"contact_email":null,"company_intro":null,"completeness":18,"qualification_files":[],"status":"PENDING_CREDENTIAL","recheck_interval_days":30,"manual_override":false,"override_reason":null,"contact":{"name":null,"phone_masked":null,"email":null,"title":null},"account":{"phone_masked":"138****0001","role":"SUPPLIER","wx_bound":false},"created_at":"2026-09-17T14:41:39Z","updated_at":"2026-09-17T14:41:39Z","version":0,"companyName":"幂等公司","contact_phone":null,"etag":"0","id":"458204388278312960","providerCode":"AAP-P-000081","unified_social_credit_code":"91310115MA1K3XYZ34"},"traceId":"65b3490e63284c328b634341b06a64a0","details":null}"
+ but was: "{"code": "0", "data": {"id": "458204388278312960", "city": null, "etag": "0", "uscc": "91310115MA1K3XYZ34", "status": "PENDING_CREDENTIAL", "account": {"role": "SUPPLIER", "wx_bound": false, "phone_masked": "138****0001"}, "address": null, "contact": {"name": null, "email": null, "title": null, "phone_masked": null}, "version": 0, "website": null, "province": null, "created_at": "2026-09-17T14:41:39Z", "short_code": "AAP-P-000081", "short_name": null, "updated_at": "2026-09-17T14:41:39Z", "companyName": "幂等公司", "provider_id": "458204388278312960", "provider_no": "AAP-P-2026-0081", "company_name": "幂等公司", "completeness": 18, "contact_name": null, "providerCode": "AAP-P-000081", "company_intro": null, "contact_email": null, "contact_phone": null, "contact_title": null, "provider_code": "AAP-P-000081", "manual_override": false, "override_reason": null, "industry_category": null, "qualification_files": [], "contact_phone_masked": null, "recheck_interval_days": 30, "unified_social_credit_code": "91310115MA1K3XYZ34"}, "details": null, "message": "ok", "traceId": "65b3490e63284c328b634341b06a64a0"}"
+	at com.hioas.aap.provider.ProviderContractTest.updateProfileIsIdempotent(ProviderContractTest.java:138)
+
+[INFO] Running com.hioas.aap.ToolchainSmokeTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.hioas.aap.ToolchainSmokeTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   ProviderContractTest.updateProfileIsIdempotent:138 [重放必须返回首次响应体] 
+expected: "{"code":"0","message":"ok","data":{"provider_id":"458204388278312960","provider_no":"AAP-P-2026-0081","provider_code":"AAP-P-000081","short_name":null,"short_code":"AAP-P-000081","company_name":"幂等公司","uscc":"91310115MA1K3XYZ34","industry_category":null,"province":null,"city":null,"address":null,"website":null,"contact_name":null,"contact_title":null,"contact_phone_masked":null,"contact_email":null,"company_intro":null,"completeness":18,"qualification_files":[],"status":"PENDING_CREDENTIAL","recheck_interval_days":30,"manual_override":false,"override_reason":null,"contact":{"name":null,"phone_masked":null,"email":null,"title":null},"account":{"phone_masked":"138****0001","role":"SUPPLIER","wx_bound":false},"created_at":"2026-09-17T14:41:39Z","updated_at":"2026-09-17T14:41:39Z","version":0,"companyName":"幂等公司","contact_phone":null,"etag":"0","id":"458204388278312960","providerCode":"AAP-P-000081","unified_social_credit_code":"91310115MA1K3XYZ34"},"traceId":"65b3490e63284c328b634341b06a64a0","details":null}"
+ but was: "{"code": "0", "data": {"id": "458204388278312960", "city": null, "etag": "0", "uscc": "91310115MA1K3XYZ34", "status": "PENDING_CREDENTIAL", "account": {"role": "SUPPLIER", "wx_bound": false, "phone_masked": "138****0001"}, "address": null, "contact": {"name": null, "email": null, "title": null, "phone_masked": null}, "version": 0, "website": null, "province": null, "created_at": "2026-09-17T14:41:39Z", "short_code": "AAP-P-000081", "short_name": null, "updated_at": "2026-09-17T14:41:39Z", "companyName": "幂等公司", "provider_id": "458204388278312960", "provider_no": "AAP-P-2026-0081", "company_name": "幂等公司", "completeness": 18, "contact_name": null, "providerCode": "AAP-P-000081", "company_intro": null, "contact_email": null, "contact_phone": null, "contact_title": null, "provider_code": "AAP-P-000081", "manual_override": false, "override_reason": null, "industry_category": null, "qualification_files": [], "contact_phone_masked": null, "recheck_interval_days": 30, "unified_social_credit_code": "91310115MA1K3XYZ34"}, "details": null, "message": "ok", "traceId": "65b3490e63284c328b634341b06a64a0"}"
+[INFO] 
+[ERROR] Tests run: 44, Failures: 1, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  23.346 s
+[INFO] Finished at: 2026-09-17T22:41:40+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project aap-server: There are test failures.
+[ERROR] 
+[ERROR] See E:\workspaces\hioas\hioas-aap-001\aap-server\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

@@ -2,6 +2,7 @@ package com.hioas.aap;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
 
 /**
@@ -14,6 +15,7 @@ import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoCon
  * "Using generated security password"，干扰验收与日志判读）。
  */
 @SpringBootApplication(exclude = UserDetailsServiceAutoConfiguration.class)
+@ConfigurationPropertiesScan
 public class AapServerApplication {
 
     public static void main(String[] args) {

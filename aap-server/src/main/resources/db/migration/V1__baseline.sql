@@ -61,6 +61,8 @@ create table if not exists aap_role (
     scope           varchar(16) not null default 'PROVIDER',
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -73,6 +75,8 @@ create table if not exists aap_user_role (
     role_code       varchar(32) not null,
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -92,6 +96,8 @@ create table if not exists aap_sms_code (
     client_ip       varchar(64),
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -105,6 +111,8 @@ create table if not exists aap_wechat_binding (
     bound_at        timestamptz not null default now(),
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -122,6 +130,8 @@ create table if not exists aap_auth_token (
     client_ip           varchar(64),
     created_at          timestamptz not null default now(),
     updated_at          timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted             boolean not null default false,
     version             int not null default 0
 );
@@ -242,6 +252,8 @@ create table if not exists aap_credential_precheck (
     checked_at      timestamptz not null default now(),
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -256,6 +268,8 @@ create table if not exists aap_provider_challenge (
     verified_at     timestamptz,
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -293,6 +307,8 @@ create table if not exists aap_detection_config_probe (
     seq             int not null default 0,
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -352,6 +368,8 @@ create table if not exists aap_detection_result (
     attempt_count   int not null default 0,
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -368,6 +386,8 @@ create table if not exists aap_detection_baseline (
     baseline_version varchar(32),
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -380,6 +400,8 @@ create table if not exists aap_baseline_sample (
     payload         jsonb,
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -394,6 +416,8 @@ create table if not exists aap_probe_question (
     enabled         boolean not null default true,
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -469,6 +493,8 @@ create table if not exists aap_report_section (
     seq             int not null default 0,
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -564,6 +590,8 @@ create table if not exists aap_price_time_rule (
     peak_price_override numeric(18,6),
     created_at          timestamptz not null default now(),
     updated_at          timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted             boolean not null default false,
     version             int not null default 0
 );
@@ -578,6 +606,8 @@ create table if not exists aap_price_time_segment (
     seq             int not null default 0,
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -590,6 +620,8 @@ create table if not exists aap_price_tier_rule (
     price_strategy  varchar(16) not null default 'OVERRIDE',
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -609,6 +641,8 @@ create table if not exists aap_price_tier (
     multiplier          numeric(12,6),
     created_at          timestamptz not null default now(),
     updated_at          timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted             boolean not null default false,
     version             int not null default 0
 );
@@ -622,6 +656,8 @@ create table if not exists aap_price_request_rule (
     enabled         boolean not null default true,
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -637,6 +673,8 @@ create table if not exists aap_reference_price (
     effective_to    timestamptz,
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -679,6 +717,8 @@ create table if not exists aap_review_record (
     snapshot        jsonb,
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -731,6 +771,8 @@ create table if not exists aap_contract_sign (
     signed_at       timestamptz not null default now(),
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -788,6 +830,8 @@ create table if not exists aap_settlement_line (
     amount          numeric(18,6) not null default 0,
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -833,6 +877,8 @@ create table if not exists aap_model_expression (
     inline_expanded text,
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -849,6 +895,8 @@ create table if not exists aap_verify_run (
     finished_at     timestamptz,
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -866,6 +914,8 @@ create table if not exists aap_verify_case (
     diff_note       varchar(255),
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -882,6 +932,8 @@ create table if not exists aap_newapi_endpoint (
     status          varchar(32) not null default 'ACTIVE',
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -950,6 +1002,8 @@ create table if not exists aap_sync_operation (
     error               varchar(500),
     created_at          timestamptz not null default now(),
     updated_at          timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted             boolean not null default false,
     version             int not null default 0
 );
@@ -970,6 +1024,8 @@ create table if not exists aap_sync_log (
     operator_id         bigint,
     created_at          timestamptz not null default now(),
     updated_at          timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted             boolean not null default false,
     version             int not null default 0
 );
@@ -1004,6 +1060,8 @@ create table if not exists aap_usage_hourly (
     collected_at            timestamptz not null default now(),
     created_at              timestamptz not null default now(),
     updated_at              timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted                 boolean not null default false,
     version                 int not null default 0
 ) partition by range (stat_hour);
@@ -1024,6 +1082,8 @@ create table if not exists aap_usage_sync_cursor (
     status          varchar(32),
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -1049,6 +1109,8 @@ create table if not exists aap_audit_log (
     risk_level      varchar(16) not null default 'NORMAL',
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -1072,6 +1134,8 @@ create table if not exists aap_notification (
     status          varchar(32) not null default 'PENDING',
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted         boolean not null default false,
     version         int not null default 0
 );
@@ -1113,6 +1177,8 @@ create table if not exists aap_outbox_event (
     last_error          varchar(500),
     created_at          timestamptz not null default now(),
     updated_at          timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted             boolean not null default false,
     version             int not null default 0
 );
@@ -1131,6 +1197,8 @@ create table if not exists aap_idempotency_record (
     expire_at           timestamptz not null,
     created_at          timestamptz not null default now(),
     updated_at          timestamptz not null default now(),
+    created_by      bigint,
+    updated_by      bigint,
     deleted             boolean not null default false,
     version             int not null default 0
 );

@@ -12,6 +12,9 @@ app:
     secret: ${AAP_JWT_SECRET}
   credential:
     aes-key: ${AAP_CREDENTIAL_AES_KEY}
+  sms:
+    # 测试环境把验证码放进响应体（dev_code），生产必须 false（application.yml 默认 false）
+    expose-code: true
   logging:
     dir: ${LOG_DIR:logs}
 

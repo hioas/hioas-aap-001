@@ -64,6 +64,8 @@ app:
     resend-interval-seconds: 60
     max-attempts: 5
     lock-minutes: 15
+    # 仅测试环境置 true：把验证码放进响应体便于端到端验收（生产严禁开启）
+    expose-code: false
   detection:
     daily-quota: 5
     pass-score: 70

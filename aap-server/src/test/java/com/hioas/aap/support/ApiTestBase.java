@@ -37,6 +37,18 @@ public abstract class ApiTestBase {
     @Autowired
     protected org.springframework.core.env.Environment environment;
 
+    @Autowired
+    protected org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    /**
+     * 每个用例前清空业务表。为什么不是 {@code @Transactional} 回滚：
+     * 验收走真实 HTTP（跨线程），事务不会传播到服务端线程，回滚会给出「绿了但数据没清」的假象。
+     */
+    @org.junit.jupiter.api.BeforeEach
+    void truncateApplicationTables() {
+        TestDb.truncateAll(jdbc);
+    }
+
     protected String baseUrl() {
         return "http://localhost:" + port;
     }

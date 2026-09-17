@@ -26,11 +26,6 @@ public abstract class DbTestBase {
 
     @BeforeEach
     void truncateApplicationTables() {
-        List<String> tables = jdbc.queryForList(
-                "select tablename from pg_tables where schemaname = 'public' and tablename like 'aap\\_%' order by tablename",
-                String.class);
-        if (!tables.isEmpty()) {
-            jdbc.execute("truncate table " + String.join(", ", tables) + " restart identity cascade");
-        }
+        TestDb.truncateAll(jdbc);
     }
 }
