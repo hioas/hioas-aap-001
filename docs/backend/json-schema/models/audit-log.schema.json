@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/audit-log",
+  "title": "audit-log",
+  "required": [
+    "id",
+    "action"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "trace_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "actor_type": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "actor_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "actor_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "actor_ip": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "user_agent": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "CREDENTIAL_REVEAL",
+        "QUOTE_APPROVE",
+        "QUOTE_REJECT",
+        "SYNC_WRITE_PRICE",
+        "PROVIDER_SUSPEND",
+        "CONTRACT_SIGN",
+        "PAYMENT_CONFIRM",
+        "DETECTION_RELEASE",
+        "PROFILE_UPDATE",
+        "AUTH_LOGIN",
+        "CONFIG_PUBLISH",
+        "SYNC_EXECUTE"
+      ]
+    },
+    "target_type": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "target_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "summary": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "before_value": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "after_value": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "result": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "risk_level": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

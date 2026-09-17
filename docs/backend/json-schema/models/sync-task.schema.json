@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/sync-task",
+  "title": "sync-task",
+  "required": [
+    "id",
+    "status"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "task_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "task_no": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "binding_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "provider_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "compilation_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "task_type": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "payload": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "idempotency_key": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "attempt_count": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "next_retry_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "last_error": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "readback_equal": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "operations": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "sync-operation.schema.json"
+      }
+    },
+    "created_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "updated_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

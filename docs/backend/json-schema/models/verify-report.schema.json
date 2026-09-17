@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/verify-report",
+  "title": "verify-report",
+  "properties": {
+    "status": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "case_total": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "case_passed": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "failed_field": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "cases": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "verify-case.schema.json"
+      }
+    },
+    "started_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "finished_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

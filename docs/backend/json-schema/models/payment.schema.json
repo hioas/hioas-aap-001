@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/payment",
+  "title": "payment",
+  "required": [
+    "id"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "payment_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "provider_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "contract_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "amount": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "numeric(18,6)：USD 或 USD/1M tokens"
+    },
+    "currency": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "UNSETTLED",
+        "PAYMENT_RECORDED",
+        "CONFIRMED",
+        "VOID",
+        null
+      ]
+    },
+    "voucher_file_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "paid_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "confirmed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "remark": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "available_balance": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "numeric(18,6)：USD 或 USD/1M tokens"
+    },
+    "pending_settlement": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "numeric(18,6)：USD 或 USD/1M tokens"
+    },
+    "total_settled": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "numeric(18,6)：USD 或 USD/1M tokens"
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

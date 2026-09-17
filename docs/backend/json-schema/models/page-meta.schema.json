@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/page-meta",
+  "title": "page-meta",
+  "required": [
+    "page",
+    "pageSize",
+    "total"
+  ],
+  "properties": {
+    "page": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "pageSize": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 200
+    },
+    "total": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/payment-record",
+  "title": "payment-record",
+  "required": [
+    "provider_id",
+    "contract_id",
+    "amount"
+  ],
+  "properties": {
+    "provider_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "contract_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "amount": {
+      "type": "number",
+      "minimum": 1e-06
+    },
+    "currency": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "USD",
+        null
+      ]
+    },
+    "voucher_file_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "remark": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

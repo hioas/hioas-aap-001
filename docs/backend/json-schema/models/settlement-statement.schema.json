@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/settlement-statement",
+  "title": "settlement-statement",
+  "required": [
+    "id"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "statement_no": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "provider_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "period_from": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "period_to": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "total_amount": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "numeric(18,6)：USD 或 USD/1M tokens"
+    },
+    "platform_fee": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "numeric(18,6)：USD 或 USD/1M tokens"
+    },
+    "status": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

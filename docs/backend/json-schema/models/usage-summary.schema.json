@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/usage-summary",
+  "title": "usage-summary",
+  "required": [
+    "provider_id"
+  ],
+  "properties": {
+    "provider_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "stat_from": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "stat_to": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "month": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "request_count": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "prompt_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "词元计数（bigint）"
+    },
+    "completion_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "词元计数（bigint）"
+    },
+    "total_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "词元计数（bigint）"
+    },
+    "cache_read_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "词元计数（bigint）"
+    },
+    "cache_write_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "词元计数（bigint）"
+    },
+    "cache_write_1h_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "词元计数（bigint）"
+    },
+    "image_input_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "词元计数（bigint）"
+    },
+    "audio_input_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "词元计数（bigint）"
+    },
+    "video_input_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "词元计数（bigint）"
+    },
+    "cache_hit_rate": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "cache_parse_rate": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "quota_raw": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "numeric(18,6)：USD 或 USD/1M tokens"
+    },
+    "cost_usd": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "numeric(18,6)：USD 或 USD/1M tokens"
+    },
+    "amount_total": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "numeric(18,6)：USD 或 USD/1M tokens"
+    },
+    "amount": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "numeric(18,6)：USD 或 USD/1M tokens"
+    },
+    "mom_rate": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "mom_saved_amount": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "numeric(18,6)：USD 或 USD/1M tokens"
+    },
+    "actual_unit_price": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "numeric(18,6)：USD 或 USD/1M tokens"
+    },
+    "deviation_rate": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "tier_distribution": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "models": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "usage-model.schema.json"
+      }
+    },
+    "daily": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "usage-daily.schema.json"
+      }
+    },
+    "cost": {
+      "oneOf": [
+        {
+          "$ref": "usage-cost.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "cost_breakdown": {
+      "oneOf": [
+        {
+          "$ref": "usage-cost.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "updated_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "refreshed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "degraded": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

@@ -1,0 +1,76 @@
+spring:
+  application:
+    name: aap-server
+  profiles:
+    default: dev
+  datasource:
+    # 变量来自 E:\env\aap-server.env（真实值不入库；缺失时启动即失败，不静默用默认值）
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:aap_server_dev}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 10000
+      pool-name: aap-pool
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  jackson:
+    # Spring Boot 4 使用 Jackson 3（tools.jackson.*）：WRITE_DATES_AS_TIMESTAMPS 等已被移除，
+    # 时间默认按 ISO-8601 输出（RFC3339 UTC），此处只保留仍然有效的开关。
+    default-property-inclusion: always
+
+server:
+  port: ${SERVER_PORT:8083}
+  shutdown: graceful
+  error:
+    include-message: never
+    include-stacktrace: never
+    whitelabel:
+      enabled: false
+
+mybatis-flex:
+  global-config:
+    print-banner: false
+    logic-delete-column: deleted
+    normal-value-of-logic-delete: false
+    deleted-value-of-logic-delete: true
+    version-column: version
+    default-page-size: 20
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
+app:
+  jwt:
+    # 生产/开发均从 E:\env\aap-server.env 注入（AAP_JWT_SECRET）
+    secret: ${AAP_JWT_SECRET}
+    access-ttl-minutes: ${AAP_JWT_ACCESS_TTL_MINUTES:120}
+    refresh-ttl-days: ${AAP_JWT_REFRESH_TTL_DAYS:14}
+  credential:
+    # 凭证加密密钥（AES-256-GCM，32 字节 base64；与库分离，R-06）
+    aes-key: ${AAP_CREDENTIAL_AES_KEY}
+  sms:
+    ttl-seconds: 300
+    resend-interval-seconds: 60
+    max-attempts: 5
+    lock-minutes: 15
+  detection:
+    daily-quota: 5
+    pass-score: 70
+    veto-score: 40
+  logging:
+    dir: ${LOG_DIR:logs}
+
+logging:
+  level:
+    root: info

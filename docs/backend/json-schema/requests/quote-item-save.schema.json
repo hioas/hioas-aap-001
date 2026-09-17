@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/quote-item-save",
+  "title": "quote-item-save",
+  "properties": {
+    "model_alias": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "input_price": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "output_price": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "cache_read_price": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "cache_write_price": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "cache_write_1h_price": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "image_input_price": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "audio_input_price": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "image_output_price": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "audio_output_price": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "note": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "tier": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "billing_mode": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "time_rule": {
+      "oneOf": [
+        {
+          "$ref": "../models/price-time-rule.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "tier_rule": {
+      "oneOf": [
+        {
+          "$ref": "../models/price-tier-rule.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "request_rules": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "../models/request-rule.schema.json"
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

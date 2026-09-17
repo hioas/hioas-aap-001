@@ -1,0 +1,4370 @@
+# 由 tools/gen-backend-models.py 生成，勿手改；改脚本后重跑。
+openapi: 3.1.0
+info:
+  title: AAP 云算接入平台 · 服务端 API
+  version: 1.0.0
+  description: "供应商端 + 管理端接口。模型定义见 ./json-schema/**；接口清单见 02-API接口模型清单.md。"
+servers:
+  - url: "http://localhost:8083"
+    description: 本地
+tags:
+  - name: Auth
+  - name: Provider
+  - name: Credential
+  - name: Detection
+  - name: Report
+  - name: Quote
+  - name: Contract
+  - name: Payment
+  - name: Notification
+  - name: Usage
+  - name: Admin
+paths:
+  /auth/sms/send:
+    post:
+      operationId: AUTH-01
+      tags:
+        - Auth
+      summary: 账号接入
+      description: "接口 ID `AUTH-01`（依据：真源）"
+      x-aap-id: AUTH-01
+      x-aap-source: 真源
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestAuthSmsSend"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/SmsSendResult"
+        4XX:
+          description: 业务失败：E-1001,E-1903
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /auth/sms/login:
+    post:
+      operationId: AUTH-02
+      tags:
+        - Auth
+      summary: 账号接入
+      description: "接口 ID `AUTH-02`（依据：真源）"
+      x-aap-id: AUTH-02
+      x-aap-source: 真源
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestAuthSmsLogin"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/LoginResult"
+        4XX:
+          description: 业务失败：E-1001,E-1101,E-1903
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /auth/wechat/login:
+    post:
+      operationId: AUTH-03
+      tags:
+        - Auth
+      summary: 账号接入
+      description: "接口 ID `AUTH-03`（依据：真源）"
+      x-aap-id: AUTH-03
+      x-aap-source: 真源
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestAuthWechatLogin"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/LoginResult"
+        4XX:
+          description: 业务失败：E-1001
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /auth/refresh:
+    post:
+      operationId: AUTH-04
+      tags:
+        - Auth
+      summary: 账号接入
+      description: "接口 ID `AUTH-04`（依据：推断）"
+      x-aap-id: AUTH-04
+      x-aap-source: 推断
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestAuthRefresh"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/LoginResult"
+        4XX:
+          description: 业务失败：E-1902
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /auth/logout:
+    post:
+      operationId: AUTH-05
+      tags:
+        - Auth
+      summary: 账号接入
+      description: "接口 ID `AUTH-05`（依据：真源）"
+      x-aap-id: AUTH-05
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+  /auth/me:
+    get:
+      operationId: AUTH-06
+      tags:
+        - Auth
+      summary: 账号接入
+      description: "接口 ID `AUTH-06`（依据：真源+约定）"
+      x-aap-id: AUTH-06
+      x-aap-source: 真源+约定
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/MeResult"
+        4XX:
+          description: 业务失败：E-1902
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /provider/profile:
+    get:
+      operationId: PROV-01
+      tags:
+        - Provider
+      summary: 供应商
+      description: "接口 ID `PROV-01`（依据：真源）"
+      x-aap-id: PROV-01
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ProviderProfile"
+        4XX:
+          description: 业务失败：E-1101
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      operationId: PROV-02
+      tags:
+        - Provider
+      summary: 供应商
+      description: "接口 ID `PROV-02`（依据：真源+约定）"
+      x-aap-id: PROV-02
+      x-aap-source: 真源+约定
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestProviderProfileUpdate"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ProviderProfile"
+        4XX:
+          description: 业务失败：E-1001,E-1104,E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /provider/qualifications:
+    get:
+      operationId: PROV-03
+      tags:
+        - Provider
+      summary: 供应商
+      description: "接口 ID `PROV-03`（依据：真源）"
+      x-aap-id: PROV-03
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/QualificationCreated"
+    post:
+      operationId: PROV-04
+      tags:
+        - Provider
+      summary: 供应商
+      description: "接口 ID `PROV-04`（依据：真源）"
+      x-aap-id: PROV-04
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestQualificationCreate"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/QualificationCreated"
+        4XX:
+          description: 业务失败：E-1001
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /provider/qualifications/{id}:
+    delete:
+      operationId: PROV-05
+      tags:
+        - Provider
+      summary: 供应商
+      description: "接口 ID `PROV-05`（依据：真源）"
+      x-aap-id: PROV-05
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        4XX:
+          description: 业务失败：E-1901,E-2001
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /credentials:
+    get:
+      operationId: CRED-01
+      tags:
+        - Credential
+      summary: 凭证
+      description: "接口 ID `CRED-01`（依据：真源）"
+      x-aap-id: CRED-01
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/CredentialRow"
+    post:
+      operationId: CRED-02
+      tags:
+        - Credential
+      summary: 凭证
+      description: "接口 ID `CRED-02`（依据：推断）"
+      x-aap-id: CRED-02
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestCredentialCreate"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/CredentialDetail"
+        4XX:
+          description: 业务失败：E-1001,E-1104,E-1201
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /credentials/{id}:
+    get:
+      operationId: CRED-03
+      tags:
+        - Credential
+      summary: 凭证
+      description: "接口 ID `CRED-03`（依据：真源）"
+      x-aap-id: CRED-03
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/CredentialDetail"
+        4XX:
+          description: 业务失败：E-1901
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      operationId: CRED-04
+      tags:
+        - Credential
+      summary: 凭证
+      description: "接口 ID `CRED-04`（依据：真源）"
+      x-aap-id: CRED-04
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestCredentialCreate"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/CredentialDetail"
+        4XX:
+          description: 业务失败：E-1001,E-1104,E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /credentials/{id}/precheck:
+    post:
+      operationId: CRED-05
+      tags:
+        - Credential
+      summary: 凭证
+      description: "接口 ID `CRED-05`（依据：真源）"
+      x-aap-id: CRED-05
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/PrecheckResult"
+        4XX:
+          description: 业务失败：E-1101,E-1201,E-1301
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /credentials/{id}/precheck/latest:
+    get:
+      operationId: CRED-06
+      tags:
+        - Credential
+      summary: 凭证
+      description: "接口 ID `CRED-06`（依据：推断）"
+      x-aap-id: CRED-06
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/CredentialPrecheck"
+        4XX:
+          description: 业务失败：E-1101
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /credentials/{id}/reveal:
+    post:
+      operationId: CRED-07
+      tags:
+        - Credential
+      summary: 凭证
+      description: "接口 ID `CRED-07`（依据：真源）"
+      x-aap-id: CRED-07
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestCredentialReveal"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/RevealResult"
+        4XX:
+          description: 业务失败：E-1901,E-1902
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /detection-jobs:
+    post:
+      operationId: DET-01
+      tags:
+        - Detection
+      summary: 检测
+      description: "接口 ID `DET-01`（依据：真源）"
+      x-aap-id: DET-01
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestDetectionJobCreate"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/JobCreated"
+        4XX:
+          description: 业务失败：E-1301,E-1302,E-1303
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /detection-jobs/{jobId}:
+    get:
+      operationId: DET-02
+      tags:
+        - Detection
+      summary: 检测
+      description: "接口 ID `DET-02`（依据：真源）"
+      x-aap-id: DET-02
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/DetectionJob"
+        4XX:
+          description: 业务失败：E-1304
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /detection-jobs/{jobId}/results:
+    get:
+      operationId: DET-03
+      tags:
+        - Detection
+      summary: 检测
+      description: "接口 ID `DET-03`（依据：真源）"
+      x-aap-id: DET-03
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/DetectionResult"
+        4XX:
+          description: 业务失败：E-1304
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /detection-jobs/{jobId}/results/{probeCode}:
+    get:
+      operationId: DET-04
+      tags:
+        - Detection
+      summary: 检测
+      description: "接口 ID `DET-04`（依据：推断）"
+      x-aap-id: DET-04
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: probeCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/DetectionResult"
+        4XX:
+          description: 业务失败：E-1304
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /detection-jobs/{jobId}/cancel:
+    post:
+      operationId: DET-05
+      tags:
+        - Detection
+      summary: 检测
+      description: "接口 ID `DET-05`（依据：推断）"
+      x-aap-id: DET-05
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/DetectionJob"
+        4XX:
+          description: 业务失败：E-1305,E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /detection-jobs/{jobId}/release:
+    post:
+      operationId: DET-06
+      tags:
+        - Detection
+      summary: 检测
+      description: "接口 ID `DET-06`（依据：真源）"
+      x-aap-id: DET-06
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestDetectionRelease"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/DetectionJob"
+        4XX:
+          description: 业务失败：E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /reports:
+    get:
+      operationId: RPT-01
+      tags:
+        - Report
+      summary: 报告
+      description: "接口 ID `RPT-01`（依据：真源）"
+      x-aap-id: RPT-01
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: result
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ReportSummary"
+  /reports/{reportId}:
+    get:
+      operationId: RPT-02
+      tags:
+        - Report
+      summary: 报告
+      description: "接口 ID `RPT-02`（依据：真源）"
+      x-aap-id: RPT-02
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Report"
+        4XX:
+          description: 业务失败：E-1401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /reports/{reportId}/html:
+    get:
+      operationId: RPT-03
+      tags:
+        - Report
+      summary: 报告
+      description: "接口 ID `RPT-03`（依据：推断）"
+      x-aap-id: RPT-03
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        4XX:
+          description: 业务失败：E-1401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /reports/{reportId}/export:
+    get:
+      operationId: RPT-04
+      tags:
+        - Report
+      summary: 报告
+      description: "接口 ID `RPT-04`（依据：真源）"
+      x-aap-id: RPT-04
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ReportExport"
+        4XX:
+          description: 业务失败：E-1401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /quotes:
+    get:
+      operationId: QT-01
+      tags:
+        - Quote
+      summary: 报价
+      description: "接口 ID `QT-01`（依据：真源）"
+      x-aap-id: QT-01
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/QuoteRow"
+    post:
+      operationId: QT-02
+      tags:
+        - Quote
+      summary: 报价
+      description: "接口 ID `QT-02`（依据：真源）"
+      x-aap-id: QT-02
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestQuoteCreate"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/QuoteDetail"
+        4XX:
+          description: 业务失败：E-1602,E-1001
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /quotes/{quoteId}:
+    get:
+      operationId: QT-03
+      tags:
+        - Quote
+      summary: 报价
+      description: "接口 ID `QT-03`（依据：真源）"
+      x-aap-id: QT-03
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: quoteId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/QuoteDetail"
+        4XX:
+          description: 业务失败：E-1401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: QT-04
+      tags:
+        - Quote
+      summary: 报价
+      description: "接口 ID `QT-04`（依据：真源）"
+      x-aap-id: QT-04
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: quoteId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/QuoteDetail"
+        4XX:
+          description: 业务失败：E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /quotes/{quoteId}/items:
+    post:
+      operationId: QT-05
+      tags:
+        - Quote
+      summary: 报价
+      description: "接口 ID `QT-05`（依据：真源）"
+      x-aap-id: QT-05
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: quoteId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestQuoteItemsCreate"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/QuoteDetail"
+        4XX:
+          description: 业务失败：E-1001,E-1401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: QT-06
+      tags:
+        - Quote
+      summary: 报价
+      description: "接口 ID `QT-06`（依据：真源）"
+      x-aap-id: QT-06
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: quoteId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/QuoteItem"
+  /quotes/items/{itemId}:
+    get:
+      operationId: QT-07
+      tags:
+        - Quote
+      summary: 报价
+      description: "接口 ID `QT-07`（依据：真源）"
+      x-aap-id: QT-07
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/QuoteItem"
+        4XX:
+          description: 业务失败：E-1401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      operationId: QT-08
+      tags:
+        - Quote
+      summary: 报价
+      description: "接口 ID `QT-08`（依据：真源）"
+      x-aap-id: QT-08
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestQuoteItemSave"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/QuoteItem"
+        4XX:
+          description: 业务失败：E-1001,E-1401,E-1402,E-1403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /quotes/{quoteId}/submit:
+    post:
+      operationId: QT-09
+      tags:
+        - Quote
+      summary: 报价
+      description: "接口 ID `QT-09`（依据：真源）"
+      x-aap-id: QT-09
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: quoteId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestQuoteSubmit"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/QuoteDetail"
+        4XX:
+          description: 业务失败：E-1001,E-1401,E-1402,E-1601,E-1602
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /quotes/{quoteId}/withdraw:
+    post:
+      operationId: QT-10
+      tags:
+        - Quote
+      summary: 报价
+      description: "接口 ID `QT-10`（依据：真源）"
+      x-aap-id: QT-10
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: quoteId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/QuoteDetail"
+        4XX:
+          description: 业务失败：E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /quotes/{quoteId}/versions:
+    get:
+      operationId: QT-11
+      tags:
+        - Quote
+      summary: 报价
+      description: "接口 ID `QT-11`（依据：推断）"
+      x-aap-id: QT-11
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: quoteId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/QuoteVersion"
+  /quotes/{quoteId}/compile-preview:
+    post:
+      operationId: QT-12
+      tags:
+        - Quote
+      summary: 报价
+      description: "接口 ID `QT-12`（依据：真源）"
+      x-aap-id: QT-12
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: quoteId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/CompilationResult"
+        4XX:
+          description: 业务失败：E-1401,E-1402,E-1405
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /contracts:
+    get:
+      operationId: CON-01
+      tags:
+        - Contract
+      summary: 合同
+      description: "接口 ID `CON-01`（依据：真源）"
+      x-aap-id: CON-01
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/Contract"
+  /contracts/{id}:
+    get:
+      operationId: CON-02
+      tags:
+        - Contract
+      summary: 合同
+      description: "接口 ID `CON-02`（依据：真源）"
+      x-aap-id: CON-02
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/Contract"
+        4XX:
+          description: 业务失败：E-1701
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /contracts/{id}/file:
+    get:
+      operationId: CON-03
+      tags:
+        - Contract
+      summary: 合同
+      description: "接口 ID `CON-03`（依据：真源）"
+      x-aap-id: CON-03
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ReportExport"
+        4XX:
+          description: 业务失败：E-1701
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /contracts/{id}/sign:
+    post:
+      operationId: CON-04
+      tags:
+        - Contract
+      summary: 合同
+      description: "接口 ID `CON-04`（依据：真源）"
+      x-aap-id: CON-04
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestContractSign"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/Contract"
+        4XX:
+          description: 业务失败：E-1701,E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /payments:
+    get:
+      operationId: PAY-01
+      tags:
+        - Payment
+      summary: 打款
+      description: "接口 ID `PAY-01`（依据：真源+约定）"
+      x-aap-id: PAY-01
+      x-aap-source: 真源+约定
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/Payment"
+  /notifications:
+    get:
+      operationId: NTF-01
+      tags:
+        - Notification
+      summary: 站内信
+      description: "接口 ID `NTF-01`（依据：真源+推断）"
+      x-aap-id: NTF-01
+      x-aap-source: 真源+推断
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: unread
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/Notification"
+  /notifications/{id}/read:
+    post:
+      operationId: NTF-02
+      tags:
+        - Notification
+      summary: 站内信
+      description: "接口 ID `NTF-02`（依据：真源）"
+      x-aap-id: NTF-02
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/NotificationRead"
+        4XX:
+          description: 业务失败：E-1901
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /usage/summary:
+    get:
+      operationId: USE-01
+      tags:
+        - Usage
+      summary: 用量
+      description: "接口 ID `USE-01`（依据：真源）"
+      x-aap-id: USE-01
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: startHour
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: endHour
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: month
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/UsageSummary"
+        4XX:
+          description: 业务失败：E-1801
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /usage/hourly:
+    get:
+      operationId: USE-02
+      tags:
+        - Usage
+      summary: 用量
+      description: "接口 ID `USE-02`（依据：真源）"
+      x-aap-id: USE-02
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - PROVIDER
+      parameters:
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: model
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: group
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/UsageHourlyBucket"
+        4XX:
+          description: 业务失败：E-1801
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/providers:
+    get:
+      operationId: ADM-P01
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-P01`（依据：推断）"
+      x-aap-id: ADM-P01
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - BIZ_OPERATOR
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ProviderProfile"
+  /admin/providers/{id}/suspend:
+    post:
+      operationId: ADM-P02
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-P02`（依据：真源）"
+      x-aap-id: ADM-P02
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - BIZ_OPERATOR
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestProviderSuspend"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ProviderProfile"
+        4XX:
+          description: 业务失败：E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/providers/{id}/resume:
+    post:
+      operationId: ADM-P03
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-P03`（依据：真源）"
+      x-aap-id: ADM-P03
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - BIZ_OPERATOR
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ProviderProfile"
+        4XX:
+          description: 业务失败：E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/credentials/{id}:
+    get:
+      operationId: ADM-C01
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-C01`（依据：推断）"
+      x-aap-id: ADM-C01
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/CredentialDetail"
+        4XX:
+          description: 业务失败：E-1901
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/credentials/{id}/reveal:
+    post:
+      operationId: ADM-C02
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-C02`（依据：真源）"
+      x-aap-id: ADM-C02
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestCredentialReveal"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/RevealResult"
+        4XX:
+          description: 业务失败：E-1901,E-1902
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/quotes/{id}/compile:
+    post:
+      operationId: ADM-Q01
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-Q01`（依据：真源）"
+      x-aap-id: ADM-Q01
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/CompilationResult"
+        4XX:
+          description: 业务失败：E-1401,E-1402,E-1405
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/quotes/compare:
+    get:
+      operationId: ADM-Q02
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-Q02`（依据：推断）"
+      x-aap-id: ADM-Q02
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - BIZ_OPERATOR
+        - SUPER_ADMIN
+      parameters:
+        - name: quoteIds
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/QuoteCompare"
+  /admin/compilations:
+    get:
+      operationId: ADM-CP01
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CP01`（依据：真源）"
+      x-aap-id: ADM-CP01
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/CompilationResult"
+  /admin/compilations/{id}:
+    get:
+      operationId: ADM-CP02
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CP02`（依据：真源）"
+      x-aap-id: ADM-CP02
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/CompilationResult"
+        4XX:
+          description: 业务失败：E-1406
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/compilations/{id}/verify:
+    post:
+      operationId: ADM-CP03
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CP03`（依据：真源）"
+      x-aap-id: ADM-CP03
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/VerifyReport"
+        4XX:
+          description: 业务失败：E-1405
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/compilations/{id}/confirm:
+    post:
+      operationId: ADM-CP04
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CP04`（依据：真源）"
+      x-aap-id: ADM-CP04
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/CompilationResult"
+        4XX:
+          description: 业务失败：E-1405,E-1407
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/reviews:
+    get:
+      operationId: ADM-R01
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-R01`（依据：真源）"
+      x-aap-id: ADM-R01
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - BIZ_OPERATOR
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ReviewTask"
+  /admin/reviews/{id}/claim:
+    post:
+      operationId: ADM-R02
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-R02`（依据：真源）"
+      x-aap-id: ADM-R02
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - BIZ_OPERATOR
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ReviewTask"
+        4XX:
+          description: 业务失败：E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/reviews/{id}/approve:
+    post:
+      operationId: ADM-R03
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-R03`（依据：真源）"
+      x-aap-id: ADM-R03
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - BIZ_OPERATOR
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestReviewApprove"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ReviewTask"
+        4XX:
+          description: 业务失败：E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/reviews/{id}/reject:
+    post:
+      operationId: ADM-R04
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-R04`（依据：真源）"
+      x-aap-id: ADM-R04
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - BIZ_OPERATOR
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestReviewReject"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ReviewTask"
+        4XX:
+          description: 业务失败：E-1001,E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/reviews/records:
+    get:
+      operationId: ADM-R05
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-R05`（依据：推断）"
+      x-aap-id: ADM-R05
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - BIZ_OPERATOR
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: quoteId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ReviewRecord"
+  /admin/contracts:
+    get:
+      operationId: ADM-CT01
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CT01`（依据：真源）"
+      x-aap-id: ADM-CT01
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - BIZ_OPERATOR
+        - SUPER_ADMIN
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/Contract"
+  /admin/contracts/{id}/issue:
+    post:
+      operationId: ADM-CT02
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CT02`（依据：真源）"
+      x-aap-id: ADM-CT02
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - BIZ_OPERATOR
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestContractIssue"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/Contract"
+        4XX:
+          description: 业务失败：E-1001,E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/contracts/{id}/confirm-sign:
+    post:
+      operationId: ADM-CT03
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CT03`（依据：真源）"
+      x-aap-id: ADM-CT03
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - BIZ_OPERATOR
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/Contract"
+        4XX:
+          description: 业务失败：E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/payments:
+    get:
+      operationId: ADM-PAY01
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-PAY01`（依据：真源）"
+      x-aap-id: ADM-PAY01
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - BIZ_OPERATOR
+        - SUPER_ADMIN
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/Payment"
+  /admin/payments/{id}/confirm:
+    post:
+      operationId: ADM-PAY02
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-PAY02`（依据：真源）"
+      x-aap-id: ADM-PAY02
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - BIZ_OPERATOR
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/Payment"
+        4XX:
+          description: 业务失败：E-1601,E-1701
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/settlements:
+    get:
+      operationId: ADM-PAY03
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-PAY03`（依据：真源）"
+      x-aap-id: ADM-PAY03
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - BIZ_OPERATOR
+        - SUPER_ADMIN
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/SettlementStatement"
+  /admin/sync/tasks:
+    get:
+      operationId: ADM-S01
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-S01`（依据：真源）"
+      x-aap-id: ADM-S01
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: bindingId
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/SyncTask"
+  /admin/sync/tasks/{taskId}:
+    get:
+      operationId: ADM-S02
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-S02`（依据：真源）"
+      x-aap-id: ADM-S02
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/SyncTask"
+        4XX:
+          description: 业务失败：E-1501
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/sync/tasks/{taskId}/retry:
+    post:
+      operationId: ADM-S03
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-S03`（依据：真源）"
+      x-aap-id: ADM-S03
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/SyncTask"
+        4XX:
+          description: 业务失败：E-1501,E-1505
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/channel-bindings:
+    get:
+      operationId: ADM-S04
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-S04`（依据：推断）"
+      x-aap-id: ADM-S04
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ChannelBinding"
+  /admin/channel-bindings/{bindingId}/status:
+    post:
+      operationId: ADM-S05
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-S05`（依据：真源）"
+      x-aap-id: ADM-S05
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: bindingId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestBindingStatus"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ChannelBinding"
+        4XX:
+          description: 业务失败：E-1505
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/sync/models/upstream:
+    get:
+      operationId: ADM-S06
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-S06`（依据：真源）"
+      x-aap-id: ADM-S06
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ModelInfo"
+        4XX:
+          description: 业务失败：E-1505
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/usage/hourly:
+    get:
+      operationId: ADM-U01
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-U01`（依据：真源）"
+      x-aap-id: ADM-U01
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - BIZ_OPERATOR
+        - SUPER_ADMIN
+      parameters:
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: providerId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: channelId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: model
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/UsageHourlyBucket"
+        4XX:
+          description: 业务失败：E-1801
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/usage/refresh:
+    post:
+      operationId: ADM-U02
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-U02`（依据：真源）"
+      x-aap-id: ADM-U02
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestUsageRefresh"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/UsageRefreshResult"
+        4XX:
+          description: 业务失败：E-1801
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/detection-configs:
+    get:
+      operationId: ADM-CFG01
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CFG01`（依据：推断）"
+      x-aap-id: ADM-CFG01
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/DetectionConfig"
+    post:
+      operationId: ADM-CFG02
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CFG02`（依据：推断）"
+      x-aap-id: ADM-CFG02
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestDetectionConfigSave"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/DetectionConfig"
+        4XX:
+          description: 业务失败：E-1001
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/detection-configs/{configId}:
+    get:
+      operationId: ADM-CFG03
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CFG03`（依据：推断）"
+      x-aap-id: ADM-CFG03
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: configId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/DetectionConfig"
+        4XX:
+          description: 业务失败：E-1406
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      operationId: ADM-CFG04
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CFG04`（依据：推断）"
+      x-aap-id: ADM-CFG04
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: configId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestDetectionConfigSave"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/DetectionConfig"
+        4XX:
+          description: 业务失败：E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/detection-configs/{configId}/publish:
+    post:
+      operationId: ADM-CFG05
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CFG05`（依据：推断）"
+      x-aap-id: ADM-CFG05
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: configId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/DetectionConfig"
+        4XX:
+          description: 业务失败：E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/report-templates:
+    get:
+      operationId: ADM-CFG06
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CFG06`（依据：推断）"
+      x-aap-id: ADM-CFG06
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ReportTemplate"
+    post:
+      operationId: ADM-CFG07
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CFG07`（依据：推断）"
+      x-aap-id: ADM-CFG07
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestReportTemplateSave"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ReportTemplate"
+        4XX:
+          description: 业务失败：E-1001
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/report-templates/{templateId}:
+    get:
+      operationId: ADM-CFG08
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CFG08`（依据：推断）"
+      x-aap-id: ADM-CFG08
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ReportTemplate"
+        4XX:
+          description: 业务失败：E-1406
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      operationId: ADM-CFG09
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CFG09`（依据：推断）"
+      x-aap-id: ADM-CFG09
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestReportTemplateSave"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ReportTemplate"
+        4XX:
+          description: 业务失败：E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/report-templates/{templateId}/publish:
+    post:
+      operationId: ADM-CFG10
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CFG10`（依据：推断）"
+      x-aap-id: ADM-CFG10
+      x-aap-source: 推断
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ReportTemplate"
+        4XX:
+          description: 业务失败：E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/audit-logs:
+    get:
+      operationId: ADM-A01
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-A01`（依据：真源）"
+      x-aap-id: ADM-A01
+      x-aap-source: 真源
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: actorType
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: action
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: traceId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              list:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/AuditLog"
+        4XX:
+          description: 业务失败：E-1901
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    PageMeta:
+      $ref: ./json-schema/common/page.schema.json
+    ModelEntry:
+      $ref: ./json-schema/models/model-entry.schema.json
+    VendorGroup:
+      $ref: ./json-schema/models/vendor-group.schema.json
+    FileAsset:
+      $ref: ./json-schema/models/file-asset.schema.json
+    ProviderQualification:
+      $ref: ./json-schema/models/provider-qualification.schema.json
+    ProviderProfile:
+      $ref: ./json-schema/models/provider-profile.schema.json
+    CredentialDetail:
+      $ref: ./json-schema/models/credential-detail.schema.json
+    CredentialRow:
+      $ref: ./json-schema/models/credential-row.schema.json
+    CredentialPrecheck:
+      $ref: ./json-schema/models/credential-precheck.schema.json
+    DetectionJob:
+      $ref: ./json-schema/models/detection-job.schema.json
+    DetectionResult:
+      $ref: ./json-schema/models/detection-result.schema.json
+    ReportSummary:
+      $ref: ./json-schema/models/report-summary.schema.json
+    Report:
+      $ref: ./json-schema/models/report.schema.json
+    ReportExport:
+      $ref: ./json-schema/models/report-export.schema.json
+    PriceTimeRule:
+      $ref: ./json-schema/models/price-time-rule.schema.json
+    PriceTier:
+      $ref: ./json-schema/models/price-tier.schema.json
+    PriceTierRule:
+      $ref: ./json-schema/models/price-tier-rule.schema.json
+    RequestRule:
+      $ref: ./json-schema/models/request-rule.schema.json
+    QuoteItem:
+      $ref: ./json-schema/models/quote-item.schema.json
+    QuoteRow:
+      $ref: ./json-schema/models/quote-row.schema.json
+    QuoteDetail:
+      $ref: ./json-schema/models/quote-detail.schema.json
+    QuoteVersion:
+      $ref: ./json-schema/models/quote-version.schema.json
+    VerifyCase:
+      $ref: ./json-schema/models/verify-case.schema.json
+    VerifyReport:
+      $ref: ./json-schema/models/verify-report.schema.json
+    ModelExpression:
+      $ref: ./json-schema/models/model-expression.schema.json
+    CompilationResult:
+      $ref: ./json-schema/models/compilation-result.schema.json
+    QuoteCompare:
+      $ref: ./json-schema/models/quote-compare.schema.json
+    ReviewTask:
+      $ref: ./json-schema/models/review-task.schema.json
+    ReviewRecord:
+      $ref: ./json-schema/models/review-record.schema.json
+    Contract:
+      $ref: ./json-schema/models/contract.schema.json
+    Payment:
+      $ref: ./json-schema/models/payment.schema.json
+    SettlementStatement:
+      $ref: ./json-schema/models/settlement-statement.schema.json
+    Notification:
+      $ref: ./json-schema/models/notification.schema.json
+    NotificationRead:
+      $ref: ./json-schema/models/notification-read.schema.json
+    UsageModel:
+      $ref: ./json-schema/models/usage-model.schema.json
+    UsageDaily:
+      $ref: ./json-schema/models/usage-daily.schema.json
+    UsageCost:
+      $ref: ./json-schema/models/usage-cost.schema.json
+    UsageSummary:
+      $ref: ./json-schema/models/usage-summary.schema.json
+    UsageHourlyBucket:
+      $ref: ./json-schema/models/usage-hourly-bucket.schema.json
+    UsageRefreshResult:
+      $ref: ./json-schema/models/usage-refresh-result.schema.json
+    ChannelBinding:
+      $ref: ./json-schema/models/channel-binding.schema.json
+    SyncOperation:
+      $ref: ./json-schema/models/sync-operation.schema.json
+    SyncTask:
+      $ref: ./json-schema/models/sync-task.schema.json
+    ModelInfo:
+      $ref: ./json-schema/models/model-info.schema.json
+    DetectionConfigProbe:
+      $ref: ./json-schema/models/detection-config-probe.schema.json
+    DetectionConfig:
+      $ref: ./json-schema/models/detection-config.schema.json
+    ReportTemplate:
+      $ref: ./json-schema/models/report-template.schema.json
+    AuditLog:
+      $ref: ./json-schema/models/audit-log.schema.json
+    LoginResult:
+      $ref: ./json-schema/models/login-result.schema.json
+    MeResult:
+      $ref: ./json-schema/models/me-result.schema.json
+    SmsSendResult:
+      $ref: ./json-schema/models/sms-send-result.schema.json
+    QualificationCreated:
+      $ref: ./json-schema/models/qualification-created.schema.json
+    JobCreated:
+      $ref: ./json-schema/models/job-created.schema.json
+    PrecheckResult:
+      $ref: ./json-schema/models/precheck-result.schema.json
+    RevealResult:
+      $ref: ./json-schema/models/reveal-result.schema.json
+    RequestAuthSmsSend:
+      $ref: ./json-schema/requests/auth-sms-send.schema.json
+    RequestAuthSmsLogin:
+      $ref: ./json-schema/requests/auth-sms-login.schema.json
+    RequestAuthWechatLogin:
+      $ref: ./json-schema/requests/auth-wechat-login.schema.json
+    RequestAuthRefresh:
+      $ref: ./json-schema/requests/auth-refresh.schema.json
+    RequestProviderProfileUpdate:
+      $ref: ./json-schema/requests/provider-profile-update.schema.json
+    RequestQualificationCreate:
+      $ref: ./json-schema/requests/qualification-create.schema.json
+    RequestCredentialCreate:
+      $ref: ./json-schema/requests/credential-create.schema.json
+    RequestCredentialReveal:
+      $ref: ./json-schema/requests/credential-reveal.schema.json
+    RequestDetectionJobCreate:
+      $ref: ./json-schema/requests/detection-job-create.schema.json
+    RequestDetectionRelease:
+      $ref: ./json-schema/requests/detection-release.schema.json
+    RequestQuoteCreate:
+      $ref: ./json-schema/requests/quote-create.schema.json
+    RequestQuoteItemsCreate:
+      $ref: ./json-schema/requests/quote-items-create.schema.json
+    RequestQuoteItemSave:
+      $ref: ./json-schema/requests/quote-item-save.schema.json
+    RequestQuoteSubmit:
+      $ref: ./json-schema/requests/quote-submit.schema.json
+    RequestContractSign:
+      $ref: ./json-schema/requests/contract-sign.schema.json
+    RequestReviewReject:
+      $ref: ./json-schema/requests/review-reject.schema.json
+    RequestReviewApprove:
+      $ref: ./json-schema/requests/review-approve.schema.json
+    RequestContractIssue:
+      $ref: ./json-schema/requests/contract-issue.schema.json
+    RequestPaymentRecord:
+      $ref: ./json-schema/requests/payment-record.schema.json
+    RequestProviderSuspend:
+      $ref: ./json-schema/requests/provider-suspend.schema.json
+    RequestBindingStatus:
+      $ref: ./json-schema/requests/binding-status.schema.json
+    RequestUsageRefresh:
+      $ref: ./json-schema/requests/usage-refresh.schema.json
+    RequestDetectionConfigSave:
+      $ref: ./json-schema/requests/detection-config-save.schema.json
+    RequestReportTemplateSave:
+      $ref: ./json-schema/requests/report-template-save.schema.json
+    Envelope:
+      $ref: ./json-schema/common/envelope.schema.json
+    Error:
+      $ref: ./json-schema/common/error.schema.json
+    ProviderStatus:
+      type: string
+      enum:
+        - PENDING_CREDENTIAL
+        - DETECTING
+        - DETECT_FAILED
+        - DETECT_PASSED
+        - QUOTING
+        - QUOTE_SUBMITTED
+        - CONTRACT_PENDING
+        - SIGNED
+        - PAID
+        - PUBLISHED
+        - SUSPENDED
+        - TERMINATED
+    DetectionJobStatus:
+      type: string
+      enum:
+        - QUEUED
+        - RUNNING
+        - PARTIAL_DONE
+        - COMPLETED
+        - REPORT_GENERATED
+        - FAILED
+    ProbeStatus:
+      type: string
+      enum:
+        - SUCCESS
+        - FAILED
+        - SKIPPED
+        - NOT_MEASURABLE
+    CredentialStatus:
+      type: string
+      enum:
+        - PENDING_PRECHECK
+        - PRECHECK_PASSED
+        - PRECHECK_FAILED
+        - ACTIVE
+        - INVALID
+    CredentialDetectionStatus:
+      type: string
+      enum:
+        - PENDING
+        - RUNNING
+        - PASS
+        - FAIL
+    QuoteStatus:
+      type: string
+      enum:
+        - DRAFT
+        - SUBMITTED
+        - IN_REVIEW
+        - REJECTED
+        - APPROVED
+        - CONTRACT_CREATED
+        - CONVERTED
+        - VOID
+    ContractStatus:
+      type: string
+      enum:
+        - CREATED
+        - PENDING_SIGN
+        - SUPPLIER_SIGNED
+        - SIGNED
+        - ARCHIVED
+        - VOIDED
+    PaymentStatus:
+      type: string
+      enum:
+        - UNSETTLED
+        - PAYMENT_RECORDED
+        - CONFIRMED
+        - VOID
+    SyncStatus:
+      type: string
+      enum:
+        - NOT_SYNCED
+        - PENDING
+        - SYNCING
+        - SYNCED
+        - PARTIAL
+        - FAILED
+        - ENABLED
+        - DISABLED
+        - ROLLED_BACK
+    TriggerType:
+      type: string
+      enum:
+        - FIRST
+        - MANUAL
+        - SCHEDULED
+    Role:
+      type: string
+      enum:
+        - SUPPLIER
+        - PROVIDER
+        - BIZ_OPERATOR
+        - TECH_OPS
+        - SUPER_ADMIN
+    ReportResult:
+      type: string
+      enum:
+        - PASS
+        - FAIL
+        - MANUAL_REVIEW
+    Confidence:
+      type: string
+      enum:
+        - HIGH
+        - MEDIUM
+        - LOW
+    TierField:
+      type: string
+      enum:
+        - len
+    PriceStrategy:
+      type: string
+      enum:
+        - OVERRIDE
+        - MULTIPLY
+    WeekdayScope:
+      type: string
+      enum:
+        - ALL
+        - WEEKDAY
+        - WEEKEND
+    CacheParseStatus:
+      type: string
+      enum:
+        - OK
+        - NO_CACHE_FIELD
+    IndustryCategory:
+      type: string
+      enum:
+        - ORIGINAL
+        - RESELLER
+        - AGGREGATOR
+    QuoteRejectReason:
+      type: string
+      enum:
+        - PRICE_TOO_HIGH
+        - PRICE_STRUCTURE_INVALID
+        - CACHE_PRICE_MISSING
+        - TECH_RISK
+        - VALIDITY_ISSUE
+        - MISSING_INFO
+        - OTHER
+    AuditAction:
+      type: string
+      enum:
+        - CREDENTIAL_REVEAL
+        - QUOTE_APPROVE
+        - QUOTE_REJECT
+        - SYNC_WRITE_PRICE
+        - PROVIDER_SUSPEND
+        - CONTRACT_SIGN
+        - PAYMENT_CONFIRM
+        - DETECTION_RELEASE
+        - PROFILE_UPDATE
+        - AUTH_LOGIN
+        - CONFIG_PUBLISH
+        - SYNC_EXECUTE
+    ResultCode:
+      type: string
+      enum:
+        - 0
+        - E-1001
+        - E-1101
+        - E-1102
+        - E-1104
+        - E-1201
+        - E-1301
+        - E-1302
+        - E-1303
+        - E-1304
+        - E-1305
+        - E-1401
+        - E-1402
+        - E-1403
+        - E-1404
+        - E-1405
+        - E-1406
+        - E-1407
+        - E-1501
+        - E-1505
+        - E-1601
+        - E-1602
+        - E-1701
+        - E-1801
+        - E-1901
+        - E-1902
+        - E-1903
+        - E-2001

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  aap-server 日志配置（spec §2 指定 log4j2；dev SKILL §5 要求「控制台 + 文件双写」）。
+  文件落在项目根 logs/aap-server.log，按大小 + 日期滚动，保留 14 天。
+  MDC traceId 进 pattern：每条日志都能回溯到请求。
+-->
+<Configuration status="WARN">
+    <Properties>
+        <Property name="LOG_DIR">${env:LOG_DIR:-logs}</Property>
+        <Property name="PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] [%X{traceId}] %logger{36} - %msg%n</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${PATTERN}" charset="UTF-8"/>
+        </Console>
+
+        <RollingFile name="File" fileName="${LOG_DIR}/aap-server.log"
+                     filePattern="${LOG_DIR}/aap-server.%d{yyyy-MM-dd}.%i.log.gz">
+            <PatternLayout pattern="${PATTERN}" charset="UTF-8"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="50 MB"/>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+            <DefaultRolloverStrategy max="20">
+                <Delete basePath="${LOG_DIR}" maxDepth="1">
+                    <IfFileName glob="aap-server.*.log.gz"/>
+                    <IfLastModified age="14d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="com.hioas.aap" level="info" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="File"/>
+        </Logger>
+        <Logger name="org.springframework" level="info"/>
+        <Logger name="com.mybatisflex" level="info"/>
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="File"/>
+        </Root>
+    </Loggers>
+</Configuration>

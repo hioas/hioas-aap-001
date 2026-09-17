@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/auth-sms-send",
+  "title": "auth-sms-send",
+  "required": [
+    "phone",
+    "captcha"
+  ],
+  "properties": {
+    "phone": {
+      "type": "string",
+      "pattern": "^1[3-9]\\d{9}$"
+    },
+    "captcha": {
+      "type": "string"
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

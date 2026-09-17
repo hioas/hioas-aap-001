@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/review-reject",
+  "title": "review-reject",
+  "required": [
+    "reason_code"
+  ],
+  "properties": {
+    "reason_code": {
+      "type": "string",
+      "enum": [
+        "PRICE_TOO_HIGH",
+        "PRICE_STRUCTURE_INVALID",
+        "CACHE_PRICE_MISSING",
+        "TECH_RISK",
+        "VALIDITY_ISSUE",
+        "MISSING_INFO",
+        "OTHER"
+      ]
+    },
+    "reason_text": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 2,
+      "maxLength": 500
+    },
+    "item_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "field": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

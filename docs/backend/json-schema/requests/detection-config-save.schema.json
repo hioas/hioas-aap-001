@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/detection-config-save",
+  "title": "detection-config-save",
+  "required": [
+    "name"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "pass_score": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 100
+    },
+    "veto_rule": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "status": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "probes": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "../models/detection-config-probe.schema.json"
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

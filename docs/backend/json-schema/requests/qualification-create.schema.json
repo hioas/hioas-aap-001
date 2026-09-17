@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/qualification-create",
+  "title": "qualification-create",
+  "required": [
+    "category",
+    "file_name"
+  ],
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "BUSINESS_LICENSE",
+        "AUTHORIZATION",
+        "OTHER"
+      ]
+    },
+    "file_name": {
+      "type": "string",
+      "maxLength": 255
+    },
+    "file_size": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "maximum": 10485760
+    },
+    "content_type": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "file_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "company_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "uscc": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "contact_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "contact_phone": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "remark": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

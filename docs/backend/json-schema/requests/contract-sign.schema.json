@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/contract-sign",
+  "title": "contract-sign",
+  "properties": {
+    "sign_method": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "SMS",
+        "SEAL",
+        null
+      ]
+    },
+    "smsCode": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^\\d{6}$"
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

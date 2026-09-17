@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/compilation-result",
+  "title": "compilation-result",
+  "required": [
+    "compilation_id",
+    "gate_status"
+  ],
+  "properties": {
+    "compilation_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "quote_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "quote_version": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "provider_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "status": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "gate_status": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source_hash": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "compiler_version": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "publish_blocked": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "previous_expr": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "compiled": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "model-expression.schema.json"
+      }
+    },
+    "verify_report": {
+      "oneOf": [
+        {
+          "$ref": "verify-report.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "confirmed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "created_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

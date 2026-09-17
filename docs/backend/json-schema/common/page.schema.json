@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/page",
+  "title": "page",
+  "description": "分页响应包装：{list,page,pageSize,total}",
+  "required": [
+    "list",
+    "page",
+    "pageSize",
+    "total"
+  ],
+  "properties": {
+    "list": {
+      "type": "array"
+    },
+    "page": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "pageSize": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 200
+    },
+    "total": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

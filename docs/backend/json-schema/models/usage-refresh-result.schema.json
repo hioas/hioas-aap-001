@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/usage-refresh-result",
+  "title": "usage-refresh-result",
+  "required": [
+    "batch_id"
+  ],
+  "properties": {
+    "batch_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "inserted": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "updated": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "batch_total": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "cache_parse_status": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "from": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "to": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

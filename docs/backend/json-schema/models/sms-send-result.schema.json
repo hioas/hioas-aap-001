@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/sms-send-result",
+  "title": "sms-send-result",
+  "required": [
+    "ttl"
+  ],
+  "properties": {
+    "ttl": {
+      "type": "integer"
+    },
+    "expire_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/usage-hourly-bucket",
+  "title": "usage-hourly-bucket",
+  "required": [
+    "stat_hour"
+  ],
+  "properties": {
+    "stat_hour": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "channel_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "channel_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "provider_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "model_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "group_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "request_count": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "prompt_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "词元计数（bigint）"
+    },
+    "completion_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "词元计数（bigint）"
+    },
+    "total_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "词元计数（bigint）"
+    },
+    "cache_read_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "词元计数（bigint）"
+    },
+    "cache_write_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "词元计数（bigint）"
+    },
+    "cache_write_1h_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "词元计数（bigint）"
+    },
+    "image_input_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "词元计数（bigint）"
+    },
+    "audio_input_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "词元计数（bigint）"
+    },
+    "video_input_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "词元计数（bigint）"
+    },
+    "quota_raw": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "numeric(18,6)：USD 或 USD/1M tokens"
+    },
+    "cost_usd": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "numeric(18,6)：USD 或 USD/1M tokens"
+    },
+    "cache_parse_status": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "OK",
+        "NO_CACHE_FIELD",
+        null
+      ]
+    },
+    "source": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "tier_distribution": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "collected_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

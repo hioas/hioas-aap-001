@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/provider-profile",
+  "title": "provider-profile",
+  "required": [
+    "provider_id",
+    "status"
+  ],
+  "properties": {
+    "provider_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "provider_no": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "provider_code": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "short_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "short_code": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "company_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "companyName": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "uscc": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "unified_social_credit_code": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "industry_category": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "province": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "city": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "address": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "website": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "contact": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "phone_masked": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "email": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "contact_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "contact_phone": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "contact_phone_masked": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "contact_title": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "contact_email": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "company_intro": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "completeness": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "qualification_files": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "file-asset.schema.json"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING_CREDENTIAL",
+        "DETECTING",
+        "DETECT_FAILED",
+        "DETECT_PASSED",
+        "QUOTING",
+        "QUOTE_SUBMITTED",
+        "CONTRACT_PENDING",
+        "SIGNED",
+        "PAID",
+        "PUBLISHED",
+        "SUSPENDED",
+        "TERMINATED"
+      ]
+    },
+    "recheck_interval_days": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "manual_override": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "override_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "account": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "phone_masked": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "role": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "wx_bound": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "created_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "updated_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "version": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

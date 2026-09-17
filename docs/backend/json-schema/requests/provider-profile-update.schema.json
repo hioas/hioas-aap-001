@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/provider-profile-update",
+  "title": "provider-profile-update",
+  "properties": {
+    "short_name": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "company_name": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "uscc": {
+      "type": "string",
+      "pattern": "^[0-9A-Z]{18}$"
+    },
+    "industry_category": {
+      "type": "string",
+      "enum": [
+        "ORIGINAL",
+        "RESELLER",
+        "AGGREGATOR"
+      ]
+    },
+    "province": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "city": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "address": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "website": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "contact_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "contact_title": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "contact_phone": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^1[3-9]\\d{9}$"
+    },
+    "contact_email": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "company_intro": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "recheck_interval_days": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1,
+      "maximum": 365
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

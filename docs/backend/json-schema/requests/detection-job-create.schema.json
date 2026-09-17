@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/detection-job-create",
+  "title": "detection-job-create",
+  "required": [
+    "credential_id"
+  ],
+  "properties": {
+    "credential_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "trigger_type": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "FIRST",
+        "MANUAL",
+        "SCHEDULED",
+        null
+      ]
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

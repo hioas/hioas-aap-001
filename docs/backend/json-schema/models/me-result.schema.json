@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/me-result",
+  "title": "me-result",
+  "required": [
+    "role"
+  ],
+  "properties": {
+    "phone": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "phone_masked": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "masked": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "SUPPLIER",
+        "PROVIDER",
+        "BIZ_OPERATOR",
+        "TECH_OPS",
+        "SUPER_ADMIN"
+      ]
+    },
+    "providerId": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "provider_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "providerCode": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "provider_code": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "nickname": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "wechat_bound": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "sms_2fa": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "wechat_subscribed": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "login_security": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "subscribed": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  AAP 服务端（aap-server）
+
+  技术栈（.calicat/prd/17-零歧义执行规格spec.md §2）：
+    Java 25 · Spring Boot 4.1.1（BOM 管理）· PostgreSQL · MyBatis-Flex
+
+  偏差记录 D-BUILD-01（不得静默）：
+    spec §2 要求 `import com.hioas.framework:hioas-dependencies:1.0.0-SNAPSHOT`（type=pom, scope=import）
+    并由其管理 Spring Boot 4.1.1。实测该坐标在本机不可解析：
+      mvn dependency:get → 403 Forbidden (packages.aliyun.com/maven/repository/2290151-snapshot-*)
+    故本 POM 以 spring-boot-starter-parent 4.1.1 为 parent（本地仓库已有该版本），
+    其余第三方版本集中在 <properties> 管理，换取「拿到私服凭据后一行 import 即可切换」：
+      · 删除 <parent>，新增 <parent>hioas-parent</parent> + <dependencyManagement><import hioas-dependencies>
+      · 删除下面 <properties> 里的第三方版本号（BOM 接管）
+    此偏差已登记 docs/backend/00-设计总览.md §偏差 与 .agents/state/aap-server-feature-status.csv。
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.1</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.hioas.aap</groupId>
+    <artifactId>aap-server</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>aap-server</name>
+    <description>云算接入平台 · 服务端（供应商端 + 管理端 API）</description>
+
+    <properties>
+        <java.version>25</java.version>
+        <maven.compiler.release>25</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- 第三方版本（拿到 hioas-dependencies 私服凭据后由 BOM 接管，见文件头 D-BUILD-01） -->
+        <mybatis-flex.version>1.11.8</mybatis-flex.version>
+        <jjwt.version>0.12.6</jjwt.version>
+        <json-schema-validator.version>1.5.6</json-schema-validator.version>
+        <log4j2.version>2.25.2</log4j2.version>
+    </properties>
+
+    <dependencies>
+        <!-- Web / 校验 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- 日志：spec §2 指定 log4j2（控制台 + 文件双写，见 src/main/resources/log4j2-spring.xml） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
+        </dependency>
+
+        <!-- 安全 / JWT -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- 持久层：MyBatis-Flex（Spring Boot 4 starter）+ PostgreSQL + Flyway -->
+        <dependency>
+            <groupId>com.mybatis-flex</groupId>
+            <artifactId>mybatis-flex-spring-boot4-starter</artifactId>
+            <version>${mybatis-flex.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.mybatis-flex</groupId>
+            <artifactId>mybatis-flex-processor</artifactId>
+            <version>${mybatis-flex.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- 运维：健康检查 / 指标 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- 测试 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- 契约测试：用 docs/backend/json-schema/*.schema.json 校验真实响应体（接口模型驱动开发） -->
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>${json-schema-validator.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>aap-server</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- 测试输出留在 logs/ 与 target/surefire-reports/，便于取证 -->
+                    <useFile>true</useFile>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

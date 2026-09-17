@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/login-result",
+  "title": "login-result",
+  "required": [
+    "token",
+    "role"
+  ],
+  "properties": {
+    "token": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "refresh_token": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "refreshToken": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "SUPPLIER",
+        "PROVIDER",
+        "BIZ_OPERATOR",
+        "TECH_OPS",
+        "SUPER_ADMIN"
+      ]
+    },
+    "providerId": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "provider_id": {
+      "type": "string",
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失）"
+    },
+    "providerCode": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "provider_code": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "expires_in": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

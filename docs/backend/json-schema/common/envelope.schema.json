@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/envelope",
+  "title": "envelope",
+  "description": "统一响应包体（所有 /api/v1 接口）",
+  "required": [
+    "code",
+    "message"
+  ],
+  "properties": {
+    "code": {
+      "type": "string",
+      "enum": [
+        "0",
+        "E-1001",
+        "E-1101",
+        "E-1102",
+        "E-1104",
+        "E-1201",
+        "E-1301",
+        "E-1302",
+        "E-1303",
+        "E-1304",
+        "E-1305",
+        "E-1401",
+        "E-1402",
+        "E-1403",
+        "E-1404",
+        "E-1405",
+        "E-1406",
+        "E-1407",
+        "E-1501",
+        "E-1505",
+        "E-1601",
+        "E-1602",
+        "E-1701",
+        "E-1801",
+        "E-1901",
+        "E-1902",
+        "E-1903",
+        "E-2001"
+      ]
+    },
+    "message": {
+      "type": "string"
+    },
+    "data": {},
+    "traceId": {
+      "type": "string"
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

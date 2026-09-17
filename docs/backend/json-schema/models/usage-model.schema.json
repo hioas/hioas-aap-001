@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/usage-model",
+  "title": "usage-model",
+  "required": [
+    "model_name"
+  ],
+  "properties": {
+    "model_name": {
+      "type": "string"
+    },
+    "request_count": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "total_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "词元计数（bigint）"
+    },
+    "amount": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "numeric(18,6)：USD 或 USD/1M tokens"
+    },
+    "share": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "percent": {
+      "type": [
+        "number",
+        "null"
+      ]
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

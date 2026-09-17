@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hioas.com/aap/schema/price-tier-rule",
+  "title": "price-tier-rule",
+  "required": [
+    "tier_field",
+    "price_strategy",
+    "tiers"
+  ],
+  "properties": {
+    "tier_field": {
+      "type": "string",
+      "enum": [
+        "len"
+      ]
+    },
+    "price_strategy": {
+      "type": "string",
+      "enum": [
+        "OVERRIDE",
+        "MULTIPLY"
+      ]
+    },
+    "tiers": {
+      "type": "array",
+      "items": {
+        "$ref": "price-tier.schema.json"
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}
