@@ -36,9 +36,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class QuoteController {
 
     private final QuoteService quoteService;
+    /** QT-12 编译预览：只读编译，不落库。 */
+    private final com.hioas.aap.compile.CompilationService compilationService;
 
-    public QuoteController(QuoteService quoteService) {
+    public QuoteController(QuoteService quoteService, com.hioas.aap.compile.CompilationService compilationService) {
         this.quoteService = quoteService;
+        this.compilationService = compilationService;
     }
 
     // ------------------------------------------------------------------ 请求体
@@ -207,6 +210,17 @@ public class QuoteController {
                                                                 @RequestParam(required = false) Integer page,
                                                                 @RequestParam(required = false) Integer pageSize) {
         return ApiEnvelope.ok(quoteService.versions(principal, quoteId, page, pageSize));
+    }
+
+    // ------------------------------------------------------------------ QT-12
+
+    /** QT-12 编译预览（只算不落库：供应商自检「我填的价会变成什么表达式」）。 */
+    @PostMapping("/{quoteId}/compile-preview")
+    @PreAuthorize("hasAnyRole('SUPPLIER','PROVIDER')")
+    public ApiEnvelope<com.hioas.aap.compile.CompilationViews.Result> compilePreview(
+            @AuthenticationPrincipal AuthPrincipal principal, @PathVariable Long quoteId) {
+        return ApiEnvelope.ok(compilationService.preview(principal, quoteId,
+                principal != null && principal.isAdmin()));
     }
 
     // ------------------------------------------------------------------ 映射

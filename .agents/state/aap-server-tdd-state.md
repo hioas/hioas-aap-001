@@ -190,13 +190,39 @@
   `QuoteController`（QT-01…11）、8 张表实体与 Mapper、`QuoteViews`（quote-row/detail/item/version、
   price-time-rule/price-tier-rule/request-rule 契约对齐）
 
+### R09 · T09 计费编译（QT-12、ADM-Q01、ADM-CP01…04 / 三道闸门 R-33、幂等 R-34）—— ✅ 完成
+
+- 红→绿（纯函数层）：`evidence/T09-run1.txt`（8 例中 3 红：NPE + 档位命名 + 档位缓存价）
+  → `T09-run2.txt`（1 红：缓存价口径）→ `evidence/green-T09-unit.txt`（8/8）
+- 绿：`evidence/T09-run3.txt`（HTTP 7/7）、`evidence/green-T09-full.txt`（**120/120**）
+- ⚠️ **如实记录（第二次出现，必须纠正）**：T09 的 HTTP 契约测试是**实现先行**写的，一次通过、没有红基线。
+  红线纪律只在纯函数层成立。**从 T10 起强制「先写测试并落盘红基线，再写实现」**，包括 controller 层。
+- 本轮最有价值的一次失败：**档位缓存价口径**
+  - 现象：同一份报价，`BillingExpr` 求值 15250、独立期望计算 15487.5，模拟验证用例 V3b 红。
+  - 根因：阶梯档位若没给 `cache_read_price`，编译器把 `cr` 项整个丢掉 → 缓存命中 token **一分钱不计**（上游白送）；
+    PRD 06 §3 R2 的示例文本恰好也省了 cr 项，照字面实现就会踩进去。
+  - 处置：**改实现**（档内缺价则回落明细行缓存价，记偏差 **D-COMPILE-01**），没有去改测试期望。
+  - 这正是「编译器 AST 求值 vs 独立朴素计算」双路比对的价值：如果两边共用一段代码，这个洞会一直藏到对账日。
+- 其它结论
+  1. **档位命名是契约的一部分**：`compact()` 最初把 1024000 渲染成 `1024K`，PRD 示例是 `1M`（`t1_512K_1M`）。
+     档位名会进对账账单，命名漂移等于对账口径漂移 → 已按 PRD 对齐，并用单测钉死三种形态。
+  2. **期望值入口必须 null 安全**：无时段规则时 `timeMultiplier(null, …)` 直接 NPE（单测抓到）。
+  3. **编译前边界检测复用 `QuoteValidation`**：提交校验与编译校验共用一套 V 规则，避免「前端能提交、后端不编译」的口径分叉。
+  4. **幂等要可断言**：`source_hash` 未变 → 复用同一 `compilation_id`；内容变更 → 新产物 + `previous_expr` 旧快照。
+     两条都在集成测试里直接断言（只写日志不算验证）。
+  5. **管理端 token 必须在 `aap_auth_token` 落 jti**（沿用 T06 的 techOps 夹具），否则 JWT 校验直接 401。
+- 交付：`BillingExpr`（AST 同时负责 render + eval）、`BillingCompiler`（R1–R6 + source_hash + 档位命名）、
+  `BillingVerifier`（V1–V7 用例 + **独立期望计算** + 容差比较）、`CompileInputLoader`、
+  `CompilationService`（三道闸门/幂等/旧快照/审计/边界检测）、`CompilationController` + `QT-12` 预览、
+  4 张表实体与 Mapper
+
 ---
 
 ## 未决与下一步
 
-- 下一轮：**R09 · T09 计费编译**（QT-12 compile-preview、ADM-Q01、ADM-CP01…04；R-33 三闸门 + R-34 幂等
-  source_hash + R-35 写前对比写后回读 + E-1405 表达式模拟校验）。
-- 剩余任务：T09 计费编译、T10 审核、T11 合同/打款/结算、T12 用量、T13 站内信/审计/配置、
+- 下一轮：**R10 · T10 审核**（ADM-R01…05，AC-32…35）——领取（乐观锁 E1）、通过（A9 自动生成合同）、
+  驳回（必填原因码定位到 item_id/字段）、审核记录。**本轮起强制先红后绿，含 controller 层。**
+- 剩余任务：T10 审核、T11 合同/打款/结算、T12 用量、T13 站内信/审计/配置、
   T14 同步与配置、T15 端到端联调与容器化交付（`docs/backend/03-任务与TDD计划.md` §1 为完整清单）。
 - **待前端处理（O-01）**：`aap-client/src/utils/report-model.ts:51` 兜底免责声明含 R-26 禁用字样，建议改为与
   服务端 `ReportService.DISCLAIMER` 同文案。

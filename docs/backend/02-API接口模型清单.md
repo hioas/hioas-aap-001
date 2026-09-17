@@ -162,7 +162,7 @@
 
 | ID | 方法 | 路径 | 角色 | 请求/响应 | 错误码 | 状态 |
 |---|---|---|---|---|---|---|
-| ADM-Q01 | POST | `/admin/quotes/{id}/compile` | TECH_OPS SUPER_ADMIN | → `CompilationResult` | E-1401~E-1405 | T09 |
+| ADM-Q01 | POST | `/admin/quotes/{id}/compile` | TECH_OPS SUPER_ADMIN | → `CompilationResult` | E-1401~E-1405 E-1601(未审核通过) | T09 |
 | ADM-Q02 | GET | `/admin/quotes/compare` | BIZ_OPERATOR | q：`quoteIds`(逗号) → `{items:[QuoteCompare]}`（旧值/新值/涨跌幅 A8） | | T14 |
 | ADM-CP01 | GET | `/admin/compilations` | TECH_OPS | q：`page` `pageSize` `status?` → 分页 | | T09 |
 | ADM-CP02 | GET | `/admin/compilations/{id}` | TECH_OPS | → `CompilationResult`（含 `compiled[]` `verify_report`） | E-1406 | T09 |
@@ -291,6 +291,7 @@
 | CacheParseStatus | `OK` `NO_CACHE_FIELD` | 11-PRD §4 |
 
 ## 6. 变更记录
+| 2026-09-18 | `ADM-Q01` 增补 `E-1601`（报价单未审核通过不得编译）；`QT-12` 明确为**只算不落库**的预览 | 资金风险控制（偏差 D-COMPILE-02）；客户端 `quote.ts` 未接线 compile-preview，此处按 18-API 路径补齐 | 
 | 日期 | 变更 | 依据 |
 | --- | --- | --- |
 | 2026-09-18 | `QT-03/06/07/08` 错误码勘误：资源不存在由 `E-1401` 改为 **`E-1406`(404)**；`E-1401` 严格保留给「时段区间重叠/时段非法」（HTTP 400）；`QT-08` 增补 `E-1404`（阶梯首档/末档）与 `E-1104`（If-Match 失配） | 实现期发现同一错误码承载两种 HTTP 语义会误导前端（偏差 D-API-02）；10-PRD §5.1 V11–V14 | | 2026-09-18 | 审计动作枚举新增 `QUOTE_CREATE/QUOTE_SAVE/QUOTE_SUBMIT/QUOTE_WITHDRAW/QUOTE_VOID`（12→17） | 10-PRD §7 埋点 quote_created/saved/submitted/withdrawn | 
