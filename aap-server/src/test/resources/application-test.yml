@@ -12,6 +12,8 @@ app:
     secret: ${AAP_JWT_SECRET}
   credential:
     aes-key: ${AAP_CREDENTIAL_AES_KEY}
+    # 本地端到端联调/测试：允许 127.0.0.1 的上游桩（**不放行私网/链路本地/元数据地址**，AC-29 仍可验证）
+    allow-loopback: true
   sms:
     # 测试环境把验证码放进响应体（dev_code），生产必须 false（application.yml 默认 false）
     expose-code: true

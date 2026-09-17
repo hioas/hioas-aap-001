@@ -91,6 +91,23 @@ public class GlobalExceptionHandler {
                 .body(ApiEnvelope.fail(ErrorCode.E_1406, "请求方法不被支持：" + ex.getMethod()));
     }
 
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ApiEnvelope<Void>> handleAccessDenied(
+            org.springframework.security.access.AccessDeniedException ex) {
+        // 方法级授权（@PreAuthorize）失败由 MVC 抛出并落到本处理器，
+        // 不经安全链的 accessDeniedHandler —— 两条路都要给出统一的 403 E-1901 包体。
+        log.warn("权限不足: {}", ex.getMessage());
+        return ResponseEntity.status(ErrorCode.E_1901.httpStatus())
+                .body(ApiEnvelope.fail(ErrorCode.E_1901, "权限不足"));
+    }
+
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public ResponseEntity<ApiEnvelope<Void>> handleAuthentication(
+            org.springframework.security.core.AuthenticationException ex) {
+        return ResponseEntity.status(ErrorCode.E_1902.httpStatus())
+                .body(ApiEnvelope.fail(ErrorCode.E_1902, "未认证或登录已过期"));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiEnvelope<Void>> handleUnexpected(Exception ex) {
         // 根因只进日志/告警，不出接口（不泄漏堆栈、SQL、密钥）

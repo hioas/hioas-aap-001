@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class CredentialContractTest extends ApiTestBase {
 
     private static final String PHONE = "13800000010";
+    private static final String ADMIN_PHONE = "13900000009";
     private static final String RAW_KEY = "sk-test-abcdefghijklmnopqrstuvwxyz1234567890";
 
     @Autowired
@@ -80,13 +81,15 @@ class CredentialContractTest extends ApiTestBase {
     }
 
     /** 造一个超管令牌（管理端登录接口属 T14 范围，此处直接签发 + 落 jti 记录）。 */
-    private String superAdminToken() {
+    private String superAdminToken() throws Exception {
         Long accountId = 900001L;
         jdbc.update("delete from aap_admin_user where id = ?", accountId);
         jdbc.update("""
-                insert into aap_admin_user (id, username, password_hash, display_name, role, status)
-                values (?, 'superadmin', 'x', '超管', 'SUPER_ADMIN', 'ACTIVE')
-                """, accountId);
+                insert into aap_admin_user (id, username, password_hash, display_name, role, status,
+                                            phone_hash, phone_masked)
+                values (?, 'superadmin', 'x', '超管', 'SUPER_ADMIN', 'ACTIVE', ?, '139****0009')
+                on conflict (id) do update set phone_hash = excluded.phone_hash
+                """, accountId, sha256(ADMIN_PHONE));
         var issued = jwtService.issueAccessToken(accountId, "SUPER_ADMIN", "ADMIN", null);
         AuthTokenEntity record = new AuthTokenEntity();
         record.setAccountId(accountId);
@@ -162,7 +165,7 @@ class CredentialContractTest extends ApiTestBase {
         String token = token();
         String[] blocked = {
                 "http://169.254.169.254/v1", "http://10.0.0.1/v1", "http://192.168.1.10/v1",
-                "http://172.16.5.5/v1", "http://[::1]/v1", "ftp://api.example.com/v1",
+                "http://172.16.5.5/v1", "http://100.64.0.1/v1", "ftp://api.example.com/v1",
         };
         for (String url : blocked) {
             HttpResult res = createCredential(token, url, "sk-ssrf-" + url.hashCode() + "-key", false);
@@ -256,7 +259,7 @@ class CredentialContractTest extends ApiTestBase {
 
     @Test
     @DisplayName("CRED-04 轮换 api_key：指纹与掩码更新；旧明文不再可解出（密文被覆盖）")
-    void rotateApiKey() {
+    void rotateApiKey() throws Exception {
         String token = token();
         String credentialId = createCredential(token, "https://api.example.com/v1", RAW_KEY, true)
                 .data().path("id").asText();
@@ -288,7 +291,7 @@ class CredentialContractTest extends ApiTestBase {
 
     @Test
     @DisplayName("AC-30/48 明文访问：仅超管 + 短信二次验证可 reveal，返回明文一次并写 SENSITIVE 审计")
-    void revealRequiresSuperAdminAndAudits() {
+    void revealRequiresSuperAdminAndAudits() throws Exception {
         String providerToken = token();
         String credentialId = createCredential(providerToken, "https://api.example.com/v1", RAW_KEY, true)
                 .data().path("id").asText();
@@ -303,8 +306,8 @@ class CredentialContractTest extends ApiTestBase {
         // 超管 + 二次验证短信码
         String admin = superAdminToken();
         HttpResult send = post("/auth/sms/send", """
-                {"phone":"13900000009","captcha":"AB12"}
-                """);
+                {"phone":"%s","captcha":"AB12"}
+                """.formatted(ADMIN_PHONE));
         String code = send.data().path("dev_code").asText();
         HttpResult revealed = post("/credentials/" + credentialId + "/reveal", """
                 {"smsCode":"%s"}

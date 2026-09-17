@@ -35,8 +35,11 @@ public final class SchemaAssert {
             throw new IllegalStateException("契约模型缺失: " + file.toAbsolutePath());
         }
         JsonSchema schema;
-        try (var in = Files.newInputStream(file)) {
-            schema = FACTORY.getSchema(in);
+        try {
+            // ★ 必须用**文件 URI**装载：模型之间用相对 $ref（如 "model-entry.schema.json"），
+            //   只有拿到文档的绝对基准 URI 才能解析；用 InputStream 装载会报
+            //   "URI is not absolute"（实测）。
+            schema = FACTORY.getSchema(file.toAbsolutePath().normalize().toUri());
         } catch (Exception e) {
             throw new IllegalStateException("契约模型读取失败: " + file, e);
         }

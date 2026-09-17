@@ -606,8 +606,11 @@ def write_json(path: str, obj) -> None:
 
 
 def schema_file(name: str, body: dict) -> dict:
+    # 注意：**不写 $id**。若给 $id 赋 https:// 绝对 URI，模型之间的相对 $ref
+    # （如 "model-entry.schema.json"）会被解析成绝对地址去联网拉取，
+    # 契约测试直接报 "Failed to load json schema from https://..."。
+    # 不写 $id 时基准 URI 就是文件自身位置，相对引用在同目录内正确解析。
     out = {"$schema": "https://json-schema.org/draft/2020-12/schema",
-           "$id": f"https://hioas.com/aap/schema/{name}",
            "title": name}
     out.update(body)
     out.setdefault("type", "object")

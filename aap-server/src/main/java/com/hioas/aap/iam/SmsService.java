@@ -87,7 +87,11 @@ public class SmsService {
      * 若与登录同事务，异常回滚会把计数与锁定一起抹掉，AC-04 永不生效。
      */
     public void verify(String phone, String code) {
-        String phoneHash = crypto.sha256Hex(phone);
+        verifyByPhoneHash(crypto.sha256Hex(phone), code);
+    }
+
+    /** 按手机号哈希校验（凭证明文读取等场景只有 hash，拿不到明文手机号）。 */
+    public void verifyByPhoneHash(String phoneHash, String code) {
         OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
 
         SmsCodeEntity record = latestUsable(phoneHash, now)

@@ -83,10 +83,32 @@
 - 规则落地：uscc 全局唯一（E-1104）、手机号密文+hash+mask（R-48）、`manual_override` 必填理由（R-47a）、
   `If-Match` 过期写拒绝（E-1601）、资质扩展名白名单 + ≤10MB、完整度服务端唯一口径
 
+### R05 · T05 测试凭证（CRED-01…07 / AC-07…13、AC-29/30/48）—— ✅ 完成
+
+- 红：`evidence/T05-run1.txt`（编译失败）→ `T05-run2..4.txt`（逐轮修正 4 类缺陷）
+- 绿：`evidence/green-T05.txt`（`Tests run: 61, Failures: 0`）
+- 关键结论
+  1. **JSON Schema 外部 $ref 的两种坏法**（契约测试踩全了）：
+     给模型写 `$id: https://...` → 相对 `$ref` 被解析成绝对地址去联网拉取（`Failed to load json schema from https://`）；
+     用 InputStream 装载 → `URI is not absolute`。正解：**不写 $id** + 用**文件 URI** 装载（`getSchema(file.toUri())`）。
+  2. **`@PreAuthorize` 失败不会走安全链的 accessDeniedHandler**：它由 MVC 抛出，
+     会被 `@ExceptionHandler(Exception.class)` 吞成 500 E-2001。必须显式处理
+     `AccessDeniedException`（403 E-1901）与 `AuthenticationException`（401 E-1902）。
+  3. **IPv6 字面量**：`URI.getHost()` 返回带方括号的 `[::1]`，直接丢给 `InetAddress.getAllByName` 会解析失败，
+     被「解析不了就放行」的兜底策略误放行。必须先剥方括号。
+  4. 环回地址的拒绝无法在 HTTP 用例里验证（测试 profile 为跑本地上游桩开了 `allow-loopback`）→
+     单独用 `OutboundUrlGuardTest` 在**生产配置**下断言环回被拒（AC-29 全覆盖），HTTP 用例覆盖其余网段。
+  5. 预检失败/成功都要落库 → 复用 T03 的教训：拆 `CredentialPrecheckRecorder`（REQUIRES_NEW），
+     失败先落库再抛 E-1101，成功则「凭证 ACTIVE + 任务入队」同事务。
+- 交付：`CredentialEntity/PrecheckEntity` + Mapper、`CredentialService/Controller/Views`、
+  `OutboundUrlGuard`（SSRF）、`UpstreamProbe`（401/403 不重试、5xx/网络错误 ≤2 次）、
+  `CredentialPrecheckRecorder`、`DetectionJobEntity`（C2 载体）、`AdminUserEntity`、`V3__admin_phone.sql`、
+  `GlobalExceptionHandler` 补安全异常分支、`SchemaAssert` 修正装载方式
+
 ---
 
 ## 未决与下一步
 
-- 下一轮：**R05 · T05 测试凭证**（CRED-01…07，AC-07…13、AC-29/30/48）——AES-256-GCM 落库、指纹唯一、
-  `sk-****abcd` 脱敏、base_url 规范化、SSRF 出站防护、预检、明文 reveal（仅超管 + 二次验证 + 审计）。
+- 下一轮：**R06 · T06 检测引擎接入**（DET-01…06，AC-13…17/19/20/47）——任务状态机、日配额、
+  D1–D8 打分纯函数 + 权重归一化 + 四分支判定 + D7 一票否决、`detection_status` 派生回写。
 - 待办（跨轮）：`aap-server/README.md` 运行说明；T15 时把 `aap-client` 的 `baseUrl` 指向本服务做联调截图。

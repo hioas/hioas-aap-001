@@ -59,6 +59,8 @@ app:
   credential:
     # 凭证加密密钥（AES-256-GCM，32 字节 base64；与库分离，R-06）
     aes-key: ${AAP_CREDENTIAL_AES_KEY}
+    # 出站地址防护（SSRF，R-07）：默认不放行环回地址；仅本地联调/测试可临时开启
+    allow-loopback: ${AAP_ALLOW_LOOPBACK:false}
   sms:
     ttl-seconds: 300
     resend-interval-seconds: 60
