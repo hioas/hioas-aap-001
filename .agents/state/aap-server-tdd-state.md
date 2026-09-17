@@ -161,13 +161,42 @@
 **证据**：`.agents/state/evidence/T01-run2-concurrent-dirty.txt`、`T03-run2-concurrent-dirty.txt`
 （保留原始内容不改，只改文件名，避免抹掉失败记录）。
 
+### R08 · T08 报价（QT-01…11 / AC-22…27、AC-50）—— ✅ 完成
+
+- 红：`evidence/red-T08.txt`（HTTP 契约 7 例全红：接口不存在 → 404/E-2001）→ 3 轮修正
+  → 绿：`evidence/green-T08.txt`（15 例）与全量 `evidence/green-T08-full.txt`（`Tests run: 105, Failures: 0`）
+- **如实记录**：V 规则纯函数 `QuoteValidation`（V1–V17）是先写实现、后补 `QuoteValidationTest`（8 例，一次通过）。
+  本轮的红线纪律落在**HTTP 契约层**（先红后绿）；纯函数层属回归护栏补齐，不做粉饰。
+- 本轮踩坑（都是会带到后续任务的坑）
+  1. **MyBatis-Flex 驼峰转换在「字母+数字结尾」字段上出错**：`cacheWrite1hPrice` 被转成 `cache_write1h_price`，
+     实际列名是 `cache_write_1h_price` → 运行期 `PSQLException: column ... does not exist`（表现为 500 E-2001）。
+     修法：显式 `@Column("cache_write_1h_price")`。**规则：列名含数字/缩写混排的一律显式标注列名，不靠约定转换。**
+  2. 测试自身会触发业务规则：同一供应商下 api_key 指纹唯一（R-03），同一用例里建两个凭证若用同一个假 key →
+     直接 409 E-1104。改为按序生成 key（`sk-quote-test-%08d`）。**测试夹具也要遵守业务不变量。**
+  3. **错误码优先级必须显式定义**：规则族（E-1401 时段 / E-1402 阶梯 / E-1403 倍率 / E-1404 收口）与前置条件
+     （E-1602 V17）必须**先于**通用 E-1001 判定；否则前端拿到 E-1001 无法定位到「哪条规则、哪个字段」。
+     优先级已固化：`V17 → E-1602` > `规则族 → E-1401/1402/1403/1404` > `其余 → E-1001`。
+  4. **一个错误码不能承载两种 HTTP 语义**：`E-1401` 原本既表示「时段重叠(400)」又表示「资源不存在」，
+     导致 404 场景返回 400。改「资源不存在 → E-1406(404)」，记偏差 **D-API-02**，并回写清单 §2.2。
+  5. **作废 ≠ 软删除**：`VOID` 保留记录（可按 `status=VOID` 审计查询，不复用 `deleted` 位），
+     `deleted=true` 会让「作废后仍可追溯」失效；取舍记 **D-QUOTE-01**。
+  6. **审计动作枚举扩展要先改生成器**：`AuditAction` 12→17（新增 5 个报价动作，10-PRD §7 埋点），
+     改 `tools/gen-backend-models.py` 的 `ENUMS["AuditAction"]` → 重新生成 schema → 再改 Java 枚举，
+     否则 schema enum 与代码枚举漂移（`AppEnvelopeTest` 那类守护断言会挂）。
+  7. V15 的边界：**只有 `request_rules` 是管理端专属**，阶梯规则（`price_tier_rule`）属于报价定价本身，
+     供应商可写 —— 一刀切限制会把「模型定价」页的正常保存挡掉。
+- 交付：`QuoteValidation`（V1–V17 纯函数，一次收集全部错误 + 告警分档）、
+  `QuoteService`（状态机 DRAFT/SUBMITTED/VOID + 前置校验 + 版本快照 + 审计 + 乐观锁）、
+  `QuoteController`（QT-01…11）、8 张表实体与 Mapper、`QuoteViews`（quote-row/detail/item/version、
+  price-time-rule/price-tier-rule/request-rule 契约对齐）
+
 ---
 
 ## 未决与下一步
 
-- 下一轮：**R08 · T08 报价**（QT-01…13，AC-22…27、AC-50）——模型表达式校验、三档阶梯价与时段价、
-  编译前校验与「编译」触发、报价对比、失效规则。
-- 剩余任务：T08 报价、T09 计费编译、T10 审核、T11 合同/打款、T12 用量、T13 站内信/审计/配置、
+- 下一轮：**R09 · T09 计费编译**（QT-12 compile-preview、ADM-Q01、ADM-CP01…04；R-33 三闸门 + R-34 幂等
+  source_hash + R-35 写前对比写后回读 + E-1405 表达式模拟校验）。
+- 剩余任务：T09 计费编译、T10 审核、T11 合同/打款/结算、T12 用量、T13 站内信/审计/配置、
   T14 同步与配置、T15 端到端联调与容器化交付（`docs/backend/03-任务与TDD计划.md` §1 为完整清单）。
 - **待前端处理（O-01）**：`aap-client/src/utils/report-model.ts:51` 兜底免责声明含 R-26 禁用字样，建议改为与
   服务端 `ReportService.DISCLAIMER` 同文案。

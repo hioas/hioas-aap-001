@@ -111,12 +111,12 @@
 |---|---|---|---|---|---|---|---|---|---|
 | QT-01 | GET | `/quotes` | ✅ | q：`page` `pageSize` `status`(逗号分隔多值) | `{items:[QuoteRow],page,pageSize,total}` | | | 真源 | T08 |
 | QT-02 | POST | `/quotes` | ✅ | body：`name` `provider_id` `credential_id` `remark` `valid_from` `valid_to` `currency` | `Quote{build:quote_id,quote_no,status,items[]}` | E-1602 E-1001 | `Idempotency-Key` | 真源 | T08 |
-| QT-03 | GET | `/quotes/{quoteId}` | ✅ | — | `QuoteDetail`（报价单 + `items[]` + 可含规则） | E-1401 | | 真源 | T08 |
+| QT-03 | GET | `/quotes/{quoteId}` | ✅ | — | `QuoteDetail`（报价单 + `items[]` + 可含规则） | E-1406 | | 真源 | T08 |
 | QT-04 | DELETE | `/quotes/{quoteId}` | ✅ | — | `null` | E-1601 | | 真源（PRD 口径为「作废 VOID」，已记台账冲突） | T08 |
 | QT-05 | POST | `/quotes/{quoteId}/items` | ✅ | body `{items:[{model_name,model_alias?}]}` | `{items:[QuoteItem]}` | E-1001 E-1401 | `Idempotency-Key` | 真源 | T08 |
-| QT-06 | GET | `/quotes/{quoteId}/items` | ✅ | — | `{items:[QuoteItem],total}` | E-1401 | | 真源 | T08 |
-| QT-07 | GET | `/quotes/items/{itemId}` | ✅ | — | `QuoteItem`（含 `time_rule`/`tier_rule`/`request_rules`） | E-1401 | | 真源 | T08 |
-| QT-08 | PUT | `/quotes/items/{itemId}` | ✅ | body：八大单价 + `price_time_rule?` + `price_tier_rule?` + `request_rules?` + `note` | `QuoteItem` | E-1001 E-1401 E-1402 E-1403 | `If-Match` | 真源 | T08 |
+| QT-06 | GET | `/quotes/{quoteId}/items` | ✅ | — | `{items:[QuoteItem],total}` | E-1406 | | 真源 | T08 |
+| QT-07 | GET | `/quotes/items/{itemId}` | ✅ | — | `QuoteItem`（含 `time_rule`/`tier_rule`/`request_rules`） | E-1406 | | 真源 | T08 |
+| QT-08 | PUT | `/quotes/items/{itemId}` | ✅ | body：八大单价 + `price_time_rule?` + `price_tier_rule?` + `request_rules?` + `note` | `QuoteItem`（含 `warnings[]`） | E-1001 E-1401 E-1402 E-1403 E-1404 E-1104(If-Match 失配) | `If-Match` | 真源（E-1104 为推断） | T08 |
 | QT-09 | POST | `/quotes/{quoteId}/submit` | ✅ | —（无请求体） | `QuoteDetail` | E-1001 E-1401 E-1402 E-1601 E-1602 | `Idempotency-Key` | 真源 | T08 |
 | QT-10 | POST | `/quotes/{quoteId}/withdraw` | ✅ | — | `QuoteDetail` | E-1601 | | 真源 | T08 |
 | QT-11 | GET | `/quotes/{quoteId}/versions` | ✅ | `page/pageSize` | `{items:[QuoteVersion],total}` | E-1401 | | 推断 | T08 |
@@ -291,6 +291,9 @@
 | CacheParseStatus | `OK` `NO_CACHE_FIELD` | 11-PRD §4 |
 
 ## 6. 变更记录
+| 日期 | 变更 | 依据 |
+| --- | --- | --- |
+| 2026-09-18 | `QT-03/06/07/08` 错误码勘误：资源不存在由 `E-1401` 改为 **`E-1406`(404)**；`E-1401` 严格保留给「时段区间重叠/时段非法」（HTTP 400）；`QT-08` 增补 `E-1404`（阶梯首档/末档）与 `E-1104`（If-Match 失配） | 实现期发现同一错误码承载两种 HTTP 语义会误导前端（偏差 D-API-02）；10-PRD §5.1 V11–V14 | | 2026-09-18 | 审计动作枚举新增 `QUOTE_CREATE/QUOTE_SAVE/QUOTE_SUBMIT/QUOTE_WITHDRAW/QUOTE_VOID`（12→17） | 10-PRD §7 埋点 quote_created/saved/submitted/withdrawn | 
 
 - 2026-09-17 v1.0 首版：从 `18-API设计OpenAPI.md` + `aap-client` 调用点反推，冻结 90 条端点 ID
   （供应商端 49 = 客户端已消费 30 条 + 补齐 `CRED-02/06/07`、`DET-01/04/05/06`、`QT-02/05/07/11/12`、`CON-01`、`PAY-01`、`NTF-01/02`、`AUTH-04/05`；管理端 41）。

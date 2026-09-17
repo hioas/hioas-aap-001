@@ -111,6 +111,12 @@ public abstract class ApiTestBase {
     }
 
     protected HttpResult send(String method, String path, String bodyJson, String token) {
+        return send(method, path, bodyJson, token, java.util.Map.of());
+    }
+
+    /** 带自定义请求头（如 {@code If-Match}、{@code Idempotency-Key}）。 */
+    protected HttpResult send(String method, String path, String bodyJson, String token,
+                              java.util.Map<String, String> headers) {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl() + "/api/v1" + path))
                 .timeout(Duration.ofSeconds(30))
@@ -118,6 +124,7 @@ public abstract class ApiTestBase {
         if (token != null) {
             builder.header("Authorization", "Bearer " + token);
         }
+        headers.forEach(builder::header);
         if (bodyJson == null) {
             builder.method(method, HttpRequest.BodyPublishers.noBody());
         } else {
