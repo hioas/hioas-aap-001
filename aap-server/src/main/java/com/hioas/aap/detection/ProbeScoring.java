@@ -223,11 +223,29 @@ public final class ProbeScoring {
 
     /** 报告口径的结论文案（R-26：禁「正品」措辞）。 */
     public static String verdictText(String result, boolean veto, boolean hasUnmeasurable) {
+        return verdictText(result, veto, hasUnmeasurable, null);
+    }
+
+    /**
+     * 结论措辞（09-PRD「定位声明」字节级约束）：标准措辞为
+     * 「未发现与宣称模型不一致的迹象（置信度：高/中/低）」，**禁止**出现「正品 / 已验证为正品」（R-26）。
+     */
+    public static String verdictText(String result, boolean veto, boolean hasUnmeasurable, String confidence) {
         return switch (result) {
-            case "PASS" -> "未发现与宣称模型不一致的迹象（置信度见报告）";
+            case "PASS" -> "未发现与宣称模型不一致的迹象（置信度：" + confidenceLabel(confidence) + "）";
             case "MANUAL_REVIEW" -> "存在不可测项或总分处于临界区间，建议人工复核";
             case "FAIL" -> veto ? "命中一票否决项（模型指纹相似度过低），判定未通过" : "检测项未达标，判定未通过";
             default -> "";
+        };
+    }
+
+    /** 置信度中文标注；未提供时回落到「见报告」，保证措辞仍是标准句式。 */
+    public static String confidenceLabel(String confidence) {
+        return switch (confidence == null ? "" : confidence) {
+            case "HIGH" -> "高";
+            case "MEDIUM" -> "中";
+            case "LOW" -> "低";
+            default -> "见报告";
         };
     }
 

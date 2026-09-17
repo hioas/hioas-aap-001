@@ -1,0 +1,444 @@
+
+### ContractRaw   (aap-client/src/utils\contract-model.ts)
+  contract_id?: string
+  contract_no?: string
+  id?: string
+  title?: string
+  name?: string
+  contract_name?: string
+  status?: string
+  sign_deadline?: string
+  deadline?: string
+  expire_sign_at?: string
+  supplier_name?: string
+  company_name?: string
+  cooperation_mode?: string
+  mode?: string
+  valid_from?: string
+  effective_from?: string
+  start_date?: string
+  valid_to?: string
+  effective_to?: string
+  end_date?: string
+  settlement_cycle?: string
+  settlement_terms?: string
+  fee_rate?: string
+  platform_fee_rate?: string
+  currency?: string
+  settlement_currency?: string
+  min_settlement_amount?: string
+  min_amount?: string
+  signer_name?: string
+  signer?: string
+  signer_phone_masked?: string
+  phone_masked?: string
+  signer_phone?: string
+  sign_method?: string
+  sign_channel?: string
+  terms?: string[]
+  clauses?: string[]
+  records?: Array<{ title?: string; time?: string; tone?: string; at?: string }>
+
+### ModelEntryRaw   (aap-client/src/utils\credential-form-model.ts)
+  model_name?: string
+  model_id?: string
+  context_window?: number
+  rpm?: number
+
+### VendorGroupRaw   (aap-client/src/utils\credential-form-model.ts)
+  vendor?: string
+  models?: ModelEntryRaw[]
+
+### CredentialDetailRaw   (aap-client/src/utils\credential-form-model.ts)
+  id?: string
+  alias?: string
+  base_url?: string
+  api_key_mask?: string
+  primary_flag?: boolean
+  declared_vendor?: string
+  declared_rpm?: number
+  declared_context_window?: number
+  model_list?: ModelEntryRaw[]
+  model_catalog?: VendorGroupRaw[]
+
+### CredentialRowRaw   (aap-client/src/utils\credentials-model.ts)
+  id?: string
+  alias?: string
+  model_list?: unknown[] | null
+  created_at?: string
+  detection_status?: string
+  latest_report_id?: string | null
+
+### CredentialListRaw   (aap-client/src/utils\credentials-model.ts)
+  total?: number
+  items?: CredentialRowRaw[] | null
+
+### DetectionJobProgressRaw   (aap-client/src/utils\detecting-model.ts)
+  percent?: number
+  finished?: number
+  total?: number
+  eta_minutes?: number
+
+### DetectionJobRaw   (aap-client/src/utils\detecting-model.ts)
+  id?: string
+  job_no?: string
+  credential_id?: string
+  status?: string
+  trigger_type?: string
+  started_at?: string
+  finished_at?: string
+  total_score?: number | null
+  result?: string | null
+  confidence?: string | null
+  cost_estimate_usd?: number | null
+  cost_actual_usd?: number | null
+  error_code?: string | null
+  error_msg?: string | null
+  progress?: DetectionJobProgressRaw | null
+
+### DetectionResultItemRaw   (aap-client/src/utils\detecting-model.ts)
+  probe_code?: string
+  probe_name?: string
+  status?: string
+  score?: number | null
+  metrics?: Record<string, unknown> | null
+  evidence?: unknown
+  explanation?: string | null
+  weight_used?: number | null
+  detail?: string | null
+
+### DetectionResultsRaw   (aap-client/src/utils\detecting-model.ts)
+  job_id?: string
+  total?: number
+  items?: DetectionResultItemRaw[] | null
+
+### MessageRaw   (aap-client/src/utils\messages-model.ts)
+  id?: string
+  title?: string
+  content?: string
+  created_at?: string
+  createdTime?: string
+  read_at?: string | null
+  readAt?: string | null
+  read?: boolean
+  is_read?: boolean
+  event_code?: string
+  biz_type?: string
+  biz_id?: string
+  kind?: string
+
+### MessageListRaw   (aap-client/src/utils\messages-model.ts)
+  total?: number
+  items?: MessageRaw[]
+  list?: MessageRaw[]
+  records?: MessageRaw[]
+
+### QuoteItemRaw   (aap-client/src/utils\model-pricing-model.ts)
+  item_id?: string
+  id?: string
+  quote_id?: string
+  quoteId?: string
+  model_name?: string
+  modelName?: string
+  tier?: string
+  billing_mode?: string
+  request_rules?: Array<Record<string, unknown>>
+
+### CredOptionRaw   (aap-client/src/utils\quote-form-model.ts)
+  id?: string
+  alias?: string
+  api_key_mask?: string
+  api_key_masked?: string
+  is_primary?: boolean
+  primary_flag?: boolean
+  model_list?: unknown[] | null
+  env_tag?: string
+
+### TimeRulesRaw   (aap-client/src/utils\quote-preview-model.ts)
+  tz?: string
+  weekday_scope?: string
+  peak_ranges?: Array<{ start?: string; end?: string }>
+  peak_multiplier?: number | string
+  offpeak_multiplier?: number | string
+
+### TierRulesRaw   (aap-client/src/utils\quote-preview-model.ts)
+  tier_field?: string
+  price_strategy?: string
+  tiers?: Array<{ min?: number | null; max?: number | null; label?: string }>
+
+### ModelRaw   (aap-client/src/utils\quote-setup-model.ts)
+  model_name?: string
+  name?: string
+  vendor?: string
+  input_price?: number | string
+  output_price?: number | string
+  selected?: boolean
+
+### SuccessModelRaw   (aap-client/src/utils\quote-success-model.ts)
+  model_name?: string
+  name?: string
+  selected?: boolean
+
+### QuoteSuccessRaw   (aap-client/src/utils\quote-success-model.ts)
+  quote_id?: string
+  quoteId?: string
+  id?: string
+  quote_no?: string
+  quote_no_text?: string
+  status?: string
+  name?: string
+  title?: string
+  quote_name?: string
+  credential_id?: string
+  credentialId?: string
+  credential_alias?: string
+  credential_name?: string
+  api_key_mask?: string
+  api_key_masked?: string
+  items?: Array<{ model_name?: string; modelName?: string; name?: string }> | null
+
+### CredentialSuccessRaw   (aap-client/src/utils\quote-success-model.ts)
+  id?: string
+  alias?: string
+  name?: string
+  api_key_mask?: string
+  api_key_masked?: string
+  env_tag?: string
+  model_list?: SuccessModelRaw[] | null
+
+### QuoteRowRaw   (aap-client/src/utils\quotes-model.ts)
+  id?: string
+  title?: string
+  name?: string
+  quote_no?: string
+  status?: string
+  currency?: string
+  item_count?: number
+  items?: unknown[] | null
+  updated_at?: string
+  contract_id?: string | null
+
+### QuoteListRaw   (aap-client/src/utils\quotes-model.ts)
+  total?: number
+  items?: QuoteRowRaw[] | null
+
+### FailedDimRaw   (aap-client/src/utils\report-failed-model.ts)
+  code?: string | null
+  name?: string | null
+  score?: number | null
+
+### FailedDetailRaw   (aap-client/src/utils\report-failed-model.ts)
+  code?: string | null
+  title?: string | null
+  score?: number | null
+  lines?: string[] | null
+
+### ReportFailedRaw   (aap-client/src/utils\report-failed-model.ts)
+  report_no?: string | null
+  channel_name?: string | null
+  total_score?: number | null
+  result?: string | null
+  veto_triggered?: boolean | null
+  veto_note?: string | null
+  verdict?: string | null
+  credential_id?: string | null
+  dims?: FailedDimRaw[] | null
+  detail?: FailedDetailRaw | null
+  disclaimer?: string | null
+
+### ReportKeyMetricRaw   (aap-client/src/utils\report-model.ts)
+  key?: string
+  label?: string
+  value?: string
+  unit?: string
+  sub?: string
+  tone?: string
+
+### ReportSectionItemRaw   (aap-client/src/utils\report-model.ts)
+  code?: string
+  name?: string
+  metric?: string
+  score?: number | null
+  status?: string | null
+  value?: string | null
+
+### ReportSectionRaw   (aap-client/src/utils\report-model.ts)
+  code?: string
+  name?: string
+  avg?: number | null
+  scored?: boolean | null
+  note?: string | null
+  items?: ReportSectionItemRaw[] | null
+
+### ReportFindingRaw   (aap-client/src/utils\report-model.ts)
+  title?: string
+  body?: string
+  tone?: string
+
+### ReportEvidenceRaw   (aap-client/src/utils\report-model.ts)
+  key?: string
+  value?: string
+
+### ReportRaw   (aap-client/src/utils\report-model.ts)
+  report_no?: string | null
+  channel_name?: string | null
+  total_score?: number | null
+  result?: string | null
+  confidence?: string | null
+  confidence_label?: string | null
+  pass_count?: number | null
+  item_total?: number | null
+  unmeasurable_count?: number | null
+  veto_triggered?: boolean | null
+  verdict?: string | null
+  provider_name?: string | null
+  provider_code?: string | null
+  api_key_masked?: string | null
+  model_list?: string[] | null
+  detected_at?: string | null
+  trigger_type?: string | null
+  duration_text?: string | null
+  cost_estimate_usd?: number | null
+  cost_actual_usd?: number | null
+  key_metrics?: ReportKeyMetricRaw[] | null
+  sections?: ReportSectionRaw[] | null
+  findings?: ReportFindingRaw[] | null
+  evidence?: ReportEvidenceRaw[] | null
+  disclaimer?: string | null
+  veto_note?: string | null
+  weight_note?: string | null
+
+### ReportExportRaw   (aap-client/src/utils\report-model.ts)
+  url?: string
+  file_name?: string
+
+### SettingsRaw   (aap-client/src/utils\settings-model.ts)
+  phone?: unknown
+  mobile?: unknown
+  phone_number?: unknown
+  wechat_bound?: unknown
+  wechatBound?: unknown
+  wx_bound?: unknown
+  wechat_authorized?: unknown
+  login_security?: unknown
+  security_text?: unknown
+  sms_2fa?: unknown
+  sms_two_factor?: unknown
+  smsTwoFactor?: unknown
+  wechat_subscribed?: unknown
+  subscribe_authorized?: unknown
+
+### UsageDailyRaw   (aap-client/src/utils\usage-model.ts)
+  stat_date?: string
+  date?: string
+  day?: string
+  total_tokens?: number
+  tokens?: number
+
+### UsageModelShareRaw   (aap-client/src/utils\usage-model.ts)
+  model_name?: string
+  name?: string
+  share?: number
+  percent?: number
+  ratio?: number
+  total_tokens?: number
+  amount?: number
+
+### UsageCostRaw   (aap-client/src/utils\usage-model.ts)
+  input?: number
+  input_cost?: number
+  prompt_cost?: number
+  output?: number
+  output_cost?: number
+  completion_cost?: number
+  platform_fee?: number
+  service_fee?: number
+  platform_fee_rate?: number
+  fee_rate?: number
+  total?: number
+  total_cost?: number
+
+### UsageOverviewRaw   (aap-client/src/utils\usage-model.ts)
+  month?: string
+  request_count?: number
+  total_tokens?: number
+  tokens?: number
+  amount_total?: number
+  amount?: number
+  cost_usd?: number
+  mom_saved_amount?: number
+  mom_saving?: number
+  saved_amount?: number
+  updated_at?: string
+  refreshed_at?: string
+  daily?: UsageDailyRaw[]
+  models?: UsageModelShareRaw[]
+  cost?: UsageCostRaw
+  input_cost?: number
+  output_cost?: number
+  platform_fee?: number
+  platform_fee_rate?: number
+  total_cost?: number
+
+### UsageModelRaw   (aap-client/src/utils\workbench-model.ts)
+  model_name: string
+  request_count?: number
+  total_tokens?: number
+  amount?: number
+
+### UsageSummaryRaw   (aap-client/src/utils\workbench-model.ts)
+  request_count?: number
+  total_tokens?: number
+  prompt_tokens?: number
+  completion_tokens?: number
+  cache_read_tokens?: number
+  image_input_tokens?: number
+  audio_input_tokens?: number
+  video_input_tokens?: number
+  cache_hit_rate?: number
+  mom_rate?: number
+  quota_raw?: number
+  cost_usd?: number
+  amount_total?: number
+  models?: UsageModelRaw[]
+
+### AccessApplicationResultRaw   (aap-client/src/api\access-application.ts)
+  id?: string
+  qualification_id?: string
+  detection_job_id?: string
+  job_id?: string
+
+### ContractListItemRaw   (aap-client/src/api\contract.ts)
+  id?: string
+  contract_id?: string
+  status?: string
+
+### ContractListRaw   (aap-client/src/api\contract.ts)
+  total?: number
+  items?: ContractListItemRaw[]
+  list?: ContractListItemRaw[]
+  records?: ContractListItemRaw[]
+
+### PrecheckResultRaw   (aap-client/src/api\credential.ts)
+  job_id?: string
+  jobId?: string
+  detection_job_id?: string
+  status?: string
+
+### DetectionCreateRaw   (aap-client/src/api\detection.ts)
+  job_id?: string | null
+  jobId?: string | null
+  id?: string | null
+  job_no?: string | null
+
+### QuoteCreateRaw   (aap-client/src/api\quote.ts)
+  quote_id?: string
+  quoteId?: string
+  id?: string
+  quote_no?: string
+  status?: string
+
+### ReportListRaw   (aap-client/src/api\report.ts)
+  total?: number
+  items?: { id?: string; report_id?: string; status?: string }[]
+  list?: { id?: string; report_id?: string }[]

@@ -27,7 +27,7 @@
 | 前缀 | `/api/v1` |
 | 鉴权 | `Authorization: Bearer <jwt>`；JWT claims：`sub`(账号 id) `role` `subjectType`(PROVIDER/ADMIN) `providerId` `exp` `jti` |
 | 响应包体 | `{"code":"0|E-xxxx","message":"...","data":{...},"traceId":"..."}` |
-| 分页 | 请求 `page`（默认 1）/ `pageSize`（默认 20，上限 200）；响应 `data:{list:[],page,pageSize,total}` |
+| 分页 | 请求 `page`（默认 1）/ `pageSize`（默认 20，上限 200）；响应 `data:{items:[],page,pageSize,total}`（**字段名以客户端为准**：`aap-client/src/utils/credentials-model.ts` 等读 `raw.items`；`list` 仅是 messages 适配器的兜底。原文档 `docs/api/接口字段级schema.md` 写 `list`，与本清单冲突 → 见偏差 D-API-01） |
 | 幂等 | 非幂等写支持 `Idempotency-Key`（24h，命中返回首次响应体，C11） |
 | 乐观锁 | 需并发保护的写支持 `If-Match: <version 或 updated_at>`；不匹配 → 409 + `E-1601` |
 | 时间 | RFC3339 **UTC**；小时桶为整点；`DATE` 字段 `yyyy-MM-dd` |
@@ -71,7 +71,7 @@
 
 | ID | 方法 | 路径 | 鉴权 | 请求 | 响应 | 错误码 | 幂等/并发 | 依据 | 状态 |
 |---|---|---|---|---|---|---|---|---|---|
-| CRED-01 | GET | `/credentials` | ✅ | q：`page` `pageSize` `status?` | `{list:[CredentialRow],page,pageSize,total}` | | | 真源 | T05 |
+| CRED-01 | GET | `/credentials` | ✅ | q：`page` `pageSize` `status?` | `{items:[CredentialRow],page,pageSize,total}` | | | 真源 | T05 |
 | CRED-02 | POST | `/credentials` | ✅ | body：`alias` `base_url` `api_key` `primary_flag` `declared_vendor` `declared_rpm` `declared_tpm` `declared_context_window` `model_list[]` | `CredentialDetail` | E-1001 E-1104 E-1201 | `Idempotency-Key` | 推断 | T05 |
 | CRED-03 | GET | `/credentials/{id}` | ✅ | — | `CredentialDetail` | E-1901 | | 真源 | T05 |
 | CRED-04 | PUT | `/credentials/{id}` | ✅ | body：同 CRED-02 的可写子集（`api_key?` 轮换） | `CredentialDetail` | E-1001 E-1104 | `If-Match` | 真源 | T05 |
@@ -97,7 +97,7 @@
 
 | ID | 方法 | 路径 | 鉴权 | 请求 | 响应 | 错误码 | 幂等/并发 | 依据 | 状态 |
 |---|---|---|---|---|---|---|---|---|---|
-| RPT-01 | GET | `/reports` | ✅ | q：`page` `pageSize` `result?` | `{list:[ReportRow],page,pageSize,total}` | | | 真源 | T07 |
+| RPT-01 | GET | `/reports` | ✅ | q：`page` `pageSize` `result?` | `{items:[ReportRow],page,pageSize,total}` | | | 真源 | T07 |
 | RPT-02 | GET | `/reports/{reportId}` | ✅ | — | `Report`（详情/未通过页共用） | E-1401 | | 真源 | T07 |
 | RPT-03 | GET | `/reports/{reportId}/html` | ✅ | — | `text/html` | E-1401 | | 推断 | T07 |
 | RPT-04 | GET | `/reports/{reportId}/export` | ✅ | — | `{url,file_name,expire_at}` | E-1401 | | 真源 | T07 |
@@ -109,7 +109,7 @@
 
 | ID | 方法 | 路径 | 鉴权 | 请求 | 响应 | 错误码 | 幂等/并发 | 依据 | 状态 |
 |---|---|---|---|---|---|---|---|---|---|
-| QT-01 | GET | `/quotes` | ✅ | q：`page` `pageSize` `status`(逗号分隔多值) | `{list:[QuoteRow],page,pageSize,total}` | | | 真源 | T08 |
+| QT-01 | GET | `/quotes` | ✅ | q：`page` `pageSize` `status`(逗号分隔多值) | `{items:[QuoteRow],page,pageSize,total}` | | | 真源 | T08 |
 | QT-02 | POST | `/quotes` | ✅ | body：`name` `provider_id` `credential_id` `remark` `valid_from` `valid_to` `currency` | `Quote{build:quote_id,quote_no,status,items[]}` | E-1602 E-1001 | `Idempotency-Key` | 真源 | T08 |
 | QT-03 | GET | `/quotes/{quoteId}` | ✅ | — | `QuoteDetail`（报价单 + `items[]` + 可含规则） | E-1401 | | 真源 | T08 |
 | QT-04 | DELETE | `/quotes/{quoteId}` | ✅ | — | `null` | E-1601 | | 真源（PRD 口径为「作废 VOID」，已记台账冲突） | T08 |
@@ -119,19 +119,19 @@
 | QT-08 | PUT | `/quotes/items/{itemId}` | ✅ | body：八大单价 + `price_time_rule?` + `price_tier_rule?` + `request_rules?` + `note` | `QuoteItem` | E-1001 E-1401 E-1402 E-1403 | `If-Match` | 真源 | T08 |
 | QT-09 | POST | `/quotes/{quoteId}/submit` | ✅ | —（无请求体） | `QuoteDetail` | E-1001 E-1401 E-1402 E-1601 E-1602 | `Idempotency-Key` | 真源 | T08 |
 | QT-10 | POST | `/quotes/{quoteId}/withdraw` | ✅ | — | `QuoteDetail` | E-1601 | | 真源 | T08 |
-| QT-11 | GET | `/quotes/{quoteId}/versions` | ✅ | `page/pageSize` | `{list:[QuoteVersion],total}` | E-1401 | | 推断 | T08 |
+| QT-11 | GET | `/quotes/{quoteId}/versions` | ✅ | `page/pageSize` | `{items:[QuoteVersion],total}` | E-1401 | | 推断 | T08 |
 | QT-12 | POST | `/quotes/{quoteId}/compile-preview` | ✅ | — | `{compiled:[ModelExpression],gate_status,verify_report}` | E-1401 E-1402 E-1405 | `Idempotency-Key` | 真源 | T09 |
 
 ### 1.7 Contract / Payment / Notification（合同 · 打款 · 站内信）
 
 | ID | 方法 | 路径 | 鉴权 | 请求 | 响应 | 错误码 | 幂等/并发 | 依据 | 状态 |
 |---|---|---|---|---|---|---|---|---|---|
-| CON-01 | GET | `/contracts` | ✅ | q：`page` `pageSize` `status?` | `{list:[Contract],page,pageSize,total}` | | | 真源 | T11 |
+| CON-01 | GET | `/contracts` | ✅ | q：`page` `pageSize` `status?` | `{items:[Contract],page,pageSize,total}` | | | 真源 | T11 |
 | CON-02 | GET | `/contracts/{id}` | ✅ | — | `Contract`（含 `terms[]` `records[]`） | E-1701 | | 真源 | T11 |
 | CON-03 | GET | `/contracts/{id}/file` | ✅ | — | `{url,file_name}` | E-1701 | | 真源 | T11 |
 | CON-04 | POST | `/contracts/{id}/sign` | ✅ | body `{sign_method?,smsCode?}` | `Contract` | E-1701 E-1601 | `Idempotency-Key` | 真源（路径为推断：卡片 `/sign` 挂到合同下） | T11 |
-| PAY-01 | GET | `/payments` | ✅ | q：`page` `pageSize` | `{list:[Payment],page,pageSize,total,available_balance?,pending_settlement?,total_settled?}` | | | 真源 + 约定（钱包三项无 PRD 依据） | T11 |
-| NTF-01 | GET | `/notifications` | ✅ | q：`page` `pageSize` `unread?` `category?` | `{list:[Notification],page,pageSize,total,unread_count}` | | | 真源 + 推断（参数名） | T13 |
+| PAY-01 | GET | `/payments` | ✅ | q：`page` `pageSize` | `{items:[Payment],page,pageSize,total,available_balance?,pending_settlement?,total_settled?}` | | | 真源 + 约定（钱包三项无 PRD 依据） | T11 |
+| NTF-01 | GET | `/notifications` | ✅ | q：`page` `pageSize` `unread?` `category?` | `{items:[Notification],page,pageSize,total,unread_count}` | | | 真源 + 推断（参数名） | T13 |
 | NTF-02 | POST | `/notifications/{id}/read` | ✅ | — | `{id,read_at}` | E-1901 | | 真源 | T13 |
 
 ### 1.8 Usage（用量统计）
@@ -139,7 +139,7 @@
 | ID | 方法 | 路径 | 鉴权 | 请求 | 响应 | 错误码 | 幂等/并发 | 依据 | 状态 |
 |---|---|---|---|---|---|---|---|---|---|
 | USE-01 | GET | `/usage/summary` | ✅ | q：`startHour?` `endHour?` `month?` | `UsageSummary`（见 `docs/api/接口字段级schema.md` §1） | E-1801 | | 真源 | T12 |
-| USE-02 | GET | `/usage/hourly` | ✅ | q：`from` `to` `model?` `group?` `page` `pageSize` | `{list:[UsageHourlyBucket],page,pageSize,total}` | E-1801 | | 真源 | T12 |
+| USE-02 | GET | `/usage/hourly` | ✅ | q：`from` `to` `model?` `group?` `page` `pageSize` | `{items:[UsageHourlyBucket],page,pageSize,total}` | E-1801 | | 真源 | T12 |
 
 > `month` 参数（序号 22 用量概览页）在 18-API 未列 → `推断`。
 > `/usage/summary` 需同时满足工作台（环形图/模型 Top3）与用量页（逐日趋势/成本构成）→ 响应为超集。

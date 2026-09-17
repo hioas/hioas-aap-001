@@ -1,0 +1,8 @@
+package com.hioas.aap.support;
+
+import com.mybatisflex.core.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
+
+@Mapper
+public interface NotificationMapper extends BaseMapper<NotificationEntity> {
+}

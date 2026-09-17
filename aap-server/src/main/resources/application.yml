@@ -56,6 +56,15 @@ app:
     secret: ${AAP_JWT_SECRET}
     access-ttl-minutes: ${AAP_JWT_ACCESS_TTL_MINUTES:120}
     refresh-ttl-days: ${AAP_JWT_REFRESH_TTL_DAYS:14}
+  detection:
+    # 供应商日检测配额（R-09）与通过线
+    daily-quota: 5
+    pass-score: 70
+    veto-score: 40
+    # 定期复测（AC-49）：报告有效期 30 天，到期自动入队复测（RECHECK 不计日配额）
+    recheck-interval-days: 30
+    recheck-enabled: ${AAP_RECHECK_ENABLED:true}
+    recheck-cron: ${AAP_RECHECK_CRON:0 15 * * * *}
   credential:
     # 凭证加密密钥（AES-256-GCM，32 字节 base64；与库分离，R-06）
     aes-key: ${AAP_CREDENTIAL_AES_KEY}
@@ -68,10 +77,6 @@ app:
     lock-minutes: 15
     # 仅测试环境置 true：把验证码放进响应体便于端到端验收（生产严禁开启）
     expose-code: false
-  detection:
-    daily-quota: 5
-    pass-score: 70
-    veto-score: 40
   logging:
     dir: ${LOG_DIR:logs}
 

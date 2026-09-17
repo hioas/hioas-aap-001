@@ -183,12 +183,12 @@ class ProviderContractTest extends ApiTestBase {
         HttpResult list = get("/provider/qualifications", token);
         assertThat(list.status()).isEqualTo(200);
         SchemaAssert.assertPageMeta(json(list.data()));
-        assertThat(list.data().path("list").size()).isEqualTo(1);
-        assertThat(list.data().path("list").get(0).path("file_name").asText()).isEqualTo("营业执照.pdf");
+        assertThat(list.data().path("items").size()).isEqualTo(1);
+        assertThat(list.data().path("items").get(0).path("file_name").asText()).isEqualTo("营业执照.pdf");
 
         HttpResult deleted = delete("/provider/qualifications/" + id, token);
         assertThat(deleted.status()).isEqualTo(200);
-        assertThat(get("/provider/qualifications", token).data().path("list").size()).isZero();
+        assertThat(get("/provider/qualifications", token).data().path("items").size()).isZero();
         assertThat(jdbc.queryForObject("select count(*) from aap_provider_qualification", Long.class))
                 .as("逻辑删除：行仍保留").isEqualTo(1L);
     }

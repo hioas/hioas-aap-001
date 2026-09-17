@@ -630,10 +630,10 @@ def gen_common() -> None:
         },
     }))
     write_json(os.path.join(SCHEMA_DIR, "common", "page.schema.json"), schema_file("page", {
-        "description": "分页响应包装：{list,page,pageSize,total}",
-        "required": ["list", "page", "pageSize", "total"],
+        "description": "分页响应包装：{items,page,pageSize,total}（字段名以 aap-client 读法为准）",
+        "required": ["items", "page", "pageSize", "total"],
         "properties": {
-            "list": {"type": "array"},
+            "items": {"type": "array"},
             "page": {"type": "integer", "minimum": 1},
             "pageSize": {"type": "integer", "minimum": 1, "maximum": 200},
             "total": {"type": "integer", "minimum": 0},

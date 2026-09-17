@@ -10,6 +10,9 @@ spring:
 app:
   jwt:
     secret: ${AAP_JWT_SECRET}
+  detection:
+    # 测试环境关闭定时复测：与用例抢库会产生不可复现的随机失败（逻辑由 RecheckServiceTest 直接驱动）
+    recheck-enabled: false
   credential:
     aes-key: ${AAP_CREDENTIAL_AES_KEY}
     # 本地端到端联调/测试：允许 127.0.0.1 的上游桩（**不放行私网/链路本地/元数据地址**，AC-29 仍可验证）

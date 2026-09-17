@@ -10,6 +10,8 @@ import com.hioas.aap.credential.CredentialMapper;
 import com.hioas.aap.iam.AuthPrincipal;
 import com.hioas.aap.provider.ProviderEntity;
 import com.hioas.aap.provider.ProviderMapper;
+import com.hioas.aap.report.ReportGenerator;
+import com.hioas.aap.support.NotificationService;
 import com.hioas.aap.support.AuditService;
 import com.mybatisflex.core.query.QueryWrapper;
 import java.math.BigDecimal;
@@ -52,6 +54,10 @@ public class DetectionService {
     private final ProviderMapper providerMapper;
     private final DocNoGenerator docNoGenerator;
     private final AuditService auditService;
+    /** 报告生成（检测完成 → 报告 1:1，AC-18）。 */
+    private final ReportGenerator reportGenerator;
+    /** 通过通知（AC-21）。 */
+    private final NotificationService notificationService;
     private final int dailyQuota;
     private final int passScore;
     private final int vetoScore;
@@ -59,6 +65,7 @@ public class DetectionService {
     public DetectionService(DetectionJobMapper jobMapper, DetectionResultMapper resultMapper,
                             CredentialMapper credentialMapper, ProviderMapper providerMapper,
                             DocNoGenerator docNoGenerator, AuditService auditService,
+                            ReportGenerator reportGenerator, NotificationService notificationService,
                             @Value("${app.detection.daily-quota:5}") int dailyQuota,
                             @Value("${app.detection.pass-score:70}") int passScore,
                             @Value("${app.detection.veto-score:40}") int vetoScore) {
@@ -68,6 +75,8 @@ public class DetectionService {
         this.providerMapper = providerMapper;
         this.docNoGenerator = docNoGenerator;
         this.auditService = auditService;
+        this.reportGenerator = reportGenerator;
+        this.notificationService = notificationService;
         this.dailyQuota = dailyQuota;
         this.passScore = passScore;
         this.vetoScore = vetoScore;
@@ -86,11 +95,33 @@ public class DetectionService {
             throw new ApiException(ErrorCode.E_1301, "该凭证已有进行中的检测任务");
         }
         ensureDailyQuota(credential.getProviderId());
+        return enqueue(credential, triggerType);
+    }
 
+    /** 系统触发的任务（AC-49 定期复测）：不做归属校验，`RECHECK` 不计入日配额。 */
+    @Transactional
+    public DetectionViews.Job createSystemJob(Long providerId, Long credentialId, String triggerType) {
+        CredentialEntity credential = credentialMapper.selectOneById(credentialId);
+        if (credential == null) {
+            throw new ApiException(ErrorCode.E_1303, "凭证不存在");
+        }
+        if (!"ACTIVE".equals(credential.getStatus())) {
+            throw new ApiException(ErrorCode.E_1303, "凭证当前不可发起检测（需先通过预检）");
+        }
+        if (hasActiveJob(credentialId)) {
+            throw new ApiException(ErrorCode.E_1301, "该凭证已有进行中的检测任务");
+        }
+        if (providerId != null && !providerId.equals(credential.getProviderId())) {
+            throw new ApiException(ErrorCode.E_1303, "凭证不属于该供应商");
+        }
+        return enqueue(credential, triggerType);
+    }
+
+    private DetectionViews.Job enqueue(CredentialEntity credential, String triggerType) {
         DetectionJobEntity job = new DetectionJobEntity();
         job.setJobNo(docNoGenerator.detectionJobNo());
         job.setProviderId(credential.getProviderId());
-        job.setCredentialId(credentialId);
+        job.setCredentialId(credential.getId());
         job.setTriggerType(triggerType == null || triggerType.isBlank() ? "MANUAL" : triggerType.toUpperCase());
         job.setStatus("QUEUED");
         job.setActiveFlag(true);
@@ -105,7 +136,8 @@ public class DetectionService {
 
         credential.setDetectionStatus("RUNNING");
         credentialMapper.update(credential);
-        log.info("检测任务创建 job_no={} trigger={} credential_id={}", job.getJobNo(), job.getTriggerType(), credentialId);
+        log.info("检测任务创建 job_no={} trigger={} credential_id={}",
+                job.getJobNo(), job.getTriggerType(), credential.getId());
         return toJobView(job);
     }
 
@@ -294,6 +326,15 @@ public class DetectionService {
         }
         log.info("检测任务完成 job_no={} 总分={} 结论={} 置信度={}",
                 job.getJobNo(), summary.totalScore(), summary.result(), summary.confidence());
+        // 报告 1:1 生成（AC-18）；失败不静默：与检测同事务，宁可整体回滚也不留「有任务无报告」
+        Long reportId = reportGenerator.generate(jobId);
+        if ("PASS".equals(summary.result())) {
+            // AC-21 检测通过通知（内容脱敏：不出现手机号与 api_key 明文）
+            notificationService.notifyProvider(job.getProviderId(), "DETECTION_PASSED",
+                    "检测通过", "您的接入通道已通过平台检测（总分 " + summary.totalScore()
+                            + "），报告编号见报告中心，有效期 30 天。", "DETECTION",
+                    "REPORT", reportId);
+        }
         return toJobView(job);
     }
 

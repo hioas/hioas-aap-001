@@ -120,12 +120,38 @@
 - 交付：`ProbeScoring`（D1–D8 纯函数 + 权重归一化 + 四分支判定 + 置信度 + 措辞）、`DetectionJobEntity/ResultEntity`
   + Mapper、`DetectionService`（建/查/取消/放行/引擎回写闭环）、`DetectionController`、`DetectionViews`
 
+### R07 · T07 检测报告（RPT-01…04 / AC-18、AC-21、AC-49）—— ✅ 完成
+
+- 红：`evidence/T07-run1.txt`（5 例中 2 例红）→ 4 轮迭代 → 绿：`evidence/green-T07.txt`（`Tests run: 90, Failures: 0`）
+- **本轮抓到的真实缺陷与契约错误（值得记住）**
+  1. **分页字段名错了**：客户端读 `raw.items`（`credentials-model.ts:140`、`detecting-model.ts:212`），
+     而 `PageResult` 与设计文档（`docs/api/接口字段级schema.md:21`）都写 `list`。若上生产，**所有列表页都会空白**。
+     已按「客户端为契约真源」统一为 `items`（代码 + `tools/gen-backend-models.py` 的 `common/page` + 3 处旧测试断言），
+     记偏差 **D-API-01**。教训：**分页这类跨页面通用字段，必须回到客户端适配层逐个核对，不能照抄文档**。
+  2. **R-26 措辞红线**：我第一版免责声明写了「请勿理解为『已验证该模型为正品』」——否定句里也带了被禁字样，
+     AC-18 的「正文无『正品』」是**字符串级**判定，会直接判失败。改为完全不含该字样的等义表述，
+     并把 `forbiddenPhrases()` 收敛为「保证性断言」清单（`保证为真/保证正品/官方正版/100% 真实/绝对真实/已验证该模型为正品`）。
+  3. **客户端兜底文案与 R-26 冲突**（发现 **O-01**）：`aap-client/src/utils/report-model.ts:51` 的兜底免责声明
+     含「请勿理解为『已验证该模型为正品』」，客户端自身违反 R-26 的字符串级判定 → 属前端待办，后端不跟。
+  4. JSON Schema 不给 `$id`：给了 https 绝对 URI 后，模型间相对 `$ref` 会被当成绝对地址去联网拉取而报
+     `Failed to load json schema`；`SchemaAssert` 改为按**文件 URI** 装载，相对引用才能落在本地文件上。
+  5. **验证脚本必须复核算术**：D7 五项加权与总分我手算错了两次（78.5→78.0、70.53→72.00）；
+     实现是对的，被改的是**测试期望值**（用计算器复核后）。绝不能为了「让测试过」去改实现。
+  6. `application.yml` 出现重复 `app.detection` 键 → Boot 4 的 YAML 解析直接启动失败（`found duplicate key`）；
+     测试全量 66 例报错、报错点在「构造 mapping」。**合并键时先 grep 段落是否已存在**。
+- 交付：`ReportService/ReportController/ReportViews/ReportEntity/ReportSectionEntity`（四段式解释 + 章节 A–F +
+  维度对照 + 免责声明 + 权重说明 + 一票否决说明）、`NotificationService/NotificationEntity`（AC-21）、
+  `RecheckService/RecheckScheduler`（AC-49，报告 30 天到期自动复测，`RECHECK` 不占日配额）、
+  引擎回写闭环内嵌报告 1:1 生成（同事务，宁可整体回滚也不留「有任务无报告」）。
+
 ---
 
 ## 未决与下一步
 
-- 下一轮：**R07 · T07 检测报告**（RPT-01…04，AC-18/21/49）——报告 1:1 检测任务、四段式解释、
-  免责声明与「禁正品」措辞校验、导出、定期复测。
-- 剩余任务：T08 报价、T09 计费编译、T10 审核、T11 合同/打款、T12 用量、T13 站内信/审计、
+- 下一轮：**R08 · T08 报价**（QT-01…13，AC-22…27、AC-50）——模型表达式校验、三档阶梯价与时段价、
+  编译前校验与「编译」触发、报价对比、失效规则。
+- 剩余任务：T08 报价、T09 计费编译、T10 审核、T11 合同/打款、T12 用量、T13 站内信/审计/配置、
   T14 同步与配置、T15 端到端联调与容器化交付（`docs/backend/03-任务与TDD计划.md` §1 为完整清单）。
+- **待前端处理（O-01）**：`aap-client/src/utils/report-model.ts:51` 兜底免责声明含 R-26 禁用字样，建议改为与
+  服务端 `ReportService.DISCLAIMER` 同文案。
 - 待办（跨轮）：`aap-server/README.md` 运行说明；T15 时把 `aap-client` 的 `baseUrl` 指向本服务做联调截图。

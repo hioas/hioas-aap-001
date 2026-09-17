@@ -245,9 +245,9 @@ class CredentialContractTest extends ApiTestBase {
         HttpResult list = get("/credentials", token);
         assertThat(list.status()).isEqualTo(200);
         SchemaAssert.assertPageMeta(json(list.data()));
-        assertThat(list.data().path("list").size()).isEqualTo(1);
-        assertThat(list.data().path("list").get(0).path("detection_status").asText()).isEqualTo("PENDING");
-        assertThat(list.data().path("list").get(0).path("model_list").size()).isEqualTo(1);
+        assertThat(list.data().path("items").size()).isEqualTo(1);
+        assertThat(list.data().path("items").get(0).path("detection_status").asText()).isEqualTo("PENDING");
+        assertThat(list.data().path("items").get(0).path("model_list").size()).isEqualTo(1);
         assertThat(list.body()).doesNotContain(RAW_KEY);
 
         HttpResult detail = get("/credentials/" + credentialId, token);
