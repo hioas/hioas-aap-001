@@ -1,0 +1,17 @@
+夹具根目录：C:\Users\laitz\AppData\Local\Temp
+被测审计：tools\audit-error-codes.py
+
+[PASS] case_positive：rc=0(期望 0) 命中「断言 16 条：PASS 16，FAIL 0」=是
+[PASS] case_zero_write：夹具 5 个文件 (mtime,size,md5) 不变
+[PASS] case_manifest_code_unknown：rc=1(期望 1) 命中「A3 清单声明的码都在 ErrorCode.java 目录里」=是
+[PASS] case_orphan_code：rc=1(期望 1) 命中「孤儿=['E-1501']」=是
+[PASS] case_openapi_op_mismatch：rc=1(期望 1) 命中「A6 openapi 每 operation 4XX 码集合 = 清单」=是
+[PASS] case_md_row_mismatch：rc=1(期望 1) 命中「A9 md 每行错误码列 = 清单」=是
+[PASS] case_md_escaped_pipe：rc=0(期望 0) 命中「A0c D 行数 = total：parsed=2」=是
+[PASS] case_md_range_ok：rc=0(期望 0) 命中「A9 md 每行错误码列 = 清单」=是
+[PASS] case_md_range_no_overflow：rc=1(期望 1) 命中「A9 md 每行错误码列 = 清单」=是
+[PASS] case_openapi_decoy_enum：rc=0(期望 0) 命中「A2 O.ResultCode 与 J 一致」=是
+[PASS] case_openapi_missing_enum：rc=1(期望 1) 命中「A0f O ResultCode enum 非空」=是
+[PASS] case_missing_source：rc=1(期望 1) 命中「源文件缺失」=是
+
+自测断言 12 条：PASS 12，FAIL 0

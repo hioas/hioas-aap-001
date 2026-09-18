@@ -1079,3 +1079,103 @@ md5 与 R19–R26 完全一致 → 自 R19 起零变化，未纳入本次提交�
 本轮**无新端点批次落地**（`missing=0`），按「每完成一个批次才通知」的规则本可不发；仍试发一次以取证，
 结果见 `evidence/feishu-notify-failures.txt` 与本文件下方 R27 记录（`hermes send -t feishu` 仍报
 `No home channel set for feishu`）。
+
+## R28（2026-09-18 13:22–13:29）巡检复验 + **首次执行「错误码」契约五处真源审计**（业务代码零改动、清单零改动、断言零改动）
+
+### 复验结论（两轮全绿 + 逐类一致）
+
+| 轮次 | 结果 | 证据 |
+| --- | --- | --- |
+| run1 | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0`（33 个测试类）/ `BUILD SUCCESS` / `Total time: 01:01 min` / `[ERROR]`=0 | `evidence/green-verify-R28-full-run1.txt` |
+| run2 | 同上；与 run1 **逐类结果 diff 为空** | `evidence/green-verify-R28-full-run2.txt` + `r28-run1-classes.txt` / `r28-run2-classes.txt` |
+
+覆盖门禁：90/90、`registered_routes=96`、`not_registered=[]`（`coverage-report.json`）。
+「无用例被静默跳过」的证据：`@Test\b` 词边界计数 **204 = surefire 204**；`@Disabled|@Ignore\b|@DisabledIf|assumeTrue|Assumptions\.` 全仓 **0 命中**（坑 35 的口径）。
+
+### 本轮增量：把「错误码」当契约不变量，做了一次跨真源审计
+
+新工具 `tools/audit-error-codes.py`（只读）+ `tools/audit-error-codes-selftest.py`（负向自测）。
+五处真源（缺一不可）：
+
+| 简称 | 文件 | 承载方式 |
+| --- | --- | --- |
+| M | `docs/backend/endpoints.json` | 逐端点 `error_codes` |
+| O | `docs/backend/openapi.yaml` | `ResultCode.enum` + 每 operation `4XX.description: 业务失败：…` |
+| J | `aap-server/.../common/ErrorCode.java` | 枚举字面量 |
+| S | `docs/backend/json-schema/common/error.schema.json` | `properties.code.enum` |
+| D | `docs/backend/02-API接口模型清单.md` | 逐行「错误码」列（**按表头定位列序**：T03–T12 是 10 列表头、T14 是 7 列表头） |
+
+**为什么 204 例全绿也查不出（坑 43 族）**：契约测试校验的是 JSON Schema 文件，而 **JSON Schema 里根本没有逐端点错误码**
+（只有 `error.schema.json` 的码枚举）→ 生成器 `PATHS` 里写错某个端点的码，全部用例完全不可见。
+
+首轮结果 **16 条断言：PASS 14，FAIL 2** —— 两条 FAIL 都是**真实漂移**（不是脚本误报）：
+
+- **A4 孤儿码 2 个**（目录里有、清单无任何端点声明）：
+  - `E-1404`「阶梯首档须从 0 起、末档须开放」：**实现真的会抛** —— `QuoteService.java:752`（QT-08 保存明细行时校验阶梯）
+    与 `CompilationService.java:332`（编译期 V12 规则）；**md 清单行也声明了**（QT-08、ADM-Q01），
+    但生成器 `PATHS`（→ `endpoints.json` → `openapi.yaml` 的 `4XX.description`）**漏声明** → 生成的 API 文档
+    漏掉了实现确实会返回的错误码。
+  - `E-1102`「凭证当前状态不允许该操作」：**实现中零处抛出**（`main` 目录内除 `ErrorCode.java` 定义外无任何引用），
+    清单也没有任何端点声明；但 md §4 错误码表（`ErrorCode.java` javadoc 引用的真源）列了它 → 死码或缺失的状态校验。
+- **A9 md↔清单漂移 10 条**，分三个方向：
+  - (a) 生成器漏码（**md + 实现为准**）：QT-03（md `E-1406` / 清单 `E-1401`；实现 `QuoteService.java:724,728` 抛 `E_1406`，
+    测试 `QuoteContractTest.java:398` 断言 `E-1406`）、QT-06（md `E-1406` / 清单空；实现 `:275`）、
+    QT-07（md `E-1406` / 清单 `E-1401`；实现 `:289`）、QT-08（清单缺 `E-1404`/`E-1104`；实现 `:746-756` 与 `:295`）、
+    ADM-Q01（清单缺 `E-1403`/`E-1404`/`E-1601`；实现 `CompilationService.java:90,332`）、DET-02（清单缺 `E-1901`）。
+  - (b) 清单多码（**实现为准，md 漏写**）：CRED-04 / PROV-02 的 `E-1601`（实现 `CredentialService.java:177`、
+    `ProviderService.java:94` 抛乐观锁失配）、AUTH-02 的 `E-1903`（md 该行的「幂等/并发」列写的是「5 次错锁 15 分钟」，
+    是账号锁定而非 429 限流）。
+  - (c) 两侧互斥且实现无据：QT-11（md `E-1401` / 清单空；版本查询处未见任何抛码）。
+- **附带的语义不一致**（审计口径之外、但取证时发现，一并列待拍板）：同一个「版本失配 / If-Match 失效」，
+  报价模块用 `E-1104`（§4 定义为「唯一性冲突」）、凭证与档案模块用 `E-1601`（§4 定义为「状态非法流转」）；
+  另 md §4 把「报价单不存在」写在 `E-1401`（400）下，而实现与 md 逐行都是 `E-1406`（404）。
+
+**本轮按指令不改任何一侧**（本轮 `missing=0`，指令为「不改代码，只校验并报告」）：漂移项全部进「待拍板」，
+由人拍板后再按「先改清单 → 再改生成器 → 重跑生成 → 两轮全绿」的顺序落地。
+
+### 自纠：审计脚本自身的真缺陷（必须记）
+
+首轮输出 `D 行数 89/90` 并报出假缺口 `ADM-S05`：该行单元格含**转义竖线**（`` `{target_status:ENABLED\|DISABLED}` ``），
+裸 `split("|")` 多切出一格 → 该行因「列数与表头不符」被**静默跳过**。
+修法：按 `(?<!\\)\|` 切分并还原字面竖线；修后 M/O/D 三处解析计数 **90/90/90**（全部等于 `total`）。
+首轮输出保留并改名为 `red-R28-error-codes-firstrun-parserbug.txt`（文件名不得骗人，坑 12）——
+**「D 行数 = total」这条正向对照是发现它的唯一手段**（坑 46：只给反例时「一直在报错」会被当成合格）。
+
+### 审计口径的边界（避免过度声称）
+
+- 只判定「**码集合是否一致**」，不判定每个码在业务上是否恰当（语义恰当性见上方待拍板）。
+- 五处真源不含客户端：`aap-client` 没有错误码字典（只按 `code != 0` 显示 `message`），故本不变量是 4 处文件 + 清单。
+- D 分支的列序**按表头定位**：将来若新增第三种表头且不含「错误码」列，A7 会报 FAIL（不会静默跳过）。
+- 区间展开仅限「同前缀升序」（`E-1401~E-1405`）；`~` 之外一律按字面码取，括号注释先剥离（`E-1601(未审核通过)`）。
+
+### 本轮其它只读校验（全部 rc=0，作为「没有回归」的证据）
+
+| 校验 | 结果 | 证据 |
+| --- | --- | --- |
+| 生成器 `--check` | `84/84 个生成物与生成器完全一致、孤儿 0`（零写副作用） | `gencheck-verify-R28.txt` |
+| 生成器负向自测 | 14/14 PASS | `gencheck-selftest-negative-R28.txt` |
+| 分页集合键名审计 | `88 条断言：PASS 88，FAIL 0` | `audit-contract-keys-R28.txt` |
+| 上述审计负向自测 | 11/11 PASS | `audit-contract-keys-selftest-R28.txt` |
+| 端点用例审计 | `exact 90 / prefix 0 / none 0`；ID 可追溯 90/90（含「同文件」更严一档） | `audit-endpoint-tests-R28.txt` |
+| 上述审计负向自测 | 全部通过（区间不外溢、未提及的 ID 判不可追溯、同文件档） | `audit-selftest-negative-R28.txt` |
+| `openapi.yaml` 可解析 | `paths=78 operations=90` | `openapi-parses-R28.txt` |
+| **密钥泄漏审计**（本轮起工具化 `tools/audit-secret-leak.py`） | 四处比对 Tier A **0 命中**；`.gitignore` 四项覆盖 PASS；被跟踪的 `.env` 类文件只有 `.env.example` | `secret-leak-audit-R28.txt` |
+| 上述审计自测 | 3/3 PASS（正向对照：扫描器确实能找到模式值） | `secret-leak-selftest-R28.txt` |
+| **新审计负向自测** | **12/12 PASS**（每个判定分支一条反例 + 正向对照 + 零写副作用 + 仓库外夹具根） | `audit-error-codes-selftest-R28.txt` |
+
+工具零写副作用：跑完全部只读校验后 `git status` 里被跟踪文件**没有新增改动**（仍只有他方未提交的 4 个文件）。
+
+### 结论与待拍板
+
+- **90/90 维持全绿（连续第 11 轮：R18 → … → R28）**，未见 flaky；`missing=0` → 未改业务代码、未改清单、未动断言。
+- 本轮真正增量 = **首次执行的错误码契约审计**：发现 2 个孤儿码 + 10 条 md↔清单漂移（其中生成器漏声明了
+  实现真的会抛的 `E-1404`）→ 全部列入待拍板，未擅自改任一侧。
+- **待拍板（维持 R23–R27）**：飞书 home channel 未绑定（`hermes config set FEISHU_HOME_CHANNEL <channel_id>`）；
+  PROV-03 item 模型以 `provider-qualification` 为准这一冻结口径。
+- **待拍板（本轮新增，11 项）**：错误码漂移 10 条 + 语义不一致 1 组（`E-1104`/`E-1601` 两种码表达同一「版本失配」，
+  以及 §4 把「报价单不存在」记在 `E-1401` 而实现/逐行清单用 `E-1406`）。
+
+### 飞书通知（硬要求）
+
+本轮**无新端点批次落地**（`missing=0`），按「每完成一个批次才通知」的规则本可不发；仍试发一次以取证，
+结果见 `evidence/feishu-notify-failures.txt` 与本文件下方 R28 记录。
