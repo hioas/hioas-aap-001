@@ -1,0 +1,46 @@
+== R52 提交态复跑（临时 worktree，detached HEAD f561e83；坑 27/28） ==
+worktree：C:/Users/laitz/AppData/Local/Temp/aap-verify-r52-0025（唯一名目录；收尾用 git worktree remove --force，不做递归删除）
+目的：验证「提交本身自洽、不依赖他方未提交改动」——worktree 只含 HEAD 内容。
+判据：surefire 汇总行 + EndpointCoverageTest 自身通过 + [ERROR] 行数 0 + BUILD SUCCESS
+      + worktree 内 coverage-report.json **逐字段**读值（不靠 grep 类名抓摘要，坑 96）。
+
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.93 s -- in com.hioas.aap.adminconfig.DetectionConfigContractTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.116 s -- in com.hioas.aap.adminconfig.ReportTemplateContractTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in com.hioas.aap.adminconfig.ReportTemplateWordingTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.757 s -- in com.hioas.aap.common.ApiContractTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in com.hioas.aap.common.ApiEnvelopeTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.218 s -- in com.hioas.aap.common.LoggingAndHealthTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.969 s -- in com.hioas.aap.common.MigrationTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.033 s -- in com.hioas.aap.common.OutboundUrlGuardTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.221 s -- in com.hioas.aap.common.PersistenceBaseTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.023 s -- in com.hioas.aap.compile.BillingCompilerTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.562 s -- in com.hioas.aap.compile.CompilationContractTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.950 s -- in com.hioas.aap.contract.ContractContractTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.101 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.534 s -- in com.hioas.aap.credential.AdminCredentialContractTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.939 s -- in com.hioas.aap.credential.CredentialContractTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.847 s -- in com.hioas.aap.detection.DetectionContractTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.013 s -- in com.hioas.aap.detection.ProbeScoringTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.465 s -- in com.hioas.aap.detection.RecheckServiceTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.111 s -- in com.hioas.aap.iam.AuthContractTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.705 s -- in com.hioas.aap.provider.AdminProviderContractTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.317 s -- in com.hioas.aap.provider.ProviderContractTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.555 s -- in com.hioas.aap.quote.AdminQuoteCompareContractTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.178 s -- in com.hioas.aap.quote.QuoteContractTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in com.hioas.aap.quote.QuoteValidationTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.075 s -- in com.hioas.aap.report.ReportContractTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.072 s -- in com.hioas.aap.review.ReviewContractTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.904 s -- in com.hioas.aap.settlement.PaymentContractTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.317 s -- in com.hioas.aap.support.NotificationContractTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.480 s -- in com.hioas.aap.sync.SyncAdminContractTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.hioas.aap.ToolchainSmokeTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.878 s -- in com.hioas.aap.usage.UsageContractTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in com.hioas.aap.usage.UsageMetricsTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.727 s -- in com.hioas.aap.usage.UsageRefreshDegradedTest
+[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+
+汇总行：[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+[ERROR] 行数 = 0
+coverage-report.json 逐字段：total=90 implemented=90 missing=0 registered_routes=96 not_registered=[]
+by_task 族数=12 合计=90/90
