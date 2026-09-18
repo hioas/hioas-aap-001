@@ -3463,3 +3463,15 @@ schema 数值类型改 `number` 与 DDL `int` 不符 → {A2}；端点 `request_
 且真实仓库 FAIL 集合恰好 = `{A4}`（与登记一致）。
 
 证据：`evidence/spotcheck-numeric-range-R61.txt` + `evidence/spotcheck-numeric-range-R61-selftest.txt`。
+
+
+**R61 台账回写**：追加 R61 行（「提交」列先留空，提交后由收尾提交补齐）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」（坑 36/80）；
+R 行连续性 R27 → R61 无缺号（坑 71）。
+
+**R61 提交态复跑**（临时 worktree，detached HEAD `3d66d1a`；坑 27/28）：204 例全绿（0 失败/0 错误/0 跳过）+ `EndpointCoverageTest` 自身 1/1 +
+`[ERROR]` 行数 0 + BUILD SUCCESS + worktree 内 `coverage-report.json` 逐字段 `total=90/implemented=90/missing=0/registered_routes=96/not_registered=[]`
+（`by_task` 12 族合计 90/90）→ **提交本身自洽、不依赖他方 4 个未提交改动**；收尾 `git worktree remove --force`（`git worktree list` 只剩主工作树）。
+证据：`evidence/green-verify-R61-worktree-HEAD.txt`。
+
+**R61 台账收尾**：R61 行「提交」列填为 `3d66d1a`（不留台账债）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」且末行「提交」列非空；
+R 行连续性 R27 → R61 无缺号（坑 71）。飞书通知失败留痕（第 36 轮同因：feishu home channel 未绑定，不阻塞交付）。
