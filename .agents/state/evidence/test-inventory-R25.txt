@@ -1,0 +1,19 @@
+### R25 只读巡检：用例清单 / 「不得削弱测试」核对
+时间: 2026-09-18 12:26:15
+
+== 1. 源码里的 @Test 方法数（词边界，避免把 @TestConfiguration/@TestPropertySource 数进来） ==
+  @Test\b 计数      : 204
+  @Test* 全部形态分布：
+        204 @Test
+          1 @TestPropertySource
+          1 @TestConfiguration
+
+== 2. 禁用/跳过/条件跳过（应为空 = 无削弱测试） ==
+  无任何 @Disabled/@Ignore/@DisabledIf/assumeTrue
+
+== 3. 实际执行数（run1/run2 摘要） ==
+  run1: [INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+  run2: [INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+
+== 4. 结论 ==
+  源码 @Test 方法 = 204 ；实际执行 = 204 ；禁用/跳过 = 0 → 数量吻合，无用例被静默跳过

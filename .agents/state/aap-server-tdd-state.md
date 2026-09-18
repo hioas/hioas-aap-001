@@ -811,3 +811,48 @@
 6. **待拍板（维持 R23，无新增）**：唯一悬置项是**飞书 home channel 未绑定**
    （复核 `profiles/java/config.yaml` 的 `platforms.feishu` 仍只有 `enabled` + `extra.default_group_policy`）。
    本轮无新批次落地 → 按「每完成一个批次才通知」的规则不发通知（避免 5 分钟一次重复推送）。
+
+---
+
+## R25（2026-09-18）巡检复验 + 三条首次执行的只读验证（本轮不改任何业务代码、不动任何断言）
+
+| 项 | run1（工作树） | run2（工作树，防 flaky） |
+| --- | --- | --- |
+| 用例 | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0` / `BUILD SUCCESS` / `Total time: 58.643 s` | 同左；`grep -c '^\[ERROR\]'` = **0** / `Total time: 01:03 min` |
+| 逐类一致性 | — | `diff <(run1 逐类 Tests run 行) <(run2 …)` **为空** → 204 例逐类结果完全一致 |
+| 覆盖门禁 | `EndpointCoverageTest` 1/1 绿 → 90/90（`registered_routes=96`、`not_registered=[]`，报告 12:25:04 重新生成） | 同左 |
+| 证据文件 | `evidence/green-verify-R25-full-run1.txt` | `evidence/green-verify-R25-full-run2.txt` |
+
+### 本轮增量（都是**首次执行**的只读验证，不是重复复跑）
+
+1. **真实密钥泄漏比对**（安全，硬约束 4 的自动化版）：以 `E:/env/aap-server.env` 的
+   `DB_PASSWORD` / `AAP_JWT_SECRET` / `AAP_CREDENTIAL_AES_KEY` 三个**真实值**为模式（值不回显，只报命中文件），
+   比对「提交历史 HEAD + 已跟踪工作树 + 未跟踪文件」→ **三者全部无命中**；
+   `.gitignore` 覆盖 `target/`、`node_modules/`、`.env`、`.env.*`；被跟踪的 `.env` 类文件只有 `aap-server/.env.example`。
+   唯一 `sk-` 命中是「日志脱敏」用例的夹具串 `sk-sec...leak`（出现在证据日志里）——**那是脱敏生效的证据，不是真实密钥**。
+   证据 `evidence/secret-leak-audit-R25.txt`。
+2. **用例数核对 / 「不得削弱测试」**：源码 `@Test\b` = **204**，实际执行 = **204**，
+   `@Disabled` / `@Ignore` / `@DisabledIf` / `assumeTrue` **全为 0** → 无用例被静默跳过。
+   *方法学修正*：先前 `grep -c "@Test"` 得 206 是**子串误计**（`@TestConfiguration`、`@TestPropertySource` 各 1 条），
+   必须用词边界 `@Test\b`；这 2 条差额**不是漏跑的用例**。证据 `evidence/test-inventory-R25.txt`。
+3. **台账完整性**：CSV 93 行、92 行带证据路径 → **证据文件缺失 0**；
+   接口 ID 与 `docs/backend/endpoints.json` **双向对齐 90/90**（清单有/CSV 无 = 空，CSV 有/清单无 = 空）；
+   状态列唯一非「已实现」的是 **T15（待实现，端到端验收与交付，不在本 job 范围）**。
+   *脚本自纠*：第一版用 `awk -F, '{print $NF}'` 取「证据」列，遇 `提交` 列含逗号的行会取到提交主题，
+   产出 **8 条假 MISS**（坑 29 同族：审计脚本先对齐数据形状再下结论）→ 改用真正的 CSV 解析后归零。
+   证据 `evidence/ledger-integrity-R25.txt`。
+4. **复核审计仍成立**（只读复跑）：`tools/audit-endpoint-tests.py` → `exact=90 / prefix=0 / none=0`、
+   端点 ID 可追溯 **90/90**（裸字面量 71 + 组合引用 19）、ID 引用与真实 HTTP 调用点同文件 **90/90**；
+   `tools/audit-endpoint-tests-selftest.py` → **9 条断言全 `[PASS]`、rc=0**。
+   证据 `evidence/audit-endpoint-tests-R25.txt`、`evidence/audit-selftest-negative-R25.txt`。
+5. **并发排查（坑 11）**：跑测试前后核对进程与连接——连到 PG `5432` 的 PID 只有 DataGrip（22908），
+   无第二个测试 JVM、无第二个 `mvn test`；两轮为**串行**执行，结果不受并发污染。
+6. **他方未提交文件 md5 与 R19–R24 完全一致**（`application.yml 7b7c0918…`、`application-test.yml 813b611d…`、
+   `log4j2-spring.xml f449ac92…`、`aap-client/vite.config.ts b1c72cb4…`）→ 工作树自 R19 起零变化、无回归；
+   这 4 个文件**未被纳入本次提交**（坑 15）。
+7. **结论：90/90 维持全绿（连续第 8 轮：R18 → R19 → R20 → R21 → R22 → R23 → R24 → R25）**，未见 flaky。
+8. **待拍板（维持 R23/R24，无新增）**：唯一悬置项是**飞书 home channel 未绑定**。
+   本轮进一步复核 `hermes send --list` → 输出 `Feishu: (no channels discovered yet)`，
+   即连可用频道都未被发现，**无法自动绑定**，必须人工执行
+   `hermes config set FEISHU_HOME_CHANNEL <channel_id>`（或发送时显式 `-t feishu:<channel>`）。
+   本轮无新批次落地 → 按「每完成一个批次才通知」的规则不发通知。
