@@ -1,0 +1,19 @@
+== R65 提交态复跑（临时 worktree，detached HEAD aee66c6；坑 27/28） ==
+worktree = C:\Users\laitz\AppData\Local\Temp\aap-r65-verify-054444
+目的：验证「提交本身自洽、不依赖他方 4 个未提交改动」；worktree 内 tools/ 与 src/ 全部来自 HEAD
+命令：cd <worktree>/aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test
+
+surefire 汇总 = [INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+BUILD = [INFO] BUILD SUCCESS
+[ERROR] 行数 = 0
+EndpointCoverageTest 相关行 = ['[WARNING] /C:/Users/laitz/AppData/Local/Temp/aap-r65-verify-054444/aap-server/src/test/java/com/hioas/aap/coverage/EndpointCoverageTest.java:[70,28] org.springframework.web.servlet.mvc.method.RequestMappingInfo 中的 getPatternsCondition() 已过时, 且标记为待删除', '[WARNING] /C:/Users/laitz/AppData/Local/Temp/aap-r65-verify-054444/aap-server/src/test/java/com/hioas/aap/coverage/EndpointCoverageTest.java:[71,37] org.springframework.web.servlet.mvc.method.RequestMappingInfo 中的 getPatternsCondition() 已过时, 且标记为待删除', '[INFO] Running com.hioas.aap.coverage.EndpointCoverageTest']
+门禁自身结果 = [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.199 s -- in com.hioas.aap.coverage.EndpointCoverageTest（坑 96：上面的 getPatternsCondition 行是编译告警、不是摘要）
+
+worktree 内 coverage-report.json 逐字段：
+  total = 90
+  implemented = 90
+  missing = 0
+  registered_routes = 96
+  not_registered = []
+  by_task 族数 = 12，合计 = 90/90
+  → 90/90/0 判定 = PASS

@@ -3648,3 +3648,28 @@ insert 型 upsert（aap_usage_hourly）整条漏检（改为遍历全部写语�
 `green-verify-R65-testcount.txt`；`green-verify-R65-coverage-fields.txt`；`audit-regression-R65.txt`；
 `audit-regression-R65-faildiff.txt`；`audit-regression-R65-rcseq.txt`；`spotcheck-audit-cols-R65.txt`；
 `spotcheck-audit-cols-R65-selftest.txt`。
+
+**提交态复跑（R65）**：临时 worktree（detached HEAD `aee66c6`，坑 27/28）内 `mvn -B -ntp test` →
+**204 例全绿**（0 失败 / 0 错误 / 0 跳过）+ `EndpointCoverageTest` 自身 **1/1** + `[ERROR]` 行数 0 + BUILD SUCCESS +
+worktree 内 `coverage-report.json` 逐字段 **90/90/0**（registered_routes=96、not_registered=[]、by_task 12 族合计 90/90）
+→ **提交自洽、不依赖他方 4 个未提交改动**；收尾 `git worktree remove --force`（`git worktree list` 只剩主工作树）。
+证据 `green-verify-R65-worktree-HEAD.txt`（坑 96：该文件里 `getPatternsCondition()` 的行是**编译告警**，不是门禁摘要）。
+
+**台账收尾**：R65 行「提交」列填为 `aee66c6`；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」且 R 行连续性 R27 → R65 无缺号（坑 71/80）。
+
+**飞书通知**：`hermes send -t feishu -s 'AAP TDD 进度' …` 返回「No home channel set for feishu …」
+（第 40 轮同因：feishu home channel 未绑定，需人执行 `hermes config set FEISHU_HOME_CHANNEL <channel_id>`）；
+已记入 `evidence/feishu-notify-failures.txt`，**不阻塞交付**。
+
+**观察项（坑 56 复现）**：工作区 `coverage-report.json` 每轮被测试重写，`git diff` 恒为 24 增 24 删 ——
+`Map.of(...)` 迭代顺序按 JVM SALT 随机化，键序互换而**逐字段值完全一致**（本轮实测 total=90 / implemented=90 / missing=0）；
+与 R59–R64 一致地**不纳入提交**。
+
+**本轮待拍板事项（新增 3 项）**：
+1. **审计留痕列漏填/漏刷新**（A1/A2/A3）——写路径要么把 created_by/updated_by 留 NULL，要么刷了 updated_at
+   却不刷 updated_by（该行 updated_by 因此保留**上一次操作者**，留痕误导）。修法属实现变更：给手写 SQL 统一补
+   `updated_by = ?`（或改为 `coalesce`），并把 `AuditListeners.Update` 的 `actorId != null` 守卫改为显式 SYSTEM 语义。
+2. **「SYSTEM 写入」的口径未成文**——`AuditContext.Actor.system()` 的 id 为 null（审计日志表用 actor_type=SYSTEM 表达），
+   但业务表是否允许 created_by 为 NULL 无书面约定（01-ER 只写「审计字段（业务表通用）」）。需人拍板：补文档约定，或要求系统写路径也落一个 SYSTEM 哨兵值。
+3. **审计列的取值级背书只覆盖 ORM 路径**（`PersistenceBaseTest` 断言 createdBy/updatedBy = 9001L）——
+   21 条手写 SQL 写路径零取值级背书，故上述漏填对全部 204 例不可见。补断言属测试增强（非本轮擅自改动）。
