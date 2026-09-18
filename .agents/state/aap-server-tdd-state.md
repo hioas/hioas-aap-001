@@ -1418,3 +1418,15 @@ S `SecurityConfig.PUBLIC_PATHS` ／ O `openapi.yaml` 每 operation 的 `security
 - **待拍板（维持）**：飞书 home channel 未绑定（R23–R30 同因）；PROV-03 item 模型口径；
   错误码漂移 10 条 + 孤儿码 2 个（R29 已裁决待执行）；md「角色」列 32 行补 `SUPER_ADMIN`（R30）。
 - **待拍板（R31 新增）**：`GET /detection-jobs/{jobId}/digest` —— 实现超出契约（删掉 or 补进清单）。
+
+### R31 提交态复跑（干净 detached worktree @ HEAD `62a5d15`，不含他方未提交的 4 个文件）
+
+| 项 | 结果 |
+| --- | --- |
+| 新审计（提交态） | **13 断言 13 PASS / 0 FAIL**（与工作树同结论，可复现）；信息项 `GET /detection-jobs/{}/digest` 同样复现 |
+| 新审计负向自测（提交态） | **20/20** |
+| 生成器 `--check`（提交态） | 84/84 一致、孤儿 0（零写副作用） |
+| 全量测试（提交态） | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0`；BUILD SUCCESS，`Total time 54.411 s`，`[ERROR]` 0 行 |
+| worktree `git status` | 仅 `.agents/state/evidence/coverage-report.json` 显示为修改；逐字段 `total=90/implemented=90/missing=0`，`git diff` 除 CRLF 归一化告警外**无内容差异** → 行尾工件，**本轮不能归因于键序**（R30 的键序观察项本轮未复现） |
+
+结论：**提交 `62a5d15` 自洽**（去掉他方改动后仍全绿）；证据 `commitstate-verify-R31.txt`。

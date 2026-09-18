@@ -1,0 +1,25 @@
+R31 提交态复跑（干净 detached worktree @ HEAD 62a5d15，**不含他方未提交的 4 个文件**）
+worktree：C:/Users/laitz/AppData/Local/Temp/aap-verify-r31-143936（`git worktree add --detach`，时间戳唯一名；
+        收尾用 `git worktree remove --force`，全程不碰他人工作区、不做递归删除 —— 坑 27/28）
+时间：2026-09-18（R31 收尾）
+
+目的：验证「提交本身自洽」—— 即提交里的工具/证据不依赖工作区里他方未提交的 4 个文件
+     （aap-client/vite.config.ts、application.yml、log4j2-spring.xml、application-test.yml）。
+
+结果：
+  1) 新审计在提交态**复现同结论**：`tools/audit-routes.py` → **断言 13 条：PASS 13，FAIL 0**
+     （A1 md↔清单 0 漂移、A2 openapi↔清单 0 漂移、A3 清单 90/90 定位到实现、
+       A4 客户端 39 调用点零越界、A5 路径变量名 0 漂移、Z1 零写副作用）
+     信息项同样复现：实现里注册但清单未声明的路由 1 条 `GET /detection-jobs/{}/digest`
+  2) 新审计负向自测：**20 条断言 PASS 20，FAIL 0**
+  3) 生成器 `--check`：84/84 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）
+  4) 全量测试：`Tests run: 204, Failures: 0, Errors: 0, Skipped: 0`（33 个测试类）
+     BUILD SUCCESS，Total time 54.411 s，日志中 `[ERROR]` 计数 = 0
+  5) worktree 内 `git status --short` 只有 1 个文件：`.agents/state/evidence/coverage-report.json`
+     （覆盖门禁每轮重写的产物）。逐字段核对：total=90 / implemented=90 / missing=0；
+     且 `git diff` 除 CRLF 归一化告警外**无任何内容差异** → 属行尾（CRLF↔LF）工件，不是内容漂移。
+     口径说明：与 R30 记录的「`Map.of(...)` 键序跨 JVM 随机化」不同，本轮该文件**内容完全一致**，
+     所以「提交态复跑发现产物被改写」这次**不能**归因于键序。
+
+结论：**提交 62a5d15 自洽** —— 不含他方改动仍全绿，新审计与自测均可复现。
+补充口径：工作区两轮全绿是在**含他方 4 个未提交文件**的树上跑的；本文件是「去掉他方改动后仍全绿」的独立证据。
