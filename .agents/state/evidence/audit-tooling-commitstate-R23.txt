@@ -1,0 +1,9 @@
+# R23 提交态复跑：干净 detached worktree @ HEAD 20a6e7d（无他方未提交改动）
+# 目的：验证「提交进去的审计工具自洽、不依赖本地 Temp 夹具/未提交文件」
+# cmd: git worktree add --detach <tmp>/aap-verify-r23-120331 HEAD; cd 该目录; python tools/audit-endpoint-tests.py / tools/audit-endpoint-tests-selftest.py
+
+== audit-endpoint-tests.py ==
+exact=90 prefix=0 none=0 | ID 可追溯 90/90（裸 71 + 组合引用 19）| ID 引用与调用点同文件 90/90 | rc=0
+
+== audit-endpoint-tests-selftest.py ==
+9 条断言全部 PASS | 结果：全部通过（审计有判别力）| rc=0
