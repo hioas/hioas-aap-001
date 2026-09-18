@@ -1586,3 +1586,47 @@ A2 openapi↔清单 0 漂移、A3a 清单 90/90 都能定位到实现、A4 客�
 * **收尾**：`git worktree remove --force` 成功（git 自带命令，不触发递归删除拦截）。
 * **飞书通知失败（第 11 轮同因）**：`No home channel set for feishu …`，已留痕
   `feishu-notify-failures.txt`；工作与提交未受影响。
+
+
+### R34 巡检轮（missing==0 → 只校验不改代码，连续第 16 轮全绿）
+
+本轮按作业约定「missing==0 时不改代码，只校验并报告」，**未改业务代码 / 清单 / 生成器 / md / 断言**，
+只做只读校验、一次抽查与台账回写。证据 `evidence/green-verify-R34-summary.txt`。
+
+| 项 | 结果 |
+| --- | --- |
+| 全量 run1 / run2（串行，绝不并发） | 两轮均 `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0`，BUILD SUCCESS，`[ERROR]`=0；两轮**逐类 diff 为空**（33 类，剔除 Time elapsed） |
+| 覆盖门禁 | `EndpointCoverageTest` 90/90（`registered_routes=96`、`not_registered=[]`） |
+| 既有 8 套只读审计 | 生成器 `--check` rc=0（82 文件、孤儿 0）；端点用例 exact 90/prefix 0/none 0；分页键名 rc=0；鉴权 16/1（同 R30）；路由 13/0（同 R31）；错误码 14/2（同 R28/R29）；查询参数 12/2（同 R32）；时间格式 15/0（同 R33）；openapi 可解析 rc=0；密钥 Tier A 0 命中 |
+| 负向自测 | 9 个脚本全部 rc=0（gen 14/14、端点用例、分页 11/11、鉴权 20/20、路由 20/20、错误码 12/12、查询参数 21/21、时间格式 20/20、密钥 3/3） |
+| 零写副作用守卫 | 运行前后 88 个产物文件 md5 **全等**；`git status` 被跟踪文件仍只有他方未提交的 4 个 |
+
+#### 本轮抽查：成功状态码不变量（第九类，抽查式，不新建工具）
+
+动机与坑 43/49/60/62 同族：md 清单**没有状态码列**，状态码只在 openapi 与实现里；
+契约测试只读 JSON Schema（**schema 不含状态码**）、覆盖门禁只比「方法+路径」
+→ 成功状态码漂移对**两套门禁完全不可见**。四处实测：
+
+* `openapi.yaml`：90 个 operation，成功响应 **90/90 全部 `200`**（无 201/204/202）。
+* md 清单「响应」列：23 条写作 `—`（无响应体），**不承载状态码语义** → 仅信息项，不作断言
+  （若按 `—` 推 204 就会与实现分叉，这正是坑 54「语义描述也是契约」的反面用法）。
+* 实现：控制器成功路径统一返回 `ApiEnvelope<...>`（Spring 默认 200）；唯一显式成功写法是
+  `ReportController.html` 的 `ResponseEntity.ok` → 亦为 200；全仓库
+  `HttpStatus.CREATED|NO_CONTENT|ACCEPTED|PARTIAL_CONTENT` / `@ResponseStatus` /
+  `ResponseEntity.created|accepted` **命中 0 处**（状态码只出现在 `GlobalExceptionHandler` 的错误路径）。
+* 测试：成功断言 `isEqualTo(200)` **206 处**（另有 `statusCode()).isEqualTo(200)` 2 处）；
+  错误路径 400×54 / 403×40 / 409×38 / 401×34 / 404×26 / 502×6 / 429×4 / 503×2 / 500×2 / 556×1。
+
+结论：**成功状态码零漂移**。为什么只做抽查不建工具：四处实测全部同值（90/90 均为 200），
+不存在需要长期守卫的漂移面；一旦将来出现 201/204，这份抽查记录即为基线。
+
+#### 台账补齐（坑 16 同族，主动发现）
+
+巡检时以 `grep '^R3[0-9]'` 核对台账，发现 **R33 没有写入 `aap-server-feature-status.csv` 行**
+（末三行为 R30/R31/R32）——即「证据与 tdd-state.md 都写了、CSV 台账漏了一行」。
+本轮一并补 R33 行（证据 `audit-time-format-R33.txt`、提交 `3c1b1a9`）与 R34 行，并在此说明。
+追加时按仓库既有 **CRLF** 行尾写入，避免整文件行尾 diff（坑 56 的「字节不稳定」同族纪律）。
+
+结论：**90/90 维持全绿（连续第 16 轮）**；本轮**无新增漂移、无新增待拍板项**。
+待拍板与 R33 相同：飞书 home channel 未绑定 + PROV-03 item 模型口径 + 错误码漂移 10 条与孤儿码 2 个
++ 鉴权 md 角色列漂移 32 条 + 路由实现超出契约 1 条 + 查询参数漂移 8 条（去重 6 端点）。

@@ -1,0 +1,120 @@
+=== 生成器--check rc=0
+check ok: 84/84 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）
+ok: models=55 requests=24 paths=78 operations=90 files=82
+
+=== 端点用例审计 rc=0 (tools/audit-endpoint-tests.py)
+exact （路径骨架 + 方法都吻合的真实 HTTP 调用点）：90
+prefix（路径命中但方法不吻合 / 仅静态前缀，弱证据）：0
+none  （无任何调用点 —— 真发现）            ：0
+  靠组合引用（`A-05/06`、`A-01…05`）才算命中  ：19
+
+=== 分页键名审计 rc=0 (tools/audit-contract-keys.py)
+== A. OpenAPI 分页集合键名（应为 items）：57/57 PASS ==
+== B. OpenAPI 分页端点必须被 PageMeta 包装：23/23 PASS ==
+== C. page.schema.json 必须 required/properties 含 items：3/3 PASS ==
+== D. 运行时 PageResult 分量名：1/1 PASS ==
+== E. 客户端列表响应接口必须声明 items：3/3 PASS ==
+== F. 冻结清单 §0 分页字段名约定：1/1 PASS ==
+合计 88 条断言：PASS 88，FAIL 0
+
+=== 鉴权契约审计 rc=1 (tools/audit-auth-contract.py)
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b D 行数 = total：parsed=90 期望=90
+[PASS] A0c O operation 数 = total：parsed=90 期望=90
+[PASS] A0d I 解析到控制器路由：parsed=91 条路由，控制器问题 0 条
+[PASS] A0e S 解析到匿名白名单：parsed=['/actuator/health', '/actuator/health/**', '/actuator/info', '/actuator/metrics/**', '/api/v1/auth/refresh', '/api/v1/auth/sms/login', '/api/v1/auth/sms/send', '/api/v1/auth/wechat/login']
+[PASS] A0f I 解析无异常
+[PASS] A1 清单每条端点都能在实现里定位到路由（解析器覆盖性正向对照）：未定位 0 条：[]
+[PASS] A2 openapi `security: []` 集合 = 清单 anon 集合：清单 4 条 / openapi 4 条；差集=[]
+[PASS] A3a 清单 anon 的端点都在 SecurityConfig.PUBLIC_PATHS 里：{}
+[PASS] A3b 非 anon 的端点都不在 PUBLIC_PATHS 里（否则等于匿名可访问）：{}
+[PASS] A4 anon 端点上没有 @PreAuthorize（清单说免，实现不得再要求角色）：{}
+[PASS] A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 0 条
+
+=== 路由契约审计 rc=0 (tools/audit-routes.py)
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b D 行数 = total（裸 split 会漏行，坑 48）：parsed=90 期望=90
+[PASS] A0c O operation 数 = total：parsed=90 期望=90
+[PASS] A0d I 解析到控制器路由：parsed=91 条路由
+[PASS] A0e C 解析到客户端调用点：parsed=39 个调用点（12 个文件）；未能静态判定 0 处
+[PASS] A0f I 解析无异常
+[PASS] A1 md 逐行「方法+路径」= endpoints.json（未归一前缀）：不一致 0 条
+[PASS] A2 openapi 每 operation 的「方法+路径」= endpoints.json：不一致 0 条
+[PASS] A3 清单每条端点都在实现里有同方法同路径的路由：未定位 0 条
+[PASS] A4 客户端每个调用点都在冻结清单内且方法一致：越界调用 0 个
+[PASS] A5 路径变量名序列逐端点一致（清单 / md / openapi）：不一致 0 条
+[PASS] A6 md 表头/行定位无异常
+
+=== 错误码契约审计 rc=1 (tools/audit-error-codes.py)
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b O operation 数 = total：parsed=90 期望=90
+[PASS] A0c D 行数 = total：parsed=90 期望=90
+[PASS] A0d J 码数 = O.enum 码数：J=28 O.enum=28
+[PASS] A0e S 码数 = J 码数 - 1（S 不含成功码 0）：S=27 J=28
+[PASS] A0f O ResultCode enum 非空：parsed=28
+[PASS] A1 J 与 S 码集合一致：差集=[]
+[PASS] A2 O.ResultCode 与 J 一致：差集=[]
+[PASS] A3 清单声明的码都在 ErrorCode.java 目录里：越界={}
+[FAIL] A4 目录里的码都被至少一个端点声明（无孤儿码）：孤儿=['E-1102', 'E-1404']
+[PASS] A5 openapi operation 数 = 清单端点数：差集=[]
+[PASS] A6 openapi 每 operation 4XX 码集合 = 清单：不一致 0 条
+
+=== 查询参数契约审计 rc=1 (tools/audit-query-params.py)
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b D 行数 = total（裸 split 会漏行，坑 48）：parsed=90 期望=90
+[PASS] A0c O operation 数 = total：parsed=90 期望=90
+[PASS] A0d I 解析到控制器方法数 ≥ total：parsed=91 条（含无查询参数的方法）
+[PASS] A0e 非空查询参数端点被真的解析出来（否则本审计空转）：M 非空 25 条；D 非空 24 条；O 非空 25 条；I 非空 25 条
+[PASS] A0f I 解析无异常
+[PASS] A0g O 解析无异常
+[PASS] A0h D 解析无异常
+[FAIL] A1 md 逐行 `q：…` = endpoints.json query_params：不一致 3 条
+[PASS] A2 openapi 每 operation 的 query 参数 = endpoints.json：不一致 0 条
+[PASS] A3a 清单每条端点都在实现里定位到同方法同路径的控制器方法：未定位 0 条
+[FAIL] A3b 实现 @RequestParam 集合 = 清单 query_params：不一致 5 条
+
+=== 时间格式契约审计 rc=0 (tools/audit-time-format.py)
+[PASS] A0a 正向对照：解析到出口定义（解析器真的工作了） — 出口格式串声明 17 处、辅助方法 14 处（为 0 即解析器失效，不得判 PASS）
+[PASS] A0b 所有 DateTimeFormatter 格式串只有 1 种 — 实测 1 种：["yyyy-MM-dd'T'HH:mm:ss'Z'"]
+[PASS] A0c 格式串 = 秒精度 UTC（yyyy-MM-dd'T'HH:mm:ss'Z'） — 实测 ["yyyy-MM-dd'T'HH:mm:ss'Z'"]
+[PASS] A0d 所有辅助方法体归一化后只有 1 种 — 副本 14 处 → 形态 1 种
+      · 观察项：同一出口有 14 份副本（aap-server/src/main/java/com/hioas/aap/adminconfig/DetectionConfigService.java、aap-server/src/main/java/com/hioas/aap/adminconfig/ReportTemplateService.java、aap-server/src/main/java/com/hioas/aap/compile/CompilationService.java、aap-server/src/main/java/com/hioas/aap/contract/ContractService.java、aap-server/src/main/java/com/hioas/aap/credential/CredentialService.java、aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java、aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java、aap-server/src/main/java/com/hioas/aap/report/ReportController.java、aap-server/src/main/java/com/hioas/aap/review/ReviewService.java、aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java、aap-server/src/main/java/com/hioas/aap/support/AuditLogQueryService.java、aap-server/src/main/java/com/hioas/aap/support/NotificationService.java 等）——逐字节相同，但属「同一函数两种写法」的漂移高发地（坑 44）
+      · 信息项：非出口的 DateTimeFormatter（常量名不含 RFC3339/ISO，如键值格式）2 处、2 种：['yyyyMM', 'yyyyMMdd'] —— 不参与 A0b/A0c 断言（否则假漂移，坑 29/46）
+[PASS] A1a 正向对照：解析到被出口包裹的时间取值点 — 已包裹 29 处（为 0 即解析器失效，不得判 PASS）
+[PASS] A1b 所有进入响应的时间值都被统一出口包裹 — 未包裹 0 处
+[PASS] A1c 「内部读取」判为信息项的条数不超过阈值（否则本规则形同虚设，坑 57） — 内部读取 1 处：["aap-server/src/main/java/com/hioas/aap/support/NotificationService.java:112 ['read_at']"]
+[PASS] A2 没有把时间列按数据库文本原样透传（getString） — 文本直出 0 处
+[PASS] A3a 正向对照：解析到响应 DTO 时间字段 — 14 个 *Views.java、时间字段 58 个
+[PASS] A3b 响应 DTO 时间字段一律声明为 String（避免 Jackson 直出） — 非 String 0 处
+
+=== openapi可解析 rc=0 (tools/check-openapi-parses.py)
+
+=== 密钥泄漏审计 rc=0 (tools/audit-secret-leak.py)
+Tier A（变量名含密钥语义、值长 >= 8）：13 个变量 —— 必须 0 命中
+[PASS] 正向对照：读到 28 个变量（扫描器确实有输入）
+[PASS] 暂存差异：Tier A 命中 0
+[PASS] 提交历史 HEAD 树：Tier A 命中 0
+[PASS] 已跟踪工作树：Tier A 命中 0
+[PASS] 未跟踪文件（10 个）：Tier A 命中 0
+[PASS] .gitignore 含 `.env`
+[PASS] .gitignore 含 `.env.*`
+[PASS] .gitignore 含 `target/`
+[PASS] .gitignore 含 `node_modules/`
+[PASS] 被跟踪的 .env 类文件只有 .env.example：['aap-server/.env.example']
+结论：Tier A 泄漏命中 0 处
+
+
+=== 负向自测 ===
+gen-backend-models-selftest rc=0 | 
+audit-endpoint-tests-selftest rc=0 | 
+audit-contract-keys-selftest rc=0 | 
+audit-auth-contract-selftest rc=0 | 
+audit-routes-selftest rc=0 | 
+audit-error-codes-selftest rc=0 | 
+audit-query-params-selftest rc=0 | 
+audit-time-format-selftest rc=0 | 
+audit-secret-leak-selftest rc=0
+
+=== 零写副作用守卫（运行前后全产物 md5 比对）
+PASS 产物零变化（88 个文件 md5 全等）
+DONE

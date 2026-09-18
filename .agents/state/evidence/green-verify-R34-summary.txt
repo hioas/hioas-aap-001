@@ -1,0 +1,71 @@
+R34 巡检结论（2026-09-18 15:35–15:5x，串行执行，绝不并发跑测试）
+========================================================================
+仓库：E:/workspaces/hioas/hioas-aap-001    HEAD（本轮基线）：852b53e
+本轮性质：missing==0 → 按作业约定「不改代码，只校验并报告」。未改业务代码 / 未改清单 /
+         未改生成器 / 未改 md / 未动任何断言。仅新增只读证据与本状态文件。
+
+一、覆盖门禁与全量用例（两轮防 flaky）
+------------------------------------------------------------------------
+  run1  Tests run: 204, Failures: 0, Errors: 0, Skipped: 0   BUILD SUCCESS  [ERROR]=0  rc=0
+  run2  Tests run: 204, Failures: 0, Errors: 0, Skipped: 0   BUILD SUCCESS  [ERROR]=0  rc=0
+  逐类比对（33 个测试类，比对前剔除 Time elapsed，坑 59）：diff 行数 = 0 → 两轮逐类结果完全一致
+  覆盖门禁 EndpointCoverageTest：total=90 implemented=90 missing=0（registered_routes=96、not_registered=[]）
+  证据：green-verify-R34-full-run1.txt / green-verify-R34-full-run2.txt
+        r34-run1-classes.txt / r34-run2-classes.txt / r34-classes-diff.txt / r34-run2-rc.txt
+
+二、既有 8 套只读审计复跑（与 R33 同结论，零回归）
+------------------------------------------------------------------------
+  gen-backend-models.py --check  rc=0（全产物内容比对 + 孤儿扫描：82 文件、孤儿 0）
+  audit-endpoint-tests.py        rc=0（exact 90 / prefix 0 / none 0）
+  audit-contract-keys.py         rc=0（分页集合键名零漂移）
+  audit-auth-contract.py         rc=1（16 PASS / 1 FAIL —— md 角色列漂移 32 条，同 R30）
+  audit-routes.py                rc=0（13 PASS / 0 FAIL，同 R31；信息项 digest 路由同样复现）
+  audit-error-codes.py           rc=1（14 PASS / 2 FAIL，同 R28/R29）
+  audit-query-params.py          rc=1（12 PASS / 2 FAIL，同 R32）
+  audit-time-format.py           rc=0（15 PASS / 0 FAIL，同 R33）
+  check-openapi-parses.py        rc=0
+  audit-secret-leak.py           rc=0（Tier A 13 个变量 0 命中；暂存差异/HEAD 树/已跟踪工作树/未跟踪文件四处 0 命中；
+                                       .gitignore 四项覆盖 PASS；被跟踪 .env 类文件只有 .env.example）
+  说明：rc=1 的三套均为**已裁决的待拍板漂移项**，不是本轮新增回归；与 R30/R28/R32 逐条一致。
+
+三、负向自测复跑（判别力对照，全部 rc=0）
+------------------------------------------------------------------------
+  gen 14/14、端点用例、分页键名 11/11、鉴权 20/20、路由 20/20、错误码 12/12、
+  查询参数 21/21、时间格式 20/20、密钥 3/3 —— 9 个自测脚本全部 rc=0。
+
+四、零写副作用守卫（坑 39/40）
+------------------------------------------------------------------------
+  运行全部只读校验前后，对 88 个产物文件（schemas/*.json + docs/backend/* + openapi.yaml）取 md5：
+  PASS 产物零变化（88 个文件 md5 全等）。
+  git status 复核：被跟踪文件里仍只有他方未提交的 4 个文件（aap-client/vite.config.ts、
+  aap-server/application.yml、log4j2-spring.xml、application-test.yml），本轮未触碰。
+
+五、本轮新增只读核查：成功状态码不变量（第九类，抽查式，不新建工具）
+------------------------------------------------------------------------
+  动机：md 清单没有状态码列 → 状态码只在 openapi 与实现里；契约测试校验 JSON Schema（不含状态码），
+        覆盖门禁只比「方法+路径」→ 成功状态码漂移对两套门禁同样不可见（坑 43/49/60/62 族）。
+  实测（四处）：
+    openapi.yaml     90 个 operation，成功响应 **90/90 全部为 `200`**（无 201/204/202）
+    md 清单「响应」列  23 条写作 `—`（无响应体），**不承载状态码语义** → 只作信息项
+    实现             控制器成功路径统一返回 `ApiEnvelope<...>`（Spring 默认 200）；
+                     唯一显式成功状态码写法是 `ReportController.html` 的 `ResponseEntity.ok` → 亦为 200；
+                     全仓库 `HttpStatus.CREATED|NO_CONTENT|ACCEPTED|PARTIAL_CONTENT`、`@ResponseStatus`、
+                     `ResponseEntity.created|accepted` **命中 0 处**（仅 GlobalExceptionHandler 有错误路径状态码）
+    测试断言          成功断言 `isEqualTo(200)` 共 206 处（另有 `statusCode()).isEqualTo(200)` 2 处）；
+                     错误路径 400×54 / 403×40 / 409×38 / 401×34 / 404×26 / 502×6 / 429×4 / 503×2 / 500×2 / 556×1
+  结论：**成功状态码零漂移**（openapi 90/90 声明 200，实现与测试一致）。
+  证据：audit-regression-R34.txt 及其同目录本文件。
+
+六、结论
+------------------------------------------------------------------------
+  90/90 维持全绿（**连续第 16 轮**：R18 → … → R34）；全量 204 例两轮全绿、逐类一致。
+  本轮无新增漂移、无新增待拍板项（待拍板项与 R33 完全相同，见下）。
+
+七、待拍板（需人工决策，均不阻塞 90/90）
+------------------------------------------------------------------------
+  1. 飞书通知：home channel 未绑定（第 12 轮同因，见 feishu-notify-failures.txt）
+  2. PROV-03 item 模型口径
+  3. 错误码漂移 10 条 + 孤儿码 2 个（R29 已裁决，待执行）
+  4. 鉴权 md 角色列漂移 32 条（R30）
+  5. 路由：实现超出冻结契约 1 条（GET /detection-jobs/{jobId}/digest，R31）
+  6. 查询参数漂移 8 条 / 去重 6 端点（R32）
