@@ -1,0 +1,16 @@
+== R46 提交态复跑（临时 worktree，detached HEAD 064cc4b；坑 27/28） ==
+目的：验证「提交本身自洽、不依赖他方未提交改动」（工作树里另有他方 4 个未提交文件：
+      aap-client/vite.config.ts、application.yml、log4j2-spring.xml、application-test.yml）。
+命令：git worktree add --detach C:\Users\laitz\AppData\Local/Temp/aap-verify-r46-2054 HEAD → cd <wt>/aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test
+纪律：临时目录用**带时间戳的唯一名**（不写「先删目录再建」，坑 28）；收尾用 git worktree remove --force（git 自带命令）。
+
+[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+测试类数 = 33；[ERROR] 行数 = 0
+门禁（EndpointCoverageTest）自身断言：[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.113 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+覆盖门禁报告（提交态 worktree 内生成，逐字段）：total=90 implemented=90 missing=0 registered_routes=96 not_registered=[]
+结论：提交 064cc4b 本身自洽 —— 204 例全绿（0 失败/0 错误/0 跳过）+ 门禁 90/90 + [ERROR]=0 + BUILD SUCCESS。
+
+诚实性说明（坑 96）：本文件不含 grep 类名得到的「摘要」——上面门禁行取自测试自身的 `Tests run: 1, Failures: 0 …`
+（门禁自身断言 1/1 通过），覆盖字段取自报告文件逐字段读取；`getPatternsCondition() 已过时` 之类是**编译告警**，不是摘要。
+
