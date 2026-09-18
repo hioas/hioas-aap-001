@@ -1,0 +1,22 @@
+== T14 批次二 RED 基线：ADM-CFG01…05（检测配置版本）==
+命令：../tools/with-env.sh aap-server mvn -B -ntp -Dtest=DetectionConfigContractTest test
+时间：2026-09-18 10:10:18+0800  HEAD=611d2dc
+
+结论：7 例全红（端点未实现，HTTP 404 E-1406「接口或资源不存在」）—— 这就是本轮要补齐的 5 条端点。
+
+[ERROR] Tests run: 7, Failures: 7, Errors: 0, Skipped: 0, Time elapsed: 8.698 s <<< FAILURE! -- in com.hioas.aap.adminconfig.DetectionConfigContractTest
+[ERROR] com.hioas.aap.adminconfig.DetectionConfigContractTest.createDetailList -- Time elapsed: 1.176 s <<< FAILURE!
+[ERROR] com.hioas.aap.adminconfig.DetectionConfigContractTest.versionNumberingAndPaging -- Time elapsed: 0.101 s <<< FAILURE!
+[ERROR] com.hioas.aap.adminconfig.DetectionConfigContractTest.permissions -- Time elapsed: 0.351 s <<< FAILURE!
+[ERROR] com.hioas.aap.adminconfig.DetectionConfigContractTest.publishSupersedesPrevious -- Time elapsed: 0.092 s <<< FAILURE!
+[ERROR] com.hioas.aap.adminconfig.DetectionConfigContractTest.updateOnlyDraft -- Time elapsed: 0.101 s <<< FAILURE!
+[ERROR] com.hioas.aap.adminconfig.DetectionConfigContractTest.publishWithAuditTrail -- Time elapsed: 0.085 s <<< FAILURE!
+[ERROR] com.hioas.aap.adminconfig.DetectionConfigContractTest.createValidation -- Time elapsed: 0.083 s <<< FAILURE!
+[ERROR]   DetectionConfigContractTest.createDetailList:116->createStandard:97 [{"code":"E-1406","message":"接口或资源不存在","data":null,"traceId":"ca14871c41c3456681d6896b025482fd","details":null}] 
+[ERROR]   DetectionConfigContractTest.createValidation:217 [{"pass_score":70,"probes":[{"probe_code":"D1"}]} → {"code":"E-1406","message":"接口或资源不存在","data":null,"traceId":"a75116e2e1f74d92babf8f3abb27d68d","details":null}] 
+[ERROR]   DetectionConfigContractTest.permissions:348 
+[ERROR]   DetectionConfigContractTest.publishSupersedesPrevious:328->createStandard:97 [{"code":"E-1406","message":"接口或资源不存在","data":null,"traceId":"7335d1b745ce405ebf7ad423dd9ba245","details":null}] 
+[ERROR]   DetectionConfigContractTest.publishWithAuditTrail:285->createStandard:97 [{"code":"E-1406","message":"接口或资源不存在","data":null,"traceId":"4cff21299ec54928be20750af2def83f","details":null}] 
+[ERROR]   DetectionConfigContractTest.updateOnlyDraft:230->createStandard:97 [{"code":"E-1406","message":"接口或资源不存在","data":null,"traceId":"83b828973c8b48ca8ed51eb75b1a829b","details":null}] 
+[ERROR]   DetectionConfigContractTest.versionNumberingAndPaging:185->createStandard:97 [{"code":"E-1406","message":"接口或资源不存在","data":null,"traceId":"99cf3f739c7c404189b219cf30a54353","details":null}] 
+[ERROR] Tests run: 7, Failures: 7, Errors: 0, Skipped: 0

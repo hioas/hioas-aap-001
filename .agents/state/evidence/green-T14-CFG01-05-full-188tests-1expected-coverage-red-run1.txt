@@ -1,0 +1,12 @@
+== T14 批次二 全量 run1：188 例，除覆盖门禁外全绿 ==
+命令：../tools/with-env.sh aap-server mvn -B -ntp test（串行，绝无并发）
+时间：2026-09-18 10:13:08+0800
+
+门禁红是**设计如此**：EndpointCoverageTest 要求 90/90 注册才绿，本轮已注册 78/90，仍缺 12 条（T14 剩余）。
+因此本文件与结论只能写「除覆盖门禁外全绿 + missing 下降」，不得声称「全量全绿」。
+
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.101 s <<< FAILURE! -- in com.hioas.aap.coverage.EndpointCoverageTest
+[ERROR] com.hioas.aap.coverage.EndpointCoverageTest.everyListedEndpointIsRegistered -- Time elapsed: 0.082 s <<< FAILURE!
+	at com.hioas.aap.coverage.EndpointCoverageTest.everyListedEndpointIsRegistered(EndpointCoverageTest.java:143)
+[ERROR]   EndpointCoverageTest.everyListedEndpointIsRegistered:143 [以下接口在冻结清单中但未注册（明细见 .agents/state/evidence/coverage-report.json）] 
+[ERROR] Tests run: 188, Failures: 1, Errors: 0, Skipped: 0

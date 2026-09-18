@@ -427,22 +427,69 @@
 | D-API-22 | ADM-CFG06…10 放行 `TECH_OPS` + `SUPER_ADMIN`（清单只列 TECH_OPS） | `13-管理端PRD` 能力矩阵中超管为全量权限；与既有权（ADM-U01 等）同一口径 |
 | D-API-23 | 修改接口未提供的字段按 coalesce 语义**保持原值**（含空白 `title` 视同省略） | 与合同签发（ADM-CT02）同一取舍：省略=保持，不是清空（R14 踩坑 1） |
 
+## R16 · T14 批次二：检测配置版本（ADM-CFG01…05，78/90 已注册）—— ✅ 完成
+
+- 红基线：`evidence/red-T14-CFG01-05.txt` —— 7 例全红，HTTP **404 `E-1406`「接口或资源不存在」**（= 端点未注册，不是实现 bug）。
+- 绿证据：`evidence/green-T14-CFG01-05.txt`（本类 **7/7 真绿**）；
+  全量两轮 `evidence/green-T14-CFG01-05-full-188tests-1expected-coverage-red-run{1,2}.txt`
+  （**188 例，唯一红项仍是覆盖门禁**，run1/run2 结果一致）。
+- 覆盖：`total=90 / implemented=78 / missing=12`（missing **17 → 12**）。
+- 交付：`com.hioas.aap.adminconfig`（`DetectionConfigViews` / `DetectionConfigService` /
+  `AdminDetectionConfigController`）+ 迁移 `V6__detection_config_sequences.sql`
+  （`seq_detection_config` / `seq_detection_config_probe` / `seq_detection_config_version`）。
+- 口径（实现即契约）：
+  - 状态机 `DRAFT --publish--> PUBLISHED`，被替代的活版 → `SUPERSEDED`：改/发布一律**条件 UPDATE**
+    （`and status='DRAFT'` + 影响行数=1），重复改/重复发布 → 409 `E-1601`；发布写 `published_at/published_by`
+    并落 `CONFIG_PUBLISH` 审计（ADM-A01 可按 action 检索到 `target_type=detection_config`）。
+  - **`status` 白名单**：ADM-CFG02/04 收到非 `DRAFT` 的 `status` 一律 400 `E-1001` —— 否则客户端可绕过
+    发布接口造出「无 `published_at/by`、无审计」的生效配置。
+  - 检测项只取 **D1–D8**（允许集合与默认名取 `ProbeScoring.PROBE_NAMES`，不另建第二份词典）；
+    `weight` 存**归一化前**原始权重（归一化发生在任务打分、只对计分项）；缺省超时按 ER：
+    D1–D3/D6–D8 = 180s、D4/D5 = 600s；`params` 原样存 jsonb。
+  - 修改是 **coalesce 语义**（省略=保持）；`probes` 一旦提供即**整体替换**（旧项软删 + 新项插入），
+    避免「部分更新后权重集合不自洽」。
+  - 列表接口**逐份带检测项明细**（管理端列表页要展示启停/权重，只回壳等于列表页不可用）。
+
+### 本轮踩坑（第 1 条会伪装成“实现已好”）
+
+1. **`map()` 里 `probes` 传了 `false` 却忘了在 `detail()` 里补**：`create` 返回的是 `detail(id)`，
+   若 `detail()` 不补检测项，响应就是「id 有、`probes: []`」—— 只看 HTTP 200 + 库里有 3 行会**误判为绿**，
+   只有 `assertThat(data.path("probes").size()).isEqualTo(3)` 这种响应体断言才抓得到。规则：写+读回响应的
+   视图必须在同一处补齐全部子集合（与踩坑 17 同源：状态/明细断言都钉响应体）。
+2. **`weight` 列是 `numeric(6,4)`**：负权重/超大权重不在入口拦，入库会炸成 **500 `E-2001`**
+   （与踩坑 13 同族，根因只在服务端日志）。规则：列宽约束在服务层做前置校验（`0 ~ 99.9999`），
+   400 里带字段名 `probes.weight`。
+3. **红基线的错误码要读懂再动手**：本轮红是 404 `E-1406`（路由缺失），不是 400/500 ——
+   若把红基线当实现 bug 去改实现，方向就错了。先看状态码判断「缺路由 / 缺校验 / 缺数据」。
+
+### 本轮偏差表（T14 批次二）
+
+| 编号 | 内容 | 理由 |
+|---|---|---|
+| D-API-24 | `version_no` 由序列生成、**全表唯一** → 每次新建即新版本（`V1`、`V2`…）；「同族多版本」在当前表结构下不可表达（**待拍板**） | ER 写明 `uq_detection_config_version`；用 `count(*)+1` 在并发下重号，序列并发安全、重启不跳号（与 D-API-21 同一取舍） |
+| D-API-25 | 已发布配置**暂未被检测任务消费**：`DetectionService` 仍按 `ProbeScoring` 默认权重打分，`aap_detection_job.config_snapshot` 也未落配置快照 | 接入点跨任务族（T06 检测任务），需人拍板；**不静默改检测口径**（待拍板） |
+| D-API-26 | ADM-CFG01…05 放行 `TECH_OPS` + `SUPER_ADMIN`（清单只列 TECH_OPS） | 沿用 D-API-22 的能力矩阵口径（超管全量权限） |
+| D-API-27 | ADM-CFG01 额外支持可选 `status` 过滤（清单 `query_params` 只有 `page`/`pageSize`） | 纯附加过滤参数（缺省=不过滤），与 ADM-CFG06 同一做法，不改既有语义 |
+
 ## 未决与下一步
 
-- 上一轮已完成：**T14 批次一 · 报告模板配置**（R15，ADM-CFG06…10，5/22）。
-- 下一轮：**T14 批次二 · 检测配置**（ADM-CFG01…05，5 条）→ 批次三 · 同步任务与渠道绑定
-  （ADM-S01…06，6 条）→ 批次四 · 供应商/凭证/报价对比（ADM-P01…03、ADM-C01/02、ADM-Q02，6 条）
-  → 之后是 T15 端到端联调与容器化交付。
+- 上一轮已完成：**T14 批次二 · 检测配置版本**（R16，ADM-CFG01…05，78/90 已注册）。
+- 下一轮：**T14 批次三 · 同步任务与渠道绑定**（ADM-S01…06，6 条）→ 批次四 · 供应商/凭证/报价对比
+  （ADM-P01…03、ADM-C01/02、ADM-Q02，6 条）→ 之后是 T15 端到端联调与容器化交付。
 - **待拍板（本轮新增）**
   1. **D-API-12**：对象存储签名/限时 URL 的接线方式（合同 PDF 与报告 PDF 是同一问题）。
   2. **D-API-14**：合同短信签署是否走真实短信核验（若走，需先把「合同签署验证码发送」端点写进清单再实现）。
   3. **D-STATE-04**：「上架 PUBLISHED」由哪个端点触发、`aap_quote` 何时转 `CONVERTED`（清单未定义）。
   4. **D-PAY-01**：钱包三项口径需产品确认（清单自述无 PRD 依据）。
+  5. **D-API-24**（R16 新增）：检测配置「同族多版本」当前表结构不可表达（`version_no` 全表唯一 → 新建即新版本）；
+     若要「同一配置的草稿/发布演进」，需要新列或新端点。
+  6. **D-API-25**（R16 新增）：已发布检测配置何时被**检测任务**消费（`aap_detection_job.config_snapshot`
+     的接入点跨 T06 检测任务族，本期未动检测打分口径）。
 - **待拍板（沿用）**：D-API-05（`PARTIAL_CACHE` 是否入枚举）、D-USAGE-01（new-api 用量日志源契约）、
   D-API-03（`docs/api/接口字段级schema.md` §2 的 `{list}` → `{items}` 回改）。
-- 剩余任务：T14 余 17 条（检测配置 5 / 同步与渠道 6 / 供应商与凭证 6）、T15 端到端联调与容器化交付
+- 剩余任务：T14 余 12 条（同步与渠道绑定 6 / 供应商与凭证 6）、T15 端到端联调与容器化交付
   （`docs/backend/03-任务与TDD计划.md` §1 为完整清单）。
-- 覆盖门禁纪律：`EndpointCoverageTest` 在 17 条未注册期间**必然红**，它是「还剩多少没落地」的仪表；
+- 覆盖门禁纪律：`EndpointCoverageTest` 在 12 条未注册期间**必然红**，它是「还剩多少没落地」的仪表；
   每轮证据只允许写「除门禁外全绿 + missing 下降」，禁止写「全量全绿」。
 - **待前端处理（O-01）**：`aap-client/src/utils/report-model.ts:51` 兜底免责声明含 R-26 禁用字样，建议改为与
   服务端 `ReportService.DISCLAIMER` 同文案。
