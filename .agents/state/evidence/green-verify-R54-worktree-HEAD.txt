@@ -1,0 +1,11 @@
+== R54 提交态复跑（临时 worktree，detached HEAD = c259ea8；坑 27/28） ==
+目的：证明**提交本身自洽**、不依赖他方未提交改动；全程不碰任何人正在编辑的文件。
+命令：git worktree add --detach C:/Users/laitz/AppData/Local/Temp/aap-verify-r54-0106 HEAD
+      cd <worktree>/aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test
+收尾：git worktree remove --force <path>（git 自带命令，不触发 cron 危险命令拦截）
+
+BUILD SUCCESS = True；[ERROR] 行数 = 0
+汇总：Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+覆盖门禁 EndpointCoverageTest 自身通过 = True
+worktree 内 coverage-report.json 逐字段：total=90 / implemented=90 / missing=0 / registered_routes=96 / not_registered=[]
+结论：提交态自洽（204 例全绿 + 门禁 90/90 + 无未提交依赖）。
