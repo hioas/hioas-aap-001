@@ -1,0 +1,99 @@
+红基线（R27 · 契约键名审计 · 修复前） — 证据说明
+================================================
+审计工具：tools/audit-contract-keys.py（只读；负向自测 tools/audit-contract-keys-selftest.py 11/11 PASS）
+被测不变量：分页响应的集合键名必须为 `items`（真源 = 客户端读法；见 docs/backend/02-API接口模型清单.md §0 与偏差 D-API-01）
+
+本轮结论（修复前）：87 条断言 PASS 30 / FAIL 57 —— 集合键名契约在多个真源之间不一致：
+  · A 分支 0/56：openapi.yaml 中 **56 个端点**的集合键名写作 `list`（应为 `items`）。
+    生成器 tools/gen-backend-models.py 的 _enveloped() 对 LIST_RESPONSE_MODELS 输出 `list`，
+    而同一函数对 detection-result / quote-item 输出 `items` —— 同一文件内两种写法。
+  · B 分支 22/23：PROV-03 带 `pageSize` 参数却未做 PageMeta 包装（响应写成单个 QualificationCreated）。
+  · C/D/E/F 分支全 PASS：JSON Schema、运行时 PageResult、客户端 api 层、冻结清单 §0 都已是 `items`。
+
+为什么全量用例查不出来：契约测试校验的是 **JSON Schema 文件**（SchemaAssert.assertPageMeta →
+common/page.schema.json），**从不读 openapi.yaml**；而 page.schema.json 本来就是对的（required: items）。
+因此这条漂移对 204 个用例完全不可见（与踩坑 39「只比一个文件、给的是假的安全感」同族）。
+
+原始审计输出如下（rc=1）。
+================================================
+
+== A. OpenAPI 分页集合键名（应为 items）：0/56 PASS ==
+   [BAD] 集合键名 list：56 个端点 → PROV-01 PROV-02 CRED-01 CRED-06 DET-03 DET-04 RPT-01 QT-01 …
+   [FAIL] docs/backend/openapi.yaml PROV-01：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml PROV-02：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml CRED-01：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml CRED-06：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml DET-03：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml DET-04：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml RPT-01：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml QT-01：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml QT-06：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml QT-07：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml QT-08：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml QT-11：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml QT-12：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml CON-01：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml CON-02：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml CON-04：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml PAY-01：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml NTF-01：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml USE-02：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-P01：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-P02：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-P03：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-Q01：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-Q02：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-CP01：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-CP02：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-CP04：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-R01：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-R02：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-R03：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-R04：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-R05：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-CT01：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-CT02：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-CT03：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-PAY01：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-PAY02：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-PAY03：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-S01：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-S02：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-S03：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-S04：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-S05：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-S06：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-U01：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-CFG01：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-CFG02：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-CFG03：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-CFG04：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-CFG05：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-CFG06：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-CFG07：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-CFG08：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-CFG09：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-CFG10：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+   [FAIL] docs/backend/openapi.yaml ADM-A01：集合键名 = 'list'，应为 'items'（已被 D-API-01 否定的旧写法）
+
+== B. OpenAPI 分页端点必须被 PageMeta 包装：22/23 PASS ==
+   [FAIL] docs/backend/openapi.yaml PROV-03：有 pageSize 参数但响应未 PageMeta 包装（分页端点漏包装）
+
+== C. page.schema.json 必须 required/properties 含 items：3/3 PASS ==
+   [OK ] docs/backend/json-schema/common/page.schema.json required：required 含 'items'
+   [OK ] docs/backend/json-schema/common/page.schema.json properties：properties 含 'items'
+   [OK ] docs/backend/json-schema/common/page.schema.json no-rejected-key：未出现被否定的旧键名
+
+== D. 运行时 PageResult 分量名：1/1 PASS ==
+   [OK ] aap-server/src/main/java/com/hioas/aap/common/PageResult.java record-components：PageResult 分量 = ['items', 'page', 'pageSize', 'total']
+
+== E. 客户端列表响应接口必须声明 items：3/3 PASS ==
+   [OK ] aap-client/src/api/contract.ts#ContractListRaw ContractListRaw：声明字段 = ['items', 'list', 'records']
+   [OK ] aap-client/src/api/payment.ts#PaymentListRaw extends MineWalletSource PaymentListRaw extends MineWalletSource：声明字段 = ['items', 'list', 'records']
+   [OK ] aap-client/src/api/report.ts#ReportListRaw ReportListRaw：声明字段 = ['items', 'list']
+
+== F. 冻结清单 §0 分页字段名约定：1/1 PASS ==
+   [OK ] docs/backend/02-API接口模型清单.md §0-分页约定：§0 写明 data:{items:…}
+
+合计 87 条断言：PASS 30，FAIL 57
+结论：集合键名契约在多个真源之间**不一致**（见上 FAIL 行）。

@@ -60,7 +60,7 @@
 |---|---|---|---|---|---|---|---|---|---|
 | PROV-01 | GET | `/provider/profile` | ✅ | — | `ProviderProfile` | E-1101 | | 真源 | T04 |
 | PROV-02 | PUT | `/provider/profile` | ✅ | body：`company_name` `uscc` `contact_name` `contact_phone` `contact_email` `contact_title` `province` `city` `address` `website` `company_intro` `recheck_interval_days` `short_name` `industry_category` | `ProviderProfile` | E-1001 E-1104 | `Idempotency-Key` + `If-Match` | 真源 + 约定 | T04 |
-| PROV-03 | GET | `/provider/qualifications` | ✅ | — | `{items:[FileAsset],total}` | | | 真源 | T04 |
+| PROV-03 | GET | `/provider/qualifications` | ✅ | q：`page` `pageSize` | `{items:[ProviderQualification],page,pageSize,total}` | | | 真源 | T04 |
 | PROV-04 | POST | `/provider/qualifications` | ✅ | body：`category` `file_name` `file_size` `content_type` `file_id?` | `Qualification` | E-1001 | `Idempotency-Key` | 真源 | T04 |
 | PROV-05 | DELETE | `/provider/qualifications/{id}` | ✅ | — | `null` | E-1901 E-2001 | | 真源 | T04 |
 

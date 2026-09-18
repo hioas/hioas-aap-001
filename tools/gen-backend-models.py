@@ -500,7 +500,7 @@ PATHS: list[tuple] = [
     ("AUTH-06", "get", "/auth/me", "Auth", "authenticated", None, "me-result", [], ["E-1902"], "真源+约定"),
     ("PROV-01", "get", "/provider/profile", "Provider", "PROVIDER", None, "provider-profile", [], ["E-1101"], "真源"),
     ("PROV-02", "put", "/provider/profile", "Provider", "PROVIDER", "provider-profile-update", "provider-profile", [], ["E-1001", "E-1104", "E-1601"], "真源+约定"),
-    ("PROV-03", "get", "/provider/qualifications", "Provider", "PROVIDER", None, "qualification-created", ["page", "pageSize"], [], "真源"),
+    ("PROV-03", "get", "/provider/qualifications", "Provider", "PROVIDER", None, "provider-qualification", ["page", "pageSize"], [], "真源"),
     ("PROV-04", "post", "/provider/qualifications", "Provider", "PROVIDER", "qualification-create", "qualification-created", [], ["E-1001"], "真源"),
     ("PROV-05", "delete", "/provider/qualifications/{id}", "Provider", "PROVIDER", None, None, [], ["E-1901", "E-2001"], "真源"),
     ("CRED-01", "get", "/credentials", "Credential", "PROVIDER", None, "credential-row", ["page", "pageSize", "status"], [], "真源"),
@@ -803,7 +803,7 @@ def _enveloped(model: str | None) -> dict:
                 {"type": "object", "properties": {"data": {
                     "allOf": [
                         {"$ref": "#/components/schemas/PageMeta"},
-                        {"type": "object", "properties": {"list": {"type": "array", "items": {
+                        {"type": "object", "properties": {"items": {"type": "array", "items": {
                             "$ref": f"#/components/schemas/{_comp(model)}"}}}},
                     ]}}},
             ]

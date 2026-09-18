@@ -955,3 +955,110 @@ hermes send -t feishu -s 'AAP TDD 进度' 'R26 巡检：90/90 已注册维持全
 
 `hermes send --list` 仍显示 `Feishu: (no channels discovered yet …)` → 连可用频道都未被发现，**无法自动绑定**。
 已记入 `evidence/feishu-notify-failures.txt`；不阻塞 TDD 循环。
+
+---
+
+## R27（2026-09-18 12:56–13:08）巡检复验 + **首次执行「分页集合键名」契约审计**（业务代码零改动、断言零改动）
+
+### 复验结论（改动前后各两轮全绿）
+
+| 轮次 | 用例 | 门禁 | 耗时 | 证据 |
+| --- | --- | --- | --- | --- |
+| 改动前 run1 | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0` | `EndpointCoverageTest` 1/1 绿（90/90、`registered_routes=96`、`not_registered=[]`） | `BUILD SUCCESS` 48.253 s，`[ERROR]`=0 | `green-verify-R27-prechange-run1.txt` |
+| 改动前 run2 | 同上，逐类一致 | 同上 | `BUILD SUCCESS` 53.306 s，`[ERROR]`=0 | `green-verify-R27-prechange-run2.txt` |
+| 改动后 run1 | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0` | 同上（`missing=0`） | `BUILD SUCCESS` 49.932 s，`[ERROR]`=0 | `green-verify-R27-full-run1.txt` |
+| 改动后 run2 | 同上，**与改动后 run1 逐类 diff 为空**（33 个测试类） | 同上 | `BUILD SUCCESS` 49.383 s，`[ERROR]`=0 | `green-verify-R27-full-run2.txt` |
+
+他方未提交的 4 个文件（`aap-client/vite.config.ts`、`application.yml`、`log4j2-spring.xml`、`application-test.yml`）
+md5 与 R19–R26 完全一致 → 自 R19 起零变化，未纳入本次提交（坑 15）。
+
+### 本轮增量：把「分页集合键名」当契约不变量，做了一次跨真源审计
+
+新增只读审计 `tools/audit-contract-keys.py`（+ 负向自测 `tools/audit-contract-keys-selftest.py`，**11 条断言全 PASS**），
+把「分页响应的集合键名必须是 `items`」在 **五个独立来源**上比对：
+
+| 分支 | 检查对象 | 修复前 | 修复后 |
+| --- | --- | --- | --- |
+| A | `openapi.yaml` 中被 `PageMeta` 包装的响应 | **0/56 FAIL** | 57/57 PASS |
+| B | 带 `pageSize` 参数的端点必须被 `PageMeta` 包装 | 22/23（PROV-03 FAIL） | 23/23 PASS |
+| C | `common/page.schema.json` 的 `required`/`properties` | 3/3 PASS | 3/3 PASS |
+| D | 运行时 `PageResult` 的 record 分量名 | 1/1 PASS | 1/1 PASS |
+| E | 客户端 `aap-client/src/api/*.ts` 列表响应接口 | 3/3 PASS | 3/3 PASS |
+| F | 冻结清单 §0 的分页字段名约定 | 1/1 PASS | 1/1 PASS |
+
+**发现（红基线 88 条断言 FAIL 57，`red-R27-contract-keys.txt`）**：`openapi.yaml` 中 **56 个端点**的分页集合键名
+写作 `list`，而 JSON Schema / 运行时 / 客户端 / 清单 §0 四处都是 `items`。
+
+根因在生成器：`tools/gen-backend-models.py` 的 `_enveloped()` 对 `LIST_RESPONSE_MODELS` 输出 `list`，
+**而同一个函数**对 `detection-result` / `quote-item` 输出 `items` —— 同一文件内两种写法。
+这正是偏差 **D-API-01** 早已记录、但只在**运行时**被修正（R07 把 `PageResult` 的 `list` 改成 `items`）、
+**生成器产物从未跟着修正**的残留。
+
+**为什么 204 个用例全绿也查不出来**：契约测试校验的是 **JSON Schema 文件**
+（`SchemaAssert.assertPageMeta` → `common/page.schema.json`，本来就是 `required: items`），
+**从不读 `openapi.yaml`** → 这条漂移对全部用例完全不可见。
+与踩坑 39「只比一个文件，给的是假的安全感」同族：**测试全绿 ≠ 文档与实现一致**。
+
+附带发现（B 分支）：`PROV-03` 带 `pageSize` 查询参数，但响应被写成单个 `QualificationCreated` 对象、
+未做 `PageMeta` 包装 —— 而该端点的用例本身就断言 `assertPageMeta` + `data.items`，**用例即反证**。
+
+### 修复（顺序：先改清单 → 再改生成器 → 最后重跑生成）
+
+1. `docs/backend/02-API接口模型清单.md`：`PROV-03` 响应 `{items:[FileAsset],total}`
+   → `{items:[ProviderQualification],page,pageSize,total}`。
+   依据：运行时 `toQualificationView` 的 9 个字段（`id`/`qualification_id`/`category`/`file_id`/`file_name`/
+   `file_size`/`content_type`/`status`/`uploaded_at`）与 `provider-qualification.schema.json` **逐字段相同**；
+   `file-asset` 只有 `file_id/file_name/size/size_bytes/content_type/type/uploaded_at/url/sha256`，
+   无 `category`/`status`/`qualification_id` → **不匹配**（因此不是臆造，是按实现与既有 schema 对齐）。
+2. `tools/gen-backend-models.py`：`_enveloped()` 集合键名 `list` → `items`；
+   `PROV-03` 的 `response_model` `qualification-created` → `provider-qualification`。
+3. 重跑生成：`openapi.yaml`（56 处键名 + PROV-03 包装）、`endpoints.json`（1 处 `response_model`）。
+   **未改动任何 `*.schema.json`** → 用例行为不变（两轮 204 例全绿印证）。
+
+修复后验证（全部有证据文件）：
+`audit-contract-keys.py` **88/88 PASS rc=0**（`green-R27-contract-keys.txt`）、
+生成器 `--check` **84/84 一致、孤儿 0 rc=0**（`gencheck-verify-R27.txt`）、
+`openapi.yaml` 可被标准 PyYAML 解析（`paths=78 operations=90`，`tools/check-openapi-parses.py`）、
+生成器负向自测 **14/14 PASS**（`gencheck-selftest-negative-R27.txt`）、
+新审计负向自测 **11/11 PASS**（`audit-contract-keys-selftest-R27.txt`）。
+
+### 本轮踩坑（第 1 条是自纠，必须记）
+
+1. **审计脚本第一版的 E 分支漏了 `re.MULTILINE` → 报出「客户端没有任何列表响应接口」的假发现**。
+   症状：`E 0/1 FAIL：未在客户端 api 层发现任何列表响应接口（匹配逻辑可疑）`。
+   若只看「FAIL 数变多」会以为审计更严格，实则**匹配逻辑全错**（踩坑 29 同族）。
+   规则：**负向自测必须同时给正向对照** —— 本脚本的 `A1b`/`E2` 两条断言专门验证「解析器真的解析到了」，
+   没有它们，「一直在报错」会被当成合格（踩坑 32）。
+2. **同一份 `openapi.yaml` 里两种集合键名（`list` 与 `items`）共存**：审计不能只看「有没有出现 items」，
+   必须**逐端点定位集合属性名**（`properties:` 下缩进 30 的那一层），否则内层 JSON-Schema 关键字 `items`（缩进 32）
+   会被误当集合名 —— 缩进层级写错，56 条 FAIL 会全部消失（假绿）。
+3. **`check-openapi-parses.py` 在无 PyYAML 的机器上返回 rc=1 并打印 `SKIP`**：
+   这是**故意的**（宁可显式失败，也不要静默跳过一条校验），但报告里必须写清「本机有 PyYAML，实测可解析」，
+   否则 `SKIP` 会被读成「校验通过」。
+
+### 审计口径的边界（避免过度声称）
+
+- E 分支只覆盖客户端**类型化契约层** `aap-client/src/api/*.ts`（3 个列表响应接口）。
+  `aap-client/src/utils/*-model.ts` 的适配器按设计**容错读取**（`raw.items ?? raw.list ?? raw.records`），
+  本脚本**不纳入自动判定**；本轮手工抽查 6 处分页消费点（`credentials-model`/`quotes-model`/`detecting-model`/
+  `report-model`/`messages-model`/`mine-model`）**均把 `items` 纳入读法**，未发现只读旧键名的消费点。
+  `contract-model.ts` 的 `raw.records` 是**签署记录**数组（非分页集合），不属本不变量。
+- B 分支只判定「带 `pageSize` 参数的端点是否被 `PageMeta` 包装」，不判定**每个端点的 item 模型选择是否正确**。
+
+### 结论与待拍板
+
+- **90/90 维持全绿（连续第 10 轮：R18 → … → R27）**，未见 flaky；`missing=0` → 未改业务代码、未新增/删除/跳过用例、未动断言。
+- 本轮真正增量 = **首次执行的分页集合键名跨真源审计**，发现并修复了生成器 OpenAPI 产物中 56 个端点的
+  `list`/`items` 漂移（D-API-01 的残留）+ PROV-03 分页漏包装。
+- **待拍板（维持 R23–R26，无新增）**：飞书 home channel 未绑定 —— 人工执行
+  `hermes config set FEISHU_HOME_CHANNEL <channel_id>`（或发送时显式 `-t feishu:<channel>`）。
+- **待拍板（本轮新增，1 条）**：清单 `PROV-03` 行原先写 `[FileAsset]`，本轮按**实现与既有 schema**改为
+  `[ProviderQualification]`。若业务上确实要用 `file-asset` 作为资质列表的 item 模型，需要改的是**运行时**
+  `ProviderService.toQualificationView` 的字段口径（会破坏 `ProviderContractTest` 现有断言）→ 请人确认
+  「资质列表的 item 模型以 `provider-qualification` 为准」这一冻结口径。
+
+### 飞书通知（硬要求）
+
+本轮**无新端点批次落地**（`missing=0`），按「每完成一个批次才通知」的规则本可不发；仍试发一次以取证，
+结果见 `evidence/feishu-notify-failures.txt` 与本文件下方 R27 记录（`hermes send -t feishu` 仍报
+`No home channel set for feishu`）。

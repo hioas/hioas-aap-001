@@ -1,0 +1,13 @@
+[PASS] A1 正向 OpenAPI 集合键名 items → rc=0
+[PASS] A1b 正向 A 分支有 PASS 记录（证明解析器真的解析到了）
+[PASS] E2 正向 客户端接口声明 items → E 分支 PASS
+[PASS] Z1 审计对夹具零写副作用（mtime_ns/size/md5 全等）
+[PASS] A2 反向 集合键名 list → A 分支 FAIL 且点名 DEMO-01
+[PASS] B1 反向 分页端点未 PageMeta 包装 → B 分支 FAIL 且点名 DEMO-01
+[PASS] C1 反向 page schema 只写 list → C 三分支（required/properties/旧键名）全 FAIL
+[PASS] D1 反向 PageResult 首分量 list → D 分支 FAIL
+[PASS] E1 反向 客户端接口只声明 records → E 分支 FAIL
+[PASS] F1 反向 清单 §0 未写 data:{items: → F 分支 FAIL
+[PASS] G1 夹具目录缺文件 → 报 FAIL 且不崩溃（rc=1，有 rows）
+
+合计 11 条断言：PASS 11，FAIL 0

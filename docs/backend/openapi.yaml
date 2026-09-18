@@ -231,7 +231,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/ProviderProfile"
@@ -274,7 +274,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/ProviderProfile"
@@ -321,7 +321,14 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/QualificationCreated"
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              items:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ProviderQualification"
     post:
       operationId: PROV-04
       tags:
@@ -436,7 +443,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/CredentialRow"
@@ -626,7 +633,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/CredentialPrecheck"
@@ -787,7 +794,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/DetectionResult"
@@ -836,7 +843,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/DetectionResult"
@@ -973,7 +980,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/ReportSummary"
@@ -1129,7 +1136,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/QuoteRow"
@@ -1330,7 +1337,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/QuoteItem"
@@ -1368,7 +1375,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/QuoteItem"
@@ -1417,7 +1424,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/QuoteItem"
@@ -1553,7 +1560,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/QuoteVersion"
@@ -1591,7 +1598,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/CompilationResult"
@@ -1647,7 +1654,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/Contract"
@@ -1685,7 +1692,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/Contract"
@@ -1772,7 +1779,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/Contract"
@@ -1823,7 +1830,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/Payment"
@@ -1876,7 +1883,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/Notification"
@@ -2023,7 +2030,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/UsageHourlyBucket"
@@ -2086,7 +2093,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/ProviderProfile"
@@ -2132,7 +2139,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/ProviderProfile"
@@ -2178,7 +2185,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/ProviderProfile"
@@ -2303,7 +2310,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/CompilationResult"
@@ -2348,7 +2355,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/QuoteCompare"
@@ -2399,7 +2406,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/CompilationResult"
@@ -2438,7 +2445,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/CompilationResult"
@@ -2521,7 +2528,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/CompilationResult"
@@ -2579,7 +2586,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/ReviewTask"
@@ -2618,7 +2625,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/ReviewTask"
@@ -2669,7 +2676,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/ReviewTask"
@@ -2720,7 +2727,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/ReviewTask"
@@ -2778,7 +2785,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/ReviewRecord"
@@ -2829,7 +2836,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/Contract"
@@ -2874,7 +2881,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/Contract"
@@ -2919,7 +2926,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/Contract"
@@ -2976,7 +2983,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/Payment"
@@ -3015,7 +3022,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/Payment"
@@ -3067,7 +3074,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/SettlementStatement"
@@ -3123,7 +3130,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/SyncTask"
@@ -3162,7 +3169,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/SyncTask"
@@ -3207,7 +3214,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/SyncTask"
@@ -3259,7 +3266,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/ChannelBinding"
@@ -3304,7 +3311,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/ChannelBinding"
@@ -3343,7 +3350,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/ModelInfo"
@@ -3421,7 +3428,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/UsageHourlyBucket"
@@ -3511,7 +3518,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/DetectionConfig"
@@ -3549,7 +3556,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/DetectionConfig"
@@ -3594,7 +3601,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/DetectionConfig"
@@ -3644,7 +3651,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/DetectionConfig"
@@ -3689,7 +3696,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/DetectionConfig"
@@ -3741,7 +3748,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/ReportTemplate"
@@ -3779,7 +3786,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/ReportTemplate"
@@ -3824,7 +3831,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/ReportTemplate"
@@ -3874,7 +3881,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/ReportTemplate"
@@ -3919,7 +3926,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/ReportTemplate"
@@ -3996,7 +4003,7 @@ paths:
                           - $ref: "#/components/schemas/PageMeta"
                           - type: object
                             properties:
-                              list:
+                              items:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/AuditLog"
