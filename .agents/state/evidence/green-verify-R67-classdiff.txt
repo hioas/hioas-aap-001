@@ -1,0 +1,42 @@
+== R67 逐类结果一致性（坑 59/79：先剥 Time elapsed 再排序；否则耗时进排序键 → 假差异） ==
+来源：target/surefire-reports/*.txt 的 `Tests run:` 行，sed 剥掉 `Time elapsed: N s` 后 tr -d '\r' 再 sort
+
+第 1 轮解析到 33 个类的 `Tests run:` 行
+第 2 轮解析到 33 个类的 `Tests run:` 行
+逐类 diff 行数 = 0
+结论：两轮逐类完全一致（33 类，仅耗时不同，已剥）
+
+第 1 轮逐类明细：
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.ToolchainSmokeTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.coverage.EndpointCoverageTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.usage.UsageRefreshDegradedTest
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.usage.UsageContractTest
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.credential.CredentialContractTest
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.review.ReviewContractTest
+Tests run: 13, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.detection.ProbeScoringTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.common.LoggingAndHealthTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.credential.AdminCredentialContractTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.detection.RecheckServiceTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.adminconfig.ReportTemplateWordingTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.provider.AdminProviderContractTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.quote.AdminQuoteCompareContractTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.settlement.PaymentContractTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.common.ApiEnvelopeTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.common.MigrationTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.common.OutboundUrlGuardTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.common.PersistenceBaseTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.report.ReportContractTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.adminconfig.ReportTemplateContractTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.usage.UsageMetricsTest
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.adminconfig.DetectionConfigContractTest
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.compile.CompilationContractTest
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.quote.QuoteContractTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.common.ApiContractTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.compile.BillingCompilerTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.quote.QuoteValidationTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.support.NotificationContractTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.sync.SyncAdminContractTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.contract.ContractContractTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.detection.DetectionContractTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.iam.AuthContractTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0,  -- in com.hioas.aap.provider.ProviderContractTest

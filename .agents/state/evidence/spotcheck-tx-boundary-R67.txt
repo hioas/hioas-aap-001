@@ -1,0 +1,71 @@
+== R67 抽查（只读）：写路径事务边界（多写原子性 + 事务内外部 I/O）（第四十一类可审计不变量） ==
+为什么两套门禁都看不见：契约测试只把**响应体**与 JSON Schema 比对 ——「同一次请求里的多个写是否在同一事务内」
+「事务里有没有做外部 HTTP 调用」既不在任何 schema 里，也不体现在响应形状上（部分失败时响应仍可能是 200 + 合法 schema，
+或返回业务码但已落库半截数据）→ 204 例全绿也看不见；覆盖门禁只比「方法 + 路径」；openapi 与客户端 TS 不被任何测试读取/执行。
+真源：W 实现写调用点（JdbcTemplate 写语句 + ORM mapper 写方法）／T 事务边界载体（方法级/类级注解）／
+P 传播语义（REQUIRES_NEW = 故意独立事务 → 豁免类，须有依据注释 + 条数上限）／C 调用链（方法自身非事务但全部调用点在事务方法内
+→ 实际处于事务中，豁免类 + 条数上限）／I 外部 I/O 调用点（httpClient.send / upstreamProbe.probe / newApiSyncClient.get|put）
+落在事务边界内 = 长事务风险／E 控制器入口 → 调用链（深度 ≤3，**接收者类型感知**解析）累计写次数／A 测试背书。
+命令：python <tmp>/aap-r67-spotcheck/spotcheck-tx-boundary-R67.py --root E:/workspaces/hioas/hioas-aap-001
+退出码 = 1（1 = 存在 FAIL 明细，属预期：本轮抽查发现 1 条真发现）
+
+== R67 抽查：写路径事务边界（多写原子性 + 事务内外部 I/O） ==
+扫描目录：E:\workspaces\hioas\hioas-aap-001\aap-server\src\main\java（169 个 .java）
+方法 1628 个；事务方法 48 个（类级 0）；写调用点 100 处；多写方法 22 个；控制器映射方法 91 个；外部 I/O 方法 6 个
+
+-- 多写方法分档 --
+  自身/类级事务 17 个；调用链豁免 5 个；零调用点 0 个；**无边界且存在非事务调用点 0 个**
+    [调用链] E:\workspaces\hioas\hioas-aap-001\aap-server\src\main\java\com\hioas\aap\detection\DetectionService.java:120 enqueue（写 2：orm:jobMapper.insert,orm:credentialMapper.update；调用点 2 个，全部在事务方法内）
+    [调用链] E:\workspaces\hioas\hioas-aap-001\aap-server\src\main\java\com\hioas\aap\quote\QuoteService.java:559 saveTimeRule（写 4：orm:segmentMapper.delete,orm:timeRuleMapper.delete,orm:timeRuleMapper.insert,orm:segmentMapper.insert；调用点 1 个，全部在事务方法内）
+    [调用链] E:\workspaces\hioas\hioas-aap-001\aap-server\src\main\java\com\hioas\aap\quote\QuoteService.java:587 saveTierRule（写 4：orm:tierMapper.delete,orm:tierRuleMapper.delete,orm:tierRuleMapper.insert,orm:tierMapper.insert；调用点 1 个，全部在事务方法内）
+    [调用链] E:\workspaces\hioas\hioas-aap-001\aap-server\src\main\java\com\hioas\aap\quote\QuoteService.java:618 saveRequestRules（写 2：orm:requestRuleMapper.delete,orm:requestRuleMapper.insert；调用点 1 个，全部在事务方法内）
+    [调用链] E:\workspaces\hioas\hioas-aap-001\aap-server\src\main\java\com\hioas\aap\usage\UsageService.java:278 touchCursor（写 2：jdbc:update,jdbc:insert；调用点 1 个，全部在事务方法内）
+
+-- 链上累计多写的端点（接收者类型感知解析） --
+    QuoteController                saveItem                   L185   累计写=12 链上事务=True 节点=22
+    CredentialController           precheck                   L96    累计写=5 链上事务=True 节点=15
+    CompilationController          verify                     L58    累计写=4 链上事务=True 节点=14
+    AuthController                 smsLogin                   L63    累计写=4 链上事务=True 节点=20
+    AuthController                 wechatLogin                L70    累计写=4 链上事务=True 节点=13
+    AdminDetectionConfigController update                     L65    累计写=3 链上事务=True 节点=15
+    CompilationController          compile                    L35    累计写=3 链上事务=True 节点=15
+    DetectionController            release                    L90    累计写=3 链上事务=True 节点=6
+    QuoteController                submit                     L195   累计写=3 链上事务=True 节点=18
+    AdminReviewController          approve                    L58    累计写=3 链上事务=True 节点=10
+    AdminUsageController           refresh                    L62    累计写=3 链上事务=True 节点=17
+    AdminDetectionConfigController create                     L51    累计写=2 链上事务=True 节点=14
+    AdminDetectionConfigController publish                    L72    累计写=2 链上事务=True 节点=7
+    AdminReportTemplateController  publish                    L78    累计写=2 链上事务=True 节点=5
+    AdminContractController        confirmSign                L66    累计写=2 链上事务=True 节点=9
+    ContractController             sign                       L65    累计写=2 链上事务=True 节点=11
+    CredentialController           create                     L70    累计写=2 链上事务=True 节点=17
+    CredentialController           update                     L88    累计写=2 链上事务=True 节点=18
+    DetectionController            create                     L47    累计写=2 链上事务=True 节点=8
+    DetectionController            cancel                     L81    累计写=2 链上事务=True 节点=5
+    AuthController                 refresh                    L76    累计写=2 链上事务=True 节点=11
+    QuoteController                setItems                   L156   累计写=2 链上事务=True 节点=9
+    AdminReviewController          claim                      L49    累计写=2 链上事务=True 节点=11
+    AdminReviewController          reject                     L68    累计写=2 链上事务=True 节点=9
+    AdminSyncController            retry                      L59    累计写=2 链上事务=True 节点=17
+    AdminSyncController            changeBindingStatus        L74    累计写=2 链上事务=False 节点=22
+
+[PASS] A0a 解析到 main 源码文件 169 个
+[PASS] A0b 解析到事务边界载体（方法级 48 ∪ 类级 0）
+[PASS] A0c 解析到方法 1628 个
+[PASS] A0d 解析到写调用点 100 处
+[PASS] A0e 多写（≥2 写调用）方法 22 个
+[PASS] A0f 解析到控制器映射方法 91 个（清单端点 90）
+[PASS] A0g 解析到外部 I/O 调用点所在方法 6 个
+[PASS] A0h 调用点解析成功 1023 对（接收者类型感知；解析不出的降级为「未能静态判定」）
+[PASS] A1 全部 22 个多写方法都有事务边界证据（自身/类级 17、调用链 5）
+[PASS] A1b 调用链豁免 5 条 ≤ 上限 8
+[PASS] A2 5 处 REQUIRES_NEW 独立事务均带依据说明（方法体 ∪ 类级 javadoc）
+[PASS] A2b REQUIRES_NEW 条数 5 ≤ 上限 6
+[PASS] A3 全部 6 个外部 I/O 调用点都不在事务边界内（无长事务风险）
+[PASS] A4b 其余 25 个「链上累计多写」端点落在事务边界内
+[PASS] A5 测试源存在原子性/回滚型断言痕迹 8 处（结构级背书）
+[INFO] A0b-1 类级事务注解 0 个（本项目一律方法级声明，非解析失效）
+[INFO] A4c 调用链定位率：26/91 个端点链上累计写 ≥2（未定位的多为读路径或未解析的调用）
+[FAIL] A4 端点调用链上累计 2 次写但**链上无任何事务边界**（部分失败会留半截数据）：AdminSyncController.changeBindingStatus:74
+
+PASS 15 / FAIL 1 / INFO 2

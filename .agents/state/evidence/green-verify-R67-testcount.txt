@@ -1,0 +1,6 @@
+== R67 用例计数对账（坑 35：`grep -c "@Test"` 会子串误计） ==
+`@Test\b` 词边界计数 = 204
+`@Test` 宽松计数 = 206（差值 2 = @TestConfiguration/@TestPropertySource 等，不是被跳过的用例）
+surefire 汇总 Tests run 合计 = 204
+结论：两边吻合 → 无用例被静默跳过
+禁用/跳过扫描（@Disabled|@Ignore|@DisabledIf|assumeTrue|Assumptions.）= 0 条（硬规则：不得削弱测试）

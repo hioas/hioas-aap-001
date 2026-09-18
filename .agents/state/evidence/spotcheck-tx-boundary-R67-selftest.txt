@@ -1,0 +1,40 @@
+== R67 抽查脚本的负向自测（判别力取证） ==
+用例：合规夹具 rc=0 且 FAIL 明细空 · 8 条 A0* 正向对照全 PASS · 5 组注入缺陷（各断言「锚点命中 + 新文本真的出现 +
+恰好新增目标断言」）· 空夹具必须变红并点名全部 A0* 与条件化断言且不得有 A0* PASS · 夹具目录零写副作用（含不得留下 __pycache__）·
+真实仓库关键文件 md5 不变（只读守卫）。
+命令：python <tmp>/aap-r67-spotcheck/spotcheck-tx-boundary-R67-selftest.py
+退出码 = 0（自测全通过）
+
+[PASS] ①合规夹具 rc=0 | rc=0
+[PASS] ①合规夹具 FAIL 明细为空 | FAIL 行 = 0
+[PASS] ②正向对照 A0a 在夹具上 PASS
+[PASS] ②正向对照 A0b 在夹具上 PASS
+[PASS] ②正向对照 A0c 在夹具上 PASS
+[PASS] ②正向对照 A0d 在夹具上 PASS
+[PASS] ②正向对照 A0e 在夹具上 PASS
+[PASS] ②正向对照 A0f 在夹具上 PASS
+[PASS] ②正向对照 A0g 在夹具上 PASS
+[PASS] ②正向对照 A0h 在夹具上 PASS
+[PASS] ②A1 在夹具上 PASS（多写方法全部有边界）
+[PASS] ②A1b 在夹具上 PASS（调用链豁免 1 条）
+[PASS] ②A2 在夹具上 PASS（REQUIRES_NEW 带依据）
+[PASS] ②A3 在夹具上 PASS（I/O 不在事务内）
+[PASS] ②A4 在夹具上 PASS（链上多写在事务内）
+[PASS] ②A5 在夹具上 PASS（测试源非空）
+[PASS] ③空夹具 rc≠0 | rc=1
+[PASS] ③空夹具点名全部 A0*/条件化断言 | 缺：[]；实得：['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A0f', 'A0g', 'A0h', 'A1', 'A2', 'A3', 'A4', 'A5']
+[PASS] ③空夹具无 A0* PASS（不得空转假绿）
+[PASS] ④inj-a1-去多写方法的事务注解：注入锚点命中且新文本出现
+[PASS] ④inj-a1-去多写方法的事务注解：FAIL 集合恰好新增 ['A1'] | delta=['A1'] rc=1
+[PASS] ④inj-a2-去 REQUIRES_NEW 依据说明：注入锚点命中且新文本出现
+[PASS] ④inj-a2-去 REQUIRES_NEW 依据说明：FAIL 集合恰好新增 ['A2'] | delta=['A2'] rc=1
+[PASS] ④inj-a3-给 I/O 方法加事务注解：注入锚点命中且新文本出现
+[PASS] ④inj-a3-给 I/O 方法加事务注解：FAIL 集合恰好新增 ['A3'] | delta=['A3'] rc=1
+[PASS] ④inj-a4-去链上唯一事务注解：注入锚点命中且新文本出现
+[PASS] ④inj-a4-去链上唯一事务注解：FAIL 集合恰好新增 ['A4'] | delta=['A4'] rc=1
+[PASS] ④inj-a5-删测试源：FAIL 集合恰好新增 ['A5'] | delta=['A5'] rc=1
+[PASS] ⑤夹具目录零写副作用（含无 __pycache__） | before=6 after=6
+[PASS] ⑤夹具目录无 __pycache__
+[PASS] ⑥真实仓库关键文件 md5 不变 | 6 个文件
+
+自测 31 项：PASS 31 / FAIL 0
