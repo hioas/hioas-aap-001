@@ -598,7 +598,19 @@ PAGEABLE = {
 }
 
 
+# --check（只校验）时把所有产物重定向到临时目录，保证校验对仓库**零写副作用**；
+# 普通生成模式下 CHECK_OUT 为 None，_out() 即恒等映射。
+CHECK_OUT = None
+
+
+def _out(path: str) -> str:
+    if CHECK_OUT is None:
+        return path
+    return os.path.join(CHECK_OUT, os.path.relpath(path, ROOT))
+
+
 def write_json(path: str, obj) -> None:
+    path = _out(path)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8", newline="\n") as fh:
         json.dump(obj, fh, ensure_ascii=False, indent=2)
@@ -684,12 +696,12 @@ def fix_model_refs() -> None:
     requests/*.schema.json 引用 models 需要 ../models/ 前缀。"""
     for name in MODELS:
         p = os.path.join(SCHEMA_DIR, "models", f"{name}.schema.json")
-        with open(p, encoding="utf-8") as fh:
+        with open(_out(p), encoding="utf-8") as fh:
             obj = json.load(fh)
         write_json(p, obj)  # 同目录引用保持文件名
     for name in REQUESTS:
         p = os.path.join(SCHEMA_DIR, "requests", f"{name}.schema.json")
-        with open(p, encoding="utf-8") as fh:
+        with open(_out(p), encoding="utf-8") as fh:
             obj = json.load(fh)
         write_json(p, deep_rewrite(obj))
 
@@ -895,34 +907,82 @@ def emit_endpoint_manifest(out_dir: str) -> int:
             "query_params": params, "error_codes": errors, "source": note,
             "task": task_of.get(eid, ""),
         })
-    path = os.path.join(out_dir, "endpoints.json")
+    path = _out(os.path.join(out_dir, "endpoints.json"))
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8", newline="\n") as fh:
         json.dump({"total": len(rows), "endpoints": rows}, fh, ensure_ascii=False, indent=2)
     return len(rows)
 
 
+def artifact_paths() -> list:
+    """生成器会写出的**全部**产物路径（--check 必须逐个比对，不能只比 openapi.yaml）。"""
+    paths = [os.path.join(SCHEMA_DIR, "common", f"{n}.schema.json") for n in ("envelope", "page", "error")]
+    paths += [os.path.join(SCHEMA_DIR, "models", f"{n}.schema.json") for n in MODELS]
+    paths += [os.path.join(SCHEMA_DIR, "requests", f"{n}.schema.json") for n in REQUESTS]
+    paths += [os.path.join(DOCS, "endpoints.json"), os.path.join(DOCS, "openapi.yaml")]
+    return paths
+
+
+def read_text(path: str):
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as fh:
+        return fh.read()
+
+
 def main() -> int:
+    global CHECK_OUT
     check = "--check" in sys.argv
-    gen_common()
-    gen_models()
-    gen_requests()
-    fix_model_refs()
-    spec = openapi()
-    text = "# 由 tools/gen-backend-models.py 生成，勿手改；改脚本后重跑。\n" + yaml_dump(spec)
-    out = os.path.join(DOCS, "openapi.yaml")
+    paths = artifact_paths()
+    tmp = None
     if check:
-        cur = open(out, encoding="utf-8").read() if os.path.exists(out) else ""
-        if cur != text:
-            print("openapi.yaml 与生成器不一致", file=sys.stderr)
-            return 1
-    else:
-        with open(out, "w", encoding="utf-8", newline="\n") as fh:
+        import tempfile
+        tmp = tempfile.mkdtemp(prefix="aap-gen-check-")
+        CHECK_OUT = tmp  # 所有产物改写进临时目录，仓库一个字节都不动
+    try:
+        gen_common()
+        gen_models()
+        gen_requests()
+        fix_model_refs()
+        spec = openapi()
+        text = "# 由 tools/gen-backend-models.py 生成，勿手改；改脚本后重跑。\n" + yaml_dump(spec)
+        out = os.path.join(DOCS, "openapi.yaml")
+        os.makedirs(os.path.dirname(_out(out)), exist_ok=True)
+        with open(_out(out), "w", encoding="utf-8", newline="\n") as fh:
             fh.write(text)
-    manifest = emit_endpoint_manifest("docs/backend")
-    print(f"manifest={manifest} endpoints.json written")
-    print(f"ok: models={len(MODELS)} requests={len(REQUESTS)} paths={len({p for *_, p in []} or {})} "
-          f"operations={len(PATHS)} files={len(MODELS) + len(REQUESTS) + 3}")
-    return 0
+        manifest = emit_endpoint_manifest(DOCS)
+        if check:
+            # 全产物比对：先前只比 openapi.yaml，而 gen_* / fix_model_refs / emit_endpoint_manifest
+            # 在 check 模式下仍无条件写仓库文件 → schema 与 endpoints.json 的漂移永远检不出来
+            # （被静默覆盖），且「只校验」实际改写了 82 个文件。
+            drifted = [p for p in paths if read_text(p) != read_text(_out(p))]
+            known = {os.path.normcase(os.path.abspath(p)) for p in paths}
+            orphans = []
+            for root, _dirs, files in os.walk(SCHEMA_DIR):
+                for fn in files:
+                    if fn.endswith(".schema.json"):
+                        fp = os.path.join(root, fn)
+                        if os.path.normcase(os.path.abspath(fp)) not in known:
+                            orphans.append(fp)  # 生成器已不再产出（模型被删/改名）→ 仓库里的孤儿文件
+            if drifted or orphans:
+                for p in drifted:
+                    print("生成物与生成器不一致: " + os.path.relpath(p, ROOT).replace(os.sep, "/"), file=sys.stderr)
+                for p in sorted(orphans):
+                    print("孤儿产物（生成器已不产出）: " + os.path.relpath(p, ROOT).replace(os.sep, "/"), file=sys.stderr)
+                print(f"check FAILED: 漂移 {len(drifted)} + 孤儿 {len(orphans)} / 共 {len(paths)} 个产物（仓库零写副作用）",
+                      file=sys.stderr)
+                return 1
+            print(f"check ok: {len(paths)}/{len(paths)} 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）")
+        else:
+            print(f"manifest={manifest} endpoints.json written")
+        print(f"ok: models={len(MODELS)} requests={len(REQUESTS)} paths={len({t[2] for t in PATHS})} "
+              f"operations={len(PATHS)} files={len(MODELS) + len(REQUESTS) + 3}")
+        return 0
+    finally:
+        if tmp is not None:
+            import shutil
+            shutil.rmtree(tmp, ignore_errors=True)
+            CHECK_OUT = None
 
 
 if __name__ == "__main__":

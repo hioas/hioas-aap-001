@@ -1,0 +1,28 @@
+########## A) 正向：--check 期望 rc=0 且零写副作用（84 个产物 mtime 全不变）
+check ok: 84/84 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）
+ok: models=55 requests=24 paths=78 operations=90 files=82
+A rc=0（期望 0）
+A 零写副作用：84/84 mtime 未变 PASS
+########## B) 负向 1：注入语义漂移（改 title）→ 必须 rc=1 且点名文件，且工具不得改写它
+injected drift into docs/backend/json-schema/models/audit-log.schema.json
+B 注入标记行数=1
+生成物与生成器不一致: docs/backend/json-schema/models/audit-log.schema.json
+check FAILED: 漂移 1 + 孤儿 0 / 共 84 个产物（仓库零写副作用）
+B rc=1（期望 1）
+B 只读：漂移文件未被工具改写 PASS
+B 已还原为提交版 md5=c06dbe9be01daaaf868c9b5ec86f1ab8
+########## C1) 负向 2：产物缺失（mv 走）→ 必须 rc=1
+生成物与生成器不一致: docs/backend/json-schema/models/report-template.schema.json
+check FAILED: 漂移 1 + 孤儿 0 / 共 84 个产物（仓库零写副作用）
+C1 rc=1（期望 1）
+########## C2) 负向 3：孤儿产物（多出一个生成器不产出的 schema）→ 必须 rc=1 且报孤儿
+孤儿产物（生成器已不产出）: docs/backend/json-schema/models/report-template-renamed.schema.json
+check FAILED: 漂移 0 + 孤儿 1 / 共 84 个产物（仓库零写副作用）
+C2 rc=1（期望 1）
+########## D) 生成模式：产物应与基线逐字节一致
+manifest=90 endpoints.json written
+ok: models=55 requests=24 paths=78 operations=90 files=82
+D rc=0（期望 0）
+D 生成产物与 R26 基线逐字节一致 PASS（84/84）
+########## E) 收尾：工作树 docs/ 必须干净（负向自测零残留）
+E 上面为空 = docs/ 零残留 PASS

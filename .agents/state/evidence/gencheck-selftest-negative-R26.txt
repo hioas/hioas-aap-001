@@ -1,0 +1,22 @@
+---- 分支 A：正向（干净仓库）----
+  [PASS] 干净仓库 --check → rc=0  (rc=0)
+  [PASS] 输出声明 84/84 个产物一致  (check ok: 84/84 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）)
+  [PASS] 零写副作用：84 个产物 (mtime,size,md5) 全不变  (变化的文件数=0 [])
+---- 分支 B：语义漂移（改 title）----
+  [PASS] 漂移后 --check → rc=1  (rc=1)
+  [PASS] stderr 点名漂移文件  (生成物与生成器不一致: docs/backend/json-schema/models/audit-log.schema.json)
+  [PASS] 只读：工具未改写漂移文件（不是靠覆盖来「修好」）
+  [PASS] 自测已还原注入的漂移
+---- 分支 C1：产物缺失 ----
+  [PASS] 产物缺失后 --check → rc=1  (rc=1)
+  [PASS] stderr 点名缺失产物  (生成物与生成器不一致: docs/backend/json-schema/models/report-template.schema.json)
+---- 分支 C2：孤儿产物（生成器已不产出）----
+  [PASS] 出现孤儿产物后 --check → rc=1  (rc=1)
+  [PASS] stderr 判为孤儿产物  (孤儿产物（生成器已不产出）: docs/backend/json-schema/models/report-template-renamed.schema.json)
+---- 分支 D：生成模式逐字节一致 ----
+  [PASS] 生成模式 → rc=0  (rc=0)
+  [PASS] 生成产物与基线逐字节一致（内容 md5 不变，仅 mtime 变）  (内容变化的文件数=0 [])
+---- 收尾：仓库必须干净（自测零残留）----
+  [PASS] 所有产物内容回到基线（无残留）  (残留=[])
+
+结果：全部通过（14 条断言，自测有判别力）

@@ -856,3 +856,75 @@
    即连可用频道都未被发现，**无法自动绑定**，必须人工执行
    `hermes config set FEISHU_HOME_CHANNEL <channel_id>`（或发送时显式 `-t feishu:<channel>`）。
    本轮无新批次落地 → 按「每完成一个批次才通知」的规则不发通知。
+
+---
+
+## R26（2026-09-18）巡检复验 + 修复生成器 `--check` 的真缺陷（业务代码零改动）
+
+| 项 | run1（工作树） | run2（工作树，防 flaky） |
+| --- | --- | --- |
+| 用例 | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0` / `BUILD SUCCESS` / `Total time: 57.112 s` | 同左；`grep -c '^\[ERROR\]'` = **0** / `Total time: 46.356 s` |
+| 逐类一致性 | — | `diff <(run1 逐类 Tests run 行) <(run2 …)` **为空** → 33 个类、204 例逐类结果完全一致 |
+| 覆盖门禁 | `EndpointCoverageTest` 1/1 绿 → 90/90（`registered_routes=96`、`not_registered=[]`，报告 12:44:13 重新生成） | 同左 |
+| 证据文件 | `evidence/green-verify-R26-full-run1.txt` | `evidence/green-verify-R26-full-run2.txt` |
+
+### 本轮增量：`tools/gen-backend-models.py --check` 的两个真缺陷（先取证、后修复）
+
+**缺陷（有实测证据）**
+
+1. **`--check` 只比 `openapi.yaml`**，而 `gen_common/gen_models/gen_requests`、`fix_model_refs`、
+   `emit_endpoint_manifest` 在 check 模式下**仍无条件写仓库文件**。后果：`docs/backend/json-schema/**`
+   81 个 schema 与 `endpoints.json` 的漂移**永远检不出来**——会被静默覆盖成生成器的输出。
+   而契约测试只读磁盘上的 schema，所以这类漂移对 204 个用例**完全不可见**（门禁只管路由注册）。
+2. **标着「只校验」的命令实际改写 82 个文件**。实测：`audit-log.schema.json`
+   mtime `12:38:16 → 12:38:22`、`endpoints.json` 同步被写；因内容相同，`git status` 干净、肉眼不可见
+   （`openapi.yaml` mtime 保持 `10:52:27` —— 它是唯一被真正比对的产物，所以没被写）。
+
+**修复**
+
+- check 模式把所有产物**重定向到临时目录**：新增 `CHECK_OUT` + `_out()`，所有写点统一走它
+  —— 包括 `write_json`、`fix_model_refs` 的读回、`emit_endpoint_manifest` **函数内部**的写点。
+- 比对**全部 84 个产物**（3 common + 55 models + 24 requests + endpoints.json + openapi.yaml），
+  并新增**孤儿产物扫描**（仓库里存在、但生成器已不再产出的 `*.schema.json`）。
+- 顺带修掉 `ok: paths=` 的取列 bug（原来取到元组最后一列 `note`，恒为 0；现取 `path`，78 个不同路径/90 个 operation）。
+
+**验证（正向 + 负向都做，避免「rc=0 无法区分真干净与比对逻辑全错」）**
+
+- 正向：`--check` rc=0、`84/84 个生成物与生成器完全一致、孤儿 0`，且 **84 个产物的
+  `(mtime_ns, size, md5)` 一个都没变**（零写副作用）；`git status docs/` 干净。
+- 负向：新增 `tools/gen-backend-models-selftest.py`，**14 条断言全 PASS、rc=0**，逐分支覆盖：
+  语义漂移（改 `title`）→ rc=1 且点名文件，**且工具不得把漂移文件改写回去**（否则「修好」是假象）；
+  产物缺失（mv 走）→ rc=1 点名；孤儿产物 → rc=1 判「孤儿」；生成模式 → 84/84 md5 与基线逐字节一致；
+  自测零残留（所有产物内容回到基线）。
+- 生成模式未变味：`python tools/gen-backend-models.py` 后 84 个产物与修复前基线**逐字节一致**。
+
+### 自纠一次假发现（记进踩坑，见 skill 坑 39/40）
+
+修复补丁第一版漏改 `emit_endpoint_manifest` 内部的写点 → check 模式仍写仓库、且临时目录里缺该产物 →
+比对时 `read_text(temp) is None` → 报出**假漂移** `docs/backend/endpoints.json`（当时 `git status` 是干净的，
+这就是「假发现」的指纹：**报告说漂移、仓库却没变**）。补 `_out()` 后消失。
+教训：把产物重定向到临时目录时，**每一个写点都要走同一个重定向函数**，被调用方内部的 `open(path,'w')` 最容易漏。
+
+另：本机 MSYS 的 `$HOME` 是 `/c/Users/laitz` 形式，传给**原生** python 会被当相对路径
+（报 `can't open file 'E:\c\Users\...'`）；脚本里给原生程序传路径要用 `C:/Users/...` 形式。
+第一版负向自测脚本因此「注入漂移失败但仍 rc=0」，属**空转通过**，已重跑并覆盖证据文件（证据不能骗人）。
+
+### 本轮未做（有意）
+
+- `missing=0` → **未改任何业务代码、未新增/删除/跳过任何用例、未动任何断言**。
+- 改动仅限 `tools/gen-backend-models.py`、新增 `tools/gen-backend-models-selftest.py` 与 `.agents/state/**`。
+- 他方未提交的 4 个文件 md5 与 R19–R25 完全一致（`application.yml 7b7c0918…`、`application-test.yml 813b611d…`、
+  `log4j2-spring.xml f449ac92…`、`aap-client/vite.config.ts b1c72cb4…`）→ 自 R19 起零变化、无回归；
+  这 4 个文件**未被纳入本次提交**（坑 15）。
+- 并发排查（坑 11）：跑测试前后核对进程与 PG 连接 —— `jps` 显示无 surefire/无第二个 `mvn`；
+  连到 5432 的是 DataGrip（22908/11552）、本仓库 dev 应用（6220，用 `aap_server_dev`）、
+  别的项目 `com.nebula.im.ImApplication`（31100）；测试库是 `aap_server_test`，两轮串行执行，无并发污染。
+
+### 结论与待拍板
+
+- **90/90 维持全绿（连续第 9 轮：R18 → R19 → … → R26）**，未见 flaky。
+- 端点审计（只读复跑）：`exact=90 / prefix=0 / none=0`；端点 ID 可追溯 **90/90**；ID 与真实调用点同文件 **90/90**；
+  审计负向自测 9/9 PASS。证据 `evidence/audit-endpoint-tests-R26.txt`、`evidence/audit-selftest-negative-R26.txt`。
+- **待拍板（维持 R23–R25，无新增）**：飞书 home channel 未绑定 —— 人工执行
+  `hermes config set FEISHU_HOME_CHANNEL <channel_id>`（或发送时显式 `-t feishu:<channel>`）。
+  本轮无新批次落地 → 按「每完成一个批次才通知」的规则不发通知（避免 5 分钟一次重复推送）。
