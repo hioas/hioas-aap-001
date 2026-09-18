@@ -2238,3 +2238,69 @@ openapi 的 `Envelope` 是同一个文件的 `$ref`；客户端 TS 不被任何�
 ### 台账
 * R44 行「提交」列先留空，提交后由收尾提交补齐（沿用 R40/R42/R43 做法）；CSV 以真正的 csv 解析复核
   「每行列数 = 表头列数（8）」；R 行连续性核对：R27 → R44 无缺号（坑 71）。
+
+---
+
+## R45 巡检轮（2026-09-18T20:2x+0800）—— 分页排序确定性抽查
+
+### 覆盖与全量
+* 90/90 连续第 27 轮全绿（`coverage-report.json` 逐字段读：total=90 / implemented=90 / missing=0 /
+  registered_routes=96 / not_registered=[]）；门禁自身断言 1/1。
+* 全量两轮：**204 例全绿**（0 失败 / 0 错误 / 0 跳过，33 个测试类），`[ERROR]=0`，BUILD SUCCESS；
+  逐类结果 diff **为空**（先剥 `Time elapsed` 再排序，坑 59/79）。
+* `@Test` 词边界计数 204 ↔ surefire `Tests run: 204`（一致 → 无用例被静默跳过，坑 35）；
+  禁用扫描（`@Disabled|@Ignore\b|@DisabledIf|assumeTrue|Assumptions\.`）= 0 条。
+* 证据：`evidence/green-verify-R45-full-run1.txt`、`evidence/green-verify-R45-full-run2.txt`。
+
+### 本轮新增抽查：分页查询排序确定性（第十九类可审计不变量）
+* **为什么两套门禁都看不见**：契约测试只校验「元素模型 JSON Schema」（schema 里没有 SQL、没有
+  ORDER BY、更没有跨页稳定性）；覆盖门禁只比「HTTP 方法 + 路径」是否注册；openapi 与客户端 TS
+  不被任何测试读取。→ 分页 SQL 的 ORDER BY 若不含唯一列，并列行在两次查询间顺序不定 →
+  翻页可能「重复行 / 漏行」，而 204 例（每例数据量极小）全绿也看不见。
+* **真源**：I = 实现 SQL（含 `limit/offset` 的 13 条分页语句的 ORDER BY 列集合 + FROM 表名）；
+  D = DDL `V1__baseline.sql` 的唯一键集合（内联/复合 `primary key` + `unique index`，实测 54 张表、
+  95 组唯一键）；M/O/C/T = md 清单 / openapi / 客户端 / 测试源（信息项）。
+* **结果**：13 条分页 SQL 全部定位（P1 13/13、P2 13/13、P2b 表名映射自校验 13/13）；
+  **12 条通过**（ORDER BY 含表主键 `id`），**1 条真实 FAIL**：
+
+  | 断言 | 发现 | 处置 |
+  |---|---|---|
+  | P3 | `usage/UsageService.java:167`（表 `aap_usage_hourly`）`order by stat_hour, model_name, group_name` 不含任何完整唯一键；最接近的唯一键 `(stat_hour, channel_id, model_name, group_name)` 缺 `channel_id` | **待拍板**（建议修法见下） |
+
+* **影响面（机器取证，不是推测）**：`UsageController.java:56` 调用 `hourly(requireProvider(principal), null, …)`
+  —— channelId **硬编码 null**，即 USE-02 永不带渠道过滤；同一供应商多渠道路由、同小时同模型同分组时
+  并列行**必然存在** → 跨页顺序不定（可能重复行/漏行）。ADM-U01 的 `channelId` 可选，不传时同样并列。
+* **建议修法**：`order by stat_hour, model_name, group_name, channel_id`（补全已有唯一索引
+  `uq_usage_hourly`）。**注意不能用「追加 id」的写法**：该表是分区表、**无主键**，`id` 上没有任何唯一约束
+  → 追加 `id` 仍然不唯一（这是本抽查最容易被误修的一点）。
+* **该不变量不被任何测试守卫**（信息项 I1–I4）：md 清单未声明排序规则、openapi 无 `sort/orderBy` 参数、
+  客户端不传排序参数、测试里无跨页稳定性/重复行断言。
+* **诚实标注**：抽查只覆盖含 `limit/offset` 的 13 条 SQL；其它 11 处集合查询（无 `limit/offset`，如
+  `order by seq, id`、`order by t.key`）不跨页，不属本不变量范围，未纳入硬断言。
+* **风险分级**（坑 54）：实现级健壮性风险（低概率、无数据损坏、无契约冲突），不按线上故障优先级报；
+  按硬规则「missing=0 只校验不改代码」→ 列待拍板。
+* 证据：`evidence/spotcheck-pagination-order-R45.txt`、`evidence/spotcheck-pagination-order-selftest-R45.txt`。
+
+### 本轮自己踩的坑（值得记）
+* **ORDER BY 可能写在**上一个**字符串字面量里**：首版按「上一个 `;` 之后」当语句边界 → 直接 break，
+  报出「未能静态判定（列=[]）」。规则：SQL 拼接要沿 `+` **拼接链**累积（gap 里出现 `;`/`,` 才越界）；
+  正向对照「P1 解析到 ORDER BY 的条数 = 分页语句条数」是发现它的唯一手段（坑 44/46/63 同族）。
+* **打补丁留下同名旧函数 = 修了却毫无变化**：新函数定义在前、旧函数定义在后，后者遮蔽前者，
+  输出与修复前**一字不差**。规则：改脚本后先确认「文件里该函数只定义一次」，否则症状会伪装成「修复无效」。
+* **比对器把「汇总行」算进 FAIL 集合**：汇总行数字天然变化（PASS 12/FAIL 1 → 11/2），
+  「恰好新增 1 条」被误判成「新增 2 条」。规则：只比**明细**断言行（坑 59 同族：产物不稳定先怀疑比对键）。
+* **注入缺陷不仅要「锚点命中」，还要「作用域精确」**：DDL 全文件 `replace` 把同缩进的
+  `id bigint primary key` 一次打掉 **8 张表**的唯一键 → 报出「新增 8 条」，看起来像守卫滥报。
+  规则：注入限定在被测对象块内，并断言注入后的新文本确实出现（坑 90/94 扩展）。
+* **双引号 `echo` 里的反引号仍会被执行**（坑 84 复现）：证据行写成 `` echo "…含 `limit ? offset ?` 的…" ``
+  → shell 执行了 `limit ? offset ?`（`limit: command not found`），证据行里出现**空缺**。
+  规则：写证据只用**引号定界 heredoc**，且落盘后跑「污染检查 grep」——本次靠它抓出该行。
+
+### 本轮未做（纪律）
+* 未新增仓库工具（missing=0 只校验不改代码），抽查脚本与自测均在 `$LOCALAPPDATA/Temp/aap-r45-spotcheck/`；
+* 未并发跑测试（单进程串行两轮；跑前 `jps` 确认无 surefire/测试 JVM）；他项目的
+  `com.hioas.aap.AapServerApplication -Dspring.profiles.active=dev` 进程与 hioas-aim 的 CDP（9223）**只读观察，未触碰**。
+
+### 台账
+* R45 行「提交」列先留空，提交后由收尾提交补齐（沿用 R40/R42/R43/R44 做法）；CSV 以真正的 csv 解析复核
+  「每行列数 = 表头列数（8）」；R 行连续性核对：R27 → R45 无缺号（坑 71）。

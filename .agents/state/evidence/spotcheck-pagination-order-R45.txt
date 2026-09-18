@@ -1,0 +1,70 @@
+== R45 抽查：分页查询「排序确定性」（ORDER BY 必须含唯一键 tie-breaker）不变量（第十九类可审计不变量） ==
+时间：2026-09-18T20:2x+0800（抽查脚本与自测均在 $LOCALAPPDATA/Temp，**不新建仓库工具**）
+
+为什么两套门禁都看不见：契约测试只校验「元素模型 JSON Schema」（schema 里没有 SQL / ORDER BY / 跨页稳定性），
+覆盖门禁只比「HTTP 方法 + 路径」是否注册；openapi 与客户端 TS 不被任何测试读取。
+后果：分页 SQL 的 ORDER BY 若不含唯一列，并列行在两次查询间顺序不定 → 翻页「重复行 / 漏行」，204 例全绿也看不见。
+
+真源：I = 实现 SQL（含 limit/offset 的分页语句的 ORDER BY 列集合 + FROM 表名）
+      D = DDL V1__baseline.sql（每表唯一键集合：内联 primary key / 复合 primary key / unique index）
+      M/O/C/T = md 清单 / openapi / 客户端 / 测试源（信息项）
+
+--- 抽查脚本输出 ---
+[PASS] P0 正向对照：解析到含 limit/offset 的分页 SQL 条数 > 0：实测 13 条
+[PASS] P0b 正向对照：DDL 解析到表定义 > 0：实测 54 张表、唯一键集合 95 组
+[PASS] P1 每条分页 SQL 的 ORDER BY 列集合都解析到：13/13
+[PASS] P2 每条分页 SQL 的 FROM 表名都能在 DDL 里找到（防解析到错表）：13/13；定位档位=['file-nearest', 'same-literal', 'stmt-chain']
+[PASS] P2b 表名映射自校验：ORDER BY 列都存在于所解析到的表定义中：13/13
+[FAIL] P3 分页 SQL 的 ORDER BY 必须含完整唯一键（tie-breaker）：aap-server/src/main/java/com/hioas/aap/usage/UsageService.java:167 表=aap_usage_hourly order by(['stat_hour', 'model_name', 'group_name']) 不含任何完整唯一键；最接近的唯一键=['channel_id', 'group_name', 'model_name', 'stat_hour']（缺 ['channel_id']）
+[FAIL] P3 汇总：分页 SQL 排序确定性：PASS 12 / FAIL 1 / 未能静态判定 0
+      [OK ] aap-server/src/main/java/com/hioas/aap/adminconfig/DetectionConfigService.java:108 表=aap_detection_config order by(['created_at', 'id']) ⊇ 唯一键 ['id']
+      [OK ] aap-server/src/main/java/com/hioas/aap/adminconfig/ReportTemplateService.java:89 表=aap_report_template order by(['created_at', 'id']) ⊇ 唯一键 ['id']
+      [OK ] aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:141 表=aap_contract order by(['created_at', 'id']) ⊇ 唯一键 ['id']
+      [OK ] aap-server/src/main/java/com/hioas/aap/provider/ProviderService.java:229 表=aap_provider order by(['created_at', 'id']) ⊇ 唯一键 ['id']
+      [OK ] aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:186 表=aap_review_task order by(['created_at', 'id']) ⊇ 唯一键 ['id']
+      [OK ] aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:84 表=aap_payment_record order by(['created_at', 'id']) ⊇ 唯一键 ['id']
+      [OK ] aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:119 表=aap_payment_record order by(['created_at', 'id']) ⊇ 唯一键 ['id']
+      [OK ] aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:167 表=aap_settlement_statement order by(['created_at', 'id']) ⊇ 唯一键 ['id']
+      [OK ] aap-server/src/main/java/com/hioas/aap/support/AuditLogQueryService.java:95 表=aap_audit_log order by(['created_at', 'id']) ⊇ 唯一键 ['id']
+      [OK ] aap-server/src/main/java/com/hioas/aap/support/NotificationService.java:108 表=aap_notification order by(['created_at', 'id']) ⊇ 唯一键 ['id']
+      [OK ] aap-server/src/main/java/com/hioas/aap/sync/SyncAdminService.java:129 表=aap_sync_task order by(['created_at', 'id']) ⊇ 唯一键 ['id']
+      [OK ] aap-server/src/main/java/com/hioas/aap/sync/SyncAdminService.java:233 表=aap_channel_binding order by(['created_at', 'id']) ⊇ 唯一键 ['id']
+[INFO] I1 md 清单出现排序相关字样处数：1
+[INFO] I2 openapi 声明 sort/orderBy 查询参数处数：0
+[INFO] I3 客户端出现排序参数标识符处数：2
+[INFO] I4 测试里翻第 2 页的调用点 11 处；跨页稳定性/重复行断言 6 处
+[PASS] Z1 三个被读文件指纹未变（抽查脚本零写副作用）：3 个文件
+
+合计 12 条：PASS 6，FAIL 2，INFO 4
+rc=1
+
+--- 第三方取证（机器可核对，命令 + 结果） ---
+① 该分页 SQL 的两个调用点（谁在翻页）：
+   aap-server/src/main/java/com/hioas/aap/usage/AdminUsageController.java:53:        return ApiEnvelope.ok(usageService.hourly(parseId(providerId, "providerId"),
+   aap-server/src/main/java/com/hioas/aap/usage/UsageController.java:56:        return ApiEnvelope.ok(usageService.hourly(requireProvider(principal), null, from, to, model, group,
+   → UsageController.java:56 第二个实参**硬编码 null**（channelId 永不参与过滤）→ USE-02 必然存在并列行
+② aap_usage_hourly 的唯一约束只有一条（无主键、id 无唯一索引）：
+   1072:create unique index if not exists uq_usage_hourly on aap_usage_hourly (stat_hour, channel_id, model_name, group_name);
+   → 唯一键 = (stat_hour, channel_id, model_name, group_name)；当前 ORDER BY 只差 channel_id
+   → **naive 修法（追加 id）无效**：该表 id 无任何唯一约束（分区表无主键），追加 id 仍不唯一
+③ 客户端确实会翻页：
+   3: * GET /usage/hourly、/usage/summary（前缀 /api/v1）
+   30:    return http<unknown>('/usage/hourly', { method: 'GET', data: params })
+
+--- 结论 ---
+1) 13 条分页 SQL 全部定位（P1 13/13、P2 13/13、P2b 表名映射自校验 13/13）。
+2) 12 条通过（ORDER BY 含表主键 id），1 条真实 FAIL：
+   aap-server/src/main/java/com/hioas/aap/usage/UsageService.java:167（表 aap_usage_hourly）
+   order by stat_hour, model_name, group_name 不含任何完整唯一键；最接近的唯一键缺 channel_id。
+3) 影响面（机器取证）：USE-02（UsageController.java:56）把 channelId 写死为 null → 同一供应商多渠道路由、
+   同小时同模型同分组的并列行**必然出现**；ADM-U01 的 channelId 可选 → 不传时同样并列。
+   跨页顺序不定 → 可能重复行/漏行（数据量小时不可见）。
+4) 建议修法（**待拍板，本轮按纪律未改代码**）：order by stat_hour, model_name, group_name, channel_id
+   （补全已有唯一索引 uq_usage_hourly；注意**不能**用追加 id 的写法，见 ②）。
+5) 该不变量**不被任何测试守卫**：契约测试只比元素 schema、门禁只比路由；md 清单未声明排序规则、
+   openapi 无 sort/orderBy 参数、客户端不传排序参数（信息项 I1/I2/I3）。
+6) 诚实标注：本次抽查**只覆盖含 limit/offset 的 13 条 SQL**；其它集合查询（无 limit/offset，
+   如 order by seq, id / order by t.key 等 11 处）不跨页，不属本不变量范围，故未纳入硬断言。
+
+风险分级（坑 54）：该缺陷是**实现级健壮性风险**（低概率、无数据损坏、无契约冲突），不按线上故障优先级报；
+按硬规则「missing=0 只校验不改代码」→ 列**待拍板**，修复需人拍板后单独一轮 TDD。

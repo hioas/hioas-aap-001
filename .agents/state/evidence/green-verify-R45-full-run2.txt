@@ -1,0 +1,19 @@
+== R45 全量测试第 2 轮（真源：surefire 逐类结果 + 覆盖门禁报告逐字段） ==
+时间：2026-09-18T20:2x+0800
+命令：export PATH="$HOME/bin:/c/Users/laitz/bin:/c/Users/laitz/bin:E:/workspaces/jdk/temurin-25.0.4/bin:/c/Users/laitz/bin:/mingw64/bin:/usr/local/bin:/usr/bin:/bin:/mingw64/bin:/usr/bin:/c/Users/laitz/bin:/mingw64/bin:/usr/bin:/c/Users/laitz/AppData/Local/Microsoft/WinGet/Links:/c/Users/laitz/AppData/Local/hermes/node:/c/Users/laitz/AppData/Local/hermes/node/bin:/c/Users/laitz/AppData/Local/hermes/hermes-agent/venv/Scripts:/c/WINDOWS/system32:/c/WINDOWS:/c/WINDOWS/System32/Wbem:/c/WINDOWS/System32/WindowsPowerShell/v1.0:/c/WINDOWS/System32/OpenSSH:%NVM_HOME%:%NVM_SYMLINK%:/c/Program Files/dotnet:/c/Users/laitz/AppData/Local/Programs/Python/Python312/Scripts:/c/Users/laitz/AppData/Local/Programs/Python/Python312:/c/Users/laitz/AppData/Local/Programs/Python/Launcher:/c/Users/laitz/AppData/Local/hermes/bin:/c/Users/laitz/AppData/Local/Microsoft/WindowsApps:/c/Users/laitz/AppData/Local/JetBrains/Toolbox/scripts:/bin:/e/workspaces/nvm:/e/workspaces/nvm/nodejs:/d/Program Files/Microsoft VS Code/bin:/c/Users/laitz/AppData/Local/Microsoft/WinGet/Packages/BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe/ripgrep-15.2.0-x86_64-pc-windows-msvc:/c/Users/laitz/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-9.0.1-full_build/bin:/c/Users/laitz/AppData/Local/Programs/Cua/cua-driver/bin:/c/Users/laitz/.local/bin:/e/sdk/go1.27.1/bin:/e/sdk/apache-maven-3.8.6/bin:/e/workspaces/jdk/temurin-25.0.4/bin:/c/Users/laitz/.calicat-cli/bin:/e/tools/bin:/usr/bin/vendor_perl:/usr/bin/core_perl"; cd aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test
+纪律：单进程串行（跑前 jps 确认无 surefire/测试 JVM 在跑，坑 11/20）；他项目的 dev 服务进程（com.hioas.aap.AapServerApplication -Dspring.profiles.active=dev）
+      与 hioas-aim 的 CDP（9223）均为**只读观察，未触碰**。
+
+[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+测试类数 = 33；[ERROR] 行数 = 0
+@Test 词边界计数（源码）= 204  ↔  surefire Tests run = 204（一致 → 无用例被静默跳过，坑 35）
+禁用扫描 @Disabled|@Ignore\b|@DisabledIf|assumeTrue|Assumptions\. = 0 条（未削弱测试）
+覆盖门禁（EndpointCoverageTest，读 coverage-report.json 逐字段而非 grep 类名 —— 坑 96）：
+  total=90  implemented=90  missing=0  registered_routes=96  not_registered=[]
+  → 90/90 连续第 27 轮全绿（R18 → … → R45）
+结论：本轮全绿（0 失败 / 0 错误 / 0 跳过）。
+
+== 逐类结果 diff（先剥 Time elapsed 再排序 —— 坑 59/79；空 = 逐类一致） ==
+diff 为空：33 个测试类逐类结果一致（非 flaky）
+（比对键已剔除 Time elapsed；r45-run1-classes.txt / r45-run2-classes.txt 为中间产物，不入库）

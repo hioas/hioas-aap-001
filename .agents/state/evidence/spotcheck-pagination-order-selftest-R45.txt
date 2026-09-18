@@ -1,0 +1,31 @@
+== R45 抽查脚本的判别力自测（坑 46/57/66/75/82/90/93/94） ==
+时间：2026-09-18T20:2x+0800
+说明：夹具 = 真实仓库相关子树拷贝到 $LOCALAPPDATA/Temp/aap-r45-fixture（不碰工作区）；
+      注入缺陷必须「真的改到源码」并「恰好新增 1 条点名 FAIL」，空夹具必须判解析器失效（rc=9）而非「零发现」。
+
+[PASS] case_positive 合规夹具 rc=1（真实仓库本有 1 条待拍板 FAIL）：rc=1
+[PASS] case_positive 基线 FAIL 明细行数 = 1（usage 分页缺 channel_id）：实得 1：["P3 分页 SQL 的 ORDER BY 必须含完整唯一键（tie-breaker）：aap-server/src/main/java/com/hioas/aap/usage/UsageService.java:167 表=aap_usage_hourly order by(['stat_hour', 'model_name', 'group_name']) 不含任何完整唯一键；最接近的唯一键=['channel_id', 'group_name', 'model_name', 'stat_hour']（缺 ['channel_id']）"]
+[PASS] case_positive 基线点名 UsageService.java:167（usage 分页缺 channel_id）
+[PASS] case_inject_impl 注入实现缺陷 -> 恰好新增 1 条点名 NotificationService 的 FAIL：新增 1 条：["P3 分页 SQL 的 ORDER BY 必须含完整唯一键（tie-breaker）：aap-server/src/main/java/com/hioas/aap/support/NotificationService.java:108 表=aap_notification order by(['created_at']) 不含任何完整唯一键；最接近的唯一键=None（缺 N/A）"]
+[PASS] case_inject_ddl 删掉该表唯一键 -> 恰好新增 1 条点名 NotificationService 的 FAIL：新增 1 条：["P3 分页 SQL 的 ORDER BY 必须含完整唯一键（tie-breaker）：aap-server/src/main/java/com/hioas/aap/support/NotificationService.java:108 表=aap_notification order by(['created_at', 'id']) 不含任何完整唯一键；最接近的唯一键=None（缺 N/A）"]
+[PASS] case_fix_usage 补 channel_id -> 基线 FAIL 全部消失、rc=0（守卫不恒报错）：rc=0 剩余 FAIL=0 消失=1
+[PASS] case_empty 空夹具 rc=9（解析器失效）且点名 P0/P0b，不判「零发现」：rc=9 FAIL=['P0 正向对照：解析到含 limit/offset 的分页 SQL 条数 > 0：实测 0 条', 'P0b 正向对照：DDL 解析到表定义 > 0：实测 0 张表、唯一键集合 0 组']
+[PASS] anchors 所有注入锚点都真的改到了源码（坑 66/94）：未命中=[]
+[PASS] case_zero_write 真实仓库 3 个关键文件 md5 全等（自测零写副作用）
+
+== 自测结果：PASS 9 / FAIL 0 ==
+
+--- 本轮自测自身踩的两个坑（诚实留痕；修的是**夹具/比对器**，不是期望值 —— 坑 82） ---
+① 比对器把「汇总行」算进 FAIL 集合：P3 汇总行的数字天然变化（PASS 12/FAIL 1 → 11/2），
+   于是「恰好新增 1 条」被误判成「新增 2 条」。修法：只比**明细**行（排除含「汇总」的断言行）。
+② DDL 注入用全文件 replace：锚点 '        id              bigint primary key' 在**同一缩进的其它 7 张表**里也存在，
+   一次打掉 8 张表的唯一键 → 报出「新增 8 条」（看起来像守卫滥报）。修法：注入**限定在该表块内**替换，
+   并断言注入后新文本确实出现（锚点真的命中）。
+   教训：注入缺陷不仅要「锚点命中」，还要「作用域精确」——否则会得出「守卫滥报」的假结论（坑 90/94 扩展）。
+
+--- 判别力判定 ---
+PASS：合规夹具基线 1 条（usage）；注入实现缺陷 → 恰好 +1 条点名 NotificationService；
+      注入 DDL 唯一键缺失 → 恰好 +1 条点名 NotificationService；
+      注入修法（补 channel_id）→ 基线 FAIL **消失**、rc=0（证明守卫既不瞎也不恒报错）；
+      空夹具 → rc=9 且点名 P0/P0b；锚点全部命中；真实仓库 3 文件 md5 全等（零写副作用）。
+selftest_rc=0（9/9 PASS）
