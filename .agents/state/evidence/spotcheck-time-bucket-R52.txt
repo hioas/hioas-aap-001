@@ -1,0 +1,59 @@
+== R52 抽查：时区/桶口径一致性（第二十六类可审计不变量） ==
+脚本：C:/Users/laitz/AppData/Local/Temp/aap-r52-spotcheck/spotcheck-time-bucket-v2.py（抽查式，不新建仓库工具）
+夹具：C:/Users/laitz/AppData/Local/Temp/aap-r52-spotcheck-fixtures（与脚本目录分开命名，坑 106）
+不变量：**对外时间与所有「日/月/小时桶」边界一律 UTC**；且 RFC3339 出口（格式串把 Z 写成**字面量**）的实参必须已归一到 UTC。
+为什么两套门禁都看不见：契约测试只读 JSON Schema，而 `format: date-time` 对 `+08:00` / 无偏移文本一律放行
+（format 甚至不是必须强校验的关键字）→「本地墙钟被当成 UTC 输出」在 204 例全绿下完全不可见；
+覆盖门禁只比「方法+路径」；客户端 TS 不被任何测试执行 →「客户端用本机当前月查服务端 UTC 月桶」同样不可见。
+真源：M=md §0 时间行 ⇔ I=实现（RFC3339 格式串 + 出口实参 offset 来源三分支 + 取当前时间点 + 桶边界点 + 裸 date_trunc）
+      ⇔ S=JSON Schema 时间 format/pattern ⇔ C=客户端（本机日期派生点、month 查询实参，**标识符回查定义**）⇔ T=测试断言形状
+
+== R52 时区/桶口径抽查（root=E:/workspaces/hioas/hioas-aap-001） ==
+解析计数：RFC3339 格式串定义 17；出口调用点 24（已归一 20 / now(UTC) 派生 4 / 未判定 0）；裸 date_trunc 0；UTC 桶边界取证点 8；客户端本机日期派生 15；客户端 month 实参 3（回查命中 1）；md 时间行 1；schema date-time 88 / date 1；测试 endsWith Z 0 / parse→toInstant 1
+[PASS] P1 Java 侧解析到 RFC3339 出口调用点 24 处
+[PASS] P2 RFC3339 格式串定义 17 处
+[PASS] P3 md §0 时间约定行解析到 1 行
+[PASS] P4 客户端本机日期派生点解析到 15 处
+[PASS] P5 服务端 UTC 桶边界取证点解析到 8 处
+[PASS] P6 JSON Schema 时间字段 format 解析到 date-time=88 / date=1
+[PASS] P7 客户端 month 实参解析到 3 处（其中回查定义命中本机当前月 1 处）
+[PASS] A0 RFC3339 格式串把 Z 写作**字面量** 17 处（如 `yyyy-MM-dd'T'HH:mm:ss'Z'`）→ 实参必须先归一到 UTC，否则带偏移的墙钟会被当成 UTC 输出
+[PASS] A1 全部 24 处 RFC3339 出口实参均已归一到 UTC（显式 withOffsetSameInstant(UTC) 或 now(ZoneOffset.UTC)）→ 字面量 Z 与真实时刻一致
+[PASS] A2 实现里没有「不指定时区的 date_trunc('day'|'month'|…, timestamptz)」→ 桶边界不随 DB 会话时区漂移
+[PASS] A3 md §0 声明「时间 RFC3339 UTC；小时桶为整点」
+[PASS] A4 服务端桶边界一律带 ZoneOffset.UTC（8 处取证点）
+[PASS] B3 JSON Schema 里有 1 处 pattern 约束 ...Z
+[FAIL] A5 服务端月桶按 UTC 计算（取证点 5 处），而客户端把**本机当前月**当 month 查询参数传给该端点（aap-client/src/pages/usage/index.vue:207 `month.value` ← `currentMonth()`）→ 东八区每月 1 日 00:00–08:00 请求的月份在 UTC 口径下刚起头、桶为空；跨源桶口径不一致（两套门禁都看不见）
+[INFO] A5d aap-client/src/pages/usage/index.vue: `month = currentMonth()` 被当作 month 查询实参
+[INFO] B1 无显式时区的取当前时间点 2 处（落 timestamptz 是绝对时刻故安全，但若经未归一出口即漂移）：['aap-server/src/main/java/com/hioas/aap/common/AuditListeners.java:26', 'aap-server/src/main/java/com/hioas/aap/common/AuditListeners.java:57']
+[INFO] B2 时间文本形状的测试背书：`endsWith("Z")` 断言 0 处；对偏移**敏感**的 parse→toInstant 断言 1 处；其余 88 个 date-time 字段只有 JSON Schema 的容忍校验（format 对 +08:00/无偏移一律放行）
+汇总: PASS 13 / FAIL 1 / INFO 3
+A5 明细（客户端 month 实参逐条）：
+  aap-client/src/pages/usage/index.vue:207  month: month.value                  回查命中本机当前月=True ← currentMonth()
+  aap-client/src/utils/usage-model.ts:295  month: string                       回查命中本机当前月=False 
+  aap-client/src/utils/usage-model.ts:386  month: formatMonthLabel             回查命中本机当前月=False 
+A1 明细（出口实参分类）：
+  aap-server/src/main/java/com/hioas/aap/adminconfig/DetectionConfigService.java:361 显式 UTC 归一 | value.withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/adminconfig/ReportTemplateService.java:245 显式 UTC 归一 | value.withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/compile/CompilationService.java:474 显式 UTC 归一 | value.withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/compile/CompilationService.java:478 now(UTC) 派生 | OffsetDateTime.now(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:179 now(UTC) 派生 | OffsetDateTime.now(ZoneOffset.UTC).plusHours(1)
+  aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:451 显式 UTC 归一 | value.withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/credential/CredentialService.java:278 显式 UTC 归一 | record.getCheckedAt().withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/credential/CredentialService.java:306 now(UTC) 派生 | OffsetDateTime.now(ZoneOffset.UTC).plusMinutes(5)
+  aap-server/src/main/java/com/hioas/aap/credential/CredentialService.java:436 显式 UTC 归一 | value.withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java:424 显式 UTC 归一 | value.withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/iam/AuthService.java:70         显式 UTC 归一 | sent.expireAt().withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/provider/ProviderService.java:401 显式 UTC 归一 | q.getUploadedAt().withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/provider/ProviderService.java:433 显式 UTC 归一 | provider.getCreatedAt().withOffsetSameInstant(ZoneOffset.UTC
+  aap-server/src/main/java/com/hioas/aap/provider/ProviderService.java:434 显式 UTC 归一 | provider.getUpdatedAt().withOffsetSameInstant(ZoneOffset.UTC
+  aap-server/src/main/java/com/hioas/aap/provider/ProviderService.java:449 显式 UTC 归一 | entity.getUploadedAt().withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java:762     显式 UTC 归一 | value.withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/report/ReportController.java:91 now(UTC) 派生 | OffsetDateTime.now(ZoneOffset.UTC).plusHours(1)
+  aap-server/src/main/java/com/hioas/aap/report/ReportController.java:254 显式 UTC 归一 | value.withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:443   显式 UTC 归一 | value.withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:236 显式 UTC 归一 | value.withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/support/AuditLogQueryService.java:141 显式 UTC 归一 | value.withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/support/NotificationService.java:201 显式 UTC 归一 | value.withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/sync/SyncAdminService.java:551  显式 UTC 归一 | value.withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/usage/UsageService.java:583     显式 UTC 归一 | value.withOffsetSameInstant(ZoneOffset.UTC)

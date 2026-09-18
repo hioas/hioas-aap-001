@@ -2733,3 +2733,89 @@ md 清单 / ER 文档 / JSON Schema / 生成器状态目录 / 实现状态写入
 * 飞书通知失败留痕（第 26 轮同因：home channel 未绑定，不阻塞交付）。
 * 台账：R51 行「提交」列填为 `521096d`；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」；
   R 行连续性核对 R27 → R51 无缺号（坑 71）。
+
+## R52（2026-09-19）巡检轮：90/90 连续第 34 轮全绿 + 抽查「时区/桶口径一致性」（第二十六类可审计不变量）
+
+### 结论
+* 覆盖门禁 **90/90**（`missing=0`），连续第 34 轮（R18 → R52）。
+* 全量集成测试**两轮 204 例全绿**（0 失败 / 0 错误 / 0 跳过，33 个测试类）；逐类结果先剥 `Time elapsed` 再排序后
+  **diff 为空**（坑 59/79），无 flaky；`@Test` 词边界计数 204 与 surefire 汇总一致，禁用扫描 0 条（无用例被削弱）。
+* 既有 **14 套只读审计 + 13 个负向自测**复跑：rc 序列与 R51 逐条一致、FAIL 明细剥来源前缀后逐行一致（零回归），
+  13 个自测全 rc=0；零写副作用守卫 84/84 产物 (size,md5) 全等。
+* `missing=0` → **本轮未改业务代码 / 未改清单 / 未改生成器 / 未改 md / 未动任何断言**。
+
+### 本轮新增抽查：时区/桶口径一致性（第二十六类可审计不变量）
+**不变量**：对外时间与所有「日/月/小时桶」边界一律 **UTC**；且 RFC3339 出口（格式串把 `Z` 写成**字面量** `'Z'`）
+的实参必须先归一到 UTC —— 否则带偏移的墙钟会被当成 UTC 输出。
+
+* **为什么两套门禁都看不见**：契约测试只读 JSON Schema，而 `format: date-time` 对 `+08:00` / 无偏移文本
+  **一律放行**（`format` 甚至不是必须强校验的关键字）→「本地墙钟被当成 UTC 输出」在 204 例全绿下完全不可见；
+  覆盖门禁只比「HTTP 方法 + 路径」；客户端 TS 不被任何测试读取/执行 →「客户端用本机当前月查服务端 UTC 月桶」
+  同样不可见。
+* **真源五处**：M = md §0 时间行（RFC3339 UTC / 小时桶整点 / `DATE` = `yyyy-MM-dd`）
+  ⇔ I = 实现（17 处 RFC3339 格式串 + 24 处出口实参的 offset 来源三分支 + 2 处无时区 `now()` + 8 处桶边界取证点
+  + 裸 `date_trunc` 扫描）⇔ S = JSON Schema（`date-time` 88 / `date` 1 / `Z` pattern 1）
+  ⇔ C = 客户端（15 处本机日期派生 + 3 处 `month` 实参，**标识符回查定义**）⇔ T = 测试断言形状
+  （`endsWith("Z")` 0 处 / `parse(...).toInstant()` 1 处）。
+* **断言 PASS 13 / FAIL 1 / INFO 3**。
+
+### 本轮唯一真实漂移（跨源，待拍板）
+**客户端用本机当前月去查服务端 UTC 月桶**（`GET /usage/summary`，端点 `USE-01`）
+* 客户端：`aap-client/src/pages/usage/index.vue:191` `const month = ref(currentMonth())`
+  （`currentMonth()` 用 `getFullYear()/getMonth()` = **本机时区**），`:207` `usageApi.overview({ month: month.value })`
+  把它作为 `month` 查询参数发出。
+* 服务端：`UsageService.resolveWindow` 的 `month` 分支 = `YearMonth.atDay(1).atStartOfDay().atOffset(ZoneOffset.UTC)`
+  → `[YYYY-MM-01T00:00Z, 次月-01T00:00Z)`；缺省分支亦为 `LocalDate.now(ZoneOffset.UTC).withDayOfMonth(1)`（**UTC 月**）。
+* **后果**：东八区每月 1 日 00:00–08:00，客户端请求的月份在 UTC 口径下刚开始，桶内只有 08:00 之后的数据
+  → 用量页首屏（以及「本月」pill 对应的数据）为空；其余时段两者同月、不可见。
+* **自相矛盾**：`usage-model.ts` 注释自称「月份口径由服务端给，缺失时才回退本机当前月」，但**唯一调用点**
+  把本机月写死并总是显式传参（服务端缺省口径从未被走到）；同端点的工作台入口 `usageApi.summary()` 反而**不传**
+  `month`（走服务端 UTC 当月）→ 同一端点两种缺省口径并存（断言 A6）。
+* **为什么全绿**：`month` 是 **query 参数**，JSON Schema 里根本没有 query（契约测试只校验响应体）；覆盖门禁只比
+  方法+路径；客户端 TS 不被任何测试执行。
+* **分级：待拍板（客户端行为，属契约/口径变更）**。两种改法：① 客户端 `month` 初始值留空、让服务端缺省（口径最一致，
+  与工作台 `summary()` 一致）；② 若坚持「本机月」语义，则 md §0 需显式声明 `month` 为**本地时区月**并同步服务端实现
+  （会改变 23 条分页/窗口端点的口径，代价更大）。建议 ①。
+
+### 零漂移的正面结论（带正向对照，不是「没发现问题」）
+* **A1**：24 处 RFC3339 出口实参**全部**已归一到 UTC —— 20 处显式 `withOffsetSameInstant(ZoneOffset.UTC)`、
+  4 处 `now(ZoneOffset.UTC)` 派生；「未能静态判定」0 处。→ 17 处**字面量 Z** 格式串与真实时刻一致。
+* **A2**：实现里 0 处「不指定时区的 `date_trunc('day'|'month'|'week'|'year', timestamptz)`」→ 桶边界不随 DB 会话时区漂移。
+* **A4**：8 处桶边界取证点全部带 `ZoneOffset.UTC`（`UsageService` 的 `at time zone 'UTC'` + `resolveWindow`、
+  `DocNoGenerator` 的 `LocalDate.now(ZoneOffset.UTC)`、`DetectionService.ensureDailyQuota` 的
+  `now(ZoneOffset.UTC).withHour(0)...`）。
+* **A0（信息项）**：17 处格式串把 `Z` 写成**字面量**（`yyyy-MM-dd'T'HH:mm:ss'Z'`）→ 正确性完全依赖调用点归一，
+  编译期无任何约束（与「用 `XXX` 模式自动带偏移」相比更脆），属观察项。
+
+### 信息项（不属漂移）
+* **B1 无显式时区的取当前时间点 2 处**：`AuditListeners.java:26/57` 用 `OffsetDateTime.now()`（本机 +08:00）。
+  落 `timestamptz` 是**绝对时刻**故结果正确，但与 `BaseEntity` javadoc「`created_at/updated_at`：timestamptz **UTC**，
+  由审计监听器填充」的口径不一致；若将来有出口直接 format 该值且未归一，即产生 8 小时漂移。
+* **B2 时间文本形状缺测试背书**：`endsWith("Z")` 断言 **0** 处；对偏移**敏感**的 `parse(...).toInstant()` 断言 **1** 处
+  （`NotificationContractTest:275`，仅覆盖 `read_at` 一个字段）；其余 **88** 个 `date-time` 字段只有 JSON Schema 的
+  容忍校验。→ 建议后续给「出口归一」补一条纯函数单测（本轮 `missing=0` 不改代码，仅登记）。
+* **B3**：JSON Schema 里仅 1 处 `pattern` 约束以 `Z` 结尾 → 其余时间字段无形状约束。
+
+### 本轮踩坑（抽查脚本自身返工 4 处，全部是「先怀疑解析器」）
+1. **把「消费服务端返回值的展示路径」当成「把本地月传给服务端」**（假发现，坑 81）：v1 用
+   `month\s*:\s*(\w+)` 抓实参，命中 `usage-model.ts:386 month: formatMonthLabel(raw.month)` —— 那是**用服务端返回的
+   `raw.month`** 构造展示模型，与查询参数无关。规则：客户端「传参」判定必须**回查标识符定义**
+   （`const month = ref(currentMonth())`）再判是否本机口径（坑 107 的客户端版）。
+2. **统计「对偏移敏感的断言」用了 `parse\([^)]*\)`**（假发现，坑 46/63 同族）：实参含嵌套括号
+   （`OffsetDateTime.parse(res.data().path("read_at").asText()).toInstant()`）→ `[^)]*` 在内层 `)` 提前截断 →
+   计到 **0 处**，并据此写出「测试完全不敏感」的结论（**0 处先怀疑解析器**）。规则：括号配对扫描（`match_paren`）。
+3. **自测 FAIL token 取 `split()[0]` 得到 `[FAIL]` 而非断言名**（有效守卫被判失败，坑 82/93）：5 条
+   「恰好新增目标断言」断言全部假失败。规则：按 `[FAIL] <token>` 取第 2 个字段。
+4. **自测自身的断言引用了未定义变量**（`NameError`）：自测也要先跑通再采信其结论（坑 82 的延伸）。
+
+### 本轮未做（纪律）
+* 未新增仓库工具（`missing=0` 只校验不改代码），抽查脚本与夹具**分目录**落在
+  `$LOCALAPPDATA/Temp/aap-r52-spotcheck` 与 `…-fixtures`（坑 106）；
+* 未并发跑测试（单进程串行两轮；跑前 `jps` 确认无其它 surefire JVM）；
+* 他方未提交改动（`aap-client/src/api/http.ts`、`aap-client/vite.config.ts`、`aap-server/src/main/resources/application.yml`、
+  `log4j2-spring.xml`、`src/test/resources/application-test.yml` 及 `aap-client` 下 mp-integration 相关未跟踪文件）
+  **未触碰、未纳入提交**（坑 15/16）。
+
+### 台账
+* 追加 R52 行（「提交」列先留空，提交后由收尾提交补齐）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」；
+  R 行连续性核对：R27 → R52 无缺号（坑 71）。
