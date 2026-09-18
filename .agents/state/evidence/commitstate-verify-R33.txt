@@ -1,0 +1,35 @@
+# R33 提交态复跑取证（干净 detached worktree @ HEAD 3c1b1a9）
+
+目的（skill 坑 27/28）：验证「**提交本身自洽、不依赖他人未提交的改动**」。同机其他代理的工作区里
+仍有 4 个未提交文件（`aap-client/vite.config.ts`、`aap-server/src/main/resources/application.yml`、
+`aap-server/src/main/resources/log4j2-spring.xml`、`aap-server/src/test/resources/application-test.yml`）
+与 3 个未跟踪项（`.playwright-mcp/`、`aap-client/pnpm-lock.yaml`、`aap-client/pnpm-workspace.yaml`）——
+本次复跑**全程不碰**它们（用 `git worktree add --detach` 起干净工作树，而不是覆盖工作区文件）。
+
+worktree：`C:/Users/laitz/AppData/Local/Temp/aap-verify-r33-1532`（带时间戳的唯一名，不做递归删除，坑 28）
+
+## 结果
+
+| 项 | 结果 |
+| --- | --- |
+| 全量测试（提交态） | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0`，`BUILD SUCCESS`，`[ERROR]` 行数 = 0 |
+| 覆盖门禁产物 | `total=90 implemented=90 missing=0`、`registered_routes=96`、`not_registered=[]`（12 个任务族逐族 implemented == total） |
+| 新增审计（提交态复现同结论） | `tools/audit-time-format.py` → `断言 15 条：PASS 15，FAIL 0`（rc=0） |
+| 新增审计负向自测（提交态） | `tools/audit-time-format-selftest.py` → `自测断言 20 条：PASS 20，FAIL 0`（rc=0） |
+| 生成器只读校验（提交态） | `tools/gen-backend-models.py --check` → `ok: models=55 requests=24 paths=78 operations=90 files=82`（rc=0，孤儿 0） |
+
+## 零写副作用与唯一差异归因
+
+worktree 内 `git status --porcelain` 只有一行：` M .agents/state/evidence/coverage-report.json`
+（门禁每次运行都会重写它，属预期产物）。
+
+逐行 `git diff` 复核：**24 行增 / 24 行删，全部是 `by_task` 内 `"implemented"` 与 `"total"` 的键序变化**，
+**逐字段值完全一致**（`total=90 implemented=90 missing=0`）。这与 R30 记录的观察项同因（skill 坑 56）：
+`Map.of(...)` 的迭代顺序按 JVM SALT 随机化 → 产物字节不稳定 → 任何「按 `git diff` 判断产物是否漂移」
+的复核会永远看到该文件被改写。**结论：本次不是内容漂移**（数值全等），且 `openapi.yaml` / 82 个 schema
+在提交态 `--check` 下与仓库一致（无漂移、无孤儿）。
+
+## 收尾
+
+`git worktree remove --force C:/Users/laitz/AppData/Local/Temp/aap-verify-r33-1532`（git 自带命令，
+不触发递归删除拦截，也不触碰他人工作区）。

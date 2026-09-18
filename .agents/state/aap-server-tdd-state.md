@@ -1572,3 +1572,17 @@ A2 openapi↔清单 0 漂移、A3a 清单 90/90 都能定位到实现、A4 客�
 实测**零漂移**，并把「14 份出口副本 + 两种等价写法」记为观察项。
 待拍板：飞书 home channel 未绑定（维持 R23–R32）+ PROV-03 item 模型口径 + 错误码漂移 10 条与孤儿码 2 个（R29 已裁决待执行）
 + 鉴权 md 角色列漂移 32 条（R30）+ 路由实现超出契约 1 条（R31）+ 查询参数漂移 8 条（R32）。
+
+### R33 提交态复跑与收尾
+
+* **干净 detached worktree @ HEAD `3c1b1a9`**（`C:/Users/laitz/AppData/Local/Temp/aap-verify-r33-1532`，
+  带时间戳唯一名，不做递归删除；全程不碰他人工作区的 4 个未提交文件与 3 个未跟踪项，坑 27/28）：
+  全量 **204 例全绿**（`BUILD SUCCESS`，`[ERROR]`=0）+ 新审计 **15/15 PASS** + 新审计自测 **20/20** +
+  生成器 `--check` **ok（82 文件、孤儿 0）** → **提交 `3c1b1a9` 自洽**。
+* **唯一差异归因（坑 56）**：worktree 内 `git status` 只有门禁产物 `coverage-report.json` 被重写；
+  逐行 diff 24/24 **全部是 `by_task` 内 `implemented`/`total` 的键序变化**，逐字段值全等
+  （`total=90 / implemented=90 / missing=0`）→ 与 R30 记录的 `Map.of` JVM SALT 键序非确定性同因，
+  **不是内容漂移**。证据 `commitstate-verify-R33.txt`。
+* **收尾**：`git worktree remove --force` 成功（git 自带命令，不触发递归删除拦截）。
+* **飞书通知失败（第 11 轮同因）**：`No home channel set for feishu …`，已留痕
+  `feishu-notify-failures.txt`；工作与提交未受影响。
