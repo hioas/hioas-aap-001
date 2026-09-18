@@ -1231,7 +1231,7 @@ md5 与 R19–R26 完全一致 → 自 R19 起零变化，未纳入本次提交�
 | `openapi.yaml` 可解析 | `paths=78 operations=90` | `audit-regression-R29.txt` |
 | 四个审计负向自测 | 14/14、全部通过、11/11、12/12（全 rc=0） | `selftest-regression-R29.txt` |
 | 错误码审计（复跑） | 16 断言 PASS 14 / FAIL 2（与 R28 同结论，可复现） | `audit-error-codes-R29.txt` |
-| 密钥泄漏审计 | 见下方专节 | `secret-leak-audit-R29.txt` |
+| 密钥泄漏审计（`tools/audit-secret-leak.py`，四处比对） | Tier A 13 个密钥类变量 **0 命中**（暂存差异 / HEAD 树 / 已跟踪工作树 / 未跟踪 4 文件）；Tier B 15 个非密钥低熵值仅报「名字+长度+sha256 前 8 位」；`.gitignore` 四项覆盖 PASS；被跟踪的 `.env` 类文件只有 `.env.example`；自测 3/3 PASS（正向对照有判别力） | `secret-leak-audit-R29.txt` |
 
 ### 结论与待拍板
 

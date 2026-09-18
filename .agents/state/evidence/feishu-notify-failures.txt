@@ -39,3 +39,8 @@
   输出: hermes send: No home channel set for feishu to determine where to send the message. Either specify a channel directly with 'feishu:CHANNEL_NAME', or set a home channel via: hermes config set FEISHU_HOME_CHANNEL <channel_id>（rc=1）
   → 与 R23–R27 同一原因：飞书 home channel 未绑定，需人工一次性配置。
   → 本轮性质：missing=0、无新端点批次落地，按「每完成一个批次才通知」本可不发；仍试发以取证。不阻塞 TDD 循环与提交。
+2026-09-18T13:51 R29 尝试发送失败（已知问题，非本轮回归，与 R23–R28 同因）：
+  命令: hermes send -t feishu -s 'AAP TDD 进度' 'R29 巡检：90/90 接口维持全绿（204 例两轮逐类一致），错误码漂移 10 条逐条仲裁完成（md 对 5 / 清单对 4 / 两边都错 1；孤儿码 E-1102 零抛点、E-1404 生成器漏声明），提交 83362e8'
+  输出: hermes send: No home channel set for feishu to determine where to send the message. Either specify a channel directly with 'feishu:CHANNEL_NAME', or set a home channel via: hermes config set FEISHU_HOME_CHANNEL <channel_id>
+  复核: `hermes send --list` 仍显示 'Feishu: (no channels discovered yet)' → 未绑定状态未变。
+  → 本轮性质：missing=0、无新端点批次落地；仍试发以取证。不阻塞 TDD 循环与提交（83362e8 已完成）。
