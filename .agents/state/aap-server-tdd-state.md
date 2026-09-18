@@ -3185,3 +3185,16 @@ DTO 分量 **776** 个（带必填类注解 **10**）·带 `@RequestBody` 路由
 * 追加 R57 行（「提交」列先留空，提交后由收尾提交补齐）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」；
   R 行连续性核对：R27 → R57 无缺号（坑 71）。
 * 飞书通知失败留痕（同因：feishu home channel 未绑定，不阻塞交付）。
+
+### R57 提交态复跑（临时 worktree，detached HEAD `22e2988`；坑 27/28）
+* **204 例全绿**（0 失败/0 错误/0 跳过）＋ `EndpointCoverageTest` 自身 **1/1 通过** ＋ `[ERROR]` = 0 ＋ BUILD SUCCESS；
+* worktree 内 `coverage-report.json` 逐字段 `total=90 / implemented=90 / missing=0 / registered_routes=96 / not_registered=[]`
+  → **提交本身自洽、不依赖他方 4 个未提交改动**；
+* 收尾 `git worktree remove --force`（`git worktree list` 只剩主工作树）。证据 `evidence/green-verify-R57-worktree-HEAD.txt`。
+* 口径提醒（坑 96）：证据里 `EndpointCoverageTest` 的 grep 命中是**编译告警**（`getPatternsCondition()` 已过时），
+  门禁结论取「测试自身 1/1 通过」＋报告文件逐字段值，不取告警行。
+
+### R57 台账收尾
+* R57 行「提交」列填为 `22e2988`（不留台账债）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」且末行「提交」列非空；
+  R 行连续性：R27 → R57 **无缺号**（坑 71）。
+* 飞书通知失败留痕（第 32 轮同因：feishu home channel 未绑定，不阻塞交付）→ `evidence/feishu-notify-failures.txt`。
