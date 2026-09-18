@@ -2612,3 +2612,16 @@ openapi 与客户端 TS 不被任何测试读取/执行 → 缺省/上限写错�
 ### 台账
 * 追加 R50 行（「提交」列先留空，提交后由收尾提交补齐）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」；
   R 行连续性核对：R27 → R50 无缺号（坑 71）。
+
+### R50 提交态复跑与收尾
+* 临时 worktree（detached HEAD `7f1ec60`，唯一名目录，收尾用 `git worktree remove --force`）内复跑全量：
+  **204 例全绿**（0 失败 / 0 错误 / 0 跳过）+ `[ERROR]` 行数 0 + BUILD SUCCESS +
+  `coverage-report.json` 逐字段 total=90 / implemented=90 / missing=0 / registered_routes=96 / not_registered=[]
+  → **提交本身自洽、不依赖他方未提交改动**。
+* **本轮实测复现坑 56**：覆盖门禁重写的 `coverage-report.json` 中 `by_task` 子映射**键序跨 JVM 随机化**
+  （HEAD 版 `{"implemented":6,"total":6}` vs 工作区版 `{"total":6,"implemented":6}`），
+  解析后 **JSON 语义比较 = True**（逐字段值全等）→ 这是键序而非漂移；任何「按 git diff 判产物漂移」的复核
+  都会看到该文件被改写。该文件 index 为 LF、跑测试后被写成 CRLF，故本轮**仍不提交**（坑 69）。
+* 飞书通知失败留痕（第 25 轮同因：home channel 未绑定，不阻塞交付）。
+* 台账：R50 行「提交」列填为 `7f1ec60`；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」；
+  R 行连续性核对 R27 → R50 无缺号（坑 71）。
