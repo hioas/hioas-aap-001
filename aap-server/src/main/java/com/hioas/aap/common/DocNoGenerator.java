@@ -63,6 +63,11 @@ public class DocNoGenerator {
         return "SY" + today() + pad(nextVal("seq_sync_task"), 4);
     }
 
+    /** 报告模板编号：{@code TPL{yyyyMMdd}{4位}}（ADM-CFG07；配置中心的模板可追溯）。 */
+    public String reportTemplateNo() {
+        return "TPL" + today() + pad(nextVal("seq_report_template_no"), 4);
+    }
+
     private String today() {
         return LocalDate.now(ZoneOffset.UTC).format(DAY);
     }

@@ -48,6 +48,15 @@ public class ReportService implements ReportGenerator {
     private static final Map<String, String> SECTION_NAMES = Map.of(
             "A", "时延与性能", "B", "吞吐与限速", "C", "一致与可靠",
             "D", "模型指纹", "E", "计量与计费", "F", "安全与合规");
+
+    /**
+     * 报告章节枚举（A–F）——**唯一真源**：报告模板的 `section_order`（ADM-CFG07/09）只能取这些值，
+     * 模板配置与报告生成因此不会各写一套章节代码。
+     */
+    public static java.util.Set<String> sectionCodes() {
+        return SECTION_NAMES.keySet();
+    }
+
     private static final Map<String, String> PROBE_SECTION = Map.of(
             "D1", "A", "D2", "A", "D4", "B", "D5", "B", "D3", "C",
             "D7", "D", "D6", "E", "D8", "F");

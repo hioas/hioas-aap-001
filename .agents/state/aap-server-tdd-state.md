@@ -397,11 +397,42 @@
 | D-API-18 | NTF-01/NTF-02 对管理端主体开放（管理端收件箱 `recipient_type=ADMIN`） | 清单标 `authenticated`；隔离由 recipient 维度保证，不靠 403 |
 | D-API-19 | `kind`/`read`/`is_read` 为服务端派生字段（schema 中可空非必填） | 客户端 `messages-model.ts` 明确「服务端给 kind 时优先」；冗余命名是为兼容客户端容错读取 |
 
+## R15 · T14 批次一：报告模板配置（ADM-CFG06…10，5/22 已注册）—— ✅ 完成
+
+- 红：`.agents/state/evidence/red-T14-CFG06-10.txt`（6 例全红：三条路由未注册 → 真实 HTTP 404 `E-1406`）。
+- 绿：`.agents/state/evidence/green-T14-CFG06-10.txt`（**9/9 BUILD SUCCESS**：契约 6 + 措辞单元 3）；
+  全量两轮 `green-T14-CFG06-10-full-181tests-1expected-coverage-red-run{1,2}.txt`
+  （181 例，唯一红项仍是覆盖门禁）。
+- 覆盖：`total=90 / implemented=73 / missing=17`（T13 3 条 + T14 本批 5 条；missing 25 → 17）。
+- 交付：`com.hioas.aap.adminconfig`（`ReportTemplateViews`/`ReportTemplateService`/
+  `AdminReportTemplateController`/`ReportTemplateWording`）+ 迁移 `V5__report_template_sequences.sql`
+  + `DocNoGenerator#reportTemplateNo()` + `ReportService#sectionCodes()`（章节枚举单一真源）；
+  用例 9 例（`ReportTemplateContractTest` 6 + `ReportTemplateWordingTest` 3）。
+- 口径（实现即契约）：
+  - 状态机 `DRAFT --publish--> PUBLISHED`，被替代的活版 → `SUPERSEDED`：改/发布一律**条件 UPDATE**
+    （`and status='DRAFT'` + 影响行数=1），重复改/重复发布 → 409 `E-1601`；发布写
+    `published_at/published_by` 并落 `CONFIG_PUBLISH` 审计（可用 ADM-A01 检索到 target=report_template）。
+  - **活版唯一**：任一时刻全表只有一份 `PUBLISHED`（报告生成取该份，否则「用哪一份」不确定）。
+  - **R-26 措辞红线**在服务层统一校验（创建/修改同一道闸）：免责声明含「保证为真/保证正品/官方正版/
+    绝对真实/已验证该模型为正品」→ 400 `E-1001`；判定是**字符串级**（否定句里出现同样失败），
+    词表复用 `ReportController.forbiddenPhrases()`（不另建第二份词表）。
+  - 章节 `section_order` 只能取 A–F（复用 `ReportService.SECTION_NAMES`），非空、不得重复。
+
+### 本轮偏差表（T14 批次一）
+
+| 编号 | 内容 | 理由 |
+|---|---|---|
+| D-API-20 | 报告模板「活版唯一」：发布新模板时把**其它** `PUBLISHED` 行置 `SUPERSEDED` | 清单对 ADM-CFG05（检测配置）写明「旧版置 SUPERSEDED」，模板域表结构无「族」列，按同一精神实现为全表活版唯一 |
+| D-API-21 | `aap_report_template` 无「模板族」列 → 新建即新 `template_no`（`version_no` 固定 `V1`）；「同族多版本」需新端点/新列（**待拍板**） | ER 文档写明 `template_no UQ`，表结构无法表达一族多版本；不臆造端点 |
+| D-API-22 | ADM-CFG06…10 放行 `TECH_OPS` + `SUPER_ADMIN`（清单只列 TECH_OPS） | `13-管理端PRD` 能力矩阵中超管为全量权限；与既有权（ADM-U01 等）同一口径 |
+| D-API-23 | 修改接口未提供的字段按 coalesce 语义**保持原值**（含空白 `title` 视同省略） | 与合同签发（ADM-CT02）同一取舍：省略=保持，不是清空（R14 踩坑 1） |
+
 ## 未决与下一步
 
-- 上一轮已完成：**T13 站内信/审计**（R14，3/3：NTF-01/02、ADM-A01）。
-- 下一轮：**T14 同步与配置/渠道/供应商管理**（22 条，依赖 T09/T12；清单 §2.4
-  同步任务/渠道绑定 + §2.5 供应商与凭证管理 + §2.6 检测配置/报告模板）→ 之后是 T15 端到端联调与容器化交付。
+- 上一轮已完成：**T14 批次一 · 报告模板配置**（R15，ADM-CFG06…10，5/22）。
+- 下一轮：**T14 批次二 · 检测配置**（ADM-CFG01…05，5 条）→ 批次三 · 同步任务与渠道绑定
+  （ADM-S01…06，6 条）→ 批次四 · 供应商/凭证/报价对比（ADM-P01…03、ADM-C01/02、ADM-Q02，6 条）
+  → 之后是 T15 端到端联调与容器化交付。
 - **待拍板（本轮新增）**
   1. **D-API-12**：对象存储签名/限时 URL 的接线方式（合同 PDF 与报告 PDF 是同一问题）。
   2. **D-API-14**：合同短信签署是否走真实短信核验（若走，需先把「合同签署验证码发送」端点写进清单再实现）。
@@ -409,9 +440,9 @@
   4. **D-PAY-01**：钱包三项口径需产品确认（清单自述无 PRD 依据）。
 - **待拍板（沿用）**：D-API-05（`PARTIAL_CACHE` 是否入枚举）、D-USAGE-01（new-api 用量日志源契约）、
   D-API-03（`docs/api/接口字段级schema.md` §2 的 `{list}` → `{items}` 回改）。
-- 剩余任务：T14 同步与配置（22）、T15 端到端联调与容器化交付
+- 剩余任务：T14 余 17 条（检测配置 5 / 同步与渠道 6 / 供应商与凭证 6）、T15 端到端联调与容器化交付
   （`docs/backend/03-任务与TDD计划.md` §1 为完整清单）。
-- 覆盖门禁纪律：`EndpointCoverageTest` 在 22 条未注册期间**必然红**，它是「还剩多少没落地」的仪表；
+- 覆盖门禁纪律：`EndpointCoverageTest` 在 17 条未注册期间**必然红**，它是「还剩多少没落地」的仪表；
   每轮证据只允许写「除门禁外全绿 + missing 下降」，禁止写「全量全绿」。
 - **待前端处理（O-01）**：`aap-client/src/utils/report-model.ts:51` 兜底免责声明含 R-26 禁用字样，建议改为与
   服务端 `ReportService.DISCLAIMER` 同文案。
