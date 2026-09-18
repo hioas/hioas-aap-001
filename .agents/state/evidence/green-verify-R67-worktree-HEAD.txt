@@ -1,0 +1,23 @@
+== R67 提交态复跑（临时 worktree，detached HEAD b397847；坑 27/28：不动他人工作区、不删目录、时间戳唯一名） ==
+命令：bash <tmp>/aap-r67-spotcheck/r67-wt-run.sh → git worktree add --detach aap-verify-r67-063844 HEAD → 在 worktree 内 `tools/with-env.sh aap-server mvn -B -ntp test`
+目的：验证**提交本身自洽**、不依赖工作区里他方 4 个未提交改动（aap-client/vite.config.ts、aap-server application.yml / log4j2-spring.xml / application-test.yml）
+
+worktree add rc = 0
+mvn rc = 0
+全量汇总：[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+覆盖门禁自身：[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.133 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+[ERROR] 行数 = 0
+BUILD 行：[INFO] BUILD SUCCESS
+
+worktree 内 `git status --short`（应为空 = 提交态自洽、无未提交改动）：M .agents/state/evidence/coverage-report.json
+
+worktree 内 coverage-report.json 逐字段（路径：C:\Users\laitz\AppData\Local\Temp\aap-verify-r67-063844\.agents\state\evidence\coverage-report.json）：
+  total = 90
+  implemented = 90
+  missing = 0
+  registered_routes = 96
+  not_registered = []
+  by_task 族数 = 12，合计 total=90 / implemented=90
+  逐族：T03 6/6、T04 5/5、T05 7/7、T06 6/6、T07 4/4、T08 11/11、T09 6/6、T10 5/5、T11 11/11、T12 4/4、T13 3/3、T14 22/22
+
+结论：**提交自洽**：204 例全绿 + 门禁自身 1/1 + [ERROR]=0 + BUILD SUCCESS + worktree 内报告 90/90/0

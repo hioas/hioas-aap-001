@@ -3818,3 +3818,11 @@ A5 测试源存在原子性/回滚型断言痕迹 8 处。信息项：类级事�
 
 追加 R67 行（8 列；用真正的 csv 解析复核「每行列数 = 表头列数」、R 行连续 R27 → R67 无缺号，坑 71/80/155）；
 飞书通知失败留痕（已知问题：feishu home channel 未绑定，不阻塞交付）。
+
+### R67 收尾（台账 + 提交态复跑）
+
+- **提交态复跑**（临时 worktree，detached HEAD `b397847`）：204 例全绿 + 门禁自身 1/1 + `[ERROR]` 行数 0 + BUILD SUCCESS +
+  worktree 内 `coverage-report.json` 逐字段 90/90/0（registered_routes=96、not_registered=[]、by_task 12 族 90/90）
+  → **提交自洽、不依赖他方 4 个未提交改动**；收尾用 `git worktree remove --force`（git 自带、不触发拦截、不碰他人工作区）；
+  worktree 内 `git status` 只有 `coverage-report.json` 一处 M，属已知键序观察项（坑 56，逐字段值一致），非漂移；
+- 飞书通知失败留痕（第 42 轮同因：feishu home channel 未绑定，不阻塞交付）。
