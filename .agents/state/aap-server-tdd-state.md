@@ -1242,3 +1242,93 @@ md5 与 R19–R26 完全一致 → 自 R19 起零变化，未纳入本次提交�
 - **待拍板（维持）**：飞书 home channel 未绑定；PROV-03 item 模型口径。
 - **待拍板（R28 新增，本轮已给出裁决证据，等待执行批准）**：错误码漂移 10 条 + 孤儿码 2 个；
   另需拍板「全局角色拒绝码 E-1901 是否逐端点声明」（md 8 条 / 清单 7 条，差集恰为 DET-02）。
+
+---
+
+## R30（2026-09-18 13:55–14:08）巡检复验 + **首次执行「鉴权级别」契约五处真源审计**（业务代码零改动、md 零改动、生成器零改动、断言零改动）
+
+### 本轮全量测试（串行执行，无并发测试进程，坑 11/20）
+
+| 轮次 | 结果 | 证据 |
+| --- | --- | --- |
+| run1 | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0`（33 个测试类）；`EndpointCoverageTest` 90/90（`registered_routes=96`、`not_registered=[]`）；BUILD SUCCESS，`[ERROR]` 0 行 | `green-verify-R30-full-run1.txt` |
+| run2（防 flaky） | 同 run1；两轮**逐类结果 diff 为空** | `green-verify-R30-full-run2.txt` + `r30-run1-classes.txt` / `r30-run2-classes.txt` |
+
+### 本轮增量：`tools/audit-auth-contract.py`（鉴权级别契约，只读）
+
+**为什么需要它（坑 43/49 族）**：204 例契约测试只校验 JSON Schema，而 **JSON Schema 里没有逐端点鉴权**；
+覆盖门禁只读 Spring 路由注册表，**完全不看授权注解** → 「清单写着仅超管、实现漏了 `@PreAuthorize`」（越权）
+或反之（误拒）**两套门禁全绿也完全看不见**。
+
+不变量：同一端点的认证/授权级别必须在**五处真源**逐端点一致 ——
+M `docs/backend/endpoints.json` 的 `auth` ／ I 控制器类级+方法级 `@PreAuthorize` ／
+S `SecurityConfig.PUBLIC_PATHS` ／ O `openapi.yaml` 每 operation 的 `security` ／ D md 清单「鉴权/角色」列。
+
+结果：**17 条断言 PASS 16 / FAIL 1**（`audit-auth-contract-R30.txt`）
+
+| 断言 | 结论 |
+| --- | --- |
+| A0a–A0f 正向对照 | M/D/O 各解析到 90/90；I 解析到 91 条路由；S 解析到 8 条匿名白名单（4 条业务 + 4 条 actuator） |
+| A1 | 清单 90 条**全部**能在实现里定位到 (方法, 归一路径) 路由 |
+| A2 | `openapi security: []` 集合 = 清单 anon 集合（4 条，差集空） |
+| A3a/A3b | 4 条匿名端点都在 `PUBLIC_PATHS`；**86 条非匿名端点一条都没进白名单**（无匿名泄漏） |
+| A4 | 匿名端点上没有任何 `@PreAuthorize` |
+| **A5** | **清单角色集合 = 实现 `@PreAuthorize` 角色集合，不一致 0 条**（别名 `SUPPLIER` ≡ `PROVIDER` 归一后逐端点相等） |
+| A6 | 清单 `authenticated` 的 4 条（AUTH-05/06、NTF-01/02）实现里不带角色限制 |
+| A7 | md「免」行集合 = 清单 anon 集合 |
+| **A8** | md「角色」列漂移 **32 条**（详见下节裁决） |
+| Z1 | 全部被读文件 `(mtime_ns, size, md5)` 未变（零写副作用） |
+
+### 审计自身的真缺陷（本轮返工，坑 29/46）
+
+- **首轮 A5 报 22 条「清单有角色、实现为空」= 全部是假发现**。根因：本项目实际写法是
+  **映射注解在前、`@PreAuthorize` 在后**（`@GetMapping` 换行 `@PreAuthorize(...)`），v1 只在
+  「注解**之前**」的窗口里找 → 方法级注解全部解析丢失。
+- 第二版改用朴素 `text.find("{", idx)` 当方法体起点 → `@GetMapping("/{id}")` 的**路径变量花括号**
+  被误判为方法体（注入该缺陷实测 A5 报 17 条假发现，同一类缺陷的较小爆炸半径）。
+- 修法：`body_brace()` 按括号深度扫描定位方法体起点（字符串内括号成对，不误判）+ 双窗口
+  （注解之后优先、注解之前兼容）。
+- **回归守卫有判别力（teeth test）**：注入缺陷后负向自测**恰好只有 `case_parser_pathvar_braces` 转红**
+  （19/20），其余 19 条不受影响；恢复正确实现后 **20/20 全 PASS**。
+- 首轮输出留证并改名 `red-R30-auth-audit-firstrun-parserbug.txt`（可复现：注入 v1 逻辑后跑审计，
+  A5 精确复现 22 条；文件名不得骗人，坑 12）。
+
+### A8 漂移裁决：md「角色」列系统性漏列 `SUPER_ADMIN`（32 条，待拍板）
+
+三方裁判（坑 51/53）：① 实现 `@PreAuthorize` 与清单逐端点一致（A5 = 0 条）；② 既有真实 HTTP 权限断言；
+③ md 表**内部自相矛盾**（同一张表里 ADM-CP04 / ADM-PAY02 明写 `SUPER_ADMIN`，其余行却只写 `TECH_OPS`/`BIZ_OPERATOR`）。
+
+| 证据强度 | 条数 | 含义 |
+| --- | --- | --- |
+| 强（`@DisplayName` 同时含该 ID 与 `SUPER_ADMIN`，用例体断言 `superAdmin → 200`） | **17** | ADM-CFG01…10、ADM-S01…06、ADM-Q02 |
+| 弱（仅「实现 + 清单」单侧证据，测试未覆盖 `SUPER_ADMIN`） | **15** | ADM-CP01…03、ADM-CT01…03、ADM-PAY01/03、ADM-R01…05、ADM-U01/U02 |
+
+> 口径**保守（宁弱不强）**：ADM-CT02 的用例体里确有 `superAdminToken()` 断言 200，但显示名未写 `SUPER_ADMIN`
+> → 仍计入弱，避免高估。逐条明细见 `audit-auth-adjudication-R30.txt`（32 = 17 + 15，已核对）。
+
+**方向 = md 落后**（清单 + 实现 + 测试三方一致）。**不建议按 md 收窄实现**：会直接打破 17 条既有真实 HTTP
+断言（等于削弱测试，违反硬规则）。改 md 属**文档变更**，按硬约束 1「先改清单再改代码」须**人拍板**后执行 →
+本轮 `missing=0`，**未擅自改动任何一侧**。
+
+### 本轮其它只读校验复跑（全部与历史同结论）
+
+| 校验 | 结果 | 证据 |
+| --- | --- | --- |
+| 生成器 `--check` | 84/84 一致、孤儿 0（零写副作用） | `gencheck-R30.txt` |
+| 分页集合键名审计 | 五处一致（rc=0） | `audit-contract-keys-R30.txt` |
+| 端点用例审计 | `exact 90 / prefix 0 / none 0` | `audit-endpoint-tests-R30.txt` |
+| `openapi.yaml` 可解析 | `paths=78 operations=90` | `openapi-parses-R30.txt` |
+| 错误码审计 | 16 断言 PASS 14 / FAIL 2（与 R28/R29 同结论，可复现） | `audit-error-codes-R30.txt` |
+| 五个审计负向自测 | 14/14、11/11、12/12、**20/20（新）**、密钥 3/3（全 rc=0） | `*-selftest-R30.txt` / `selftest-auth-R30.txt` |
+| 密钥泄漏审计 | Tier A 0 命中（四处比对）；`.gitignore` 四项覆盖 PASS；被跟踪 `.env` 类文件只有 `.env.example` | `secret-leak-audit-R30.txt` / `secret-leak-selftest-R30.txt` |
+
+### 结论与待拍板
+
+- **90/90 维持全绿（连续第 13 轮：R18 → … → R30）**，两轮逐类结果完全一致，未见 flaky；
+  `missing=0` → 未改业务代码、未改 md、未改生成器、未新增/删除/跳过用例、未动断言。
+- 本轮真正增量 = **首次执行的鉴权级别契约审计**：结论是「**实现与冻结清单在鉴权上零漂移**」
+  （A1–A7 全 PASS），唯一漂移在 **md 的「角色」列（32 条少列 `SUPER_ADMIN`）**，已给出逐条裁决与改法。
+- **待拍板（维持）**：飞书 home channel 未绑定（R23–R29 同因）；PROV-03 item 模型口径。
+- **待拍板（R29 已裁决待执行）**：错误码漂移 10 条 + 孤儿码 2 个（含 E-1404 生成器漏声明）。
+- **待拍板（R30 新增）**：md「角色」列 32 行补 `SUPER_ADMIN`（强证据 17 条 / 弱证据 15 条，改法见
+  `audit-auth-adjudication-R30.txt`）。

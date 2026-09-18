@@ -1,0 +1,51 @@
+=== R30 鉴权契约 A8 漂移裁决（md「角色」列 vs 冻结清单）===
+裁判依据（skill 坑 51/53）：① 实现 @PreAuthorize 与清单逐端点一致（审计 A5 = 不一致 0 条）
+                              ② 既有真实 HTTP 用例的权限断言（@DisplayName 明写 SUPER_ADMIN 可用）
+                              ③ md 表内部自相矛盾（同一表内 ADM-CP04 / ADM-PAY02 明写 SUPER_ADMIN）
+
+漂移总数：32 条，全部为「md 少列 SUPER_ADMIN」单向漂移（清单角色 ⊋ md 角色）
+
+--- 强证据 17 条：既有真实 HTTP 用例断言 SUPER_ADMIN 可用（200）---
+  ADM-CFG01  清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     用例 aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java:341 「ADM-CFG01…05 权限：仅 TECH_OPS/SUPER_ADMIN；运营商务与供应商 403、未认证 401」
+  ADM-CFG02  清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     用例 aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java:341 「ADM-CFG01…05 权限：仅 TECH_OPS/SUPER_ADMIN；运营商务与供应商 403、未认证 401」
+  ADM-CFG03  清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     用例 aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java:341 「ADM-CFG01…05 权限：仅 TECH_OPS/SUPER_ADMIN；运营商务与供应商 403、未认证 401」
+  ADM-CFG04  清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     用例 aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java:341 「ADM-CFG01…05 权限：仅 TECH_OPS/SUPER_ADMIN；运营商务与供应商 403、未认证 401」
+  ADM-CFG05  清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     用例 aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java:341 「ADM-CFG01…05 权限：仅 TECH_OPS/SUPER_ADMIN；运营商务与供应商 403、未认证 401」
+  ADM-CFG06  清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     用例 aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java:255 「ADM-CFG06…10 权限：仅 TECH_OPS/SUPER_ADMIN；供应商与运营商务 403、未认证 401」
+  ADM-CFG07  清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     用例 aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java:255 「ADM-CFG06…10 权限：仅 TECH_OPS/SUPER_ADMIN；供应商与运营商务 403、未认证 401」
+  ADM-CFG08  清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     用例 aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java:255 「ADM-CFG06…10 权限：仅 TECH_OPS/SUPER_ADMIN；供应商与运营商务 403、未认证 401」
+  ADM-CFG09  清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     用例 aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java:255 「ADM-CFG06…10 权限：仅 TECH_OPS/SUPER_ADMIN；供应商与运营商务 403、未认证 401」
+  ADM-CFG10  清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     用例 aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java:255 「ADM-CFG06…10 权限：仅 TECH_OPS/SUPER_ADMIN；供应商与运营商务 403、未认证 401」
+  ADM-Q02    清单=['BIZ_OPERATOR', 'SUPER_ADMIN']        md=['BIZ_OPERATOR'] 用例 aap-server/src/test/java/com/hioas/aap/quote/AdminQuoteCompareContractTest.java:186 「ADM-Q02 权限：BIZ_OPERATOR/SUPER_ADMIN 可用；TECH_OPS 与供应商 403 E-1901、未认证 401 E-1902」
+  ADM-S01    清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     用例 aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java:564 「ADM-S01…06 权限：仅 TECH_OPS/SUPER_ADMIN；运营商务与供应商 403 E-1901、未认证 401 E-1902」
+  ADM-S02    清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     用例 aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java:564 「ADM-S01…06 权限：仅 TECH_OPS/SUPER_ADMIN；运营商务与供应商 403 E-1901、未认证 401 E-1902」
+  ADM-S03    清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     用例 aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java:564 「ADM-S01…06 权限：仅 TECH_OPS/SUPER_ADMIN；运营商务与供应商 403 E-1901、未认证 401 E-1902」
+  ADM-S04    清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     用例 aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java:564 「ADM-S01…06 权限：仅 TECH_OPS/SUPER_ADMIN；运营商务与供应商 403 E-1901、未认证 401 E-1902」
+  ADM-S05    清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     用例 aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java:564 「ADM-S01…06 权限：仅 TECH_OPS/SUPER_ADMIN；运营商务与供应商 403 E-1901、未认证 401 E-1902」
+  ADM-S06    清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     用例 aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java:564 「ADM-S01…06 权限：仅 TECH_OPS/SUPER_ADMIN；运营商务与供应商 403 E-1901、未认证 401 E-1902」
+
+--- 弱证据 15 条：仅「实现 @PreAuthorize + 清单」单侧证据，测试未覆盖 SUPER_ADMIN ---
+  ADM-CP01   清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     相关用例：CompilationContractTest.java:264 ADM-CP01 编译记录列表按闸门状态过滤；ADM-CP02 详情
+  ADM-CP02   清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     相关用例：CompilationContractTest.java:264 ADM-CP01 编译记录列表按闸门状态过滤；ADM-CP02 详情
+  ADM-CP03   清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     相关用例：CompilationContractTest.java:225 ADM-CP03/04 三道闸门：未验证确认 → E-1407；验证通过 →
+  ADM-CT01   清单=['BIZ_OPERATOR', 'SUPER_ADMIN']        md=['BIZ_OPERATOR'] 相关用例：ContractContractTest.java:379 ADM-CT01 合同列表：管理端可跨供应商检索（供应商主体 403）
+  ADM-CT02   清单=['BIZ_OPERATOR', 'SUPER_ADMIN']        md=['BIZ_OPERATOR'] 相关用例：ContractContractTest.java:403 ADM-CT02 签发入参：file_id 必填且须存在、费率 ∈[0,1]
+  ADM-CT03   清单=['BIZ_OPERATOR', 'SUPER_ADMIN']        md=['BIZ_OPERATOR'] 相关用例：ContractContractTest.java:462 ADM-CT03 平台确认：仅 SUPPLIER_SIGNED 可确认；PE
+  ADM-PAY01  清单=['BIZ_OPERATOR', 'SUPER_ADMIN']        md=['BIZ_OPERATOR'] 相关用例：PaymentContractTest.java:170 ADM-PAY01 打款列表：管理端跨供应商检索 + status 过滤（供
+  ADM-PAY03  清单=['BIZ_OPERATOR', 'SUPER_ADMIN']        md=['BIZ_OPERATOR'] 相关用例：PaymentContractTest.java:240 ADM-PAY03 结算单列表：分页契约与模型校验（供应商主体 403）
+  ADM-R01    清单=['BIZ_OPERATOR', 'SUPER_ADMIN', 'TECH_OPS'] md=['BIZ_OPERATOR', 'TECH_OPS'] 相关用例：ReviewContractTest.java:202 ADM-R01 待审池：提交即入池（quote_no/provider_na; ReviewContractTest.java:234 ADM-R01 权限：未认证 401；供应商主体 403（管理端接口不得对供
+  ADM-R02    清单=['BIZ_OPERATOR', 'SUPER_ADMIN']        md=['BIZ_OPERATOR'] 相关用例：ReviewContractTest.java:244 ADM-R02 领取：PENDING→CLAIMED（记录领取人/时间），报; ReviewContractTest.java:268 ADM-R02 乐观锁 E1：已被他人领取的任务再领取 → 409 E-16
+  ADM-R03    清单=['BIZ_OPERATOR', 'SUPER_ADMIN']        md=['BIZ_OPERATOR'] 相关用例：ReviewContractTest.java:317 ADM-R03 通过：CLAIMED→APPROVED，A9 同事务生成合同; ReviewContractTest.java:363 ADM-R03 终态不可再流转：已通过的任务再通过 → 409 E-1601
+  ADM-R04    清单=['BIZ_OPERATOR', 'SUPER_ADMIN']        md=['BIZ_OPERATOR'] 相关用例：ReviewContractTest.java:380 ADM-R04 驳回：reason_code 必填（缺 → E-1001、非; ReviewContractTest.java:422 ADM-R04 终态不可再流转：已驳回的任务再驳回 → 409 E-1601
+  ADM-R05    清单=['BIZ_OPERATOR', 'SUPER_ADMIN', 'TECH_OPS'] md=['BIZ_OPERATOR'] 相关用例：ReviewContractTest.java:472 ADM-R05 审核记录：按 quoteId 过滤返回行动时间线（befor; ReviewContractTest.java:504 ADM-R05 权限：技术运营可读（R01/R05），但领取/通过/驳回一律
+  ADM-U01    清单=['BIZ_OPERATOR', 'SUPER_ADMIN', 'TECH_OPS'] md=['BIZ_OPERATOR', 'TECH_OPS'] 相关用例：UsageContractTest.java:408 ADM-U01 管理端分时用量：供应商 403 / 未认证 401；TECH
+  ADM-U02    清单=['SUPER_ADMIN', 'TECH_OPS']            md=['TECH_OPS']     相关用例：UsageContractTest.java:445 ADM-U02 用量聚合 UPSERT：AC-43 缓存字段落库、AC-45; UsageRefreshDegradedTest.java:53 ADM-U02 日志源未配置：E-1801 + 503 + 可诊断文案，且不
+
+裁决结论：
+  · 方向：md 的「角色」列系统性漏列 SUPER_ADMIN（32 条），清单 + 实现 + 测试三方一致，md 单方落后。
+  · 强/弱判定口径（保守，宁弱不强）：@DisplayName **同时**含该端点 ID 与 `SUPER_ADMIN` 才算强证据；
+    例如 ADM-CT02 的用例体里确有 `superAdminToken()` 断言 200，但显示名未写 SUPER_ADMIN → 仍计入弱，避免高估。
+  · 不建议按 md 收窄实现：会直接打破上面 17 条既有真实 HTTP 断言（等于削弱测试，违反硬规则）。
+  · 建议改法：把 md 对应行的角色列补上 SUPER_ADMIN（或明确写「同上（含 SUPER_ADMIN）」），属文档变更，
+    按硬约束 1「先改清单再改代码」须由人拍板后执行 —— 本轮 missing=0，未擅自改动任何一侧。
+  · 其中 15 条只有单侧证据（测试未覆盖 SUPER_ADMIN），若人拍板倾向 md，可先补测试再定；证据强度差异已如实标注。

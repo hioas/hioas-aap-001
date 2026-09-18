@@ -1,0 +1,49 @@
+=== R30 回归守卫「有判别力」取证（teeth test）===
+做法：把 tools/audit-auth-contract.py 的 body_brace(...) 临时换成朴素的 text.find("{", idx)
+      （即 @GetMapping("/{id}") 的路径变量花括号被误判为方法体），跑负向自测：
+结果：**恰好只有 case_parser_pathvar_braces 一条转红**（19/20），其余 19 条不受影响 → 守卫确实咬得住这个缺陷。
+恢复正确实现后：20/20 全 PASS（见 selftest-auth-R30.txt）。
+取证时间：2026-09-18T14:09:29+0800
+
+夹具根目录：C:\Users\laitz\AppData\Local\Temp
+被测审计：tools\audit-auth-contract.py
+    --- case_parser_pathvar_braces 实际输出 ---
+    --- 逐端点：清单 ⇔ 实现路由 ⇔ 匿名白名单 ⇔ openapi ⇔ md ---
+    [PASS] A1 清单每条端点都能在实现里定位到路由（解析器覆盖性正向对照）：未定位 0 条：[]
+    [PASS] A2 openapi `security: []` 集合 = 清单 anon 集合：清单 1 条 / openapi 1 条；差集=[]
+    [PASS] A3a 清单 anon 的端点都在 SecurityConfig.PUBLIC_PATHS 里：{}
+    [PASS] A3b 非 anon 的端点都不在 PUBLIC_PATHS 里（否则等于匿名可访问）：{}
+    [PASS] A4 anon 端点上没有 @PreAuthorize（清单说免，实现不得再要求角色）：{}
+    [FAIL] A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 1 条
+          · SYN-03: 清单=['SUPER_ADMIN', 'TECH_OPS'] 实现=[]
+    [PASS] A6 清单 `authenticated` 的端点实现里不带角色限制（= 任意已认证）：越权收窄 {}；清单共 1 条 ['SYN-02']
+    [PASS] A7 md 的 `免` 行集合 = 清单 anon 集合：不一致 {}
+    [PASS] A8 md「角色」列 = 清单角色集合（仅逐条列角色的 7 列表头行）：不一致 0 条
+    [PASS] A9 md 表头定位无异常
+    --- 零写副作用自检 ---
+    [PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+    
+    断言 17 条：PASS 16，FAIL 1
+
+[PASS] case_positive：rc=0(期望 0) 命中「断言 17 条：PASS 17，FAIL 0」=是
+[PASS] case_repo_external_root：rc=0(期望 0) 命中「根目录：C:/Users/laitz/AppData/Local/Temp/aap-auth-selftest-positive-1789711554543」=是
+[PASS] case_zero_write：夹具 8 个文件 (mtime,size,md5) 不变
+[FAIL] case_parser_pathvar_braces：rc=1(期望 0) 命中「A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 0 条」=否
+[PASS] case_parser_order_before：rc=0(期望 0) 命中「A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 0 条」=是
+[PASS] case_parser_class_inherit：rc=0(期望 0) 命中「A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 0 条」=是
+[PASS] case_parser_alias：rc=0(期望 0) 命中「A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 0 条」=是
+[PASS] case_md_same_as_above：rc=0(期望 0) 命中「A8 md「角色」列 = 清单角色集合」=是
+[PASS] case_md_escaped_pipe：rc=0(期望 0) 命中「A0b D 行数 = total：parsed=6 期望=6」=是
+[PASS] case_md_same_as_above_no_prev：rc=1(期望 1) 命中「A9 md 表头定位无异常」=是
+[PASS] case_anon_not_public：rc=1(期望 1) 命中「A3a 清单 anon 的端点都在 SecurityConfig.PUBLIC_PATHS 里」=是
+[PASS] case_anon_leak：rc=1(期望 1) 命中「A3b 非 anon 的端点都不在 PUBLIC_PATHS 里」=是
+[PASS] case_anon_with_preauth：rc=1(期望 1) 命中「A4 anon 端点上没有 @PreAuthorize」=是
+[PASS] case_role_drift：rc=1(期望 1) 命中「A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 1 条」=是
+[PASS] case_auth_only_restricted：rc=1(期望 1) 命中「A6 清单 `authenticated` 的端点实现里不带角色限制」=是
+[PASS] case_openapi_anon_mismatch：rc=1(期望 1) 命中「A2 openapi `security: []` 集合 = 清单 anon 集合」=是
+[PASS] case_md_anon_mismatch：rc=1(期望 1) 命中「A7 md 的 `免` 行集合 = 清单 anon 集合」=是
+[PASS] case_md_role_mismatch：rc=1(期望 1) 命中「A8 md「角色」列 = 清单角色集合」=是
+[PASS] case_route_unlocated：rc=1(期望 1) 命中「A1 清单每条端点都能在实现里定位到路由」=是
+[PASS] case_missing_source：rc=1(期望 1) 命中「源文件缺失」=是
+
+自测断言 20 条：PASS 19，FAIL 1

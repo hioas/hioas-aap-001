@@ -1,0 +1,25 @@
+夹具根目录：C:\Users\laitz\AppData\Local\Temp
+被测审计：tools\audit-auth-contract.py
+
+[PASS] case_positive：rc=0(期望 0) 命中「断言 17 条：PASS 17，FAIL 0」=是
+[PASS] case_repo_external_root：rc=0(期望 0) 命中「根目录：C:/Users/laitz/AppData/Local/Temp/aap-auth-selftest-positive-1789711568939」=是
+[PASS] case_zero_write：夹具 8 个文件 (mtime,size,md5) 不变
+[PASS] case_parser_pathvar_braces：rc=0(期望 0) 命中「A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 0 条」=是
+[PASS] case_parser_order_before：rc=0(期望 0) 命中「A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 0 条」=是
+[PASS] case_parser_class_inherit：rc=0(期望 0) 命中「A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 0 条」=是
+[PASS] case_parser_alias：rc=0(期望 0) 命中「A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 0 条」=是
+[PASS] case_md_same_as_above：rc=0(期望 0) 命中「A8 md「角色」列 = 清单角色集合」=是
+[PASS] case_md_escaped_pipe：rc=0(期望 0) 命中「A0b D 行数 = total：parsed=6 期望=6」=是
+[PASS] case_md_same_as_above_no_prev：rc=1(期望 1) 命中「A9 md 表头定位无异常」=是
+[PASS] case_anon_not_public：rc=1(期望 1) 命中「A3a 清单 anon 的端点都在 SecurityConfig.PUBLIC_PATHS 里」=是
+[PASS] case_anon_leak：rc=1(期望 1) 命中「A3b 非 anon 的端点都不在 PUBLIC_PATHS 里」=是
+[PASS] case_anon_with_preauth：rc=1(期望 1) 命中「A4 anon 端点上没有 @PreAuthorize」=是
+[PASS] case_role_drift：rc=1(期望 1) 命中「A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 1 条」=是
+[PASS] case_auth_only_restricted：rc=1(期望 1) 命中「A6 清单 `authenticated` 的端点实现里不带角色限制」=是
+[PASS] case_openapi_anon_mismatch：rc=1(期望 1) 命中「A2 openapi `security: []` 集合 = 清单 anon 集合」=是
+[PASS] case_md_anon_mismatch：rc=1(期望 1) 命中「A7 md 的 `免` 行集合 = 清单 anon 集合」=是
+[PASS] case_md_role_mismatch：rc=1(期望 1) 命中「A8 md「角色」列 = 清单角色集合」=是
+[PASS] case_route_unlocated：rc=1(期望 1) 命中「A1 清单每条端点都能在实现里定位到路由」=是
+[PASS] case_missing_source：rc=1(期望 1) 命中「源文件缺失」=是
+
+自测断言 20 条：PASS 20，FAIL 0

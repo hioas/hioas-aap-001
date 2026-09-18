@@ -1,0 +1,55 @@
+=== R30 红基线（真实缺陷，可复现）：鉴权契约审计首轮 = 解析器 v1 逻辑 ===
+注入的缺陷：方法级 @PreAuthorize 只在「映射注解之前」的窗口里找（v1 逻辑），
+            而本项目实际写法是「映射注解在前、@PreAuthorize 在后」→ 全部方法级注解解析丢失。
+复现命令：把 tools/audit-auth-contract.py 的 method_roles() 换回 v1 体（只查注解之前），再 python tools/audit-auth-contract.py
+复现时间：2026-09-18T14:09:05+0800
+结论：A5 报「清单有角色、实现为空」= **全部是假发现**（假发现固定指纹：报告说漂移、实现里 grep 得到 @PreAuthorize）；
+      真结论（修好后）是 A5 不一致 0 条。
+
+根目录：E:/workspaces/hioas/hioas-aap-001（仓库外路径也照常显示，skill 坑 34）
+--- 正向对照（解析器真的解析到了）---
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b D 行数 = total：parsed=90 期望=90
+[PASS] A0c O operation 数 = total：parsed=90 期望=90
+[PASS] A0d I 解析到控制器路由：parsed=91 条路由，控制器问题 0 条
+[PASS] A0e S 解析到匿名白名单：parsed=['/actuator/health', '/actuator/health/**', '/actuator/info', '/actuator/metrics/**', '/api/v1/auth/refresh', '/api/v1/auth/sms/login', '/api/v1/auth/sms/send', '/api/v1/auth/wechat/login']
+[PASS] A0f I 解析无异常
+--- 逐端点：清单 ⇔ 实现路由 ⇔ 匿名白名单 ⇔ openapi ⇔ md ---
+[PASS] A1 清单每条端点都能在实现里定位到路由（解析器覆盖性正向对照）：未定位 0 条：[]
+[PASS] A2 openapi `security: []` 集合 = 清单 anon 集合：清单 4 条 / openapi 4 条；差集=[]
+[PASS] A3a 清单 anon 的端点都在 SecurityConfig.PUBLIC_PATHS 里：{}
+[PASS] A3b 非 anon 的端点都不在 PUBLIC_PATHS 里（否则等于匿名可访问）：{}
+[PASS] A4 anon 端点上没有 @PreAuthorize（清单说免，实现不得再要求角色）：{}
+[FAIL] A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 22 条
+      · ADM-CP01: 清单=['SUPER_ADMIN', 'TECH_OPS'] 实现=[]
+      · ADM-CP02: 清单=['SUPER_ADMIN', 'TECH_OPS'] 实现=[]
+      · ADM-CP03: 清单=['SUPER_ADMIN', 'TECH_OPS'] 实现=[]
+      · ADM-CP04: 清单=['SUPER_ADMIN', 'TECH_OPS'] 实现=[]
+      · ADM-Q01: 清单=['SUPER_ADMIN', 'TECH_OPS'] 实现=[]
+      · ADM-R02: 清单=['BIZ_OPERATOR', 'SUPER_ADMIN'] 实现=['BIZ_OPERATOR', 'SUPER_ADMIN', 'TECH_OPS']
+      · ADM-R03: 清单=['BIZ_OPERATOR', 'SUPER_ADMIN'] 实现=['BIZ_OPERATOR', 'SUPER_ADMIN', 'TECH_OPS']
+      · ADM-R04: 清单=['BIZ_OPERATOR', 'SUPER_ADMIN'] 实现=['BIZ_OPERATOR', 'SUPER_ADMIN', 'TECH_OPS']
+      · ADM-U02: 清单=['SUPER_ADMIN', 'TECH_OPS'] 实现=['BIZ_OPERATOR', 'SUPER_ADMIN', 'TECH_OPS']
+      · CRED-01: 清单=['PROVIDER'] 实现=[]
+      · CRED-02: 清单=['PROVIDER'] 实现=[]
+      · CRED-03: 清单=['PROVIDER'] 实现=[]
+[PASS] A6 清单 `authenticated` 的端点实现里不带角色限制（= 任意已认证）：越权收窄 {}；清单共 4 条 ['AUTH-05', 'AUTH-06', 'NTF-01', 'NTF-02']
+[PASS] A7 md 的 `免` 行集合 = 清单 anon 集合：不一致 {}
+[FAIL] A8 md「角色」列 = 清单角色集合（仅逐条列角色的 7 列表头行）：不一致 32 条
+      · ADM-CFG01: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CFG02: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CFG03: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CFG04: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CFG05: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CFG06: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CFG07: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CFG08: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CFG09: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CFG10: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CP01: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CP02: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+[PASS] A9 md 表头定位无异常
+--- 零写副作用自检 ---
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+
+断言 17 条：PASS 15，FAIL 2
