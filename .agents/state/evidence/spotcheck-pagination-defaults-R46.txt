@@ -1,0 +1,30 @@
+== R46 新增抽查（只读，不新增仓库工具）：**分页参数的缺省值与上限（取值域）不变量**（第二十类可审计不变量） ==
+脚本：C:/Users/laitz/AppData/Local/Temp\aap-r46-spotcheck\audit-pagination-defaults.py（判别力自测见同目录 -selftest.py；两者均不入库 —— missing=0 只校验不改代码）
+真源四处 + 弱证据一处：M=md §0 分页行（缺省 1 / 缺省 20 / 上限 200）；O=openapi 逐端点 in: query 的 page/pageSize 的 minimum/maximum/default；I=实现（common/PageQuery.java 常量与夹取表达式 + 控制器/服务调用链是否真的经 PageQuery.of）；C=客户端 aap-client/src 分页实参与常量（弱证据：显式传参合法，只校验不越上限）；T=测试源里对缺省/上限的断言（信息项：有断言才算被守卫）。
+为什么两套门禁都看不见：契约测试只读各模型的 JSON Schema（**query 参数不在 schema 里**），覆盖门禁只比「方法+路径」，openapi 与客户端 TS 不被任何测试读取/执行 → 缺省值/上限写错时 204 例全绿也看不见；后果：按 openapi 生成客户端的消费方拿不到缺省/上限，服务端若不夹取则 pageSize 可无限放大（全表扫描）。
+
+== 分页参数缺省值与上限（取值域）不变量 ==
+仓库根：E:/workspaces/hioas/hioas-aap-001
+断言 12 条：PASS 10，FAIL 2；观察项 5
+
+  [PASS] A0a M md §0 解析到 缺省=[1, 20] 上限=200
+  [PASS] A0b O openapi 解析到 page/pageSize 参数 46 个（page 23 / pageSize 23）
+  [PASS] A0c I 解析到 PageQuery 常量 default=20 max=200 clamp_min=True clamp_lower=True
+  [PASS] A0d 控制器解析到带 pageSize 的映射方法 21 个（跨 18 个文件）
+  [PASS] A3 openapi 46/46 个参数 minimum = 1
+  [PASS] A4 实现 DEFAULT_PAGE_SIZE=20/MAX_PAGE_SIZE=200 与 md 一致且夹取含 Math.min(pageSize,MAX) 与下界兜底
+  [PASS] A5 21 个分页控制器方法的 pageSize 都在控制器或其所调服务方法内经 PageQuery.of 夹取
+  [PASS] A6 裸 int pageSize 的服务方法 1 个（UsageService.hourly）其调用点全部传入夹取后的值
+  [PASS] A7 客户端分页实参/常量 10 处（值集合 [1, 10, 20]）全部 <= 上限 200
+  [PASS] A8 测试源有 11 处「响应 pageSize = 20」的缺省断言
+  [FAIL] A1 openapi 每个 page/pageSize 参数都声明 default：缺失 46/46（样例 PROV-03(page)、PROV-03(pageSize)、CRED-01(page)、CRED-01(pageSize)、RPT-01(page)）
+  [FAIL] A2 openapi 每个 pageSize 参数都声明 maximum：缺失 23/23
+
+观察项/信息项：
+  [INFO] I1 上限 200 无任何测试断言（实现夹取逻辑不被用例守卫）
+  [INFO] I2 客户端显式分页值 [1, 10] 与契约缺省 20 不同（显式传参合法，属观察项）
+  [INFO] I3 md §0 是唯一声明缺省/上限的真源：openapi 0/46 声明 default、0/23 声明 maximum（客户端与测试也不同步）
+  [INFO] I4 本不变量不被任何测试守卫：契约测试只读 JSON Schema（query 参数不在 schema 里）、覆盖门禁只比方法+路径
+  [INFO] I5 endpoints.json 有 23 条端点声明 page/pageSize，但 query_params 只记**参数名**（含 default/maximum 关键字：无）→ 机器可读清单侧同样表达不了缺省值与上限
+
+结论：存在漂移（逐条见上）

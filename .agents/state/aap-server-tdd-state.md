@@ -2304,3 +2304,89 @@ openapi 的 `Envelope` 是同一个文件的 `$ref`；客户端 TS 不被任何�
 ### 台账
 * R45 行「提交」列先留空，提交后由收尾提交补齐（沿用 R40/R42/R43/R44 做法）；CSV 以真正的 csv 解析复核
   「每行列数 = 表头列数（8）」；R 行连续性核对：R27 → R45 无缺号（坑 71）。
+
+## R46 巡检轮（2026-09-18T20:4x+0800）—— 分页缺省值/上限抽查（复核并升级 R41）
+
+### 结论
+* `total=90 implemented=90 missing=0`；覆盖门禁 `EndpointCoverageTest` 1/1（门禁自身断言）＋报告逐字段
+  `total=90 / implemented=90 / missing=0 / registered_routes=96 / not_registered=[]` → **90/90 连续第 28 轮全绿**（R18 → … → R46）。
+* 全量 **204 例两轮全绿**（0 失败/0 错误/0 跳过，33 个测试类）；两轮**逐类结果 diff 为空**（先剥 `Time elapsed` 再排序，坑 79）。
+* 既有 **14 套只读审计**复跑：rc 序列与 R45 逐条一致；**唯一 FAIL 断言集合 28/28 逐行一致（新增 0、消失 0）**；
+  **13 个负向自测**全部 `rc=0`；**零写副作用**（84 个生成物 md5+size 全等）。
+* 本轮 `missing=0` → **未改业务代码 / 清单 / 生成器 / md / 断言**；他方 4 个未提交文件
+  （`aap-client/vite.config.ts`、`application.yml`、`log4j2-spring.xml`、`application-test.yml`）**未触碰**。
+
+### 本轮新增抽查（只读脚本在 `$LOCALAPPDATA/Temp/aap-r46-spotcheck/`，不新建仓库工具）
+**不变量：分页参数的缺省值与上限（取值域）**——第二十类「两套门禁都看不见」的契约不变量：
+契约测试只读各模型 JSON Schema（**query 参数不在 schema 里**）、覆盖门禁只比「方法 + 路径」、
+openapi 与客户端 TS 不被任何测试读取/执行 → 缺省/上限写错时 204 例全绿也看不见；
+后果：按 openapi 生成客户端的消费方拿不到缺省/上限；服务端若不夹取则 `pageSize` 可无限放大（全表扫描）。
+
+**诚实说明**：该不变量 **R41 已抽查过**（当时结论 PASS 10/FAIL 0/INFO 7，把 openapi 缺 `default`/`maximum`
+列为「观察项 1 条」）。本轮不是新主题，而是**复核 + 升级**，新增的判据有三处：
+
+* **A5（传递闭包 ≤3 跳）**：R41 只判「控制器内 3 条 / 经服务层 18 条」两跳；本轮把判据做成
+  「控制器方法体 → 服务方法体 → **同类私有助手/跨类服务链**（≤3 跳，带 visited 防环）」——
+  实测 `ContractService.listForProvider/listForAdmin` 是**再转一层**调私有 `page(...)` 才夹取，
+  两跳判据会在这里报假 FAIL。结论：21/21 分页控制器方法都在调用链内经过 `PageQuery.of`。
+* **A6（裸 `int pageSize` 的调用点）**：全仓库唯一接收裸 `int pageSize` 的服务方法是 `UsageService.hourly`，
+  其 **2 个调用点**（`UsageController`、`AdminUsageController`）都传 `pageQuery.pageSize()`（夹取后的值）。
+  R41 没有这条判据：只看服务方法体是看不出「调用方是否已夹取」的。
+* **I5（第三处真源）**：`endpoints.json` 有 **23 条**分页端点，但 `query_params` **只记参数名**、
+  全文件不含 `default`/`maximum` 关键字 → 机器可读清单侧同样表达不了缺省值与上限（R41 未查过这里）。
+
+**修正 R41 的口径（C1）**：R41 写「客户端 **0 处**写死分页默认值（省略参数即用服务端默认）」——
+其扫描范围是 `aap-client/src/api/*.ts`。本轮扫**全** `aap-client/src`（`pages/` 与 `utils/` 也在内）实测
+**10 处**显式分页值，值域 `{1, 10, 20}`（`utils/credentials-model.ts` 与 `utils/quotes-model.ts` 的
+`PAGE_SIZE = 10`、`pages/mine/index.vue` 的 `pageSize: 1` 计数用法等）。均 `<= 200`，
+属**显式传参合法**（非越界漂移），但「客户端从不依赖契约缺省」这一点应写成事实而不是「0 处写死」。
+
+### 本轮发现（PASS 10 / FAIL 2 / INFO 5）
+| 断言 | 内容 | 判定 |
+  |---|---|---|
+| A1 | openapi **46/46** 个 `page`/`pageSize` 参数未声明 `default`（md §0 明写缺省 1 / 缺省 20） | **待拍板**（文档一致性；服务端已夹取，非运行时缺陷） |
+| A2 | openapi **23/23** 个 `pageSize` 未声明 `maximum: 200`（46/46 都声明了 `minimum: 1`） | **待拍板**（同上） |
+| A4 | 实现 `DEFAULT_PAGE_SIZE=20`/`MAX_PAGE_SIZE=200` 与 md 一致，夹取含 `Math.min(pageSize,MAX)` 与下界兜底 | PASS |
+| A5 | 21/21 分页控制器方法的 `pageSize` 都在控制器或其所调服务**调用链**内经 `PageQuery.of` 夹取 | PASS（R46 新增判据） |
+| A6 | 唯一裸 `int pageSize` 的 `UsageService.hourly`，其 2 个调用点都传夹取值 | PASS（R46 新增判据） |
+| A7 | 客户端 10 处显式分页值（{1,10,20}）全部 `<= 200` | PASS |
+| A8 | 测试源有 **11 处**「响应 `pageSize = 20`」的缺省断言 | PASS |
+| I1 | **上限 200 无任何测试断言**（夹取逻辑不被用例守卫） | 信息项 |
+| I2 | 客户端显式分页值 `{1,10}` 与契约缺省 20 不同 | 信息项（显式传参合法） |
+| I3/I5 | md §0 是唯一声明缺省/上限的真源；openapi 与 endpoints.json 均表达不了 | 信息项 |
+| I4 | 该不变量不被任何测试守卫（原因见上） | 信息项 |
+
+* 证据：`evidence/spotcheck-pagination-defaults-R46.txt`、`evidence/spotcheck-pagination-defaults-selftest-R46.txt`
+  （判别力自测 **20/20 PASS**：真实仓库基线 FAIL 恰好 `{A1,A2}`；**合规夹具（补齐 default/maximum）rc=0 且 FAIL 0**
+  作正向对照；6 处注入各**恰好新增 1 条**点名断言；空夹具点名 `A0a/A0b/A0c/A0d`；锚点命中与「注入语义真的变了」均断言；
+  零写副作用 4 个关键文件 md5 全等）。
+
+### 本轮自己踩的坑（值得记）
+* **逐类比对的提取正则漏一个字段就得到「空转假绿」**：首版正则写成 `Tests run: … Skipped: N -- in …`，
+  漏了 `, Time elapsed: x s` → 两轮各解析到 **0 个类**，`diff` 为空 → 报告「逐类一致」。
+  **两侧都解析到 0 条时「一致」毫无意义**。规则：任何「逐类/逐行一致」结论都必须配
+  「解析到的条数 = 期望条数（33）」的正向对照（坑 46/75/98 的又一实例）。
+* **跨轮比对器「只扫汇总段」会假报解析器失效**：R45 的报告由**另一个收集器**产出、没有汇总段 →
+  只扫汇总段的新版比对器对 R45 解析到 0 条，于是我判「解析器失效」。规则：跨版本格式差异要
+  先**看两侧文件的实际结构**再定判据，别把「格式不同」当「解析失败」（也不要把「解析失败」当「零回归」）。
+* **PASS 行里引用禁用文本会自指命中 FAIL 标记**（坑 47/77 新实例）：自测的 forbid 断言会打印
+  `…不应出现「[FAIL] A4 …」=未出现…`，这一行含 FAIL 标记 → 被「按标记出现即计 FAIL」的收集器算成一条 FAIL 明细，
+  且报告里它同时出现在「头部摘录」与「汇总」两处 → 计数翻倍。规则：判据用**行首**标记匹配（`^\s*\[FAIL`），
+  不要用「行内出现」。
+* **控制器里的服务是 camelCase 变量名**：`detectionConfigService.list(...)` 与类名 `DetectionConfigService` 不同形，
+  按类名查索引 → 18 条假「未夹取」（坑 29/57 实例：先对齐真实调用约定再下结论）。
+* **判据的深度要跟着真实写法走**：`listForProvider` 再转一层私有 `page(...)` 才夹取 → 两跳判据报 2 条假 FAIL。
+  规则：跨方法判据要么做成传递闭包（带 visited 与深度上限），要么在报告里标明「只判一跳」。
+* **拿带前缀的路径去比已剥前缀的键**（坑 57 复现）：`ep_of()` 用 `/api/v1/...` 查 `endpoints.json`（键已剥前缀）
+  → FAIL 文案退化成裸路径；两侧必须过同一个归一函数。
+* **空作用域必须显式判红**：`A1/A2/A3/A5/A7` 在「解析到 0 条」时不能静默消失（坑 75/98）——本轮已补守卫。
+
+### 本轮未做（纪律）
+* 未新增仓库工具（`missing=0` 只校验不改代码），抽查脚本与自测均落在 `$LOCALAPPDATA/Temp/aap-r46-spotcheck/`；
+* 未并发跑测试（单进程串行两轮；跑前 `jps` 确认无 surefire/测试 JVM）；他项目的
+  `com.hioas.aap.AapServerApplication -Dspring.profiles.active=dev` 进程与 hioas-aim 的 CDP（9223）
+  **只读观察，未触碰**（未按镜像名杀进程、未 attach 他人浏览器）。
+
+### 台账
+* R45 行「提交」列已在上轮收尾填好（`3deeb64`）；追加 R46 行（「提交」列先留空，提交后由收尾提交补齐）；
+  CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」；R 行连续性核对：R27 → R46 无缺号（坑 71）。

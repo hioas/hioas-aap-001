@@ -1,0 +1,46 @@
+== R46 抽查的负向自测（判别力对照） ==
+脚本：C:/Users/laitz/AppData/Local/Temp\aap-r46-spotcheck\audit-pagination-defaults-selftest.py
+纪律：基线变量另起名 ok_out（坑 93）；FAIL 集合按断言前缀比对（坑 82/93）；注入必须真的改到源码（坑 66/94）且注入值不得与旧值互为子串（坑 90）；合规夹具必须 rc=0 且 FAIL 0（正向对照，坑 46/75）；空夹具必须变红并点名解析器失效（坑 75/98）；零写副作用（坑 39）。
+
+== R46 抽查（分页参数缺省值与上限）负向自测 ==
+审计脚本：C:\Users\laitz\AppData\Local\Temp\aap-r46-spotcheck\audit-pagination-defaults.py
+
+T0 真实仓库基线
+  [PASS] T0 真实仓库 rc=1（存在待拍板漂移）  — rc=1
+  [PASS] T0 真实仓库 FAIL 恰好 = {A1, A2}（正向对照：不是「全都没事」）  — labels=['A1', 'A2']
+
+T1 合规夹具（openapi 补齐 default/maximum）
+  [PASS] T1 注入修法锚点命中 46 处（= page+pageSize 参数数）  — hits=46
+  [PASS] T1 合规夹具 rc=0 且 FAIL 0（判据不是「永远报错」）  — rc=0 fails=0
+
+T2 注入：md 上限改成 500
+  [PASS] T2 锚点命中 1 处  — hits=1
+  [PASS] T2 注入值语义真的变了（新旧不互为子串）
+  [PASS] T2 FAIL 集合恰好新增 A4  — labels=['A1', 'A2', 'A4']
+
+T3 注入：openapi 去掉一个 pageSize 的 minimum
+  [PASS] T3 锚点命中 1 处  — hits=1
+  [PASS] T3 FAIL 集合恰好新增 A3  — labels=['A1', 'A2', 'A3']
+
+T4 注入：CredentialService 不再夹取（new PageQuery 替掉 PageQuery.of）
+  [PASS] T4 锚点命中 1 处  — hits=1
+  [PASS] T4 FAIL 集合恰好新增 A5  — labels=['A1', 'A2', 'A5']
+  [PASS] T4 FAIL 文案点名 CRED-01  — ["A5 每个分页控制器方法的 pageSize 都经 PageQuery.of 夹取（控制器或其所调服务）：未夹取 1 条 ['CRED-01(CredentialController.java)']"]
+
+T5 注入：UsageController 传裸 pageSize（判据 pageSize() 子串真的失配）
+  [PASS] T5 锚点命中 1 处  — hits=1
+  [PASS] T5 判据真的失配（注入后实参不含 pageSize() 子串）
+  [PASS] T5 FAIL 集合恰好新增 A6  — labels=['A1', 'A2', 'A6']
+
+T6 注入：客户端 pageSize: 20 → 500
+  [PASS] T6 锚点命中 1 处  — hits=1
+  [PASS] T6 FAIL 集合恰好新增 A7  — labels=['A1', 'A2', 'A7']
+
+T7 空夹具（解析器失效必须红）
+  [PASS] T7 空夹具 rc!=0  — rc=1
+  [PASS] T7 空夹具点名 A0a/A0b/A0c/A0d（解析器失效）  — labels=['A0a', 'A0b', 'A0c', 'A0d', 'A1', 'A2', 'A3', 'A5', 'A6', 'A7', 'A8']
+
+T8 零写副作用守卫
+  [PASS] T8 真实仓库 4 个关键文件 md5 全等（抽查只读）
+
+== 自测结果：PASS 20 / FAIL 0 ==

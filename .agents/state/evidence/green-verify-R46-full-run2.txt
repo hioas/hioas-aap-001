@@ -1,0 +1,17 @@
+== R46 全量测试第 2 轮（真源：surefire 逐类结果 + 覆盖门禁报告逐字段） ==
+命令：export PATH="$HOME/bin:$PATH"; cd aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test
+纪律：单进程串行（跑前 jps 确认无 surefire/测试 JVM 在跑，坑 11/20）；他项目的 dev 服务进程
+      （com.hioas.aap.AapServerApplication -Dspring.profiles.active=dev）与 hioas-aim 的 CDP（9223）均为**只读观察，未触碰**。
+
+[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+测试类数 = 33；[ERROR] 行数 = 0
+@Test 词边界计数（源码，39 个 .java）= 204  ↔  surefire Tests run = 204（一致 → 无用例被静默跳过，坑 35）
+禁用扫描 @Disabled|@Ignore\b|@DisabledIf|assumeTrue|Assumptions\. = 0 条（未削弱测试）
+覆盖门禁（EndpointCoverageTest，读 coverage-report.json 逐字段而非 grep 类名 —— 坑 96）：
+  total=90  implemented=90  missing=0  registered_routes=96  not_registered=[]
+  → 90/90 连续第 28 轮全绿（R18 → … → R46）
+结论：本轮全绿（0 失败 / 0 错误 / 0 跳过）。
+
+逐类结果（已剥 Time elapsed，供两轮 diff）：
+
