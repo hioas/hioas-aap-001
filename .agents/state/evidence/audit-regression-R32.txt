@@ -1,0 +1,54 @@
+== R32 既有只读校验复跑 2026-09-18T14:51 ==
+--- 1) gen --check ---
+check ok: 84/84 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）
+ok: models=55 requests=24 paths=78 operations=90 files=82
+rc=0
+--- 2) check-openapi-parses ---
+OK: docs\backend\openapi.yaml 可解析；paths=78 operations=90
+rc=0
+--- 3) audit-contract-keys ---
+
+== F. 冻结清单 §0 分页字段名约定：1/1 PASS ==
+   [OK ] docs/backend/02-API接口模型清单.md §0-分页约定：§0 写明 data:{items:…}
+
+合计 88 条断言：PASS 88，FAIL 0
+结论：分页集合键名在 OpenAPI / JSON Schema / 运行时 / 客户端 / 清单五处一致。
+rc=0
+--- 4) audit-endpoint-tests ---
+prefix（路径命中但方法不吻合 / 仅静态前缀，弱证据）：0
+none  （无任何调用点 —— 真发现）            ：0
+端点 ID 在测试源里可追溯（含组合引用展开）  ：90/90
+  其中仅裸字面量可追溯                      ：71/90
+  靠组合引用（`A-05/06`、`A-01…05`）才算命中  ：19
+ID 引用与真实 HTTP 调用点同文件（更严一档）  ：90/90
+
+
+rc=0
+--- 5) audit-error-codes ---
+      · QT-06: md=['E-1406'] 清单=[]
+      · QT-07: md=['E-1406'] 清单=['E-1401']
+      · QT-08: md=['E-1001', 'E-1104', 'E-1401', 'E-1402', 'E-1403', 'E-1404'] 清单=['E-1001', 'E-1401', 'E-1402', 'E-1403']
+      · QT-11: md=['E-1401'] 清单=[]
+--- 零写副作用自检 ---
+[PASS] Z1 五处源文件指纹未变（脚本零写副作用）：被改写=[]
+
+断言 16 条：PASS 14，FAIL 2
+rc=0
+--- 6) audit-auth-contract ---
+      · ADM-CP02: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+[PASS] A9 md 表头定位无异常
+--- 零写副作用自检 ---
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+
+断言 17 条：PASS 16，FAIL 1
+rc=0
+--- 7) audit-routes ---
+[PASS] A6 md 表头/行定位无异常
+--- 信息项（不算漂移）---
+      · 实现里注册但清单未声明的路由 1 条（框架/内部路由属正常）：[('GET', '/detection-jobs/{}/digest')]
+      · 客户端未接线的清单端点 51 条（适配层按页面逐步接线，属正常）
+--- 零写副作用自检 ---
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+
+断言 13 条：PASS 13，FAIL 0
+rc=0

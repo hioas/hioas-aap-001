@@ -1,0 +1,19 @@
+== R32 红基线：新审计首轮（含两处解析器真缺陷）复现 ==
+复现方式：把首轮的两处缺陷注入审计副本后，对**同一个真实仓库**重跑（不做递归删除，坑 28）
+缺陷①：无实参映射注解去 find(")") → 括号深度从中间起步（负数）→ 方法体定位失败
+缺陷②：对象字面量键解析松散版（裸标识符也算键）→ 把值的首标识符当键
+
+--- 缺陷① 副本（aap-qparam-buggyA-1789714966503.py）---
+[FAIL] A0d I 解析到控制器方法数 ≥ total：parsed=79 条（含无查询参数的方法）
+[FAIL] A0f I 解析无异常：AdminDetectionConfigController.java: @GetMapping 未定位到方法体起点; AdminDetectionConfigController.java: @PostMapping 未定位到方法体起点; AdminReportTemplateController.java: @GetMapping 未定位到方法体起点; AdminReportTemplateController.java: @PostMapping 未定位到方法体起点; AdminContractController.java: @GetMapping 未定位到方法体起点
+[FAIL] A3a 清单每条端点都在实现里定位到同方法同路径的控制器方法：未定位 12 条
+--- A6 可选性（信息项，不作硬断言；理由见文件头）---
+断言 14 条：PASS 9，FAIL 5
+
+--- 缺陷② 副本（aap-qparam-buggyB-1789714966503.py）---
+--- A4 客户端 GET 调用点 ⊆ 清单（客户端不得传清单外的查询参数）---
+[FAIL] A4 客户端 GET 查询参数都在清单内：越界 2 处
+      · 客户端 GET /payments(PAY-01) 多传：['params']
+      · 客户端 GET /reports(RPT-01) 多传：['params']
+--- A6 可选性（信息项，不作硬断言；理由见文件头）---
+断言 14 条：PASS 11，FAIL 3

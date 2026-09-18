@@ -1,0 +1,26 @@
+夹具根目录：C:\Users\laitz\AppData\Local\Temp
+被测审计：E:\workspaces\hioas\hioas-aap-001\tools\audit-query-params.py
+
+[PASS] case_positive：rc=0(期望 0) 命中「断言 14 条：PASS 14，FAIL 0」=是
+[PASS] case_repo_external_root：rc=0(期望 0) 命中「根目录：C:/Users/laitz/AppData/Local/Temp/aap-qparam-selftest-positive-1789715080616」=是
+[PASS] case_md_body_field_not_query：md 请求体字段未被误当查询参数（SY-02 的 `body：` 单元格）
+[PASS] case_mapping_no_args_annotation：裸 @GetMapping 直接跟签名（无 @PreAuthorize 间隔）的方法体定位正常
+[PASS] case_object_literal_value_not_key：`data: { page: params?.page, … }` 解析出的键 = {page,pageSize}
+[PASS] case_md_paging_notations：`q：分页`（§0 简写）与 `page/pageSize`（斜杠写法）都被识别
+[PASS] case_zero_write：夹具 6 个文件 (mtime,size,md5) 不变
+[PASS] case_md_missing_param：rc=1(期望 1) 命中「A1 md 逐行 `q：…` = endpoints.json query_params：不一致 1 条」=是
+[PASS] case_md_escaped_pipe：rc=0(期望 0) 命中「A0b D 行数 = total（裸 split 会漏行，坑 48）：parsed=6 期望=6」=是
+[PASS] case_openapi_path_param_ok：rc=0(期望 0) 命中「A2 openapi 每 operation 的 query 参数 = endpoints.json：不一致 0 条」=是
+[PASS] case_openapi_missing_param：rc=1(期望 1) 命中「A2 openapi 每 operation 的 query 参数 = endpoints.json：不一致 1 条」=是
+[PASS] case_impl_missing_param：rc=1(期望 1) 命中「A3b 实现 @RequestParam 集合 = 清单 query_params：不一致 1 条」=是
+[PASS] case_impl_explicit_name：rc=0(期望 0) 命中「A3b 实现 @RequestParam 集合 = 清单 query_params：不一致 0 条」=是
+[PASS] case_impl_missing_route：rc=1(期望 1) 命中「A3a 清单每条端点都在实现里定位到同方法同路径的控制器方法：未定位 1 条」=是
+[PASS] case_client_stray_query：rc=1(期望 1) 命中「A4 客户端 GET 查询参数都在清单内：越界 1 处」=是
+[PASS] case_client_non_get_ignored：rc=0(期望 0) 命中「A4 客户端 GET 查询参数都在清单内：越界 0 处」=是
+[PASS] case_client_var_data：rc=0(期望 0) 命中「A4 客户端 GET 查询参数都在清单内：越界 0 处」=是
+[PASS] case_missing_source：rc=1(期望 1) 命中「源文件/目录缺失」=是
+[PASS] teeth_mutation_applied：未命中锚点：A=[] B=[]（非空即为空转，skill 坑 41）
+[PASS] teeth_body_brace_guard：rc=1(期望 1) 命中「A0f I 解析无异常」=是
+[PASS] teeth_object_keys_guard：rc=1(期望 1) 命中「A4 客户端 GET 查询参数都在清单内：越界 1 处」=是
+
+自测断言 21 条：PASS 21，FAIL 0

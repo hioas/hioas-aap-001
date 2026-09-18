@@ -1,0 +1,98 @@
+== R32 查询参数契约漂移逐条裁决（8 条，用「实现用法 + 既有测试断言 + md + 响应模型」四方取证） ==
+
+依据：skill 踩坑 51「双向取证再定谁对」、踩坑 53「证据强度分层」、踩坑 50「孤儿/多声明要分两类判」。
+本轮 missing=0 → **未改任何一侧**（清单、生成器、md、实现、测试断言全部原样），一律列为待拍板。
+
+五处真源的实际承载：
+  * 生成器 tools/gen-backend-models.py 的 PATHS 表（如第 526/528/533/559/563/574/579 行）是 query 列表的**唯一源头**，
+    endpoints.json 与 openapi.yaml 都从它产出 → 清单与 openapi 的漂移**必然是生成器 PATHS 的漂移**；
+  * md 清单的「请求」列（10 列表）/「请求/响应」列（7 列表）是人工维护的第二份声明；
+  * 控制器方法签名里的 @RequestParam 是实现的真实取值集合（本项目 78 处全部为 `(required = false) Type name` 写法）；
+  * 既有真实 HTTP 用例（`get("…?status=…")`）是第三方裁判。
+
+--------------------------------------------------------------------------------
+【A1 md ↔ 清单】3 条
+--------------------------------------------------------------------------------
+
+1) ADM-PAY01  `GET /admin/payments`
+   清单=['page','pageSize','status']  md=['page','pageSize']
+   裁决：**md 漏列 `status`**（清单 + openapi + 实现三方一致含 status）。
+   证据：实现真的有 status（AdminPaymentController）；既有用例
+         PaymentContractTest:185 `get("/admin/payments?status=VOID")` 断言 total=0 → 过滤真的生效。
+   强度：**强**（实现用法 + 既有测试断言双重背书）。
+   影响：md 是人工查阅入口，少列会让调用方以为无法按状态筛选。
+   建议改法（待拍板）：md 该行请求列 `q：分页` → `q：`page` `pageSize` `status?``。
+
+2) ADM-R05  `GET /admin/reviews/records`
+   清单=['page','pageSize','quoteId']  md=['quoteId']
+   裁决：**清单/openapi 多声明 page/pageSize**（见下 A3b-3，同一根因）。
+
+3) QT-06  `GET /quotes/{quoteId}/items`
+   清单=['page','pageSize']  md=[]
+   裁决：**清单/openapi 多声明 page/pageSize**（见下 A3b-5，同一根因）。
+
+--------------------------------------------------------------------------------
+【A3b 实现 ↔ 清单】5 条
+--------------------------------------------------------------------------------
+
+1) ADM-CFG01  `GET /admin/detection-configs`   清单=['page','pageSize']  实现=['page','pageSize','status']
+   裁决：**生成器 PATHS 漏声明 `status`**（实现真的会用）。
+   证据：DetectionConfigService.list 里 `if (status != null && !status.isBlank()) where.append(" and upper(status) = upper(?)")`
+         → 真实条件过滤；既有用例 DetectionConfigContractTest:166/167
+         `get("/admin/detection-configs?status=PUBLISHED")` total=0、`?status=draft` total=1 → 过滤真的生效。
+   强度：**强**（实现用法 + 既有测试断言）。
+   影响：openapi 少声明一个真实过滤参数 → 生成的客户端/文档缺失该能力；调用方按文档写不出「只看草稿」。
+   建议改法（待拍板）：生成器 PATHS 第 574 行 query 列表补 `status`，并同步 md 请求列。
+
+2) ADM-CFG06  `GET /admin/report-templates`   清单=['page','pageSize']  实现=['page','pageSize','status']
+   裁决 / 证据 / 强度 / 影响 / 建议：同 ADM-CFG01。
+   证据补充：ReportTemplateContractTest:126-128 `?status=PUBLISHED` total=0、`?status=DRAFT` total=1、`?status=draft` 大小写不敏感。
+   建议改法（待拍板）：生成器 PATHS 第 579 行 query 列表补 `status`，并同步 md 请求列。
+
+3) ADM-R05  `GET /admin/reviews/records`   清单=['page','pageSize','quoteId']  实现=['quoteId']
+   裁决：**生成器 PATHS 多声明 page/pageSize**（md 与实现同向，响应模型也无分页包装）。
+   证据：① 实现签名只有 `@RequestParam(required = false) String quoteId`；
+         ② md 请求列只写 `quoteId?`，响应列 `{items:[ReviewRecord]}` **无 page/pageSize/total**；
+         ③ 既有用例 ReviewContractTest:482/498/510 只用 `?quoteId=`，**无任何分页参数用例**；
+         ④ 客户端 aap-client 零调用该端点（无按页拉取的消费者）。
+   强度：**强**（实现 + md + 响应模型 + 用例四方同向）。
+   影响：文档承诺了不存在的分页 —— 调用方传 page/pageSize 会被静默忽略（拿到全量），
+         属「文档与实现不一致」但方向安全（多传被忽略，不是少数据）。
+   建议改法（待拍板）二选一：① 生成器 PATHS 第 559 行去掉 page/pageSize（按 md/实现收口）；
+         ② 给实现补分页并同步 md 与响应模型。**不得只改一侧**。
+
+4) QT-04  `DELETE /quotes/{quoteId}`   清单=[]  实现=['reason']
+   裁决：**实现超出冻结契约**（清单 / md / openapi 三方零声明 `reason`）。
+   证据：① 实现 `delete(@PathVariable Long quoteId, @RequestParam(required = false) String reason)`
+            → voidQuote(principal, quoteId, reason)，把 reason 拼进留痕文案（`reason == null || isBlank ? "" : "：" + reason`）；
+         ② **零测试覆盖**：作废用例 QuoteContractTest:374 `delete("/quotes/" + quoteId, token)` 不带 query；
+         ③ 客户端零传：aap-client 无 `reason` 查询参数调用点。
+   强度：**中**（只有实现侧证据，无测试/客户端背书 → 与 ADM-CFG01 那类「强」必须区分，踩坑 53）。
+   影响：作废原因只在带参数时进留痕，而该参数不在任何契约文档里 → 调用方不会知道可以传。
+   建议改法（待拍板）二选一：① 补进清单/md/openapi（若确认属契约，需先改清单再改代码，硬约束 1）；
+         ② 从实现移除该参数（若确认是遗留试验参数）。
+
+5) QT-06  `GET /quotes/{quoteId}/items`   清单=['page','pageSize']  实现=[]
+   裁决：**生成器 PATHS 多声明 page/pageSize**（同 ADM-R05 族）。
+   证据：① 实现无 @RequestParam（QuoteController 的 items 方法）；
+         ② md 请求列 `—`，响应 `{items:[QuoteItem],total}`（无 page/pageSize）；
+         ③ 无测试传分页参数。
+   强度：**强**。
+   建议改法（待拍板）：生成器 PATHS 第 528 行去掉 page/pageSize（或给实现补分页，二者择一）。
+
+--------------------------------------------------------------------------------
+汇总与口径
+--------------------------------------------------------------------------------
+* 漂移共 **8 条**（按「端点×源对」计），去重后涉及 **6 个端点**：
+    - 生成器 PATHS **漏声明**（实现真的会用）：ADM-CFG01.status、ADM-CFG06.status、QT-04.reason → 3 条
+    - 生成器 PATHS **多声明**（实现不用、md 也不写）：ADM-R05.page/pageSize、QT-06.page/pageSize → 2 条
+    - md 漏列：ADM-PAY01.status → 1 条
+    - 同根因在 md 侧与实现侧各报一次：ADM-R05、QT-06（合计 2 条重复计数，故 8 条对应 6 端点）
+* **零漂移的源对**：openapi ⇔ 清单（A2 不一致 0 条，90/90）—— 因为两者同源于生成器 PATHS；
+  客户端 GET 查询参数 ⊆ 清单（A4 越界 0 处）。
+* **本轮未改任何一侧**：missing=0，按作业指令「不改代码，只校验并报告」→ 8 条全部列为待拍板，
+  并给出「改哪一侧 + 改哪一行」的可直接执行建议。
+* 客户端影响评估（踩坑 54 口径）：aap-client **零调用**全部 6 个受影响端点（无 /admin 调用、QT-04/QT-06 未接线）
+  → 当前**无线上功能影响**，按「文档一致性项」定级，不按线上故障定级。
+* 与既有门禁的关系：契约测试只读 JSON Schema（**schema 里没有 query 参数**）、覆盖门禁只比方法+路径注册表
+  → 这 8 条对 204 例全绿**完全不可见**（踩坑 43/49/60 族）。

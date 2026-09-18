@@ -1,0 +1,41 @@
+== R32 新审计：查询参数契约（首次执行） 2026-09-18T15:04 ==
+不变量：每端点的**查询参数名集合**（第五处契约不变量）跨四处真源逐端点比对
+四处真源：M=endpoints.json query_params / D=md 清单「请求」列 / O=openapi.yaml in:query / I=控制器 @RequestParam（C=客户端 GET data 对象字面量键为弱证据）
+
+根目录：E:/workspaces/hioas/hioas-aap-001（仓库外路径也照常显示，skill 坑 34）
+--- 正向对照（解析器真的解析到了，skill 坑 46）---
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b D 行数 = total（裸 split 会漏行，坑 48）：parsed=90 期望=90
+[PASS] A0c O operation 数 = total：parsed=90 期望=90
+[PASS] A0d I 解析到控制器方法数 ≥ total：parsed=91 条（含无查询参数的方法）
+[PASS] A0e 非空查询参数端点被真的解析出来（否则本审计空转）：M 非空 25 条；D 非空 24 条；O 非空 25 条；I 非空 25 条
+[PASS] A0f I 解析无异常
+[PASS] A0g O 解析无异常
+[PASS] A0h D 解析无异常
+--- A1 md 清单 ⇔ endpoints.json（逐端点：查询参数名集合）---
+[FAIL] A1 md 逐行 `q：…` = endpoints.json query_params：不一致 3 条
+      · ADM-PAY01: 清单=['page', 'pageSize', 'status'] md=['page', 'pageSize']
+      · ADM-R05: 清单=['page', 'pageSize', 'quoteId'] md=['quoteId']
+      · QT-06: 清单=['page', 'pageSize'] md=[]
+--- A2 openapi ⇔ endpoints.json（逐端点：in: query 参数名集合）---
+[PASS] A2 openapi 每 operation 的 query 参数 = endpoints.json：不一致 0 条
+--- A3 实现 ⇔ 清单（逐端点：@RequestParam 形参名集合）---
+[PASS] A3a 清单每条端点都在实现里定位到同方法同路径的控制器方法：未定位 0 条
+[FAIL] A3b 实现 @RequestParam 集合 = 清单 query_params：不一致 5 条
+      · ADM-CFG01: 清单=['page', 'pageSize'] 实现=['page', 'pageSize', 'status']
+      · ADM-CFG06: 清单=['page', 'pageSize'] 实现=['page', 'pageSize', 'status']
+      · ADM-R05: 清单=['page', 'pageSize', 'quoteId'] 实现=['quoteId']
+      · QT-04: 清单=[] 实现=['reason']
+      · QT-06: 清单=['page', 'pageSize'] 实现=[]
+--- A4 客户端 GET 调用点 ⊆ 清单（客户端不得传清单外的查询参数）---
+[PASS] A4 客户端 GET 查询参数都在清单内：越界 0 处
+--- A6 可选性（信息项，不作硬断言；理由见文件头）---
+      · 实现里 `required = true`（不带 required=false）的查询参数：0 条（本项目一律 required = false，必填校验在服务层）
+--- 信息项（不算漂移）---
+      · md 用 `q：分页` 简写（= page + pageSize，§0 约定）的端点 6 条
+      · 客户端未能静态判定的 GET 调用点 4 处（不当漂移）：["credential.ts: GET '/credentials' 的 data 非对象字面量（未能静态判定）", "usage.ts: GET '/usage/summary' 的 data 非对象字面量（未能静态判定）", "usage.ts: GET '/usage/summary' 的 data 非对象字面量（未能静态判定）", "usage.ts: GET '/usage/hourly' 的 data 非对象字面量（未能静态判定）"]
+      · 客户端 GET 调用点中带 data 对象字面量的 2 处（12 个 api 文件）
+--- 零写副作用自检 ---
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+
+断言 14 条：PASS 12，FAIL 2

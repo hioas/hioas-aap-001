@@ -1,0 +1,38 @@
+== R32 负向自测（判别力对照） 2026-09-18T14:51 ==
+--- gen-backend-models-selftest ---
+  [PASS] 所有产物内容回到基线（无残留）  (残留=[])
+
+结果：全部通过（14 条断言，自测有判别力）
+rc=0
+--- audit-endpoint-tests-selftest ---
+
+结果：全部通过（审计有判别力）
+夹具目录：C:\Users\laitz\AppData\Local\Temp\aap-audit-selftest-ag271182
+rc=0
+--- audit-contract-keys-selftest ---
+[PASS] G1 夹具目录缺文件 → 报 FAIL 且不崩溃（rc=1，有 rows）
+
+合计 11 条断言：PASS 11，FAIL 0
+rc=0
+--- audit-auth-contract-selftest ---
+[PASS] case_missing_source：rc=1(期望 1) 命中「源文件缺失」=是
+
+自测断言 20 条：PASS 20，FAIL 0
+rc=0
+--- audit-routes-selftest ---
+[PASS] case_missing_source：rc=1(期望 1) 命中「源文件/目录缺失」=是
+
+自测断言 20 条：PASS 20，FAIL 0
+rc=0
+--- audit-error-codes-selftest ---
+[PASS] case_missing_source：rc=1(期望 1) 命中「源文件缺失」=是
+
+自测断言 12 条：PASS 12，FAIL 0
+rc=0
+--- audit-secret-leak --selftest ---
+[PASS] 正向对照：扫描器能在文本里找到模式值
+[PASS] 负向对照：无该值的文本判 0 命中
+[PASS] 边界：空文本判 0 命中
+
+自测 3 条：PASS 3，FAIL 0
+rc=0

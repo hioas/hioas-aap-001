@@ -1430,3 +1430,71 @@ S `SecurityConfig.PUBLIC_PATHS` ／ O `openapi.yaml` 每 operation 的 `security
 | worktree `git status` | 仅 `.agents/state/evidence/coverage-report.json` 显示为修改；逐字段 `total=90/implemented=90/missing=0`，`git diff` 除 CRLF 归一化告警外**无内容差异** → 行尾工件，**本轮不能归因于键序**（R30 的键序观察项本轮未复现） |
 
 结论：**提交 `62a5d15` 自洽**（去掉他方改动后仍全绿）；证据 `commitstate-verify-R31.txt`。
+
+### R32 增量：查询参数契约审计（第五处契约不变量，首次执行）
+
+**新增只读审计** `tools/audit-query-params.py`：把「**每端点的查询参数名集合**」当契约不变量，
+跨**四处真源**逐端点比对：
+
+| 简称 | 来源 | 承载方式 |
+| --- | --- | --- |
+| M | `docs/backend/endpoints.json` | 逐端点 `query_params` 名单 |
+| D | `docs/backend/02-API接口模型清单.md` | 逐行「请求」列（10 列）/「请求/响应」列（7 列）的 `q：…` |
+| O | `docs/backend/openapi.yaml` | operation 下 `parameters` 中 `in: query` |
+| I | `**/*Controller.java` | 方法签名里的 `@RequestParam` 形参名 |
+| C | `aap-client/src/api/*.ts` | GET 调用点 `data:` 对象字面量的键（弱证据，只做 C ⊆ M） |
+
+**为什么需要它**（坑 43 / 49 / 60 族）：契约测试只校验 JSON Schema，而 **schema 里没有查询参数**（query 不是 body）；
+覆盖门禁只比「方法 + 路径」注册表、且把 `{...}` 折叠。于是 `pageSize` 被写成 `page_size`、
+`unread` 被写成 `isUnread` 这类漂移**两套门禁全绿**，而它是坑 1 说的「分页/筛选这类跨页面通用字段」——
+客户端筛选会静默失效（后端拿不到参数 → 返回全量而非过滤结果）。
+
+结果：14 断言 **12 PASS / 2 FAIL** —— A1 md↔清单漂移 3 条、A3b 实现↔清单漂移 5 条（去重后 6 个端点）、
+A2 openapi↔清单 0 漂移、A3a 清单 90/90 都能定位到实现、A4 客户端 0 越界。证据 `audit-query-params-R32.txt`。
+
+#### R32 自纠：审计自身的**三条**真缺陷（都已配判别力回归守卫）
+
+1. **无实参映射注解去 `find(")")`**：裸 `@GetMapping`（本项目真实写法：注解**直接跟方法签名**）会让
+   `find(")")` 跳到**签名里第一个 `@RequestParam(...)` 的右括号**，括号深度扫描从中间起步（深度为负）
+   → 方法体起点永远找不到。首轮实测 `A0d parsed=79`、`A0f` 报 11 条异常、`A3a` 报 **12 条「未定位」= 全部假发现**。
+   修法：无实参时不找 `)`（用 `match_paren` 判是否存在实参列表）+ 方法体起点用**括号深度扫描**（坑 55）。
+2. **对象字面量键解析松散版把「值的首标识符」当键**：`data: { page: params?.page }` 解析出 `params`
+   → 首轮 `A4` 报 2 条假越界（PAY-01 / RPT-01 的 `['params']`）。修法：加 `expect_key`，
+   只在「对象起点 / 顶层逗号之后」认键。
+3. **md「请求」列无 `q：` 前缀时做反引号提取**：把 `body：`a` `b`` 的**请求体字段**当成查询参数
+   → 首轮（第二版）报 **11 条假漂移**（CRED-02 / PROV-02 / QT-02 / QT-08 等）。
+   修法：无 `q：` 时**只**认 QT-11 的 `page/pageSize` 斜杠写法（无反引号、无前缀的真实既有写法）。
+
+三条都有回归守卫 + **注入缺陷判别力实测**（`teeth_body_brace_guard` / `teeth_object_keys_guard` 各恰好转红），
+并额外断言「注入必须真的改到源码」以防**空转通过**（坑 41）。首轮输出按坑 12 诚实命名并**可复现固化**：
+`red-R32-audit-qparams-firstrun.txt`（复现方式＝把两处缺陷注入副本后对同一真实仓库重跑，
+输出与首轮逐条一致：`9 PASS/5 FAIL` ∪ `11 PASS/3 FAIL` = 首轮 `8 PASS/6 FAIL`）。
+
+#### R32 漂移逐条裁决（8 条，去重 6 个端点；四方取证）
+
+| 端点 | 漂移 | 裁决方向 | 证据强度 |
+| --- | --- | --- | --- |
+| ADM-CFG01 / ADM-CFG06 | 实现有 `status`、清单+openapi 无 | **生成器 PATHS 漏声明**（实现真的会用） | 强（`?status=draft` 既有用例断言 total 差异） |
+| QT-04 | 实现有 `reason`、清单/md/openapi 三方无 | **实现超出冻结契约** | 中（只有实现侧证据，零测试/零客户端调用） |
+| ADM-R05 / QT-06 | 清单+openapi 有 `page`/`pageSize`、实现不用 | **生成器 PATHS 多声明** | 强（实现 + md + 响应模型 + 用例四方同向） |
+| ADM-PAY01 | md 少 `status` | **md 漏列** | 强（`?status=VOID` 既有用例） |
+
+客户端影响评估：`aap-client` **零调用**这 6 个端点 → 当前**无线上功能影响**，定级「文档一致性项」（坑 54 口径）。
+本轮 `missing=0` → **未改任何一侧**，8 条全部待拍板，并给出「改哪一行」的可执行建议
+（见 `audit-query-params-adjudication-R32.txt`）。
+
+#### R32 复跑与结论
+
+| 项 | 结果 |
+| --- | --- |
+| 全量 run1 / run2 / run3（串行，绝不并发） | 三轮均 `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0`；run1 与 run2 **逐类 diff 为空**（33 类，剔除 Time elapsed） |
+| 用例数对账 | `@Test\b` 词边界 = 204 == surefire 204；禁用扫描 = 0 条（无静默跳过、无削弱测试，坑 35） |
+| 覆盖门禁 | `EndpointCoverageTest` 90/90（`registered_routes=96`、`not_registered=[]`） |
+| 既有只读校验 | 生成器 `--check` 84/84 + 孤儿 0；分页键名 88/88；端点用例 exact 90/prefix 0/none 0；错误码 14/2（同 R28/R29）；鉴权 16/1（同 R30）；路由 13/0（同 R31）；openapi 可解析 |
+| 负向自测 | 既有 6 个全部通过 + 新增 21/21（含 2 条注入缺陷判别力实测） |
+| 密钥自检 | Tier A 0 命中；`.gitignore` 四项覆盖 PASS；被跟踪 .env 类文件只有 `.env.example` |
+
+结论：**90/90 维持全绿（连续第 14 轮：R18 → … → R32）**；本轮真正增量 = **首次执行的查询参数契约审计**，
+发现 8 条漂移（去重 6 端点）与 3 条审计自身缺陷（全部已修并配回归守卫）。
+待拍板：飞书 home channel 未绑定（维持 R23–R31）+ PROV-03 item 模型口径 + 错误码漂移 10 条与孤儿码 2 个（R29 已裁决待执行）
++ 鉴权 md 角色列漂移 32 条（R30）+ 路由实现超出契约 1 条（R31）+ 本轮查询参数漂移 8 条。
