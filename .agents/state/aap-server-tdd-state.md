@@ -2550,3 +2550,65 @@ openapi 与客户端 TS 不被任何测试读取/执行 → 缺省/上限写错�
   跑完测试后 `git status` 恒显示 ` M`。实测「HEAD 内容」与「工作区内容」各自 `tr -d '\r'` 后**逐字节一致**
   （字段值 total=90 / implemented=90 / missing=0 完全相同）→ 本轮**不提交**该文件，
   避免一次整文件行尾改写（坑 69）；下次巡检不必再把它当漂移（指纹：`git diff --stat` 该文件为空、只有 CRLF 告警）。
+
+## R50（2026-09-18）巡检轮：90/90 连续第 32 轮全绿 + 抽查「审计留痕一致性与完整性」（第二十四类可审计不变量）
+
+### 结论
+* 覆盖门禁 **90/90**（`missing=0`），连续第 32 轮（R18 → R50）。
+* 全量集成测试**两轮 204 例全绿**（0 失败 / 0 错误 / 0 跳过，33 个测试类）；逐类结果先剥 `Time elapsed` 再排序后
+  **diff 为空**（坑 59/79），无 flaky。
+* 既有 **14 套只读审计 + 13 个负向自测**复跑：rc 序列与 R49 逐条一致、FAIL 明细剥来源前缀后逐行一致（零回归），
+  13 个自测全 rc=0；零写副作用守卫 84/84 产物 (size,md5) 全等。
+* `missing=0` → **本轮未改业务代码 / 未改清单 / 未改生成器 / 未改 md / 未动任何断言**。
+
+### 本轮新增抽查：审计留痕一致性与完整性（第二十四类可审计不变量）
+**不变量**：`aap_audit_log` 的**声明面**（DDL 列 / ER 文档字段行 / 契约 JSON Schema / 查询列 / 响应视图）
+与**写入面**（`AuditService` 写入路径实际 set 的列 / `record` 调用点实际使用的 action 常量）必须一致，
+且 append-only（C8：全仓库无 UPDATE/DELETE）。
+
+* **为什么两套门禁都看不见**：契约测试只校验**响应体**与 JSON Schema —— 审计写入（INSERT 到 aap_audit_log）
+  不是任何响应的一部分，且测试夹具是**直接 JDBC INSERT**（`NotificationContractTest` 自己写 `user_agent` 列）；
+  覆盖门禁只比「HTTP 方法 + 路径」；openapi 与客户端 TS 不被任何测试读取/执行。
+  → 写入面漏列、目录里有码但实现从不使用，**204 例全绿也完全看不见**。
+* **真源**：D = `V1__baseline.sql` 建表块列集合 ⇔ S = `json-schema/models/audit-log.schema.json`（属性 + action enum）
+  ⇔ I = `AuditLogEntity` 字段 ∪ `BaseEntity` 列 / `AuditLogViews.Row` 分量 / `AuditLogQueryService` select 列 /
+  `AuditService` 枚举与写入 setter / 全仓库 `auditService.record(...)` 调用点 ⇔ M = md 清单「审计」标注端点
+  ⇔ E = ER 文档 §327 字段行 + C8 约束行。
+* **解析结果**：DDL 列 21 / schema 属性 16 / 实体字段 14 + BaseEntity 7 / 视图分量 16 / 写入 setter 13 /
+  查询 select 16 / record 调用点 23 / md「审计」端点 3（CRED-07、DET-06、ADM-C02）。
+* **断言 18 条：PASS 16，FAIL 2**；零漂移项：A1 schema↔视图 16/16、A2 实体∪基类↔DDL 21/21、
+  A3 枚举↔契约 enum 18/18、A4/A4b append-only（0 处 UPDATE/DELETE、mapper 仅 insert）、A5 查询列无越界、
+  A8 md 三条「审计」端点的调用链审计 action **语义全部匹配**（CRED-07/ADM-C02→`CREDENTIAL_REVEAL`、
+  DET-06→`DETECTION_RELEASE`，定位率 3/3）。
+* **两条真实发现（双向取证后分级，坑 50/51/54）**：
+  1. **A6 孤儿 action `SYNC_WRITE_PRICE`**：契约目录（实现 enum / schema enum / openapi）18 个码，实现真实使用 17 个；
+     全仓库该常量仅出现于 `AuditService` 的枚举声明一处，`git log -S` 显示自 `a60c58a` 起**从无调用点**；
+     同步相关审计统一记 `SYNC_EXECUTE`（`SyncAdminService.audit`）→ 与 ER §327 把 `SYNC_WRITE_PRICE` 列为动作示例存在分叉，
+     即「写价审计无法与其它同步动作区分」。客户端按 action 码分支 **0 处** → 降级为**文档一致性项（待拍板）**：
+     要么写价路径改用该码，要么从目录删除（属契约变更）。
+  2. **A7 声明但写入路径从不填充的列 `user_agent`**：DDL / ER §327 / schema / 实体 / 查询 select / 响应视图**六处**声明，
+     而 `AuditService.record` 只 set 13/14 列（唯一遗漏 `user_agent`）→ 生产审计行 `user_agent` **恒 NULL**；
+     全仓库唯一 `setUserAgent` 在 `AuthService`（写 `aap_auth_token`，与该表无关）；
+     客户端 `user_agent` 消费 **0 处**、无按该字段的断言 → 降级为**文档一致性项 + 潜在陷阱（待拍板）**：
+     审计溯源缺 UA（无法回答「谁用什么客户端做了敏感操作」），补齐需在过滤器/`AuditContext` 采集请求头。
+* **判别力自测 27/27 PASS**：合规夹具 18 条全 PASS；9 组注入缺陷（schema 多属性 / enum 多码 / 实体多字段 /
+  DDL 加 UPDATE / 两侧同时加孤儿码 / 删 setter / 查询加越界列 / 服务换 action）**各恰好新增 1 条点名 FAIL**；
+  空夹具点名 A0a…A0e 且 A1/A2 不得空转判绿；注入前先断言**锚点全部命中**（坑 66/94）；
+  真实仓库运行零写副作用、FAIL 行数 > 0（坑 97/98）。
+
+### 本轮踩坑（新增，均为抽查脚本自身返工 —— 先怀疑解析器，坑 46/57/75/82/107）
+1. **判据过宽假发现**：查询 select 列解析把 `as` / `count` / `cast(... as text)` 当列名 → 报出「越界列」。规则：按**顶层逗号**
+   切分投影项、取每项末标识符并过滤 SQL 关键字，且 `count(...)` 类计数查询不参与投影列集合。
+2. **跨源比对两侧归一不一致**（坑 57/89 **再现**）：md 路径不带 `/api/v1`、控制器路径带 → 定位率报 **0/3** 的假发现。规则：两侧走同一个 `key()`。
+3. **定位率 0 却判 PASS（空转假绿，坑 75）**：`A8c` 只输出「已定位 0 / 3」并 `[PASS]` → 改成「必须全部定位且 > 0」。
+4. **空夹具下跨源相等断言会空转判绿**：`set()==set()` 两侧都解析到 0 时成立 → A1/A2/A3 各补「有一侧为 0 即 FAIL」守卫。
+
+### 本轮未做（纪律）
+* 未新增仓库工具（`missing=0` 只校验不改代码），抽查脚本与夹具分目录落在 `$LOCALAPPDATA/Temp/aap-r50-spotcheck*`（坑 106）；
+* 未并发跑测试（单进程串行两轮；跑前 `jps` 确认无其它 surefire JVM）；
+* 他方未提交改动（`aap-client/vite.config.ts`、`aap-server/src/main/resources/application.yml`、
+  `log4j2-spring.xml`、`src/test/resources/application-test.yml`）**未触碰**（坑 15）。
+
+### 台账
+* 追加 R50 行（「提交」列先留空，提交后由收尾提交补齐）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」；
+  R 行连续性核对：R27 → R50 无缺号（坑 71）。

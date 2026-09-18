@@ -1,0 +1,51 @@
+== R50 抽查脚本负向自测（判别力实测） ==
+夹具根：C:/Users/laitz/AppData/Local/Temp/aap-r50-spotcheck-fixtures（与脚本目录分开命名，坑 106）
+被测：C:/Users/laitz/AppData/Local/Temp/aap-r50-spotcheck/aap-r50-audit-log.py
+每条用例：合规夹具基线 → 注入缺陷（先断言锚点全部命中、注入真的改到源码）→ 断言 FAIL 集合恰好新增目标断言
+正向对照：合规夹具 18 条断言全 PASS；空夹具必须点名 A0a…A0e；真实仓库 FAIL>0（坑 97/98）
+
+---- 合规夹具输出（前 14 行）----
+== R50 抽查：审计留痕一致性与完整性 —— 第二十四类可审计不变量 ==
+真源：D=DDL 列 ⇔ S=契约 schema 属性 ⇔ I=实体/视图/查询/枚举/写入 setter ⇔ M=md「审计」标注端点
+仓库根：C:/Users/laitz/AppData/Local/Temp\aap-r50-spotcheck-fixtures
+
+== 解析计数 ==
+   D DDL 列=12  DDL 写语句(update/delete)=0  S schema 属性=7  S enum=2
+   I 实体字段=5  BaseEntity 列=7  视图 Row 分量=7  写入 setter=5  查询 select 列=7
+   I record 调用点=3（未能静态判定 action=0）  M md「审计」端点=3
+
+  [PASS] A0a D 解析到 DDL 列 > 0 | 12
+  [PASS] A0b S 解析到 schema 属性与 enum > 0 | 7 / 2
+  [PASS] A0c I 解析到实体字段/视图分量/枚举/写入 setter 均 > 0 | 5/7/2/5
+  [PASS] A0d I 解析到 record 调用点 > 0 | 3
+  [PASS] A0e M 解析到 md「审计」标注端点 > 0 | 3
+----
+  [PASS] C0 合规夹具：审计 FAIL 0（正向对照） — FAIL=[]
+  [PASS] C0b 合规夹具：18 条断言全 PASS（断言数正向对照，坑 46/75）
+  [PASS] C1 审计对夹具零写副作用（size+md5 全等）
+  [PASS] C2 注入锚点全部命中（注入真的改到源码，坑 66/94） — 未命中 0
+  [PASS] C2 schema 多一个属性 → A1（schema↔视图 1:1）：FAIL 集合恰好新增 ['A1']（基线 [] → 注入后 ['A1']）
+  [PASS] C3 注入锚点全部命中（注入真的改到源码，坑 66/94） — 未命中 0
+  [PASS] C3 契约 enum 多一个常量 → A3（枚举集合）：FAIL 集合恰好新增 ['A3']（基线 [] → 注入后 ['A3']）
+  [PASS] C4 注入锚点全部命中（注入真的改到源码，坑 66/94） — 未命中 0
+  [PASS] C4 实体多一个字段 → A2（实体↔DDL）：FAIL 集合恰好新增 ['A2']（基线 [] → 注入后 ['A2']）
+  [PASS] C5 注入锚点全部命中（注入真的改到源码，坑 66/94） — 未命中 0
+  [PASS] C5 对 aap_audit_log 加 UPDATE 语句 → A4（append-only）：FAIL 集合恰好新增 ['A4']（基线 [] → 注入后 ['A4']）
+  [PASS] C6 注入锚点全部命中（注入真的改到源码，坑 66/94） — 未命中 0
+  [PASS] C6 两侧同时多一个孤儿 action → A6（孤儿 action）：FAIL 集合恰好新增 ['A6']（基线 [] → 注入后 ['A6']）
+  [PASS] C6b 点名孤儿 action SYNC_WRITE_PRICE
+  [PASS] C7 注入锚点全部命中（注入真的改到源码，坑 66/94） — 未命中 0
+  [PASS] C7 写入路径删掉 setTraceId → A7（声明未填充列）：FAIL 集合恰好新增 ['A7']（基线 [] → 注入后 ['A7']）
+  [PASS] C7b 点名未填充列 trace_id
+  [PASS] C8 注入锚点全部命中（注入真的改到源码，坑 66/94） — 未命中 0
+  [PASS] C8 查询 select 加不存在列 → A5（查询列越界）：FAIL 集合恰好新增 ['A5']（基线 [] → 注入后 ['A5']）
+  [PASS] C9 注入锚点全部命中（注入真的改到源码，坑 66/94） — 未命中 0
+  [PASS] C9 release() 的 action 换成另一个 → A8（语义不匹配；escalate() 仍用旧码，A6 不连带）：FAIL 集合恰好新增 ['A8']（基线 [] → 注入后 ['A8']）
+  [PASS] C9b 点名 DET-06 语义不匹配
+  [PASS] C10 空夹具：解析器失效被点名（A0a…A0e 全 FAIL） — ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A1', 'A2', 'A3', 'A5']
+  [PASS] C10b 空夹具：跨源相等断言不得空转判绿（A1/A2 也 FAIL） — ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A1', 'A2', 'A3', 'A5']
+  [PASS] C11 真实仓库运行零写副作用（4 个关键文件 size+md5 全等）
+  [PASS] C12 真实仓库 FAIL 行数 > 0（正向对照，坑 97/98） — ['A6', 'A7']
+  [PASS] C13 真实仓库的两条发现（A6 孤儿 action / A7 声明未填充列）可复现
+
+自测 27 条：PASS 27，FAIL 0

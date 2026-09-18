@@ -1,0 +1,35 @@
+== R50 抽查：审计留痕一致性与完整性 —— 第二十四类可审计不变量 ==
+真源：D=DDL 列 ⇔ S=契约 schema 属性 ⇔ I=实体/视图/查询/枚举/写入 setter ⇔ M=md「审计」标注端点
+仓库根：E:/workspaces/hioas/hioas-aap-001
+
+== 解析计数 ==
+   D DDL 列=21  DDL 写语句(update/delete)=0  S schema 属性=16  S enum=18
+   I 实体字段=14  BaseEntity 列=7  视图 Row 分量=16  写入 setter=13  查询 select 列=16
+   I record 调用点=23（未能静态判定 action=0）  M md「审计」端点=3
+
+  [PASS] A0a D 解析到 DDL 列 > 0 | 21
+  [PASS] A0b S 解析到 schema 属性与 enum > 0 | 16 / 18
+  [PASS] A0c I 解析到实体字段/视图分量/枚举/写入 setter 均 > 0 | 14/16/18/13
+  [PASS] A0d I 解析到 record 调用点 > 0 | 23
+  [PASS] A0e M 解析到 md「审计」标注端点 > 0 | 3
+
+  [PASS] A1 契约 schema 属性集合 = 响应视图分量集合 | 16/16
+  [PASS] A2 实体字段 ∪ BaseEntity 列 = DDL 列 | 21/21
+  [PASS] A3 AuditAction 枚举 = 契约 action enum | 18/18
+  [PASS] A4 append-only：全仓库对 aap_audit_log 无 UPDATE/DELETE 语句 | 0 处
+  [PASS] A4b auditLogMapper 仅 insert（无 update/delete 调用）
+  [PASS] A5 查询 select 列全部存在于 DDL | 16 列
+  [FAIL ] A6 契约目录的 action 全部有实现调用点 | 孤儿 action 1 个：['SYNC_WRITE_PRICE']
+  [FAIL ] A7 写入路径覆盖全部非自动列 | 声明但写入路径从不填充的列 1 个：['user_agent']
+  [PASS] A7b 写入路径填充的列都在 DDL 内 | 13 个
+  [INFO] A7c 写入路径 result 字面量取值域（信息项）| ['SUCCESS']
+  [PASS] A8 CRED-07 链路审计 action 语义匹配 | CredentialService.reveal → CREDENTIAL_REVEAL
+  [PASS] A8 DET-06 链路审计 action 语义匹配 | DetectionService.release → DETECTION_RELEASE
+  [PASS] A8 ADM-C02 链路审计 action 语义匹配 | CredentialService.reveal → CREDENTIAL_REVEAL
+  [PASS] A8c md「审计」端点定位率 | 已定位 3 / 3
+  [INFO] A9 客户端 /admin/audit-logs 消费点（信息项）| 1 处 ['aap-client/src/api/notification.ts:3']
+  [INFO] A9b 客户端 user_agent 字段消费点（信息项）| 0 处
+  [INFO] A9c ER 文档 C8「审计不可变」约束行存在（信息项）| 是
+
+== 断言汇总 ==
+  断言 18 条：PASS 16，FAIL 2
