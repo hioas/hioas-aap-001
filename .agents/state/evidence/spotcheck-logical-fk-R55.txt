@@ -1,0 +1,35 @@
+[PASS] A0g   控制器路由定位率 90/90（全清单已定位）
+[PASS] A0a   解析到 55 个DDL 表（正向对照）
+[PASS] A0b   解析到 80 个DDL *_id 列（正向对照）
+[PASS] A0c   解析到 23 个ER FK* 声明（正向对照）
+[PASS] A0d   解析到 11 个请求体 *_id 字段（正向对照）
+[PASS] A0e   解析到 91 个控制器路由（正向对照）
+[PASS] A0f   解析到 18 个测试引用不存在断言（正向对照）
+[PASS] A1    ER 的 23 条 FK* 声明在 DDL 对应表里全部存在
+[PASS] A1b   ER 的 FK* 所属表与目标表全部在 DDL 里存在
+[PASS] A2    ER 声明「逻辑外键，不建 DB 级 FK」且 DDL 实测 FK 约束 = 0（双源一致）
+[PASS] A5    测试对「引用不存在」有 18 处断言（覆盖 12 个测试类，正向对照）
+[FAIL] A3    请求体引用了 3 个未在 ER 声明为 FK* 的字段：batch_id, file_id, logo_file_id
+[FAIL] A4    2/9 处请求体引用字段的写入路径无父行存在性校验证据：ADM-CFG07(logo_file_id), ADM-CFG09(logo_file_id)
+[INFO] A3i   PROV-04 POST /api/v1/provider/qualifications 引用 file_id（qualification-create）
+[INFO] A3i   DET-01 POST /api/v1/detection-jobs 引用 credential_id（detection-job-create）
+[INFO] A3i   QT-02 POST /api/v1/quotes 引用 credential_id（quote-create）
+[INFO] A3i   QT-02 POST /api/v1/quotes 引用 provider_id（quote-create）
+[INFO] A3i   ADM-R04 POST /api/v1/admin/reviews/{id}/reject 引用 item_id（review-reject）
+[INFO] A3i   ADM-CT02 POST /api/v1/admin/contracts/{id}/issue 引用 file_id（contract-issue）
+[INFO] A3i   ADM-U02 POST /api/v1/admin/usage/refresh 引用 batch_id（usage-refresh）
+[INFO] A3i   ADM-CFG07 POST /api/v1/admin/report-templates 引用 logo_file_id（report-template-save）
+[INFO] A3i   ADM-CFG09 PUT /api/v1/admin/report-templates/{templateId} 引用 logo_file_id（report-template-save）
+[INFO] A4i   PROV-04 POST /api/v1/provider/qualifications 字段=file_id → validated（ProviderController.java#addQualification → requireProvider(）
+[INFO] A4i   DET-01 POST /api/v1/detection-jobs 字段=credential_id → validated（DetectionController.java#create → requireOwnedCredential(）
+[INFO] A4i   QT-02 POST /api/v1/quotes 字段=credential_id → validated（QuoteController.java#create → E_1001）
+[INFO] A4i   QT-02 POST /api/v1/quotes 字段=provider_id → validated（QuoteController.java#create → E_1001）
+[INFO] A4i   ADM-R04 POST /api/v1/admin/reviews/{id}/reject 字段=item_id → validated（AdminReviewController.java#reject → E_1001）
+[INFO] A4i   ADM-CT02 POST /api/v1/admin/contracts/{id}/issue 字段=file_id → validated（AdminContractController.java#issue → requireRow(）
+[INFO] A4i   ADM-U02 POST /api/v1/admin/usage/refresh 字段=batch_id → validated（AdminUsageController.java#refresh → E_1001）
+[INFO] A4i   ADM-CFG07 POST /api/v1/admin/report-templates 字段=logo_file_id → unvalidated（AdminReportTemplateController.java#create（无存在性校验证据））
+[INFO] A4i   ADM-CFG09 PUT /api/v1/admin/report-templates/{templateId} 字段=logo_file_id → unvalidated（AdminReportTemplateController.java#update（无存在性校验证据））
+[INFO] A6    DDL 里 ER 未声明为 FK* 的 *_id 列名 22 个：actor_id, aggregate_id, batch_id, binding_id, biz_id, channel_id, endpoint_id, event_id, file_id, last_batch_id, last_compilation_id, last_detection_job_id, latest_report_id, logo_file_id, operator_id, pdf_file_id, recipient_id, sms_code_id, target_id, template_id, trace_id, voucher_file_id
+
+汇总：PASS 11 / FAIL 2 / INFO 19
+关键计数：DDL 表 55 · *_id 列 80 · DB 级 FK 约束 0 · ER FK* 声明 23 · 请求体引用端点 9 · 路由 91 · 测试断言 18

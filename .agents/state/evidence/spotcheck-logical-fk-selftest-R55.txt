@@ -1,0 +1,22 @@
+== R55 抽查脚本负向自测（spotcheck-logical-fk-R55.py --selftest） ==
+脚本：$LOCALAPPDATA/Temp/aap-r55-spotcheck/spotcheck-logical-fk-R55.py（不新建仓库工具，坑：脚本与夹具分目录，坑 106）
+夹具：$LOCALAPPDATA/Temp/aap-r55-spotcheck-fixtures/{compliant,empty,inj}
+判据：合规夹具 rc=0 且 FAIL 0；空夹具必须点名 A0a/A0d；4 组注入缺陷各恰好新增目标断言（且锚点命中，坑 66/94/104）；零写副作用
+
+[PASS] S1 合规夹具 FAIL 0
+[PASS] S2 合规夹具解析到 2 表 / 2 条 ER FK* / 1 个请求体引用
+[PASS] S3 合规夹具判定 validated
+[PASS] S4 空夹具点名 A0a
+[PASS] S5 空夹具点名 A0d
+[PASS] S6 I1 注入锚点命中
+[PASS] S7 I1 恰好新增 A1
+[PASS] S8 I2 注入锚点命中
+[PASS] S9 I2 恰好新增 A2
+[PASS] S10 I3 注入锚点命中
+[PASS] S11 I3 恰好新增 A4
+[PASS] S12 I4 注入锚点命中
+[PASS] S13 I4 恰好新增 A3
+[PASS] S14 零写副作用（夹具 size 全等）
+
+自测汇总：PASS 14 / 14
+SELFTEST_RC=0

@@ -2955,3 +2955,72 @@ D 文档声明（00-设计总览 §6.1 端口登记、02-API接口模型清单 �
 * 未改业务代码/清单/生成器/md/断言（`missing=0` 只校验不改代码）；抽查脚本与夹具**分目录**落在 `$LOCALAPPDATA/Temp/aap-r54-spotcheck` 与 `…-fixtures`（坑 106）；
 * 未并发跑测试（单进程串行两轮，坑 11/20）；他方未提交改动（`aap-client/vite.config.ts`、`aap-server` 的 `application.yml`/`log4j2-spring.xml`/`application-test.yml`、
   `coverage-report.json` 及 `aap-client` 下未跟踪文件）**未触碰、未纳入提交**（坑 15/16）。
+
+## R55（2026-09-19）巡检轮：90/90 连续第 37 轮全绿 · 新增抽查「逻辑外键（FK*）跨源一致性」
+
+### 结论
+* `total=90 implemented=90 missing=0`；覆盖门禁 `EndpointCoverageTest` 90/90（`registered_routes=96`、`not_registered=[]`）。
+* 全量 **204 例两轮全绿**（0 失败/0 错误/0 跳过，33 个测试类）；两轮**逐类结果 diff = 0 行**（先剥 `Time elapsed` 再排序，坑 79）。
+* 既有 **14 套只读审计**复跑与 R54 同结论（FAIL 明细剥来源前缀后 28/28 逐行一致，新增 0 消失 0）；**13 个负向自测**全部 `rc=0`；
+  **零写副作用**（84 个生成物 size+md5 全等）。
+* 本轮 `missing=0` → **未改业务代码 / 清单 / 生成器 / md / 断言**；他方 4 个未提交文件未触碰、未纳入提交（坑 15/16）。
+
+### 本轮新增抽查：逻辑外键（FK*）跨源一致性（第二十九类可审计不变量）
+真源五处：
+* **E** `docs/backend/01-ER数据模型.md`：`FK*` 声明（紧凑式 `**aap_x**：col FK*` 与表格式 `| col | bigint | FK* | → aap_y |` 两种写法）＋「不建 DB 级 FK（C12）」策略行；
+* **D** `db/migration/*.sql`：列存在性 + DB 级 FK 约束计数（`references` / `foreign key`）；
+* **R** `json-schema/requests/*.json` × `endpoints.json`：请求体里的 `*_id` 引用字段 → 端点；
+* **I** `src/main/java/**`：控制器→服务写入路径的**同域**存在性校验证据；
+* **T** `src/test/java/**`：对「引用不存在」的断言背书。
+
+关键计数：DDL **55** 表（54 base + 1 分区表 `aap_usage_hourly_default`，`create table … partition of …` 无列定义）·`*_id` 列 **80** ·
+DB 级 FK 约束 **0** ·ER `FK*` 声明 **23** 条 ·请求体引用端点 **9** 条（8 个请求模型）·控制器路由定位率 **90/90**。
+
+### 3 条真实发现（全部人工复核过实现代码）
+| 端点 | 引用字段 | 现状 | 对照 |
+|---|---|---|---|
+| PROV-04 | `file_id` | `ProviderService.addQualification` 只校验**扩展名/大小**（E-1001）后直接 `setFileId`，**不查** `aap_file_asset` | ADM-CT02 的 `file_id` 走 `select count(*) from aap_file_asset where id = ? and deleted = false` |
+| ADM-CFG07 | `logo_file_id` | `ReportTemplateService.create` 仅 `parseFileId`（雪花 ID 格式 → E-1001）后直接写入 `logo_file_id` | 同上 |
+| ADM-CFG09 | `logo_file_id` | `ReportTemplateService.update` 同上（`coalesce(?, logo_file_id)`） | 同上 |
+
+后果：可写入指向**不存在文件资产**的引用（逻辑外键孤儿行）；因 ER 明示不建 DB 级 FK，数据库层不会拦。
+**为什么全量用例看不见**：契约测试只校验响应体与 JSON Schema，引用列的存在性与写入校验都不在 schema 里；覆盖门禁只比「方法+路径」。
+
+### 分级发现（坑 111：与「已接收但未校验」分开）
+* **A4c 契约声明但实现未接收 2 处**（待拍板，非运行时缺陷）：
+  * `QT-02(provider_id)` —— `QuoteService.create` 只读 `command.credentialId()`，供应商取 `principal.providerId()`（请求里的 `provider_id` 被忽略）；
+  * `ADM-U02(batch_id)` —— `RefreshRequest` 只有 `from/to`，`batch_id` 由服务端 `nextval('seq_usage_batch')` 生成，请求里的 `batch_id` 零读取。
+  → 客户端传参被静默忽略（与坑 111 的「契约声明但实现未接收」同族）；**qt-02 用 principal 更安全**，但也可能是生成物侧多声明 → 列待拍板。
+* **A4d 非引用列 1 处（信息项）**：`ADM-R04(item_id)` 只写进 `snapshot.put("item_id", …)`（jsonb 复核快照），不是表的引用列。
+* **A3 文档缺口**：请求体引用的 `file_id`／`logo_file_id`／`batch_id` 未在 ER 声明为 `FK*`（`credential_id`／`provider_id`／`contract_id`／`item_id` 已声明）。
+
+### 正面结论（带正向对照）
+* ER **23 条 `FK*` 声明在 DDL 对应表里全部存在**（含目标表），无「文档有、库无」的悬空声明；
+* ER「**逻辑外键，不建 DB 级 FK（C12）**」⇔ DDL 实测 `references`/`foreign key` = **0** —— **策略与事实双源一致**；
+* 测试对「引用不存在」有 **18 处断言（12 个测试类）** → 引用校验有测试背书（正向对照 > 0）；
+* 9 条请求体引用端点中 **3 条 validated / 3 条 unvalidated / 2 条 unconsumed / 1 条 annotation**，合计 = 9（无 unknown，定位率 90/90）。
+
+### 本轮踩坑（全部是抽查脚本自身返工 —— 一律「先怀疑解析器」）
+1. **注解右括号当扫描起点 → 方法体永远找不到**：`find_body_start(src, close)` 从注解的 `)` 起扫，首个字符让括号深度变 **-1**，
+   于是「带实参的映射注解」全部解析失败（实测 91 个注解只定位到 **17** 条路由）。修法：`scan_from = close + 1`。
+   这是坑 55/63 的同族新面；**定位率断言（A0g 90/90）是唯一发现手段**（只报「全绿」会静默空转，坑 87）。
+2. **方法级路径起点是 `/` 就丢掉类级前缀**：`full = p if p.startswith("/") else prefix + p` → 带路径的方法级路由全部丢前缀。
+   修法：一律 `prefix + p`（坑 87 的又一实例）。
+3. **`create table … partition of …` 被当成解析失败**：正则要求表名后紧跟 `(` → 分区表 `aap_usage_hourly_default` 漏掉（54/55）。
+   修法：显式识别分区表（列定义为空）并在 A1 里跳过列检查（记 INFO）。
+4. **判据太宽 → 假 validated**：第一版只找「方法体里有没有存在性校验」，`requireProvider(`（校验的是**登录态供应商**）
+   把 PROV-04 的 `file_id` 判成 validated。修法：判据必须**与被引用实体同域**（父表查询 / 接收者名含实体关键词的 ORM 查询 / 同域校验消息）。
+5. **ORM 式查询被漏掉 → 假 unvalidated**：`credentialMapper.selectOneById(...)` 不含 `from aap_credential`，
+   把 QT-02 的 `credential_id` 判成未校验。修法：补「接收者名含实体关键词 + 方法名以查询动词开头」一档。
+6. **「被消费」不能用同名字段冒充**：`principal.providerId()` / `credential.getProviderId()` 让请求体的 `provider_id` 假判「已消费」。
+   修法：只认**请求对象/请求形参**的读取（`command|cmd|body|request|payload|dto|form|input` 作接收者，或该 camel 本身是形参名）——
+   与坑 111-① 同一条纪律。
+7. **注入缺陷要落在判据的豁免范围之外，且语义真的要变**：I3 只删 `throw E-1406` 不足以让 A4 转红（查询本身就是证据）；
+   I4 注入 `ghost_ref`（不以 `_id` 结尾）不属判据域 → 空转通过（坑 90）；注入锚点 `"parent_id"` 首处是 `required` 数组 → 破坏 JSON（坑 104）。
+   修法：I3 删整个「查询 + 抛」块、I4 注入 `ghost_id` 且锚点落在 `properties` 块内，并逐条断言「恰好新增目标断言 + 锚点命中」。
+
+### 本轮未做（纪律）
+* 未改业务代码/清单/生成器/md/断言（`missing=0` 只校验不改代码）；抽查脚本与夹具**分目录**落在
+  `$LOCALAPPDATA/Temp/aap-r55-spotcheck` 与 `…-fixtures`（坑 106），**不新建仓库工具**；
+* 未并发跑测试（单进程串行两轮，坑 11/20）；他方未提交改动（`aap-client/vite.config.ts`、`aap-server` 的 `application.yml`/
+  `log4j2-spring.xml`/`application-test.yml`、`coverage-report.json` 及 `aap-client` 下未跟踪文件）**未触碰、未纳入提交**（坑 15/16）。

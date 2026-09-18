@@ -1,0 +1,34 @@
+== R55 审计 FAIL 明细比对（基线 = R54 复跑结果） ==
+判据：方括号内允许空格的 FAIL 标记；排除 [PASS] 行（自指噪声，坑 47/77）；比对键先剥来源名前缀（坑 109）
+两侧解析到的 FAIL 明细行数：R54 = 28 ；R55 = 28 （正向对照：两侧都必须 > 0，坑 46/97）
+新增 = 0 ；消失 = 0
+
+R55 FAIL 明细（逐行）：
+  [FAIL ] ReviewService.java:57 ['CLAIMED', 'PENDING']：契约(schema/openapi)未声明该取值域，但 ER 文档有据（列 ['status']）→ 契约完备性项
+  [FAIL ] SyncAdminService.java:73 ['FAILED', 'MANUAL']：契约(schema/openapi)未声明该取值域，但 ER 文档有据（列 ['status']）→ 契约完备性项
+  [FAIL ] common\envelope.schema.json:code 取值 ['0', 'E-1001', 'E-1101', 'E-1102', 'E-1104', 'E-1201', 'E-1301', 'E-1302', 'E-1303', 'E-1304', 'E-1305', 'E-1401', 'E-1402', 'E-1403', 'E-1404', 'E-1405', 'E-1406', 'E-1407', 'E-1501', 'E-1505', 'E-1601', 'E-1602', 'E-1701', 'E-1801', 'E-1901', 'E-1902', 'E-1903', 'E-2001'] 不匹配任何 md §5 族（与 openapi 族 ResultCode 相同 → 疑似 §5 漏登记）
+  [FAIL ] common\error.schema.json:code 取值 ['E-1001', 'E-1101', 'E-1102', 'E-1104', 'E-1201', 'E-1301', 'E-1302', 'E-1303', 'E-1304', 'E-1305', 'E-1401', 'E-1402', 'E-1403', 'E-1404', 'E-1405', 'E-1406', 'E-1407', 'E-1501', 'E-1505', 'E-1601', 'E-1602', 'E-1701', 'E-1801', 'E-1901', 'E-1902', 'E-1903', 'E-2001'] 不匹配任何 md §5 族（是 openapi 族 ResultCode 的子集 → 疑似 §5 漏登记）
+  [FAIL ] models\audit-log.schema.json:action 取值 ['AUTH_LOGIN', 'CONFIG_PUBLISH', 'CONTRACT_SIGN', 'CREDENTIAL_REVEAL', 'DETECTION_RELEASE', 'PAYMENT_CONFIRM', 'PROFILE_UPDATE', 'PROVIDER_RESUME', 'PROVIDER_SUSPEND', 'QUOTE_APPROVE', 'QUOTE_CREATE', 'QUOTE_REJECT', 'QUOTE_SAVE', 'QUOTE_SUBMIT', 'QUOTE_VOID', 'QUOTE_WITHDRAW', 'SYNC_EXECUTE', 'SYNC_WRITE_PRICE'] 不匹配任何 md §5 族（与 openapi 族 AuditAction 相同 → 疑似 §5 漏登记）
+  [FAIL ] models\credential-detail.schema.json:detection_status 取值 ['FAIL', 'PASS', 'PENDING', 'RUNNING'] 不匹配任何 md §5 族（与 openapi 族 CredentialDetectionStatus 相同 → 疑似 §5 漏登记）
+  [FAIL ] models\credential-row.schema.json:detection_status 取值 ['FAIL', 'PASS', 'PENDING', 'RUNNING'] 不匹配任何 md §5 族（与 openapi 族 CredentialDetectionStatus 相同 → 疑似 §5 漏登记）
+  [FAIL ] models\review-task.schema.json:reject_reason_code 取值 ['CACHE_PRICE_MISSING', 'MISSING_INFO', 'OTHER', 'PRICE_STRUCTURE_INVALID', 'PRICE_TOO_HIGH', 'TECH_RISK', 'VALIDITY_ISSUE'] 不匹配任何 md §5 族（与 openapi 族 QuoteRejectReason 相同 → 疑似 §5 漏登记）
+  [FAIL ] requests\contract-sign.schema.json:sign_method 取值 ['SEAL', 'SMS'] 不匹配任何 md §5 族
+  [FAIL ] requests\payment-record.schema.json:currency 取值 ['USD'] 不匹配任何 md §5 族
+  [FAIL ] requests\provider-profile-update.schema.json:industry_category 取值 ['AGGREGATOR', 'ORIGINAL', 'RESELLER'] 不匹配任何 md §5 族（与 openapi 族 IndustryCategory 相同 → 疑似 §5 漏登记）
+  [FAIL ] requests\qualification-create.schema.json:category 取值 ['AUTHORIZATION', 'BUSINESS_LICENSE', 'OTHER'] 不匹配任何 md §5 族
+  [FAIL ] requests\quote-create.schema.json:currency 取值 ['USD'] 不匹配任何 md §5 族
+  [FAIL ] requests\review-reject.schema.json:reason_code 取值 ['CACHE_PRICE_MISSING', 'MISSING_INFO', 'OTHER', 'PRICE_STRUCTURE_INVALID', 'PRICE_TOO_HIGH', 'TECH_RISK', 'VALIDITY_ISSUE'] 不匹配任何 md §5 族（与 openapi 族 QuoteRejectReason 相同 → 疑似 §5 漏登记）
+  [FAIL] A1 md 逐行 `q：…` = endpoints.json query_params：不一致 3 条
+  [FAIL] A1b 孤儿请求模型 schema 文件 = 0（仓库里有、清单无端点引用）：孤儿 1 个：['payment-record']
+  [FAIL] A2 openapi 声明分页 ⇔ 实现返回分页形状 DTO（items+page+pageSize+total）：不一致 36 条（openapi 与实现至少一侧错）
+  [FAIL] A2c md 说「无请求体」而清单声明 request_model = 0：不一致 3 条：['ADM-CFG04', 'ADM-CFG09', 'QT-09']
+  [FAIL] A3 openapi 分页响应 ⇒ 该端点声明 page+pageSize 查询参数：自相矛盾 34 条
+  [FAIL] A3b 实现 @RequestParam 集合 = 清单 query_params：不一致 5 条
+  [FAIL] A4 目录里的码都被至少一个端点声明（无孤儿码）：孤儿=['E-1102', 'E-1404']
+  [FAIL] A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）：不一致 9 条：{'ADM-CFG07': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-CFG09': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-U02': "usage-refresh schema-not-in-dto=['batch_id'] dto-not-in-schema=[]", 'CRED-02': "credential-create schema-not-in-dto=['is_primary'] dto-not-in-schema=[]", 'CRED-04': "credential-create schema-not-in-dto=['is_primary'] dto-not-in-schema=[]", 'PROV-02': "provider-profile-update schema-not-in-dto=[] dto-not-in-schema=['manual_override', 'override_reason']", 'PROV-04': "qualification-create schema-not-in-dto=['company_name', 'contact_name', 'contact_phone', 'remark', 'uscc'] dto-not-in-schema=[]", 'QT-08': "quote-item-save schema-not-in-dto=['tier_rule', 'time_rule'] dto-not-in-schema=['price_tier_rule', 'price_time_rule']"}
+  [FAIL] A6 同名 ID 字段在所有模型里对外类型一致：不一致 1 个字段名：{'channel_id': ['integer', 'string']}
+  [FAIL] A8 md「角色」列 = 清单角色集合（仅逐条列角色的 7 列表头行）：不一致 32 条
+  [FAIL] A9 md 每行错误码列 = 清单：不一致 10 条
+  孤儿 5: AuditAction(18), CredentialDetectionStatus(4), IndustryCategory(3), QuoteRejectReason(7), ResultCode(28)
+  已归属 21 / 34，未归属 12
+  未声明 2: ReviewService.java:57=['CLAIMED', 'PENDING']; SyncAdminService.java:73=['FAILED', 'MANUAL']
