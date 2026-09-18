@@ -874,11 +874,11 @@
 
 1. **`--check` 只比 `openapi.yaml`**，而 `gen_common/gen_models/gen_requests`、`fix_model_refs`、
    `emit_endpoint_manifest` 在 check 模式下**仍无条件写仓库文件**。后果：`docs/backend/json-schema/**`
-   81 个 schema 与 `endpoints.json` 的漂移**永远检不出来**——会被静默覆盖成生成器的输出。
+   82 个 schema 与 `endpoints.json` 的漂移**永远检不出来**——会被静默覆盖成生成器的输出。
    而契约测试只读磁盘上的 schema，所以这类漂移对 204 个用例**完全不可见**（门禁只管路由注册）。
-2. **标着「只校验」的命令实际改写 82 个文件**。实测：`audit-log.schema.json`
+2. **标着「只校验」的命令实际改写 83 个文件**（82 个 schema + `endpoints.json`；`openapi.yaml` 是唯一被真正比对的产物，所以没被写）。实测：`audit-log.schema.json`
    mtime `12:38:16 → 12:38:22`、`endpoints.json` 同步被写；因内容相同，`git status` 干净、肉眼不可见
-   （`openapi.yaml` mtime 保持 `10:52:27` —— 它是唯一被真正比对的产物，所以没被写）。
+   （`openapi.yaml` mtime 保持 `10:52:27`：唯一没被写的产物，正因为它被真正比对过）。
 
 **修复**
 
