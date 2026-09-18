@@ -1,0 +1,105 @@
+== R49 抽查：请求参数可达性一致性 —— 第二十三类可审计不变量 ==
+不变量：契约声明的每个查询参数，必须在实现调用链上真的被使用（控制器体 → 可达服务方法，≤2 跳下游）
+真源：M=docs/backend/endpoints.json 的 query_params ⇔ I=控制器 @RequestParam 形参及其调用链
+
+解析：控制器文件 22 个、控制器方法 91 条；带查询参数的端点 25 条（查询参数共 79 个）
+定位：已定位端点 25 / 25；未定位 0（无）
+
+  [PASS] A0a 解析到控制器方法数 > 0（正向对照） | 91
+  [PASS] A0b 解析到带查询参数的端点 > 0（正向对照） | 25
+  [PASS] A0c 解析到查询参数总数 > 0（正向对照） | 79
+  [PASS] A0d 端点定位率 ≥ 90% | 已定位 25/25
+  [PASS] A0e 下游解析分支真的走到（downstream > 0；direct 分支由夹具自测覆盖——真实仓库控制器多为纯转发） | direct=0 downstream=75
+
+  [PASS] A1 控制器已接收的查询参数在调用链上可达 | 可达 75 / 未可达 0 / 参与判定 79
+  [FAIL ] A2 契约声明的查询参数控制器侧都接收（@RequestParam 集合) | 未接收 4 条
+  [FAIL ] A2 QT-06 查询参数 `page`：契约(endpoints.json/openapi)声明，但实现控制器**未接收**（生成物侧多声明；与 audit-query-params 的 A1/A3b 同源）
+  [FAIL ] A2 QT-06 查询参数 `pageSize`：契约(endpoints.json/openapi)声明，但实现控制器**未接收**（生成物侧多声明；与 audit-query-params 的 A1/A3b 同源）
+  [FAIL ] A2 ADM-R05 查询参数 `page`：契约(endpoints.json/openapi)声明，但实现控制器**未接收**（生成物侧多声明；与 audit-query-params 的 A1/A3b 同源）
+  [FAIL ] A2 ADM-R05 查询参数 `pageSize`：契约(endpoints.json/openapi)声明，但实现控制器**未接收**（生成物侧多声明；与 audit-query-params 的 A1/A3b 同源）
+  [INFO] A1b 弱证据（已传入但下游不可静态解析）条数（信息项，非漂移） | 0
+
+== 逐端点结果 ==
+  PROV-03    page           USED_DOWNSTREAM  ProviderService.qualifications(page)
+  PROV-03    pageSize       USED_DOWNSTREAM  ProviderService.qualifications(pageSize)
+  CRED-01    page           USED_DOWNSTREAM  CredentialService.list(page)
+  CRED-01    pageSize       USED_DOWNSTREAM  CredentialService.list(pageSize)
+  CRED-01    status         USED_DOWNSTREAM  CredentialService.list(status)
+  RPT-01     page           USED_DOWNSTREAM  ReportService.list(page)
+  RPT-01     pageSize       USED_DOWNSTREAM  ReportService.list(pageSize)
+  RPT-01     result         USED_DOWNSTREAM  ReportService.list(result)
+  QT-01      page           USED_DOWNSTREAM  QuoteService.list(page)
+  QT-01      pageSize       USED_DOWNSTREAM  QuoteService.list(pageSize)
+  QT-01      status         USED_DOWNSTREAM  QuoteService.list(status)
+  QT-06      page           NOT_DECLARED     -
+  QT-06      pageSize       NOT_DECLARED     -
+  QT-11      page           USED_DOWNSTREAM  QuoteService.versions(page)
+  QT-11      pageSize       USED_DOWNSTREAM  QuoteService.versions(pageSize)
+  CON-01     page           USED_DOWNSTREAM  ContractService.listForProvider(page)
+  CON-01     pageSize       USED_DOWNSTREAM  ContractService.listForProvider(pageSize)
+  CON-01     status         USED_DOWNSTREAM  ContractService.listForProvider(status)
+  PAY-01     page           USED_DOWNSTREAM  SettlementService.listForProvider(page)
+  PAY-01     pageSize       USED_DOWNSTREAM  SettlementService.listForProvider(pageSize)
+  NTF-01     page           USED_DOWNSTREAM  NotificationService.list(page)
+  NTF-01     pageSize       USED_DOWNSTREAM  NotificationService.list(pageSize)
+  NTF-01     unread         USED_DOWNSTREAM  NotificationService.list(unread)
+  NTF-01     category       USED_DOWNSTREAM  NotificationService.list(category)
+  USE-01     startHour      USED_DOWNSTREAM  UsageService.summary(startHour)
+  USE-01     endHour        USED_DOWNSTREAM  UsageService.summary(endHour)
+  USE-01     month          USED_DOWNSTREAM  UsageService.summary(month)
+  USE-02     from           USED_DOWNSTREAM  UsageService.hourly(fromRaw)
+  USE-02     to             USED_DOWNSTREAM  UsageService.hourly(toRaw)
+  USE-02     model          USED_DOWNSTREAM  UsageService.hourly(model)
+  USE-02     group          USED_DOWNSTREAM  UsageService.hourly(group)
+  USE-02     page           USED_DOWNSTREAM  PageQuery.of(page)
+  USE-02     pageSize       USED_DOWNSTREAM  PageQuery.of(pageSize)
+  ADM-P01    page           USED_DOWNSTREAM  ProviderService.adminList(page)
+  ADM-P01    pageSize       USED_DOWNSTREAM  ProviderService.adminList(pageSize)
+  ADM-P01    status         USED_DOWNSTREAM  ProviderService.adminList(status)
+  ADM-P01    keyword        USED_DOWNSTREAM  ProviderService.adminList(keyword)
+  ADM-Q02    quoteIds       USED_DOWNSTREAM  AdminQuoteCompareService.compare(quoteIds)
+  ADM-CP01   page           USED_DOWNSTREAM  CompilationService.list(page)
+  ADM-CP01   pageSize       USED_DOWNSTREAM  CompilationService.list(pageSize)
+  ADM-CP01   status         USED_DOWNSTREAM  CompilationService.list(status)
+  ADM-R01    page           USED_DOWNSTREAM  ReviewService.list(page)
+  ADM-R01    pageSize       USED_DOWNSTREAM  ReviewService.list(pageSize)
+  ADM-R01    status         USED_DOWNSTREAM  ReviewService.list(status)
+  ADM-R05    quoteId        USED_DOWNSTREAM  AdminReviewController.parseId(value)
+  ADM-R05    page           NOT_DECLARED     -
+  ADM-R05    pageSize       NOT_DECLARED     -
+  ADM-CT01   page           USED_DOWNSTREAM  ContractService.listForAdmin(page)
+  ADM-CT01   pageSize       USED_DOWNSTREAM  ContractService.listForAdmin(pageSize)
+  ADM-CT01   status         USED_DOWNSTREAM  ContractService.listForAdmin(status)
+  ADM-PAY01  page           USED_DOWNSTREAM  SettlementService.listForAdmin(page)
+  ADM-PAY01  pageSize       USED_DOWNSTREAM  SettlementService.listForAdmin(pageSize)
+  ADM-PAY01  status         USED_DOWNSTREAM  SettlementService.listForAdmin(status)
+  ADM-PAY03  page           USED_DOWNSTREAM  SettlementService.statements(page)
+  ADM-PAY03  pageSize       USED_DOWNSTREAM  SettlementService.statements(pageSize)
+  ADM-S01    page           USED_DOWNSTREAM  SyncAdminService.listTasks(page)
+  ADM-S01    pageSize       USED_DOWNSTREAM  SyncAdminService.listTasks(pageSize)
+  ADM-S01    status         USED_DOWNSTREAM  SyncAdminService.listTasks(status)
+  ADM-S01    bindingId      USED_DOWNSTREAM  AdminSyncController.optionalId(value)
+  ADM-S04    page           USED_DOWNSTREAM  SyncAdminService.listBindings(page)
+  ADM-S04    pageSize       USED_DOWNSTREAM  SyncAdminService.listBindings(pageSize)
+  ADM-U01    from           USED_DOWNSTREAM  UsageService.hourly(fromRaw)
+  ADM-U01    to             USED_DOWNSTREAM  UsageService.hourly(toRaw)
+  ADM-U01    providerId     USED_DOWNSTREAM  AdminUsageController.parseId(value)
+  ADM-U01    channelId      USED_DOWNSTREAM  AdminUsageController.parseId(value)
+  ADM-U01    model          USED_DOWNSTREAM  UsageService.hourly(model)
+  ADM-U01    page           USED_DOWNSTREAM  PageQuery.of(page)
+  ADM-U01    pageSize       USED_DOWNSTREAM  PageQuery.of(pageSize)
+  ADM-CFG01  page           USED_DOWNSTREAM  DetectionConfigService.list(page)
+  ADM-CFG01  pageSize       USED_DOWNSTREAM  DetectionConfigService.list(pageSize)
+  ADM-CFG06  page           USED_DOWNSTREAM  ReportTemplateService.list(page)
+  ADM-CFG06  pageSize       USED_DOWNSTREAM  ReportTemplateService.list(pageSize)
+  ADM-A01    page           USED_DOWNSTREAM  AuditLogQueryService.list(page)
+  ADM-A01    pageSize       USED_DOWNSTREAM  AuditLogQueryService.list(pageSize)
+  ADM-A01    actorType      USED_DOWNSTREAM  AuditLogQueryService.list(actorType)
+  ADM-A01    action         USED_DOWNSTREAM  AuditLogQueryService.list(action)
+  ADM-A01    traceId        USED_DOWNSTREAM  AuditLogQueryService.list(traceId)
+  ADM-A01    from           USED_DOWNSTREAM  AuditLogQueryService.list(from)
+  ADM-A01    to             USED_DOWNSTREAM  AuditLogQueryService.list(to)
+
+== 零写副作用守卫 ==
+  比对文件 3 个，md5 全等：True
+

@@ -1,0 +1,43 @@
+== R49 抽查负向自测（参数可达性） ==
+脚本：C:\Users\laitz\AppData\Local/Temp\aap-r49-spotcheck\aap-r49-param-reach.py
+夹具：C:\Users\laitz\AppData\Local/Temp\aap-r49-spotcheck-fixtures
+
+--- 分支 1：合规夹具（direct + 2 跳下游）应为零 FAIL ---
+  [PASS] B1 合规夹具 FAIL 集合为空 | tokens=[]
+  [PASS] B1 合规夹具含 A1 PASS 行（正向对照：真的判过）
+  [PASS] B1 定位率 1/1（解析器真的解析到）
+
+--- 分支 2：控制器声明但未使用 → 恰好新增 A1 ---
+  [PASS] B2 恰好新增 A1（除夹具自带 A0e 控制外无其它） | added=['A0e', 'A1']
+  [PASS] B2 点名的端点/参数正确（FIX-02 `status`） | detail=['[FAIL ] A1 控制器已接收的查询参数在调用链上可达 | 可达 1 / 未可达 1 / 参与判定 2', '[FAIL ] A1 FIX-02 查询参数 `status`：控制器已声明接收，但调用链上**未被使用**（客户端传参会静默失效，坑 62 同族）']
+
+--- 分支 3：传入下游但下游忽略 → 恰好新增 A1 ---
+  [PASS] B3 恰好新增 A1（下游忽略，非「弱证据」放过） | added=['A0e', 'A1']
+  [PASS] B3 点名的端点/参数正确（FIX-03 `status`） | detail=['[FAIL ] A1 控制器已接收的查询参数在调用链上可达 | 可达 0 / 未可达 1 / 参与判定 1', '[FAIL ] A1 FIX-03 查询参数 `status`：控制器已声明接收，但调用链上**未被使用**（客户端传参会静默失效，坑 62 同族）']
+
+--- 分支 4：契约声明但控制器未接收 → 恰好新增 A2 ---
+  [PASS] B4 恰好新增 A2 | added=['A0e', 'A2']
+  [PASS] B4 点名的端点/参数正确（FIX-04 `page`） | detail=['[FAIL ] A2 契约声明的查询参数控制器侧都接收（@RequestParam 集合) | 未接收 1 条', '[FAIL ] A2 FIX-04 查询参数 `page`：契约(endpoints.json/openapi)声明，但实现控制器**未接收**（生成物侧多声明；与 audit-query-params 的 A1/A3b 同源）']
+
+--- 分支 5：空夹具必须变红（解析器失效） ---
+  [PASS] B5 空夹具变红且点名 A0a | tokens=['A0a', 'A0d', 'A0e', 'A1']
+  [PASS] B5 空夹具同时点名 A1（参与判定 0 → 不得判「全可达」） | tokens=['A0a', 'A0d', 'A0e', 'A1']
+
+--- 分支 6：嵌套调用 / 裸同类调用回归守卫（本轮两条真实返工） ---
+  [PASS] B6 嵌套 + 裸调用链上参数可达（零 FAIL） | tokens=[]
+  [PASS] B6 该参数判为下游使用（不是弱证据）
+
+--- 分支 7：注入缺陷判别力（注入必须真的改到源码，坑 66/90/94） ---
+  [PASS] B7a 注入锚点全部命中 | 未命中=[]
+  [PASS] B7b 注入真的改到了源码
+  [PASS] B7c 注入后 FAIL 集合恰好新增 A1 | added=['A1'] tokens=['A1']
+
+--- 分支 8：真实仓库只读运行（正向对照 + 零写副作用） ---
+  [PASS] B8 真实仓库运行零写副作用（md5 全等）
+  [PASS] B8 真实仓库解析到的 FAIL 行数 > 0（正向对照，坑 97/98） | tokens=['A2']
+  [PASS] B8 真实仓库 A1（声明但未用）= 0 | tokens=['A2']
+  [PASS] B8 真实仓库 A2（未接收）= 已登记 4 条 | tokens=['A2']
+  [PASS] B8 定位率 25/25
+  [PASS] B8 弱证据 0 条（解析器把链走到底）
+
+== 汇总：PASS 22 / FAIL 0 ==
