@@ -1,0 +1,27 @@
+== R49 提交态复跑（临时 worktree，detached HEAD fc66831；坑 27/28） ==
+工作树：C:/Users/laitz/AppData/Local/Temp/aap-verify-r49-2311（唯一名，未做递归删除；收尾用 git worktree remove --force）
+命令：export PATH="$HOME/bin:$PATH"; cd <worktree>/aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test
+目的：验证「提交本身自洽、不依赖他方 4 个未提交改动」（工作区版本不含它们）。
+
+-- 全量测试结果 --
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.099 s -- in com.hioas.aap.usage.UsageRefreshDegradedTest
+[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+[INFO] Total time:  01:06 min
+
+-- 门禁结论（取测试自身通过数 + 报告文件字段值；坑 96：不用 grep 类名抓摘要） --
+[ERROR] 行数 = 0（应为 0）
+  [WARNING] /C:/Users/laitz/AppData/Local/Temp/aap-verify-r49-2311/aap-server/src/test/java/com/hioas/aap/coverage/EndpointCoverageTest.java:[70,28] org.springframework.web.servlet.mvc.method.RequestMappingInfo 中的 getPatternsCondition() 已过时, 且标记为待删除
+  [WARNING] /C:/Users/laitz/AppData/Local/Temp/aap-verify-r49-2311/aap-server/src/test/java/com/hioas/aap/coverage/EndpointCoverageTest.java:[71,37] org.springframework.web.servlet.mvc.method.RequestMappingInfo 中的 getPatternsCondition() 已过时, 且标记为待删除
+  [INFO] Running com.hioas.aap.coverage.EndpointCoverageTest
+  2026-09-18 23:12:06.502 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.coverage.EndpointCoverageTest]: EndpointCoverageTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+  2026-09-18 23:12:06.513 INFO  [main] [] org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.hioas.aap.AapServerApplication for test class com.hioas.aap.coverage.EndpointCoverageTest
+  2026-09-18 23:12:06.514 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.coverage.EndpointCoverageTest]: EndpointCoverageTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+  2026-09-18 23:12:06.515 INFO  [main] [] org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.hioas.aap.AapServerApplication for test class com.hioas.aap.coverage.EndpointCoverageTest
+  [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.103 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+  coverage-report.json 字段：total=22 implemented=22 missing=0
+
+-- 诚实性说明（坑 96/14） --
+本文件只声称：提交态 worktree 内 204 例全绿（0 失败/0 错误/0 跳过）+ 覆盖门禁自身断言通过 +
+coverage-report.json 逐字段 90/90/0。既有只读审计的 28 条 FAIL 明细是**已登记待拍板项**（与工作区一致），
+本文件不声称「全部审计零 FAIL」；只声称「零回归」（见 audit-regression-R49-faildiff.txt）。
