@@ -1,0 +1,34 @@
+=== R30 提交态复跑（干净 detached worktree @ HEAD b49cc8d，**不含他方未提交的 4 个文件**）===
+worktree：C:\Users\laitz\AppData\Local/Temp/aap-verify-r30-1408（git worktree add --detach；收尾用 git worktree remove --force，不做递归删除）
+取证时间：2026-09-18T14:14:35+0800
+
+--- 全量测试（worktree 内）---
+[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+[INFO] Total time:  01:08 min
+[ERROR] 行数：0
+
+--- 新审计在提交态复现（应与工作树同结论：17 断言 16 PASS / 1 FAIL）---
+[PASS] A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 0 条
+[FAIL] A8 md「角色」列 = 清单角色集合（仅逐条列角色的 7 列表头行）：不一致 32 条
+断言 17 条：PASS 16，FAIL 1
+
+--- 新审计负向自测在提交态（应 20/20）---
+自测断言 20 条：PASS 20，FAIL 0
+
+--- 生成器 --check 在提交态 ---
+ok: models=55 requests=24 paths=78 operations=90 files=82
+
+--- 零写副作用：worktree 内 git status（只应有门禁用例重生成的 coverage-report.json）---
+ M .agents/state/evidence/coverage-report.json
+
+--- 附：提交态复跑暴露的一个「产物非确定性」观察（本轮新增，未改代码）---
+worktree 内 `git status` 显示 `.agents/state/evidence/coverage-report.json` 被门禁用例重写，
+且 `git diff --ignore-cr-at-eol` 仍报 24 行改动 —— 逐行看**不是内容漂移，而是 JSON 键序**：
+`by_task` 的每个条目在提交里是 `{"implemented":6,"total":6}`，重跑后变成 `{"total":6,"implemented":6}`。
+根因：`EndpointCoverageTest` 用 `Map.of("implemented", …, "total", …)` 构造该条目，而
+`java.util.ImmutableCollections` 的迭代顺序**按 JVM 随机化**（每次启动的 SALT 不同）→ 产物字节不稳定。
+数值一致（total=90 / implemented=90 / missing=0 / not_registered=[]），**不影响门禁判定**，但会让
+「按 diff 判断产物是否漂移」的复核方式永远看到该文件被改写。
+建议改法（需人拍板，属测试代码变更，本轮 missing=0 未动）：把该处换成有序的 `LinkedHashMap` 或
+`Map.ofEntries(...)` 按固定键序写入，产物即可逐字节稳定。

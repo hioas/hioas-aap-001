@@ -44,3 +44,4 @@
   输出: hermes send: No home channel set for feishu to determine where to send the message. Either specify a channel directly with 'feishu:CHANNEL_NAME', or set a home channel via: hermes config set FEISHU_HOME_CHANNEL <channel_id>
   复核: `hermes send --list` 仍显示 'Feishu: (no channels discovered yet)' → 未绑定状态未变。
   → 本轮性质：missing=0、无新端点批次落地；仍试发以取证。不阻塞 TDD 循环与提交（83362e8 已完成）。
+2026-09-18T14:09 R30 飞书通知失败 | 命令：hermes send -t feishu -s "AAP TDD 进度" "..."（本轮有真实增量：鉴权契约审计）| 返回：hermes send: No home channel set for feishu to determine where to send the message. Either specify a channel directly with feishu:CHANNEL_NAME, or set a home channel via: hermes config set FEISHU_HOME_CHANNEL <channel_id> | 与 R23-R29 同因（home channel 未绑定）| 工作未受影响，本轮继续完成审计与提交 b49cc8d
