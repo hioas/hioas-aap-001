@@ -1,0 +1,39 @@
+== R61 抽查负向自测（判别力）==
+rc=0
+
+=== R61 抽查负向自测 ===
+[PASS] 合规夹具 rc=0 | rc=0 FAIL=[]
+[PASS] 合规夹具 FAIL 断言行 = 0 | []
+[PASS] 合规夹具正向对照 A0a 存在 | ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A1b', 'A2b', 'A3d', 'A4b', 'A5']
+[PASS] 合规夹具正向对照 A0b 存在 | ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A1b', 'A2b', 'A3d', 'A4b', 'A5']
+[PASS] 合规夹具正向对照 A0c 存在 | ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A1b', 'A2b', 'A3d', 'A4b', 'A5']
+[PASS] 合规夹具正向对照 A0d 存在 | ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A1b', 'A2b', 'A3d', 'A4b', 'A5']
+[PASS] 合规夹具正向对照 A0e 存在 | ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A1b', 'A2b', 'A3d', 'A4b', 'A5']
+[PASS] 合规夹具正向对照 A1b 存在 | ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A1b', 'A2b', 'A3d', 'A4b', 'A5']
+[PASS] 合规夹具正向对照 A2b 存在 | ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A1b', 'A2b', 'A3d', 'A4b', 'A5']
+[PASS] 合规夹具正向对照 A3d 存在 | ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A1b', 'A2b', 'A3d', 'A4b', 'A5']
+[PASS] 合规夹具正向对照 A4b 存在 | ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A1b', 'A2b', 'A3d', 'A4b', 'A5']
+[PASS] 合规夹具正向对照 A5 存在 | ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A1b', 'A2b', 'A3d', 'A4b', 'A5']
+[PASS] 合规夹具解析到 3 个数值字段（含嵌套 $ref 跟进） | ['=== R61 抽查：数值字段取值范围 + 声明模型可达性（第三十五类可审计不变量）===']
+[PASS] 空夹具 rc=1（必须变红） | rc=1
+[PASS] 空夹具点名 A0a | ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A2c']
+[PASS] 空夹具点名 A0b | ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A2c']
+[PASS] 空夹具点名 A0c | ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A2c']
+[PASS] 空夹具点名 A0d | ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A2c']
+[PASS] 空夹具点名 A0e | ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A2c']
+[PASS] A4 注册表加孤儿模型 → 恰好新增 ['A4'] | 实际 delta=['A4']
+[PASS] A4 注册表加孤儿模型 → 注入真的改到源码
+[PASS] A1 删掉字段级范围注解 → 恰好新增 ['A1'] | 实际 delta=['A1']
+[PASS] A1 删掉字段级范围注解 → 注入真的改到源码
+[PASS] A3c schema 上限超出 numeric(p,s) 容量 → 恰好新增 ['A3c'] | 实际 delta=['A3c']
+[PASS] A3c schema 上限超出 numeric(p,s) 容量 → 注入真的改到源码
+[PASS] A2 schema 数值类型与 DDL 列类型不一致 → 恰好新增 ['A2'] | 实际 delta=['A2']
+[PASS] A2 schema 数值类型与 DDL 列类型不一致 → 注入真的改到源码
+[PASS] A4 端点 request_model 置空致孤儿 → 恰好新增 ['A4'] | 实际 delta=['A4']
+[PASS] A4 端点 request_model 置空致孤儿 → 注入真的改到源码
+[PASS] 全部注入锚点命中（未命中即空转通过，坑 66/90/94） | []
+[PASS] 夹具目录零写副作用 | 夹具被改写：[]
+[PASS] 真实仓库只读（关键文件 md5 不变）
+[PASS] 真实仓库 FAIL 集合 = {A4}（与登记一致） | ['A4']
+
+汇总：33 条断言，FAIL 0

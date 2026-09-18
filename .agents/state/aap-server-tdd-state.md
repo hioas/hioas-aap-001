@@ -3408,3 +3408,58 @@ R 行连续性 R27 → R60 无缺号（坑 71）。
 
 **R60 台账收尾**：R60 行「提交」列填为 `7a43d93`（不留台账债）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」且末行「提交」列非空；
 R 行连续性 R27 → R60 无缺号（坑 71）。飞书通知失败留痕（第 35 轮同因：feishu home channel 未绑定，不阻塞交付）。
+
+
+### R61 新增抽查：数值字段「取值范围（minimum/maximum）」+ 声明模型可达性（第三十五类可审计不变量）
+
+**为什么两套门禁都看不见**：① 契约测试把**真实响应**与 JSON Schema 比对，而 `requests/*.schema.json` 的
+`minimum`/`maximum` 在**运行时不参与任何校验**（R57 已取证：`json-schema-validator` 是 `<scope>test</scope>`、main 零引用）
+→ 「schema 声明数值范围、实现不校验」对全部 204 例不可见；② 覆盖门禁只比「方法 + 路径」注册表；③ openapi 与客户端 TS 不被任何测试读取/执行。
+
+真源七处：S = `requests/*.schema.json` 的 minimum/maximum（含 `$ref` 跟进）；E = `endpoints.json` 的 request_model → 端点（可达性）；
+G = `tools/gen-backend-models.py` 的 `REQUESTS` 注册表；D = DDL 列类型（`numeric(p,s)`/`int`/`bigint`）与 CHECK 约束；
+I = 实现字段级范围注解 + 服务层**同域**范围检查；T = 测试越界构造；M = md 清单范围措辞（信息项）。
+
+**真发现 1 条（契约产物不可达）**：`payment-record` 请求模型 —— 生成器 `REQUESTS` 注册表声明、生成 `requests/payment-record.schema.json`，
+但 `endpoints.json` **零端点引用**（`ADM-PAY02` 的 `request_model` 为 null，全清单无「登记打款记录」端点），实现侧也无写入路径
+→ 该 schema 是不可达的死产物；补端点或删注册项**都属契约变更** → 列**待拍板**。
+
+**正面结论（带正向对照）**：被引用模型的 15 个数值/数组约束字段**全部有实现证据** —— 同域强证据 5 个
+（`contract-issue.platform_fee_rate` [0,1] → ContractService:249；`detection-config-save.pass_score` [0,100] → DetectionConfigService:296；
+`provider-profile-update.recheck_interval_days` [1,365] → ProviderController 字段级 `@Min/@Max` + `@Valid` 激活；
+`qualification-create.file_size` ≤10485760 → ProviderService:168；`quote-items-create.items` minItems 1 → QuoteService:228）；
+弱证据 9 个（`quote-item-save` 九大单价 min 0 —— 由 `QuoteValidation` 对 `priceMap(item)` 的**通用非负校验**覆盖，非同域同行故降级）；
+`schema` 数值类型与 DDL 同名列类型**逐条一致**（已比对 20 条）；契约声明上限**均未超出** `numeric(p,s)` 可表达范围；
+测试侧 8 个字段有越界构造守卫（`pass_score` 101/-1、`platform_fee_rate` 1.5、`file_size` 11534336 等）。
+
+**信息项 / 观察项**：① DDL **CHECK 约束 0 处** → 数值范围**只由应用层强制**，库层无兜底（绕过应用层写库即越界，属设计取舍）；
+② 契约未声明精度（scale）而 DDL 有小数位 **17 处**（`platform_fee_rate numeric(6,4)`、九大单价 `numeric(18,6)`）→ 超精度入参被 PG **静默四舍五入**，
+客户端按入参回显会与响应不一致；③ 6 个单价字段（image/audio/cache_write*）**无越界构造**；④ md 清单范围措辞 0 处（数值范围真源只在 schema 与实现）。
+
+### R61 抽查脚本自身返工（**先怀疑判据**，坑 46/81/125）
+
+1. **javadoc/注释行被当成「强证据」**：`ContractService` 的类注释里出现 `platform_fee_rate` 且同行有 `{@code}`，
+   被 `NUM_OP_RE` 判成范围检查行 → 假强证据。修法：**剥注释行**（`*`、`//`、`/*` 开头一律跳过）。
+2. **警告式比较被当成强制**：`QuoteValidation` 的 V5「缓存读取价 ≤ 输入价」是 `warnings.add(...)`，
+   与「单价非负（V4）」是两回事 → 判据改为**拒绝性上下文**（该行 ±3 行内出现 `throw` / `errors.add(` / `ApiException` / `.field(`），
+   警告不计入覆盖（坑 81 判据范围与语义不符）。
+3. **字符串字面量里的字段名被当成代码证据**：`String p = index < 0 ? "" : "items[" + index + "].";` 命中 `items`
+   → 修法 `token_present()`：**先剥字符串字面量**再判 token；另允许「字段名作为 `ApiErrorDetail(`/`field(` 的首个字符串实参」这一形态
+   （`new ApiErrorDetail("items", …)` 是字段名证据，不是路径拼接）。
+4. **注解后紧跟的是另一个注解**：`@Min(...) @Max(...) Integer recheck_interval_days` 取「注解后第一个标识符」得到 `Max`
+   → 假弱证据；修法：跳过**同一段注解串**与修饰符后取被注解的声明名（坑 63/124 扩展）。
+5. **常量界不是数字字面量**：`command.fileSize() > MAX_FILE_BYTES` 无 ASCII 数字 → 该行不收进范围检查行 →
+   `file_size` 假降级为弱证据；修法：范围检查行判定放宽到 `MAX_`/`MIN_` 常量引用（坑 99 的判据侧）。
+6. **判别力自测的基线本身带 FAIL**：夹具漏了嵌套 `$ref` 字段的校验 → 基线 FAIL 集合已含 `A1`，
+   注入「删掉字段级注解」后 `delta={}` → 看起来像「守卫失效」，实为**基线不干净**（坑 82/93）。
+   修法：给嵌套字段补同域校验，使合规夹具 FAIL=0，再断言「注入 → FAIL token 集合**恰好新增**目标断言」。
+
+### R61 判别力自测（负向，33/33 PASS）
+
+合规夹具 `rc=0` 且 FAIL 0 + `A0a…A0e/A1b/A2b/A3d/A4b/A5` 十条正向对照全 PASS + 空夹具 `rc=1` 且**点名全部解析器正向对照**（A0a…A0e、A2c）
++ 5 组注入缺陷各**恰好**新增目标断言（注册表加孤儿模型 → {A4}；删字段级范围注解 → {A1}；schema 上限超出 numeric(p,s) 容量 → {A3c}；
+schema 数值类型改 `number` 与 DDL `int` 不符 → {A2}；端点 `request_model` 置 null → {A4}）
++ 全部注入锚点命中（未命中即空转通过，坑 66/90/94）+ 夹具目录零写副作用 + 真实仓库只读（关键文件 md5 不变）
+且真实仓库 FAIL 集合恰好 = `{A4}`（与登记一致）。
+
+证据：`evidence/spotcheck-numeric-range-R61.txt` + `evidence/spotcheck-numeric-range-R61-selftest.txt`。

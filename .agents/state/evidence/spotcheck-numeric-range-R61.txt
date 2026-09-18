@@ -1,0 +1,30 @@
+== R61 抽查：数值字段取值范围 + 声明模型可达性（第三十五类可审计不变量）==
+脚本位置：仓库外（不新增仓库工具，抽查式）；rc=1
+
+=== R61 抽查：数值字段取值范围 + 声明模型可达性（第三十五类可审计不变量）===
+-- 解析计数 --
+schema: 24 模型文件 / 15 个数值约束字段
+endpoints: 90 条 / 23 个被引用 request_model
+生成器注册表: 24 个模型 / 孤儿 1
+DDL: 54 表 / 395 数值列 / CHECK 0 处
+实现: 范围注解 2 / 范围检查行 216 / 主源码文件 169
+逐字段强制: 强证据 5 / 弱证据 9 / 无证据 0
+
+[PASS] A0a request schema 解析到数值/数组约束字段 15 个 / 24 个模型文件（正向对照）
+[PASS] A0b endpoints.json 解析到 90 条端点、23 个被引用的 request_model（正向对照）
+[PASS] A0c 生成器 REQUESTS 注册表解析到 24 个请求模型（正向对照）
+[PASS] A0d DDL 解析到 54 表 / 395 个数值列（正向对照）
+[PASS] A0e 实现解析到字段级范围注解 2 处、范围检查行 216 处（169 个主源码文件；正向对照）
+[PASS] A1b 被引用模型的数值约束字段全部有实现证据（强 5 / 弱 9）
+[PASS] A2b schema 数值类型与 DDL 同名列类型逐条一致（已比对 20 条）
+[PASS] A3d 契约声明上限均未超出 DDL numeric(p,s) 可表达范围（已比对）
+[PASS] A5 数值范围有测试越界构造守卫 8 个字段：cache_read_price(CompilationContractTest.java:127), file_size(ProviderContractTest.java:176), input_price(CompilationContractTest.java:127), items(NotificationContractTest.java:222), output_price(CompilationContractTest.java:127), pass_score(DetectionConfigContractTest.java:88), platform_fee_rate(ContractContractTest.java:256), recheck_interval_days(ProviderContractTest.java:62)
+[INFO] A1c 弱证据 9 个（同文件有范围检查但非同域同行 → 可能为通用校验，不计入覆盖）：quote-item-save.input_price(BillingCompiler.java:76), quote-item-save.output_price(BillingCompiler.java:76), quote-item-save.cache_read_price(BillingCompiler.java:76), quote-item-save.cache_write_price(BillingCompiler.java:76), quote-item-save.cache_write_1h_price(AdminQuoteCompareService.java:90), quote-item-save.image_input_price(AdminQuoteCompareService.java:90), quote-item-save.audio_input_price(AdminQuoteCompareService.java:90), quote-item-save.image_output_price(AdminQuoteCompareService.java:90), quote-item-save.audio_output_price(AdminQuoteCompareService.java:90)
+[INFO] A1d 同域强证据 5 个：contract-issue.platform_fee_rate→ContractService.java:249 && (cmd.platformFeeRate().compareTo(BigDecimal.ZERO) < 0, detection-config-save.pass_score→DetectionConfigService.java:296 if (passScore < 0 || passScore > 100) {, provider-profile-update.recheck_interval_days→ProviderController.java recheck_interval_days @Min(value = 1, message = "复测间隔), qualification-create.file_size→ProviderService.java:168 if (command.fileSize() != null && command.fileSize() > MAX_FILE_BYTES) {, quote-items-create.items→QuoteService.java:228 new ApiErrorDetail("items", "items 不能为空（V1）")));
+[INFO] A3b DDL CHECK 约束 0 处 → 数值范围**只由应用层强制**（库层无兜底；绕过应用层写库即越界，属设计取舍）
+[INFO] A3e 契约未声明精度（scale）而 DDL 有小数位 17 处 → 超精度入参被 PG 静默四舍五入（客户端按入参回显会与响应不一致）：contract-issue.platform_fee_rate←aap_contract.platform_fee_rate numeric(6,4), payment-record.amount←aap_payment_record.amount numeric(18,6), payment-record.amount←aap_settlement_line.amount numeric(18,6), quote-item-save.input_price←aap_quote_item.input_price numeric(18,6), quote-item-save.input_price←aap_price_tier.input_price numeric(18,6), quote-item-save.input_price←aap_reference_price.input_price numeric(18,6), quote-item-save.output_price←aap_quote_item.output_price numeric(18,6), quote-item-save.output_price←aap_price_tier.output_price numeric(18,6)
+[INFO] A5c 无越界构造的字段 6 个：audio_input_price, audio_output_price, cache_write_1h_price, cache_write_price, image_input_price, image_output_price
+[INFO] A6 md 清单出现范围类措辞 0 处（数值范围真源只在 schema 与实现）
+[FAIL] A4 孤儿请求模型 `payment-record`：生成器注册表有、endpoints.json 零端点引用 → 契约产物不可达（死产物；补端点或删注册项都属契约变更，待拍板）
+
+汇总：PASS 9 / FAIL 1 / INFO 6
