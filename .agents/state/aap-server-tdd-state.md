@@ -3266,3 +3266,12 @@ DTO 分量 **776** 个（带必填类注解 **10**）·带 `@RequestBody` 路由
 
 **R58 结论**：90/90 维持全绿（连续第 40 轮：R18 → … → R58）；本轮未改业务代码、未改清单、未改生成器、未改 md、未动断言
 （只读校验 + 抽查 + 台账回写）。新增待拍板 1 项（唯一冲突在并发竞态下返回 500 E-2001 而非契约承诺的 409 业务码 → 是否补全局兜底映射）。
+
+**R58 台账回写**：追加 R58 行（「提交」列先留空，提交后由收尾提交补齐）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」（坑 36/80）；
+R 行连续性 R29 → R58 无缺号（坑 71）；`git diff --numstat` 验收：CSV 1 增 0 删、tdd-state 68 增 0 删、coverage-history 2 增 0 删
+（追加 N 行却出现删除 = 行尾被改写，坑 69/84 —— 本轮为 0 删，说明统一按 LF 写入生效）。
+
+**R58 提交态复跑**（临时 worktree，detached HEAD `f1408b2`；坑 27/28）：204 例全绿（0 失败/0 错误/0 跳过）+ `EndpointCoverageTest` 自身 1/1 +
+`[ERROR]` 行数 0 + BUILD SUCCESS + worktree 内 `coverage-report.json` 逐字段 `total=90/implemented=90/missing=0/registered_routes=96/not_registered=[]`
+→ **提交本身自洽、不依赖他方 4 个未提交改动**；收尾 `git worktree remove --force`（`git worktree list` 只剩主工作树）。
+证据：`evidence/green-verify-R58-worktree-HEAD.txt`。
