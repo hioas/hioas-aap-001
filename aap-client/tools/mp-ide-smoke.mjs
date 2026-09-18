@@ -138,8 +138,18 @@ for (const p of pages) {
       })
       .catch(() => -1)
     const landed = actual === p
-    pageResults.push({ page: p, ok: landed, textLen })
-    mark(p, landed && textLen > 20, `落点=${actual} 可见文本≈${textLen}`)
+    // ⚠️ 判据说明：`page.$$('view,text')` 与 wx.createSelectorQuery() **都不跨自定义组件边界**，
+    //    内容全在子组件里的页面（如 quote-form/index 是 QuoteFormView 的薄壳）文本恒为 0，
+    //    但页面其实是正常渲染的（已用截图核对）。故**通过与否只由「落点是否正确」决定**，
+    //    文本长度只作信号；低文本页面自动截图留证，避免把渲染正常的组件型页面误报成缺陷。
+    const thin = textLen <= 20
+    pageResults.push({ page: p, ok: landed, textLen, componentOnly: thin })
+    mark(
+      p,
+      landed,
+      `落点=${actual} 可见文本≈${textLen}` + (thin ? '（内容在自定义组件内 → 已截图留证）' : '')
+    )
+    if (thin) await mp.screenshot({ path: resolve(SHOTS, `thin-${p.replace(/[/]/g, '_')}.png`) })
   } catch (e) {
     pageResults.push({ page: p, ok: false, err: e.message })
     mark(p, false, e.message)
