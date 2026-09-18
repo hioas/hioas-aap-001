@@ -1,0 +1,38 @@
+R35 巡检轮汇总（missing==0 → 只校验不改代码；连续第 17 轮 90/90 全绿）
+时间：2026-09-18T16:05 ~ 16:15（串行，全程只有一个 mvn 进程）
+
+1) 全量测试两轮（防 flaky）
+   run1: Tests run: 204, Failures: 0, Errors: 0, Skipped: 0 | BUILD SUCCESS | [ERROR]=0 | 33 个测试类
+   run2: 同上
+   逐类比对（剔除 Time elapsed，坑 59）: 空 diff（only-in-run1=[] / only-in-run2=[] / value-diffs=[]）
+   覆盖门禁: EndpointCoverageTest 90/90（registered_routes=96、not_registered=[]）
+   证据: green-verify-R35-full-run1.txt / green-verify-R35-full-run2.txt /
+         r35-run1-classes.txt / r35-run2-classes.txt / r35-classes-diff.txt
+
+2) 既有只读审计复跑（9 个审计 + 9 个负向自测）
+   gen --check rc=0（比对 84 个产物文件一致、孤儿 0）| 端点用例 rc=0（exact 90/prefix 0/none 0）|
+   分页键名 rc=0（88/88）| 鉴权 rc=1（16/1，同 R30）| 路由 rc=0（13/0，同 R31）|
+   错误码 rc=1（14/2，同 R28/R29）| 查询参数 rc=1（12/2，同 R32）| 时间格式 rc=0（15/0，同 R33）|
+   openapi 可解析 rc=0 | 密钥审计 Tier A 0 命中
+   三处 rc=1 = 已裁决的待拍板漂移（非本轮新增）
+   零写副作用守卫: 运行前后 84 个产物文件 md5 全等
+   证据: audit-regression-R35.txt
+   注（口径澄清）: 「84/84」是**比对到的产物文件数**（82 个 schema + endpoints.json + openapi.yaml），
+   生成器自报 `files=82` 是 schema 数；两者同源、不是漂移（R33/R34 记录里的「82 文件」即后者）。
+
+3) 本轮新增抽查（第十类契约不变量：ID 字段对外类型 string vs number）
+   18 条断言 18 PASS / 0 FAIL；为什么门禁查不出：契约测试只读 JSON Schema（schema 里 ID 是 string
+   即被覆盖），而 **openapi.yaml 无任何测试读取**、**aap-client 的 TS 类型无任何测试执行**。
+   S: JSON Schema 118 个 ID 类字段（雪花 113 / 非雪花 5）→ 越界 0（含 1 条显式例外，上限 1）
+   O: openapi 102 组件（81 文件 $ref + 21 内联，内联全部是 string enum）→ 内联 ID 字段 0、悬空引用 0
+   C: 客户端 57 处 ID 声明 → number 0 处（正向对照：非 ID number 声明 150 处）
+   T: 测试侧 18 处 id 路径字符串断言（运行时侧另有 schema 校验兜底）
+   E: 例外 channel-binding.channel_id = new-api 渠道号（ER bigint 4 处 + 实现注释 + 视图 Integer +
+      客户端 channelId 出现 0 次）
+   首轮 2 处 FAIL 的归因（如实留痕）: 1 处为我脚本假阴性（openapi model 层是文件 $ref，
+   只走内联 properties 导致空输入 → 空转假绿，靠正向对照 O0 抓出）；1 处为真实差异但属有意为之。
+   证据: audit-id-type-R35.txt（含脚本全文，可复现）
+
+4) 台账
+   coverage-history.txt 追加 7 行；aap-server-feature-status.csv 追加 R35 行；
+   aap-server-tdd-state.md 追加「R35 巡检轮」小节。全部按 LF 行尾写入（坑 69）。

@@ -1630,3 +1630,51 @@ A2 openapi↔清单 0 漂移、A3a 清单 90/90 都能定位到实现、A4 客�
 结论：**90/90 维持全绿（连续第 16 轮）**；本轮**无新增漂移、无新增待拍板项**。
 待拍板与 R33 相同：飞书 home channel 未绑定 + PROV-03 item 模型口径 + 错误码漂移 10 条与孤儿码 2 个
 + 鉴权 md 角色列漂移 32 条 + 路由实现超出契约 1 条 + 查询参数漂移 8 条（去重 6 端点）。
+
+### R35 巡检轮（missing==0 → 只校验不改代码，连续第 17 轮全绿）
+
+本轮按作业约定「missing==0 时不改代码，只校验并报告」，**未改业务代码 / 清单 / 生成器 / md / 断言**，
+只做只读校验、一次抽查与台账回写。证据 `evidence/green-verify-R35-summary.txt`。
+
+| 项 | 结果 |
+| --- | --- |
+| 全量 run1 / run2（串行，绝不并发） | 两轮均 `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0`，BUILD SUCCESS，`[ERROR]`=0；两轮**逐类 diff 为空**（33 类，剔除 Time elapsed，坑 59） |
+| 覆盖门禁 | `EndpointCoverageTest` 90/90（`registered_routes=96`、`not_registered=[]`） |
+| 既有只读审计 | 生成器 `--check` rc=0（比对 84 个产物文件、孤儿 0；生成器自报 schema `files=82`）；端点用例 exact 90/prefix 0/none 0；分页键名 88/88；鉴权 16/1（同 R30）；路由 13/0（同 R31）；错误码 14/2（同 R28/R29）；查询参数 12/2（同 R32）；时间格式 15/0（同 R33）；openapi 可解析 rc=0；密钥 Tier A 0 命中 |
+| 负向自测 | 9 个脚本全部 rc=0（gen 14/14、端点用例、分页 11/11、鉴权 20/20、路由 20/20、错误码 12/12、查询参数 21/21、时间格式 20/20、密钥 3/3） |
+| 零写副作用守卫 | 运行前后 84 个产物文件 md5 **全等**；`git status` 被跟踪文件仍只有他方未提交的 4 个 |
+
+#### 本轮抽查：ID 字段对外类型不变量（第十类，抽查式，不新建工具）
+
+动机与坑 1 同族：坑 1 明写「ID 类型（string vs number）这类跨页面通用字段逐个核对」。
+为什么两套门禁查不出：契约测试只读 JSON Schema（schema 里雪花 ID 是 string → 这一侧被盖住），
+但 **`openapi.yaml` 从不被任何测试读取**、**`aap-client` 的 TS 类型从不被任何测试执行**
+→ 「openapi/客户端把 ID 声明成 number」对全部 204 例不可见，后果是客户端拿 number 做字符串运算
+或 JS 大整数（>2^53）精度丢失。四处实测（18 条断言 18 PASS / 0 FAIL）：
+
+* **S（JSON Schema，真源）**：118 个 ID 类字段 = 雪花 113（描述含「雪花 ID（对外 string…）」）+ 非雪花 5，
+  类型越界 **0**（含 1 条显式例外，见下）。
+* **O（openapi.yaml）**：102 个 `components.schemas` = 81 个**文件 `$ref`** + 21 个内联组件，
+  21 个内联组件**全部是 `string` enum**（不含 `properties`）→ openapi 不携带任何 model 字段类型副本；
+  全文件内联属性名只有 `data`/`items`；内联 ID 字段 **0**、组件悬空引用 **0**。
+* **C（aap-client TS）**：57 处 ID 类声明中 `number` **0 处**（正向对照：非 ID 的 `number` 声明 150 处，
+  说明解析器不是只认 string）。
+* **T（运行时/测试）**：测试侧 18 处 `path("id"|"*_id")…isEqualTo("…")` 字符串断言；运行时侧另有
+  schema 类型校验兜底（契约测试逐例校验真实 HTTP 响应）。
+* **E（例外取证）**：`channel-binding.channel_id` 是唯一 integer —— ER `channel_id bigint`（4 处）、
+  生成器刻意写 `INT`、实现注释「new-api 渠道号…按 Long 读再收窄」、视图 `@JsonProperty("channel_id") Integer`、
+  客户端 `channelId` 出现 **0 次** → 判为**有意为之的外部系统标识**，列入显式例外并设「上限 1」守卫（坑 68）。
+  遗留（待拍板·文档一致性）：该字段 schema 缺 `description`，建议注明「new-api 渠道号，integer」。
+
+#### 首轮两处 FAIL 的归因（如实留痕，不掩盖）
+
+1. **O0 正向对照 parsed=0 → 我脚本的假阴性**：第一版 O 分支只递归内联 `properties`，而 openapi 的
+   model 层是文件 `$ref`（全文 410 处）→ 空输入；**同一轮的 O1「越界 0 处」因此是空转假绿**
+   （坑 46：没有正向对照就无法区分「真干净」与「匹配逻辑全错」）。修正为解析 `components.schemas`
+   并跟随 `$ref` 后重跑。若不修，本轮会得出「openapi 侧零漂移」的假结论。
+2. **S1 channel_id=integer**：真实差异，但经 ER/实现/客户端三方取证判为有意为之（见 E 分支）。
+   断言收窄为「雪花 ID 一律 string」+「非雪花 ID（除例外）一律 string」——改的是**写错的断言**
+   （原断言把「所有 ID 都该 string」当不变量），不是为让测试变绿而迁就实现（坑 6 纪律）。
+
+结论：**90/90 维持全绿（连续第 17 轮）**；本轮**无实现侧漂移**，新增 1 条文档一致性待拍板项
+（`channel_id` 缺 description）；其余待拍板与 R34 相同。

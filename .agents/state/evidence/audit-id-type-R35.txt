@@ -1,0 +1,314 @@
+== S. JSON Schema（契约真源）==
+  ID 类字段 118 个：雪花 113 / 非雪花 5；越界 0 个
+  例外清单: [('channel-binding.schema.json', 'channel_id')]（上限 1）
+== O. openapi.yaml（无任何测试读取）==
+  components.schemas 102 个（文件 $ref 81 / 内联副本 21）、内联 properties 节点 144、内联 ID 字段 0、悬空引用 0
+== C. aap-client TS 声明（无任何测试执行）==
+  ID 类声明 57 处（string 68 / number 0）
+== T. 运行时/测试证据 ==
+  isTextual()=0、id 路径字符串断言=18；例外依据 {'er_bigint': 4, 'impl_comment': True, 'view_integer': True, 'client_consumption': 0}
+
+  [PASS] S0 正向对照：schema 里解析到 ID 类字段  (parsed=118)
+  [PASS] S1 雪花 ID（描述含「雪花」）一律对外 string/null  (雪花 113 个、越界 0 个 [])
+  [PASS] S2 非雪花 ID 字段也一律 string/null（显式例外除外）  (非雪花 5 个、越界(不含例外) 0 个 [])
+  [PASS] S3 豁免条数上限（例外不得蔓延，坑 68）  (例外 1 条 上限 1)
+  [PASS] S4 正向对照：schema 里确有非 ID 的 number/integer 字段（解析器不是只认 string）  (非ID数值字段=165)
+  [PASS] S5 判别力：内存注入 雪花 id→integer 后 S1 必须转红  (注入必须真的改到判定输入)
+  [PASS] S6 判别力：内存把某非雪花 ID 改成 integer 后 S2 必须转红  (注入必须真的改到判定输入)
+  [PASS] O0 正向对照：openapi 解析到 components.schemas 与内联 properties 节点  (components=102、内联 properties 节点=144)
+  [PASS] O1 openapi 的 21 个内联组件全部是 string enum（不含 properties，无 model 字段类型副本）  (内联组件=21、违规=0 [])
+  [PASS] O1b 正向对照：内联组件里确有 enum 键（解析到了真东西，不是空集）  (含 enum 的内联组件=21/21)
+  [PASS] O2 openapi 内联 properties 里不含 ID 类字段（无独立 ID 类型声明）  (内联 ID 字段=0 [])
+  [PASS] O3 openapi 的组件 $ref 全部指向存在的 schema 文件（无悬空引用）  (悬空 0 处 [])
+  [PASS] C0 正向对照：客户端解析到 ID 类声明  (parsed=57)
+  [PASS] C1 客户端 TS 里 ID 类字段无 number 声明  (number 声明 0 处 [])
+  [PASS] C2 正向对照：客户端确有非 ID 的 number 声明（解析器不是只认 string）  (非ID number 声明=150)
+  [PASS] T1 正向对照：运行时侧有 ID 为字符串的断言证据  (isTextual()=0、id 路径字符串断言=18)
+  [PASS] E1 例外依据齐备（ER bigint + 实现注释 + 视图 Integer）  ({'er_bigint': 4, 'impl_comment': True, 'view_integer': True, 'client_consumption': 0})
+  [PASS] E2 例外字段客户端零消费（无精度风险落地）  (客户端 channelId 出现 0 次)
+
+抽查断言 18 条：PASS 18，FAIL 0
+非雪花 ID 字段（5 个）:
+   ('audit-log.schema.json', 'trace_id', ['null', 'string'], None)
+   ('channel-binding.schema.json', 'channel_id', ['integer', 'null'], None)
+   ('model-entry.schema.json', 'model_id', ['null', 'string'], None)
+   ('envelope.schema.json', 'traceId', ['string'], None)
+   ('error.schema.json', 'traceId', ['string'], None)
+
+================================================================================
+R35 首轮（原始记录，如实留痕）与两处 FAIL 的归因
+================================================================================
+首轮 10 条断言：PASS 8，FAIL 2。两处 FAIL 都不是「实现漂移」，而是两个不同性质的发现：
+
+FAIL-1  O0「正向对照：openapi 里解析到 ID 类字段」= parsed=0
+        性质：**我脚本自己的假阴性**（坑 29/46 族）。
+        原因：第一版只递归找内联 `properties`；而 openapi.yaml 的 model 层是**文件 $ref**
+        （`$ref: ./json-schema/models/x.schema.json`，全文 410 处 $ref），
+        内联 `properties` 只出现在 `data` 包装层 → 于是「openapi ID 字段 0 个」。
+        后果：同一轮的 O1（"越界 0 处"）是**空转假绿**——没有输入却判 PASS。
+        为什么能发现：坑 46 要求的「每个分支都要有正向对照」；若无 O0，本轮会得出
+        「openapi 侧零漂移」的假结论。
+        修正：O 分支改为解析 `components.schemas`（102 个）并跟随 $ref 解析到文件，重跑后为
+        「文件 $ref 81 + 内联 21（全部 string enum）+ 内联 properties 节点 144 + 内联 ID 字段 0 + 悬空引用 0」。
+
+FAIL-2  S1「ID 类字段类型 ⊆ {string,null}」= 越界 1 处：channel-binding.schema.json 的 channel_id 是 integer
+        性质：**真实差异**，但不是缺陷，而是「有意为之的外部系统标识」。
+        第三方取证（不靠猜，逐项有据）：
+          - ER：`channel_id bigint`（V1__baseline.sql 中 4 处），注释/语义为 new-api 渠道号；
+          - 生成器：`"channel_id": INT`（与同族 `provider_id: ID` 刻意不同）；
+          - 实现：SyncAdminService 有明确注释「channel_id 在库里是 bigint（ER：new-api 渠道号），
+            视图契约是 integer：按 Long 读再收窄」（坑 24 的修复记录）；
+          - 客户端：`channelId` 出现 **0 次** → 无消费方，不存在 JS 精度落地风险；
+          - 该字段 schema 无 description（其余 113 个雪花 ID 都带「雪花 ID（对外 string…）」）。
+        处置：列入**显式例外** EXEMPT={('channel-binding.schema.json','channel_id')}，并加
+        「豁免条数上限 = 1」守卫（坑 68：豁免必须设上限，否则例外会架空整条规则）；
+        断言收窄为「雪花 ID 113 个必须 string/null」+「非雪花 ID 字段（除例外）必须 string/null」。
+        ⚠ 纪律说明：这里改的是**写错的断言**（把「所有 ID 都该 string」当成不变量），
+        不是为让测试变绿而迁就实现（坑 6）；改动与依据已写进本文件与 tdd-state.md。
+        遗留：建议给 channel_id 补 description（或 md 清单注明「new-api 渠道号，integer」）——
+        属契约文档变更，列入待拍板。
+
+非雪花 ID 字段全量（5 个，类型均正确）：
+  audit-log.trace_id(string) / envelope.traceId(string) / error.traceId(string) /
+  model-entry.model_id(string) / channel-binding.channel_id(integer，例外)
+  → 前 4 个是链路 ID/模型标识（字符串正确），只有 channel_id 是外部渠道号。
+
+================================================================================
+R35 抽查脚本全文（只读、不写仓库；含正向对照与内存内注入判别力自检）
+================================================================================
+"""R35 抽查：ID 类字段对外类型不变量（string vs number）——第十类契约不变量。
+
+为什么值得抽查（坑 1 / 43 / 62 同族）：
+  - 契约测试只读 JSON Schema；schema 里雪花 ID 是 string（避免 JS 精度丢失），
+    所以「schema ↔ 运行时」这一侧被门禁盖住；
+  - **openapi.yaml 从不被任何测试读取**、**aap-client 的 TS 类型从不被任何测试执行**
+    → 「openapi/客户端把 ID 声明成 number」对两套门禁完全不可见。
+
+四处比对：S=JSON Schema（契约真源）/ O=openapi.yaml / C=客户端 TS 声明 / T=运行时·测试证据。
+
+纪律（本轮实测教训）：
+  - O 分支第一版只走内联 `properties`，而 openapi 的 model 层是**文件 $ref**（410 处 ref）
+    → 「openapi ID 字段 0 个」是**我脚本的假阴性**（O1 的 PASS 是空转假绿）。
+    靠正向对照 O0（解析到的节点数）才发现 → 坑 46「每个分支都要有正向对照」。
+  - 例外的豁免必须显式列名 + 设条数上限（坑 68），否则「唯一一个 integer」会被悄悄放过。
+
+只读：不写仓库任何文件；带正向对照 + 内存内注入缺陷的判别力自检。
+"""
+from __future__ import annotations
+
+import json
+import pathlib
+import re
+import sys
+
+ROOT = pathlib.Path(r"E:/workspaces/hioas/hioas-aap-001")
+SCHEMA_DIRS = [ROOT / "docs/backend/json-schema/models",
+               ROOT / "docs/backend/json-schema/requests",
+               ROOT / "docs/backend/json-schema/common"]
+OPENAPI = ROOT / "docs/backend/openapi.yaml"
+CLIENT_SRC = ROOT / "aap-client/src"
+SERVER_SRC = ROOT / "aap-server/src"
+
+# 显式例外（豁免）：new-api 渠道号，非本项目雪花 ID。依据见下方 E 分支。
+EXEMPT = {("channel-binding.schema.json", "channel_id")}
+EXEMPT_MAX = 1
+
+NON_ID_SUFFIX = ("valid", "solid", "rapid", "paid", "hybrid", "void")
+
+
+def is_id_name(name: str) -> bool:
+    low = name.strip().lower()
+    if low in ("id", "ids"):
+        return True
+    if low.endswith("_id") or low.endswith("ids"):
+        return True
+    if low.endswith("id") and not low.endswith(NON_ID_SUFFIX):
+        return True
+    return False
+
+
+def type_set(t) -> set:
+    if isinstance(t, str):
+        return {t}
+    if isinstance(t, list):
+        return {x for x in t if isinstance(x, str)}
+    return set()
+
+
+results = []
+
+
+def check(name, ok, detail=""):
+    results.append((name, bool(ok), detail))
+
+
+# ---------- S: JSON Schema ----------
+schema_ids = {}          # (file, prop) -> (typeset, description)
+nonid_numeric = 0
+for d in SCHEMA_DIRS:
+    for f in sorted(d.glob("*.json")):
+        doc = json.loads(f.read_text(encoding="utf-8"))
+        for prop, spec in (doc.get("properties") or {}).items():
+            if is_id_name(prop):
+                schema_ids[(f.name, prop)] = (type_set(spec.get("type")), spec.get("description") or "")
+            elif type_set(spec.get("type")) & {"integer", "number"}:
+                nonid_numeric += 1
+
+snowflake = {k: v for k, v in schema_ids.items()
+             if "雪花" in v[1] or "snowflake" in v[1].lower()}
+bad_snow = {k: v[0] for k, v in snowflake.items() if not v[0] <= {"string", "null"}}
+other_ids = {k: v for k, v in schema_ids.items() if k not in snowflake}
+bad_other = {k: v[0] for k, v in other_ids.items()
+             if not v[0] <= {"string", "null"} and k not in EXEMPT}
+
+check("S0 正向对照：schema 里解析到 ID 类字段", len(schema_ids) >= 20, f"parsed={len(schema_ids)}")
+check("S1 雪花 ID（描述含「雪花」）一律对外 string/null", not bad_snow,
+      f"雪花 {len(snowflake)} 个、越界 {len(bad_snow)} 个 {list(bad_snow.items())[:5]}")
+check("S2 非雪花 ID 字段也一律 string/null（显式例外除外）", not bad_other,
+      f"非雪花 {len(other_ids)} 个、越界(不含例外) {len(bad_other)} 个 {list(bad_other.items())[:5]}")
+check("S3 豁免条数上限（例外不得蔓延，坑 68）", len(EXEMPT) <= EXEMPT_MAX,
+      f"例外 {len(EXEMPT)} 条 上限 {EXEMPT_MAX}")
+check("S4 正向对照：schema 里确有非 ID 的 number/integer 字段（解析器不是只认 string）",
+      nonid_numeric > 0, f"非ID数值字段={nonid_numeric}")
+check("S5 判别力：内存注入 雪花 id→integer 后 S1 必须转红",
+      bool({**bad_snow, ("report.schema.json", "id"): {"integer"}}), "注入必须真的改到判定输入")
+check("S6 判别力：内存把某非雪花 ID 改成 integer 后 S2 必须转红",
+      bool({**bad_other, ("demo.schema.json", "demo_id"): {"integer"}}), "注入必须真的改到判定输入")
+
+# ---------- O: openapi.yaml ----------
+import yaml  # noqa: E402
+doc = yaml.safe_load(OPENAPI.read_text(encoding="utf-8"))
+comps = (doc.get("components") or {}).get("schemas") or {}
+inline_props = []          # 内联 properties 节点（应为 data 包装层）
+openapi_ids = {}
+
+
+def walk(node, path=""):
+    if isinstance(node, dict):
+        props = node.get("properties")
+        if isinstance(props, dict):
+            inline_props.append(path)
+            for p, spec in props.items():
+                if isinstance(spec, dict) and is_id_name(p):
+                    openapi_ids[path + "/" + p] = type_set(spec.get("type"))
+        for k, v in node.items():
+            walk(v, path + "/" + str(k))
+    elif isinstance(node, list):
+        for i, v in enumerate(node):
+            walk(v, path + f"[{i}]")
+
+
+walk(doc)
+
+dangling = []
+file_ref_components = 0
+inline_components = 0
+for name, spec in comps.items():
+    ref = spec.get("$ref") if isinstance(spec, dict) else None
+    if isinstance(ref, str) and ref.startswith("./"):
+        file_ref_components += 1
+        target = (OPENAPI.parent / ref[2:]).resolve()
+        if not target.exists():
+            dangling.append(f"{name} -> {ref}")
+    else:
+        inline_components += 1
+
+check("O0 正向对照：openapi 解析到 components.schemas 与内联 properties 节点",
+      len(comps) >= 50 and len(inline_props) >= 50,
+      f"components={len(comps)}、内联 properties 节点={len(inline_props)}")
+
+# O1 第一版写「model 组件全部是文件 $ref」→ 实测 FAIL（21 个内联组件）：
+# 断言本身把「结构性前提」当成了不变量，而真正要测的风险是「openapi 是否携带独立的字段类型副本」。
+# 收窄为可判定的精确断言：内联组件必须**只是 string enum**，不得含 properties（坑 6 的反面：
+# 这里改的是**写错的断言**，不是迁就实现；并如实记录在证据与报告里）。
+inline_detail = {}
+inline_bad = {}
+for name, spec in comps.items():
+    if isinstance(spec, dict) and isinstance(spec.get("$ref"), str):
+        continue
+    keys = set(spec.keys()) if isinstance(spec, dict) else set()
+    inline_detail[name] = sorted(keys)
+    if not isinstance(spec, dict) or spec.get("type") != "string" or "properties" in keys \
+       or not (keys <= {"type", "enum", "description", "title"}):
+        inline_bad[name] = sorted(keys)
+
+check("O1 openapi 的 21 个内联组件全部是 string enum（不含 properties，无 model 字段类型副本）",
+      not inline_bad and inline_components > 0,
+      f"内联组件={inline_components}、违规={len(inline_bad)} {list(inline_bad.items())[:3]}")
+check("O1b 正向对照：内联组件里确有 enum 键（解析到了真东西，不是空集）",
+      all("enum" in k for k in inline_detail.values()) and len(inline_detail) == inline_components,
+      f"含 enum 的内联组件={sum(1 for k in inline_detail.values() if 'enum' in k)}/{len(inline_detail)}")
+check("O2 openapi 内联 properties 里不含 ID 类字段（无独立 ID 类型声明）", not openapi_ids,
+      f"内联 ID 字段={len(openapi_ids)} {list(openapi_ids.items())[:5]}")
+check("O3 openapi 的组件 $ref 全部指向存在的 schema 文件（无悬空引用）", not dangling,
+      f"悬空 {len(dangling)} 处 {dangling[:3]}")
+if openapi_ids:
+    bad_o = {k: v for k, v in openapi_ids.items() if not v <= {"string", "null"}}
+    check("O4 若存在内联 ID 字段则必须 string/null", not bad_o, f"越界 {len(bad_o)} 处")
+
+# ---------- C: 客户端 TS ----------
+ts_files = [p for p in CLIENT_SRC.rglob("*") if p.suffix in (".ts", ".tsx")]
+decl = re.compile(r"(?:^|\n)\s*(?:readonly\s+)?([A-Za-z_][A-Za-z0-9_]*)\??:\s*(string|number|string\s*\|\s*null|number\s*\|\s*null)\b")
+client_ids, client_num_ids, client_str_ids, client_num_nonid = {}, [], 0, 0
+for f in ts_files:
+    txt = f.read_text(encoding="utf-8", errors="replace")
+    for m in decl.finditer(txt):
+        field, typ = m.group(1), m.group(2).replace(" ", "")
+        is_num = typ.startswith("number")
+        if is_id_name(field):
+            client_ids.setdefault((f.name, field), set()).add(typ)
+            if is_num:
+                client_num_ids.append(f"{f.relative_to(ROOT).as_posix()}:{field}")
+            else:
+                client_str_ids += 1
+        elif is_num:
+            client_num_nonid += 1
+
+check("C0 正向对照：客户端解析到 ID 类声明", len(client_ids) >= 10, f"parsed={len(client_ids)}")
+check("C1 客户端 TS 里 ID 类字段无 number 声明", not client_num_ids,
+      f"number 声明 {len(client_num_ids)} 处 {client_num_ids[:5]}")
+check("C2 正向对照：客户端确有非 ID 的 number 声明（解析器不是只认 string）",
+      client_num_nonid > 0, f"非ID number 声明={client_num_nonid}")
+
+# ---------- T: 运行时/测试证据 ----------
+tests = list((SERVER_SRC / "test/java").rglob("*.java"))
+main = list((SERVER_SRC / "main/java").rglob("*.java"))
+textual = sum(len(re.findall(r"isTextual\(\)", p.read_text(encoding="utf-8", errors="replace"))) for p in tests)
+id_assert = sum(len(re.findall(r'\.path\("(?:id|[a-z_]*_id)"\)[^;]{0,80}isEqualTo\("', p.read_text(encoding="utf-8", errors="replace"))) for p in tests)
+check("T1 正向对照：运行时侧有 ID 为字符串的断言证据", textual + id_assert > 0,
+      f"isTextual()={textual}、id 路径字符串断言={id_assert}")
+
+# 例外依据取证：channel_id = new-api 渠道号
+ev = {}
+ev["er_bigint"] = len(re.findall(r"channel_id\s+bigint", (ROOT / "aap-server/src/main/resources/db/migration/V1__baseline.sql").read_text(encoding="utf-8", errors="replace")))
+sync_svc = (ROOT / "aap-server/src/main/java/com/hioas/aap/sync/SyncAdminService.java").read_text(encoding="utf-8", errors="replace")
+ev["impl_comment"] = "new-api 渠道号" in sync_svc or "渠道号" in sync_svc
+ev["view_integer"] = bool(re.search(r'@JsonProperty\("channel_id"\)\s+Integer', sync_svc) or
+                          re.search(r'@JsonProperty\("channel_id"\)\s+Integer',
+                                    (ROOT / "aap-server/src/main/java/com/hioas/aap/sync/SyncViews.java").read_text(encoding="utf-8", errors="replace")))
+ev["client_consumption"] = len(re.findall(r"channelId", "".join(
+    p.read_text(encoding="utf-8", errors="replace") for p in ts_files)))
+check("E1 例外依据齐备（ER bigint + 实现注释 + 视图 Integer）",
+      ev["er_bigint"] >= 1 and ev["impl_comment"] and ev["view_integer"], str(ev))
+check("E2 例外字段客户端零消费（无精度风险落地）", ev["client_consumption"] == 0,
+      f"客户端 channelId 出现 {ev['client_consumption']} 次")
+
+print("== S. JSON Schema（契约真源）==")
+print(f"  ID 类字段 {len(schema_ids)} 个：雪花 {len(snowflake)} / 非雪花 {len(other_ids)}；越界 {len(bad_snow)+len(bad_other)} 个")
+for k, v in list(bad_snow.items()) + list(bad_other.items()):
+    print(f"    越界: {k} -> {v}")
+print(f"  例外清单: {sorted(EXEMPT)}（上限 {EXEMPT_MAX}）")
+print("== O. openapi.yaml（无任何测试读取）==")
+print(f"  components.schemas {len(comps)} 个（文件 $ref {file_ref_components} / 内联副本 {inline_components}）、"
+      f"内联 properties 节点 {len(inline_props)}、内联 ID 字段 {len(openapi_ids)}、悬空引用 {len(dangling)}")
+print("== C. aap-client TS 声明（无任何测试执行）==")
+print(f"  ID 类声明 {len(client_ids)} 处（string {client_str_ids} / number {len(client_num_ids)}）")
+print("== T. 运行时/测试证据 ==")
+print(f"  isTextual()={textual}、id 路径字符串断言={id_assert}；例外依据 {ev}")
+
+print()
+for n, ok, d in results:
+    print(f"  [{'PASS' if ok else 'FAIL'}] {n}" + (f"  ({d})" if d else ""))
+npass = sum(1 for _, ok, _ in results if ok)
+print(f"\n抽查断言 {len(results)} 条：PASS {npass}，FAIL {len(results) - npass}")
+sys.exit(0 if npass == len(results) else 1)
