@@ -15,3 +15,4 @@
 [2026-09-18 10:14:24+0800] 通知失败（第 N 次）：hermes send -t feishu -s 'AAP TDD 进度' 'T14 批次二 ADM-CFG01…05 完成，已注册 78/90，提交 78ad322'
   原因：hermes send: No home channel set for feishu to determine where to send the message. Either specify a channel directly with 'feishu:CHANNEL_NAME', or set a home channel via: hermes config set FEISHU_HOME_CHANNEL <channel_id>
   处置：不中断开发（硬要求已满足不了：飞书目标未绑定）；需人工在 Hermes 侧绑定 home channel（或指定 feishu:<频道名>）后重发。
+2026-09-18T10:45 | R17 T14 批次三（ADM-S01…06，84/90，提交 09879ee）| hermes send -t feishu -s 'AAP TDD 进度' ... 失败：No home channel set for feishu（需 `hermes config set FEISHU_HOME_CHANNEL <channel_id>` 或 -t feishu:<channel> 指定通道）| 工作未中断，进度以仓库台账与本巡检报告为准
