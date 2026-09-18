@@ -1,0 +1,68 @@
+== R37 新增审计「响应形状（分页包装）」的第三方裁判取证（只读抽查，2026-09-18T17:0x） ==
+
+审计：tools/audit-response-shape.py（第十二类契约不变量；负向自测 tools/audit-response-shape-selftest.py 19/19 PASS）
+结论：**openapi.yaml 有 36 个端点的 `200.data` 被声明成「分页集合」`{items,page,pageSize,total}`，
+      而实现/JSON Schema/测试/客户端四处都表明这些端点返回的是**单对象**（或仅含 `items` 的对象，无 page/pageSize/total）。
+      两套门禁（契约测试只读 JSON Schema；覆盖门禁只比方法+路径）对这类漂移完全不可见。**
+
+双证人（互不依赖，均指向同一侧）：
+  A2 实现返回类型（控制器签名）→ 36 条不一致
+  A3 语义自洽性（清单 §0：分页请求带 page/pageSize）→ 34 条「声明分页响应却没有分页查询参数」
+
+逐条第三方裁判（人工抽查，命令可复现；行号取自本轮 HEAD）：
+
+1) PROV-01 `GET /provider/profile`（response_model = provider-profile）
+   - 用例：aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java:40
+     `SchemaAssert.assertModel("provider-profile", json(res.data()))` —— 直接拿 **data 本身**当单对象校验；
+     对照分页端点 ADM-P01 的写法是 `json(item)`（逐条，AdminProviderContractTest.java:109）→ 两者判据不同。
+   - 客户端：aap-client/src/api/provider.ts:42 `http<ProviderProfile>('/provider/profile')`（单对象，无 items 读取）。
+   - 模型 schema：docs/backend/json-schema/models/provider-profile.schema.json `required:[provider_id,status]`
+     → 分页包体（无这两个字段）**根本通不过**该 schema → 真实响应不可能是分页的。
+   - md 清单第 61 行：`ProviderProfile`（单对象）。
+   → 裁判：**openapi 为错侧**（应为 `data: $ref ProviderProfile`）。
+
+2) ADM-P03 `POST /admin/providers/{id}/resume`（同 provider-profile）
+   - 用例：AdminProviderContractTest.java:201 `SchemaAssert.assertModel("provider-profile", json(resumed.data()))`。
+   - md 清单第 157 行：`→ ProviderProfile`（单对象）。
+   → 裁判：**openapi 为错侧**。
+
+3) DET-03 `GET /detection-jobs/{jobId}/results`（response_model = detection-result）
+   - 实现：DetectionViews.ResultList 分量 = `job_id,total,items`（**无 page/pageSize**，见文件内注释 `{job_id,total,items[]}`）。
+   - 用例：DetectionContractTest.java:250 `json(results.data().path("items").get(0))` → data 是**含 items 的对象**，
+     不是 PageMeta（`common/page.schema.json` 的 `required` 是 `items+page+pageSize+total`，见该文件第 5–10 行）。
+   - md 清单第 91 行：`{job_id,total,items:[DetectionResult]}`。
+   → 裁判：**openapi 为错侧**（openapi 声明了不存在的 page/pageSize）。
+
+4) ADM-S06 `GET /admin/sync/models/upstream`（response_model = model-info）
+   - 实现：SyncViews.UpstreamModels 分量 = `models`（**连 items 都没有**）。
+   - 用例：aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java:525 `…正常返回逐条符合 model-info`（逐条校验数组元素）。
+   - md 清单第 197 行：`→ {models:[ModelInfo]}`。
+   - 该端点也**没有** page/pageSize 查询参数（A3 证人）。
+   → 裁判：**openapi 为错侧**（openapi 声称 data 是 `{items:[…],page,pageSize,total}`）。
+
+5) 反向对照（openapi 与实现一致的分页端点，说明判据不是「一律判错」）：
+   ADM-P01 / ADM-CP01 / ADM-R01 / ADM-CT01 / ADM-PAY01 / ADM-PAY03 / ADM-S01 / ADM-S04 / ADM-U01 /
+   ADM-CFG01 / ADM-CFG06 / CON-01 / CRED-01 / NTF-01 / PAY-01 / PROV-03 / QT-01 / QT-11 / RPT-01 / USE-02 / ADM-A01
+   —— 实现返回的 DTO 分量含 `items+page+pageSize+total`（`PageResult` / `AuditLogViews.Page` /
+   `PaymentViews.PaymentPage` / `NotificationViews.ListResult`），openapi 也声明分页 → **一致**（A2/A4 均 PASS）。
+
+根因（生成器，待拍板修法）：
+  tools/gen-backend-models.py 的 `_enveloped(model)` 按**模型级**集合 `LIST_RESPONSE_MODELS` 决定是否加
+  `PageMeta` 包装；当一个模型被「列表端点」与「单对象端点」共用时无法区分，例如：
+    detection-config（ADM-CFG01 列表 vs ADM-CFG02/03/04/05 单对象）
+    report-template（ADM-CFG06 列表 vs ADM-CFG07/08/09/10 单对象）
+    contract（ADM-CT01 列表 vs ADM-CT02/03、CON-01/02/04）
+    sync-task / channel-binding / provider-profile / audit-log / payment / notification / quote-item / …
+  同文件里 `PAGEABLE`（**端点级**字典）已定义却**全文件零引用**（死码）——正是该缺陷的预留位。
+  修法（二选一，均需人拍板后执行，本轮**未改**）：
+    ① 把 `PAGEABLE` 改为端点级白名单，`_enveloped()` 增加端点 ID 形参；
+    ② 在 `PATHS` 元组里加 `pageable` 列。
+  正确集合 = 「实现返回分页形状 DTO 的端点」21 条（A8 已列出）；应改回非分页的 36 条（A8 已列出）。
+  修完必须复跑：本审计（rc 应为 0）+ 生成器 --check + 全量两轮测试。
+
+为什么两套门禁看不见（本审计的存在理由）：
+  * 契约测试只把真实响应与 **元素模型 JSON Schema** 比对；「哪个端点该分页」不在 schema 里
+    （分页包装由 common/page.schema.json 另行描述，且它只被列表端点用到）→ 204 例全绿；
+  * 覆盖门禁只比「方法 + 路径」；
+  * `openapi.yaml` 不被任何测试读取/执行 → 客户端 codegen / 第三方按 openapi 生成的分页读取代码
+    会对**单对象**响应取 `data.items[0]` → 列表页静默空白（与 skill 坑 1 同族后果）。

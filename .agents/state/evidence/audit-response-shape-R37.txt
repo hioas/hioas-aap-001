@@ -1,0 +1,111 @@
+根目录：.（仓库外路径也照常显示，skill 坑 34）
+--- 正向对照（解析器真的解析到了，skill 坑 46 / 72）---
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b D 行数 = total（转义竖线按未转义切分，坑 48）：parsed=90 期望=90
+[PASS] A0c O operation 数 = total：parsed=90 期望=90
+[PASS] A0d O 组件表解析到 $ref 组件（否则跨源比对是空转，坑 72）：$ref 组件=81 内联组件=21
+[PASS] A0e I 解析到控制器路由：parsed=91 条路由
+[PASS] A0f I 解析无异常
+[PASS] A0g D 解析无异常（表头/列定位）
+[PASS] A0h O 形状解析无 unknown（unknown 先怀疑解析器）
+[PASS] A0i I 解析到 DTO record 声明（分页形状判据的正向对照）：record 类名=262
+      O 形状分布：{'single': 30, 'none': 3, 'page': 57}
+      D 形状分布（散文，弱证据）：{'single': 60, 'none': 3, 'list': 26, 'html': 1}
+--- A1 openapi 形状/组件绑定 ⇔ endpoints.json 的 response_model（逐端点）---
+[PASS] A1a 清单每条端点在 openapi 里都能定位：未定位 0 条
+[PASS] A1b 每端点 200 的 data 绑定组件 = PascalCase(response_model)：不一致 0 条
+[PASS] A1c 被绑定组件解析到的文件 = models/<response_model>.schema.json：不一致 0 条
+--- A2 分页包装 ⇔ 实现返回分页形状 DTO（逐端点，硬断言）---
+[FAIL] A2 openapi 声明分页 ⇔ 实现返回分页形状 DTO（items+page+pageSize+total）：不一致 36 条（openapi 与实现至少一侧错）
+      · ADM-CFG02: POST /api/v1/admin/detection-configs openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<DetectionConfig> md(散文)=single
+      · ADM-CFG03: GET /api/v1/admin/detection-configs/{configId} openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<DetectionConfig> md(散文)=single
+      · ADM-CFG04: PUT /api/v1/admin/detection-configs/{configId} openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<DetectionConfig> md(散文)=single
+      · ADM-CFG05: POST /api/v1/admin/detection-configs/{configId}/publish openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<DetectionConfig> md(散文)=single
+      · ADM-CFG07: POST /api/v1/admin/report-templates openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<Template> md(散文)=single
+      · ADM-CFG08: GET /api/v1/admin/report-templates/{templateId} openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<Template> md(散文)=single
+      · ADM-CFG09: PUT /api/v1/admin/report-templates/{templateId} openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<Template> md(散文)=single
+      · ADM-CFG10: POST /api/v1/admin/report-templates/{templateId}/publish openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<Template> md(散文)=single
+      · ADM-CP02: GET /api/v1/admin/compilations/{id} openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<CompilationViews.Result> md(散文)=single
+      · ADM-CP04: POST /api/v1/admin/compilations/{id}/confirm openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<CompilationViews.Result> md(散文)=single
+      · ADM-CT02: POST /api/v1/admin/contracts/{id}/issue openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<Contract> md(散文)=single
+      · ADM-CT03: POST /api/v1/admin/contracts/{id}/confirm-sign openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<Contract> md(散文)=single
+      · ADM-P02: POST /api/v1/admin/providers/{id}/suspend openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<ProviderProfileResponse> md(散文)=single
+      · ADM-P03: POST /api/v1/admin/providers/{id}/resume openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<ProviderProfileResponse> md(散文)=single
+      · ADM-PAY02: POST /api/v1/admin/payments/{id}/confirm openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<Payment> md(散文)=single
+      · ADM-Q01: POST /api/v1/admin/quotes/{id}/compile openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<CompilationViews.Result> md(散文)=single
+      · ADM-Q02: GET /api/v1/admin/quotes/compare openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<QuoteViews.CompareList> md(散文)=list
+      · ADM-R02: POST /api/v1/admin/reviews/{id}/claim openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<Task> md(散文)=single
+      · ADM-R03: POST /api/v1/admin/reviews/{id}/approve openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<Task> md(散文)=single
+      · ADM-R04: POST /api/v1/admin/reviews/{id}/reject openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<Task> md(散文)=single
+      · ADM-R05: GET /api/v1/admin/reviews/records openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<RecordList> md(散文)=list
+      · ADM-S02: GET /api/v1/admin/sync/tasks/{taskId} openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<SyncTask> md(散文)=single
+      · ADM-S03: POST /api/v1/admin/sync/tasks/{taskId}/retry openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<SyncTask> md(散文)=single
+      · ADM-S05: POST /api/v1/admin/channel-bindings/{bindingId}/status openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<ChannelBinding> md(散文)=single
+      · ADM-S06: GET /api/v1/admin/sync/models/upstream openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<UpstreamModels> md(散文)=single
+      · CON-02: GET /api/v1/contracts/{id} openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<Contract> md(散文)=single
+      · CON-04: POST /api/v1/contracts/{id}/sign openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<Contract> md(散文)=single
+      · CRED-06: GET /api/v1/credentials/{id}/precheck/latest openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<CredentialViews.Precheck> md(散文)=single
+      · DET-03: GET /api/v1/detection-jobs/{jobId}/results openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<DetectionViews.ResultList> md(散文)=list
+      · DET-04: GET /api/v1/detection-jobs/{jobId}/results/{probeCode} openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<DetectionViews.Result> md(散文)=single
+      · PROV-01: GET /api/v1/provider/profile openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<ProviderProfileResponse> md(散文)=single
+      · PROV-02: PUT /api/v1/provider/profile openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<ProviderProfileResponse> md(散文)=single
+      · QT-06: GET /api/v1/quotes/{quoteId}/items openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<QuoteViews.Items> md(散文)=list
+      · QT-07: GET /api/v1/quotes/items/{itemId} openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<QuoteViews.Item> md(散文)=single
+      · QT-08: PUT /api/v1/quotes/items/{itemId} openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<QuoteViews.Item> md(散文)=single
+      · QT-12: POST /api/v1/quotes/{quoteId}/compile-preview openapi=分页 data={items,page,pageSize,total} 实现=ApiEnvelope<com.hioas.aap.compile.CompilationViews.Result> md(散文)=single
+[PASS] A2b 未能静态判定的返回类型 ≤ 8（超出说明判据覆盖不足，坑 57）：1 条：[('USE-01', 'ApiEnvelope<Summary>')]
+--- A3 第三证人（不依赖解析）：声明分页的端点必须带 page/pageSize 查询参数（清单 §0）---
+[FAIL] A3 openapi 分页响应 ⇒ 该端点声明 page+pageSize 查询参数：自相矛盾 34 条
+      · ADM-CFG02: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-CFG03: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-CFG04: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-CFG05: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-CFG07: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-CFG08: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-CFG09: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-CFG10: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-CP02: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-CP04: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-CT02: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-CT03: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-P02: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-P03: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-PAY02: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-Q01: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-Q02: 缺 ['page', 'pageSize']；openapi 参数=['quoteIds']
+      · ADM-R02: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-R03: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-R04: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-S02: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-S03: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-S05: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · ADM-S06: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · CON-02: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · CON-04: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · CRED-06: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · DET-03: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · DET-04: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · PROV-01: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · PROV-02: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · QT-07: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · QT-08: 缺 ['page', 'pageSize']；openapi 参数=[]
+      · QT-12: 缺 ['page', 'pageSize']；openapi 参数=[]
+--- A4 反向：实现返回分页形状 DTO 的端点，openapi 必须声明分页 ---
+[PASS] A4 实现分页形状 DTO ⇒ openapi 分页：不一致 0 条
+--- A5 元素模型 schema 自身不得又是分页包装（否则双重包装）---
+[PASS] A5 元素模型 schema 存在且是单对象模型：异常 0 条
+--- A6 md 散文列弱证据（信息项，不判 FAIL；只作第三方裁判）---
+      · md 说「列表」而 openapi 非分页：1 条 ['QT-05']
+      · md 说「单对象」而 openapi 声明分页：32 条 ['ADM-CFG02', 'ADM-CFG03', 'ADM-CFG04', 'ADM-CFG05', 'ADM-CFG07', 'ADM-CFG08', 'ADM-CFG09', 'ADM-CFG10', 'ADM-CP02', 'ADM-CP04', 'ADM-CT02', 'ADM-CT03']
+[PASS] A6a md 说「列表」而 openapi 非分页 ≤ 5（超出先怀疑散文解析，坑 65）：1 条
+[PASS] A6b D 解析到「列表」形状的端点 > 0（散文解析器的正向对照，坑 46）：列表=26 单对象=60
+--- A7 第三方裁判（不依赖任何解析）：漂移端点能否被「schema required」或「md 散文列」证伪 ---
+[PASS] A7 每个漂移端点都有第三方证伪（schema required 或 md 散文列未声明分页字段）：无法证伪 0 条
+--- A8 修复方向（待拍板，本审计不改任何文件）---
+      · 实现返回分页形状 DTO 的端点（openapi 应声明分页）：21 条 ['ADM-A01', 'ADM-CFG01', 'ADM-CFG06', 'ADM-CP01', 'ADM-CT01', 'ADM-P01', 'ADM-PAY01', 'ADM-PAY03', 'ADM-R01', 'ADM-S01', 'ADM-S04', 'ADM-U01', 'CON-01', 'CRED-01', 'NTF-01', 'PAY-01', 'PROV-03', 'QT-01', 'QT-11', 'RPT-01', 'USE-02']
+      · openapi 应改为非分页的端点：36 条 ['ADM-CFG02', 'ADM-CFG03', 'ADM-CFG04', 'ADM-CFG05', 'ADM-CFG07', 'ADM-CFG08', 'ADM-CFG09', 'ADM-CFG10', 'ADM-CP02', 'ADM-CP04', 'ADM-CT02', 'ADM-CT03', 'ADM-P02', 'ADM-P03', 'ADM-PAY02', 'ADM-Q01', 'ADM-Q02', 'ADM-R02', 'ADM-R03', 'ADM-R04', 'ADM-R05', 'ADM-S02', 'ADM-S03', 'ADM-S05', 'ADM-S06', 'CON-02', 'CON-04', 'CRED-06', 'DET-03', 'DET-04', 'PROV-01', 'PROV-02', 'QT-06', 'QT-07', 'QT-08', 'QT-12']
+      · 生成器现状：`LIST_RESPONSE_MODELS` 是**模型级**集合（一个模型被列表端点与单对象端点共用时无法区分，如 detection-config / report-template / contract / sync-task / provider-profile），而 `PAGEABLE` 字典（端点级）已定义却**全文件零引用**（死码）。修法二选一：① 把 PAGEABLE 改成端点级白名单并让 `_enveloped()` 接收端点 ID；② 在 PATHS 元组里加 `pageable` 列。改完必须复跑本审计 + 生成器 --check + 全量测试。
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+
+== 断言：PASS 19 / FAIL 2 ==
+结论：存在响应形状（分页包装）契约漂移 —— openapi 与实现/清单至少一侧不一致，两套门禁都看不见（契约测试只读 JSON Schema；覆盖门禁只比方法+路径）。

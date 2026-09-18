@@ -1737,3 +1737,58 @@ A2 openapi↔清单 0 漂移、A3a 清单 90/90 都能定位到实现、A4 客�
 
 结论：**90/90 维持全绿（连续第 18 轮）**；本轮**无实现侧漂移**，新增 2 条待拍板
 （§5 漏登记 8 族；审核任务/同步任务状态族缺 enum 声明）；其余待拍板与 R35 相同。
+
+### R37 巡检轮（missing==0 → 只校验不改代码，连续第 19 轮全绿）
+
+本轮按作业约定「missing==0 时不改代码，只校验并报告」，**未改业务代码 / 清单 / 生成器 / md / 断言**，
+只做只读校验、一次新增审计与台账回写。证据 `evidence/green-verify-R37-summary.txt`。
+
+| 项 | 结果 |
+| --- | --- |
+| 全量 run1 / run2（串行，绝不并发） | 两轮均 `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0`，BUILD SUCCESS，`[ERROR]`=0；两轮**逐类 diff 为空**（33 类，剔除 Time elapsed，坑 59） |
+| 覆盖门禁 | `EndpointCoverageTest` 90/90（`registered_routes=96`、`not_registered=[]`） |
+| 既有只读审计 | 生成器 `--check` rc=0（84 个产物文件、孤儿 0）；端点用例 exact 90/prefix 0/none 0；分页键名 rc=0；鉴权 16/1（同 R30）；路由 13/0（同 R31）；错误码 14/2（同 R28/R29）；查询参数 12/2（同 R32）；时间格式 15/0（同 R33）；枚举集合 rc=1（同 R36）；openapi 可解析 rc=0；密钥 Tier A 0 命中 |
+| 负向自测 | 11 个脚本全部 rc=0（含本轮新增的响应形状审计 19/19） |
+| 零写副作用守卫 | 运行前后 84 个产物文件 md5 **全等**；`git status` 被跟踪文件仍只有他方未提交的 4 个 |
+
+#### 本轮新增：第十二类契约不变量「响应形状 / 分页包装」（新工具 + 19 例负向自测）
+
+工具 `tools/audit-response-shape.py`（只读）＋ `tools/audit-response-shape-selftest.py`（19 条自测，含 3 条注入缺陷判别力）。
+真源：**M** `endpoints.json`（`response_model` + `query_params`）／**D** md 清单「响应」列（散文，弱证据）／
+**O** `openapi.yaml` 每 operation `200` 的 `data` 形状 + 组件 → 文件解析／**S** 元素模型 schema 形状／
+**I** 控制器返回类型（按 DTO 分量判 `items+page+pageSize+total`，`record` 与 `class` 两种写法都收）。
+
+**为什么两套门禁查不出**：契约测试只把真实响应与**元素模型 JSON Schema** 比对，
+「哪个端点该分页」不在 schema 里（分页包装由 `common/page.schema.json` 另行描述，只被列表端点用到）；
+覆盖门禁只比「方法 + 路径」；`openapi.yaml` **不被任何测试读取或执行**。
+
+**本轮真实发现（P0 待拍板，无实现侧 bug）**：
+* **openapi 把 36 个端点的单对象响应声明成了分页集合** `{items,page,pageSize,total}`：
+  `PROV-01/02`、`CRED-06`、`DET-03/04`、`QT-06/07/08/12`、`CON-02/04`、`ADM-P02/03`、`ADM-Q01/02`、
+  `ADM-CP02/04`、`ADM-R02/03/04/05`、`ADM-CT02/03`、`ADM-PAY02`、`ADM-S02/03/05/06`、
+  `ADM-CFG02/03/04/05/07/08/09/10`。
+* 双证人（互不依赖）：**A2** openapi 分页 ⇔ 实现返回分页形状 DTO → 36 条不一致；
+  **A3** 清单 §0「分页请求带 `page`/`pageSize`」语义自洽性 → 34 条「声明分页响应却无分页参数」。
+* 第三方裁判 **36/36 全部证伪「分页包体」**：元素模型 schema 的 `required`（如
+  `provider-profile` 的 `[provider_id,status]`）让分页包体**根本通不过**契约测试所用的 schema；
+  4 个 `required` 为空的模型（`quote-compare`/`review-record`/`model-info`/`credential-precheck`）
+  改用 md 散文列证伪（均未声明 `page`/`pageSize`/`分页`）。**判定 openapi 为错侧。**
+* 根因：生成器 `_enveloped(model)` 按**模型级**集合 `LIST_RESPONSE_MODELS` 决定是否包 `PageMeta`，
+  一个模型被「列表端点 + 单对象端点」共用时无法区分（`detection-config`/`report-template`/`contract`/
+  `sync-task`/`channel-binding`/`provider-profile`/`audit-log`/`payment`/`notification`/`quote-item`…）；
+  同文件里**端点级** `PAGEABLE` 字典已定义却**全文件零引用**（死码）。
+* 修法（二选一，需人拍板后执行，本轮**未改**）：① `PAGEABLE` 改端点级白名单 + `_enveloped()` 接收端点 ID；
+  ② `PATHS` 元组加 `pageable` 列。正确集合 = 实现返回分页形状 DTO 的 21 条（审计 A8 已列出）。
+* 后果与坑 1 同族：客户端 codegen / 第三方按 openapi 生成的分页读取代码会对**单对象**响应取
+  `data.items[0]` → 列表页静默空白。
+
+#### 台账维护（坑 16 / 69 / 71 同族）
+
+* 追加 R37 行（「提交」列留空，下一轮巡检补齐 —— 沿用 R33/R35 的既有做法）。
+* 行尾统一按仓库归一化后的 **LF** 追加（先 `git ls-files --eol` + `tr -dc '\r' | wc -c` 确认三个状态文件 CR=0），
+  以 `git diff --numstat` 的「插入 = 追加行数、删除 = 0」验收（坑 69）。
+* `coverage-report.json` 每次跑测试都被重写，但**逐字段值全等**（`Map.of` 键序跨 JVM 随机化，坑 56）→
+  `git checkout --` 还原，**未提交**。
+
+结论：**90/90 维持全绿（连续第 19 轮）**；本轮**无实现侧漂移**，新增 **1 条 P0 待拍板**
+（openapi 36 个端点的分页包装）；其余待拍板与 R36 相同。
