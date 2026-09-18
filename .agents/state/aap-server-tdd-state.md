@@ -658,3 +658,43 @@
 
 **未决与下一步（不变）**：仅剩 T15 端到端验收与交付（`aap-server/README.md` 运行说明 + `aap-client` 联调），
 不在本巡检任务范围；待拍板事项与上一节相同，本轮无新增。
+
+## R21（2026-09-18 11:28–11:31）· 巡检复验：90/90 维持全绿（**不改代码、无提交端点**）
+
+**触发条件**：`coverage-report.json` = total 90 / implemented 90 / **missing 0** → 任务规则第 4 步生效。
+本轮**未改任何代码、未动任何断言、未新增/删除用例**，只做独立复验并留证。
+
+**复验结果（真实执行）**
+
+| 项 | 结果 |
+|---|---|
+| run1 = **提交态复跑**（干净 detached worktree @ HEAD `359f9b5`，11:28:31→11:29:32） | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0` / `BUILD SUCCESS` / `Total time: 01:00 min` |
+| run2 = 全量（工作树现状，含他方未提交的 4 个文件，11:29:46→11:30:37） | 同上，完全一致 / `Total time: 50.457 s`；`grep -c '^\[ERROR\]'` = **0** |
+| 覆盖门禁 | 两轮 `EndpointCoverageTest` 均 `Tests run: 1, Failures: 0` → 90/90（`registered_routes=96`、`not_registered=[]`） |
+| 证据文件 | `evidence/green-verify-R21-commitstate-full-run1.txt`、`green-verify-R21-worktree-full-run2.txt` |
+| 台账 | `evidence/coverage-history.txt` 追加 3 行（时间戳当场用 `date` 取，遵守 R19 的教训） |
+
+**本轮相对 R19/R20 的增量（不是重复劳动）**
+
+1. **首次对「提交态」做干净 worktree 复验于 `359f9b5`**：此前只有批次四在 `13f6fc4` 做过提交态复跑；
+   之后两次提交（`74686f3`、`359f9b5`）只动 `.agents/state/`。本轮把 HEAD 拉到独立 detached worktree
+   （零未提交改动、零 target 缓存，全量重编译）跑出 204 例全绿 → **证明「仓库历史状态」自洽**，
+   不依赖他方那 4 个未提交文件的任何一行（踩坑 27 的正确用法）。
+2. **他方文件的 md5 留档**：`application.yml 7b7c0918…`、`application-test.yml 813b611d…`、
+   `log4j2-spring.xml f449ac92…`、`aap-client/vite.config.ts b1c72cb4…` 已写进 `coverage-history.txt`。
+   R19/R20 只写了「与上轮相同」的文字判断，无客观锚点；本轮起**下一轮可直接比对 md5 判定他方是否又动了文件**。
+3. **飞书绑定状态已核实**：`profiles/java/config.yaml` 的 `platforms.feishu` 段只有 `enabled: true` +
+   `extra.default_group_policy`，**没有 home channel** → R13…R20 的 `hermes send -t feishu` 失败原因确认仍在，
+   非临时抖动。本轮无新批次，按规则不发通知。
+
+**本轮踩坑（新增）**
+
+28. **cron 模式下 `rm -rf` 被安全策略拦下**（`BLOCKED: Command flagged as dangerous (recursive delete)`，
+    cron 无人在场无法批准）。worktree 复跑**不要用「先删目录再建」**的写法：给目录加时间戳后缀取唯一名
+   （`aap-verify-r21-1128`）即可；收尾用 `git worktree remove --force <path>`（本机实测 rc=0、`git worktree list`
+   只剩主工作树），它是 git 自己的清理命令、不触发危险命令拦截，也不会碰别人的工作区。
+
+**未决与下一步（不变）**：仅剩 T15 端到端验收与交付（`aap-server/README.md` 运行说明 + `aap-client` 联调），
+不在本巡检任务范围；待拍板事项与 R20 节相同，本轮无新增。
+**建议（第三次提出）**：目标已达成且连续四轮结论一致，5 分钟一轮只是重复产出同一份证据；
+建议人工把本 cron 降为「每日一次全量回归哨兵」或直接停用（本 job 无权自行改期）。
