@@ -1,0 +1,26 @@
+== R38 新增审计的负向自测（tools/audit-id-types-selftest.py） ==
+16 例：11 条分支反例 + 正向对照 + 空夹具变红 + 3 条注入缺陷判别力 + 零写副作用守卫
+
+== A. 正向对照 ==
+  [PASS] case_ok：rc=0(期望 0)
+  [PASS] A0 正向对照：ok 夹具 rc=0 且断言 FAIL 0（解析器真的工作了） — 结论：ID 类字段对外类型逐处一致（S/O/I/C 四处；例外白名单 ≤ 1 且有实现依据）。
+== B. 每个判定分支一条反例 ==
+  [PASS] case_s_number：rc=1(期望 1) 命中「A1」=是；FAIL 列表=['A1 非 string 的 ID 字段都在例外白名单内']
+  [PASS] case_i_long：rc=1(期望 1) 命中「A3」=是；FAIL 列表=['A3 非 String 的 ID 分量都在例外白名单内']
+  [PASS] case_c_number：rc=1(期望 1) 命中「A4」=是；FAIL 列表=['A4 客户端 ID 类型声明为 number 的处数 = 0']
+  [PASS] case_o_dangling：rc=1(期望 1) 命中「A2a」=是；FAIL 列表=['A2a 组件 $ref 悬空引用 = 0']
+  [PASS] case_o_inline_id：rc=1(期望 1) 命中「A2b」=是；FAIL 列表=['A2b 内联组件（enum 型）里出现 ID 属性 = 0']
+  [PASS] case_ex_side_missing：rc=1(期望 1) 命中「A5b」=是；FAIL 列表=['A0c I 解析到响应视图 ID 分量 > 0', 'A0e 解析器覆盖性', 'A5b 例外必须在 S 与 I 两侧都真实出现（不是凭空写的白名单）']
+  [PASS] case_ex_no_evidence：rc=1(期望 1) 命中「A5c」=是；FAIL 列表=['A5c 每个例外都有实现注释依据（双向取证，坑 51；搜全部实现源码而非仅 Views）']
+  [PASS] case_name_conflict：rc=1(期望 1) 命中「A6」=是；FAIL 列表=['A6 同名 ID 字段在所有模型里对外类型一致']
+  [PASS] case_empty_s：rc=1(期望 1) 命中「A0a」=是；FAIL 列表=['A0a S 解析到 ID 类字段 > 0', 'A0e 解析器覆盖性', 'A5b 例外必须在 S 与 I 两侧都真实出现（不是凭空写的白名单）']
+  [PASS] case_er_missing：rc=1(期望 1) 命中「A7」=是；FAIL 列表=['A7 ER 文档标注 channel_id 的 new-api 语义（支撑「非雪花」判定）']
+== C. 注入缺陷判别力（坑 57 / 66：注入必须真的改到源码） ==
+  [PASS] inj#1 真实仓库副本注入 biz_id=integer → FAIL 集合恰好新增 A1（不越界到 A3/A4） — 锚点命中=True rc=1 基线 FAIL=['A6 同名 ID 字段在所有模型里对外类型一致'] 注入后=['A1 非 string 的 ID 字段都在例外白名单内', 'A6 同名 ID 字段在所有模型里对外类型一致'] 新增=['A1 非 string 的 ID 字段都在例外白名单内']
+  [PASS] inj#2 拆掉 A4 判据后 c_number 夹具不再报 A4（该守卫确有判别力） — 锚点命中=True 拆前 FAIL=['A4 客户端 ID 类型声明为 number 的处数 = 0'] 拆后 FAIL=[]
+  [PASS] inj#3 拆掉 A6 判据后 name_conflict 夹具不再报 A6（该守卫确有判别力） — 锚点命中=True 拆前 FAIL=['A6 同名 ID 字段在所有模型里对外类型一致'] 拆后 FAIL=[]
+== D. 零写副作用守卫 ==
+  [PASS] D1 真实仓库跑一遍：只读（3 个关键文件 md5 全等） — rc=1（真实仓库 rc=1 是预期的：存在 A6 待拍板漂移）
+
+== 自测结果：PASS 16 / FAIL 0 ==
+selftest_rc=0

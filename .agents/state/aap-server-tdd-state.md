@@ -1801,19 +1801,44 @@ A2 openapi↔清单 0 漂移、A3a 清单 90/90 都能定位到实现、A4 客�
   （0 失败 / 0 错误 / 0 跳过，33 个测试类），`BUILD SUCCESS`，`[ERROR]` 行数 0。
   证据 `evidence/green-verify-R38-full-run1.txt`、`green-verify-R38-full-run2.txt`、`green-verify-R38-summary.txt`。
 * 覆盖门禁：`total=90 implemented=90 missing=0`，`registered_routes=96`，`not_registered=[]`，12 个族全 `implemented==total`。
-* 既有 **12 套**只读审计复跑：结论与 R37 **逐条相同 → 零回归**（明细 `evidence/audit-regression-R38.txt`）。
-  其中 5 套 rc=1（鉴权 16/1、错误码 14/2、查询参数 12/2、枚举集合 15 FAIL、响应形状 19 PASS/2 FAIL）
-  **全部是已裁决/已登记的待拍板漂移项**，不是新发现。
-* **11 个**负向自测全部 rc=0；零写副作用守卫：运行前后 84 个产物文件 md5 全等（PASS）。
+* 既有 **12 套**只读审计复跑 + **本轮新增第 13 套**（ID 对外类型）：既有 12 套结论与 R37 **逐条相同 → 零回归**
+  （明细 `evidence/audit-regression-R38.txt`）。其中 5 套 rc=1（鉴权 16/1、错误码 14/2、查询参数 12/2、
+  枚举集合 15 FAIL、响应形状 19 PASS/2 FAIL）**全部是已裁决/已登记的待拍板漂移项**，不是新发现。
+* **12 个**负向自测全部 rc=0；零写副作用守卫：运行前后 84 个产物文件 md5 全等（PASS）。
 
-#### 本轮新踩的坑（比对口径，坑 59 变体）
+#### 本轮新增：第十三类契约不变量「ID 字段对外类型」（新工具 + 16 例负向自测）
 
-**逐类结果 diff 必须「先剥 `Time elapsed` 再排序」**：第一版写成
-`grep … | sort > classes.txt` 之后才 `sed` 剥耗时 → **耗时进了排序键**，同一批结果因各例耗时不同
-而顺序漂移，`diff` 报出 3 行「差异」（`LoggingAndHealthTest` / `QuoteContractTest` /
-`ProviderContractTest` 各上下一行，**内容完全相同**）。修法：`sed` 剥耗时 → `tr -d '\r'` → 再 `sort`，
-diff 归零（0 行）。这与坑 56「Map.of 键序随机化」同族：**产物不稳定时先怀疑比对键，不要先怀疑被测代码**。
-配套：python 版逐类比对脚本必须在「解析到 0 个类」时判**解析器失效**而不是判「一致」（坑 46 正向对照）。
+* 工具 `tools/audit-id-types.py`，自测 `tools/audit-id-types-selftest.py`（**16/16 PASS**）；
+  证据 `evidence/audit-id-types-R38.txt` + `audit-id-types-selftest-R38.txt`。
+* 四处真源：S=JSON Schema 逐属性 `type`（118 条）／O=openapi 组件内联属性与 `$ref` 解析（81 + 21）／
+  I=响应视图 record 分量 Java 类型（46 个唯一 (文件,字段) 对）／C=客户端 TS 字段声明（68 处）；
+  E=ER 文档、T=测试断言作第三方裁判与信息项。
+* 正向对照全 PASS（每个源都配 `> 0`，坑 46/75）；A1/A2a/A2b/A3/A4 越界 0；
+  例外白名单守卫三条全 PASS：**条数 ≤ 1** ＋ 例外必须在 **S 与 I 两侧真实出现** ＋ **实现注释依据可查**。
+* **A6 FAIL（本轮新发现，待拍板）**：同名 `channel_id` 在 `models/channel-binding.schema.json` 是 `integer`、
+  在 `models/usage-hourly-bucket.schema.json` 是 `string`，而两者 ER 语义**同为 new-api 渠道号**
+  （ER：`channel_id`(new-api)）→ 同一逻辑值对外两种 JSON 类型；第二证人：usage 侧 `description`
+  写「雪花 ID」与 ER 语义不符。客户端对该字段**零消费** → 现实风险低，但属契约不一致，
+  且**两套门禁都看不见**（契约测试只读各模型自己的 schema → 每侧自洽即绿）。
+* 为什么值得工具化：R35 只做过**抽查式**核查（手工 18 处），无法复跑、无法守「例外上限」。
+
+#### 本轮新踩的坑（比对口径 + 自测自身的两处缺陷，坑 46 / 59 变体）
+
+1. **逐类结果 diff 必须「先剥 `Time elapsed` 再排序」**：第一版写成
+   `grep … | sort > classes.txt` 之后才 `sed` 剥耗时 → **耗时进了排序键**，同一批结果因各例耗时不同
+   而顺序漂移，`diff` 报出 3 行「差异」（`LoggingAndHealthTest` / `QuoteContractTest` /
+   `ProviderContractTest` 各上下一行，**内容完全相同**）。修法：`sed` 剥耗时 → `tr -d '\r'` → 再 `sort`，
+   diff 归零（0 行）。与坑 56「Map.of 键序随机化」同族：**产物不稳定时先怀疑比对键，不要先怀疑被测代码**。
+   配套：python 版逐类比对脚本在「解析到 0 个类」时必须判**解析器失效**，不得判「一致」（坑 46）。
+2. **新审计自身三处返工（全部是「假 FAIL」，如实留痕）**：
+   ① A5c 找「实现注释依据」时只在 `*Views.java` 里搜，而依据注释在 `SyncAdminService.java`
+   → 报出 1 条假 FAIL；改为搜**全部** `*.java`（169 个）后 PASS。**判据的搜索范围要与断言的语义一致**。
+   ② 自测 inj#1 期望「恰好 A1 转红」，但注入的 `provider_id` 在真实仓库出现 17 次 → 连带触发 A6
+   （同名跨模型不一致）；改用**全仓库只出现一次**的 `biz_id`，并改成断言「**FAIL 集合恰好新增 A1**」
+   （先跑基线再注入），比硬编码期望更稳。
+   ③ 自测 inj#2/inj#3 用 `"A4" in fails(out)` 判「命中」——`fails()` 返回的是**整行文本列表**，
+   列表成员判断恒为假 → 守卫明明有效却被判失败；改为前缀匹配 `any(x.startswith("A4") …)`。
+   教训：**自测里的断言自身也会写错**，写错时的表现是「守卫看起来失效」，要先怀疑自测的判据。
 
 #### 台账维护（坑 16 / 69 / 71 同族）
 
@@ -1824,5 +1849,6 @@ diff 归零（0 行）。这与坑 56「Map.of 键序随机化」同族：**产�
   CSV 3 增 / 2 删（改 2 行 + 加 1 行）、coverage-history 6 增 / 0 删（坑 69）。
 * `coverage-report.json` 每次跑测试被重写但**逐字段值全等**（坑 56）→ `git checkout --` 还原，**未提交**。
 
-结论：**90/90 维持全绿（连续第 20 轮：R18 → … → R38）**；本轮**零实现侧漂移、零新增待拍板**，
-未改业务代码 / 清单 / 生成器 / md / 断言；待拍板事项与 R37 完全相同。
+结论：**90/90 维持全绿（连续第 20 轮：R18 → … → R38）**；本轮**零实现侧漂移**，
+未改业务代码 / 清单 / 生成器 / md / 断言；**新增 1 条待拍板**（同名 `channel_id` 跨模型对外类型不一致，
+P2：客户端零消费、无线上风险，但契约不一致）；其余待拍板与 R37 完全相同。

@@ -28,7 +28,7 @@ total=90 implemented=90 missing=0；registered_routes=96；not_registered=[]
 按族：T03:6/6 T04:5/5 T05:7/7 T06:6/6 T07:4/4 T08:11/11 T09:6/6
       T10:5/5 T11:11/11 T12:4/4 T13:3/3 T14:22/22（all_full=True）
 
---- 既有只读审计复跑（12 套） ---
+--- 既有只读审计复跑（12 套）+ 本轮新增第 13 套 ---
 证据：evidence/audit-regression-R38.txt（逐套明细见 $LOCALAPPDATA/Temp/r38-*.txt）
 生成器 --check（含孤儿扫描）      rc=0  check ok: 84/84 个生成物一致、孤儿 0
 audit-endpoint-tests             rc=0  exact 90 / prefix 0 / none 0；ID 可追溯 90/90（严档 90/90）
@@ -42,11 +42,13 @@ audit-secret-leak                rc=0  Tier A 命中 0（四处比对）；Tier 
 check-openapi-parses             rc=0  openapi.yaml 可被标准 YAML 解析器解析
 audit-enum-sets                  rc=1  断言 FAIL 15 条 / INFO 2 条（同 R36，两个根因均待拍板）
 audit-response-shape             rc=1  PASS 19 / FAIL 2（A2 36 条 + A3 34 条，同 R37）
-结论：12 套结论与 R37 **完全相同 → 零回归**；4 套 rc=1 全为已登记的待拍板漂移项。
+audit-id-types（R38 新增，第十三类）rc=1  PASS 15 / FAIL 1（A6 同名 channel_id 跨模型类型不一致，本轮新发现）
+结论：既有 12 套结论与 R37 **完全相同 → 零回归**；5 套 rc=1 全为已登记的待拍板漂移项。
 
---- 负向自测复跑（判别力对照，11 个脚本） ---
+--- 负向自测复跑（判别力对照，12 个脚本） ---
 全部 rc=0：gen-backend-models、endpoint-tests、contract-keys、auth-contract、routes、
-error-codes、query-params、time-format、enum-sets、response-shape、secret-leak(内置 --selftest)
+error-codes、query-params、time-format、enum-sets、response-shape、id-types（R38 新增）、
+secret-leak(内置 --selftest)
 
 --- 零写副作用守卫 ---
 运行前后 84 个产物文件（82 个 JSON Schema + endpoints.json + openapi.yaml）md5 **全等**（PASS）。
@@ -57,3 +59,17 @@ missing=0 → 未改业务代码、未改清单、未改生成器、未改 md、
 他方 4 个未提交文件（aap-client/vite.config.ts、aap-server application.yml、log4j2-spring.xml、
 application-test.yml）**未被触碰**，仍留在工作区。
 coverage-report.json 每次跑测试被重写但逐字段值全等（Map.of 键序跨 JVM 随机化，坑 56）→ `git checkout --` 还原，不提交。
+
+--- 本轮新增：第十三类契约不变量「ID 字段对外类型」（新工具 + 16 例负向自测） ---
+工具：tools/audit-id-types.py；自测：tools/audit-id-types-selftest.py（16/16 PASS）
+证据：evidence/audit-id-types-R38.txt + audit-id-types-selftest-R38.txt
+四处真源（+ 两个信息源）：S=JSON Schema 逐属性 type / O=openapi 组件内联属性与 $ref 解析 /
+I=响应视图 record 分量 Java 类型 / C=客户端 TS 字段声明；E=ER 文档、T=测试断言作第三方裁判与信息项。
+* 正向对照全 PASS：S 118 条 / O 81 $ref + 21 内联 / I 46 个唯一 (文件,字段) 对 / C 68 处（唯一 57 对）。
+* A1（S）越界 0；A2a 悬空 $ref 0；A2b 内联 ID 属性 0；A3（I）越界 0；A4 客户端 number 型 ID 0 处。
+* 例外白名单守卫：条数 ≤ 1（当前 1）＋ 例外必须在 S/I 两侧真实出现 ＋ 实现注释依据可查（A5a/A5b/A5c 全 PASS）。
+* **A6 FAIL（本轮新发现，待拍板）**：同名 `channel_id` 在
+  `models/channel-binding.schema.json` 是 `integer`、在 `models/usage-hourly-bucket.schema.json` 是 `string`
+  —— 二者 ER 语义**同为 new-api 渠道号**（ER：`channel_id`(new-api)），同一逻辑值对外两种 JSON 类型。
+  第二证人（信息项）：usage 侧 schema 的 `description` 写「雪花 ID（对外 string…）」，与 ER 语义不符。
+  客户端对该字段零消费 → 现实风险低，但契约不一致且两套门禁都看不见（契约测试只读各模型自己的 schema）。

@@ -1,0 +1,42 @@
+== R38 新增审计：ID 字段对外类型契约一致性（第十三类不变量，只读） ==
+命令：python tools/audit-id-types.py（rc=1：A6 一条真实漂移，待拍板）
+
+== ID 字段对外类型契约审计（第十三类不变量；只读） ==
+仓库根：E:\workspaces\hioas\hioas-aap-001
+--- A0 正向对照：每个源都真的解析到了条目 ---
+[PASS] A0a S 解析到 ID 类字段 > 0：解析到 118 条
+[PASS] A0b O 解析到组件（$ref 与内联各 > 0）：$ref 81 个 / 内联 21 个 / 合计 102
+[PASS] A0c I 解析到响应视图 ID 分量 > 0：唯一 (文件,字段) 对 46 个
+[PASS] A0d C 解析到客户端 ID 类型声明 > 0：原始出现 68 处 / 唯一 (文件,字段) 对 57 个
+[PASS] A0e 解析器覆盖性：S 侧非空且 I 侧非空（任一为 0 先怀疑解析器）：S=118 I=46
+--- A1 S：JSON Schema 逐属性 ID 类型必须是 string ---
+[PASS] A1 非 string 的 ID 字段都在例外白名单内：越界 0 条：[]
+      · 非 string（1 条，全部为已登记例外）：[('models/channel-binding.schema.json#channel_id', 'integer')]
+--- A2 O：openapi 组件引用可解析、内联组件不得出现 ID 属性 ---
+[PASS] A2a 组件 $ref 悬空引用 = 0：悬空 0 条：[]
+[PASS] A2b 内联组件（enum 型）里出现 ID 属性 = 0：命中 0 条：[]
+--- A3 I：响应视图 ID 分量的 Java 类型必须是 String ---
+[PASS] A3 非 String 的 ID 分量都在例外白名单内：越界 0 条：[]
+      · 非 String（1 条，全部为已登记例外）：[('SyncViews.java#channel_id', 'Integer')]
+--- A4 C：客户端 ID 声明不得是 number ---
+[PASS] A4 客户端 ID 类型声明为 number 的处数 = 0：越界 0 条：[]
+--- A5 例外白名单守卫（上限 + 双侧存在 + 实现依据）---
+[PASS] A5a 例外白名单条数 ≤ 1（否则规则被架空，坑 57）：当前 1 条
+[PASS] A5b 例外必须在 S 与 I 两侧都真实出现（不是凭空写的白名单）：缺 0 处：{}
+[PASS] A5c 每个例外都有实现注释依据（双向取证，坑 51；搜全部实现源码而非仅 Views）：无依据 0 条：{}（搜了 169 个 .java）
+--- A6 同名 ID 字段跨模型对外类型一致性 ---
+[FAIL] A6 同名 ID 字段在所有模型里对外类型一致：不一致 1 个字段名：{'channel_id': ['integer', 'string']}
+      · channel_id = integer ← ['models/channel-binding.schema.json']
+      · channel_id = string ← ['models/usage-hourly-bucket.schema.json']
+      · models/usage-hourly-bucket.schema.json#channel_id description='雪花 ID（对外 string，避免 JS 精度丢失；可空）'（自称「雪花 ID」，而 ER 语义是 new-api 渠道号 → 描述与 ER 不符，信息项）
+--- A7 第三方裁判（ER 文档语义；信息项）---
+[PASS] A7 ER 文档标注 channel_id 的 new-api 语义（支撑「非雪花」判定）：channel_id`(new-api)
+--- A8 信息项（不判 FAIL）---
+      · C 侧解析到 68 处 ID 类型声明（唯一 (文件,字段) 对 57 个）；其中含 `string | null` 联合 6 处（口径与 R35 抽查不同：R35 仅计单行 `name: string`）
+      · T 侧对 ID 的字符串断言（信息项，口径比 R35 宽：含 `.get("id")` 等）：45 处
+      · 例外登记：{'channel_id': 'new-api 渠道号（ER 列 bigint、非雪花 ID）；实现注释明示「视图契约是 integer」；客户端零消费'}
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+
+== 断言：PASS 15 / FAIL 1 ==
+结论：存在 ID 对外类型契约漂移（两套门禁都看不见：契约测试只读 JSON Schema，覆盖门禁只比方法+路径；openapi 与客户端 TS 不被任何测试读取/执行）。
+audit_rc=1

@@ -1,4 +1,4 @@
-== R38 既有只读审计复跑（2026-09-18T17:19） ==
+== R38 既有只读审计复跑（2026-09-18T17:31） ==
 --- 生成器 --check（含孤儿扫描；只读） ---
 gen_rc=0
 check ok: 84/84 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）
@@ -47,7 +47,7 @@ ok: models=55 requests=24 paths=78 operations=90 files=82
 [PASS] Z1 全部被读文件指纹未变（脚本零写副作用） — 被改写=0 个：[]
 断言 15 条：PASS 15，FAIL 0
 --- audit-secret-leak rc=0 ---
-[PASS] 未跟踪文件（7 个）：Tier A 命中 0
+[PASS] 未跟踪文件（5 个）：Tier A 命中 0
 [PASS] .gitignore 含 `.env`
 [PASS] .gitignore 含 `.env.*`
 [PASS] .gitignore 含 `target/`
@@ -69,6 +69,13 @@ OK: docs\backend\openapi.yaml 可解析；paths=78 operations=90
 [PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
 == 断言：PASS 19 / FAIL 2 ==
 结论：存在响应形状（分页包装）契约漂移 —— openapi 与实现/清单至少一侧不一致，两套门禁都看不见（契约测试只读 JSON Schema；覆盖门禁只比方法+路径）。
+--- audit-id-types (R38 新增) rc=1 ---
+[PASS] A5b 例外必须在 S 与 I 两侧都真实出现（不是凭空写的白名单）：缺 0 处：{}
+[PASS] A5c 每个例外都有实现注释依据（双向取证，坑 51；搜全部实现源码而非仅 Views）：无依据 0 条：{}（搜了 169 个 .java）
+[FAIL] A6 同名 ID 字段在所有模型里对外类型一致：不一致 1 个字段名：{'channel_id': ['integer', 'string']}
+[PASS] A7 ER 文档标注 channel_id 的 new-api 语义（支撑「非雪花」判定）：channel_id`(new-api)
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+== 断言：PASS 15 / FAIL 1 ==
 
 == 负向自测复跑（判别力对照） ==
 --- selftest gen-backend-models rc=0 ---
@@ -140,5 +147,12 @@ OK: docs\backend\openapi.yaml 可解析；paths=78 operations=90
 [PASS] 注入#3 真的改到了源码（锚点命中）
 [PASS] 注入#3（组件表解析失效）→ 空转假绿必须被 A0d 兜住：rc=1
 [PASS] 真实仓库跑一遍：只读（4 个关键文件 md5 全等）：rc=1（真实仓库本轮 rc=1 是预期的：存在待拍板漂移）
+--- selftest audit-id-types (R38 新增) rc=0 ---
+  [PASS] case_er_missing：rc=1(期望 1) 命中「A7」=是；FAIL 列表=['A7 ER 文档标注 channel_id 的 new-api 语义（支撑「非雪花」判定）']
+== C. 注入缺陷判别力（坑 57 / 66：注入必须真的改到源码） ==
+  [PASS] inj#1 真实仓库副本注入 biz_id=integer → FAIL 集合恰好新增 A1（不越界到 A3/A4） — 锚点命中=True rc=1 基线 FAIL=['A6 同名 ID 字段在所有模型里对外类型一致'] 注入后=['A1 非 string 的 ID 字段都在例外白名单内', 'A6 同名 ID 字段在所有模型里对外类型一致'] 新增=['A1 非 string 的 ID 字段都在例外白名单内']
+== D. 零写副作用守卫 ==
+  [PASS] D1 真实仓库跑一遍：只读（3 个关键文件 md5 全等） — rc=1（真实仓库 rc=1 是预期的：存在 A6 待拍板漂移）
+== 自测结果：PASS 16 / FAIL 0 ==
 
 零写副作用守卫：运行前后 84 个产物文件 md5 **全等**（PASS）
