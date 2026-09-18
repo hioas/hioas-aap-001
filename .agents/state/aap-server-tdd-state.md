@@ -625,3 +625,36 @@
 `aap-client` 指向本服务联调截图）；`docs/backend/03-任务与TDD计划.md` §1 为完整清单。
 待拍板事项见上一节（D-API-12/14、D-STATE-04、D-PAY-01、D-API-24/25、D-SYNC-01…05、D-ADM-01…03 等），
 本轮无新增、无变化。
+
+## R20（2026-09-18 11:18–11:21）· 巡检复验：90/90 维持全绿（**不改代码、无提交端点**）
+
+**触发条件**：`coverage-report.json` = total 90 / implemented 90 / **missing 0** → 任务规则第 4 步生效。
+本轮**未改任何代码、未动任何断言、未新增/删除用例**，只做独立复验并留证。
+
+**复验结果（真实执行）**
+
+| 项 | 结果 |
+|---|---|
+| 全量 run1（11:19:04 结束） | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0` / `BUILD SUCCESS` |
+| 全量 run2（11:20:04 结束，防 flaky） | 同上，完全一致 / `Total time: 45.563 s` |
+| 覆盖门禁 | `EndpointCoverageTest` 两轮均 `Tests run: 1, Failures: 0` → 90/90（`registered_routes=96`、`not_registered=[]`） |
+| 证据文件 | `evidence/green-verify-R20-full-204tests-run1.txt`、`green-verify-R20-full-204tests-run2.txt` |
+| 台账 | `evidence/coverage-history.txt` 追加 3 行 |
+
+**本轮观察**
+
+1. **零变化即零回归**：`git status` 与 R19 完全一致——工作树里仍只有他方未提交的 4 个文件
+   （`application.yml` 的 `${AAP_SMS_EXPOSE_CODE:false}`、`application-test.yml` 日志目录 `logs/test`、
+   `log4j2-spring.xml`、`aap-client/vite.config.ts`），HEAD 仍是 `74686f3`，无新提交。在这套工作树上
+   204 例两轮全绿 → 他方改动当前不破坏测试。
+2. **本任务目标已达成且稳定**：T03–T14 全部落地（90/90），连续三轮（R18 批次四、R19、R20）复验结论一致，
+   未见 flaky。**建议人工将本 cron 降频或停用**——目标已达成，5 分钟一轮只会重复产出同一结论；
+   若需保留回归哨兵，改为「每日一次全量」性价比更高。
+3. **测试进程互斥纪律仍生效**：本轮开跑前 `tasklist`/`wmic` 确认无任何 `java.exe`（含他方联调进程）在跑，
+   两轮串行、无并发抢库，因此结果可互证（踩坑 11/20）。
+4. **飞书**：本轮**未完成新批次**（无端点落地），按「每完成一个批次才通知」的硬要求**不发通知**，
+   避免每 5 分钟重复推送同一句进度；历史失败原因（home channel 未绑定）见 `evidence/feishu-notify-failures.txt`，
+   仍需人工 `hermes config set FEISHU_HOME_CHANNEL <channel_id>`。
+
+**未决与下一步（不变）**：仅剩 T15 端到端验收与交付（`aap-server/README.md` 运行说明 + `aap-client` 联调），
+不在本巡检任务范围；待拍板事项与上一节相同，本轮无新增。
