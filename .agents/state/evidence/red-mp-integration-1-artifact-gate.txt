@@ -1,0 +1,11 @@
+### RED 1（执行态门禁）· 未修前的 mp-weixin 产物
+### 命令: node tools/check-mp-api-base.mjs
+### 时间: 2026-09-19 00:08:49
+
+[INFO] 执行态加载真实产物 dist/build/mp-weixin/api/http.js，拦截到 1 次请求
+
+[FAIL] 1 处交给 wx.request 的是相对 URL —— 微信端会 request:fail invalid url：
+  [BAD]  /api/v1/auth/me
+
+修法：非 H5 平台基址必须由 src/api/base-url.ts 的 resolveApiBase() 解析为绝对 URL。
+exit=1

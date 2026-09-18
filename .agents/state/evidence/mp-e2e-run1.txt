@@ -1,0 +1,38 @@
+### 小程序编译产物 ↔ aap-server 真实联调
+### 时间: 2026-09-19 00:12:29
+### 命令: node tools/mp-e2e.mjs
+
+
+小程序编译产物 ↔ aap-server 真实联调
+  产物：dist/build/mp-weixin/api/**
+  目标：http://127.0.0.1:8084/api/v1
+  平台：uniPlatform=mp-weixin（产物内运行时判定）
+
+[1] 账号接入 · 发送短信验证码
+  ✓ POST /auth/sms/send — ttl=300 dev_code=已下发
+
+[2] 账号接入 · 短信登录换 Token
+  ✓ POST /auth/sms/login — role=SUPPLIER providerId=458589638116450304
+
+[3] 登录态 · token 是否落进小程序 storage
+  ✓ token 已入 storage — eyJhbGciOiJI…
+
+[4] 工作台取数（登录态接口）
+  ✓ GET /usage/summary — 字段数=31
+  ✓ GET /provider/profile — company_name=-
+
+[5] 鉴权头真实性（用错 token 应被拒，证明后端真的在校验）
+  ✓ 伪造 token 被后端拒绝 — E-1902
+
+[6] 实际发出的 HTTP 流量
+  POST   200  http://127.0.0.1:8084/api/v1/auth/sms/send
+  POST   200  http://127.0.0.1:8084/api/v1/auth/sms/login
+  GET    200  http://127.0.0.1:8084/api/v1/usage/summary
+  GET    200  http://127.0.0.1:8084/api/v1/provider/profile
+  GET    401  http://127.0.0.1:8084/api/v1/usage/summary
+
+────────────────────────────────────────────────────────────────────────
+结果：6/6 步通过；HTTP 请求 5 次；相对 URL 失败 0 次
+
+[PASS] 小程序编译产物 ↔ aap-server 主链路联调通过。
+exit=0

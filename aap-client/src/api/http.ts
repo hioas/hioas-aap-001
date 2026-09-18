@@ -6,7 +6,15 @@
  * - 网络层失败 → E-2001
  */
 
-export const API_BASE = '/api/v1'
+import { currentUniPlatform, resolveApiBase } from './base-url'
+
+/**
+ * 接口基址。
+ * ⚠️ 必须按平台解析：H5 可相对（dev server 反代），小程序**必须绝对 URL**
+ *   —— `wx.request` 不接受相对路径，会直接 request:fail invalid url。
+ *   构建门禁 `tools/check-mp-api-base.mjs` 会在产物上复核这一点。
+ */
+export const API_BASE = resolveApiBase(import.meta.env.VITE_API_BASE, currentUniPlatform())
 export const TOKEN_KEY = 'aap_token'
 
 export class ApiError extends Error {
