@@ -1792,3 +1792,37 @@ A2 openapi↔清单 0 漂移、A3a 清单 90/90 都能定位到实现、A4 客�
 
 结论：**90/90 维持全绿（连续第 19 轮）**；本轮**无实现侧漂移**，新增 **1 条 P0 待拍板**
 （openapi 36 个端点的分页包装）；其余待拍板与 R36 相同。
+
+---
+
+### R38 巡检轮（missing==0 → 只校验不改代码，连续第 20 轮全绿）
+
+* 全量 run1 / run2（串行，同一时刻仅一个测试进程，坑 11/20）：**204 例全绿**
+  （0 失败 / 0 错误 / 0 跳过，33 个测试类），`BUILD SUCCESS`，`[ERROR]` 行数 0。
+  证据 `evidence/green-verify-R38-full-run1.txt`、`green-verify-R38-full-run2.txt`、`green-verify-R38-summary.txt`。
+* 覆盖门禁：`total=90 implemented=90 missing=0`，`registered_routes=96`，`not_registered=[]`，12 个族全 `implemented==total`。
+* 既有 **12 套**只读审计复跑：结论与 R37 **逐条相同 → 零回归**（明细 `evidence/audit-regression-R38.txt`）。
+  其中 5 套 rc=1（鉴权 16/1、错误码 14/2、查询参数 12/2、枚举集合 15 FAIL、响应形状 19 PASS/2 FAIL）
+  **全部是已裁决/已登记的待拍板漂移项**，不是新发现。
+* **11 个**负向自测全部 rc=0；零写副作用守卫：运行前后 84 个产物文件 md5 全等（PASS）。
+
+#### 本轮新踩的坑（比对口径，坑 59 变体）
+
+**逐类结果 diff 必须「先剥 `Time elapsed` 再排序」**：第一版写成
+`grep … | sort > classes.txt` 之后才 `sed` 剥耗时 → **耗时进了排序键**，同一批结果因各例耗时不同
+而顺序漂移，`diff` 报出 3 行「差异」（`LoggingAndHealthTest` / `QuoteContractTest` /
+`ProviderContractTest` 各上下一行，**内容完全相同**）。修法：`sed` 剥耗时 → `tr -d '\r'` → 再 `sort`，
+diff 归零（0 行）。这与坑 56「Map.of 键序随机化」同族：**产物不稳定时先怀疑比对键，不要先怀疑被测代码**。
+配套：python 版逐类比对脚本必须在「解析到 0 个类」时判**解析器失效**而不是判「一致」（坑 46 正向对照）。
+
+#### 台账维护（坑 16 / 69 / 71 同族）
+
+* 补齐 R36 行「提交」列（`8c5580e`）、R37 行「提交」列（`e595ce9`）；追加 R38 行（「提交」列留空，
+  下一轮巡检补齐 —— 沿用 R33/R35 的既有做法）。
+* R 行连续性核对：**R27 → R38 无缺号**（用 `csv.DictReader` 按列名取值，不用 `awk -F,`，坑 36）。
+* 行尾统一按 LF（先验 `raw.count("\r") == 0`），以 `git diff --numstat` 验收：
+  CSV 3 增 / 2 删（改 2 行 + 加 1 行）、coverage-history 6 增 / 0 删（坑 69）。
+* `coverage-report.json` 每次跑测试被重写但**逐字段值全等**（坑 56）→ `git checkout --` 还原，**未提交**。
+
+结论：**90/90 维持全绿（连续第 20 轮：R18 → … → R38）**；本轮**零实现侧漂移、零新增待拍板**，
+未改业务代码 / 清单 / 生成器 / md / 断言；待拍板事项与 R37 完全相同。
