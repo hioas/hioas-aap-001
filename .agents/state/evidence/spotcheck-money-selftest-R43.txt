@@ -1,0 +1,27 @@
+== r43-spotcheck-money.py 负向自测 ==
+夹具根：C:\Users\laitz\AppData\Local\Temp\aap-money-selftest-gadej0lw
+
+  [PASS] case_ok_fixture：完整夹具 rc=0 且 FAIL 0
+  [PASS] case_ok_fixture：正向对照真的解析到了（PASS 15 条：A1,A2,A3,A4,A5,A6,A8,C0,D0,I0,M0,M1,M2,O0,S0）
+  [PASS] case_empty_fixture：空夹具 rc=1 且点名 D0,I0,M0,S0
+  [PASS] case_schema_type_string：注入锚点真的改到了源码（坑 66）
+  [PASS] case_schema_type_string：注入后 rc=1 且点名 `A1`（判别力实测；新增 FAIL=['A1']）
+  [PASS] case_impl_getdouble：注入锚点真的改到了源码（坑 66）
+  [PASS] case_impl_getdouble：注入后 rc=1 且点名 `A3`（判别力实测；新增 FAIL=['A3']）
+  [PASS] case_compile_double：注入锚点真的改到了源码（坑 66）
+  [PASS] case_compile_double：注入后 rc=1 且点名 `A4`（判别力实测；新增 FAIL=['A4']）
+  [PASS] case_price_scale_2：注入锚点真的改到了源码（坑 66）
+  [PASS] case_price_scale_2：注入后 rc=1 且点名 `A5`（判别力实测；新增 FAIL=['A5']）
+  [PASS] case_openapi_inline：注入锚点真的改到了源码（坑 66）
+  [PASS] case_openapi_inline：注入后 rc=1 且点名 `A6`（判别力实测；新增 FAIL=['A6']）
+  [PASS] case_er_rule_dropped：注入锚点真的改到了源码（坑 66）
+  [PASS] case_er_rule_dropped：注入后 rc=1 且点名 `M2`（判别力实测；新增 FAIL=['M2']）
+  [PASS] case_ddl_spec_changed：注入锚点真的改到了源码（坑 66）
+  [PASS] case_ddl_spec_changed：注入后 rc=1 且点名 `D0`（判别力实测；新增 FAIL=['D0', 'I0']）
+  [PASS] case_client_money_string：注入锚点真的改到了源码（坑 66）
+  [PASS] case_client_money_string：注入后 rc=1 且点名 `A8`（判别力实测；新增 FAIL=['A8']）
+  [PASS] case_client_missing：客户端源目录为空 → rc=1 且点名 C0（正向对照有效）
+  [PASS] case_injection_scope：schema 注入未连带打红 A4/A5（判据不越界；新增 FAIL=['A1']）
+  [PASS] case_zero_write：真实仓库跑一遍只读（4 个关键文件 md5 全等；rc=0）
+
+== 自测结果：PASS 22 / FAIL 0 ==

@@ -1,0 +1,27 @@
+== 金额精度与币种口径不变量（只读抽查）==
+仓库：E:/workspaces/hioas/hioas-aap-001
+Z1 只读指纹（58 个源文件）: 51323116ab37
+
+  [OK  ] M0 正向对照：md 金额约定行 1 条、ER 金额约定行 1 条
+  [OK  ] M1 md §0「金额」行含 numeric(18,6)（单位 USD 或 USD/1M tokens）
+  [OK  ] M1 ER「金额」行含 numeric(18,6)
+  [OK  ] M2 ER「金额」行含「禁 float/double」
+  [OK  ] S0 正向对照：schema 金额字段 50 个（跨 16 个模型）
+  [OK  ] D0 正向对照：DDL numeric(18,6) 列 20 个
+  [OK  ] A1 全部 50 个 schema 金额字段 type 均含 number 且不含 string
+  [OK  ] A2 schema 金额字段 50 个：30 个字段取值有同名 numeric(18,6) 列；20 个为派生/聚合字段（无同名列）：payment.available_balance, payment.pending_settlement, payment.total_settled, price-tier.max, price-tier.min, quote-compare.new_value…
+  [OK  ] I0 正向对照：实现按金额列取值 14 处（BigDecimal 14 / Double|Float 0）
+  [OK  ] A3 实现 14 处金额列取值全部走 getBigDecimal（0 处 getDouble/getFloat）
+  [OK  ] A4 compile 包 15 个文件零 float/double（金额算术全程 BigDecimal）
+  [OK  ] A5 金额出口口径 PRICE_SCALE=6 且 scale6 用 HALF_UP 四舍五入
+  [OK  ] O0 正向对照：openapi 金额模型组件 16 个（文件 $ref 16 / 内联 0 / 缺失 0）
+  [OK  ] A6 全部 16 个金额模型组件均为文件 $ref（不与 schema 漂移）
+  [OK  ] C0 正向对照：客户端金额同名字段 28 处（跨 12 个名字）
+  [OK  ] A8 客户端 19 处金额字段声明类型与 schema 一致（number）
+  [info] DDL 金额列在模型里有同名字段但**缺 numeric(18,6) 口径描述**（文档一致性项，非类型漂移）：min_settlement_amount(contract)
+  [info] 客户端 `total` 9 处为**分页计数**同名碰撞 → 豁免出 A8（豁免上限 1 个名字）
+
+== 抽查结果：PASS 16 / FAIL 0 / INFO 2 ==
+-- 本轮抽查脚本与自测副本（不新建仓库工具，按 missing=0 只校验纪律）落在 Temp：
+   C:\Users\laitz\AppData\Local/Temp/r43-spotcheck-money.py
+   C:\Users\laitz\AppData\Local/Temp/r43-spotcheck-money-selftest.py

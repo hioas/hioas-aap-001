@@ -2102,3 +2102,58 @@ P2：客户端零消费、无线上风险，但契约不一致）；其余待拍
 ### 台账收尾与通知
 * R42 行「提交」列**本轮直接填为 `926850b`**（不留「下一轮补齐」的台账债，沿用 R40 的做法）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」。
 * 飞书通知**第 19 轮同因失败**（`No home channel set for feishu`）→ 留痕 `evidence/feishu-notify-failures.txt`，不阻塞交付。
+
+---
+
+## R43（2026-09-18）—— 巡检轮：`missing=0` → 只校验不改代码
+
+**结论：90/90 维持全绿（连续第 25 轮：R18 → … → R43）。** `missing=0`、`registered_routes=96`、`not_registered=[]`。
+本轮**未改业务代码 / 未改清单 / 未改生成器 / 未改 md / 未动断言**，只做只读校验 + 抽查 + 台账回写。
+
+### 证据链（四处取证）
+* 全量测试 **run1**：204 例全绿（0 失败 / 0 错误 / 0 跳过，33 个测试类）+ `EndpointCoverageTest` **90/90**；`BUILD SUCCESS`、`[ERROR]=0`
+  → `evidence/green-verify-R43-full-run1.txt`。
+* 全量测试 **run2**（防 flaky 连跑第二轮）：204 例全绿；与 run1 **逐类结果 diff 为空**
+  （先剥 `Time elapsed` 再排序、`tr -d '\r'`，坑 79）→ `evidence/green-verify-R43-full-run2.txt`
+  + `r43-run1-classes.txt` / `r43-run2-classes.txt` / `r43-classes-diff.txt`。
+* 既有 **14 套只读审计**复跑与 R42 同结论（FAIL 集合逐行一致 → **零回归**）；**13 个负向自测**全部 `rc=0`；
+  **零写副作用**（运行前后 84 个产物文件 md5+size 全等）→ `evidence/audit-regression-R43.txt`。
+* `coverage-report.json` 被测试重写但**逐字段 JSON 全等**（`Map.of` 键序跨 JVM 随机化，坑 56）→ 已还原，未提交。
+
+### 本轮新增抽查（不新建仓库工具，抽查式 —— 沿用 R34/R35/R40/R41/R42 的做法）
+**不变量：金额精度与币种口径**（为什么值得查：契约测试只把真实响应与**各模型自己的 JSON Schema** 比对
+（每侧自洽即绿），覆盖门禁只比「方法 + 路径」，而 openapi 与客户端 TS **不被任何测试读取/执行** →
+「金额字段的对外数值类型 / 精度口径 / 禁 float-double」在真源之间漂移，204 例全绿也完全看不见（坑 62/83/85/88 同族）。）
+
+真源与断言（**PASS 16 / FAIL 0**）：
+* **M** md §0「金额」行 + ER「金额」行：`numeric(18,6)`、单位 USD 或 USD/1M tokens、**禁 float/double**；
+* **S** JSON Schema 逐属性：description 含 `numeric(18,6)` 的字段 → `type` 必须含 `number` 且不含 `string`
+  （**50 个字段 / 16 个模型**，全部通过）；
+* **D** DDL `V1__baseline.sql`：`numeric(18,6)` 列 **20 个**；schema 金额字段中 **30 个**取值有同名列；
+* **I** 实现：**14 处**金额列取值**全部** `getBigDecimal`（**0 处** `getDouble/getFloat`）；
+  `compile` 包 **15 个文件零 float/double**；金额出口口径 `PRICE_SCALE=6` + `HALF_UP`；
+* **O** openapi：**16 个**金额模型组件**全部是文件 `$ref`**（0 处内联重声明 → 不与 schema 漂移）；
+* **C** 客户端 TS：**19 处**金额字段声明类型与 schema 一致（`number`）。
+
+观察项 2 条（文档一致性，待拍板）：
+1. `contract.min_settlement_amount`：DDL 是 `numeric(18,6)`、模型里也有同名字段，但**缺 `numeric(18,6)` 口径描述**
+   （其余金额列都带）→ 属**文档一致性项，不是类型漂移**（该字段 `type` 已是 `number`）。
+2. 客户端 `total` **9 处**是**分页计数**语义（与 `usage-cost.total` 同名碰撞）→ 豁免出 A8，**豁免上限 1 个名字**（坑 57）。
+
+### 本轮自己踩的坑（值得记）
+* **DDL 解析里 `\)\b` 永不成立**：`numeric\(18,6\)\b` 的 `)` 与 `,` 都是非单词字符 → 词边界不成立 →
+  `D0` 报「解析到 0 列」，同一条链把 `I0` 也带成 0（金额列集合为空）。**正向对照（>0）是唯一发现手段**（坑 46）。
+* **openapi 组件名是 PascalCase、schema 模型名是 kebab-case**：按组件名去找模型名**全部落空** →
+  `O0` 报「解析到 0 个组件」。必须按 `$ref` **目标路径**反查（坑 72 的又一次实例：跨源审计先看「每个源解析到几条」）。
+* **自测里复用变量名会让有效守卫被判失败**：`out` 先存「合规夹具」输出，随后被「空夹具」覆盖 →
+  注入差集 `set(fails(out2)) - set(fails(out))` **恒为空** → 明明点名了 `D0` 也判 FAIL。基线变量必须另起名（坑 82 同族）。
+* **注入必须「语义真的变了」**：把 `import java.math.BigDecimal;` 改成 `...DoubleAdder;` —— `\bDouble\b` 无词边界 →
+  判据看不见、审计照样绿，看起来像「守卫失效」，其实是**注入没改变语义**（坑 90）。
+  同理 DDL 注入只替换首处时命中的是**文件头注释**，等于什么都没注入 → 必须替换**全部出现**。
+* **证据行自相矛盾必须改**：第一版客户端观察项先列出 `amount×3; cost_usd×2 …`，又写「客户端零处按金额语义声明字段」，
+  两句互相打脸（坑 12：证据文件不能骗人）→ 改成「19 处与 schema 一致 + 9 处 `total` 同名碰撞豁免」。
+
+### 本轮未做（纪律）
+* 未新增仓库工具（按作业要求 `missing=0` 只校验不改代码），抽查脚本与自测均落在 `$LOCALAPPDATA/Temp/`；
+* 未在同一个任务族内并发跑测试（单进程串行两轮，坑 11/20）；跑测试前确认无 `java.exe` 在跑、
+  `9223` 端口属他项目（hioas-aim 的 CDP，**只读观察，未触碰**）。
