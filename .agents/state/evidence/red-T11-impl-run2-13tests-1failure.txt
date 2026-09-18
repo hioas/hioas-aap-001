@@ -1,0 +1,407 @@
+[with-env] 已载入 E:\env\aap-server.env 变量：DB_HOST DB_PORT DB_NAME DB_TEST_NAME DB_USER DB_PASSWORD AAP_JWT_SECRET AAP_CREDENTIAL_AES_KEY SERVER_PORT AAP_SMS_EXPOSE_CODE LOG_DIR 
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/E:/workspaces/maven/apache-maven-3.8.6/lib/jansi-2.4.0.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper (file:/E:/workspaces/maven/apache-maven-3.8.6/lib/guava-25.1-android.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------------< com.hioas.aap:aap-server >----------------------
+[INFO] Building aap-server 1.0.0-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-resources-plugin:3.5.0:resources (default-resources) @ aap-server ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 5 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.15.0:compile (default-compile) @ aap-server ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- maven-resources-plugin:3.5.0:testResources (default-testResources) @ aap-server ---
+[INFO] Copying 1 resource from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.15.0:testCompile (default-testCompile) @ aap-server ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 31 source files with javac [debug parameters release 25] to target\test-classes
+[WARNING] /E:/workspaces/hioas/hioas-aap-001/aap-server/src/test/java/com/hioas/aap/coverage/EndpointCoverageTest.java:[70,28] org.springframework.web.servlet.mvc.method.RequestMappingInfo 中的 getPatternsCondition() 已过时, 且标记为待删除
+[WARNING] /E:/workspaces/hioas/hioas-aap-001/aap-server/src/test/java/com/hioas/aap/coverage/EndpointCoverageTest.java:[71,37] org.springframework.web.servlet.mvc.method.RequestMappingInfo 中的 getPatternsCondition() 已过时, 且标记为待删除
+[INFO] /E:/workspaces/hioas/hioas-aap-001/aap-server/src/test/java/com/hioas/aap/support/ApiTestBase.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /E:/workspaces/hioas/hioas-aap-001/aap-server/src/test/java/com/hioas/aap/support/ApiTestBase.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] 
+[INFO] --- maven-surefire-plugin:3.5.6:test (default-test) @ aap-server ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.hioas.aap.contract.ContractContractTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-09-18 09:37:52.082 INFO  [main] [] com.hioas.aap.contract.ContractContractTest - Starting ContractContractTest using Java 25.0.4 with PID 38668 (started by laitz in E:\workspaces\hioas\hioas-aap-001\aap-server)
+2026-09-18 09:37:52.091 INFO  [main] [] com.hioas.aap.contract.ContractContractTest - The following 1 profile is active: "test"
+2026-09-18 09:37:52.166 INFO  [background-preinit] [] org.hibernate.validator.internal.util.Version - HV000001: Hibernate Validator 9.1.3.Final
+2026-09-18 09:37:53.981 INFO  [main] [] org.springframework.boot.tomcat.TomcatWebServer - Tomcat initialized with port 0 (http)
+2026-09-18 09:37:53.998 INFO  [main] [] org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-auto-1"]
+2026-09-18 09:37:54.000 INFO  [main] [] org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2026-09-18 09:37:54.001 INFO  [main] [] org.apache.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-09-18 09:37:54.053 INFO  [main] [] org.springframework.boot.web.context.servlet.WebApplicationContextInitializer - Root WebApplicationContext: initialization completed in 1939 ms
+2026-09-18 09:37:54.395 INFO  [main] [] com.zaxxer.hikari.HikariDataSource - aap-pool - Starting...
+2026-09-18 09:37:54.555 INFO  [main] [] com.zaxxer.hikari.pool.HikariPool - aap-pool - Added connection org.postgresql.jdbc.PgConnection@45635ae1
+2026-09-18 09:37:54.557 INFO  [main] [] com.zaxxer.hikari.HikariDataSource - aap-pool - Start completed.
+2026-09-18 09:37:54.579 INFO  [main] [] org.flywaydb.core.FlywayExecutor - Database: jdbc:postgresql://localhost:5432/aap_server_test (PostgreSQL 18.6)
+2026-09-18 09:37:54.652 INFO  [main] [] org.flywaydb.core.internal.command.DbValidate - Successfully validated 4 migrations (execution time 00:00.027s)
+2026-09-18 09:37:54.684 INFO  [main] [] org.flywaydb.core.internal.command.DbMigrate - Current version of schema "public": 4
+2026-09-18 09:37:54.688 INFO  [main] [] org.flywaydb.core.internal.command.DbMigrate - Schema "public" is up to date. No migration necessary.
+2026-09-18 09:37:56.781 INFO  [main] [] org.springframework.boot.actuate.endpoint.web.EndpointLinksResolver - Exposing 3 endpoints beneath base path '/actuator'
+2026-09-18 09:37:56.870 INFO  [main] [] org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-auto-1"]
+2026-09-18 09:37:56.885 INFO  [main] [] org.springframework.boot.tomcat.TomcatWebServer - Tomcat started on port 51721 (http) with context path '/'
+2026-09-18 09:37:56.894 INFO  [main] [] com.hioas.aap.contract.ContractContractTest - Started ContractContractTest in 5.316 seconds (process running for 7.067)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (E:\workspaces\maven\repository\net\bytebuddy\byte-buddy-agent\1.18.11\byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-09-18 09:37:57.877 INFO  [http-nio-auto-1-exec-3] [] org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-18 09:37:57.877 INFO  [http-nio-auto-1-exec-3] [] org.springframework.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2026-09-18 09:37:57.878 INFO  [http-nio-auto-1-exec-3] [] org.springframework.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2026-09-18 09:37:58.107 INFO  [http-nio-auto-1-exec-3] [ba34de1e61ac4decba4fdb7c9cb694e6] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0090 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:37:58.303 INFO  [http-nio-auto-1-exec-1] [e96ae28e5b164100979ff092b86e13d4] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001708 account_id=458369556169822208
+2026-09-18 09:37:58.377 INFO  [http-nio-auto-1-exec-1] [e96ae28e5b164100979ff092b86e13d4] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369556169822208 actor=458369556169822208 summary=账号登录成功（role=SUPPLIER）
+2026-09-18 09:37:58.523 WARN  [http-nio-auto-1-exec-7] [1680f76da35e4fc38bc087f09148e93a] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1601 msg=合同状态非法流转（当前：PENDING_SIGN），供应商尚未签署或已确认 details=[]
+2026-09-18 09:37:58.571 INFO  [http-nio-auto-1-exec-8] [981946a2f0db4d16a5a84da6b4fccdd3] com.hioas.aap.support.AuditService - 审计 action=CONTRACT_SIGN target=contract#970002 actor=960001 summary=平台确认签署合同 HTTEST970002（SUPPLIER_SIGNED→SIGNED）
+2026-09-18 09:37:58.571 INFO  [http-nio-auto-1-exec-8] [981946a2f0db4d16a5a84da6b4fccdd3] com.hioas.aap.contract.ContractService - 合同确认签署 contract_no=HTTEST970002 actor=960001
+2026-09-18 09:37:58.605 WARN  [http-nio-auto-1-exec-9] [d94b3be7e2cc4ceca94755ecc30e9427] com.hioas.aap.common.GlobalExceptionHandler - 权限不足: Access Denied
+2026-09-18 09:37:58.706 INFO  [http-nio-auto-1-exec-4] [08bc9668c2104aafb70e257589b0f917] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0090 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:37:58.746 INFO  [http-nio-auto-1-exec-5] [6d82b6fc401f48768824315b22270d35] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001709 account_id=458369558061453312
+2026-09-18 09:37:58.752 INFO  [http-nio-auto-1-exec-5] [6d82b6fc401f48768824315b22270d35] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369558061453312 actor=458369558061453312 summary=账号登录成功（role=SUPPLIER）
+2026-09-18 09:37:58.911 INFO  [http-nio-auto-1-exec-3] [61560db5ff1e4b65a0c07f38dfca696f] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0091 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:37:58.958 INFO  [http-nio-auto-1-exec-1] [c3cec862dc044e7faa7e35b7725488d3] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001710 account_id=458369558954840064
+2026-09-18 09:37:58.961 INFO  [http-nio-auto-1-exec-1] [c3cec862dc044e7faa7e35b7725488d3] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369558954840064 actor=458369558954840064 summary=账号登录成功（role=SUPPLIER）
+2026-09-18 09:37:58.975 WARN  [http-nio-auto-1-exec-2] [bcb9b21c2a6245a2ac32c10bac1fc125] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1406 msg=合同不存在：970001 details=[]
+2026-09-18 09:37:58.989 WARN  [http-nio-auto-1-exec-7] [7cc5268df83141dea4128f745984a6d7] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1406 msg=合同不存在：999999999 details=[]
+2026-09-18 09:37:59.065 INFO  [http-nio-auto-1-exec-8] [edc68f415e784070bd3b7868b1087753] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0090 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:37:59.097 INFO  [http-nio-auto-1-exec-9] [30cbe3fd9435455598b2b64a8c0d53f1] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001711 account_id=458369559546236928
+2026-09-18 09:37:59.103 INFO  [http-nio-auto-1-exec-9] [30cbe3fd9435455598b2b64a8c0d53f1] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369559546236928 actor=458369559546236928 summary=账号登录成功（role=SUPPLIER）
+2026-09-18 09:37:59.127 INFO  [http-nio-auto-1-exec-5] [d12d11b951a94531b44e3e7fc0862035] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0091 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:37:59.157 INFO  [http-nio-auto-1-exec-6] [4caf4b4f588a44a2b3eed64545662172] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001712 account_id=458369559793700864
+2026-09-18 09:37:59.161 INFO  [http-nio-auto-1-exec-6] [4caf4b4f588a44a2b3eed64545662172] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369559793700864 actor=458369559793700864 summary=账号登录成功（role=SUPPLIER）
+2026-09-18 09:37:59.260 WARN  [http-nio-auto-1-exec-7] [896e24a31f524cb0bd84a6c9b6947270] com.hioas.aap.common.GlobalExceptionHandler - 权限不足: Access Denied
+2026-09-18 09:37:59.337 INFO  [http-nio-auto-1-exec-9] [7d7c46d149de4d0ead62acb6d62c7065] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0090 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:37:59.374 INFO  [http-nio-auto-1-exec-4] [b2849cd06e13492f8386c1d2cfba4289] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001713 account_id=458369560699670528
+2026-09-18 09:37:59.378 INFO  [http-nio-auto-1-exec-4] [b2849cd06e13492f8386c1d2cfba4289] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369560699670528 actor=458369560699670528 summary=账号登录成功（role=SUPPLIER）
+2026-09-18 09:37:59.413 WARN  [http-nio-auto-1-exec-6] [677f2059e99949d988cb36986b18afc0] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1701 msg=合同尚未签发（当前：CREATED），暂无合同文件 details=[]
+2026-09-18 09:37:59.442 INFO  [http-nio-auto-1-exec-3] [c195166b67cc41698c4c269de65a2a68] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0091 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:37:59.473 INFO  [http-nio-auto-1-exec-1] [1626f11313c34f78b64d01f4c141d1b8] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001714 account_id=458369561119100928
+2026-09-18 09:37:59.476 INFO  [http-nio-auto-1-exec-1] [1626f11313c34f78b64d01f4c141d1b8] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369561119100928 actor=458369561119100928 summary=账号登录成功（role=SUPPLIER）
+2026-09-18 09:37:59.493 WARN  [http-nio-auto-1-exec-2] [41c6a19c5d7045c28cab604807ca7710] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1406 msg=合同不存在：970003 details=[]
+2026-09-18 09:37:59.506 WARN  [http-nio-auto-1-exec-7] [5a961221d0044796b43cddaa7234248e] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1701 msg=合同尚未签发（当前：PENDING_SIGN），暂无合同文件 details=[]
+2026-09-18 09:37:59.587 INFO  [http-nio-auto-1-exec-8] [3ac1ca5442784a61b30dbe2a0afb6504] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0090 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:37:59.619 INFO  [http-nio-auto-1-exec-9] [5d4ee2e64264427d8cf37376278ff27c] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001715 account_id=458369561731469312
+2026-09-18 09:37:59.625 INFO  [http-nio-auto-1-exec-9] [5d4ee2e64264427d8cf37376278ff27c] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369561731469312 actor=458369561731469312 summary=账号登录成功（role=SUPPLIER）
+2026-09-18 09:37:59.658 WARN  [http-nio-auto-1-exec-5] [aac323bf830e4d59af107fa714baa5be] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1701 msg=合同尚未签发（当前：CREATED），不可签署 details=[]
+2026-09-18 09:37:59.678 WARN  [http-nio-auto-1-exec-6] [c5264f35c4a34a72a168a15003388309] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1001 msg=参数校验失败 details=[ApiErrorDetail[field=sign_method, reason=签署方式非法：PEN（可选 SMS/SEAL）]]
+2026-09-18 09:37:59.690 WARN  [http-nio-auto-1-exec-10] [e63f43352bdd470b85d0dd8803a14928] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1001 msg=参数校验失败 details=[ApiErrorDetail[field=smsCode, reason=短信签署需 6 位数字验证码]]
+2026-09-18 09:37:59.701 WARN  [http-nio-auto-1-exec-3] [37d845d01829467890be1ee9acd503e6] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1001 msg=参数校验失败 details=[ApiErrorDetail[field=smsCode, reason=短信签署需 6 位数字验证码]]
+2026-09-18 09:37:59.775 INFO  [http-nio-auto-1-exec-1] [48a17e5642ed408ab69748ea7feb5d75] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0090 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:37:59.807 INFO  [http-nio-auto-1-exec-2] [3c536e46529d4adabd7d03e8f409de7b] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001716 account_id=458369562519998464
+2026-09-18 09:37:59.813 INFO  [http-nio-auto-1-exec-2] [3c536e46529d4adabd7d03e8f409de7b] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369562519998464 actor=458369562519998464 summary=账号登录成功（role=SUPPLIER）
+2026-09-18 09:37:59.879 WARN  [http-nio-auto-1-exec-8] [6fff67deb9bd4899917af50c8dfe9196] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1001 msg=参数校验失败 details=[ApiErrorDetail[field=file_id, reason=合同文件必填]]
+2026-09-18 09:37:59.893 WARN  [http-nio-auto-1-exec-9] [b118ae0aee0e4dde93c43b3570fc25d7] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1001 msg=参数校验失败 details=[ApiErrorDetail[field=file_id, reason=合同文件不存在：888888888]]
+2026-09-18 09:37:59.905 WARN  [http-nio-auto-1-exec-4] [1311548e15874c02bc1563973099d1ee] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1001 msg=参数校验失败 details=[ApiErrorDetail[field=platform_fee_rate, reason=平台服务费率须在 [0,1] 之间：1.5]]
+2026-09-18 09:37:59.916 WARN  [http-nio-auto-1-exec-5] [8634e0b23cc94dad9039d03c45801fe8] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1001 msg=参数校验失败 details=[ApiErrorDetail[field=valid_to, reason=合同有效期结束必须晚于开始]]
+2026-09-18 09:37:59.924 WARN  [http-nio-auto-1-exec-6] [70d28acb709e44a6ad6aa0b176d5927b] com.hioas.aap.common.GlobalExceptionHandler - 权限不足: Access Denied
+2026-09-18 09:37:59.959 ERROR [http-nio-auto-1-exec-10] [6512d2aa159842aeb3ac9216468e72e9] com.hioas.aap.common.GlobalExceptionHandler - 未捕获异常，已按 E-2001 处理: org.springframework.dao.DataIntegrityViolationException: PreparedStatementCallback; SQL [update aap_contract
+   set status = 'PENDING_SIGN', file_id = ?, valid_from = ?, valid_to = ?,
+       cooperation_mode = ?, settlement_cycle = ?, platform_fee_rate = ?, currency = ?,
+       min_settlement_amount = ?, terms = cast(? as jsonb), sign_deadline = ?,
+       updated_at = now(), updated_by = ?, version = version + 1
+ where id = ? and status = 'CREATED' and deleted = false
+]; ERROR: null value in column "currency" of relation "aap_contract" violates not-null constraint
+  详细：Failing row contains (970001, HTTEST970001, null, 458369562549358592, 渠道合作合同 970001, PENDING_SIGN, OFFLINE, null, 2026-10-01 08:00:00+08, 2027-09-30 08:00:00+08, null, null, null, null, null, null, null, null, null, 970002, null, null, null, 2026-09-18 09:37:59.833149+08, 2026-09-18 09:37:59.948897+08, null, 960002, f, 1).
+org.springframework.dao.DataIntegrityViolationException: PreparedStatementCallback; SQL [update aap_contract
+   set status = 'PENDING_SIGN', file_id = ?, valid_from = ?, valid_to = ?,
+       cooperation_mode = ?, settlement_cycle = ?, platform_fee_rate = ?, currency = ?,
+       min_settlement_amount = ?, terms = cast(? as jsonb), sign_deadline = ?,
+       updated_at = now(), updated_by = ?, version = version + 1
+ where id = ? and status = 'CREATED' and deleted = false
+]; ERROR: null value in column "currency" of relation "aap_contract" violates not-null constraint
+  详细：Failing row contains (970001, HTTEST970001, null, 458369562549358592, 渠道合作合同 970001, PENDING_SIGN, OFFLINE, null, 2026-10-01 08:00:00+08, 2027-09-30 08:00:00+08, null, null, null, null, null, null, null, null, null, 970002, null, null, null, 2026-09-18 09:37:59.833149+08, 2026-09-18 09:37:59.948897+08, null, 960002, f, 1).
+	at org.springframework.jdbc.support.SQLStateSQLExceptionTranslator.doTranslate(SQLStateSQLExceptionTranslator.java:140)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:102)
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:111)
+	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1549)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:689)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:966)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:1010)
+	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:1020)
+	at com.hioas.aap.contract.ContractService.issue(ContractService.java:263)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:359)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:190)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:158)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:133)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:371)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:130)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:719)
+	at com.hioas.aap.contract.ContractService$$SpringCGLIB$$0.issue(<generated>)
+	at com.hioas.aap.contract.AdminContractController.issue(AdminContractController.java:56)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:359)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:190)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:158)
+	at org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor.proceed(AuthorizationManagerBeforeMethodInterceptor.java:271)
+	at org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor.attemptAuthorization(AuthorizationManagerBeforeMethodInterceptor.java:266)
+	at org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor.invoke(AuthorizationManagerBeforeMethodInterceptor.java:197)
+	at org.springframework.security.config.annotation.method.configuration.DeferringMethodInterceptor.invoke(DeferringMethodInterceptor.java:44)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:719)
+	at com.hioas.aap.contract.AdminContractController$$SpringCGLIB$$0.issue(<generated>)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:252)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:184)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:934)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:853)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:86)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:963)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:866)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1000)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:903)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:649)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:874)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:710)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:132)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:59)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$2(FilterChainProxy.java:235)
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:491)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:353)
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:84)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:131)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:132)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:86)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at com.hioas.aap.iam.JwtAuthenticationFilter.doFilterInternal(JwtAuthenticationFilter.java:76)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:336)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:355)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:272)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at com.hioas.aap.support.idempotency.IdempotencyFilter.doFilterInternal(IdempotencyFilter.java:69)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at com.hioas.aap.config.CachingWrapperFilter.doFilterInternal(CachingWrapperFilter.java:41)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:110)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:199)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at com.hioas.aap.common.TraceIdFilter.doFilterInternal(TraceIdFilter.java:38)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:165)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:77)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:535)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:86)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:71)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:347)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:406)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:71)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:1307)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:2036)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:74)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:949)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:483)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:74)
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+Caused by: org.postgresql.util.PSQLException: ERROR: null value in column "currency" of relation "aap_contract" violates not-null constraint
+  详细：Failing row contains (970001, HTTEST970001, null, 458369562549358592, 渠道合作合同 970001, PENDING_SIGN, OFFLINE, null, 2026-10-01 08:00:00+08, 2027-09-30 08:00:00+08, null, null, null, null, null, null, null, null, null, 970002, null, null, null, 2026-09-18 09:37:59.833149+08, 2026-09-18 09:37:59.948897+08, null, 960002, f, 1).
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:197)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:158)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$0(JdbcTemplate.java:971)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:670)
+	... 154 more
+2026-09-18 09:38:00.055 INFO  [http-nio-auto-1-exec-3] [3d9aae70426e4cfc90c7afe4546be4a8] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0090 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:38:00.094 INFO  [http-nio-auto-1-exec-1] [d8e2732e20bc4c069b7a397075ee29d0] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001717 account_id=458369563715375104
+2026-09-18 09:38:00.099 INFO  [http-nio-auto-1-exec-1] [d8e2732e20bc4c069b7a397075ee29d0] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369563715375104 actor=458369563715375104 summary=账号登录成功（role=SUPPLIER）
+2026-09-18 09:38:00.169 INFO  [http-nio-auto-1-exec-7] [49f8df2f90af4de7a1a9153772956ff4] com.hioas.aap.support.AuditService - 审计 action=CONTRACT_SIGN target=contract#970002 actor=960001 summary=签发合同 HTTEST970002（CREATED→PENDING_SIGN）
+2026-09-18 09:38:00.170 INFO  [http-nio-auto-1-exec-7] [49f8df2f90af4de7a1a9153772956ff4] com.hioas.aap.contract.ContractService - 合同签发 contract_no=HTTEST970002 file_id=970001 actor=960001
+2026-09-18 09:38:00.222 INFO  [http-nio-auto-1-exec-8] [16b0d6c369fe4f008a3eecd82a0d6321] com.hioas.aap.support.AuditService - 审计 action=CONTRACT_SIGN target=contract#970002 actor=458369563715375104 summary=供应商签署合同 HTTEST970002（SMS）
+2026-09-18 09:38:00.222 INFO  [http-nio-auto-1-exec-8] [16b0d6c369fe4f008a3eecd82a0d6321] com.hioas.aap.contract.ContractService - 合同签署 contract_no=HTTEST970002 method=SMS actor=458369563715375104
+2026-09-18 09:38:00.266 INFO  [http-nio-auto-1-exec-4] [b3c2b295fed44c28bf83a33e0a77ec4f] com.hioas.aap.support.AuditService - 审计 action=CONTRACT_SIGN target=contract#970002 actor=960001 summary=平台确认签署合同 HTTEST970002（SUPPLIER_SIGNED→SIGNED）
+2026-09-18 09:38:00.267 INFO  [http-nio-auto-1-exec-4] [b3c2b295fed44c28bf83a33e0a77ec4f] com.hioas.aap.contract.ContractService - 合同确认签署 contract_no=HTTEST970002 actor=960001
+2026-09-18 09:38:00.297 WARN  [http-nio-auto-1-exec-6] [85bdd35c91f1460dbdf2e774241f1ba8] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1601 msg=合同状态非法流转（当前：SIGNED），不可重复签署 details=[]
+2026-09-18 09:38:00.386 INFO  [http-nio-auto-1-exec-10] [30e0a872936b4fb282e8c3e45ec61747] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0090 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:38:00.419 INFO  [http-nio-auto-1-exec-3] [09a8a96c1091449faf7d2c7fe17c826b] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001718 account_id=458369565078523904
+2026-09-18 09:38:00.423 INFO  [http-nio-auto-1-exec-3] [09a8a96c1091449faf7d2c7fe17c826b] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369565078523904 actor=458369565078523904 summary=账号登录成功（role=SUPPLIER）
+2026-09-18 09:38:00.485 INFO  [http-nio-auto-1-exec-2] [22d157c0007241dd91034ae5fe456818] com.hioas.aap.support.AuditService - 审计 action=CONTRACT_SIGN target=contract#970002 actor=458369565078523904 summary=供应商签署合同 HTTEST970002（SEAL）
+2026-09-18 09:38:00.485 INFO  [http-nio-auto-1-exec-2] [22d157c0007241dd91034ae5fe456818] com.hioas.aap.contract.ContractService - 合同签署 contract_no=HTTEST970002 method=SEAL actor=458369565078523904
+2026-09-18 09:38:00.511 INFO  [http-nio-auto-1-exec-7] [c98895e9977f44f79044f9db357a93c9] com.hioas.aap.support.idempotency.IdempotencyFilter - 幂等重放 key=con04-970002 endpoint=POST /api/v1/contracts/970002/sign
+2026-09-18 09:38:00.615 INFO  [http-nio-auto-1-exec-8] [cff730265a40492aae1bcc3d72737828] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0090 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:38:00.661 INFO  [http-nio-auto-1-exec-9] [4ad774d115f9443fbfc6d468c8334b22] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001719 account_id=458369566085156864
+2026-09-18 09:38:00.667 INFO  [http-nio-auto-1-exec-9] [4ad774d115f9443fbfc6d468c8334b22] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369566085156864 actor=458369566085156864 summary=账号登录成功（role=SUPPLIER）
+2026-09-18 09:38:00.695 INFO  [http-nio-auto-1-exec-5] [7a73cdc95e4d42f2a50a65fb513c7de4] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0091 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:38:00.722 INFO  [http-nio-auto-1-exec-6] [5d174f57987a408db0bf489f4495801a] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001720 account_id=458369566361980928
+2026-09-18 09:38:00.724 INFO  [http-nio-auto-1-exec-6] [5d174f57987a408db0bf489f4495801a] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369566361980928 actor=458369566361980928 summary=账号登录成功（role=SUPPLIER）
+[ERROR] Tests run: 9, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 10.27 s <<< FAILURE! -- in com.hioas.aap.contract.ContractContractTest
+[ERROR] com.hioas.aap.contract.ContractContractTest.issueValidatesBody -- Time elapsed: 0.264 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[{"code":"E-2001","message":"内部错误","data":null,"traceId":"6512d2aa159842aeb3ac9216468e72e9","details":null}] 
+expected: 200
+ but was: 500
+	at com.hioas.aap.contract.ContractContractTest.issueValidatesBody(ContractContractTest.java:445)
+
+[INFO] Running com.hioas.aap.settlement.PaymentContractTest
+2026-09-18 09:38:00.838 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.settlement.PaymentContractTest]: PaymentContractTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-18 09:38:00.865 INFO  [main] [] org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.hioas.aap.AapServerApplication for test class com.hioas.aap.settlement.PaymentContractTest
+2026-09-18 09:38:00.867 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.settlement.PaymentContractTest]: PaymentContractTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-18 09:38:00.868 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.support.ApiTestBase]: ApiTestBase does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-18 09:38:00.869 INFO  [main] [] org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.hioas.aap.AapServerApplication for test class com.hioas.aap.settlement.PaymentContractTest
+2026-09-18 09:38:00.968 INFO  [http-nio-auto-1-exec-4] [30728ce8d75f48429c976e86786f49d0] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0092 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:38:00.998 INFO  [http-nio-auto-1-exec-5] [dd55056057324f89a98f4f4dd0a3e564] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001721 account_id=458369567523803136
+2026-09-18 09:38:01.005 INFO  [http-nio-auto-1-exec-5] [dd55056057324f89a98f4f4dd0a3e564] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369567523803136 actor=458369567523803136 summary=账号登录成功（role=SUPPLIER）
+2026-09-18 09:38:01.029 INFO  [http-nio-auto-1-exec-10] [a7cee15d044243b4a1eb6e3fcb472eb6] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0093 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:38:01.056 INFO  [http-nio-auto-1-exec-3] [ca7260fe3a594482b7a28cf466d32839] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001722 account_id=458369567767072768
+2026-09-18 09:38:01.060 INFO  [http-nio-auto-1-exec-3] [ca7260fe3a594482b7a28cf466d32839] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369567767072768 actor=458369567767072768 summary=账号登录成功（role=SUPPLIER）
+2026-09-18 09:38:01.170 WARN  [http-nio-auto-1-exec-9] [d3a76b1729a54a0399bbf22245ff20eb] com.hioas.aap.common.GlobalExceptionHandler - 权限不足: Access Denied
+2026-09-18 09:38:01.238 INFO  [http-nio-auto-1-exec-5] [1f60737d4251416d9535c1609586918f] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0092 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:38:01.276 INFO  [http-nio-auto-1-exec-6] [d5bcf2cfb8914b5da5feceb23946878b] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001723 account_id=458369568668848128
+2026-09-18 09:38:01.281 INFO  [http-nio-auto-1-exec-6] [d5bcf2cfb8914b5da5feceb23946878b] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369568668848128 actor=458369568668848128 summary=账号登录成功（role=SUPPLIER）
+2026-09-18 09:38:01.340 INFO  [http-nio-auto-1-exec-3] [9353de32c0a349a086541b3f2b4ec32d] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0093 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:38:01.381 INFO  [http-nio-auto-1-exec-1] [aa65133c54314e678a78a61793278055] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001724 account_id=458369569130221568
+2026-09-18 09:38:01.384 INFO  [http-nio-auto-1-exec-1] [aa65133c54314e678a78a61793278055] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369569130221568 actor=458369569130221568 summary=账号登录成功（role=SUPPLIER）
+2026-09-18 09:38:01.438 WARN  [http-nio-auto-1-exec-8] [795ee97be62b4837966c12af42ed146d] com.hioas.aap.common.GlobalExceptionHandler - 权限不足: Access Denied
+2026-09-18 09:38:01.508 INFO  [http-nio-auto-1-exec-4] [acc2044a0cb2472d9c27ee268674d7f7] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0092 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:38:01.548 INFO  [http-nio-auto-1-exec-5] [40de84a4888d4d65acf29db538815a10] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001725 account_id=458369569813893120
+2026-09-18 09:38:01.556 INFO  [http-nio-auto-1-exec-5] [40de84a4888d4d65acf29db538815a10] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369569813893120 actor=458369569813893120 summary=账号登录成功（role=SUPPLIER）
+2026-09-18 09:38:01.584 INFO  [http-nio-auto-1-exec-10] [2eeb84d0069a4952891e79e5ee4fa5ea] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0093 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:38:01.607 INFO  [http-nio-auto-1-exec-3] [748d55294d61460aba768625bbd9be87] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001726 account_id=458369570086522880
+2026-09-18 09:38:01.610 INFO  [http-nio-auto-1-exec-3] [748d55294d61460aba768625bbd9be87] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369570086522880 actor=458369570086522880 summary=账号登录成功（role=SUPPLIER）
+2026-09-18 09:38:01.808 INFO  [http-nio-auto-1-exec-9] [d7418bd0ef3d4cd5bf57b884257c794a] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****0092 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-18 09:38:01.838 INFO  [http-nio-auto-1-exec-4] [c802bf59453e47aa84f98f4e53618cfd] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-001727 account_id=458369571042824192
+2026-09-18 09:38:01.842 INFO  [http-nio-auto-1-exec-4] [c802bf59453e47aa84f98f4e53618cfd] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458369571042824192 actor=458369571042824192 summary=账号登录成功（role=SUPPLIER）
+2026-09-18 09:38:01.896 WARN  [http-nio-auto-1-exec-6] [409cc8d147354299b2461dc6472e4277] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1701 msg=合同未签署（关联合同状态：PENDING_SIGN），禁止确认打款 details=[]
+2026-09-18 09:38:01.936 INFO  [http-nio-auto-1-exec-10] [15e2a4be8f2848bd92d723dcd5fc3325] com.hioas.aap.support.AuditService - 审计 action=PAYMENT_CONFIRM target=payment#980005 actor=961001 summary=确认打款（金额 100.000000 USD，合同 HTTEST980004）
+2026-09-18 09:38:01.936 INFO  [http-nio-auto-1-exec-10] [15e2a4be8f2848bd92d723dcd5fc3325] com.hioas.aap.settlement.SettlementService - 确认打款 payment_id=980005 amount=100.000000 actor=961001
+2026-09-18 09:38:01.953 WARN  [http-nio-auto-1-exec-3] [cfb1741d007c48ccbdec8582e1106984] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1601 msg=打款状态非法流转（当前：CONFIRMED），仅「已打款待确认」可确认 details=[]
+2026-09-18 09:38:01.961 WARN  [http-nio-auto-1-exec-1] [dcdd1f9620334efa8c29ca978060dbcb] com.hioas.aap.common.GlobalExceptionHandler - 业务失败 code=E-1406 msg=打款记录不存在：999999999 details=[]
+2026-09-18 09:38:01.966 WARN  [http-nio-auto-1-exec-2] [a1a0370310254e06918ae49bb8800140] com.hioas.aap.common.GlobalExceptionHandler - 权限不足: Access Denied
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.132 s -- in com.hioas.aap.settlement.PaymentContractTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   ContractContractTest.issueValidatesBody:445 [{"code":"E-2001","message":"内部错误","data":null,"traceId":"6512d2aa159842aeb3ac9216468e72e9","details":null}] 
+expected: 200
+ but was: 500
+[INFO] 
+[ERROR] Tests run: 13, Failures: 1, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  18.173 s
+[INFO] Finished at: 2026-09-18T09:38:02+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project aap-server: There are test failures.
+[ERROR] 
+[ERROR] See E:\workspaces\hioas\hioas-aap-001\aap-server\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

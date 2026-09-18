@@ -317,20 +317,65 @@
 | D-AUDIT-02 | 领取使报价单进入 `REVIEWING` 的审计借用 `QUOTE_SAVE`，原因写进 summary | 同上，但「状态流转必须留痕」（A13）不能省 |
 | D-API-11 | `GET /admin/reviews/records` 返回 `{items:[ReviewRecord]}`（非分页、无 page meta） | 清单该行如此定义 |
 
+## R13 · T11 合同/打款/结算（CON-01…04、PAY-01、ADM-CT01…03、ADM-PAY01…03，11/11 已注册）
+
+- 红基线：`.agents/state/evidence/red-T11.txt` —— 13 例 **运行时红**（用例只引用既有类，全部真跑），
+  失败面是「路由未注册」（`/contracts*`、`/payments*`、`/admin/contracts*`、`/admin/payments*`、`/admin/settlements`）。
+  取证方式：先写用例 → 落盘红；再把四个控制器**临时移出源码树**复跑取证（服务层留原位仍可编译），
+  取完立即还原并 `ls` 核对文件回位——红基线是真实跑出来的，不是事后补的说明。
+- 绿：`.agents/state/evidence/green-T11.txt`（**13/13，BUILD SUCCESS**）；全量两轮
+  `green-T11-full-164tests-1expected-coverage-red-run{1,2}.txt`（164 例，唯一红项仍是覆盖门禁）。
+- 覆盖：`total=90 / implemented=65 / missing=25`（T11 11/11 ✅，missing 36 → 25）。
+- 交付：`com.hioas.aap.contract`（`ContractViews`、`ContractService`、`ContractSignEntity` + `Mapper`、
+  `ContractController`、`AdminContractController`）、`com.hioas.aap.settlement`
+  （`PaymentRecordEntity`/`SettlementStatementEntity`/`SettlementLineEntity` + Mapper、`PaymentViews`、
+  `SettlementService`、`PaymentController`、`AdminPaymentController`）；用例 13 例
+  （`ContractContractTest` 9 / `PaymentContractTest` 4）。
+- 状态机（实现即契约）：`CREATED --ADM-CT02 issue--> PENDING_SIGN --CON-04 sign--> SUPPLIER_SIGNED
+  --ADM-CT03 confirm-sign--> SIGNED`；流转一律条件 UPDATE（并发/重复操作只能一方成功 → 409 E-1601/E-1701）。
+  AC-40「未签署禁打款」落在 ADM-PAY02：合同非 `SIGNED` → 409 E-1701 且打款状态/确认人不变。
+
+### 本轮踩坑（三条，均为真返工）
+
+1. **「可选字段」写库不能直接 `set col = ?`**：ADM-CT02 用 `currency = ?`，请求省略 `currency` 时传 null，
+   撞 `aap_contract.currency NOT NULL` → HTTP 只见 **500 E-2001**（根因只在服务端日志的
+   `null value in column "currency" ... violates not-null constraint` 那一行）。规则：**签发/补全是 coalesce 语义**
+   —— 未提供的字段一律 `coalesce(?, 原列)` 保持原值，不做静默清空；用例补「省略 currency 后仍为 USD」钉住该缺陷。
+2. **同一手机号在同一用例内二次 `POST /auth/sms/send` 会被 60 秒重发间隔挡下（E-1903）**：6 个用例在权限断言里
+   又调了一次 `token(PHONE)` → 直接红。规则：**一个用例内认证令牌只取一次**并复用
+   （测试库每例 `truncateAll()` 会清掉 `aap_auth_token`，令牌不能跨用例缓存）。
+3. **幂等重放的响应体不能逐字比较**：`aap_idempotency_record.response_body` 是 **jsonb**，PostgreSQL 会重排键序
+   并加空白 → 逐字比较必红。规则：幂等断言按 **JSON 树**比较（`JsonNode` 相等），语义不变、形状更稳；
+   「同键只落一条签署记录」的断言保留。
+   另有一处**测试期望写错**：`total=2, pageSize=1, page=2` 应回 1 条而不是 0 条（改的是测试期望，不是实现），
+   并在越界页 `page=3` 上补空集断言。
+
+### 本轮偏差表
+
+| 编号 | 内容 | 理由 |
+|---|---|---|
+| D-API-12 | CON-03 `url` 回文件资产的 `file_key`（存储键），非限时签名 URL | 对象存储签名未接线（同 RPT-04 PDF 未接线口径）；接线后替换 |
+| D-API-13 | 签发（issue）的审计动作复用 `CONTRACT_SIGN` + summary 写明「签发」 | `AuditAction` 枚举由冻结清单生成、无 `CONTRACT_ISSUE`；扩枚举=改契约（硬约束 1） |
+| D-API-14 | CON-04 的 `smsCode` 只校验 6 位数字格式，不做真实短信核验 | 合同签署短信通道未接线，清单亦无发送端点；不臆造核验路径（待拍板） |
+| D-API-15 | 越权/不存在统一 404 `E-1406`；`E-1701` 只用于「合同状态非法」（未签发/未签署禁打款） | 清单把 `E-1701` 挂在 CON-02/03/04 上，但错误码语义是状态类；资源不存在用 404 更不易泄露存在性 |
+| D-PAY-01 | 钱包三项 = 互斥三态：`pending_settlement`=UNSETTLED、`available_balance`=PAYMENT_RECORDED、`total_settled`=CONFIRMED（VOID 不计） | 清单标注「约定，无 PRD 依据」；三态互斥避免重复计数，合计=全部有效打款金额 |
+| D-STATE-04 | 签署完成后不推进 `aap_quote.status`（停留 APPROVED） | T11 范围提到「上架 PUBLISHED」，但冻结清单内无对应端点、枚举里也无 `PUBLISHED` → 不臆造（待拍板） |
+
 ## 未决与下一步
 
-- 上一轮已完成：**T10 审核**（R12，5/5）。
-- 下一轮：**T11 合同/打款/结算**（CON-01…04、PAY-01、ADM-CT01…03、ADM-PAY01…03，11 条）——
-  合同实体与审核通过后的生成链本轮已就位（`aap_contract` + `ContractEntity`），T11 只需补签发/签署/
-  打款/结算台账与状态流转；随后 **T13 站内信/审计**（3 条）→ **T14 同步与配置**（22 条，依赖 T09/T12）。
-- **待拍板（本轮新增，不阻塞现有代码可用）**
-  1. **D-API-05**：AC-45 的 `PARTIAL_CACHE` 是否要纳入 `CacheParseStatus` 枚举？纳入即需改生成器 + 重生成 schema。
-  2. **D-API-04**：成本构成按 token 类型的拆解口径（小时表只有总额）——是否需要新增按类型的金额列？
-  3. **D-USAGE-01**：真实 new-api 用量日志源（表 or HTTP）契约未冻结 → T14 接入前需要定契约。
-  4. **D-API-03**：`docs/api/接口字段级schema.md` §2 的 `{list}` 需回改为 `{items}`（文档口径统一）。
-- 剩余任务：T11 合同/打款/结算（11）、T13 站内信/审计（3）、T14 同步与配置（22）、
-  T15 端到端联调与容器化交付（`docs/backend/03-任务与TDD计划.md` §1 为完整清单）。
-- 覆盖门禁纪律：`EndpointCoverageTest` 在 36 条未注册期间**必然红**，它是「还剩多少没落地」的仪表；
+- 上一轮已完成：**T11 合同/打款/结算**（R13，11/11）。
+- 下一轮：**T13 站内信/审计**（NTF-01/02、ADM-A01，3 条）→ **T14 同步与配置/渠道/供应商管理**
+  （22 条，依赖 T09/T12）。
+- **待拍板（本轮新增）**
+  1. **D-API-12**：对象存储签名/限时 URL 的接线方式（合同 PDF 与报告 PDF 是同一问题）。
+  2. **D-API-14**：合同短信签署是否走真实短信核验（若走，需先把「合同签署验证码发送」端点写进清单再实现）。
+  3. **D-STATE-04**：「上架 PUBLISHED」由哪个端点触发、`aap_quote` 何时转 `CONVERTED`（清单未定义）。
+  4. **D-PAY-01**：钱包三项口径需产品确认（清单自述无 PRD 依据）。
+- **待拍板（沿用）**：D-API-05（`PARTIAL_CACHE` 是否入枚举）、D-USAGE-01（new-api 用量日志源契约）、
+  D-API-03（`docs/api/接口字段级schema.md` §2 的 `{list}` → `{items}` 回改）。
+- 剩余任务：T13 站内信/审计（3）、T14 同步与配置（22）、T15 端到端联调与容器化交付
+  （`docs/backend/03-任务与TDD计划.md` §1 为完整清单）。
+- 覆盖门禁纪律：`EndpointCoverageTest` 在 25 条未注册期间**必然红**，它是「还剩多少没落地」的仪表；
   每轮证据只允许写「除门禁外全绿 + missing 下降」，禁止写「全量全绿」。
 - **待前端处理（O-01）**：`aap-client/src/utils/report-model.ts:51` 兜底免责声明含 R-26 禁用字样，建议改为与
   服务端 `ReportService.DISCLAIMER` 同文案。
