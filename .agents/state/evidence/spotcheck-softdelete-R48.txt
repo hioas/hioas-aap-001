@@ -1,0 +1,141 @@
+== R48 抽查：软删除（soft delete）语义一致性 —— 第二十二类可审计不变量 ==
+（巡检轮：missing=0 → 只校验不改代码；抽查脚本落在 Temp，未新增仓库工具）
+
+为什么两套门禁都看不见：
+  * 契约测试只读响应 JSON Schema（schema 里没有 deleted / SQL / 部分索引谓词）；
+  * 覆盖门禁只比「HTTP 方法 + 路径」注册表；
+  * openapi 与客户端 TS 不被任何测试读取或执行。
+  → 唯一索引漏写 `where deleted = false`（软删行仍占唯一键）、ORM 实体漏继承 BaseEntity
+    （逻辑删除过滤失效）、手写 JdbcTemplate SQL 漏过滤 deleted（软删行泄漏进列表/详情）、
+    join 侧漏过滤（软删行仍被关联）—— 以上 204 例全绿也完全看不见。
+
+真源（逐处比对）：
+  D = aap-server/src/main/resources/db/migration/V1__baseline.sql（deleted 列 / unique index 的 where 谓词）
+  E = docs/backend/01-ER数据模型.md（「软删除」行、「业务唯一索引一律带 where deleted = false」）
+  I = aap-server/src/main/java/**/*.java（@Table 实体是否继承 BaseEntity；手写 SQL 的 from/join 与过滤谓词）
+  O = docs/backend/openapi.yaml（信息项：是否对外暴露 deleted）
+
+脚本纪律：只读、零写副作用（脚本内含真实仓库关键文件 md5 前后比对）；每个解析器配 `> 0` 正向对照。
+
+------------------------------------------------------------------ 实测数据（解析正向对照）
+A0a DDL create table 解析数 = 54        A0b unique index 解析数 = 42
+A0c Java 含 from aap_ 的 SQL 解析数 = 62  A0d ER 规则行数 = 2   A0e 含 deleted 列的表数 = 54
+A2a @Table 实体解析数 = 34              A3a 已过滤条数 = 58   A4a join 目标解析数 = 15
+（任一为 0 即判解析器失效而不是「零漂移」——坑 46/75/98）
+
+------------------------------------------------------------------ 零漂移项（PASS）
+* A2s 未继承 BaseEntity 的 @Table 实体 = 0 条（34/34 继承 BaseEntity → 全局逻辑删除配置
+  `mybatis-flex.global-config.logic-delete-column=deleted` 对全部实体生效）。
+* A3 已过滤 58 条：手写 SQL 里引用「有 deleted 列的表」的查询链，绝大多数为
+  `where deleted = false`（或 `<别名>.deleted = false`，主表作用域判据）。
+* B1 openapi 中 `deleted:` 属性出现 0 次（契约不暴露软删标记，符合预期）。
+
+------------------------------------------------------------------ 发现分级（诚实标注：哪些是真缺陷、哪些是判据过宽、哪些需人拍板）
+【A1 · 5 条 = 文档一致性项 + 潜在陷阱，当前不可达 → 列待拍板】
+  uq_challenge_code(aap_provider_challenge) / uq_job_no(aap_detection_job) /
+  uq_quote_no(aap_quote) / uq_sync_idempotency(aap_sync_task) / uq_usage_hourly(aap_usage_hourly)
+  与 ER §「业务唯一索引一律带 where deleted = false」不符（无部分索引谓词）。
+  可达性核查（不是猜）：全仓库软删写路径只有 2 处 ——
+    `DetectionConfigService:180 set deleted = true`（表 aap_detection_config，其唯一索引**带**谓词）
+    `ProviderService:195 qualificationMapper.deleteById(...)`（表 aap_provider_qualification，无唯一索引）
+  => 上述 5 张表当前**没有任何代码路径会写入 deleted = true**（QT-04 作废 = status→VOID，代码注释明写
+     「作废 ≠ 软删除」，不置 deleted）→ 现在无实际影响；一旦将来给这些表加软删，
+     被删行会永久占用唯一键（job_no/quote_no 重提直接撞唯一索引 → 500 E-2001）。
+  待拍板：给 5 个索引补 `where deleted = false`（改 V 补丁），还是显式扩白名单（需写明理由）。
+  白名单守卫：A1w = 3 条（uq_auth_jti / uq_outbox_event_id / uq_idempotency_key，均为追加写/不可变表），
+  A1c 守卫「白名单条数 ≤ 3」本轮为 3 ≤ 3 通过 —— 再放宽就是把规则架空（坑 57/68）。
+
+【A4 · 原始 12 条 / 去重 6 条 = join 侧未过滤 deleted（低风险健壮性项）】
+  ContractService:44（join aap_quote q、join aap_provider p）
+  ReviewService:49（join aap_quote q、join aap_provider p）
+  SettlementService:35 / :166（join aap_contract c）
+  （原始 12 条 = 同一常量 SELECT 被多个使用点各自判定 → 按「文件:行 + 表 + 别名」去重后 6 条）
+  影响面：软删的 quote/provider/contract 仍会被 join 出来展示（读侧）。可达性同 A1：当前无软删路径 → 低风险。
+  注：本判据按**主表作用域**判定（`<主表别名>.deleted = false` 或未限定），上一版把 join 谓词
+  `q.deleted = false` 当成主表过滤 → 假 PASS，已在自测中修掉（坑 44 同族：同一函数内两种写法）。
+
+【A3 · 1 条 = 判据过宽导致的假发现（不是缺陷；修的是判据，不是期望值 —— 坑 82）】
+  QuoteService:561 的 `(select id from aap_price_time_rule where item_id = ?)` 位于
+  `segmentMapper.deleteByQuery(QueryWrapper... where time_rule_id in (子查询))` —— 这是**删除**语句里的子查询，
+  不是读路径；子查询即使命中已软删规则也无害。判据「含 from 且未过滤即 FAIL」对 delete 语境过宽，
+  故本条标为 INFO 级假发现（不改代码）。
+
+【A3i · 3 条未能静态判定 = 人工核对结论：已过滤 / 属豁免】
+  ContractService:69（SELECT 常量）与 :134（count SQL）：过滤条件经形参 `baseWhere` 传入
+    （`new StringBuilder(baseWhere)`），静态回查追不到形参 —— 人工核对两个调用点
+    （listForProvider `" where c.deleted = false and c.provider_id = ?"`、
+      listForAdmin `" where c.deleted = false"`）**都带过滤** → 解析器局限，非漂移。
+  NotificationService:139：`select read_at from aap_notification where id = ?`（无 deleted 过滤），
+    位于 markRead：**同方法内**先用条件 UPDATE 校验（`... and read_at is null and deleted = false`）再按 id 读回，
+    属「已校验后读回」豁免；记信息项（若将来该方法被复用需重新评估）。
+
+------------------------------------------------------------------ 判别力自测
+`--selftest` 33/33 全 PASS（rc=0）：合规夹具 FAIL=0 正向对照；注入 A1/A2/A3/A3b/A4 各**恰好新增**
+点名断言（按断言 token 比对，坑 82/93/103）；空夹具 A0a…A4a 逐条点名变红（坑 75/98）；
+注入锚点命中断言（坑 66/94）；真实仓库关键文件 md5 前后全等（零写副作用）。
+自测自身返工 4 处（均先怀疑解析器/夹具，后改判据）：① 白名单按表名做键 → uq_outbox_event_id 被误判漂移；
+② `where` 片段变量名与 SQL 关键字同名，先按关键字跳过 → 假 FAIL；③ 标识符回查在 SQL 字面量内命中
+（`p.id = ?`）→ 假 PASS；④ 常量 SELECT 的 join 谓词被当成主表过滤 → 假 PASS。
+另：自测脚本本体与夹具目录分离（同目录时自测的清理步骤把脚本自己删掉，症状 = 后续补丁报 Failed to read file）。
+
+------------------------------------------------------------------ 原始输出（真仓库只读抽查，rc=1 = 存在上述 FAIL 明细）
+=== R48 抽查：软删除语义一致性（第二十二类可审计不变量）· root=E:/workspaces/hioas/hioas-aap-001 ===
+[PASS] A0a DDL create table 解析数 = 54（必须 > 0）
+[PASS] A0b DDL unique index 解析数 = 42（必须 > 0）
+[PASS] A0c Java 含 from aap_ 的 SQL 解析数 = 62（必须 > 0）
+[PASS] A0d ER 文档「业务唯一索引」规则行数 = 2（必须 > 0）
+[PASS] A0e DDL 含 deleted 列的表数 = 54（必须 > 0）
+[INFO] A1w uq_auth_jti on aap_auth_token：白名单例外（追加写令牌表 aap_auth_token，吊销走 status，不做软删）
+[FAIL] A1 uq_challenge_code on aap_provider_challenge：unique index 无 `where deleted = false`（谓词=无）
+[FAIL] A1 uq_job_no on aap_detection_job：unique index 无 `where deleted = false`（谓词=无）
+[FAIL] A1 uq_quote_no on aap_quote：unique index 无 `where deleted = false`（谓词=无）
+[FAIL] A1 uq_sync_idempotency on aap_sync_task：unique index 无 `where deleted = false`（谓词=无）
+[FAIL] A1 uq_usage_hourly on aap_usage_hourly：unique index 无 `where deleted = false`（谓词=无）
+[INFO] A1w uq_outbox_event_id on aap_outbox_event：白名单例外（事务外盒 aap_outbox_event，事件不可变）
+[INFO] A1w uq_idempotency_key on aap_idempotency_record：白名单例外（幂等记录 aap_idempotency_record，键唯一性必须覆盖全部历史）
+[FAIL] A1s A1 漂移 5 条 / 白名单 3 条（上限 3）
+[PASS] A2a @Table 实体解析数 = 34（必须 > 0）
+[PASS] A2s 未继承 BaseEntity 的实体 = 0 条
+[INFO] A3i E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:69 表 aap_contract 未能静态判定（标识符回查失败）
+[INFO] A3i E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:134 表 aap_contract 未能静态判定（标识符回查失败）
+[FAIL] A3 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java:561 表 aap_price_time_rule 的查询链上无 `deleted = false`：(select id from aap_price_time_rule where item_id = ?) (select id from aap_price_time_rule where item_id = ?)
+[INFO] A3i E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/support/NotificationService.java:139 表 aap_notification 未能静态判定（标识符回查失败）
+[PASS] A3a A3 已过滤条数 = 58（必须 > 0，正向对照）
+[FAIL] A3s A3 漂移 1 条 / 未能判定 3 条
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:69 join aap_quote q 无 `q.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:69 join aap_provider p 无 `p.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:69 join aap_quote q 无 `q.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:69 join aap_provider p 无 `p.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:63 join aap_quote q 无 `q.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:63 join aap_provider p 无 `p.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:63 join aap_quote q 无 `q.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:63 join aap_provider p 无 `p.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:49 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:49 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:49 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:184 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+[PASS] A4a A4 解析到的 join 目标数 = 15（必须 > 0，正向对照）
+[FAIL] A4s A4 漂移 12 条
+[INFO] B1 openapi 中 `deleted:` 属性出现 0 次（契约不暴露软删标记，符合预期）
+--- 汇总：PASS 9 / FAIL 21 ---
+[FAIL] A1 uq_challenge_code on aap_provider_challenge：unique index 无 `where deleted = false`（谓词=无）
+[FAIL] A1 uq_job_no on aap_detection_job：unique index 无 `where deleted = false`（谓词=无）
+[FAIL] A1 uq_quote_no on aap_quote：unique index 无 `where deleted = false`（谓词=无）
+[FAIL] A1 uq_sync_idempotency on aap_sync_task：unique index 无 `where deleted = false`（谓词=无）
+[FAIL] A1 uq_usage_hourly on aap_usage_hourly：unique index 无 `where deleted = false`（谓词=无）
+[FAIL] A1s A1 漂移 5 条 / 白名单 3 条（上限 3）
+[FAIL] A3 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java:561 表 aap_price_time_rule 的查询链上无 `deleted = false`：(select id from aap_price_time_rule where item_id = ?) (select id from aap_price_time_rule where item_id = ?)
+[FAIL] A3s A3 漂移 1 条 / 未能判定 3 条
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:69 join aap_quote q 无 `q.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:69 join aap_provider p 无 `p.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:69 join aap_quote q 无 `q.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:69 join aap_provider p 无 `p.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:63 join aap_quote q 无 `q.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:63 join aap_provider p 无 `p.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:63 join aap_quote q 无 `q.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:63 join aap_provider p 无 `p.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:49 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:49 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:49 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+[FAIL] A4 E:/workspaces/hioas/hioas-aap-001/aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:184 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+[FAIL] A4s A4 漂移 12 条

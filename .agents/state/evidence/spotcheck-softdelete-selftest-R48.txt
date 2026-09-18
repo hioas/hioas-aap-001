@@ -1,0 +1,37 @@
+== R48 抽查判别力自测：软删除语义一致性（33 项全 PASS，rc=0） ==
+每次注入都断言「锚点真的命中源码」（坑 66/94）+「新增断言集合恰好等于期望 token 集合」（坑 82/93/103）
++ 空夹具逐条点名变红（坑 75/98）+ 真实仓库关键文件 md5 前后全等（零写副作用）。
+[PASS] T0 合规夹具 FAIL=0（正向对照） FAIL=0 []
+[PASS] T0b 解析器正向对照：SQL > 0 且 A3/A4 都解析到条目 
+[PASS] T0c 常量+使用点写法被判定为已过滤（SELECT 常量回查） 
+[PASS] TA1 注入锚点命中（必须真的改到源码） []
+[PASS] TA1 注入后新增断言 token 恰好 {A1,A1s} ['A1', 'A1s']
+[PASS] TA1 新增断言 A1 点名到被测对象 ['A1 uq_provider_id on aap_provider：unique index 无 `where deleted = false`（谓词=无）']
+[PASS] TA1 新增断言 A1s 点名到被测对象 ['A1s A1 漂移 1 条 / 白名单 1 条（上限 3）']
+[PASS] TA2 注入锚点命中（必须真的改到源码） []
+[PASS] TA2 注入后新增断言 token 恰好 {A2,A2s} ['A2', 'A2s']
+[PASS] TA2 新增断言 A2 点名到被测对象 ['A2 ProviderEntity.java：@Table 实体未继承 BaseEntity（逻辑删除/审计字段失效）']
+[PASS] TA2 新增断言 A2s 点名到被测对象 ['A2s 未继承 BaseEntity 的实体 = 1 条']
+[PASS] TA3 注入锚点命中（必须真的改到源码） []
+[PASS] TA3 注入后新增断言 token 恰好 {A3,A3s} ['A3', 'A3s']
+[PASS] TA3 新增断言 A3 点名到被测对象 ['A3 ../aap-r48-spotcheck-fixtures/inj-A3/aap-server/src/main/java/syn/ProviderService.java:16 表 aap_provider 的查询链上无 `deleted = false`：from aap_provider from aap_provider order by id desc limit ? offset ?']
+[PASS] TA3 新增断言 A3s 点名到被测对象 ['A3s A3 漂移 1 条 / 未能判定 0 条']
+[PASS] TA3b 注入锚点命中（必须真的改到源码） []
+[PASS] TA3b 注入后新增断言 token 恰好 {A3,A3s} ['A3', 'A3s']
+[PASS] TA3b 新增断言 A3 点名到被测对象 ['A3 ../aap-r48-spotcheck-fixtures/inj-A3b/aap-server/src/main/java/syn/ProviderService.java:5 表 aap_provider 的查询链上无 `deleted = false`：select p.id, q.id from aap_provider p left join aap_quote q on q.id = p.id and q.deleted = false where p.id = ']
+[PASS] TA3b 新增断言 A3s 点名到被测对象 ['A3s A3 漂移 1 条 / 未能判定 0 条']
+[PASS] TA4 注入锚点命中（必须真的改到源码） []
+[PASS] TA4 注入后新增断言 token 恰好 {A4,A4s} ['A4', 'A4s']
+[PASS] TA4 新增断言 A4 点名到被测对象 ['A4 ../aap-r48-spotcheck-fixtures/inj-A4/aap-server/src/main/java/syn/ProviderService.java:5 join aap_quote q 无 `q.deleted = false`（软删行仍被关联）']
+[PASS] TA4 新增断言 A4s 点名到被测对象 ['A4s A4 漂移 2 条']
+[PASS] T-空夹具 A0a 点名变红 ['A0a DDL create table 解析数 = 0（必须 > 0）']
+[PASS] T-空夹具 A0b 点名变红 ['A0b DDL unique index 解析数 = 0（必须 > 0）']
+[PASS] T-空夹具 A0c 点名变红 ['A0c Java 含 from aap_ 的 SQL 解析数 = 0（必须 > 0）']
+[PASS] T-空夹具 A0d 点名变红 ['A0d ER 文档「业务唯一索引」规则行数 = 0（必须 > 0）']
+[PASS] T-空夹具 A0e 点名变红 ['A0e DDL 含 deleted 列的表数 = 0（必须 > 0）']
+[PASS] T-空夹具 A2a 点名变红 ['A2a @Table 实体解析数 = 0（必须 > 0）']
+[PASS] T-空夹具 A3a 点名变红 ['A3a A3 已过滤条数 = 0（必须 > 0，正向对照）']
+[PASS] T-空夹具 A4a 点名变红 ['A4a A4 解析到的 join 目标数 = 0（必须 > 0，正向对照）']
+[PASS] T-real 真实仓库关键文件 md5 全等（零写副作用） 
+[PASS] T-real2 真实仓库抽查跑完且解析到条目 > 0 FAIL=21
+--- 判别力自测：33 项，全 PASS ---

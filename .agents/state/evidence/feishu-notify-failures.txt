@@ -83,3 +83,7 @@ R42（2026-09-18）飞书通知失败留痕（第 19 轮同因：home channel �
 命令：hermes send -t feishu -s 'AAP TDD 进度' '…'
 返回：hermes send: No home channel set for feishu to determine where to send the message. Either specify a channel directly with 'feishu:CHANNEL_NAME', or set a home channel via: hermes config set FEISHU_HOME_CHANNEL <channel_id>
 处置：按作业要求不停下工作，仅留痕；需人工执行 `hermes config set FEISHU_HOME_CHANNEL <channel_id>` 后恢复通知。
+2026-09-18T22:4x R48 飞书通知失败（第 23 轮同因，不阻塞交付）：hermes send -t feishu 返回
+「No home channel set for feishu to determine where to send the message. Either specify a channel directly with
+feishu:CHANNEL_NAME, or set a home channel via: hermes config set FEISHU_HOME_CHANNEL <channel_id>」
+（原因：feishu home channel 未绑定；本轮消息文案见 coverage-history.txt 的 R48 结论行）

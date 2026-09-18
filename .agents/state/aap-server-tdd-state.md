@@ -2425,3 +2425,54 @@ openapi 与客户端 TS 不被任何测试读取/执行 → 缺省/上限写错�
 ### 台账
 * R46 行「提交」列已在上轮收尾填好（`064cc4b`）；追加 R47 行（「提交」列先留空，提交后由收尾提交补齐）；
   CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」；R 行连续性核对：R27 → R47 无缺号（坑 71）。
+
+## R48（巡检轮：missing=0 → 只校验不改代码）
+
+### 校验结论
+* 全量两轮 **204 例全绿**（0 失败 / 0 错误 / 0 跳过，33 个测试类；`@Test` 词边界计数 = 204 与 surefire 吻合；
+  禁用/假定式扫描 = 0 条 → 未削弱测试）；两轮**逐类结果 diff 为空**（先剥 `Time elapsed` 再排序 —— 坑 79）。
+* 覆盖门禁 **90/90**（`registered_routes=96`、`not_registered=[]`）→ 连续第 **30** 轮全绿（R18 → … → R48）。
+* 既有 14 套只读审计 + 13 个负向自测复跑：rc 序列与 R47 逐条一致；FAIL 明细**剥「来源名 | 」前缀后 28/28 逐行一致**
+  （新增 0 / 消失 0；断言 token 集合 16/16 一致）；零写副作用 PASS（84 个产物 size+md5 全等）。
+
+### 本轮新增抽查：软删除语义一致性（第二十二类可审计不变量）
+* 判据：① 有 `deleted` 列的表，其 unique index 必须带 `where deleted = false`（ER 明写规则）；
+  ② 每个真实 `@Table` 实体必须继承 `BaseEntity`（否则全局逻辑删除过滤失效）；
+  ③ 手写 JdbcTemplate SQL 引用「有 deleted 列的表」时，**主表作用域**必须有 `deleted = false`；
+  ④ join 目标表（有 deleted 列）必须带 `<别名>.deleted = false`。
+* 实测：DDL 54 表 / 42 unique index / 54 表有 deleted 列；62 条手写 SQL；34 个实体；58 条已过滤；15 个 join 目标。
+* 零漂移：A2 34/34 继承 BaseEntity、A3 58 条已过滤、B1 openapi 不暴露 `deleted`。
+* 分级（诚实标注）：**A1 5 条**（`uq_challenge_code`/`uq_job_no`/`uq_quote_no`/`uq_sync_idempotency`/`uq_usage_hourly`）
+  = 文档一致性项 + 潜在陷阱 —— 可达性核查：全仓库软删写路径仅 2 处（`aap_detection_config` 条件 UPDATE、
+  `aap_provider_qualification` `deleteById`），**该 5 表当前没有任何路径会置 `deleted = true`**（QT-04 作废 = status→VOID，
+  注释明写「作废 ≠ 软删除」）→ 当前无实际影响，将来加软删则唯一键被永久占用 → **列待拍板**；
+  **A4 6 条**（ContractService:44、ReviewService:49、SettlementService:35/166 的 join）= join 侧未过滤，低风险；
+  **A3 1 条** = 判据过宽假发现（命中 `deleteByQuery` 里的子查询，非读路径）→ 修判据不修代码（坑 82）；
+  **A3i 3 条** = 人工核对为「经形参 `baseWhere` 已过滤」与「同方法内条件 UPDATE 校验后按 id 读回」。
+* 为什么两套门禁都看不见：契约测试只读响应 JSON Schema（无 deleted / SQL / 索引谓词）；覆盖门禁只比「方法+路径」；
+  openapi 与客户端 TS 不被任何测试执行。
+* 判别力自测 **33/33 PASS**：合规夹具 FAIL=0；注入 A1/A2/A3/A3b/A4 各**恰好新增**点名断言（按断言 token 比对）；
+  空夹具 A0a…A4a 逐条点名变红；注入锚点命中；真实仓库关键文件 md5 前后全等。
+
+### 本轮踩坑（新增，均为自身返工）
+1. **自测夹具目录与脚本同目录**：自测开头清理夹具把**脚本自己**删掉（python 因已加载代码仍继续跑），
+   症状是后续补丁报 `Failed to read file`。规则：抽查脚本与夹具目录分开命名。
+2. **白名单键按表名而不是索引名** → 合规夹具的 `uq_outbox_event_id` 被判漂移（坑 29 同族：先对齐命名约定再写判据）。
+3. **变量名与 SQL 关键字同名**（本项目 where 片段变量就叫 `where`）：判据先按关键字跳过 → 漏掉真正的 where 片段 → 假 FAIL。
+   规则：先回查定义，回查不到才降级为「未能静态判定」。
+4. **标识符回查在 SQL 字面量内部命中**（`p.id = ?` 里的 `id =`）→ 把紧随其后的 `and p.deleted = false` 当成该标识符的取值 → 假 PASS。
+   规则：匹配点必须落在**代码位置**（用字面量 span 排除）。
+5. **常量 SELECT 的 join 谓词被当成主表过滤** → 假 PASS。规则：主表判据必须限定到「未限定」或「主表别名」（坑 44 同族）。
+6. **注释剥离用「删除」而不是「空格替换」** → 点名报出的行号与真实文件不符（报 120 行、实际 139 行）。
+7. **跨轮 FAIL 比对先怀疑比对键**：两侧收集器贴法不同（一侧带 `name | ` 前缀）→ 逐行比对报 2 条「消失」的假差异
+   （坑 59/103）；另有 `[PASS]` 行引用 FAIL 标记文本的自指噪声（坑 47/77）已排除。
+
+### 本轮未做（纪律）
+* 未新增仓库工具（`missing=0` 只校验不改代码），抽查脚本与自测均落在 `$LOCALAPPDATA/Temp/aap-r48-*`；
+* 未并发跑测试（单进程串行两轮；跑前 `jps` 确认无 surefire/测试 JVM）；他项目的
+  `com.hioas.aap.AapServerApplication -Dspring.profiles.active=dev` 进程与 hioas-aim 的 CDP（9223）
+  **只读观察，未触碰**（未按镜像名杀进程、未 attach 他人浏览器）。
+
+### 台账
+* R47 行「提交」列已在本轮补齐（`f78ace6`）；追加 R48 行（「提交」列先留空，提交后由收尾提交补齐）；
+  CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」；R 行连续性核对：R27 → R48 无缺号（坑 71）。
