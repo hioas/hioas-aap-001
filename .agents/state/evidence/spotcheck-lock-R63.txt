@@ -1,0 +1,42 @@
+== R63 抽查：乐观锁 / 并发控制契约（第三十七类可审计不变量，只读） ==
+真源：M md 清单（§0 乐观锁行 + 逐端点「幂等/并发」列 + 逐端点「错误码」列）/ D endpoints.json / O openapi（in: header）/ I 实现（控制器接收面 → Service 守卫码）/ E ErrorCode（码→状态+描述）/ V 版本令牌出口 / C 客户端是否真的发送 / T 测试源
+头名（本类不变量）：`If-Match`
+
+--- 解析计数（正向对照，任一为 0 即说明解析器失效）---
+M md 端点行=90；§0 头名='If-Match' 状态=409 码='E-1601'
+D 端点数=90；声明该头的端点=3（['CRED-04', 'PROV-02', 'QT-08']）
+O operations=90；in:header=0；in:query=79
+I 控制器路由=91；接收该头的站点=3
+E 码条目=27；T 含该头的用例=2；C 客户端文件=68
+
+--- 逐站点：控制器 → 服务 → 守卫码 ---
+  PUT      /api/v1/credentials/{}                     → CredentialService.java#update 码=E-1601 
+  PUT      /api/v1/provider/profile                   → ProviderService.java#updateProfile 码=E-1601 
+  PUT      /api/v1/quotes/items/{}                    → QuoteService.java#saveItem   码=E-1104 
+
+--- 断言 ---
+[PASS] A0a M md 清单可读且 §0「乐观锁」行解析到头名/状态/码：exists=True 头名='If-Match' 状态=409 码='E-1601' 令牌语义='version 或 updated_at'
+[PASS] A0b M 逐端点行数 = D 端点数：md=90 期望=90（两套表头：['ID/方法/路径/鉴权/请求/响应/错误码/幂等/并发/依据/状态', 'ID/方法/路径/角色/请求/响应/错误码/状态']）
+[PASS] A0c D endpoints.json 解析到端点数 = total：90 / 90
+[PASS] A0d O openapi 解析到 operations=90（期望 90）、in:query=79、in:path=52、in:header=0（query/path 为 0 即解析器失效）
+[PASS] A0e I 控制器路由定位率：parsed=91 条（期望 ≥ 90）；解析问题 0 条 []
+[PASS] A0f I 解析到接收该头的站点数 = 3（为 0 即解析器失效，不得判 PASS）
+[PASS] A0g E ErrorCode.java 解析到码条目 = 27
+[PASS] A0h T 测试源解析到含该头的用例方法 = 2（文件 39）
+[PASS] A0i C 客户端源扫描到文件 = 68（扫描器有输入）
+[PASS] A1 头名一致：M §0='If-Match' / I @RequestHeader=['If-Match']（期望 'If-Match'）
+[PASS] A3 逐端点：M 声明该头的端点集合 = I 接收该头的控制器路由集合（声明 3 / 接收 3）；仅 M 有=[]；仅 I 有=[]
+[FAIL] A2 失配语义在实现内部即分叉：['E-1104', 'E-1601']（同一「乐观锁失配」语义用了两种码；逐站点 [('CredentialService.java#update', 'E-1601'), ('ProviderService.java#updateProfile', 'E-1601'), ('QuoteService.java#saveItem', 'E-1104')]）
+[FAIL] A2b M 逐端点「错误码」列声明 §0 的失配码 'E-1601'：未声明 3 条 [('CRED-04', ['E-1001', 'E-1104']), ('PROV-02', ['E-1001', 'E-1104']), ('QT-08', ['E-1001', 'E-1104', 'E-1401', 'E-1402', 'E-1403', 'E-1404'])]（§0 与逐端点行冲突 → 调用方按码分支会分叉）
+[FAIL] A4 M「错误码」列声明实现真会抛的失配码：漏声明 2 条 [('CRED-04', 'E-1601', ['E-1001', 'E-1104']), ('PROV-02', 'E-1601', ['E-1001', 'E-1104'])]
+[FAIL] A5 失配码的语义描述覆盖「乐观锁/并发」：不覆盖 [('E-1601', '状态非法流转')]（§0 声明='E-1601'）
+[PASS] A6 码 → HTTP 状态 = §0 承诺 409：实测 [('E-1104', 409), ('E-1601', 409)]；不符 []
+[FAIL] A7 C 客户端真的发送该头的调用点 = 0 处 [] → 措辞为「支持」（`required = false` + 「若提供则校验」），客户端不带该头 = 并发保护**静默失效**（风险项，待拍板；坑 88）
+[PASS] A8 版本令牌可达性（客户端要拿得到才能回填该头）：不可达 []
+[FAIL] A9 测试背书：M 声明的 3 条端点中 2 条有失配用例（['PROV-02', 'QT-08']），零背书 1 条 ['CRED-04']
+[INFO] A9b 测试断言的码/状态：[(['E-1601', 'PROV-02'], ['E-1601'], [200, 409]), (['E-1104', 'QT-08'], ['E-1104'], [200, 409])]
+[FAIL] A10 O openapi 逐 operation 声明该头：声明端点数=3 / openapi 声明数=0（in:header 总点数=0）→ 生成物侧漏声明（契约测试只读 JSON Schema，头不在 schema 里，204 例全绿也看不见）
+[PASS] Z1 全部被读文件指纹已采集（254 个）—— 判据为「本脚本只读」，无写操作
+
+汇总 PASS 14 / FAIL 7 / INFO 1
+正向对照 A0a…A0i 全部必须为 PASS；任一为 FAIL 时本报告结论无效（先修解析器，坑 46/98）

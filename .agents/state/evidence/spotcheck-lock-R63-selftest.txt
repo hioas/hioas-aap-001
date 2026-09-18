@@ -1,0 +1,21 @@
+== R63 抽查「乐观锁 / 并发控制契约」负向自测（判别力取证） ==
+脚本：spotcheck-lock-R63-selftest.py（夹具目录与脚本目录分开命名，坑 106）
+夹具：aap-r63-spotcheck-fixtures（合规夹具） / aap-r63-spotcheck-fixtures-empty（空夹具）
+
+覆盖的分支（每条断言都必须在自测里有反例）：
+  1. 合规夹具 rc=0 且 FAIL 0（**基线必须干净**，否则「恰好新增」判据失效，坑 82/93/136）
+  2. 合规夹具 A0a…A0i 九条解析器正向对照全 PASS（坑 46/75/98）
+  3. 空夹具必须变红，并**点名**全部 A0* 正向对照与五条条件化断言（A2b/A4/A8/A9/A10，坑 98/128/141）
+  4. 9 组注入缺陷各**恰好**新增目标断言（FAIL token 取 split()[1]，坑 112-③；比对用断言前缀，坑 82）
+     注入锚点必须命中（未命中即空转通过，坑 66/90/94/119）；注入值与旧值无子串包含关系（坑 90/94）
+  5. 宽注入（md 全端点行删除）→ 恰好新增 {A0b,A2b,A3,A4,A8,A9,A10}
+  6. 夹具目录零写副作用（含不得留下 __pycache__）+ 真实仓库关键文件 md5 未变
+
+输出如下：
+== R63 抽查负向自测（38 条断言） ==
+夹具目录：C:\Users\laitz\AppData\Local\Temp\aap-r63-spotcheck-fixtures
+空夹具目录：C:\Users\laitz\AppData\Local\Temp\aap-r63-spotcheck-fixtures-empty
+
+
+自测汇总：OK 38 / BAD 0
+

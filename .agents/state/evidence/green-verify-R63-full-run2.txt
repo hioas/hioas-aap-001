@@ -1,0 +1,10 @@
+== R63 全量测试 run2（green 证据） ==
+命令：export PATH="$HOME/bin:$PATH"; cd aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test
+（串行执行；同一时刻只有一个测试进程 —— skill 坑 11/20）
+
+门禁自身：[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.113 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+[INFO] Total time:  57.632 s
+rc=0
+
+[ERROR] 行数 = 0（期望 0；若 > 0 必须逐条解释，坑 12）
+逐类结果见 green-verify-R63-classdiff.txt（先剥 Time elapsed 再排序，坑 59/79）
