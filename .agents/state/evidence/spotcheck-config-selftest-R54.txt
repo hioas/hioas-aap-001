@@ -1,0 +1,37 @@
+== R54 抽查脚本负向自测（spotcheck-config-selftest.py） ==
+纪律：每分支一条反例；每条注入断言「恰好新增目标断言」（按**断言前缀**比对，不拿整行当键，坑 82/93）；
+      注入必须**真的改到源码**（mutate 未命中锚点列表必须为空，坑 66/94）；空夹具必须变红（防空转假绿，坑 75/98）；
+      真实仓库只读守卫 + 夹具零写副作用（坑 39/40）。
+
+[PASS] 合规夹具：rc=0 且 FAIL 0（正向对照：汇总行 True）
+[PASS] 合规夹具：断言汇总行显示 FAIL 0（解析器真的工作了）
+[PASS] 空夹具：A0a/A0b/A0c 必须点名 FAIL（防空转假绿）→ 实际 ['A0a', 'A0b', 'A0c', 'A10a', 'A1b', 'A3a', 'A3b', 'A3d', 'A6']
+[PASS] inj_a1b_undeclared_reader：rc=1 FAIL 集合=['A1b'] 期望=['A1b']
+[PASS] inj_a1b_undeclared_reader：夹具未被改写（零写副作用）
+[PASS] inj_a1_no_default：rc=1 FAIL 集合=['A1'] 期望=['A1']
+[PASS] inj_a1_no_default：夹具未被改写（零写副作用）
+[PASS] inj_a2_orphan_key：rc=1 FAIL 集合=['A2'] 期望=['A2']
+[PASS] inj_a2_orphan_key：夹具未被改写（零写副作用）
+[PASS] inj_a3a_main_expose_true：rc=1 FAIL 集合=['A3a'] 期望=['A3a']
+[PASS] inj_a3a_main_expose_true：夹具未被改写（零写副作用）
+[PASS] inj_a3d_test_not_relaxed：rc=1 FAIL 集合=['A3d'] 期望=['A3d']
+[PASS] inj_a3d_test_not_relaxed：夹具未被改写（零写副作用）
+[PASS] inj_a4_default_drift：rc=1 FAIL 集合=['A4'] 期望=['A4']
+[PASS] inj_a4_default_drift：夹具未被改写（零写副作用）
+[PASS] inj_a5_hardcoded_dup：rc=1 FAIL 集合=['A5'] 期望=['A5']
+[PASS] inj_a5_hardcoded_dup：夹具未被改写（零写副作用）
+[PASS] inj_a6_port_drift：rc=1 FAIL 集合=['A6'] 期望=['A6']
+[PASS] inj_a6_port_drift：夹具未被改写（零写副作用）
+[PASS] inj_a7_secret_literal：rc=1 FAIL 集合=['A7'] 期望=['A7']
+[PASS] inj_a7_secret_literal：夹具未被改写（零写副作用）
+[PASS] inj_a10a_positive_control：rc=1 FAIL 集合=['A10a'] 期望=['A10a']
+[PASS] inj_a10a_positive_control：夹具未被改写（零写副作用）
+[PASS] inj_a9_binding_group_unused：rc=0 FAIL 集合=[] 期望=[]
+[PASS] inj_a9_binding_group_unused：夹具未被改写（零写副作用）
+[PASS] inj_a9 绑定组零读取：INFO 行点名 app.detection.*（INFO 分支判别力）
+[PASS] 注入锚点全部命中（未命中 0 条）
+[PASS] 真实仓库跑一遍：4 个关键文件 md5 全等（只读守卫）
+[PASS] 真实仓库：rc=1 且报出 FAIL ['A1b', 'A5']（存在待拍板/漂移，符合预期）
+
+自测断言 29 条：PASS 29，FAIL 0
+结论：全部通过

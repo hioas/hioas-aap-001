@@ -2884,3 +2884,74 @@ md 清单（真源）与实现一致（分别写 `Quote{build:quote_id,quote_no,
 * 未新增仓库工具（`missing=0` 只校验不改代码）；抽查脚本与夹具**分目录**落在 `$LOCALAPPDATA/Temp/aap-r53-spotcheck` 与 `…-fixtures`（坑 106）；
 * 未并发跑测试（单进程串行两轮）；他方未提交改动（`aap-client/vite.config.ts`、`aap-server` 的 `application.yml`/`log4j2-spring.xml`/`application-test.yml`、
   `coverage-report.json` 及 `aap-client` 下未跟踪文件）**未触碰、未纳入提交**（坑 15/16）。
+
+## R54（2026-09-19）配置项契约一致性抽查 —— missing=0 → 只校验不改代码
+
+### 本轮结论
+* 全量集成测试两轮 204 例全绿（0 失败 / 0 错误 / 0 跳过，33 个测试类），逐类结果 diff = 0 行（先剥 Time elapsed 再排序，坑 79），
+  `[ERROR]` 行数 = 0，BUILD SUCCESS；`@Test` 词边界计数 204 = surefire 汇总 204，禁用扫描（`@Disabled`/`@Ignore`/`@DisabledIf`/`assumeTrue`/`Assumptions.`）0 条。
+* 覆盖门禁 90/90：`EndpointCoverageTest` 自身 1/1 通过，`coverage-report.json` 逐字段 total=90 / implemented=90 / missing=0 / registered_routes=96 / not_registered=[]。
+* 既有 14 套只读审计 + 13 个负向自测复跑：全部 rc 与 R53 一致，FAIL 明细剥来源前缀后 **28/28 逐行一致（新增 0、消失 0）**；
+  零写副作用 PASS（84 个产物 size+md5 全等）。
+
+### 新增抽查：配置项契约一致性（第二十八类可审计不变量）
+真源：Y 主配置 `application.yml` ⇔ T 测试配置 `application-test.yml` ⇔ J 实现读取点（@Value / @ConfigurationProperties 绑定 /
+@ConditionalOnProperty / @Scheduled / Environment.getProperty）⇔ L `log4j2-spring.xml` 的 `${spring:app.xxx}` 查找 ⇔
+D 文档声明（00-设计总览 §6.1 端口登记、02-API接口模型清单 业务参数）⇔ H 同值硬编码副本 ⇔ E `E:/env/aap-server.env` **变量名集合**（只比名字）。
+断言 28 条：PASS 26 / FAIL 2 / INFO 9。
+
+### 为什么这是「两套门禁都看不见」的不变量（第二十八类）
+* 契约测试只把**响应体**与 JSON Schema 比对 —— 配置既不是响应体也不在 schema 里；
+* 覆盖门禁只比「方法 + 路径」；`openapi.yaml` 与客户端 TS 不被任何测试读取/执行；
+* 于是「键是否声明 / 是否有读取点 / 默认值是否与 yml 一致 / 主配置是否保持安全默认 / 同一业务参数是否另有硬编码副本」
+  这些漂移对 204 例全绿**完全不可见**。
+
+### 2 条真实发现（逐条人工复核）
+**F1（A1b）`app.detection.probe-timeout-seconds` 未在任何 yml 声明**
+* 读取点：`CredentialService.java:71` 的 `@Value("${app.detection.probe-timeout-seconds:10}")`（构造参数，用于 `UpstreamProbe.probe(..., probeTimeoutSeconds)`）；
+* 两个 yml 对该键 grep 零命中 → 与其余 8 个 `app.detection.*` 键「显式声明 + 内联默认」的处理不一致；
+* 当前行为 = 默认 10 秒（无功能缺陷），风险是**运维在 yml 里找不到锚点**（调超时需先知道键名）。
+**F2（A5）三个业务参数存在同值硬编码副本（当前取值一致 → 用户不可见；改配置后会分叉）**
+* 通过线 70：`CredentialPrecheckRecorder:74`（预检写入的 `config_snapshot`）、`ProbeScoring:38 DEFAULT_PASS_SCORE`、
+  `ReportController:121/128/217/223`（报告页「成功/危险」配色、`key_metrics` 达标计数、`findings` 未达标项）；
+* 否决线 40：`CredentialPrecheckRecorder:74`、`ProbeScoring:39 DEFAULT_VETO_SCORE`、`ReportService:239`（`isVeto`：D7 < 40）；
+* 复测间隔 30 天：`AuthService:194`（新建供应商写死 30）、`ProviderService:426`（`null → 30`）；
+* 检测判定侧走的是配置值（`DetectionService` 三参 `@Value` + `ProbeScoring.summarize(scores, passScore, vetoScore)`），
+  报告展示侧走字面量 → 改 `app.detection.pass-score` 后「检测结论按新线、报告配色/未达标列表按 70」。
+* 为什么全绿：契约测试只校验响应 schema；`ReportContractTest` 对 `tone`/`success`/`danger` 与阈值**零断言**（grep 零命中）→ 展示口径无测试背书。
+* 反例排除：`SyncAdminService:66 MAX_ATTEMPTS = 5` 与 `app.sms.max-attempts` 同值但**语义不同**（同步退避重试上限），
+  故 `sms.*` 参数的扫描范围按语义收窄到 `/iam/`（坑 81）——修前它是一条假发现。
+
+### 信息项 / 待拍板
+* **A10b（待拍板：功能范围）** 管理端检测配置表（`aap_detection_config` / `_probe`：`pass_score`、`veto_rule`、`weight`、`timeout_seconds`）
+  在 `adminconfig` 之外**零消费**（全实现只有 `DetectionConfigService.java` 出现表名，其唯一消费者是同包控制器）→
+  「发布态配置」不进入检测执行与报告判定；冻结清单只声明 ADM-CFG01…10 的 CRUD 与「发布置旧版 SUPERSEDED」，**未声明检测必须采用 PUBLISHED 配置**
+  → 列待拍板，不判 FAIL（附正向对照：adminconfig 内命中 13 处，证明解析器工作）。
+* A9 `@ConfigurationProperties(prefix="app")` 的 `Detection` 组（daily-quota/pass-score/veto-score）**绑定存在但零读取**，
+  阈值实际走 `DetectionService` 的 `@Value` 三参构造（两种绑定风格并存，坑 44 同族）→ 观察项。
+* A8b yml 引用但 env 文件未定义的环境变量 6 个（AAP_ALLOW_LOOPBACK / AAP_JWT_ACCESS_TTL_MINUTES / AAP_JWT_REFRESH_TTL_DAYS /
+  AAP_RECHECK_ENABLED / AAP_RECHECK_CRON / AAP_USAGE_LOG_FILE）→ 全部有内联默认值，非缺陷。
+* A5b 注释/javadoc 中提到同值（通过线 1 处、否决线 2 处、TTL 1 处）→ 文档性，不计漂移。
+
+### 零漂移的正面结论（带正向对照，不是「没发现问题」）
+* A2：Y+T 的 18 个 `app.*` 键全部有读取点，**孤儿键 0**；
+* A3：主配置安全默认 —— `app.sms.expose-code` 默认 false（生产不回显验证码）、`app.credential.allow-loopback` 默认 false（SSRF 默认不放行环回）、
+  测试专用开关 `spring.flyway.clean-disabled` **不在**主配置；测试配置里三者按要求放宽（正向对照）；
+* A4：8 个数值参数跨源一致（70 / 40 / 5（yml ⇔ @Value 默认 ⇔ md「日配额 5 次」）/ 30 / 60 / 300 / 5 / 15）；
+* A6：端口三处一致（yml 默认 8084 ⇔ docs §6.1 8084 ⇔ 客户端 `MP_DEV_API_BASE` 8084）；
+* A7：密钥类键 4 个（数据源 username 键 / 口令键、`app.jwt.secret`、`app.credential.aes-key`）全部为**无默认值的环境变量占位**，
+  缺失即启动失败（不静默降级），与 `SecretStartupCheck` 双重把关；
+* A9：`jwt`/`credential`/`sms`/`logging` 四个绑定组均有读取点（`logging` 由 log4j2 查找消费）。
+
+### 本轮踩坑（抽查脚本自身返工，全部按「先怀疑判据/解析器」处置）
+1. YAML 布尔值经 PyYAML 解析成 Python `True` → `str()` 得 `'True'`，A3d 假 FAIL；修 `flatten()` 归一为小写 `true/false`。
+2. `SECRET_KW` 含 `credential` 把 `app.credential.allow-loopback`（非密钥值）当密钥键，误报「占位带默认值」→
+   模式集按「键名是否承载密钥值」分层（坑 45），改为「口令类 / secret / aes-key / api-key / token / 用户名」这几类语义（模式见硬规则 4）。
+3. A5 关键词 `(?i)attempt` 把 `SyncAdminService.MAX_ATTEMPTS=5`（同步退避上限）误报为 `app.sms.max-attempts` 的副本 →
+   按语义收窄扫描范围（`sms.*` → `/iam/`）。
+4. A8b 把 `${java.io.tmpdir}`（系统属性，非环境变量）当环境变量 → 只认 `[A-Z][A-Z0-9_]*` 形态。
+
+### 本轮未做（纪律）
+* 未改业务代码/清单/生成器/md/断言（`missing=0` 只校验不改代码）；抽查脚本与夹具**分目录**落在 `$LOCALAPPDATA/Temp/aap-r54-spotcheck` 与 `…-fixtures`（坑 106）；
+* 未并发跑测试（单进程串行两轮，坑 11/20）；他方未提交改动（`aap-client/vite.config.ts`、`aap-server` 的 `application.yml`/`log4j2-spring.xml`/`application-test.yml`、
+  `coverage-report.json` 及 `aap-client` 下未跟踪文件）**未触碰、未纳入提交**（坑 15/16）。

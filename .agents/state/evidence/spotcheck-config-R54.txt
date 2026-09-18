@@ -1,0 +1,97 @@
+== R54 抽查：配置项契约一致性（第二十八类可审计不变量） ==
+脚本与夹具**分目录**（坑 106）：脚本 $LOCALAPPDATA/Temp/aap-r54-spotcheck/spotcheck-config.py，夹具 …/aap-r54-spotcheck-fixtures/ok/
+说明：missing=0 → 本轮只校验不改代码；抽查脚本**不新建仓库工具**、不落仓库。
+
+真源：
+  Y = aap-server/src/main/resources/application.yml（主配置：键集合 + 占位默认值 + 安全默认）
+  T = aap-server/src/test/resources/application-test.yml（测试覆盖：仅测试环境可放宽）
+  J = 实现读取点（@Value / @ConfigurationProperties 绑定 / @ConditionalOnProperty / @Scheduled / Environment.getProperty）
+  L = log4j2-spring.xml 的 ${spring:app.xxx} 查找
+  D = docs/backend/00-设计总览.md §6.1 端口登记 + 02-API接口模型清单.md 声明的业务参数
+  H = 与「有配置项的参数」同值的硬编码字面量（配置漂移风险点）
+  E = E:/env/aap-server.env 的**变量名集合**（只比名字，绝不读取/回显值）
+
+为什么两套门禁都看不见：契约测试只读 JSON Schema（配置不是响应体），覆盖门禁只比「方法+路径」，
+openapi 与客户端 TS 不被任何测试读取/执行 → 配置项「声明 ⇔ 读取 ⇔ 默认值 ⇔ 安全默认」的漂移对 204 例全绿完全不可见。
+
+---- 抽查输出（真实仓库） ----
+根目录：E:/workspaces/hioas/hioas-aap-001（仓库外路径也照常显示）
+== 配置项契约一致性抽查（第二十八类可审计不变量） ==
+
+[PASS] A9 绑定组 app.credential.* 有 3 处读取点
+[PASS] A9 绑定组 app.jwt.* 有 5 处读取点
+[PASS] A9 绑定组 app.logging.* 由 log4j2 查找（`${spring:app.logging.…}`）消费，非零读取
+[PASS] A9 绑定组 app.sms.* 有 1 处读取点
+[PASS] A0a Y 解析到 app.* 键 = 18
+[PASS] A0b T 解析到 app.* 键 = 7
+[PASS] A0c J 解析到配置读取点 = 9 + L log4j2 查找 = 1 + 绑定键 = 13
+[PASS] A0d 硬编码字面量扫描已启用（参数表 8 条）
+[PASS] A1 所有读取点引用的键都在主/测试配置里声明或有内联默认值
+[PASS] A2 Y+T 的 18 个 app.* 键全部有读取点（孤儿 0）
+[PASS] A3a 主配置 app.sms.expose-code 默认 false（生产红线：不回显验证码）
+[PASS] A3b 主配置 app.credential.allow-loopback 默认 false（SSRF 防护默认不放行环回）
+[PASS] A3c 测试专用开关 spring.flyway.clean-disabled 不在主配置
+[PASS] A3d 测试配置里 expose-code/allow-loopback/clean-disabled 均按要求放宽（正向对照）
+[PASS] A4 通过线（app.detection.pass-score）= 70 在 Y、@Value 默认 一致
+[PASS] A4 否决线（app.detection.veto-score）= 40 在 Y、@Value 默认 一致
+[PASS] A4 日配额（app.detection.daily-quota）= 5 在 Y、@Value 默认、md 声明 一致
+[PASS] A4 复测间隔(天)（app.detection.recheck-interval-days）= 30 在 Y、@Value 默认 一致
+[PASS] A4 验证码重发间隔(秒)（app.sms.resend-interval-seconds）= 60 在 Y 一致
+[PASS] A4 验证码有效期(秒)（app.sms.ttl-seconds）= 300 在 Y 一致
+[PASS] A4 验证码尝试上限（app.sms.max-attempts）= 5 在 Y 一致
+[PASS] A4 锁定分钟（app.sms.lock-minutes）= 15 在 Y 一致
+[PASS] A6 端口三处一致：{'yml 默认': '8084', 'docs §6.1': '8084', '客户端 MP_DEV_API_BASE': '8084'}
+[PASS] A7 密钥类键 4 个全部为无默认值的环境变量占位（缺失即启动失败，不静默）
+[PASS] A8a env 文件解析到 11 个变量名（只输出名字，不读值）；yml 引用 17 个环境变量名
+[PASS] A10a 正向对照：adminconfig 内 aap_detection_config 命中 13 处（解析器真的工作了）
+[INFO] A9 绑定组 app.detection.* 在实现里零读取（绑定声明与读取点不一致；字段：daily-quota, pass-score, veto-score）
+[INFO] A5 通过线（app.detection.pass-score）另有 6 处同值硬编码（配置漂移风险点）：aap-server/src/main/java/com/hioas/aap/credential/CredentialPrecheckRecorder.java:74 "pass_score", 70, "veto_score", 40,；aap-server/src/main/java/com/hioas/aap/detection/ProbeScoring.java:38 public static final int DEFAULT_PASS_SCORE = 70;；aap-server/src/main/java/com/hioas/aap/report/ReportController.java:121 .filter(p -> p.getScore() == null || p.getScore().doubleValue() < 70)；aap-server/src/main/java/com/hioas/aap/report/ReportController.java:128 int passCount = (int) probes.stream().filter(p -> p.getScore() != null && p.getScore().doubleValue() >= 70).co
+[INFO] A5b 通过线（app.detection.pass-score）注释/javadoc 中提到同值 1 处（文档性，不计漂移）
+[INFO] A5 否决线（app.detection.veto-score）另有 3 处同值硬编码（配置漂移风险点）：aap-server/src/main/java/com/hioas/aap/credential/CredentialPrecheckRecorder.java:74 "pass_score", 70, "veto_score", 40,；aap-server/src/main/java/com/hioas/aap/detection/ProbeScoring.java:39 public static final int DEFAULT_VETO_SCORE = 40;；aap-server/src/main/java/com/hioas/aap/report/ReportService.java:239 .anyMatch(p -> p.getScore() != null && p.getScore().doubleValue() < 40);
+[INFO] A5b 否决线（app.detection.veto-score）注释/javadoc 中提到同值 2 处（文档性，不计漂移）
+[INFO] A5 复测间隔(天)（app.detection.recheck-interval-days）另有 2 处同值硬编码（配置漂移风险点）：aap-server/src/main/java/com/hioas/aap/iam/AuthService.java:194 provider.setRecheckIntervalDays(30);；aap-server/src/main/java/com/hioas/aap/provider/ProviderService.java:426 provider.getRecheckIntervalDays() == null ? 30 : provider.getRecheckIntervalDays(),
+[INFO] A5b 验证码有效期(秒)（app.sms.ttl-seconds）注释/javadoc 中提到同值 1 处（文档性，不计漂移）
+[INFO] A8b yml 引用但 env 文件未定义（依赖内联默认，非缺陷）= 6 个：AAP_ALLOW_LOOPBACK、AAP_JWT_ACCESS_TTL_MINUTES、AAP_JWT_REFRESH_TTL_DAYS、AAP_RECHECK_CRON、AAP_RECHECK_ENABLED、AAP_USAGE_LOG_FILE
+[INFO] A10b 管理端检测配置表（aap_detection_config/_probe：pass_score、veto_rule、weight、timeout_seconds）在 adminconfig 之外**零消费** → 发布态配置不影响检测执行与报告判定（阈值实际来自 yml + 硬编码副本）；冻结清单未声明「检测必须采用 PUBLISHED 配置」→ 列待拍板（功能范围），不判 FAIL
+[FAIL] A1b 读取点键未在任一 yml 声明、仅靠内联默认 = 1 条（运维在 yml 里找不到锚点，与其它键处理不一致）：app.detection.probe-timeout-seconds (aap-server/src/main/java/com/hioas/aap/credential/CredentialService.java:71，内联默认 '10')
+[FAIL] A5 存在「有配置项但代码另写同值字面量」的参数 = 3 个：通过线(app.detection.pass-score=70)、否决线(app.detection.veto-score=40)、复测间隔(天)(app.detection.recheck-interval-days=30)
+
+断言 28 条：PASS 26，FAIL 2；信息项 9 条
+结论：存在配置项契约漂移/风险点（见 FAIL 与 INFO）
+
+---- 人工复核（2 条真实发现 + 4 类信息项） ----
+【A1b】app.detection.probe-timeout-seconds 只在实现里以内联默认值出现（CredentialService:71，默认 10），
+  两个 yml 均无该键（grep 'probe-timeout' 于 application.yml / application-test.yml 零命中）→ 与其余 8 个 app.detection.* 键
+  「显式声明 + 内联默认」的处理不一致；运维想在 yml 里调探测超时，得先知道键名。当前行为 = 默认 10 秒（无功能缺陷）。
+【A5】4 类来源写死同一业务参数（当前取值一致，故用户可见行为无差异；风险是**改配置后分叉**）：
+  ① 通过线 70：CredentialPrecheckRecorder:74（config_snapshot）、ProbeScoring:38 DEFAULT_PASS_SCORE、ReportController:121/128/217/223（报告页成功/危险配色与 key_metrics 计数）；
+  ② 否决线 40：CredentialPrecheckRecorder:74、ProbeScoring:39 DEFAULT_VETO_SCORE、ReportService:239（isVeto，D7<40）；
+  ③ 复测间隔 30 天：AuthService:194（新建供应商 setRecheckIntervalDays(30)）、ProviderService:426（null → 30）；
+  ④ 反例排除：SyncAdminService:66 MAX_ATTEMPTS=5 与 app.sms.max-attempts 同值但**语义不同**（同步退避重试上限），
+     故 sms.* 参数的扫描范围按语义收窄到 /iam/（坑 81：判据范围必须与断言语义一致），修前它曾是一条假发现。
+  为何全绿：契约测试只校验响应 schema；ReportContractTest 对 tone/success/danger 与阈值零断言（grep 零命中）→ 展示口径无测试背书。
+【A9】@ConfigurationProperties(prefix="app") 的 Detection 组（daily-quota/pass-score/veto-score）绑定存在但**零读取**：
+  阈值实际走 DetectionService 的 @Value 三参构造（两条绑定风格并存，坑 44 同族）→ 属观察项（不判 FAIL）。
+【A10b】管理端检测配置表（aap_detection_config / _probe：pass_score、veto_rule、weight、timeout_seconds）在 adminconfig 之外**零消费**
+  （grep 全实现：仅 DetectionConfigService.java 一处出现表名；DetectionConfigService 的唯一消费者是同包的 AdminDetectionConfigController）→
+  「发布态配置」不进入检测执行与报告判定，阈值实际来自 yml + 上表硬编码副本。冻结清单未声明「检测必须采用 PUBLISHED 配置」→ **列待拍板（功能范围）**，不判 FAIL。
+【A8b】yml 引用但 env 文件未定义的环境变量 6 个（AAP_ALLOW_LOOPBACK / AAP_JWT_ACCESS_TTL_MINUTES / AAP_JWT_REFRESH_TTL_DAYS /
+  AAP_RECHECK_ENABLED / AAP_RECHECK_CRON / AAP_USAGE_LOG_FILE）→ 全部有内联默认值，非缺陷（信息项）。
+
+---- 零漂移的正面结论（带正向对照，不是「没发现问题」） ----
+* A2：Y+T 的 18 个 app.* 键全部有读取点，孤儿键 0；
+* A3：主配置安全默认——app.sms.expose-code 默认 false（生产不回显验证码）、app.credential.allow-loopback 默认 false（SSRF 默认不放行环回）、
+  测试专用开关 spring.flyway.clean-disabled 不在主配置；测试配置里三者按要求放宽（正向对照）；
+* A4：8 个数值参数跨源一致（通过线 70 / 否决线 40 / 日配额 5（yml ⇔ @Value 默认 ⇔ md「日配额 5 次」）/ 复测间隔 30 / 重发 60 / TTL 300 / 尝试 5 / 锁定 15）；
+* A6：端口三处一致（yml 默认 8084 ⇔ docs §6.1 8084 ⇔ 客户端 MP_DEV_API_BASE 8084）；
+* A7：密钥类键 4 个（数据源 username 键 / 口令键、app.jwt.secret、app.credential.aes-key）全部为**无默认值的环境变量占位**，缺失即启动失败（不静默降级），
+  与 SecretStartupCheck 双重把关；
+* A9：jwt/credential/sms/logging 四个绑定组均有读取点（logging 由 log4j2 `${spring:app.logging.dir:-logs}` 消费）；
+* A10a：正向对照——adminconfig 内 aap_detection_config 命中 13 处（解析器真的工作了）。
+
+---- 抽查脚本自身的返工（全部按「先怀疑判据/解析器」处置） ----
+1. YAML 布尔值经 PyYAML 变成 Python True → str() 得 'True'，A3d 误报 FAIL；修 flatten() 归一为小写 true/false。
+2. SECRET_KW 含 'credential' 把 app.credential.allow-loopback（非密钥值）算成密钥键并误报「占位带默认值」→
+   模式集按「键名是否承载密钥值」分层（坑 45），改为「口令类 / secret / aes-key / api-key / token / 用户名」这几类语义（模式见硬规则 4）。
+3. A5 关键词 (?i)attempt 把 SyncAdminService.MAX_ATTEMPTS=5（同步退避上限）误报为 app.sms.max-attempts 的副本 → 按语义收窄扫描范围（sms.* → /iam/）。
+4. A8b 把 `${java.io.tmpdir}`（系统属性，非环境变量）当环境变量 → 只认 [A-Z][A-Z0-9_]* 形态。
