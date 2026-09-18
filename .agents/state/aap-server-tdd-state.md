@@ -2030,3 +2030,9 @@ P2：客户端零消费、无线上风险，但契约不一致）；其余待拍
 ### 本轮未做（纪律）
 * 未新增仓库工具（按作业要求 `missing=0` 只校验不改代码），抽查脚本与自测均落在 `$LOCALAPPDATA/Temp/`；
 * 未在同一个任务族内并发跑测试（单进程串行两轮，坑 11/20）；跑测试前先用 `jps` 确认无其他 `mvn test`（坑 11/20）。
+
+### 提交态复跑（坑 27/28）
+* 为验证「**提交本身自洽、不依赖他方 4 个未提交改动**」，用临时 worktree（`git worktree add --detach <Temp>/aap-verify-r41-1851 HEAD`）
+  在干净工作树跑全量：**204 例全绿**（0 失败/0 错误/0 跳过）、`EndpointCoverageTest` **90/90**（`registered_routes=96`）、`[ERROR]=0`、`BUILD SUCCESS`
+  → 提交态（`b22f055`）自洽。收尾用 `git worktree remove --force <path>`（git 自带命令，不用递归删除命令，坑 28）。
+  证据：`evidence/green-verify-R41-worktree-HEAD.txt`。

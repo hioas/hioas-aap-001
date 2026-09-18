@@ -62,3 +62,9 @@
   原因：飞书 home channel 未绑定（与 R24…R39 同一根因）；send_rc=0 但消息未投递。
   处置：继续完成本轮交付（全量两轮绿 + 审计零回归 + 抽查 + 台账回写 + 提交 468615a / c61b20b），
         并把「飞书目标需重新绑定」列入最终报告的待处理项。
+
+=== R41（2026-09-18）===
+命令：hermes send -t feishu -s "AAP TDD 进度" "<R41 一句话进度>"
+结果：send rc=1 —— "No home channel set for feishu to determine where to send the message."
+原因：飞书 home channel 未绑定（与 R24…R40 同一根因，第 18 轮）；消息未投递。
+处置：继续完成本轮交付（全量两轮绿 + 14 套审计零回归 + 抽查分页不变量 + 台账回写 + 提交 2cbf075 / b22f055），并把「飞书目标需重新绑定」列入最终报告待处理项。
