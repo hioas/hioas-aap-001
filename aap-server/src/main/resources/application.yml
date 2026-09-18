@@ -79,6 +79,9 @@ app:
     expose-code: false
   logging:
     dir: ${LOG_DIR:logs}
+  usage:
+    # 小时用量聚合的日志源文件（本项目 mock 适配器；真实 new-api 日志拉取未接入 → 未配置时 ADM-U02 回 E-1801）
+    log-file: ${AAP_USAGE_LOG_FILE:}
 
 logging:
   level:

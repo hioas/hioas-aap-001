@@ -20,6 +20,9 @@ app:
   sms:
     # 测试环境把验证码放进响应体（dev_code），生产必须 false（application.yml 默认 false）
     expose-code: true
+  usage:
+    # 用量聚合的日志源（本项目 mock 适配器）：聚合用例自行写入该文件后调 ADM-U02
+    log-file: ${java.io.tmpdir}/aap-usage-log-fixture.json
   logging:
     dir: ${LOG_DIR:logs}
 

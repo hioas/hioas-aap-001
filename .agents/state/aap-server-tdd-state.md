@@ -218,12 +218,78 @@
 
 ---
 
+### R10 · T12 用量聚合与对账（USE-01/02、ADM-U01/02 / AC-43…46）—— ✅ 完成（4/4 端点注册）
+
+- 说明：f3e42d6 的覆盖门禁提交后，轮次状态未续写；**R10 = T12 用量**（首轮由定时任务驱动，见开头 Run Context）。
+- 红基线：`evidence/red-T12.txt`（18 例全部编译失败：`UsageMetrics` 尚不存在 —— 先写测试确实把接口设计逼出来了）
+- 绿：`evidence/green-T12.txt`（**T12 全族 18/18**：契约 11 + 纯函数 6 + 降级 1）
+- 全量两轮（防 flaky，串行）：`evidence/green-T12-full-run1.txt`、`green-T12-full-run2.txt`
+  - **139 例 / 1 红**，两轮完全一致：唯一红是 `EndpointCoverageTest`（覆盖门禁，未注册 **45 → 41**）
+  - ⚠️ 覆盖门禁存在期间**全量不可能全绿**（门禁要求 90/90）：证据文件不写「全量绿」，
+    只写「除门禁外全绿 + missing 下降」，避免文件名骗人（SOP 踩坑 12）。
+- 覆盖进度：`90 / 49 已注册 / 41 未注册`，T03–T09、**T12 = 4/4**；余 T10(5)、T11(11)、T13(3)、T14(22)
+- **工作台 404 已解除**：`GET /api/v1/usage/summary` 上线（序号 2 工作台与序号 22 用量页共用超集响应）
+
+- 本轮踩坑（都是会带到后续任务的坑）
+  1. **PostgreSQL `sum(bigint)` 返回 `numeric`，不是 `bigint`**：`rs.getObject(..., Long.class)` 直接抛
+     `conversion to class java.lang.Long from numeric not supported` —— 在 HTTP 层表现为 **500 E-2001**，
+     真正根因只在服务端日志里（`GlobalExceptionHandler` 的「未捕获异常」那一行）。
+     **规则：聚合查询里所有 `sum()` 一律显式 `::bigint`（金额 `sum()` 保持 numeric）。**
+  2. 无数据 ≠ 0：空窗口的所有指标返回 **null**（不是 0），`provider_id`/`stat_from`/`stat_to` 仍必备；
+     用例直接对 null 与空数组断言，防止以后有人「顺手兜底成 0」把「源故障」显示成「零用量」。
+  3. **降级用例必须单独成类**：`@TestPropertySource` 覆盖 `app.usage.log-file` 会新建 Spring 上下文；
+     混在同一类里会让整类的日志源都变成未配置（把绿色用例一起带红）。
+  4. **mock 适配器也要有失败路径**：日志源未配置/不可读/格式非法 → `E-1801` + 503 +「未配置」字样，
+     且**不写任何用量行**（降级不污染数据）。这条比「happy path」更能防回归。
+  5. 契约字段名仍要回客户端核对（延续 D-API-01）：`/usage/share` 允许小数或百分数两种形态，
+     所以 `share` 发 0–1 小数、`percent` 发 0–100，客户端 `sharePercent()` 归一都能吃下。
+  6. 序列化：`sum()`/`coalesce()` 的 `jsonb_each_text` 展开要 `cross join lateral`，
+     并对 `tier_distribution is null` 容忍（返回空 map，不回 0）。
+
+- 本轮偏差（**待拍板项已标注**）
+  - **D-API-03**：`docs/api/接口字段级schema.md` §2 写 `/usage/hourly` 的 data 是 `{list:[…]}`，
+    但冻结清单 §1.8 与生成器 `common/page.schema.json` 都是 `{items,page,pageSize,total}`（客户端读 `items`）
+    → **按清单 + 客户端真源实现 `items`**；field-level 文档那句需要同步修正（T15 文档收口）。
+  - **D-API-04（待拍板）**：成本构成 `cost.input`/`cost.output` 恒为 **null** —— 小时表只有**总**折算金额，
+    按 token 类型拆实际成本在 PRD/清单里**无口径**，不臆造；`cost.total` = Σ`cost_usd`（账单口径），
+    `platform_fee_rate` 取「已签署合同 `aap_contract.platform_fee_rate`」（无合同 → null，客户端回退设计常量 8%），
+    `platform_fee` = 费率 × 合计。
+  - **D-API-05（待拍板）**：AC-45 文案写「缓存缺失标 `PARTIAL_CACHE`」，但冻结生成器
+    `ENUMS["CacheParseStatus"]` 只有 `OK` / `NO_CACHE_FIELD`（PRD 11 §4/U2 同名）→ **按 schema 实现**。
+    若要引入 `PARTIAL_CACHE`，必须先改生成器 + 重新生成 schema，再改代码（硬约束 1）。
+  - **D-API-06**：对账 `deviation_rate` 基准 = 该供应商**最近一条 APPROVED 报价单**里各模型的
+    input/output/cache_read 单价，按窗口内模型词元结构加权；**无已审报价 → null**（不臆造基准）。
+    ±5% 告警阈值实现为纯函数 `UsageMetrics.deviationAlert`（单测钉死 0.05 边界不告警），
+    告警通道（日志/指标）在 T15 收口。
+  - **D-USAGE-01（待拍板）**：**真实 new-api Log 表拉取未接入**（无冻结契约，PRD 11 §3/§4 只说「按小时拉日志解析」）
+    → 本轮聚合源为**项目内 mock 适配器** `app.usage.log-file`（JSON：`{"buckets":[…]}`），
+    未配置即 `E-1801` 降级；T14 接入真实源时只需替换 `UsageService#readLogSource` 的实现。
+  - **D-USAGE-02**：`month` 缺省窗口 = **当月整月** `[月初 00:00Z, 次月 00:00Z)`；`mom_rate` 与前一等长窗口比，
+    `mom_saved_amount` = 上月 − 本月（可负；PRD 只有「环比」无「节省」口径 → 推断）。
+    `degraded = 缓存可解析率 < 1`（缓存字段不可解析即视为数据降级）；`updated_at` = 桶最新 `collected_at`，
+    `refreshed_at` = 本次聚合时刻。
+  - **已知限制（非偏差，需上游配合）**：`channel_id` 为 null 的桶在 PostgreSQL 唯一索引下**互不冲突**
+    （NULL 视为彼此不同），重跑这类桶会**新增行**而不是 UPSERT —— 渠道未映射（U5）必须尽早补齐 `channel_id`，
+    否则 AC-44 的幂等只对已映射渠道成立。
+- 交付：`UsageMetrics`（比率/单价/环比/差异率纯函数）、`UsageService`（SUMMARY 超集聚合、jsonb 档位展开、
+  分页下钻、日志源 UPSERT + 游标 + 审计）、`UsageViews`（usage-summary/hourly-bucket/refresh-result 契约对齐）、
+  `UsageController`（USE-01/02）、`AdminUsageController`（ADM-U01/02）、`V4__usage_sequences.sql`、
+  用例 18 例（`UsageContractTest` 11 / `UsageMetricsTest` 6 / `UsageRefreshDegradedTest` 1）
+
 ## 未决与下一步
 
-- 下一轮：**R10 · T10 审核**（ADM-R01…05，AC-32…35）——领取（乐观锁 E1）、通过（A9 自动生成合同）、
-  驳回（必填原因码定位到 item_id/字段）、审核记录。**本轮起强制先红后绿，含 controller 层。**
-- 剩余任务：T10 审核、T11 合同/打款/结算、T12 用量、T13 站内信/审计/配置、
-  T14 同步与配置、T15 端到端联调与容器化交付（`docs/backend/03-任务与TDD计划.md` §1 为完整清单）。
+- 下一轮：**R11 · T13 站内信与审计**（NTF-01/02、ADM-A01，3 条）——本轮余项里最小的一族，
+  且直接解锁客户端序号 20 站内信列表（现在仍是 mock）；随后 **T10 审核**（ADM-R01…05）→
+  **T11 合同/打款/结算**（11 条，依赖 T10）→ **T14 同步与配置**（22 条，依赖 T09/T12）。
+- **待拍板（本轮新增，不阻塞现有代码可用）**
+  1. **D-API-05**：AC-45 的 `PARTIAL_CACHE` 是否要纳入 `CacheParseStatus` 枚举？纳入即需改生成器 + 重生成 schema。
+  2. **D-API-04**：成本构成按 token 类型的拆解口径（小时表只有总额）——是否需要新增按类型的金额列？
+  3. **D-USAGE-01**：真实 new-api 用量日志源（表 or HTTP）契约未冻结 → T14 接入前需要定契约。
+  4. **D-API-03**：`docs/api/接口字段级schema.md` §2 的 `{list}` 需回改为 `{items}`（文档口径统一）。
+- 剩余任务：T10 审核（5）、T11 合同/打款/结算（11）、T13 站内信/审计（3）、T14 同步与配置（22）、
+  T15 端到端联调与容器化交付（`docs/backend/03-任务与TDD计划.md` §1 为完整清单）。
+- 覆盖门禁纪律：`EndpointCoverageTest` 在 41 条未注册期间**必然红**，它是「还剩多少没落地」的仪表；
+  每轮证据只允许写「除门禁外全绿 + missing 下降」，禁止写「全量全绿」。
 - **待前端处理（O-01）**：`aap-client/src/utils/report-model.ts:51` 兜底免责声明含 R-26 禁用字样，建议改为与
   服务端 `ReportService.DISCLAIMER` 同文案。
 - 待办（跨轮）：`aap-server/README.md` 运行说明；T15 时把 `aap-client` 的 `baseUrl` 指向本服务做联调截图。
