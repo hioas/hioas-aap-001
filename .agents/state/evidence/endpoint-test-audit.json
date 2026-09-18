@@ -1,0 +1,3102 @@
+{
+  "total": 90,
+  "exact": 90,
+  "prefix": 0,
+  "none": 0,
+  "id_traceable": 71,
+  "id_not_traceable": [
+    "AUTH-02",
+    "AUTH-03",
+    "AUTH-06",
+    "PROV-04",
+    "PROV-05",
+    "CRED-02",
+    "CRED-03",
+    "DET-02",
+    "DET-03",
+    "DET-05",
+    "DET-06",
+    "RPT-02",
+    "RPT-04",
+    "QT-03",
+    "QT-06",
+    "QT-07",
+    "QT-11",
+    "ADM-CP04",
+    "ADM-CFG08"
+  ],
+  "none_ids": [],
+  "prefix_ids": [],
+  "endpoints": [
+    {
+      "id": "AUTH-01",
+      "method": "POST",
+      "path": "/api/v1/auth/sms/send",
+      "task": "T03",
+      "tag": "Auth",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/iam/AuthContractTest.java"
+      ],
+      "exact_sites": 27,
+      "prefix_sites": 0,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "HttpResult send = post(\"/auth/sms/send\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "HttpResult send = post(\"/auth/sms/send\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": []
+    },
+    {
+      "id": "AUTH-02",
+      "method": "POST",
+      "path": "/api/v1/auth/sms/login",
+      "task": "T03",
+      "tag": "Auth",
+      "evidence": "exact",
+      "id_refs": [],
+      "exact_sites": 22,
+      "prefix_sites": 0,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "HttpResult login = post(\"/auth/sms/login\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "HttpResult login = post(\"/auth/sms/login\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": []
+    },
+    {
+      "id": "AUTH-03",
+      "method": "POST",
+      "path": "/api/v1/auth/wechat/login",
+      "task": "T03",
+      "tag": "Auth",
+      "evidence": "exact",
+      "id_refs": [],
+      "exact_sites": 2,
+      "prefix_sites": 0,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AuthContractTest.java",
+          "line": "HttpResult first = post(\"/auth/wechat/login\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AuthContractTest.java",
+          "line": "HttpResult second = post(\"/auth/wechat/login\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": []
+    },
+    {
+      "id": "AUTH-04",
+      "method": "POST",
+      "path": "/api/v1/auth/refresh",
+      "task": "T03",
+      "tag": "Auth",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/iam/AuthContractTest.java"
+      ],
+      "exact_sites": 2,
+      "prefix_sites": 0,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AuthContractTest.java",
+          "line": "HttpResult refreshed = post(\"/auth/refresh\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AuthContractTest.java",
+          "line": "HttpResult reuse = post(\"/auth/refresh\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": []
+    },
+    {
+      "id": "AUTH-05",
+      "method": "POST",
+      "path": "/api/v1/auth/logout",
+      "task": "T03",
+      "tag": "Auth",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/iam/AuthContractTest.java"
+      ],
+      "exact_sites": 1,
+      "prefix_sites": 0,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AuthContractTest.java",
+          "line": "HttpResult logout = post(\"/auth/logout\", null, token);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": []
+    },
+    {
+      "id": "AUTH-06",
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "task": "T03",
+      "tag": "Auth",
+      "evidence": "exact",
+      "id_refs": [],
+      "exact_sites": 9,
+      "prefix_sites": 0,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult me = get(\"/auth/me\", token);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AuthContractTest.java",
+          "line": "HttpResult noToken = get(\"/auth/me\");",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": []
+    },
+    {
+      "id": "PROV-01",
+      "method": "GET",
+      "path": "/api/v1/provider/profile",
+      "task": "T04",
+      "tag": "Provider",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java"
+      ],
+      "exact_sites": 2,
+      "prefix_sites": 7,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java",
+          "line": "HttpResult res = get(\"/provider/profile\", token);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java",
+          "line": "HttpResult res = get(\"/provider/profile\");",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java",
+          "line": "HttpResult res = put(\"/provider/profile\", \"\"\"",
+          "helper": "put"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java",
+          "line": "HttpResult badUscc = put(\"/provider/profile\", \"\"\"",
+          "helper": "put"
+        }
+      ]
+    },
+    {
+      "id": "PROV-02",
+      "method": "PUT",
+      "path": "/api/v1/provider/profile",
+      "task": "T04",
+      "tag": "Provider",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java"
+      ],
+      "exact_sites": 7,
+      "prefix_sites": 2,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java",
+          "line": "HttpResult res = put(\"/provider/profile\", \"\"\"",
+          "helper": "put"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java",
+          "line": "HttpResult badUscc = put(\"/provider/profile\", \"\"\"",
+          "helper": "put"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java",
+          "line": "HttpResult res = get(\"/provider/profile\", token);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java",
+          "line": "HttpResult res = get(\"/provider/profile\");",
+          "helper": "get"
+        }
+      ]
+    },
+    {
+      "id": "PROV-03",
+      "method": "GET",
+      "path": "/api/v1/provider/qualifications",
+      "task": "T04",
+      "tag": "Provider",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java"
+      ],
+      "exact_sites": 2,
+      "prefix_sites": 4,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java",
+          "line": "HttpResult list = get(\"/provider/qualifications\", token);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java",
+          "line": "assertThat(get(\"/provider/qualifications\", token).data().path(\"items\").size()).isZero();",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java",
+          "line": "HttpResult created = post(\"/provider/qualifications\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java",
+          "line": "HttpResult deleted = delete(\"/provider/qualifications/\" + id, token);",
+          "helper": "delete"
+        }
+      ]
+    },
+    {
+      "id": "PROV-04",
+      "method": "POST",
+      "path": "/api/v1/provider/qualifications",
+      "task": "T04",
+      "tag": "Provider",
+      "evidence": "exact",
+      "id_refs": [],
+      "exact_sites": 3,
+      "prefix_sites": 3,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java",
+          "line": "HttpResult created = post(\"/provider/qualifications\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java",
+          "line": "HttpResult tooBig = post(\"/provider/qualifications\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java",
+          "line": "HttpResult list = get(\"/provider/qualifications\", token);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java",
+          "line": "HttpResult deleted = delete(\"/provider/qualifications/\" + id, token);",
+          "helper": "delete"
+        }
+      ]
+    },
+    {
+      "id": "PROV-05",
+      "method": "DELETE",
+      "path": "/api/v1/provider/qualifications/{id}",
+      "task": "T04",
+      "tag": "Provider",
+      "evidence": "exact",
+      "id_refs": [],
+      "exact_sites": 1,
+      "prefix_sites": 1,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java",
+          "line": "HttpResult deleted = delete(\"/provider/qualifications/\" + id, token);",
+          "helper": "delete"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java",
+          "line": "HttpResult deleted = delete(\"/provider/qualifications/\" + id, token);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "CRED-01",
+      "method": "GET",
+      "path": "/api/v1/credentials",
+      "task": "T05",
+      "tag": "Credential",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/credential/CredentialContractTest.java"
+      ],
+      "exact_sites": 11,
+      "prefix_sites": 28,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
+          "line": "HttpResult res = get(\"/admin/credentials/860001\", superAdmin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
+          "line": "HttpResult bizDenied = get(\"/admin/credentials/860001\", biz);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult credential = post(\"/credentials\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult precheck = post(\"/credentials/\" + credentialId + \"/precheck\", null, token);",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "CRED-02",
+      "method": "POST",
+      "path": "/api/v1/credentials",
+      "task": "T05",
+      "tag": "Credential",
+      "evidence": "exact",
+      "id_refs": [],
+      "exact_sites": 27,
+      "prefix_sites": 12,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult credential = post(\"/credentials\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult precheck = post(\"/credentials/\" + credentialId + \"/precheck\", null, token);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
+          "line": "HttpResult res = get(\"/admin/credentials/860001\", superAdmin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
+          "line": "HttpResult bizDenied = get(\"/admin/credentials/860001\", biz);",
+          "helper": "get"
+        }
+      ]
+    },
+    {
+      "id": "CRED-03",
+      "method": "GET",
+      "path": "/api/v1/credentials/{id}",
+      "task": "T05",
+      "tag": "Credential",
+      "evidence": "exact",
+      "id_refs": [],
+      "exact_sites": 10,
+      "prefix_sites": 50,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
+          "line": "HttpResult res = get(\"/admin/credentials/860001\", superAdmin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
+          "line": "HttpResult bizDenied = get(\"/admin/credentials/860001\", biz);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult precheck = post(\"/credentials/\" + credentialId + \"/precheck\", null, token);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult precheck = post(\"/credentials/\" + credentialId + \"/precheck\", null, token);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "CRED-04",
+      "method": "PUT",
+      "path": "/api/v1/credentials/{id}",
+      "task": "T05",
+      "tag": "Credential",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/credential/CredentialContractTest.java"
+      ],
+      "exact_sites": 1,
+      "prefix_sites": 59,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/CredentialContractTest.java",
+          "line": "HttpResult res = put(\"/credentials/\" + credentialId, \"\"\"",
+          "helper": "put"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult precheck = post(\"/credentials/\" + credentialId + \"/precheck\", null, token);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult precheck = post(\"/credentials/\" + credentialId + \"/precheck\", null, token);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "CRED-05",
+      "method": "POST",
+      "path": "/api/v1/credentials/{id}/precheck",
+      "task": "T05",
+      "tag": "Credential",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/credential/CredentialContractTest.java"
+      ],
+      "exact_sites": 10,
+      "prefix_sites": 31,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult precheck = post(\"/credentials/\" + credentialId + \"/precheck\", null, token);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/CredentialContractTest.java",
+          "line": "HttpResult res = post(\"/credentials/\" + credentialId + \"/precheck\", null, token);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult precheck = post(\"/credentials/\" + credentialId + \"/precheck\", null, token);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
+          "line": "HttpResult res = get(\"/admin/credentials/860001\", superAdmin);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "CRED-06",
+      "method": "GET",
+      "path": "/api/v1/credentials/{id}/precheck/latest",
+      "task": "T05",
+      "tag": "Credential",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/credential/CredentialContractTest.java"
+      ],
+      "exact_sites": 1,
+      "prefix_sites": 30,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/CredentialContractTest.java",
+          "line": "HttpResult res = get(\"/credentials/\" + credentialId + \"/precheck/latest\", token);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult precheck = post(\"/credentials/\" + credentialId + \"/precheck\", null, token);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
+          "line": "HttpResult res = get(\"/admin/credentials/860001\", superAdmin);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "CRED-07",
+      "method": "POST",
+      "path": "/api/v1/credentials/{id}/reveal",
+      "task": "T05",
+      "tag": "Credential",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java"
+      ],
+      "exact_sites": 9,
+      "prefix_sites": 30,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
+          "line": "HttpResult supplierDenied = post(\"/admin/credentials/860001/reveal\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
+          "line": "HttpResult bizDenied = post(\"/admin/credentials/860001/reveal\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult precheck = post(\"/credentials/\" + credentialId + \"/precheck\", null, token);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
+          "line": "HttpResult res = get(\"/admin/credentials/860001\", superAdmin);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "DET-01",
+      "method": "POST",
+      "path": "/api/v1/detection-jobs",
+      "task": "T06",
+      "tag": "Detection",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java"
+      ],
+      "exact_sites": 11,
+      "prefix_sites": 6,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult cancelled = post(\"/detection-jobs/\" + firstJobId + \"/cancel\", null, token);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult created = post(\"/detection-jobs\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult detail = get(\"/detection-jobs/\" + jobId, token);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult missingResult = get(\"/detection-jobs/\" + jobId + \"/results/D1\", token);",
+          "helper": "get"
+        }
+      ]
+    },
+    {
+      "id": "DET-02",
+      "method": "GET",
+      "path": "/api/v1/detection-jobs/{jobId}",
+      "task": "T06",
+      "tag": "Detection",
+      "evidence": "exact",
+      "id_refs": [],
+      "exact_sites": 6,
+      "prefix_sites": 18,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult detail = get(\"/detection-jobs/\" + jobId, token);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult missingResult = get(\"/detection-jobs/\" + jobId + \"/results/D1\", token);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult cancelled = post(\"/detection-jobs/\" + firstJobId + \"/cancel\", null, token);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "assertThat(post(\"/detection-jobs/\" + jobId + \"/cancel\", null, token).status()).isEqualTo(200);",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "DET-03",
+      "method": "GET",
+      "path": "/api/v1/detection-jobs/{jobId}/results",
+      "task": "T06",
+      "tag": "Detection",
+      "evidence": "exact",
+      "id_refs": [],
+      "exact_sites": 3,
+      "prefix_sites": 12,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult missingResult = get(\"/detection-jobs/\" + jobId + \"/results/D1\", token);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult results = get(\"/detection-jobs/\" + jobId + \"/results\", token);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult cancelled = post(\"/detection-jobs/\" + firstJobId + \"/cancel\", null, token);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult detail = get(\"/detection-jobs/\" + jobId, token);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "DET-04",
+      "method": "GET",
+      "path": "/api/v1/detection-jobs/{jobId}/results/{probeCode}",
+      "task": "T06",
+      "tag": "Detection",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java"
+      ],
+      "exact_sites": 2,
+      "prefix_sites": 12,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult missingResult = get(\"/detection-jobs/\" + jobId + \"/results/D1\", token);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult single = get(\"/detection-jobs/\" + jobId + \"/results/D7\", token);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult cancelled = post(\"/detection-jobs/\" + firstJobId + \"/cancel\", null, token);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult detail = get(\"/detection-jobs/\" + jobId, token);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "DET-05",
+      "method": "POST",
+      "path": "/api/v1/detection-jobs/{jobId}/cancel",
+      "task": "T06",
+      "tag": "Detection",
+      "evidence": "exact",
+      "id_refs": [],
+      "exact_sites": 3,
+      "prefix_sites": 12,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult cancelled = post(\"/detection-jobs/\" + firstJobId + \"/cancel\", null, token);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "assertThat(post(\"/detection-jobs/\" + jobId + \"/cancel\", null, token).status()).isEqualTo(200);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult cancelled = post(\"/detection-jobs/\" + firstJobId + \"/cancel\", null, token);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult detail = get(\"/detection-jobs/\" + jobId, token);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "DET-06",
+      "method": "POST",
+      "path": "/api/v1/detection-jobs/{jobId}/release",
+      "task": "T06",
+      "tag": "Detection",
+      "evidence": "exact",
+      "id_refs": [],
+      "exact_sites": 3,
+      "prefix_sites": 12,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult forbidden = post(\"/detection-jobs/\" + jobId + \"/release\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult noReason = post(\"/detection-jobs/\" + jobId + \"/release\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult cancelled = post(\"/detection-jobs/\" + firstJobId + \"/cancel\", null, token);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+          "line": "HttpResult detail = get(\"/detection-jobs/\" + jobId, token);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "RPT-01",
+      "method": "GET",
+      "path": "/api/v1/reports",
+      "task": "T07",
+      "tag": "Report",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/report/ReportContractTest.java"
+      ],
+      "exact_sites": 9,
+      "prefix_sites": 0,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/report/ReportContractTest.java",
+          "line": "HttpResult list = get(\"/reports\", token);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/report/ReportContractTest.java",
+          "line": "HttpResult detail = get(\"/reports/\" + reportId, token);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": []
+    },
+    {
+      "id": "RPT-02",
+      "method": "GET",
+      "path": "/api/v1/reports/{reportId}",
+      "task": "T07",
+      "tag": "Report",
+      "evidence": "exact",
+      "id_refs": [],
+      "exact_sites": 5,
+      "prefix_sites": 5,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/report/ReportContractTest.java",
+          "line": "HttpResult detail = get(\"/reports/\" + reportId, token);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/report/ReportContractTest.java",
+          "line": "HttpResult html = send(\"GET\", \"/reports/\" + reportId + \"/html\", null, token);",
+          "helper": "send"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/report/ReportContractTest.java",
+          "line": "HttpResult detail = get(\"/reports/\" + reportId, token);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/report/ReportContractTest.java",
+          "line": "HttpResult html = send(\"GET\", \"/reports/\" + reportId + \"/html\", null, token);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "RPT-03",
+      "method": "GET",
+      "path": "/api/v1/reports/{reportId}/html",
+      "task": "T07",
+      "tag": "Report",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/report/ReportContractTest.java"
+      ],
+      "exact_sites": 1,
+      "prefix_sites": 5,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/report/ReportContractTest.java",
+          "line": "HttpResult html = send(\"GET\", \"/reports/\" + reportId + \"/html\", null, token);",
+          "helper": "send"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/report/ReportContractTest.java",
+          "line": "HttpResult detail = get(\"/reports/\" + reportId, token);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/report/ReportContractTest.java",
+          "line": "HttpResult html = send(\"GET\", \"/reports/\" + reportId + \"/html\", null, token);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "RPT-04",
+      "method": "GET",
+      "path": "/api/v1/reports/{reportId}/export",
+      "task": "T07",
+      "tag": "Report",
+      "evidence": "exact",
+      "id_refs": [],
+      "exact_sites": 1,
+      "prefix_sites": 5,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/report/ReportContractTest.java",
+          "line": "HttpResult export = get(\"/reports/\" + reportId + \"/export\", token);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/report/ReportContractTest.java",
+          "line": "HttpResult detail = get(\"/reports/\" + reportId, token);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/report/ReportContractTest.java",
+          "line": "HttpResult html = send(\"GET\", \"/reports/\" + reportId + \"/html\", null, token);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "QT-01",
+      "method": "GET",
+      "path": "/api/v1/quotes",
+      "task": "T08",
+      "tag": "Quote",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java"
+      ],
+      "exact_sites": 26,
+      "prefix_sites": 46,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/AdminQuoteCompareContractTest.java",
+          "line": "HttpResult res = get(\"/admin/quotes/compare?quoteIds=710001,710002\", biz);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/AdminQuoteCompareContractTest.java",
+          "line": "HttpResult three = get(\"/admin/quotes/compare?quoteIds=710001,710002,710003\", biz);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult quote = post(\"/quotes\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "String itemId = post(\"/quotes/\" + quoteId + \"/items\", \"\"\"",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "QT-02",
+      "method": "POST",
+      "path": "/api/v1/quotes",
+      "task": "T08",
+      "tag": "Quote",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java"
+      ],
+      "exact_sites": 34,
+      "prefix_sites": 38,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult quote = post(\"/quotes\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "String itemId = post(\"/quotes/\" + quoteId + \"/items\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult priced = put(\"/quotes/items/\" + itemId, \"\"\"",
+          "helper": "put"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/AdminQuoteCompareContractTest.java",
+          "line": "HttpResult res = get(\"/admin/quotes/compare?quoteIds=710001,710002\", biz);",
+          "helper": "get"
+        }
+      ]
+    },
+    {
+      "id": "QT-03",
+      "method": "GET",
+      "path": "/api/v1/quotes/{quoteId}",
+      "task": "T08",
+      "tag": "Quote",
+      "evidence": "exact",
+      "id_refs": [],
+      "exact_sites": 22,
+      "prefix_sites": 104,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/AdminQuoteCompareContractTest.java",
+          "line": "HttpResult res = get(\"/admin/quotes/compare?quoteIds=710001,710002\", biz);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/AdminQuoteCompareContractTest.java",
+          "line": "HttpResult three = get(\"/admin/quotes/compare?quoteIds=710001,710002,710003\", biz);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "String itemId = post(\"/quotes/\" + quoteId + \"/items\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult priced = put(\"/quotes/items/\" + itemId, \"\"\"",
+          "helper": "put"
+        }
+      ]
+    },
+    {
+      "id": "QT-04",
+      "method": "DELETE",
+      "path": "/api/v1/quotes/{quoteId}",
+      "task": "T08",
+      "tag": "Quote",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java"
+      ],
+      "exact_sites": 3,
+      "prefix_sites": 123,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
+          "line": "HttpResult first = send(\"PUT\", \"/quotes/items/\" + itemId,",
+          "helper": "send"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
+          "line": "HttpResult stale = send(\"PUT\", \"/quotes/items/\" + itemId,",
+          "helper": "send"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "String itemId = post(\"/quotes/\" + quoteId + \"/items\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult priced = put(\"/quotes/items/\" + itemId, \"\"\"",
+          "helper": "put"
+        }
+      ]
+    },
+    {
+      "id": "QT-05",
+      "method": "POST",
+      "path": "/api/v1/quotes/{quoteId}/items",
+      "task": "T08",
+      "tag": "Quote",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java"
+      ],
+      "exact_sites": 6,
+      "prefix_sites": 64,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "String itemId = post(\"/quotes/\" + quoteId + \"/items\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
+          "line": "HttpResult items = post(\"/quotes/\" + quoteId + \"/items\",",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "String itemId = post(\"/quotes/\" + quoteId + \"/items\", \"\"\"",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult priced = put(\"/quotes/items/\" + itemId, \"\"\"",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "QT-06",
+      "method": "GET",
+      "path": "/api/v1/quotes/{quoteId}/items",
+      "task": "T08",
+      "tag": "Quote",
+      "evidence": "exact",
+      "id_refs": [],
+      "exact_sites": 1,
+      "prefix_sites": 69,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
+          "line": "HttpResult listItems = get(\"/quotes/\" + quoteId + \"/items\", token);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "String itemId = post(\"/quotes/\" + quoteId + \"/items\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "String itemId = post(\"/quotes/\" + quoteId + \"/items\", \"\"\"",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "QT-07",
+      "method": "GET",
+      "path": "/api/v1/quotes/items/{itemId}",
+      "task": "T08",
+      "tag": "Quote",
+      "evidence": "exact",
+      "id_refs": [],
+      "exact_sites": 5,
+      "prefix_sites": 31,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
+          "line": "HttpResult one = get(\"/quotes/items/\" + itemId, token);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
+          "line": "HttpResult readBack = get(\"/quotes/items/\" + itemId, token);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult priced = put(\"/quotes/items/\" + itemId, \"\"\"",
+          "helper": "put"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult priced = put(\"/quotes/items/\" + itemId, \"\"\"",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "QT-08",
+      "method": "PUT",
+      "path": "/api/v1/quotes/items/{itemId}",
+      "task": "T08",
+      "tag": "Quote",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java"
+      ],
+      "exact_sites": 15,
+      "prefix_sites": 21,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult priced = put(\"/quotes/items/\" + itemId, \"\"\"",
+          "helper": "put"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
+          "line": "assertThat(put(\"/quotes/items/\" + itemId, \"\"\"",
+          "helper": "put"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult priced = put(\"/quotes/items/\" + itemId, \"\"\"",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
+          "line": "HttpResult one = get(\"/quotes/items/\" + itemId, token);",
+          "helper": "get"
+        }
+      ]
+    },
+    {
+      "id": "QT-09",
+      "method": "POST",
+      "path": "/api/v1/quotes/{quoteId}/submit",
+      "task": "T08",
+      "tag": "Quote",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
+        "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java"
+      ],
+      "exact_sites": 9,
+      "prefix_sites": 63,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
+          "line": "HttpResult empty = post(\"/quotes/\" + quoteId + \"/submit\", null, token);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
+          "line": "HttpResult missingPrice = post(\"/quotes/\" + quoteId + \"/submit\", null, token);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "String itemId = post(\"/quotes/\" + quoteId + \"/items\", \"\"\"",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult priced = put(\"/quotes/items/\" + itemId, \"\"\"",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "QT-10",
+      "method": "POST",
+      "path": "/api/v1/quotes/{quoteId}/withdraw",
+      "task": "T08",
+      "tag": "Quote",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java"
+      ],
+      "exact_sites": 3,
+      "prefix_sites": 63,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
+          "line": "HttpResult early = post(\"/quotes/\" + quoteId + \"/withdraw\", null, token);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
+          "line": "HttpResult withdrawn = post(\"/quotes/\" + quoteId + \"/withdraw\", null, token);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "String itemId = post(\"/quotes/\" + quoteId + \"/items\", \"\"\"",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult priced = put(\"/quotes/items/\" + itemId, \"\"\"",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "QT-11",
+      "method": "GET",
+      "path": "/api/v1/quotes/{quoteId}/versions",
+      "task": "T08",
+      "tag": "Quote",
+      "evidence": "exact",
+      "id_refs": [],
+      "exact_sites": 1,
+      "prefix_sites": 63,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
+          "line": "HttpResult versions = get(\"/quotes/\" + quoteId + \"/versions\", token);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "String itemId = post(\"/quotes/\" + quoteId + \"/items\", \"\"\"",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult priced = put(\"/quotes/items/\" + itemId, \"\"\"",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "QT-12",
+      "method": "POST",
+      "path": "/api/v1/quotes/{quoteId}/compile-preview",
+      "task": "T09",
+      "tag": "Quote",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java"
+      ],
+      "exact_sites": 1,
+      "prefix_sites": 63,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult preview = post(\"/quotes/\" + quoteId + \"/compile-preview\", null, token);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "String itemId = post(\"/quotes/\" + quoteId + \"/items\", \"\"\"",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult priced = put(\"/quotes/items/\" + itemId, \"\"\"",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "CON-01",
+      "method": "GET",
+      "path": "/api/v1/contracts",
+      "task": "T11",
+      "tag": "Contract",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java"
+      ],
+      "exact_sites": 22,
+      "prefix_sites": 18,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult list = get(\"/contracts?page=1&pageSize=20\", supplier);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "assertThat(get(\"/contracts?status=CREATED\", supplier).data().path(\"total\").asLong()).isEqualTo(1L);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult issued = post(\"/admin/contracts/\" + contractId + \"/issue\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult signed = post(\"/contracts/\" + contractId + \"/sign\", \"\"\"",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "CON-02",
+      "method": "GET",
+      "path": "/api/v1/contracts/{id}",
+      "task": "T11",
+      "tag": "Contract",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java"
+      ],
+      "exact_sites": 11,
+      "prefix_sites": 47,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult detail = get(\"/contracts/\" + contractId, supplier);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult foreign = get(\"/contracts/\" + contractId, token(OTHER_PHONE));",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult issued = post(\"/admin/contracts/\" + contractId + \"/issue\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult signed = post(\"/contracts/\" + contractId + \"/sign\", \"\"\"",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "CON-03",
+      "method": "GET",
+      "path": "/api/v1/contracts/{id}/file",
+      "task": "T11",
+      "tag": "Contract",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java"
+      ],
+      "exact_sites": 4,
+      "prefix_sites": 29,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult notIssued = get(\"/contracts/\" + created + \"/file\", supplier);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult file = get(\"/contracts/\" + issued + \"/file\", supplier);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult detail = get(\"/contracts/\" + contractId, supplier);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult foreign = get(\"/contracts/\" + contractId, token(OTHER_PHONE));",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "CON-04",
+      "method": "POST",
+      "path": "/api/v1/contracts/{id}/sign",
+      "task": "T11",
+      "tag": "Contract",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java"
+      ],
+      "exact_sites": 8,
+      "prefix_sites": 29,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult signed = post(\"/contracts/\" + contractId + \"/sign\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult again = post(\"/contracts/\" + contractId + \"/sign\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult detail = get(\"/contracts/\" + contractId, supplier);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult foreign = get(\"/contracts/\" + contractId, token(OTHER_PHONE));",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "PAY-01",
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "task": "T11",
+      "tag": "Payment",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java"
+      ],
+      "exact_sites": 8,
+      "prefix_sites": 5,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "HttpResult list = get(\"/payments?page=1&pageSize=20\", supplier);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "HttpResult paged = get(\"/payments?page=5&pageSize=2\", supplier);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "HttpResult rejected = post(\"/admin/payments/\" + blocked + \"/confirm\", null, admin);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "HttpResult ok = post(\"/admin/payments/\" + paymentId + \"/confirm\", null, admin);",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "NTF-01",
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "task": "T13",
+      "tag": "Notification",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/support/NotificationContractTest.java"
+      ],
+      "exact_sites": 14,
+      "prefix_sites": 7,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/support/NotificationContractTest.java",
+          "line": "HttpResult res = get(\"/notifications\", token);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/support/NotificationContractTest.java",
+          "line": "HttpResult unreadOnly = get(\"/notifications?unread=true\", mine);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/support/NotificationContractTest.java",
+          "line": "HttpResult res = post(\"/notifications/800020/read\", null, token);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/support/NotificationContractTest.java",
+          "line": "HttpResult first = post(\"/notifications/800021/read\", null, token);",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "NTF-02",
+      "method": "POST",
+      "path": "/api/v1/notifications/{id}/read",
+      "task": "T13",
+      "tag": "Notification",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/support/NotificationContractTest.java"
+      ],
+      "exact_sites": 7,
+      "prefix_sites": 7,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/support/NotificationContractTest.java",
+          "line": "HttpResult res = post(\"/notifications/800020/read\", null, token);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/support/NotificationContractTest.java",
+          "line": "HttpResult first = post(\"/notifications/800021/read\", null, token);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/support/NotificationContractTest.java",
+          "line": "HttpResult res = post(\"/notifications/800020/read\", null, token);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/support/NotificationContractTest.java",
+          "line": "HttpResult first = post(\"/notifications/800021/read\", null, token);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "USE-01",
+      "method": "GET",
+      "path": "/api/v1/usage/summary",
+      "task": "T12",
+      "tag": "Usage",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/usage/UsageContractTest.java"
+      ],
+      "exact_sites": 10,
+      "prefix_sites": 0,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/usage/UsageContractTest.java",
+          "line": "HttpResult res = get(\"/usage/summary?startHour=2026-06-01T00:00:00Z&endHour=2026-06-02T00:00:00Z\", token);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/usage/UsageContractTest.java",
+          "line": "HttpResult res = get(\"/usage/summary?month=2026-06\", token);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": []
+    },
+    {
+      "id": "USE-02",
+      "method": "GET",
+      "path": "/api/v1/usage/hourly",
+      "task": "T12",
+      "tag": "Usage",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/usage/UsageContractTest.java"
+      ],
+      "exact_sites": 18,
+      "prefix_sites": 0,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/usage/UsageContractTest.java",
+          "line": "HttpResult res = get(\"/usage/hourly?from=2026-06-01T00:00:00Z&to=2026-06-02T00:00:00Z\", token);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/usage/UsageContractTest.java",
+          "line": "HttpResult paged = get(\"/usage/hourly?from=2026-06-01T00:00:00Z&to=2026-06-02T00:00:00Z&page=2&pageSize=1\", token);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": []
+    },
+    {
+      "id": "ADM-P01",
+      "method": "GET",
+      "path": "/api/v1/admin/providers",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/provider/AdminProviderContractTest.java"
+      ],
+      "exact_sites": 11,
+      "prefix_sites": 17,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/AdminProviderContractTest.java",
+          "line": "HttpResult list = get(\"/admin/providers\", biz);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/AdminProviderContractTest.java",
+          "line": "HttpResult byStatus = get(\"/admin/providers?status=published\", biz);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/AdminProviderContractTest.java",
+          "line": "HttpResult noReason = post(\"/admin/providers/810001/suspend\", \"{}\", biz);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/AdminProviderContractTest.java",
+          "line": "HttpResult shortReason = post(\"/admin/providers/810001/suspend\", \"\"\"",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "ADM-P02",
+      "method": "POST",
+      "path": "/api/v1/admin/providers/{id}/suspend",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/provider/AdminProviderContractTest.java"
+      ],
+      "exact_sites": 9,
+      "prefix_sites": 17,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/AdminProviderContractTest.java",
+          "line": "HttpResult noReason = post(\"/admin/providers/810001/suspend\", \"{}\", biz);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/AdminProviderContractTest.java",
+          "line": "HttpResult shortReason = post(\"/admin/providers/810001/suspend\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/AdminProviderContractTest.java",
+          "line": "HttpResult noReason = post(\"/admin/providers/810001/suspend\", \"{}\", biz);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/AdminProviderContractTest.java",
+          "line": "HttpResult shortReason = post(\"/admin/providers/810001/suspend\", \"\"\"",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "ADM-P03",
+      "method": "POST",
+      "path": "/api/v1/admin/providers/{id}/resume",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/provider/AdminProviderContractTest.java"
+      ],
+      "exact_sites": 8,
+      "prefix_sites": 17,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/AdminProviderContractTest.java",
+          "line": "HttpResult resumed = post(\"/admin/providers/810001/resume\", null, techOps);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/AdminProviderContractTest.java",
+          "line": "HttpResult notSuspended = post(\"/admin/providers/810001/resume\", null, biz);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/AdminProviderContractTest.java",
+          "line": "HttpResult noReason = post(\"/admin/providers/810001/suspend\", \"{}\", biz);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/provider/AdminProviderContractTest.java",
+          "line": "HttpResult shortReason = post(\"/admin/providers/810001/suspend\", \"\"\"",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "ADM-C01",
+      "method": "GET",
+      "path": "/api/v1/admin/credentials/{id}",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java"
+      ],
+      "exact_sites": 6,
+      "prefix_sites": 20,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
+          "line": "HttpResult res = get(\"/admin/credentials/860001\", superAdmin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
+          "line": "HttpResult bizDenied = get(\"/admin/credentials/860001\", biz);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
+          "line": "HttpResult supplierDenied = post(\"/admin/credentials/860001/reveal\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
+          "line": "HttpResult bizDenied = post(\"/admin/credentials/860001/reveal\", \"\"\"",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "ADM-C02",
+      "method": "POST",
+      "path": "/api/v1/admin/credentials/{id}/reveal",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java"
+      ],
+      "exact_sites": 7,
+      "prefix_sites": 13,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
+          "line": "HttpResult supplierDenied = post(\"/admin/credentials/860001/reveal\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
+          "line": "HttpResult bizDenied = post(\"/admin/credentials/860001/reveal\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
+          "line": "HttpResult res = get(\"/admin/credentials/860001\", superAdmin);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
+          "line": "HttpResult bizDenied = get(\"/admin/credentials/860001\", biz);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "ADM-Q01",
+      "method": "POST",
+      "path": "/api/v1/admin/quotes/{id}/compile",
+      "task": "T09",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java"
+      ],
+      "exact_sites": 8,
+      "prefix_sites": 20,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult tooEarly = post(\"/admin/quotes/\" + quoteId + \"/compile\", null, admin);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult compiled = post(\"/admin/quotes/\" + quoteId + \"/compile\", null, admin);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult tooEarly = post(\"/admin/quotes/\" + quoteId + \"/compile\", null, admin);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult compiled = post(\"/admin/quotes/\" + quoteId + \"/compile\", null, admin);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "ADM-Q02",
+      "method": "GET",
+      "path": "/api/v1/admin/quotes/compare",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/quote/AdminQuoteCompareContractTest.java"
+      ],
+      "exact_sites": 12,
+      "prefix_sites": 0,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/AdminQuoteCompareContractTest.java",
+          "line": "HttpResult res = get(\"/admin/quotes/compare?quoteIds=710001,710002\", biz);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/AdminQuoteCompareContractTest.java",
+          "line": "HttpResult three = get(\"/admin/quotes/compare?quoteIds=710001,710002,710003\", biz);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": []
+    },
+    {
+      "id": "ADM-CP01",
+      "method": "GET",
+      "path": "/api/v1/admin/compilations",
+      "task": "T09",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java"
+      ],
+      "exact_sites": 7,
+      "prefix_sites": 4,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/compilations/\" + compilationId, admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult list = get(\"/admin/compilations?status=COMPILED\", admin);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult premature = post(\"/admin/compilations/\" + compilationId + \"/confirm\", null, admin);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult verified = post(\"/admin/compilations/\" + compilationId + \"/verify\", null, admin);",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "ADM-CP02",
+      "method": "GET",
+      "path": "/api/v1/admin/compilations/{id}",
+      "task": "T09",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java"
+      ],
+      "exact_sites": 3,
+      "prefix_sites": 11,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/compilations/\" + compilationId, admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "assertThat(get(\"/admin/compilations/99999999\", admin).status()).isEqualTo(404);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult premature = post(\"/admin/compilations/\" + compilationId + \"/confirm\", null, admin);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult verified = post(\"/admin/compilations/\" + compilationId + \"/verify\", null, admin);",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "ADM-CP03",
+      "method": "POST",
+      "path": "/api/v1/admin/compilations/{id}/verify",
+      "task": "T09",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java"
+      ],
+      "exact_sites": 2,
+      "prefix_sites": 7,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult verified = post(\"/admin/compilations/\" + compilationId + \"/verify\", null, admin);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "assertThat(post(\"/admin/compilations/1/verify\", null, token).status()).isEqualTo(403);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult premature = post(\"/admin/compilations/\" + compilationId + \"/confirm\", null, admin);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult verified = post(\"/admin/compilations/\" + compilationId + \"/verify\", null, admin);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "ADM-CP04",
+      "method": "POST",
+      "path": "/api/v1/admin/compilations/{id}/confirm",
+      "task": "T09",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [],
+      "exact_sites": 2,
+      "prefix_sites": 7,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult premature = post(\"/admin/compilations/\" + compilationId + \"/confirm\", null, admin);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult confirmed = post(\"/admin/compilations/\" + compilationId + \"/confirm\", null, admin);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult premature = post(\"/admin/compilations/\" + compilationId + \"/confirm\", null, admin);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult verified = post(\"/admin/compilations/\" + compilationId + \"/verify\", null, admin);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "ADM-R01",
+      "method": "GET",
+      "path": "/api/v1/admin/reviews",
+      "task": "T10",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java"
+      ],
+      "exact_sites": 10,
+      "prefix_sites": 23,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java",
+          "line": "HttpResult list = get(\"/admin/reviews?status=PENDING\", adminToken);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java",
+          "line": "HttpResult list = get(\"/admin/reviews?page=1&pageSize=20\", adminToken);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java",
+          "line": "HttpResult claimed = post(\"/admin/reviews/\" + taskId + \"/claim\", null, adminToken);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java",
+          "line": "assertThat(post(\"/admin/reviews/\" + taskId + \"/claim\", null, first).status()).isEqualTo(200);",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "ADM-R02",
+      "method": "POST",
+      "path": "/api/v1/admin/reviews/{id}/claim",
+      "task": "T10",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java"
+      ],
+      "exact_sites": 11,
+      "prefix_sites": 26,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java",
+          "line": "HttpResult claimed = post(\"/admin/reviews/\" + taskId + \"/claim\", null, adminToken);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java",
+          "line": "assertThat(post(\"/admin/reviews/\" + taskId + \"/claim\", null, first).status()).isEqualTo(200);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java",
+          "line": "HttpResult claimed = post(\"/admin/reviews/\" + taskId + \"/claim\", null, adminToken);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java",
+          "line": "assertThat(post(\"/admin/reviews/\" + taskId + \"/claim\", null, first).status()).isEqualTo(200);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "ADM-R03",
+      "method": "POST",
+      "path": "/api/v1/admin/reviews/{id}/approve",
+      "task": "T10",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java"
+      ],
+      "exact_sites": 5,
+      "prefix_sites": 26,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java",
+          "line": "HttpResult approved = post(\"/admin/reviews/\" + taskId + \"/approve\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java",
+          "line": "assertThat(post(\"/admin/reviews/\" + taskId + \"/approve\", null, adminToken).status()).isEqualTo(200);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java",
+          "line": "HttpResult claimed = post(\"/admin/reviews/\" + taskId + \"/claim\", null, adminToken);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java",
+          "line": "assertThat(post(\"/admin/reviews/\" + taskId + \"/claim\", null, first).status()).isEqualTo(200);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "ADM-R04",
+      "method": "POST",
+      "path": "/api/v1/admin/reviews/{id}/reject",
+      "task": "T10",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java"
+      ],
+      "exact_sites": 7,
+      "prefix_sites": 26,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java",
+          "line": "HttpResult missing = post(\"/admin/reviews/\" + taskId + \"/reject\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java",
+          "line": "HttpResult badCode = post(\"/admin/reviews/\" + taskId + \"/reject\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java",
+          "line": "HttpResult claimed = post(\"/admin/reviews/\" + taskId + \"/claim\", null, adminToken);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java",
+          "line": "assertThat(post(\"/admin/reviews/\" + taskId + \"/claim\", null, first).status()).isEqualTo(200);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "ADM-R05",
+      "method": "GET",
+      "path": "/api/v1/admin/reviews/records",
+      "task": "T10",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java"
+      ],
+      "exact_sites": 3,
+      "prefix_sites": 0,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java",
+          "line": "HttpResult records = get(\"/admin/reviews/records?quoteId=\" + quote[0], adminToken);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java",
+          "line": "HttpResult none = get(\"/admin/reviews/records?quoteId=123456789\", adminToken);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": []
+    },
+    {
+      "id": "ADM-CT01",
+      "method": "GET",
+      "path": "/api/v1/admin/contracts",
+      "task": "T11",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java"
+      ],
+      "exact_sites": 5,
+      "prefix_sites": 12,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult list = get(\"/admin/contracts?page=1&pageSize=20\", admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "assertThat(get(\"/admin/contracts?status=PENDING_SIGN\", admin).data().path(\"total\").asLong()).isEqualTo(1L);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult issued = post(\"/admin/contracts/\" + contractId + \"/issue\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult confirmed = post(\"/admin/contracts/\" + contractId + \"/confirm-sign\", null, admin);",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "ADM-CT02",
+      "method": "POST",
+      "path": "/api/v1/admin/contracts/{id}/issue",
+      "task": "T11",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java"
+      ],
+      "exact_sites": 8,
+      "prefix_sites": 12,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult issued = post(\"/admin/contracts/\" + contractId + \"/issue\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult noFile = post(\"/admin/contracts/\" + contractId + \"/issue\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult issued = post(\"/admin/contracts/\" + contractId + \"/issue\", \"\"\"",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult confirmed = post(\"/admin/contracts/\" + contractId + \"/confirm-sign\", null, admin);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "ADM-CT03",
+      "method": "POST",
+      "path": "/api/v1/admin/contracts/{id}/confirm-sign",
+      "task": "T11",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java"
+      ],
+      "exact_sites": 4,
+      "prefix_sites": 12,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult confirmed = post(\"/admin/contracts/\" + contractId + \"/confirm-sign\", null, admin);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult tooEarly = post(\"/admin/contracts/\" + pending + \"/confirm-sign\", null, admin);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult issued = post(\"/admin/contracts/\" + contractId + \"/issue\", \"\"\"",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java",
+          "line": "HttpResult confirmed = post(\"/admin/contracts/\" + contractId + \"/confirm-sign\", null, admin);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "ADM-PAY01",
+      "method": "GET",
+      "path": "/api/v1/admin/payments",
+      "task": "T11",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java"
+      ],
+      "exact_sites": 5,
+      "prefix_sites": 5,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "HttpResult list = get(\"/admin/payments?page=1&pageSize=20\", admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "assertThat(get(\"/admin/payments?status=CONFIRMED\", admin).data().path(\"total\").asLong()).isEqualTo(1L);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "HttpResult rejected = post(\"/admin/payments/\" + blocked + \"/confirm\", null, admin);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "HttpResult ok = post(\"/admin/payments/\" + paymentId + \"/confirm\", null, admin);",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "ADM-PAY02",
+      "method": "POST",
+      "path": "/api/v1/admin/payments/{id}/confirm",
+      "task": "T11",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java"
+      ],
+      "exact_sites": 5,
+      "prefix_sites": 5,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "HttpResult rejected = post(\"/admin/payments/\" + blocked + \"/confirm\", null, admin);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "HttpResult ok = post(\"/admin/payments/\" + paymentId + \"/confirm\", null, admin);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "HttpResult rejected = post(\"/admin/payments/\" + blocked + \"/confirm\", null, admin);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "HttpResult ok = post(\"/admin/payments/\" + paymentId + \"/confirm\", null, admin);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "ADM-PAY03",
+      "method": "GET",
+      "path": "/api/v1/admin/settlements",
+      "task": "T11",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java"
+      ],
+      "exact_sites": 3,
+      "prefix_sites": 0,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "HttpResult list = get(\"/admin/settlements?page=1&pageSize=1\", admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "assertThat(get(\"/admin/settlements\", supplier).status()).isEqualTo(403);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": []
+    },
+    {
+      "id": "ADM-S01",
+      "method": "GET",
+      "path": "/api/v1/admin/sync/tasks",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java"
+      ],
+      "exact_sites": 13,
+      "prefix_sites": 10,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult list = get(\"/admin/sync/tasks\", admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "assertThat(get(\"/admin/sync/tasks?status=FAILED\", admin).data().path(\"total\").asLong()).isEqualTo(1L);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult retried = post(\"/admin/sync/tasks/820001/retry\", null, admin);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult res = post(\"/admin/sync/tasks/820002/retry\", null, admin);",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "ADM-S02",
+      "method": "GET",
+      "path": "/api/v1/admin/sync/tasks/{taskId}",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java"
+      ],
+      "exact_sites": 3,
+      "prefix_sites": 23,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/sync/tasks/820002\", admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult missing = get(\"/admin/sync/tasks/999999\", admin);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult retried = post(\"/admin/sync/tasks/820001/retry\", null, admin);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult res = post(\"/admin/sync/tasks/820002/retry\", null, admin);",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "ADM-S03",
+      "method": "POST",
+      "path": "/api/v1/admin/sync/tasks/{taskId}/retry",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java"
+      ],
+      "exact_sites": 10,
+      "prefix_sites": 13,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult retried = post(\"/admin/sync/tasks/820001/retry\", null, admin);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult res = post(\"/admin/sync/tasks/820002/retry\", null, admin);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/sync/tasks/820002\", admin);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult missing = get(\"/admin/sync/tasks/999999\", admin);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "ADM-S04",
+      "method": "GET",
+      "path": "/api/v1/admin/channel-bindings",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java"
+      ],
+      "exact_sites": 4,
+      "prefix_sites": 10,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult list = get(\"/admin/channel-bindings\", admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult paged = get(\"/admin/channel-bindings?page=1&pageSize=1\", admin);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult badTarget = post(\"/admin/channel-bindings/810001/status\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult noTarget = post(\"/admin/channel-bindings/810001/status\", \"{}\", admin);",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "ADM-S05",
+      "method": "POST",
+      "path": "/api/v1/admin/channel-bindings/{bindingId}/status",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java"
+      ],
+      "exact_sites": 10,
+      "prefix_sites": 10,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult badTarget = post(\"/admin/channel-bindings/810001/status\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult noTarget = post(\"/admin/channel-bindings/810001/status\", \"{}\", admin);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult badTarget = post(\"/admin/channel-bindings/810001/status\", \"\"\"",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult noTarget = post(\"/admin/channel-bindings/810001/status\", \"{}\", admin);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "ADM-S06",
+      "method": "GET",
+      "path": "/api/v1/admin/sync/models/upstream",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java"
+      ],
+      "exact_sites": 5,
+      "prefix_sites": 0,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult none = get(\"/admin/sync/models/upstream\", admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java",
+          "line": "HttpResult denied = get(\"/admin/sync/models/upstream\", admin);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": []
+    },
+    {
+      "id": "ADM-U01",
+      "method": "GET",
+      "path": "/api/v1/admin/usage/hourly",
+      "task": "T12",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/usage/UsageContractTest.java"
+      ],
+      "exact_sites": 7,
+      "prefix_sites": 0,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/usage/UsageContractTest.java",
+          "line": "HttpResult all = get(\"/admin/usage/hourly?from=2026-06-01T00:00:00Z&to=2026-06-02T00:00:00Z\", admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/usage/UsageContractTest.java",
+          "line": "assertThat(get(\"/admin/usage/hourly?from=2026-06-01T00:00:00Z&to=2026-06-02T00:00:00Z&providerId=\" + ids.get(1), admin)",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": []
+    },
+    {
+      "id": "ADM-U02",
+      "method": "POST",
+      "path": "/api/v1/admin/usage/refresh",
+      "task": "T12",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/usage/UsageContractTest.java",
+        "aap-server/src/test/java/com/hioas/aap/usage/UsageRefreshDegradedTest.java"
+      ],
+      "exact_sites": 6,
+      "prefix_sites": 0,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/usage/UsageContractTest.java",
+          "line": "HttpResult first = post(\"/admin/usage/refresh\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/usage/UsageContractTest.java",
+          "line": "HttpResult second = post(\"/admin/usage/refresh\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": []
+    },
+    {
+      "id": "ADM-CFG01",
+      "method": "GET",
+      "path": "/api/v1/admin/detection-configs",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java"
+      ],
+      "exact_sites": 10,
+      "prefix_sites": 12,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/detection-configs/\" + id, admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "HttpResult list = get(\"/admin/detection-configs\", admin);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "return post(\"/admin/detection-configs\", body, token);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "assertThat(put(\"/admin/detection-configs/999999\", standardBody(\"x\"), admin).status())",
+          "helper": "put"
+        }
+      ]
+    },
+    {
+      "id": "ADM-CFG02",
+      "method": "POST",
+      "path": "/api/v1/admin/detection-configs",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java"
+      ],
+      "exact_sites": 7,
+      "prefix_sites": 15,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "return post(\"/admin/detection-configs\", body, token);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "assertThat(post(\"/admin/detection-configs/999999/publish\", null, admin).status())",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/detection-configs/\" + id, admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "HttpResult list = get(\"/admin/detection-configs\", admin);",
+          "helper": "get"
+        }
+      ]
+    },
+    {
+      "id": "ADM-CFG03",
+      "method": "GET",
+      "path": "/api/v1/admin/detection-configs/{configId}",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java"
+      ],
+      "exact_sites": 2,
+      "prefix_sites": 24,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/detection-configs/\" + id, admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "HttpResult missing = get(\"/admin/detection-configs/999999\", admin);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "assertThat(put(\"/admin/detection-configs/999999\", standardBody(\"x\"), admin).status())",
+          "helper": "put"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "assertThat(post(\"/admin/detection-configs/999999/publish\", null, admin).status())",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "ADM-CFG04",
+      "method": "PUT",
+      "path": "/api/v1/admin/detection-configs/{configId}",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java"
+      ],
+      "exact_sites": 5,
+      "prefix_sites": 21,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "assertThat(put(\"/admin/detection-configs/999999\", standardBody(\"x\"), admin).status())",
+          "helper": "put"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "HttpResult updated = put(\"/admin/detection-configs/\" + id, \"\"\"",
+          "helper": "put"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/detection-configs/\" + id, admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "HttpResult missing = get(\"/admin/detection-configs/999999\", admin);",
+          "helper": "get"
+        }
+      ]
+    },
+    {
+      "id": "ADM-CFG05",
+      "method": "POST",
+      "path": "/api/v1/admin/detection-configs/{configId}/publish",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java"
+      ],
+      "exact_sites": 6,
+      "prefix_sites": 13,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "assertThat(post(\"/admin/detection-configs/999999/publish\", null, admin).status())",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "assertThat(post(\"/admin/detection-configs/\" + id + \"/publish\", null, admin).status()).isEqualTo(200);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/detection-configs/\" + id, admin);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "HttpResult missing = get(\"/admin/detection-configs/999999\", admin);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "ADM-CFG06",
+      "method": "GET",
+      "path": "/api/v1/admin/report-templates",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java"
+      ],
+      "exact_sites": 10,
+      "prefix_sites": 9,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/report-templates/\" + id, admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "HttpResult list = get(\"/admin/report-templates\", admin);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "return post(\"/admin/report-templates\", body, token);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "HttpResult updated = put(\"/admin/report-templates/\" + id, \"\"\"",
+          "helper": "put"
+        }
+      ]
+    },
+    {
+      "id": "ADM-CFG07",
+      "method": "POST",
+      "path": "/api/v1/admin/report-templates",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java"
+      ],
+      "exact_sites": 6,
+      "prefix_sites": 13,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "return post(\"/admin/report-templates\", body, token);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "assertThat(post(\"/admin/report-templates/\" + id + \"/publish\", null, admin).status()).isEqualTo(200);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/report-templates/\" + id, admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "HttpResult list = get(\"/admin/report-templates\", admin);",
+          "helper": "get"
+        }
+      ]
+    },
+    {
+      "id": "ADM-CFG08",
+      "method": "GET",
+      "path": "/api/v1/admin/report-templates/{templateId}",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [],
+      "exact_sites": 2,
+      "prefix_sites": 18,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/report-templates/\" + id, admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "HttpResult missing = get(\"/admin/report-templates/999999\", admin);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "HttpResult updated = put(\"/admin/report-templates/\" + id, \"\"\"",
+          "helper": "put"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "assertThat(post(\"/admin/report-templates/\" + id + \"/publish\", null, admin).status()).isEqualTo(200);",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "ADM-CFG09",
+      "method": "PUT",
+      "path": "/api/v1/admin/report-templates/{templateId}",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java"
+      ],
+      "exact_sites": 3,
+      "prefix_sites": 17,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "HttpResult updated = put(\"/admin/report-templates/\" + id, \"\"\"",
+          "helper": "put"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "HttpResult rejected = put(\"/admin/report-templates/\" + id, \"\"\"",
+          "helper": "put"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/report-templates/\" + id, admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "HttpResult missing = get(\"/admin/report-templates/999999\", admin);",
+          "helper": "get"
+        }
+      ]
+    },
+    {
+      "id": "ADM-CFG10",
+      "method": "POST",
+      "path": "/api/v1/admin/report-templates/{templateId}/publish",
+      "task": "T14",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java"
+      ],
+      "exact_sites": 5,
+      "prefix_sites": 10,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "assertThat(post(\"/admin/report-templates/\" + id + \"/publish\", null, admin).status()).isEqualTo(200);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "HttpResult published = post(\"/admin/report-templates/\" + id + \"/publish\", null, admin);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/report-templates/\" + id, admin);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "HttpResult missing = get(\"/admin/report-templates/999999\", admin);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "ADM-A01",
+      "method": "GET",
+      "path": "/api/v1/admin/audit-logs",
+      "task": "T13",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+        "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+        "aap-server/src/test/java/com/hioas/aap/support/NotificationContractTest.java"
+      ],
+      "exact_sites": 21,
+      "prefix_sites": 0,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
+          "line": "HttpResult logs = get(\"/admin/audit-logs?action=CONFIG_PUBLISH\", admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java",
+          "line": "HttpResult logs = get(\"/admin/audit-logs?action=CONFIG_PUBLISH\", admin);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": []
+    }
+  ]
+}

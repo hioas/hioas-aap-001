@@ -698,3 +698,45 @@
 不在本巡检任务范围；待拍板事项与 R20 节相同，本轮无新增。
 **建议（第三次提出）**：目标已达成且连续四轮结论一致，5 分钟一轮只是重复产出同一份证据；
 建议人工把本 cron 降为「每日一次全量回归哨兵」或直接停用（本 job 无权自行改期）。
+
+## R22（2026-09-18 11:39–11:47）· 巡检复验 + **新增「真实 HTTP 用例」可追溯性审计**（不改业务代码、不改断言）
+
+**结论**：90/90 维持全绿（连续第 5 轮）。本轮在复验之外**补了一层此前没有的验证**——
+覆盖门禁只证明「路由已注册」，**不证明「每条端点都有真实 HTTP 用例」**（任务硬要求）。
+新增只读审计工具 `tools/audit-endpoint-tests.py` 后结论：**90/90 端点都能在测试源里定位到
+「路径骨架 + HTTP 方法都吻合」的真实调用点（exact=90、none=0）**。
+
+| 项 | run1 = 提交态复跑（干净 detached worktree @ HEAD `311dd7d`，11:39:22→11:40:25） | run2 = 全量（工作树现状，含他方未提交的 4 个文件，11:40:30→11:41:21） |
+|---|---|---|
+| 用例 | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0` / `BUILD SUCCESS` / `Total time: 01:00 min` | 同上，完全一致 / `Total time: 49.084 s`；`grep -c '^\[ERROR\]'` = **0** |
+| 覆盖门禁 | `EndpointCoverageTest` 绿 → 90/90（`registered_routes=96`、`not_registered=[]`） | 同左 |
+| 证据文件 | `evidence/green-verify-R22-commitstate-full-run1.txt` | `evidence/green-verify-R22-worktree-full-run2.txt` |
+
+**本轮增量（相对 R19–R21 的重复复验）**
+
+1. **新增只读审计 `tools/audit-endpoint-tests.py`**：清单 90 条 → 测试源里的调用点，
+   判定 `exact`（路径骨架 + 方法都吻合）/ `prefix`（弱证据）/ `none`（真发现）。
+   结果：**exact 90、prefix 0、none 0**；证据 `evidence/endpoint-test-audit.json` + `endpoint-test-audit.txt`
+   （另有本轮快照 `audit-endpoint-tests-R22.txt`）。默认只读、不写业务代码、不改测试。
+2. **审计工具自带负向自测**（否则「0 个 none」与「匹配逻辑全错」看起来一样）：
+   用一份临时假清单跑 `--manifest … --no-evidence` → `FAKE-01`（路径不存在）判 `none`、rc=1；
+   `FAKE-02`（路径存在但测试只发 POST、清单写 GET）判 `prefix` 弱证据。
+   证明两个分支都真的会触发，不是橡皮图章。证据 `evidence/audit-selftest-negative-R22.txt`。
+3. **新发现（可追溯性缺口，非测试缺口）**：19 条端点的 ID 未出现在任何测试源里
+   （`AUTH-02/03/06、PROV-04/05、CRED-02/03、DET-02/03/05/06、RPT-02/04、QT-03/06/07/11、ADM-CP04、ADM-CFG08`），
+   与硬约束「测试 `@DisplayName` 都引用清单 ID」不符。**本轮未改**（规则：`missing==0` 时不改代码），
+   列为**待拍板**：是否单独开一个小批次把这 19 个 ID 补进 `@DisplayName`（纯可追溯性，不影响行为）。
+4. **他方文件 md5 与 R21 完全一致**（`application.yml 7b7c0918…`、`application-test.yml 813b611d…`、
+   `log4j2-spring.xml f449ac92…`、`aap-client/vite.config.ts b1c72cb4…`）→ 工作树自 R19 起零变化，无回归。
+
+**本轮踩坑（新增）**
+
+29. **写审计脚本前先看测试怎么调用 HTTP，否则会得出「90/90 都没用例」的假结论**：本项目集成测试走
+    `ApiTestBase`，测试里写的路径**不含 `/api/v1` 前缀**（基类拼 `baseUrl() + "/api/v1" + path`），
+    路径变量还常写成 `"/credentials/" + id + "/precheck"` 这种**字符串拼接**。第一版按清单原样匹配
+    （`/api/v1/...` 字面量 + 必须整条路径出现在同一行）→ `exact=0、none=90`，看起来像「测试全是假的」。
+    规则：**审计/巡检脚本先对齐被测代码的真实调用约定（前缀、拼接、助手名），再下结论**；
+    并且**给脚本配一个负向自测**（假清单必须能报出 `none`），否则「0 发现」无法区分「真干净」与「匹配全错」。
+30. **方法也要一起比对**：只比路径会把「路径对但方法不同」的调用算成强证据。本工具用
+    `get/post/put/delete/patch` 助手名反推真实方法（`send(...)` 显式传方法 → 视为弱证据），
+    方法不吻合的降级为 `prefix`。负向自测里 `FAKE-02` 正是这种情况。

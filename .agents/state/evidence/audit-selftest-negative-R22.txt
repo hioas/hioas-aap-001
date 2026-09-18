@@ -1,0 +1,24 @@
+# R22 审计工具负向自测（证明本审计不是橡皮图章）
+# cmd: python tools/audit-endpoint-tests.py --manifest <临时假清单> --no-evidence
+# 假清单：FAKE-01 GET /api/v1/nonexistent/never-called（测试源里不存在）; FAKE-02 GET /api/v1/auth/sms/send（路径存在但测试只发 POST）
+# 期望：FAKE-01 → none（rc=1）；FAKE-02 → prefix（弱证据，方法不吻合）
+# 实际：none=1（FAKE-01）、prefix=1（FAKE-02）、rc=1 → 检测分支有效
+端点「真实 HTTP 用例」可追溯性审计（只读）
+清单：C:\Users\laitz\AppData\Local\Temp\aap-audit-selftest.json（2 条）
+测试源：aap-server/src/test/java（39 个 .java 文件）
+
+exact （路径骨架 + 方法都吻合的真实 HTTP 调用点）：0
+prefix（路径命中但方法不吻合 / 仅静态前缀，弱证据）：1
+none  （无任何调用点 —— 真发现）            ：1
+端点 ID 在测试源里可追溯                    ：0/2
+
+== none 明细（只有路由注册，未找到真实 HTTP 用例）==
+  FAKE-01    GET    /api/v1/nonexistent/never-called                 task=T00 id_refs=0
+
+== prefix 明细（弱证据：仅静态前缀命中）==
+  FAKE-02    GET    /api/v1/auth/sms/send                            sites=27 例：HttpResult send = post("/auth/sms/send", """
+
+== 测试源里未出现端点 ID 的端点（可追溯性缺口，不影响「有用例」判定）==
+  FAKE-01, FAKE-02
+
+
