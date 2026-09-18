@@ -1,0 +1,25 @@
+红基线 · T14 批次四 · 供应商运维 / 管理端凭证 / 报价历史对比（ADM-P01…03、ADM-C01/02、ADM-Q02）
+================================================================================================
+仓库：E:/workspaces/hioas/hioas-aap-001（aap-server）
+命令：../tools/with-env.sh aap-server mvn -B -ntp test
+      -Dtest=AdminProviderContractTest,AdminCredentialContractTest,AdminQuoteCompareContractTest -DfailIfNoTests=false
+原始输出：.agents/state/evidence/red-T14-adm-pcq-raw.txt
+耗时：01:23 min
+
+结果：Tests run: 8, Failures: 8, Errors: 0, Skipped: 0
+红因（逐条一致，符合 tdd-state 踩坑 23 的「缺路由 → 404 E-1406」特征）：
+  8 个用例拿到的都是 {"code":"E-1406","message":"接口或资源不存在"}，
+  因为 /api/v1/admin/providers（及 /{id}/suspend、/{id}/resume）、/api/v1/admin/credentials/{id}（及 /reveal）、
+  /api/v1/admin/quotes/compare 六条路由尚未注册。
+
+用例清单（全红，红因均为缺路由；无夹具 SQL 错误、无编译错误）：
+  AdminProviderContractTest.providerList                ADM-P01（分页/状态/关键字/逻辑删除过滤）
+  AdminProviderContractTest.suspendAndResume            ADM-P02/P03（状态机 409、留痕列、写后重读、审计）
+  AdminProviderContractTest.permissions                 ADM-P01…03（角色矩阵）
+  AdminCredentialContractTest.adminCredentialDetail     ADM-C01（只回掩码、非超管 403、未认证 401）
+  AdminCredentialContractTest.adminReveal               ADM-C02（二次验证 + SENSITIVE 审计、未命中不写审计）
+  AdminQuoteCompareContractTest.compareTwoQuotes        ADM-Q02（旧值/新值/涨跌幅）
+  AdminQuoteCompareContractTest.compareValidatesInput   ADM-Q02（400/404 分支）
+  AdminQuoteCompareContractTest.permissions             ADM-Q02（角色矩阵）
+
+覆盖门禁（EndpointCoverageTest）本轮未参与红基线：它由全量轮次取证，当前 missing=6 —— 就是这 6 条。

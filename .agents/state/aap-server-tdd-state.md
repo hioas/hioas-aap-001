@@ -521,11 +521,48 @@
 | D-SYNC-04 | ADM-S01…06 放行 `TECH_OPS` + `SUPER_ADMIN`（清单只列 TECH_OPS） | 沿用 D-API-22/26 的能力矩阵口径（超管全量权限） |
 | D-SYNC-05 | 端点解析失败（`binding.endpoint_id` 指向不存在/非 ACTIVE 的端点）时按「未接 new-api」处理：重试直接入队、启停只改本地状态（**待拍板**：是否应报 502） | 联调期允许「本地先行」；不静默假装做过上游回读（回读摘要留空以区分） |
 
+## R18 · T14 批次四：管理端供应商 / 凭证 / 报价对比（ADM-P01…03、ADM-C01/02、ADM-Q02，**90/90 已注册**）—— ✅ 完成
+
+红基线：`evidence/red-T14-adm-pcq.txt`（原始 `red-T14-adm-pcq-raw.txt`）
+  `mvn test -Dtest=AdminProviderContractTest,AdminCredentialContractTest,AdminQuoteCompareContractTest`
+  → **Tests run: 8, Failures: 8**，8 条红全是 `404 {"code":"E-1406"}`（缺路由；踩坑 23 的判定特征），
+  无夹具 SQL 错误、无编译错误 —— 一次干净红。
+
+绿基线：`evidence/green-T14-batch4.txt`（原始 `green-T14-batch4-full-run1.txt` / `-run2.txt`）
+  run1 = run2 = **Tests run: 204, Failures: 0, Errors: 0** → BUILD SUCCESS（连跑一致，无 flaky）。
+  `coverage-report.json`：total 90 / implemented 90 / **missing 0** → `EndpointCoverageTest` **转绿**。
+  这也是本仓库第一次**真的**能写「全量全绿」（196 → 204 例）；踩坑 14 的限定写法在本轮起不再适用。
+
+### 本轮踩坑（两条，都是本轮实打实撞出来的）
+
+1. **`mapper.update(entity)` 清不掉列 → 留痕清除必须 `update(entity, false)`**：
+   ADM-P03 恢复要把 `status_before_suspend` / `suspended_at` 置回 NULL，但 MyBatis-Flex 的
+   `update(entity)` **默认忽略 null 字段**（`update(entity, true)` 语义），结果是「响应说恢复了、
+   库里留痕还在」；下次暂停还会复用旧值。改用 `update(entity, false)`（ignoreNulls=false）显式写 NULL。
+   注意它同时要求**先读出完整实体再改**（否则会把没读到的列一起写成 NULL）——本实现全程
+   `selectOneById` → 改字段 → `update(entity, false)` → 再 `selectOneById` 回读。
+2. **写后必须重读再映射响应（踩坑 17/18 的乐观锁变体）**：`version` 列由乐观锁插件 +1，
+   若响应用内存实体，`status` 对了但 `version` 是旧值（「响应说 1、库里是 2」这类自相矛盾）。
+   本实现 `suspend` / `resume` 都在 `update` 之后 `requireById(...)` 重读，测试断言**同时钉**
+   `响应.status/version` 与 `库里 status/suspended_at/status_before_suspend`。
+
+### 本轮偏差表（T14 批次四）
+
+| 编号 | 内容 | 理由 |
+|---|---|---|
+| D-ADM-01 | ADM-P03「恢复」回到**暂停前状态**：新增列 `aap_provider.status_before_suspend`（V8），暂停时写入、恢复时读回并清空；**遗留数据**（该列为空，如迁移前被暂停的行）回退口径 = 有 `published_at` → `PUBLISHED`，否则 → `DETECT_PASSED`（**待拍板**：若产品要求「一律回 PUBLISHED」或「必须人工指定」，替换这一段即可） | 清单/ER 只有 `suspended_at`（暂停时刻），没有暂停前**状态**；只凭 `status + suspended_at` 无法区分暂停前是 `DETECT_PASSED` 还是 `PUBLISHED`。与其猜一个固定回退值，不如显式留痕 |
+| D-ADM-02 | ADM-Q02 的字段级口径：`quoteIds` 逗号分隔、**按「旧 → 新」顺序**，取**首单 vs 末单**的当前明细；`items` 按模型名升序 × 固定价字段序，只输出「至少一侧有值」的行；`change_rate` 为**百分数**（四位小数 HALF_UP），单侧缺失或旧值 0 → `null`；**不做币种换算**（两侧币种不同原样输出）；少于两个 ID → 400 `E-1001` | 清单只写「→ `{items:[QuoteCompare]}`（旧值/新值/涨跌幅 A8）」，未冻结字段级语义；PRD `13-管理端PRD.md` §5.3/§5.6 的「报价历史对比（该供应商历次报价）」指向多单对比。**待拍板**：是否需要支持「单个报价单的上一版本 vs 当前版本」对比（当前不支持，需先改清单） |
+| D-ADM-03 | ADM-Q02 只放行 `BIZ_OPERATOR` + `SUPER_ADMIN`（不放技术运营） | 冻结清单 ADM-Q02 的角色列只有 `BIZ_OPERATOR,SUPER_ADMIN`；PRD §5.6 的表格把技术运营也勾了「可看」。**冲突取清单**（硬约束 1：清单为冻结真源），已在此显式记录待拍板 |
+| D-ADM-04 | 生成器的 `LIST_RESPONSE_MODELS` 会把**单对象**响应（ADM-P02/P03）也包成 `data:{list:[...]}`，而 ADM-Q02（非分页 `{items:[...]}`）被包成 `data:{page,pageSize,total,list}` | 与实现不符的是**生成器的包装策略**，不是实现：清单 §2.4 明写 `{items:[QuoteCompare]}`，`PageResult` 也是 `items`（客户端真源，D-API-03 同一问题）。实现按**清单**落地（P02/P03 回单对象、Q02 回 `{items}`）；生成器待与 D-API-03 一并收口，避免只为 3 条接口手改 |
+| D-ADM-05 | `PROVIDER_RESUME` 进入审计动作枚举（12→18 累计 18 个），并**先改生成器再改代码**（`tools/gen-backend-models.py` 的 `AuditAction` + 重跑生成 schema/openapi） | 恢复是独立的安全相关动作，复用 `PROVIDER_SUSPEND` 会让审计无法区分「谁暂停 / 谁恢复」；枚举属冻结产物，先改单一事实源（硬约束 1/2）。已同步 `docs/backend/02-API接口模型清单.md` §6 变更记录 |
+
 ## 未决与下一步
 
-- 上一轮已完成：**T14 批次三 · new-api 同步运维**（R17，ADM-S01…06，84/90 已注册）。
-- 下一轮：**T14 批次四 · 供应商 / 凭证 / 报价对比**（ADM-P01…03、ADM-C01/02、ADM-Q02，6 条）→
-  之后 missing 归零，覆盖门禁转绿 → T15 端到端联调与容器化交付。
+- 上一轮已完成：**T14 批次四 · 管理端供应商 / 凭证 / 报价对比**（R18，ADM-P01…03、ADM-C01/02、ADM-Q02，
+  **90/90 已注册，missing 0，全量 204 例全绿**）。
+- 下一轮：**T15 端到端验收与交付** —— 冻结清单已 100% 注册，覆盖门禁不再是红项；剩余工作转为
+  端到端联调（`aap-client` 指向本服务跑页面取数）、容器化交付与 `aap-server/README.md` 运行说明。
+
 - **待拍板（本轮新增）**
   1. **D-API-12**：对象存储签名/限时 URL 的接线方式（合同 PDF 与报告 PDF 是同一问题）。
   2. **D-API-14**：合同短信签署是否走真实短信核验（若走，需先把「合同签署验证码发送」端点写进清单再实现）。
@@ -540,12 +577,16 @@
   8. **D-SYNC-02**（R17 新增）：new-api 的真实 HTTP 契约（写渠道/读回读的路径与方法）需 new-api 侧提供后替换 mock 口径。
   9. **D-SYNC-03**（R17 新增）：同步任务**执行器**（谁消费 `PENDING`、`WRITE_PRICE` 如何与编译产物接线）归 T15 还是本期补齐。
   10. **D-SYNC-05**（R17 新增）：端点解析失败时「本地先行」还是直接 502。
+  11. **D-ADM-01**（R18 新增）：供应商恢复的「暂停前状态缺失」回退口径（当前：有 `published_at` → `PUBLISHED`，否则 → `DETECT_PASSED`）。
+  12. **D-ADM-02**（R18 新增）：报价对比是否需要「同一报价单上一版本 vs 当前版本」；`change_rate` 用百分数还是比值。
+  13. **D-ADM-03**（R18 新增）：ADM-Q02 是否放行技术运营（清单不放、PRD §5.6 放，当前取清单）。
 - **待拍板（沿用）**：D-API-05（`PARTIAL_CACHE` 是否入枚举）、D-USAGE-01（new-api 用量日志源契约）、
-  D-API-03（`docs/api/接口字段级schema.md` §2 的 `{list}` → `{items}` 回改）。
-- 剩余任务：T14 余 6 条（ADM-P01…03、ADM-C01/02、ADM-Q02）、T15 端到端联调与容器化交付
-  （`docs/backend/03-任务与TDD计划.md` §1 为完整清单）。
-- 覆盖门禁纪律：`EndpointCoverageTest` 在 6 条未注册期间**必然红**，它是「还剩多少没落地」的仪表；
-  每轮证据只允许写「除门禁外全绿 + missing 下降」，禁止写「全量全绿」。
+  D-API-03（`docs/api/接口字段级schema.md` §2 的 `{list}` → `{items}` 回改，含 D-ADM-04 的生成器包装策略）。
+- 剩余任务：**仅 T15 端到端验收与交付**（T14 于 R18 收口；`docs/backend/03-任务与TDD计划.md` §1 为完整清单），
+  以及 `aap-server/README.md` 运行说明。
+- 覆盖门禁纪律（R18 起更新）：`EndpointCoverageTest` 已 **90/90 转绿**（missing 0），不再是红项；
+  纪律改为「**任何端点新增/改动都必须先改 `tools/gen-backend-models.py` 的 PATHS 表 + 冻结清单，再改代码**」——
+  门禁会把「代码里注册了但清单没有」与「清单有但没注册」同时暴露出来，双向都会红。
 - **待前端处理（O-01）**：`aap-client/src/utils/report-model.ts:51` 兜底免责声明含 R-26 禁用字样，建议改为与
   服务端 `ReportService.DISCLAIMER` 同文案。
 - 待办（跨轮）：`aap-server/README.md` 运行说明；T15 时把 `aap-client` 的 `baseUrl` 指向本服务做联调截图。

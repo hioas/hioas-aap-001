@@ -1,0 +1,35 @@
+绿基线 · T14 批次四 · 供应商运维 / 管理端凭证 / 报价历史对比（ADM-P01…03、ADM-C01/02、ADM-Q02）
+================================================================================================
+仓库：E:/workspaces/hioas/hioas-aap-001（aap-server）
+命令：../tools/with-env.sh aap-server mvn -B -ntp test
+原始输出：green-T14-batch4-full-run1.txt / green-T14-batch4-full-run2.txt
+
+结果（**本轮是全量全绿**，不再是「除门禁外全绿」）：
+  run1：Tests run: 204, Failures: 0, Errors: 0, Skipped: 0 → BUILD SUCCESS
+  run2：Tests run: 204, Failures: 0, Errors: 0, Skipped: 0 → BUILD SUCCESS（防 flaky 连跑一致）
+  覆盖门禁：coverage-report.json = total 90 / implemented 90 / **missing 0** → EndpointCoverageTest 转绿
+  新增用例：8（AdminProviderContractTest 3 + AdminCredentialContractTest 2 + AdminQuoteCompareContractTest 3），
+  上一轮 196 例 → 本轮 204 例。
+
+本轮落地端点（6 条，missing 6 → 0）：
+  ADM-P01 GET  /api/v1/admin/providers                     供应商列表（分页 / status / keyword）
+  ADM-P02 POST /api/v1/admin/providers/{id}/suspend        暂停（suspend_reason 2–500 字；状态机 409 E-1601）
+  ADM-P03 POST /api/v1/admin/providers/{id}/resume         恢复（回暂停前状态；非暂停态 409 E-1601）
+  ADM-C01 GET  /api/v1/admin/credentials/{id}              凭证详情（只回掩码，超管）
+  ADM-C02 POST /api/v1/admin/credentials/{id}/reveal       明文读取（超管 + 短信二次验证 + SENSITIVE 审计）
+  ADM-Q02 GET  /api/v1/admin/quotes/compare?quoteIds=…     报价历史对比（旧值/新值/涨跌幅）
+
+实现落点：
+  aap-server/src/main/resources/db/migration/V8__provider_suspend_state.sql（status_before_suspend 留痕列）
+  provider/{ProviderEntity,ProviderService,AdminProviderController}
+  credential/{CredentialService#adminDetail,AdminCredentialController}
+  quote/{QuoteViews.Compare/CompareList,AdminQuoteCompareService,AdminQuoteController}
+  support/AuditService.AuditAction + PROVIDER_RESUME（生成器 AuditAction 枚举同步 +1，已重跑生成 openapi/schema）
+
+两条本次实打实踩到/加固的纪律：
+  1. **`update(entity)` 清不掉列**：恢复接口要把 `status_before_suspend` / `suspended_at` 清成 NULL，
+     MyBatis-Flex 默认 `update(entity)` **忽略 null 字段**（留痕清不掉、下次暂停复用旧值）→ 改用
+     `update(entity, false)`（ignoreNulls=false）。断言同时钉「响应 status」与「库里列值」。
+  2. **响应必须取写后重读的库值**（踩坑 17/18）：暂停/恢复后 `version` 会被乐观锁 +1，
+     响应若用内存对象就会「响应说 2、库里是 1」；本实现写后 `selectOneById` 再映射，
+     断言 `version == 1`（夹具 version=0）。

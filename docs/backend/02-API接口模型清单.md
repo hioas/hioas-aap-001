@@ -299,3 +299,13 @@
 - 2026-09-17 v1.0 首版：从 `18-API设计OpenAPI.md` + `aap-client` 调用点反推，冻结 90 条端点 ID
   （供应商端 49 = 客户端已消费 30 条 + 补齐 `CRED-02/06/07`、`DET-01/04/05/06`、`QT-02/05/07/11/12`、`CON-01`、`PAY-01`、`NTF-01/02`、`AUTH-04/05`；管理端 41）。
   端点表与 `tools/gen-backend-models.py` 的 `PATHS` 表逐条同源，`openapi.yaml` 由该脚本生成（禁止手改）。
+
+### 2026-09-18（R18 · T14 批次四：ADM-P01…03、ADM-C01/02、ADM-Q02）
+
+| 产物 | 变更 | 依据 |
+| --- | --- | --- |
+| 审计动作枚举 | 新增 `PROVIDER_RESUME`（12→18；生成器 `AuditAction` 同步并重跑生成 schema/openapi） | 恢复是独立的安全相关动作，复用 `PROVIDER_SUSPEND` 会让审计无法区分「谁暂停 / 谁恢复」（偏差 D-ADM-05） |
+| `ADM-P02` | 暂停时写入「暂停前状态」：`aap_provider.status_before_suspend`（V8 迁移） | 偏差 D-ADM-01：恢复（ADM-P03）需回到暂停前状态，清单/ER 原本只留了暂停**时刻**（`suspended_at`） |
+| `ADM-Q02` | 冻结字段级口径：`quoteIds` 旧→新、取**首单 vs 末单**、模型并集、`change_rate` 为百分数（单侧缺失/旧值 0 → null）、**不做币种换算** | 偏差 D-ADM-02（清单只写「旧值/新值/涨跌幅 A8」，PRD §5.3/§5.6 指向多单对比） |
+| `ADM-Q02` | 角色取清单：`BIZ_OPERATOR` + `SUPER_ADMIN`（**不放技术运营**） | 偏差 D-ADM-03：PRD §5.6 表格含技术运营，与清单冲突 → 冲突取清单（硬约束 1） |
+| 全部 90 条 | **90/90 已注册、missing 0**，`EndpointCoverageTest` 转绿，全量 204 例全绿 | R18 收口；证据 `.agents/state/evidence/green-T14-batch4.txt` |

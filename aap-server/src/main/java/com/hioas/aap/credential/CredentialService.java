@@ -136,6 +136,20 @@ public class CredentialService {
         return toDetail(requireOwned(principal, credentialId));
     }
 
+    /**
+     * ADM-C01 管理端详情（按 id 读任意供应商的凭证，不做本人主体校验）。
+     *
+     * <p>与 CRED-03 的区别只有**归属校验**：管理端（`SUPER_ADMIN`）按职责需要查看任意凭证，
+     * 字段口径仍复用 {@link #toDetail}（`api_key_mask` 唯一出口，任何分支都不回明文）。
+     */
+    public CredentialViews.Detail adminDetail(Long credentialId) {
+        CredentialEntity entity = credentialMapper.selectOneById(credentialId);
+        if (entity == null) {
+            throw new ApiException(ErrorCode.E_1406, "凭证不存在");
+        }
+        return toDetail(entity);
+    }
+
     /** CRED-01 列表（最近接入优先）。 */
     public PageResult<CredentialViews.Row> list(AuthPrincipal principal, Integer page, Integer pageSize,
                                                 String status) {

@@ -80,4 +80,13 @@ public final class QuoteViews {
     public record Version(String id, String quote_id, Integer version_no, Map<String, Object> snapshot,
                           String source_hash, String created_at) {
     }
+
+    /** 报价历史对比行（ADM-Q02 · quote-compare）：单模型单价的旧值 / 新值 / 涨跌幅（百分数）。 */
+    public record Compare(String model_name, String field, BigDecimal old_value, BigDecimal new_value,
+                          BigDecimal change_rate) {
+    }
+
+    /** ADM-Q02 响应体（清单口径：`{items:[QuoteCompare]}`，非分页）。 */
+    public record CompareList(List<Compare> items) {
+    }
 }

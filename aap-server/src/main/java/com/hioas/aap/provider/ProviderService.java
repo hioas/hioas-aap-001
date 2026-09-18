@@ -15,6 +15,7 @@ import com.mybatisflex.core.query.QueryWrapper;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -52,14 +53,17 @@ public class ProviderService {
     private final ProviderAccountMapper accountMapper;
     private final CryptoService crypto;
     private final AuditService auditService;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     public ProviderService(ProviderMapper providerMapper, QualificationMapper qualificationMapper,
-                           ProviderAccountMapper accountMapper, CryptoService crypto, AuditService auditService) {
+                           ProviderAccountMapper accountMapper, CryptoService crypto, AuditService auditService,
+                           org.springframework.jdbc.core.JdbcTemplate jdbc) {
         this.providerMapper = providerMapper;
         this.qualificationMapper = qualificationMapper;
         this.accountMapper = accountMapper;
         this.crypto = crypto;
         this.auditService = auditService;
+        this.jdbc = jdbc;
     }
 
     /** PROV-01 档案查询。 */
@@ -189,6 +193,134 @@ public class ProviderService {
             throw new ApiException(ErrorCode.E_1406, "资质不存在");
         }
         qualificationMapper.deleteById(qualificationId);
+    }
+
+    // ------------------------------------------------------------------ ADM-P01…03（管理端）
+
+    /**
+     * ADM-P01 管理端供应商列表（分页 + `status` / `keyword` 过滤）。
+     *
+     * <p>为什么用 JdbcTemplate 而不是 QueryWrapper：关键字要跨 5 列 `ilike` 的 OR 组合，
+     * 显式 SQL 比链式条件更可读、也避免多占位符片段在不同版本上的行为差异；
+     * 行的**映射**仍走 {@link #toResponse}（与 PROV-01 同一口径，不出现第二套字段映射）。
+     * 逻辑删除由 SQL 显式过滤（`deleted = false`），与 ORM 侧同口径。
+     */
+    public PageResult<ProviderProfileResponse> adminList(Integer page, Integer pageSize, String status, String keyword) {
+        PageQuery pageQuery = PageQuery.of(page, pageSize);
+        StringBuilder where = new StringBuilder(" where deleted = false");
+        List<Object> filters = new ArrayList<>();
+        if (status != null && !status.isBlank()) {
+            where.append(" and upper(status) = ?");
+            filters.add(status.trim().toUpperCase(Locale.ROOT));
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            where.append(" and (short_name ilike ? or company_name ilike ? or provider_no ilike ?"
+                    + " or provider_code ilike ? or uscc ilike ?)");
+            String like = "%" + keyword.trim() + "%";
+            for (int i = 0; i < 5; i++) {
+                filters.add(like);
+            }
+        }
+        Long total = jdbc.queryForObject("select count(*) from aap_provider" + where, Long.class, filters.toArray());
+        List<Object> pageParams = new ArrayList<>(filters);
+        pageParams.add(pageQuery.pageSize());
+        pageParams.add(pageQuery.offset());
+        List<Long> ids = jdbc.queryForList("select id from aap_provider" + where
+                + " order by created_at desc, id desc limit ? offset ?", Long.class, pageParams.toArray());
+        if (ids.isEmpty()) {
+            return PageResult.of(List.of(), pageQuery.page(), pageQuery.pageSize(), total == null ? 0L : total);
+        }
+        Map<Long, ProviderEntity> byId = new LinkedHashMap<>();
+        for (ProviderEntity entity : providerMapper.selectListByIds(ids)) {
+            byId.put(entity.getId(), entity);
+        }
+        List<ProviderProfileResponse> items = ids.stream()
+                .map(byId::get)
+                .filter(java.util.Objects::nonNull)
+                .map(this::toResponse)
+                .toList();
+        return PageResult.of(items, pageQuery.page(), pageQuery.pageSize(), total == null ? 0L : total);
+    }
+
+    /**
+     * ADM-P02 暂停供应商。
+     *
+     * <p>状态机：`SUSPENDED`（重复暂停）与 `TERMINATED`（已终止）一律 409 `E-1601`；
+     * 其余状态可暂停，暂停前状态写入 `status_before_suspend` 供 ADM-P03 回填。
+     * 响应取**写后重读**的库值（tdd-state 踩坑 17/18：乐观锁一挡就可能「响应说改了、库里没改」）。
+     */
+    @Transactional
+    public ProviderProfileResponse suspend(AuthPrincipal principal, Long providerId, String suspendReason) {
+        ProviderEntity provider = requireById(providerId);
+        if ("SUSPENDED".equals(provider.getStatus())) {
+            throw new ApiException(ErrorCode.E_1601, "供应商已处于暂停状态，无需重复暂停");
+        }
+        if ("TERMINATED".equals(provider.getStatus())) {
+            throw new ApiException(ErrorCode.E_1601, "已终止的供应商不可暂停");
+        }
+        Map<String, Object> before = snapshot(provider);
+        before.put("status", provider.getStatus());
+
+        provider.setStatusBeforeSuspend(provider.getStatus());
+        provider.setStatus("SUSPENDED");
+        provider.setSuspendedAt(OffsetDateTime.now(ZoneOffset.UTC));
+        provider.setSuspendReason(suspendReason.trim());
+        // ignoreNulls=false：本次要写的字段全部非空，但保持与 resume 对称，避免下次改动踩空写陷阱
+        if (providerMapper.update(provider, false) != 1) {
+            throw new ApiException(ErrorCode.E_1601, "供应商状态已被他人改动，请刷新后重试");
+        }
+        ProviderEntity fresh = requireById(providerId);
+
+        Map<String, Object> after = snapshot(fresh);
+        after.put("status", fresh.getStatus());
+        after.put("suspend_reason", fresh.getSuspendReason());
+        auditService.record(AuditService.AuditAction.PROVIDER_SUSPEND, "provider", providerId,
+                "暂停供应商：" + fresh.getSuspendReason(), before, after, "NORMAL");
+        return toResponse(fresh);
+    }
+
+    /**
+     * ADM-P03 恢复供应商：回到**暂停前状态**（`status_before_suspend`）并清空暂停留痕。
+     *
+     * <p>遗留数据（暂停前状态缺失，如迁移前被暂停的行）回退口径：有 `published_at` → `PUBLISHED`，
+     * 否则 → `DETECT_PASSED`（偏差 `D-ADM-01`，见 tdd-state）。
+     */
+    @Transactional
+    public ProviderProfileResponse resume(AuthPrincipal principal, Long providerId) {
+        ProviderEntity provider = requireById(providerId);
+        if (!"SUSPENDED".equals(provider.getStatus())) {
+            throw new ApiException(ErrorCode.E_1601, "仅暂停中的供应商可恢复");
+        }
+        String restore = provider.getStatusBeforeSuspend();
+        if (restore == null || restore.isBlank()) {
+            restore = provider.getPublishedAt() != null ? "PUBLISHED" : "DETECT_PASSED";
+        }
+        Map<String, Object> before = snapshot(provider);
+        before.put("status", provider.getStatus());
+
+        provider.setStatus(restore);
+        provider.setStatusBeforeSuspend(null);
+        provider.setSuspendedAt(null);
+        // ignoreNulls=false：必须把 status_before_suspend / suspended_at 真正清成 NULL
+        // （默认的 update(entity) 会忽略 null 字段 → 留痕清不掉、下次暂停复用旧值）
+        if (providerMapper.update(provider, false) != 1) {
+            throw new ApiException(ErrorCode.E_1601, "供应商状态已被他人改动，请刷新后重试");
+        }
+        ProviderEntity fresh = requireById(providerId);
+
+        Map<String, Object> after = snapshot(fresh);
+        after.put("status", fresh.getStatus());
+        auditService.record(AuditService.AuditAction.PROVIDER_RESUME, "provider", providerId,
+                "恢复供应商（回 " + restore + "）", before, after, "NORMAL");
+        return toResponse(fresh);
+    }
+
+    private ProviderEntity requireById(Long providerId) {
+        ProviderEntity provider = providerMapper.selectOneById(providerId);
+        if (provider == null) {
+            throw new ApiException(ErrorCode.E_1406, "供应商不存在");
+        }
+        return provider;
     }
 
     // ------------------------------------------------------------------ 内部

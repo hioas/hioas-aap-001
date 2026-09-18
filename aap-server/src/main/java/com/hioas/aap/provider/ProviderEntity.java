@@ -49,6 +49,17 @@ public class ProviderEntity extends BaseEntity {
     private OffsetDateTime suspendedAt;
     private String suspendReason;
 
+    /** 暂停前状态（ADM-P02 写入 / ADM-P03 恢复后清空；见 V8 迁移与偏差 D-ADM-01）。 */
+    private String statusBeforeSuspend;
+
+    public String getStatusBeforeSuspend() {
+        return statusBeforeSuspend;
+    }
+
+    public void setStatusBeforeSuspend(String statusBeforeSuspend) {
+        this.statusBeforeSuspend = statusBeforeSuspend;
+    }
+
     public String getProviderNo() {
         return providerNo;
     }
