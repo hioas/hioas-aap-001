@@ -2819,3 +2819,68 @@ md 清单 / ER 文档 / JSON Schema / 生成器状态目录 / 实现状态写入
 ### 台账
 * 追加 R52 行（「提交」列先留空，提交后由收尾提交补齐）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」；
   R 行连续性核对：R27 → R52 无缺号（坑 71）。
+
+## R53 巡检轮（missing=0 → 只校验不改代码；第二十七类可审计不变量：敏感字段对外键集合）
+
+### 本轮结论
+* 90/90 维持全绿（连续第 35 轮：R18 → … → R53）；全量 204 例两轮全绿（33 类，逐类结果 diff 为空），覆盖门禁
+  自身 1/1 通过，`coverage-report.json` 逐字段 total=90 / implemented=90 / missing=0 / registered_routes=96 / not_registered=[]。
+* 既有 14 套只读审计 + 13 个负向自测复跑：rc 序列与 R52 逐条一致，FAIL 明细 28/28 逐行一致（新增 0、消失 0），
+  零写副作用 PASS（84 个产物 md5+size 全等）。
+
+### 为什么这是「两套门禁都看不见」的不变量（第二十七类）
+* 契约测试把真实响应与该模型的 JSON Schema 比对：**多出的键**在 `additionalProperties` 未收紧时放行，
+  **未出口的键**只要不在 `required` 里也放行 → 双向漂移全量用例全绿；
+* 覆盖门禁只比「方法 + 路径」；`openapi.yaml` 与客户端 TS 不被任何测试读取/执行。
+
+### 4 条真实发现（逐条已人工复核，全部为契约/生成物侧，非运行时缺陷）
+**F1 客户端字段名漂移（低风险，用户不可见）**
+* 客户端 `aap-client/src/utils/profile-model.ts:166` 读 `contact_phone_mask`；服务端 `GET /provider/profile`（PROV-01，
+  DTO `ProviderProfileResponse`）只出口 `contact_phone_masked` 与 `contact_phone`，全仓库（@JsonProperty + `Map.put` + 无注解 getter）
+  **没有** `contact_phone_mask` 这个出口键（该名字来自 ER 列名 `aap_provider.contact_phone_mask`）。
+* 后果：`contactPhoneText` 的「服务端值优先」分支恒为死路径；实际走 `maskPhone(profile.contact_phone)` 兜底，
+  而服务端 `contact_phone` 本身已是脱敏值（含 `*`）→ 兜底原样返回，**显示结果恰好正确**；
+  但注释声明的「否则按设计稿格式 `138 **** 6621` 本地脱敏」从未生效，且契约键 `contact_phone_masked` 客户端零消费。
+* 为什么全绿：客户端自身用例用同名字段夹具（`contact_phone_mask`）；服务端契约测试只校验 schema 里的 `contact_phone_masked`。
+* 分级：**契约一致性项（客户端侧）**；改法二选一（客户端改用 `contact_phone_masked` 读服务端值 / 服务端补别名键），需拍板。
+**F2 实现出口键未在契约声明（低风险）**：`MeResult` 顶层出口 `mobile`（值同 `phone_masked`，为客户端候选键容错），
+`me-result.schema.json` 未声明 → 契约完备性项。
+**F3 契约声明但实现零出口（死字段）**：`report.schema.json` 声明 `api_key_mask`，而 RPT-02（`GET /reports/{reportId}`）
+实际 DTO（`ReportViews.Full`）只出口 `api_key_masked` → 生成器侧冗余声明。
+**F4 端点 response_model 与实际响应形状不符（生成物侧错）**：QT-02（`POST /quotes`，实际返回 `QuoteViews.Created`）、
+QT-05（`POST /quotes/{quoteId}/items`，实际返回 `QuoteViews.Items`）在 `endpoints.json` 里声明 `response_model=quote-detail`（含 `credential_id` 等）；
+md 清单（真源）与实现一致（分别写 `Quote{build:quote_id,quote_no,status,items[]}` 与 `{items:[QuoteItem]}`）→ 按坑 51 的分级纪律判**生成物侧多声明**；
+`quote-detail` 的 `required` 只有 `quote_id`/`status`，子集形状照样过 schema 校验 → 全量用例不可见。
+
+### 零漂移的正面结论（带正向对照，不是「没发现问题」）
+* **A3**：8 个密文/指纹列（凭证密钥密文、手机号密文、联系人手机密文、口令哈希、刷新令牌哈希、指纹列；具体列名见实现与 ER 文档）
+  `*_hash`、`api_key_fingerprint`）在响应出口键集合中 **0 命中**（snake 与 camel 两种形态都查过）。
+* **A4**：明文敏感键出口仅 **1 处**（`CredentialViews` 的 `Reveal`，该文件含「明文」依据注释，且 `reveal-result.schema.json` 声明 `api_key`）——在白名单上限 2 之内。
+* **A5**：内联掩码实现 **0 处**（掩码只在 `CryptoService.maskPhone/maskApiKey`），调用点 6 处（Credential 2 / Auth 2 / SMS 1 / Provider 1）。
+* **A6**：两个掩码实现形状与 javadoc 声明一致（手机 3+4、api_key 4+4）。
+* **A1**：其余 9 个契约形态键（`api_key_mask`/`api_key_masked`/`contact_phone`/`credential_id`/`phone`/`token`/`tokens`/`total_tokens`/`uscc`）
+  的客户端读取点均有服务端出口。
+
+### 信息项（不属漂移）
+* A1b 客户端本地视图模型键 3 个（camelCase，`contactPhone`/`credentialId`/`credentials`，不作契约比对，坑 81）；
+* A1c 容错候选键 13 个（`first(...)` / `??` 链，缺失属设计容忍）；A2b 全局零出口的契约键 0 个；
+* A3b DDL 掩码列 5 个（列名与对外键名允许不同形）；A7 掩码形态测试断言 17 处。
+
+### 本轮踩坑（抽查脚本自身返工，全部按「先怀疑解析器」处置）
+1. `Path.stem` 对 `x.schema.json` 得到 `x.schema` → 按模型名查表全落空，A2c 报出 **23 条**「实现出口未声明」假发现；
+   显式剥离双后缀后降至 4 条（逐条人工复核为真）。规则：`*.schema.json` 这类**双后缀**文件名一律显式切片。
+2. DDL 敏感列分类写成 `ciph if CIPHER.search(col) else mask` → 所有非密文敏感列都被当掩码列（A3b 报 19 列）；改 `elif` 后 5 列。
+3. class 型 DTO 取键时把**内层嵌套 record** 的 `@JsonProperty` 当成顶层出口键 → `ProviderProfileResponse` 内层 `phone_masked` 触发 4 条假发现；
+   改为 class 只取**外层类自身 getter**（有注解用注解名，无注解用默认 camelCase 名）。
+4. V 集合漏了「无注解 getter 的默认 Jackson 键名」→ `LoginResult.getToken()` 被误判成「服务端不出口 token」
+   （客户端 2 处读取点被误报为漂移）。规则：**默认序列化命名的键**与显式注解同等重要。
+5. A1 把客户端**本地视图模型键**拉进契约比对（判据范围与语义不符，坑 81）→ 改为「契约形态键＝含下划线或契约已声明」，本地键降级为信息项。
+6. 自测一处**期望值推导错**：`inj_dead_field` 误以为会连带 A1 转红，而 A1 只比「客户端键 ⊆ 服务端出口集合」、该注入不动出口集合
+   → 正确期望是 {A2, A2c}。按「**改的是写错的期望值，不是为让测试变绿迁就实现**」修正期望并留痕（坑 6/12）。
+7. 自测夹具里客户端读取写成 `?? ''` 会被判成「容错候选」→ 合规夹具 A1 转红（**修夹具，不是改判据**，坑 19）；
+   注入 4 原本落在被豁免的 `CryptoService` 文件里（豁免范围内注入 = 空转）→ 补「注入必须落在豁免范围之外」的纪律。
+
+### 本轮未做（纪律）
+* 未新增仓库工具（`missing=0` 只校验不改代码）；抽查脚本与夹具**分目录**落在 `$LOCALAPPDATA/Temp/aap-r53-spotcheck` 与 `…-fixtures`（坑 106）；
+* 未并发跑测试（单进程串行两轮）；他方未提交改动（`aap-client/vite.config.ts`、`aap-server` 的 `application.yml`/`log4j2-spring.xml`/`application-test.yml`、
+  `coverage-report.json` 及 `aap-client` 下未跟踪文件）**未触碰、未纳入提交**（坑 15/16）。

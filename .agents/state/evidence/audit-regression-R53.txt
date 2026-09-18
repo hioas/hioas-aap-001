@@ -1,0 +1,308 @@
+== R53 既有只读审计复跑（零回归核对） ==
+说明：14 套只读审计 + 13 个负向自测；零写副作用守卫 = 运行前后全部生成物 (size,md5) 全等
+FAIL 判据：方括号内允许空格的 FAIL 标记（写法见比对脚本；坑 97/47 —— 报告里不写该模式字面量，否则自指命中）
+Python 3.11.16
+
+== 零写副作用守卫：审计前指纹 ==
+fingerprinted 84 files
+
+--- gen-check ---
+check ok: 84/84 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）
+ok: models=55 requests=24 paths=78 operations=90 files=82
+gen-check rc=0
+
+--- openapi-parses ---
+OK: docs\backend\openapi.yaml 可解析；paths=78 operations=90
+openapi-parses rc=0
+
+--- endpoint-tests ---
+端点「真实 HTTP 用例」可追溯性审计（只读）
+清单：docs/backend/endpoints.json（90 条）
+测试源：aap-server/src/test/java（39 个 .java 文件）
+
+exact （路径骨架 + 方法都吻合的真实 HTTP 调用点）：90
+prefix（路径命中但方法不吻合 / 仅静态前缀，弱证据）：0
+endpoint-tests rc=0
+
+--- contract-keys ---
+== A. OpenAPI 分页集合键名（应为 items）：57/57 PASS ==
+   [OK ] 集合键名 items：57 个端点 → PROV-01 PROV-02 PROV-03 CRED-01 CRED-06 DET-03 DET-04 RPT-01 …
+
+== B. OpenAPI 分页端点必须被 PageMeta 包装：23/23 PASS ==
+   [OK ] 全部 23 个带 pageSize 参数的端点均已 PageMeta 包装
+
+contract-keys rc=0
+
+--- auth-contract ---
+根目录：E:/workspaces/hioas/hioas-aap-001（仓库外路径也照常显示，skill 坑 34）
+--- 正向对照（解析器真的解析到了）---
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b D 行数 = total：parsed=90 期望=90
+[PASS] A0c O operation 数 = total：parsed=90 期望=90
+[PASS] A0d I 解析到控制器路由：parsed=91 条路由，控制器问题 0 条
+auth-contract rc=1
+
+--- routes ---
+根目录：E:/workspaces/hioas/hioas-aap-001（仓库外路径也照常显示，skill 坑 34）
+--- 正向对照（解析器真的解析到了，skill 坑 46）---
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b D 行数 = total（裸 split 会漏行，坑 48）：parsed=90 期望=90
+[PASS] A0c O operation 数 = total：parsed=90 期望=90
+[PASS] A0d I 解析到控制器路由：parsed=91 条路由
+routes rc=0
+
+--- error-codes ---
+根目录：.
+--- 正向对照（解析器真的解析到了）---
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b O operation 数 = total：parsed=90 期望=90
+[PASS] A0c D 行数 = total：parsed=90 期望=90
+[PASS] A0d J 码数 = O.enum 码数：J=28 O.enum=28
+error-codes rc=1
+
+--- secret-leak ---
+仓库：E:\workspaces\hioas\hioas-aap-001
+密钥目录：E:\env（5 个 .env 文件）
+Tier A（变量名含密钥语义、值长 >= 8）：13 个变量 —— 必须 0 命中
+Tier B（其余，非密钥低熵）：15 个变量 —— 仅信息项
+[PASS] 正向对照：读到 28 个变量（扫描器确实有输入）
+[PASS] 暂存差异：Tier A 命中 0
+secret-leak rc=0
+
+--- query-params ---
+根目录：E:/workspaces/hioas/hioas-aap-001（仓库外路径也照常显示，skill 坑 34）
+--- 正向对照（解析器真的解析到了，skill 坑 46）---
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b D 行数 = total（裸 split 会漏行，坑 48）：parsed=90 期望=90
+[PASS] A0c O operation 数 = total：parsed=90 期望=90
+[PASS] A0d I 解析到控制器方法数 ≥ total：parsed=91 条（含无查询参数的方法）
+query-params rc=1
+
+--- time-format ---
+# 时间字段序列化格式一致性审计（只读）root=E:\workspaces\hioas\hioas-aap-001
+--- A0 统一出口定义（格式串 + 辅助方法体）---
+[PASS] A0a 正向对照：解析到出口定义（解析器真的工作了） — 出口格式串声明 17 处、辅助方法 14 处（为 0 即解析器失效，不得判 PASS）
+[PASS] A0b 所有 DateTimeFormatter 格式串只有 1 种 — 实测 1 种：["yyyy-MM-dd'T'HH:mm:ss'Z'"]
+[PASS] A0c 格式串 = 秒精度 UTC（yyyy-MM-dd'T'HH:mm:ss'Z'） — 实测 ["yyyy-MM-dd'T'HH:mm:ss'Z'"]
+[PASS] A0d 所有辅助方法体归一化后只有 1 种 — 副本 14 处 → 形态 1 种
+time-format rc=0
+
+--- enum-sets ---
+== 解析计数（正向对照，任一为 0 即说明解析器失效，坑 46） ==
+   M(§5 枚举族)=16  M(§4 错误码)=28  O(openapi 内联 enum)=21/102 组件  S(schema enum 属性)=34  C(客户端联合类型)=2  I①(SQL 字面量)=16  I②(显式集合)=11
+   [M-note] §5 行 `TierField` 无大写取值 token（字段名/非枚举项）：`len`（**固定**，禁 `p`）
+
+== A0 解析器正向对照 ==
+[PASS] A0.1 M 解析到 ≥10 个枚举族 | 实际 16
+enum-sets rc=1
+
+--- response-shape ---
+根目录：.（仓库外路径也照常显示，skill 坑 34）
+--- 正向对照（解析器真的解析到了，skill 坑 46 / 72）---
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b D 行数 = total（转义竖线按未转义切分，坑 48）：parsed=90 期望=90
+[PASS] A0c O operation 数 = total：parsed=90 期望=90
+[PASS] A0d O 组件表解析到 $ref 组件（否则跨源比对是空转，坑 72）：$ref 组件=81 内联组件=21
+response-shape rc=1
+
+--- id-types ---
+== ID 字段对外类型契约审计（第十三类不变量；只读） ==
+仓库根：E:\workspaces\hioas\hioas-aap-001
+--- A0 正向对照：每个源都真的解析到了条目 ---
+[PASS] A0a S 解析到 ID 类字段 > 0：解析到 118 条
+[PASS] A0b O 解析到组件（$ref 与内联各 > 0）：$ref 81 个 / 内联 21 个 / 合计 102
+[PASS] A0c I 解析到响应视图 ID 分量 > 0：唯一 (文件,字段) 对 46 个
+id-types rc=1
+
+--- request-body ---
+== 请求体字段名集合 / 有无请求体 契约审计（第十四类不变量；只读） ==
+仓库根：E:\workspaces\hioas\hioas-aap-001
+--- A0 正向对照：每个源都真的解析到了条目 ---
+[PASS] A0a M 解析到 md「请求」列的请求体字段 > 0：有请求体的端点 21 个 / 解析到端点 87 个
+[PASS] A0b D 解析到 endpoints.json 的 request_model > 0：带 request_model 的端点 27 个 / 请求模型文件 24 个
+[PASS] A0c O 解析到 openapi 的 requestBody > 0：带 requestBody 的 operation 27 个 / 解析到 x-aap-id 90 个
+request-body rc=1
+
+--- selftest-gen ---
+---- 分支 A：正向（干净仓库）----
+  [PASS] 干净仓库 --check → rc=0  (rc=0)
+  [PASS] 输出声明 84/84 个产物一致  (check ok: 84/84 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）)
+  [PASS] 零写副作用：84 个产物 (mtime,size,md5) 全不变  (变化的文件数=0 [])
+---- 分支 B：语义漂移（改 title）----
+  [PASS] 漂移后 --check → rc=1  (rc=1)
+selftest-gen rc=0
+
+--- selftest-endpoint-tests ---
+---- 自测输出（审计 stdout）----
+端点「真实 HTTP 用例」可追溯性审计（只读）
+清单：C:\Users\laitz\AppData\Local\Temp\aap-audit-selftest-odqxxkct\fake-endpoints.json（9 条）
+测试源：C:\Users\laitz\AppData\Local\Temp\aap-audit-selftest-odqxxkct\tests（1 个 .java 文件）
+
+exact （路径骨架 + 方法都吻合的真实 HTTP 调用点）：7
+selftest-endpoint-tests rc=0
+
+--- selftest-contract-keys ---
+[PASS] A1 正向 OpenAPI 集合键名 items → rc=0
+[PASS] A1b 正向 A 分支有 PASS 记录（证明解析器真的解析到了）
+[PASS] E2 正向 客户端接口声明 items → E 分支 PASS
+[PASS] Z1 审计对夹具零写副作用（mtime_ns/size/md5 全等）
+[PASS] A2 反向 集合键名 list → A 分支 FAIL 且点名 DEMO-01
+[PASS] B1 反向 分页端点未 PageMeta 包装 → B 分支 FAIL 且点名 DEMO-01
+selftest-contract-keys rc=0
+
+--- selftest-auth-contract ---
+夹具根目录：C:\Users\laitz\AppData\Local\Temp
+被测审计：tools\audit-auth-contract.py
+
+[PASS] case_positive：rc=0(期望 0) 命中「断言 17 条：PASS 17，FAIL 0」=是
+[PASS] case_repo_external_root：rc=0(期望 0) 命中「根目录：C:/Users/laitz/AppData/Local/Temp/aap-auth-selftest-positive-1789749000525」=是
+[PASS] case_zero_write：夹具 8 个文件 (mtime,size,md5) 不变
+selftest-auth-contract rc=0
+
+--- selftest-routes ---
+夹具根目录：C:\Users\laitz\AppData\Local\Temp
+被测审计：E:\workspaces\hioas\hioas-aap-001\tools\audit-routes.py
+
+[PASS] case_positive：rc=0(期望 0) 命中「断言 13 条：PASS 13，FAIL 0」=是
+[PASS] case_repo_external_root：rc=0(期望 0) 命中「根目录：C:/Users/laitz/AppData/Local/Temp/aap-routes-selftest-positive-1789749003818」=是
+[PASS] case_impl_prefix_stripped：rc=0(期望 0) 命中「A3 清单每条端点都在实现里有同方法同路径的路由：未定位 0 条」=是
+selftest-routes rc=0
+
+--- selftest-error-codes ---
+夹具根目录：C:\Users\laitz\AppData\Local\Temp
+被测审计：tools\audit-error-codes.py
+
+[PASS] case_positive：rc=0(期望 0) 命中「断言 16 条：PASS 16，FAIL 0」=是
+[PASS] case_zero_write：夹具 5 个文件 (mtime,size,md5) 不变
+[PASS] case_manifest_code_unknown：rc=1(期望 1) 命中「A3 清单声明的码都在 ErrorCode.java 目录里」=是
+selftest-error-codes rc=0
+
+--- selftest-secret-leak ---
+[PASS] 正向对照：扫描器能在文本里找到模式值
+[PASS] 负向对照：无该值的文本判 0 命中
+[PASS] 边界：空文本判 0 命中
+
+自测 3 条：PASS 3，FAIL 0
+selftest-secret-leak rc=0
+
+--- selftest-query-params ---
+夹具根目录：C:\Users\laitz\AppData\Local\Temp
+被测审计：E:\workspaces\hioas\hioas-aap-001\tools\audit-query-params.py
+
+[PASS] case_positive：rc=0(期望 0) 命中「断言 14 条：PASS 14，FAIL 0」=是
+[PASS] case_repo_external_root：rc=0(期望 0) 命中「根目录：C:/Users/laitz/AppData/Local/Temp/aap-qparam-selftest-positive-1789749009108」=是
+[PASS] case_md_body_field_not_query：md 请求体字段未被误当查询参数（SY-02 的 `body：` 单元格）
+selftest-query-params rc=0
+
+--- selftest-time-format ---
+# audit-time-format 负向自测（夹具根=C:\Users\laitz\AppData\Local\Temp\aap-timefmt-selftest-h7655be8，仓库外，坑 34）
+[PASS] C0 合规夹具：审计 rc=0 且 15 条断言全 PASS（正向对照） — rc=0；断言 15 条：PASS 15，FAIL 0
+[PASS] C1 审计对夹具零写副作用（运行前后指纹一致） — 夹具文件被改写
+[PASS] C2 A0b/A0c 格式串漂移（第二份出口用毫秒精度） —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+[PASS] C2 A0b/A0c 格式串漂移（第二份出口用毫秒精度） —— 恰好命中预期断言且 rc=1 — rc=1；FAIL 断言=['A0b 所有 DateTimeFormatter 格式串只有 1 种', "A0c 格式串 = 秒精度 UTC（yyyy-MM-dd'T'HH:mm:ss'Z'）"]（预期 ['A0b', 'A0c']）
+[PASS] C3 A0d 辅助方法体漂移（少了 withOffsetSameInstant） —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+selftest-time-format rc=0
+
+--- selftest-enum-sets ---
+[PASS] clean rc=0 | rc=0
+[PASS] clean A0.1 解析到 13 个族
+[PASS] clean A0.7/A0.8 解析到实现集合与 ER 域
+[PASS] clean A1 逐名一致
+[PASS] clean A6/A9 一致
+[PASS] clean 无 FAIL 行
+selftest-enum-sets rc=0
+
+--- selftest-response-shape ---
+[PASS] ok：rc=0(期望 0) 命中「结论：逐端点响应形状一致」=是 夹具未被改写
+[PASS] openapi 把单对象端点声明成分页（本轮真实缺陷）：rc=1(期望 1) 命中「A2 openapi 声明分页 ⇔ 实现返回分页形状 DTO」=是 不应出现「[FAIL] A4 实现分页形状 DTO ⇒ openapi 分页」=未出现 夹具未被改写
+[PASS] 反向：实现分页而 openapi 声明单对象：rc=1(期望 1) 命中「A4 实现分页形状 DTO ⇒ openapi 分页」=是 夹具未被改写
+[PASS] 分页响应却没有 page/pageSize 查询参数（自洽性第三证人）：rc=1(期望 1) 命中「A3 openapi 分页响应 ⇒ 该端点声明 page+pageSize 查询参数」=是 夹具未被改写
+[PASS] 组件名不是 PascalCase(response_model)：rc=1(期望 1) 命中「A1b 每端点 200 的 data 绑定组件 = PascalCase(response_model)」=是 夹具未被改写
+[PASS] 组件指向错误的 schema 文件：rc=1(期望 1) 命中「A1c 被绑定组件解析到的文件 = models/<response_model>.schema.json」=是 夹具未被改写
+selftest-response-shape rc=0
+
+--- selftest-id-types ---
+== A. 正向对照 ==
+  [PASS] case_ok：rc=0(期望 0)
+  [PASS] A0 正向对照：ok 夹具 rc=0 且断言 FAIL 0（解析器真的工作了） — 结论：ID 类字段对外类型逐处一致（S/O/I/C 四处；例外白名单 ≤ 1 且有实现依据）。
+== B. 每个判定分支一条反例 ==
+  [PASS] case_s_number：rc=1(期望 1) 命中「A1」=是；FAIL 列表=['A1 非 string 的 ID 字段都在例外白名单内']
+  [PASS] case_i_long：rc=1(期望 1) 命中「A3」=是；FAIL 列表=['A3 非 String 的 ID 分量都在例外白名单内']
+selftest-id-types rc=0
+
+--- selftest-request-body ---
+== audit-request-body.py 负向自测 ==
+  [PASS] case_empty_fixture：空夹具 rc=1 且 A0 正向对照转红  (rc=1；A0 FAIL=5)
+  [PASS] case_ok_fixture：完整夹具 rc=0 且 FAIL 0  (rc=0；FAIL=[])
+  [PASS] case_missing_schema_file：rc=1(期望 1) 命中「A1a」  (rc=1；FAIL=['A1a 每个 request_model 都有对应的请求模型 schema 文件', 'A3a 请求体组件 $ref 悬空引用 = 0', 'A4 md「请求」列字段都在请求模型 schema 的 properties 里', 'A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）', 'A6 客户端 data 键都在请求模型 schema 里'])
+  [PASS] case_orphan_schema：rc=1(期望 1) 命中「A1b」  (rc=1；FAIL=['A1b 孤儿请求模型 schema 文件 = 0（仓库里有、清单无端点引用）'])
+  [PASS] case_openapi_missing_body：rc=1(期望 1) 命中「A2a」  (rc=1；FAIL=['A2a 清单有请求体而 openapi 无 requestBody = 0'])
+selftest-request-body rc=0
+
+== 零写副作用守卫：审计后指纹 ==
+fingerprinted 84 files
+内容变化文件数 = 0，新增文件数 = 0
+
+== rc 汇总 ==
+auth-contract rc=1
+contract-keys rc=0
+endpoint-tests rc=0
+enum-sets rc=1
+error-codes rc=1
+gen-check rc=0
+id-types rc=1
+openapi-parses rc=0
+query-params rc=1
+request-body rc=1
+response-shape rc=1
+routes rc=0
+secret-leak rc=0
+selftest-auth-contract rc=0
+selftest-contract-keys rc=0
+selftest-endpoint-tests rc=0
+selftest-enum-sets rc=0
+selftest-error-codes rc=0
+selftest-gen rc=0
+selftest-id-types rc=0
+selftest-query-params rc=0
+selftest-request-body rc=0
+selftest-response-shape rc=0
+selftest-routes rc=0
+selftest-secret-leak rc=0
+selftest-time-format rc=0
+time-format rc=0
+
+rc=1 的审计（应为已登记待拍板漂移项，非新漂移）：auth-contract, enum-sets, error-codes, id-types, query-params, request-body, response-shape
+rc 非 0/1 的条目（应为空）：无
+
+== FAIL 断言行汇总（明细） ==
+解析到的 FAIL 断言行数 = 28（正向对照：> 0，否则判解析器失效）
+  auth-contract | [FAIL] A8 md「角色」列 = 清单角色集合（仅逐条列角色的 7 列表头行）：不一致 32 条
+  error-codes | [FAIL] A4 目录里的码都被至少一个端点声明（无孤儿码）：孤儿=['E-1102', 'E-1404']
+  error-codes | [FAIL] A9 md 每行错误码列 = 清单：不一致 10 条
+  query-params | [FAIL] A1 md 逐行 `q：…` = endpoints.json query_params：不一致 3 条
+  query-params | [FAIL] A3b 实现 @RequestParam 集合 = 清单 query_params：不一致 5 条
+  enum-sets | [FAIL] A2 openapi 内联枚举名全部在 md §5 登记 | 孤儿 5: AuditAction(18), CredentialDetectionStatus(4), IndustryCategory(3), QuoteRejectReason(7), ResultCode(28)
+  enum-sets | [FAIL ] common\envelope.schema.json:code 取值 ['0', 'E-1001', 'E-1101', 'E-1102', 'E-1104', 'E-1201', 'E-1301', 'E-1302', 'E-1303', 'E-1304', 'E-1305', 'E-1401', 'E-1402', 'E-1403', 'E-1404', 'E-1405', 'E-1406', 'E-1407', 'E-1501', 'E-1505', 'E-1601', 'E-1602', 'E-1701', 'E-1801', 'E-1901', 'E-1902', 'E-1903', 'E-2001'] 不匹配任何 md §5 族（与 openapi 族 ResultCode 相同 → 疑似 §5 漏登记）
+  enum-sets | [FAIL ] common\error.schema.json:code 取值 ['E-1001', 'E-1101', 'E-1102', 'E-1104', 'E-1201', 'E-1301', 'E-1302', 'E-1303', 'E-1304', 'E-1305', 'E-1401', 'E-1402', 'E-1403', 'E-1404', 'E-1405', 'E-1406', 'E-1407', 'E-1501', 'E-1505', 'E-1601', 'E-1602', 'E-1701', 'E-1801', 'E-1901', 'E-1902', 'E-1903', 'E-2001'] 不匹配任何 md §5 族（是 openapi 族 ResultCode 的子集 → 疑似 §5 漏登记）
+  enum-sets | [FAIL ] models\audit-log.schema.json:action 取值 ['AUTH_LOGIN', 'CONFIG_PUBLISH', 'CONTRACT_SIGN', 'CREDENTIAL_REVEAL', 'DETECTION_RELEASE', 'PAYMENT_CONFIRM', 'PROFILE_UPDATE', 'PROVIDER_RESUME', 'PROVIDER_SUSPEND', 'QUOTE_APPROVE', 'QUOTE_CREATE', 'QUOTE_REJECT', 'QUOTE_SAVE', 'QUOTE_SUBMIT', 'QUOTE_VOID', 'QUOTE_WITHDRAW', 'SYNC_EXECUTE', 'SYNC_WRITE_PRICE'] 不匹配任何 md §5 族（与 openapi 族 AuditAction 相同 → 疑似 §5 漏登记）
+  enum-sets | [FAIL ] models\credential-detail.schema.json:detection_status 取值 ['FAIL', 'PASS', 'PENDING', 'RUNNING'] 不匹配任何 md §5 族（与 openapi 族 CredentialDetectionStatus 相同 → 疑似 §5 漏登记）
+  enum-sets | [FAIL ] models\credential-row.schema.json:detection_status 取值 ['FAIL', 'PASS', 'PENDING', 'RUNNING'] 不匹配任何 md §5 族（与 openapi 族 CredentialDetectionStatus 相同 → 疑似 §5 漏登记）
+  enum-sets | [FAIL ] models\review-task.schema.json:reject_reason_code 取值 ['CACHE_PRICE_MISSING', 'MISSING_INFO', 'OTHER', 'PRICE_STRUCTURE_INVALID', 'PRICE_TOO_HIGH', 'TECH_RISK', 'VALIDITY_ISSUE'] 不匹配任何 md §5 族（与 openapi 族 QuoteRejectReason 相同 → 疑似 §5 漏登记）
+  enum-sets | [FAIL ] requests\contract-sign.schema.json:sign_method 取值 ['SEAL', 'SMS'] 不匹配任何 md §5 族
+  enum-sets | [FAIL ] requests\payment-record.schema.json:currency 取值 ['USD'] 不匹配任何 md §5 族
+  enum-sets | [FAIL ] requests\provider-profile-update.schema.json:industry_category 取值 ['AGGREGATOR', 'ORIGINAL', 'RESELLER'] 不匹配任何 md §5 族（与 openapi 族 IndustryCategory 相同 → 疑似 §5 漏登记）
+  enum-sets | [FAIL ] requests\qualification-create.schema.json:category 取值 ['AUTHORIZATION', 'BUSINESS_LICENSE', 'OTHER'] 不匹配任何 md §5 族
+  enum-sets | [FAIL ] requests\quote-create.schema.json:currency 取值 ['USD'] 不匹配任何 md §5 族
+  enum-sets | [FAIL ] requests\review-reject.schema.json:reason_code 取值 ['CACHE_PRICE_MISSING', 'MISSING_INFO', 'OTHER', 'PRICE_STRUCTURE_INVALID', 'PRICE_TOO_HIGH', 'TECH_RISK', 'VALIDITY_ISSUE'] 不匹配任何 md §5 族（与 openapi 族 QuoteRejectReason 相同 → 疑似 §5 漏登记）
+  enum-sets | [FAIL] A5 全部 schema enum 均归属到 md §5 枚举族（未归属的已逐条 FAIL） | 已归属 21 / 34，未归属 12
+  enum-sets | [FAIL ] ReviewService.java:57 ['CLAIMED', 'PENDING']：契约(schema/openapi)未声明该取值域，但 ER 文档有据（列 ['status']）→ 契约完备性项
+  enum-sets | [FAIL ] SyncAdminService.java:73 ['FAILED', 'MANUAL']：契约(schema/openapi)未声明该取值域，但 ER 文档有据（列 ['status']）→ 契约完备性项
+  enum-sets | [FAIL] A8 实现声明的取值域均在契约中声明 | 未声明 2: ReviewService.java:57=['CLAIMED', 'PENDING']; SyncAdminService.java:73=['FAILED', 'MANUAL']
+  response-shape | [FAIL] A2 openapi 声明分页 ⇔ 实现返回分页形状 DTO（items+page+pageSize+total）：不一致 36 条（openapi 与实现至少一侧错）
+  response-shape | [FAIL] A3 openapi 分页响应 ⇒ 该端点声明 page+pageSize 查询参数：自相矛盾 34 条
+  id-types | [FAIL] A6 同名 ID 字段在所有模型里对外类型一致：不一致 1 个字段名：{'channel_id': ['integer', 'string']}
+  request-body | [FAIL] A1b 孤儿请求模型 schema 文件 = 0（仓库里有、清单无端点引用）：孤儿 1 个：['payment-record']
+  request-body | [FAIL] A2c md 说「无请求体」而清单声明 request_model = 0：不一致 3 条：['ADM-CFG04', 'ADM-CFG09', 'QT-09']
+  request-body | [FAIL] A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）：不一致 9 条：{'ADM-CFG07': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-CFG09': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-U02': "usage-refresh schema-not-in-dto=['batch_id'] dto-not-in-schema=[]", 'CRED-02': "credential-create schema-not-in-dto=['is_primary'] dto-not-in-schema=[]", 'CRED-04': "credential-create schema-not-in-dto=['is_primary'] dto-not-in-schema=[]", 'PROV-02': "provider-profile-update schema-not-in-dto=[] dto-not-in-schema=['manual_override', 'override_reason']", 'PROV-04': "qualification-create schema-not-in-dto=['company_name', 'contact_name', 'contact_phone', 'remark', 'uscc'] dto-not-in-schema=[]", 'QT-08': "quote-item-save schema-not-in-dto=['tier_rule', 'time_rule'] dto-not-in-schema=['price_tier_rule', 'price_time_rule']"}
+

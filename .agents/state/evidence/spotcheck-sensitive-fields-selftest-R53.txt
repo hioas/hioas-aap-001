@@ -1,0 +1,63 @@
+== R53 抽查脚本的负向自测（判别力 + 零写副作用） ==
+脚本：C:\Users\laitz\AppData\Local\Temp\aap-r53-spotcheck\spotcheck-sensitive-fields-selftest.py  → rc=0
+夹具：C:\Users\laitz\AppData\Local\Temp\aap-r53-spotcheck-fixtures（与脚本分目录，坑 106）
+
+---- 自测原始输出 ----
+[PASS] compliant.rc0 合规夹具 rc=0 FAIL=[]
+[PASS] compliant.A0a 断言 A0a 为 PASS
+[PASS] compliant.A0b 断言 A0b 为 PASS
+[PASS] compliant.A0c 断言 A0c 为 PASS
+[PASS] compliant.A0d 断言 A0d 为 PASS
+[PASS] compliant.A0e 断言 A0e 为 PASS
+[PASS] compliant.A0f 断言 A0f 为 PASS
+[PASS] compliant.A1 断言 A1 为 PASS
+[PASS] compliant.A2 断言 A2 为 PASS
+[PASS] compliant.A2c 断言 A2c 为 PASS
+[PASS] compliant.A3 断言 A3 为 PASS
+[PASS] compliant.A4 断言 A4 为 PASS
+[PASS] compliant.A5 断言 A5 为 PASS
+[PASS] compliant.A6 断言 A6 为 PASS
+[PASS] compliant.no_write 合规夹具运行前后 md5 全等
+[PASS] empty.red 空夹具 rc=1 FAIL=['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A0f', 'A1']（六个正向对照全部转红）
+[PASS] inj_client_key.anchor 注入锚点命中 1 处，未命中 无
+[PASS] inj_client_key.delta 新增 FAIL=['A1']（期望 ['A1']）、消失=[]、rc=1
+[PASS] inj_client_key.no_write 夹具目录未被脚本改写（脚本只读）
+[PASS] inj_undeclared_export.anchor 注入锚点命中 1 处，未命中 无
+[PASS] inj_undeclared_export.delta 新增 FAIL=['A2', 'A2c']（期望 ['A2', 'A2c']）、消失=[]、rc=1
+[PASS] inj_undeclared_export.no_write 夹具目录未被脚本改写（脚本只读）
+[PASS] inj_cipher_export.anchor 注入锚点命中 1 处，未命中 无
+[PASS] inj_cipher_export.delta 新增 FAIL=['A1', 'A2', 'A2c', 'A3']（期望 ['A1', 'A2', 'A2c', 'A3']）、消失=[]、rc=1
+[PASS] inj_cipher_export.no_write 夹具目录未被脚本改写（脚本只读）
+[PASS] inj_inline_mask.anchor 注入锚点命中 1 处，未命中 无
+[PASS] inj_inline_mask.delta 新增 FAIL=['A5']（期望 ['A5']）、消失=[]、rc=1
+[PASS] inj_inline_mask.no_write 夹具目录未被脚本改写（脚本只读）
+[PASS] inj_plaintext_no_basis.anchor 注入锚点命中 1 处，未命中 无
+[PASS] inj_plaintext_no_basis.delta 新增 FAIL=['A2', 'A2c']（期望 ['A2', 'A2c']）、消失=[]、rc=1
+[PASS] inj_plaintext_no_basis.no_write 夹具目录未被脚本改写（脚本只读）
+[PASS] inj_dead_field.anchor 注入锚点命中 1 处，未命中 无
+[PASS] inj_dead_field.delta 新增 FAIL=['A2', 'A2c']（期望 ['A2', 'A2c']）、消失=[]、rc=1
+[PASS] inj_dead_field.no_write 夹具目录未被脚本改写（脚本只读）
+[PASS] repo.readonly 真实仓库被读取的 4 个文件 md5 全等
+[PASS] repo.fails 真实仓库 rc=1 FAIL=['A1', 'A1', 'A2', 'A2', 'A2c', 'A2c', 'A2c', 'A2c', 'A2c']（已知 3 条，含 1 条客户端漂移）
+
+== 自测汇总 ==
+用例 36 条，PASS 36，FAIL 0（无）
+
+---- 结论 ----
+36/36 PASS（rc=0）：合规夹具 rc=0 且 13 条断言全 PASS；空夹具点名 A0a…A0f 六个正向对照转红（防空转）；
+6 组注入缺陷各自**恰好新增**声明的 FAIL 集合（锚点全部命中、无「消失」的断言、无越界触发）；真实仓库只读守卫通过（4 个被读文件 md5 全等）。
+
+本轮抽查脚本自身返工（全部按「先怀疑解析器」处置）：
+1. `Path.stem` 对 `x.schema.json` 得到 `x.schema` → 按模型名查表全部落空，A2c 报出 23 条「实现出口未声明」假发现；
+   改为显式剥离双后缀后降至 4 条（且 4 条逐条人工复核为真）。
+2. DDL 敏感列分类写成 `ciph if … else mask` → 所有非密文敏感列都被当掩码列（A3b 报 19 列）；改为 `elif` 后为 5 列。
+3. class 型 DTO 取键时把**内层嵌套 record** 的 @JsonProperty 当成顶层出口键 → ProviderProfileResponse 的内层 phone_masked 触发 4 条假发现；
+   改为 class 只取**外层类自身 getter**（带注解用注解名，无注解用默认 camelCase 名）后消失。
+4. V 集合漏了「无注解 getter 的默认 Jackson 键名」→ LoginResult.getToken() 被误判为「服务端不出口 token」（客户端 2 处读取点被误报为漂移）；
+   补上该来源后 `token` 归位（A0a 打印「无注解 getter 贡献 1 键」）。
+5. A1 判定把客户端本地视图模型键（contactPhone/credentialId/credentials）也拉进契约比对（判据范围与语义不符，坑 81）→
+   改为「契约形态键＝含下划线或契约已声明的键」，本地键降级为 A1b 信息项。
+6. 自测夹具里客户端读取写成 `?? ''` 会被判成「容错候选」→ 合规夹具 A1 转红（修夹具，不是改判据）；
+   注入 4 原本落在被豁免的 CryptoService 文件里 → 补一条「注入必须落在豁免范围之外」的纪律。
+7. 自测一处**期望值推导错**（inj_dead_field 误以为会连带 A1 转红）：实际 A1 只比「客户端键 ⊆ 服务端出口集合」，
+   该注入不动出口集合 → 正确期望是 {A2, A2c}。按「改的是写错的期望值，不是为让测试变绿迁就实现」修正期望并留痕。

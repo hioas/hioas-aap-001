@@ -1,0 +1,79 @@
+== R53 抽查：敏感字段（明文/密文/掩码）对外键集合跨源一致性（第二十七类可审计不变量；只读） ==
+脚本：C:\Users\laitz\AppData\Local\Temp\aap-r53-spotcheck\spotcheck-sensitive-fields-v2.py（抽查脚本与夹具**分目录**，坑 106）
+执行：python spotcheck-sensitive-fields-v2.py  → rc=1
+为什么两套门禁都看不见：契约测试把真实响应与该模型的 JSON Schema 比对 —— 多出的键在 additionalProperties 未收紧时放行、
+未出口的键只要不在 required 里也放行；覆盖门禁只比「方法 + 路径」；客户端 TS 不被任何测试执行（坑 100 同族）。
+真源：V 服务端出口键（@JsonProperty ＋ 无注解 getter 的默认键名 ＋ Map put/of）／S 契约 schema 属性名／
+      C 客户端属性访问（直接读取 vs 容错候选）／D DDL 敏感列／I 掩码实现与调用点／T 测试背书。
+
+---- 抽查原始输出 ----
+== R53 抽查：敏感字段对外键集合跨源一致性（只读） ==
+root = E:\workspaces\hioas\hioas-aap-001
+
+[PASS] A0a 服务端出口敏感键 > 0 解析到 24 键（169 个 java 文件；其中无注解 getter 贡献 1 键）
+[PASS] A0b 契约声明敏感键 > 0 解析到 23 键（82 个 schema 文件）
+[PASS] A0c 客户端敏感读取键 > 0 直接 13 键 / 候选 13 键（68 个客户端源文件）
+[PASS] A0d DDL 密文列 > 0 8 个密文/指纹列（8 个迁移文件）
+[PASS] A0e 掩码实现 > 0 解析到 ['maskApiKey', 'maskPhone']
+[PASS] A0f 掩码调用点 > 0 解析到 6 个调用点
+[FAIL] A1 客户端读取的契约形态键 ⊆ 服务端出口键 契约形态键 10 个，未在服务端出口集合中：['contact_phone_mask']
+      [FAIL] A1 键 `contact_phone_mask` 客户端读取点：['aap-client/src/utils/profile-model.ts:166']
+      [PASS] A1 键 `api_key_mask` 客户端 1 处读取点，服务端出口于 aap-server/src/main/java/com/hioas/aap/credential/CredentialViews.java
+      [PASS] A1 键 `api_key_masked` 客户端 1 处读取点，服务端出口于 aap-server/src/main/java/com/hioas/aap/credential/CredentialViews.java
+      [PASS] A1 键 `contact_phone` 客户端 2 处读取点，服务端出口于 aap-server/src/main/java/com/hioas/aap/provider/ProviderProfileResponse.java
+      [PASS] A1 键 `credential_id` 客户端 2 处读取点，服务端出口于 aap-server/src/main/java/com/hioas/aap/credential/CredentialViews.java
+      [PASS] A1 键 `phone` 客户端 6 处读取点，服务端出口于 aap-server/src/main/java/com/hioas/aap/iam/dto/MeResult.java
+      [PASS] A1 键 `token` 客户端 2 处读取点，服务端出口于 aap-server/src/main/java/com/hioas/aap/iam/dto/LoginResult.java
+      [PASS] A1 键 `tokens` 客户端 2 处读取点，服务端出口于 aap-server/src/main/java/com/hioas/aap/usage/UsageViews.java
+      [PASS] A1 键 `total_tokens` 客户端 2 处读取点，服务端出口于 aap-server/src/main/java/com/hioas/aap/usage/UsageViews.java
+      [PASS] A1 键 `uscc` 客户端 5 处读取点，服务端出口于 aap-server/src/main/java/com/hioas/aap/provider/ProviderProfileResponse.java
+[INFO] A1b 客户端本地视图模型键（camelCase/无下划线且契约未声明，不作契约比对，坑 81） 3 键：['contactPhone', 'credentialId', 'credentials']
+[INFO] A1c 容错候选键（`first(...)`/`??` 链，缺失属设计容忍） 13 键：['api_key_mask', 'api_key_masked', 'credential', 'credentialId', 'credential_alias', 'credential_id', 'credential_name', 'mobile', 'phone', 'phone_number', 'signer_phone', 'signer_phone_masked', 'total_tokens']
+[FAIL] A2 服务端出口的敏感键 ⊆ 契约声明键 出口 24 键，契约未声明：['mobile']
+      [FAIL] A2 键 `mobile` 出口文件：['aap-server/src/main/java/com/hioas/aap/iam/dto/MeResult.java']（契约从未声明）
+[INFO] A2b 契约声明但全局零出口的敏感键 0 键：[]
+[FAIL] A2c 逐端点响应 DTO 敏感键 ⇔ response_model schema（已定位的端点全部一致） 已定位 37 个端点（跳过 53：AUTH-01: 无键; AUTH-05: 未定位控制器; PROV-03: 返回 Map（键在 Service 里拼装，静态不可判定）; PROV-04: 返回 Map（键在 Service 里拼装，静态不可判定））；契约声明未出口 3 条、实现出口未声明 1 条
+      [FAIL] A2c 死字段：RPT-02(report) 契约声明未出口=['api_key_mask']
+      [FAIL] A2c 死字段：QT-02(quote-detail) 契约声明未出口=['credential_id']
+      [FAIL] A2c 死字段：QT-05(quote-detail) 契约声明未出口=['credential_id']
+      [FAIL] A2c 超集字段：AUTH-06(me-result) 实现出口未声明=['mobile']
+[PASS] A3 密文/指纹列名不得出现在响应出口键 密文列 8 个，出口泄漏：无
+[INFO] A3b DDL 掩码列（列名 vs 对外键名允许不同形） 5 列：['api_key_mask', 'api_key_masked', 'contact_phone_mask', 'phone_masked', 'signer_phone_mask']
+[PASS] A4 明文敏感键出口必须带实现依据（注释含「明文」）且处数 ≤ 2 出口明文键 1 处（上限 2）：['api_key@aap-server/src/main/java/com/hioas/aap/credential/CredentialViews.java']
+      [PASS] A4 `api_key` @ aap-server/src/main/java/com/hioas/aap/credential/CredentialViews.java 依据注释=True
+[PASS] A5 内联掩码实现（CryptoService 之外）必须为 0 处 命中 0 处：无；掩码实现 2 个、调用点 6 个
+[PASS] A6 掩码实现形状与 javadoc 声明一致（手机 3+4 / api_key 4+4） maskPhone 形状一致；maskApiKey 形状一致
+[INFO] A7 测试背书 掩码形态字符串断言 17 处；含「明文/不得/永不」字样的断言 75 处
+
+== 汇总 ==
+断言 FAIL 数 = 3（A1 客户端读取的契约形态键 ⊆ 服务端出口键, A2 服务端出口的敏感键 ⊆ 契约声明键, A2c 逐端点响应 DTO 敏感键 ⇔ response_model schema（已定位的端点全部一致））
+信息项 = 5
+
+---- 结论 ----
+断言 FAIL = 3 组（A1 / A2 / A2c），均为**契约或生成物侧**问题，非运行时缺陷；A3/A4/A5/A6 全部 PASS（带正向对照）。
+
+F1【客户端字段名漂移，真实】aap-client/src/utils/profile-model.ts:166 读 `contact_phone_mask`，
+   而 GET /provider/profile（PROV-01，DTO ProviderProfileResponse）只出口 `contact_phone_masked` 与 `contact_phone`，
+   全仓库（@JsonProperty + Map put + 无注解 getter）**无** `contact_phone_mask` 这个出口键。
+   后果：contactPhoneText 的「服务端值优先」分支恒为死路径（raw 取不到 → undefined），实际显示走 maskPhone(contact_phone) 兜底；
+   因服务端 contact_phone 本身已是脱敏值（含 `*`），兜底原样返回 → **显示口径恰好等于服务端值**，用户不可见，
+   但「设计稿 138 **** 6621 本地脱敏」这条注释意图从未生效，且契约键 contact_phone_masked 客户端零消费。
+   分级：契约一致性项（客户端侧，低风险）；客户端自身用例用的是同名字段夹具（contact_phone_mask）→ 客户端测试全绿也照不出来。
+F2【实现出口键未在契约声明，低风险】MeResult 顶层出口 `mobile`（值同 phone_masked，容错别名），me-result.schema.json 未声明 → A2/A2c。
+F3【契约声明但实现零出口（死字段）】report.schema.json 声明 `api_key_mask`，RPT-02（GET /reports/{reportId}）实际 DTO（ReportViews.Full）只出口 `api_key_masked`。
+F4【端点 response_model 与实际响应形状不符，生成物侧错】QT-02（POST /quotes，实际返回 QuoteViews.Created）、
+   QT-05（POST /quotes/{quoteId}/items，实际返回 QuoteViews.Items）在 endpoints.json 里声明 response_model=quote-detail（含 credential_id 等）；
+   md 清单（真源）与实现一致（分别写 Quote{build:quote_id,quote_no,status,items[]} 与 {items:[QuoteItem]}）→ 判**生成物侧多声明**（坑 51 的分级纪律），
+   且 quote-detail 的 required 只有 quote_id/status，子集形状照样通过 schema 校验 → 全量用例不可见。
+
+零漂移的正面结论（带正向对照，不是「没发现问题」）：
+* A3 8 个密文/指纹列（凭证密钥密文、手机号密文、联系人手机密文、口令哈希、刷新令牌哈希、指纹列；具体列名见实现与 ER 文档）在响应出口集合中 0 命中；
+* A4 明文敏感键出口仅 1 处（CredentialViews 的 Reveal，注释含「明文」依据，且 reveal-result.schema.json 声明 api_key）——在白名单上限 2 之内；
+* A5 内联掩码实现 0 处（掩码只在 CryptoService 两个函数里），调用点 6 处（Credential 2 / Auth 2 / SMS 1 / Provider 1）；
+* A6 两个掩码实现形状与 javadoc 声明一致（手机 3+4、api_key 4+4）；
+* A1 其余 9 个契约形态键（api_key_mask/api_key_masked/contact_phone/credential_id/phone/token/tokens/total_tokens/uscc）客户端读取点均有服务端出口。
+
+信息项：A1b 客户端本地视图模型键 3 个（camelCase，不作契约比对，坑 81）／A1c 容错候选键 13 个（first(...) 与 ?? 链，缺失属设计容忍）／
+        A2b 全局零出口的契约键 0 个／A3b DDL 掩码列 5 个（列名与对外键名允许不同形）／A7 测试背书（掩码形态断言 17 处）。
+
+本脚本不写仓库任何文件（自测内以 md5 断言；importlib 载入 tools/audit-response-shape.py 会生成/更新 tools/__pycache__，该目录已被 .gitignore 覆盖、非仓库源文件）。
