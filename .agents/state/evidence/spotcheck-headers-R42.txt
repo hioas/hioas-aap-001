@@ -1,0 +1,34 @@
+== 请求头名/头语义不变量抽查（Idempotency-Key / If-Match / X-Trace-Id；只读） ==
+仓库根：E:\workspaces\hioas\hioas-aap-001
+--- A0 正向对照：每个源都真的解析到了条目（任一为 0 先怀疑解析器，坑 46/75）---
+--- A1/A2 逐端点：md「幂等/并发」列 ⇔ 实现 ---
+--- A3 头名拼写一致性（大小写不敏感）---
+--- A4/A5 md §0 的头语义承诺 ⇔ 实现 ---
+--- A6/A7/A8 信息项（不判 FAIL，作待拍板/风险）---
+--- A9 风险项：If-Match 是「可选」还是「强制」---
+[PASS] A0a M 两套表头的端点行数之和 = total（10 列表 + 7 列表；坑 48 转义竖线）：10 列=49 7 列=41 合计=90 期望=90
+[PASS] A0a2 M 解析到 10 列表（含「幂等/并发」列）行数 > 0（解析器真的工作了）：10 列表行数=49
+[PASS] A0a3 7 列表（无「幂等/并发」列）里出现头名的行 = 0（否则本审计有盲区）：7 列表里的头名=[]
+[PASS] A0b M 逐端点标注头名 ≥ 5 条且头名 ≥ 2 种（否则本审计空转）：标注端点数=12 头名=['Idempotency-Key', 'If-Match']
+[PASS] A0c I 解析到 @RequestHeader 端点 ≥ 3：If-Match 端点=3
+[PASS] A0d I 解析到头名常量（filter HEADER）：常量=['Idempotency-Key', 'X-Trace-Id']
+[PASS] A0e C 解析到客户端头名 ≥ 1（Authorization/Content-Type）：客户端头名=['Authorization', 'Content-Type']
+[PASS] A0f O 解析到 operation 数 = total：parsed=90 期望=90
+[PASS] A0g I 解析无异常：问题 0 条：[]
+[PASS] A0h M 解析无异常：问题 0 条：[]
+[PASS] A1 md 标注 If-Match 的端点集合 = 实现 @RequestHeader("If-Match") 端点集合：md=['/credentials/{}', '/provider/profile', '/quotes/items/{}'] impl=['/credentials/{}', '/provider/profile', '/quotes/items/{}'] 仅md=[] 仅实现=[]
+[PASS] A2 md 标注幂等的端点方法都是写方法（幂等只对写有意义）：非写方法={}
+[PASS] A3 md 出现的头名都能在实现/客户端里找到同拼写（大小写不敏感）：仅 md 有=[]
+[PASS] A4a §0 声明 If-Match 失配 → 409 + E-1601（解析器真的读到）：§0 乐观锁行=需并发保护的写支持 `If-Match: <version 或 updated_at>`；不匹配 → 409 + `E-1601`
+[PASS] A4b 实现 E-1601 的 HTTP 状态 = 409：ErrorCode E-1601 → 409
+[PASS] A5a §0 承诺响应头 X-Trace-Id 与包体 traceId 一致（解析器真的读到）：§0 traceId 行=响应头 `X-Trace-Id` 与包体 `traceId` 一致，同时写入日志与审计
+[PASS] A5b 实现 TraceIdFilter 设置响应头 X-Trace-Id 且包体字段名为 traceId：HEADER=X-Trace-Id setHeader=yes 包体字段=traceId
+      · A6 O：openapi `in: header` 声明数 = 0（0 = 由 openapi 生成客户端的消费方完全看不到 Idempotency-Key/If-Match/X-Trace-Id）
+      · A7 D：endpoints.json 是否含头字段（按 JSON 键名扫） = False（False = 机器可读清单侧没有头信息，只有 md 散文列 + 实现）
+      · A8 C：客户端实际发送的头名 = ['Authorization', 'Content-Type']；其中幂等/乐观锁头 = []
+      · A9 md §0 措辞是「需并发保护的写**支持** If-Match」，实现 3 处一律 required=false：[('CredentialController.java', 'false'), ('ProviderController.java', 'false'), ('QuoteController.java', 'false')]；服务层为「若提供则校验」（ifMatch != null && !blank）→ **省略该头即跳过乐观锁校验**；而客户端 0 处发送该头（A8）→ 该并发保护在真实链路上从未生效（风险项，需人拍板：是否改为 required=true）
+[PASS] A9 正向对照：解析到 If-Match 的 required 取值 ≥ 1 处（否则该风险项是空转）：解析到 3 处
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=[]
+
+断言 19 条：PASS 19，FAIL 0
+结论：请求头名与头语义在 md §0 / 逐端点清单 / 实现（控制器 + filter + ErrorCode）/ 客户端四处一致；openapi 与 endpoints.json 侧无头信息（待拍板文档一致性项）。

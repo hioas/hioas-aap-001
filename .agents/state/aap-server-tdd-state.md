@@ -2036,3 +2036,59 @@ P2：客户端零消费、无线上风险，但契约不一致）；其余待拍
   在干净工作树跑全量：**204 例全绿**（0 失败/0 错误/0 跳过）、`EndpointCoverageTest` **90/90**（`registered_routes=96`）、`[ERROR]=0`、`BUILD SUCCESS`
   → 提交态（`b22f055`）自洽。收尾用 `git worktree remove --force <path>`（git 自带命令，不用递归删除命令，坑 28）。
   证据：`evidence/green-verify-R41-worktree-HEAD.txt`。
+
+## R42（2026-09-18）巡检轮：90/90 连续第 24 轮全绿 · 新增抽查「请求头名与头语义」不变量
+
+### 结论
+* `total=90 implemented=90 missing=0`；覆盖门禁 `EndpointCoverageTest` 90/90（`registered_routes=96`、`not_registered=[]`）。
+* 全量 **204 例两轮全绿**（0 失败/0 错误/0 跳过，33 个测试类）；两轮**逐类结果 diff 为空**（先剥 `Time elapsed` 再排序，坑 79）。
+* 既有 **14 套只读审计**复跑与 R41 同结论（FAIL 集合逐行一致，28 条 → 零回归）；**13 个负向自测**全部 `rc=0`；**零写副作用**（84 个生成物 md5+size 全等）。
+* 本轮 `missing=0` → **未改业务代码 / 清单 / 生成器 / md / 断言**；他方 4 个未提交文件（`aap-client/vite.config.ts`、
+  `application.yml`、`log4j2-spring.xml`、`application-test.yml`）**未触碰**；`coverage-report.json` 值全等已还原。
+
+### 本轮新增抽查（不新建仓库工具，抽查式 —— 沿用 R34/R35/R40/R41 的做法）
+**不变量：请求头名与头语义**（为什么值得查：契约测试只把真实响应与 JSON Schema 比对，而**请求头/响应头不在 schema 里**
+（header 不是 body）；覆盖门禁只比「方法 + 路径」；openapi 与客户端 TS 不被任何测试读取/执行 →
+头名拼写、「哪些端点声明 If-Match」、头语义承诺的状态码漂移，对全部 204 例**完全不可见**（坑 62 / 坑 85 同族）。）
+
+真源与断言：
+* **M** `02-API接口模型清单.md` §0 通用约定（`幂等` / `乐观锁` / `traceId` 三行：头名 + 语义 + 状态码）＋
+  逐端点 10 列表「幂等/并发」列（12 条端点标注了 `Idempotency-Key` / `If-Match`）；
+* **I** 实现：控制器 `@RequestHeader` 名（`If-Match` 3 处）＋ `IdempotencyFilter.HEADER` / `TraceIdFilter.HEADER` 常量
+  ＋ `ErrorCode.httpStatus`（`E-1601 → 409`）；
+* **C** `aap-client/src/api/http.ts` 实际发送/透传的头名（`Authorization`、`Content-Type`）；
+* **O / D** `openapi.yaml` 的 `in: header` 与 `endpoints.json` 的头字段（**两处均为 0**，列观察项）。
+
+结果（断言 19 条：PASS 19 / FAIL 0 → **零漂移**）：
+* `A1` md 标注 `If-Match` 的 **3 条端点**（`PUT /provider/profile`、`PUT /credentials/{id}`、`PUT /quotes/items/{itemId}`）
+  = 实现 `@RequestHeader("If-Match")` 的 **3 条**，逐端点一致（两侧都过同一个 `key_of` 归一，坑 57）。
+* `A2` md 标注幂等的端点**全是写方法**（幂等只对写有意义）；`A3` 头名拼写（大小写不敏感）一致。
+* `A4` §0「If-Match 失配 → **409** + `E-1601`」⇔ 实现 `ErrorCode.E_1601` 的 `httpStatus = 409`（逐值一致）。
+* `A5` §0「响应头 `X-Trace-Id` 与包体 `traceId` 一致」⇔ `TraceIdFilter.HEADER = "X-Trace-Id"` + `setHeader` 真的设置
+  + `ApiEnvelope.TRACE_ID = "traceId"`。
+* **观察项 3 条（文档一致性，待拍板）**：① `openapi.yaml` **0 处** `in: header` → 由 openapi 生成客户端的消费方
+  完全看不到 `Idempotency-Key` / `If-Match` / `X-Trace-Id`；② `endpoints.json` **无头字段** → 机器可读清单侧的头信息
+  只存在于 md 散文列；③ 客户端只发 `Authorization` / `Content-Type`，**0 处**发送幂等/乐观锁头。
+* **风险项 1 条（待拍板）**：md §0 措辞是「需并发保护的写**支持** `If-Match`」，实现 3 处一律 `required = false`
+  且服务层是「若提供则校验」（`ifMatch != null && !blank`）→ **省略该头即跳过乐观锁校验**；
+  而客户端 0 处发送该头（A8）→ 该并发保护**在真实链路上从未生效**（服务端用例是显式带头发起的，所以 204 例全绿也发现不了）。
+  因 md 用词是「支持」而非「必须」，按坑 54 的纪律**降级为风险/待拍板**，不报成硬漂移。
+
+### 本轮自己踩的坑（值得记）
+* **md 的「路径」列带反引号 → 跨源比对前必须剥反引号再过同一个 `key_of`（真实返工，坑 57 的又一次实例）**：
+  第一版直接拿 `` `/credentials/{id}` `` 与实现的 `/credentials/{}` 比 → 报出 **3 条假 FAIL**（「仅 md 有 / 仅实现有」各 3 条，
+  内容其实是同一批端点）。修法：路径列先 `strip("`")` 再归一。
+* **md 有两套表头（10 列含「幂等/并发」、7 列含「角色」）→ 行数正向对照必须是两者之和**：
+  第一版断言「10 列表行数 = total」→ 实测 `parsed=49 期望=90` 的假 FAIL。真实分布是 **10 列 49 条 + 7 列 41 条 = 90**。
+  并补一条「7 列表里出现头名的行 = 0」的盲区守卫（否则「7 列表也可能标注头名」会让本审计漏检）。
+* **注入缺陷时，新名字不能是旧名字的「超串」**（坑 66 的变体，真实返工）：第一版把 md 里的 `` `If-Match` `` 改成 `` `If-MatchX` ``，
+  而判据是**子串**匹配（`"if-match" in cell.lower()`）→ 注入后审计**照样全绿**（`rc=0`、新增 FAIL 为空），
+  看起来像「守卫失效」，其实是**注入的缺陷在语义上根本没变**。改成 `If_Match`（不再含 `if-match` 子串）后立刻点名 `A1`。
+  教训：判别力测试失败时**先问「注入真的改变了语义吗」**，再怀疑守卫。
+* **自测的 FAIL 集合要按「断言前缀」比对，不能拿整行文本当键**（坑 82）：第一版 `fails_of()` 取「`：` 之前」的整段，
+  `A1 md 标注 … = 实现 @RequestHeader("If-Match") 端点集合` 与期望的 `A1` 永不相等 → 守卫有效却被判失败。
+
+### 本轮未做（纪律）
+* 未新增仓库工具（按作业要求 `missing=0` 只校验不改代码），抽查脚本与自测均落在 `$LOCALAPPDATA/Temp/`；
+* 未在同一个任务族内并发跑测试（单进程串行两轮，坑 11/20）；跑测试前先探测「本仓库 target/surefire-reports 近 5 分钟无写入」
+  且 `9223` 端口属他项目（hioas-aim 的 CDP，**只读观察，未触碰**）。

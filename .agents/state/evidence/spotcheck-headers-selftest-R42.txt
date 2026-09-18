@@ -1,0 +1,16 @@
+== r42-spotcheck-headers 负向自测 ==
+  [PASS] case_ok：合规夹具 rc=0 且 FAIL 0（正向对照：解析器真的工作了）  (rc=0；FAIL=[])
+  [PASS] case_ok：两套表头行数之和 = total（10 列 6 + 7 列 1 = 7）  (A0a 明细)
+  [PASS] case_ok：If-Match 端点集合 md == 实现（5 条）
+  [PASS] case_zero_write：审计对夹具零写副作用（mtime_ns/size/md5 全等）
+  [PASS] inj_md 注入锚点全部命中（坑 66：注入必须真的改到源码）  (未命中=[])
+  [PASS] inj_md → A1 点名 FAIL 且 rc=1（md 头名写错必须被发现）  (rc=1 新增 FAIL=['A1'])
+  [PASS] inj_impl 注入锚点全部命中  (未命中=[])
+  [PASS] inj_impl → A1 点名 FAIL 且 rc=1（实现侧头名漂移必须被发现；A0c 仍 ≥3 不越界）  (rc=1 新增 FAIL=['A1'])
+  [PASS] inj_ec 注入锚点全部命中  (未命中=[])
+  [PASS] inj_ec → A4b 点名 FAIL 且 rc=1（头语义承诺的状态码必须被发现）  (rc=1 新增 FAIL=['A4b'])
+  [PASS] teeth：拆掉 A1 判据后，md 头名注入不再报 A1（该守卫确有判别力）  (rc=0 FAIL=[])
+  [PASS] case_empty_fixture：空夹具 rc=1 且点名「源文件/目录缺失」（不得全绿）  (rc=1 FAIL=['源文件/目录缺失：缺'])
+
+自测断言 12 条：PASS 12，FAIL 0
+夹具目录：C:\Users\laitz\AppData\Local\Temp\aap-headers-selftest-3kdao0og
