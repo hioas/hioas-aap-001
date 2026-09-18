@@ -1,0 +1,22 @@
+== R47 抽查：分页 total 口径一致性（第二十一类可审计不变量） ==
+真源：I=实现（分页方法的 count SQL / list SQL / where 片段 + 参数引用） ⇔ E=endpoints.json 逐端点 query_params
+为什么两套门禁看不见：契约测试只读响应 JSON Schema（total 只是整数、无过滤语义）；覆盖门禁只比方法+路径；openapi 不描述 count 口径 → 过滤条件写歪时 204 例全绿
+诚实标注：B1 是**弱判据**（全量主源码 grep 到即算消费），同名碰撞项单列 B1b 信息项；A 类为强判据（count/list 同源 where 片段）
+
+-- 正向对照（坑 46/75：先看解析到几条，再看是否全绿）--
+[PASS] A0a 解析到的「含 limit/offset 的 list SQL」条数 = 13（期望 > 0）
+[PASS] A0b 解析到表名的 list SQL 条数 = 13 / 13（期望全解析，含常量回查）
+[PASS] A0c 使用 where 变量（而非内联字面量）的 list SQL 条数 = 10（期望 > 0）
+[PASS] B0 有过滤类查询参数的端点条数 = 17（期望 > 0）
+[PASS] B0b 已定位（实现里 grep 到）的过滤参数数 = 33（期望 > 0）
+[PASS] B0c 强证据（参数名出现在含过滤拼接的文件里）的参数数 = 32（期望 > 0）
+
+-- A：count/list 口径一致 --
+[PASS] A1/A2/A3 全部 13 条 list SQL：count 与 list 同表、复用同一 where 片段、count 无 limit/offset
+[INFO] A2b com/hioas/aap/support/NotificationService.java#list：方法内有 2 条 count SQL（total 之外还有派生计数）→ A2 只认「list 的 where 变量被某条 count 复用」
+
+-- B：声明的过滤参数被真实消费 --
+[PASS] B1 全部 33 条过滤类查询参数在实现里均有引用（17 个端点）；其中强证据（出现在含过滤拼接的文件里）32 条
+[INFO] B1b ADM-Q02：参数 quoteIds 只在**非过滤拼接**文件里出现（['com/hioas/aap/quote/AdminQuoteCompareService.java', 'com/hioas/aap/quote/AdminQuoteController.java']）→ 弱证据，未能静态判定其参与过滤
+
+汇总：FAIL 0（A 0 条，B 0 条，正向对照 0 条）

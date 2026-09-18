@@ -1,0 +1,50 @@
+== R47 全量测试第 2 轮（真源：surefire 逐类结果 + 覆盖门禁报告逐字段） ==
+命令：export PATH="$HOME/bin:$PATH"; cd aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test
+纪律：单进程串行（跑前 jps 确认无测试 JVM 在跑，坑 11/20）；他项目的 dev 服务进程
+      （com.hioas.aap.AapServerApplication -Dspring.profiles.active=dev）与 hioas-aim 的 CDP（9223）
+      均为**只读观察，未触碰**。
+
+[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+测试类数 = 33；[ERROR] 行数 = 0
+@Test 词边界计数（源码，39 个 .java）= 204  ↔  surefire Tests run = 204（一致 → 无用例被静默跳过，坑 35）
+禁用扫描：跳过类注解与假定式（词边界）计数 = 0 条（未削弱测试）
+覆盖门禁（EndpointCoverageTest，读 coverage-report.json 逐字段而非 grep 类名 —— 坑 96）：
+  total=90  implemented=90  missing=0  registered_routes=96  not_registered=[]
+  → 90/90 连续第 29 轮全绿（R18 → … → R47）
+结论：本轮全绿（0 失败 / 0 错误 / 0 跳过）。
+
+逐类结果（已剥 Time elapsed，供两轮 diff）：
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.ToolchainSmokeTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.coverage.EndpointCoverageTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.usage.UsageRefreshDegradedTest
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.usage.UsageContractTest
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.credential.CredentialContractTest
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.review.ReviewContractTest
+Tests run: 13, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.detection.ProbeScoringTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.common.LoggingAndHealthTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.credential.AdminCredentialContractTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.detection.RecheckServiceTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.adminconfig.ReportTemplateWordingTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.provider.AdminProviderContractTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.quote.AdminQuoteCompareContractTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.settlement.PaymentContractTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.common.ApiEnvelopeTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.common.MigrationTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.common.OutboundUrlGuardTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.common.PersistenceBaseTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.report.ReportContractTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.adminconfig.ReportTemplateContractTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.usage.UsageMetricsTest
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.adminconfig.DetectionConfigContractTest
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.compile.CompilationContractTest
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.quote.QuoteContractTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.common.ApiContractTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.compile.BillingCompilerTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.quote.QuoteValidationTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.support.NotificationContractTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.sync.SyncAdminContractTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.contract.ContractContractTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.detection.DetectionContractTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.iam.AuthContractTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0 -- com.hioas.aap.provider.ProviderContractTest

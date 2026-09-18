@@ -1,0 +1,12 @@
+[PASS] T1 合规夹具基线 rc=0 且 FAIL 0（正向对照） | FAIL=[] controls=[]
+[PASS] T1b 基线解析到 1 条 list SQL / 1 个端点 | list_stmts=1 pmap=1
+[PASS] T2 注入 A1（count 表名 != list 表名）→ 恰好新增 A1 | hit=True counts={'A1': 1}
+[PASS] T3 注入 A2（count 未复用 list 的 where 片段）→ 恰好新增 A2 | hit=True counts={'A2': 1}
+[PASS] T4 注入 A3（count SQL 带 limit/offset）→ 恰好新增 1 条 A3（同一 count 语句不重复计；不误伤 A1/A2） | hit=True counts={'A3': 1}
+[PASS] T5 注入 B1（声明过滤参数实现零引用）→ 恰好新增 B1 | counts={'B1': 1}
+[PASS] T6 空夹具必须变红并点名 A0a/A0b/A0c/B0/B0b/B0c（0 条不得判绿 —— 坑 75/98） | FAIL 点名=['A0a', 'A0b', 'A0c', 'B0', 'B0b', 'B0c']
+[PASS] T7 真实仓库关键文件 md5 全等（零写副作用）
+[PASS] T8 真实仓库 A/B 零 FAIL（本轮抽查结论） | FAIL=[]
+[PASS] T8b 真实仓库正向对照全 PASS（13 条 list SQL 全解析到表名） | stats={'list_stmts': 13, 'table_resolved': 13, 'where_var_nonnull': 10, 'multi_count': 1}
+
+自测汇总：10/10 PASS
