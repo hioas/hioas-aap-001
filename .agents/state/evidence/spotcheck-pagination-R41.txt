@@ -1,0 +1,44 @@
+== R41 抽查：分页参数默认值与上限不变量（真源 M/I/O/E/C 五处）==
+生成时间：2026-09-18T18:47:05
+
+--- 真源与断言（真实仓库，只读）---
+== 抽查：分页参数默认值与上限不变量（root=E:\workspaces\hioas\hioas-aap-001） ==
+[PASS] M0 md §0 分页约定：page 默认 1 / pageSize 默认 20 / 上限 200
+[PASS] I0 实现 PageQuery：默认页 1 / DEFAULT_PAGE_SIZE=20 / MAX_PAGE_SIZE=200
+[PASS] A1 默认页一致：md=1 实现=1
+[PASS] A2 默认页大小一致：md=20 实现=20
+[PASS] A3 页大小上限一致：md=200 实现=200
+[PASS] A4 非法值一律夹取（page<1→默认页、pageSize<1→默认、pageSize>上限→上限）
+[PASS] O0 openapi 解析到 page/pageSize 参数 46 个（正向对照）
+[PASS] E1 契约声明 pageSize 的端点 23 条（正向对照）
+[PASS] E0 解析到含 pageSize 形参的控制器方法 21 个（正向对照）
+[PASS] E4 契约声明 pageSize 的端点全部经过 PageQuery.of 归一化（上限生效）
+[INFO] O1 openapi 声明 default 的分页参数：0/46；声明 maximum 的：0/46
+[INFO] O2 openapi 未声明分页默认值 → 由 openapi 生成客户端的消费方拿不到「默认 1 / 默认 20 / 上限 200」边界（边界只存在于 md §0 与实现，属**文档一致性**待拍板，非运行时缺陷）
+[INFO] E2 已定位 21/23（未定位 2 条属路由/查询参数审计范畴）
+[INFO] E2b 未定位（与 audit-query-params 已登记漂移同源，非本轮新发现）：QT-06 GET /api/v1/quotes/{quoteId}/items
+[INFO] E2b 未定位（与 audit-query-params 已登记漂移同源，非本轮新发现）：ADM-R05 GET /api/v1/admin/reviews/records
+[INFO] E3 归一化位置：控制器内 3 条 / 经服务层 18 条
+[INFO] C1 客户端显式写死分页默认值的位置：0 处（省略参数即用服务端默认，符合 md §0）
+合计：PASS 10 / FAIL 0 / INFO 7
+结论：md §0 ⇔ 实现 PageQuery ⇔ 端点归一化覆盖 一致（零漂移）
+spotcheck rc=0
+
+--- 判别力自测（负向对照）---
+[PASS] S0 合规夹具 rc=0 rc=0 fails=[]
+[PASS] S1 合规夹具 FAIL 数 = 0 fails=[]
+[PASS] S2 零写副作用（夹具文件 md5 全等） 变化文件=[]
+[PASS] S3 正向对照存在（M0/I0/O0/E0/E1 都 PASS） PASS 计数=10
+[PASS] S4.md_default 注入真的改到源码（锚点全部命中） 未命中=[]
+[PASS] S5.md_default 注入后恰好新增断言 {A2} rc=1 新增=['A2'] 全量=['A2']
+[PASS] S4.pq_default 注入真的改到源码（锚点全部命中） 未命中=[]
+[PASS] S5.pq_default 注入后恰好新增断言 {A2} rc=1 新增=['A2'] 全量=['A2']
+[PASS] S4.pq_max 注入真的改到源码（锚点全部命中） 未命中=[]
+[PASS] S5.pq_max 注入后恰好新增断言 {A3} rc=1 新增=['A3'] 全量=['A3']
+[PASS] S4.pq_noclamp 注入真的改到源码（锚点全部命中） 未命中=[]
+[PASS] S5.pq_noclamp 注入后恰好新增断言 {A4} rc=1 新增=['A4'] 全量=['A4']
+[PASS] S6 空夹具必须变红（rc=1 且点名 M0/I0） rc=1 FAIL=['A4', 'E0', 'E1', 'I0', 'M0', 'O0']
+
+自测合计：13 条，PASS 13，FAIL 0
+全部 PASS
+selftest rc=0
