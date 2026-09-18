@@ -1,0 +1,52 @@
+# 红基线（审计工具首轮）：tools/audit-time-format.py 第一次对真实仓库运行
+
+> 性质说明（skill 坑 12：文件名不能骗人）：这不是「实现有缺陷」的红基线，而是**审计工具自身的
+> 假发现**红基线。首次运行 3 条 FAIL **全部是假发现**，已修审计（不是改期望值、更不是改实现），
+> 修后 15 条断言 15 PASS（见 `audit-time-format-R33.txt`）。
+> 复现方式：把下面两处「判定收窄」改回首轮的宽口径，对同一真实仓库重跑即得逐条一致的输出。
+
+首轮两处宽口径（即缺陷）：
+1. A0 把**所有** `DateTimeFormatter.ofPattern(...)` 都当「时间出口格式串」→ 把 `yyyyMM` / `yyyyMMdd`
+   这类**键值格式**（不是时间出口）算进来，报出「3 种格式串」的假漂移（坑 29/46：模式集不分层 → 假命中）。
+2. A1 不区分「值进入响应」与「内部读取」→ 把 `NotificationService:112`（`select read_at` 只为判空）
+   与 `UsageService:379`（读进 `Span` 记录、在使用处 `rfc3339(span.updatedAt())` 包裹）
+   当成「未包裹」的假发现（坑 57：跨源比对两侧未走同一归一/可达性判定）。
+
+修法：
+* A0 只把常量名含 `RFC3339|ISO` 的格式串纳入断言，其余记信息项；
+* A1 增加可达性判定：语句内已包裹 / 局部变量同文件被包裹 / 值进 DTO 构造器时按**组件名**回查
+  （`new Span(..., rs.getObject("updated_at"…))` → 回查 `rfc3339(x.updatedAt())`）；
+  剩下既无包裹也不构造响应 DTO 的记为「内部读取」**信息项**，并加断言 A1c（信息项 ≤ 3）
+  防止该分类被滥用（坑 57：守卫既不瞎也不滥）。
+
+## 首轮逐字输出（2026-09-18 R33）
+
+```
+# 时间字段序列化格式一致性审计（只读）root=E:\workspaces\hioas\hioas-aap-001
+--- A0 统一出口定义（格式串 + 辅助方法体）---
+[PASS] A0a 正向对照：解析到出口定义（解析器真的工作了） — 格式串声明 19 处、辅助方法 14 处（为 0 即解析器失效，不得判 PASS）
+[FAIL] A0b 所有 DateTimeFormatter 格式串只有 1 种 — 实测 3 种：["yyyy-MM-dd'T'HH:mm:ss'Z'", 'yyyyMM', 'yyyyMMdd']
+[FAIL] A0c 格式串 = 秒精度 UTC（yyyy-MM-dd'T'HH:mm:ss'Z'） — 实测 ["yyyy-MM-dd'T'HH:mm:ss'Z'", 'yyyyMM', 'yyyyMMdd']
+[PASS] A0d 所有辅助方法体归一化后只有 1 种 — 副本 14 处 → 形态 1 种
+      · 形态：return V == null ? null : RFC3339.format(V.withOffsetSameInstant(ZoneOffset.UTC));
+--- A1/A2 时间列的取值路径是否被统一出口包裹 ---
+[PASS] A1a 正向对照：解析到被出口包裹的时间取值点 — 已包裹 27 处（为 0 即解析器失效，不得判 PASS）
+[FAIL] A1b 所有时间列取值都被统一出口包裹 — 未包裹 2 处：["aap-server/src/main/java/com/hioas/aap/support/NotificationService.java:112 ['read_at']", "aap-server/src/main/java/com/hioas/aap/usage/UsageService.java:379 ['updated_at']"]
+[PASS] A2 没有把时间列按数据库文本原样透传（getString） — 文本直出 0 处
+--- A3 响应 DTO（*Views.java）时间字段声明类型 ---
+[PASS] A3a 正向对照：解析到响应 DTO 时间字段 — 14 个 *Views.java、时间字段 58 个
+[PASS] A3b 响应 DTO 时间字段一律声明为 String（避免 Jackson 直出） — 非 String 0 处
+--- A4 客户端时间字段声明类型（坑 1：跨页面通用字段以客户端为准）---
+[PASS] A4a 正向对照：解析到客户端时间字段 — 13 个
+[PASS] A4b 客户端时间字段类型为 string（不得 number） — 异常 0 处
+--- A5 JSON Schema 侧时间字段类型 ---
+[PASS] A5a 正向对照：解析到 schema 时间字段 — 87 个（date-time 或 *_at）
+[PASS] A5b schema 时间字段类型含 string（不得 number/integer） — 异常 0 处
+--- 零写副作用自检 ---
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用） — 被改写=0 个：[]
+
+断言 14 条：PASS 11，FAIL 3
+```
+
+结论：3 条 FAIL 均为审计自身口径过宽所致；收窄后同一仓库 15 条断言 15 PASS。
+**没有因为「想让审计变绿」而改动任何业务代码、schema、md 清单或客户端**。

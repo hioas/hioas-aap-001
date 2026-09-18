@@ -1,0 +1,222 @@
+===== gen-backend-models.py --check =====
+check ok: 84/84 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）
+ok: models=55 requests=24 paths=78 operations=90 files=82
+rc=0
+===== audit-endpoint-tests.py  =====
+端点「真实 HTTP 用例」可追溯性审计（只读）
+清单：docs/backend/endpoints.json（90 条）
+测试源：aap-server/src/test/java（39 个 .java 文件）
+
+exact （路径骨架 + 方法都吻合的真实 HTTP 调用点）：90
+prefix（路径命中但方法不吻合 / 仅静态前缀，弱证据）：0
+none  （无任何调用点 —— 真发现）            ：0
+端点 ID 在测试源里可追溯（含组合引用展开）  ：90/90
+  其中仅裸字面量可追溯                      ：71/90
+  靠组合引用（`A-05/06`、`A-01…05`）才算命中  ：19
+ID 引用与真实 HTTP 调用点同文件（更严一档）  ：90/90
+
+
+rc=0
+===== audit-contract-keys.py  =====
+== A. OpenAPI 分页集合键名（应为 items）：57/57 PASS ==
+   [OK ] 集合键名 items：57 个端点 → PROV-01 PROV-02 PROV-03 CRED-01 CRED-06 DET-03 DET-04 RPT-01 …
+
+== B. OpenAPI 分页端点必须被 PageMeta 包装：23/23 PASS ==
+   [OK ] 全部 23 个带 pageSize 参数的端点均已 PageMeta 包装
+
+== C. page.schema.json 必须 required/properties 含 items：3/3 PASS ==
+   [OK ] docs/backend/json-schema/common/page.schema.json required：required 含 'items'
+   [OK ] docs/backend/json-schema/common/page.schema.json properties：properties 含 'items'
+   [OK ] docs/backend/json-schema/common/page.schema.json no-rejected-key：未出现被否定的旧键名
+
+== D. 运行时 PageResult 分量名：1/1 PASS ==
+   [OK ] aap-server/src/main/java/com/hioas/aap/common/PageResult.java record-components：PageResult 分量 = ['items', 'page', 'pageSize', 'total']
+
+== E. 客户端列表响应接口必须声明 items：3/3 PASS ==
+   [OK ] aap-client/src/api/contract.ts#ContractListRaw ContractListRaw：声明字段 = ['items', 'list', 'records']
+   [OK ] aap-client/src/api/payment.ts#PaymentListRaw extends MineWalletSource PaymentListRaw extends MineWalletSource：声明字段 = ['items', 'list', 'records']
+   [OK ] aap-client/src/api/report.ts#ReportListRaw ReportListRaw：声明字段 = ['items', 'list']
+
+== F. 冻结清单 §0 分页字段名约定：1/1 PASS ==
+   [OK ] docs/backend/02-API接口模型清单.md §0-分页约定：§0 写明 data:{items:…}
+
+合计 88 条断言：PASS 88，FAIL 0
+结论：分页集合键名在 OpenAPI / JSON Schema / 运行时 / 客户端 / 清单五处一致。
+rc=0
+===== audit-auth-contract.py  =====
+根目录：E:/workspaces/hioas/hioas-aap-001（仓库外路径也照常显示，skill 坑 34）
+--- 正向对照（解析器真的解析到了）---
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b D 行数 = total：parsed=90 期望=90
+[PASS] A0c O operation 数 = total：parsed=90 期望=90
+[PASS] A0d I 解析到控制器路由：parsed=91 条路由，控制器问题 0 条
+[PASS] A0e S 解析到匿名白名单：parsed=['/actuator/health', '/actuator/health/**', '/actuator/info', '/actuator/metrics/**', '/api/v1/auth/refresh', '/api/v1/auth/sms/login', '/api/v1/auth/sms/send', '/api/v1/auth/wechat/login']
+[PASS] A0f I 解析无异常
+--- 逐端点：清单 ⇔ 实现路由 ⇔ 匿名白名单 ⇔ openapi ⇔ md ---
+[PASS] A1 清单每条端点都能在实现里定位到路由（解析器覆盖性正向对照）：未定位 0 条：[]
+[PASS] A2 openapi `security: []` 集合 = 清单 anon 集合：清单 4 条 / openapi 4 条；差集=[]
+[PASS] A3a 清单 anon 的端点都在 SecurityConfig.PUBLIC_PATHS 里：{}
+[PASS] A3b 非 anon 的端点都不在 PUBLIC_PATHS 里（否则等于匿名可访问）：{}
+[PASS] A4 anon 端点上没有 @PreAuthorize（清单说免，实现不得再要求角色）：{}
+[PASS] A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 0 条
+[PASS] A6 清单 `authenticated` 的端点实现里不带角色限制（= 任意已认证）：越权收窄 {}；清单共 4 条 ['AUTH-05', 'AUTH-06', 'NTF-01', 'NTF-02']
+[PASS] A7 md 的 `免` 行集合 = 清单 anon 集合：不一致 {}
+[FAIL] A8 md「角色」列 = 清单角色集合（仅逐条列角色的 7 列表头行）：不一致 32 条
+      · ADM-CFG01: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CFG02: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CFG03: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CFG04: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CFG05: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CFG06: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CFG07: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CFG08: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CFG09: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CFG10: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CP01: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+      · ADM-CP02: 清单=['SUPER_ADMIN', 'TECH_OPS'] md=['TECH_OPS']
+[PASS] A9 md 表头定位无异常
+--- 零写副作用自检 ---
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+
+断言 17 条：PASS 16，FAIL 1
+rc=1
+===== audit-routes.py  =====
+根目录：E:/workspaces/hioas/hioas-aap-001（仓库外路径也照常显示，skill 坑 34）
+--- 正向对照（解析器真的解析到了，skill 坑 46）---
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b D 行数 = total（裸 split 会漏行，坑 48）：parsed=90 期望=90
+[PASS] A0c O operation 数 = total：parsed=90 期望=90
+[PASS] A0d I 解析到控制器路由：parsed=91 条路由
+[PASS] A0e C 解析到客户端调用点：parsed=39 个调用点（12 个文件）；未能静态判定 0 处
+[PASS] A0f I 解析无异常
+--- A1 md 清单 ⇔ endpoints.json（逐端点：方法 + 路径）---
+[PASS] A1 md 逐行「方法+路径」= endpoints.json（未归一前缀）：不一致 0 条
+--- A2 openapi ⇔ endpoints.json（逐端点：方法 + 路径）---
+[PASS] A2 openapi 每 operation 的「方法+路径」= endpoints.json：不一致 0 条
+--- A3 清单 ⊆ 实现（逐端点定位到同方法同路径的 Spring 路由）---
+[PASS] A3 清单每条端点都在实现里有同方法同路径的路由：未定位 0 条
+--- A4 客户端 ⊆ 清单（客户端不得调用清单里没有的接口）---
+[PASS] A4 客户端每个调用点都在冻结清单内且方法一致：越界调用 0 个
+--- A5 路径变量名（`{id}` vs `{jobId}`）逐端点一致（门禁把变量名折叠掉了）---
+[PASS] A5 路径变量名序列逐端点一致（清单 / md / openapi）：不一致 0 条
+[PASS] A6 md 表头/行定位无异常
+--- 信息项（不算漂移）---
+      · 实现里注册但清单未声明的路由 1 条（框架/内部路由属正常）：[('GET', '/detection-jobs/{}/digest')]
+      · 客户端未接线的清单端点 51 条（适配层按页面逐步接线，属正常）
+--- 零写副作用自检 ---
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+
+断言 13 条：PASS 13，FAIL 0
+rc=0
+===== audit-error-codes.py  =====
+根目录：.
+--- 正向对照（解析器真的解析到了）---
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b O operation 数 = total：parsed=90 期望=90
+[PASS] A0c D 行数 = total：parsed=90 期望=90
+[PASS] A0d J 码数 = O.enum 码数：J=28 O.enum=28
+[PASS] A0e S 码数 = J 码数 - 1（S 不含成功码 0）：S=27 J=28
+[PASS] A0f O ResultCode enum 非空：parsed=28
+--- 目录级一致（J ↔ S ↔ O.enum）---
+[PASS] A1 J 与 S 码集合一致：差集=[]
+[PASS] A2 O.ResultCode 与 J 一致：差集=[]
+--- 逐端点一致（M ↔ J / O.4XX / D）---
+[PASS] A3 清单声明的码都在 ErrorCode.java 目录里：越界={}
+[FAIL] A4 目录里的码都被至少一个端点声明（无孤儿码）：孤儿=['E-1102', 'E-1404']
+[PASS] A5 openapi operation 数 = 清单端点数：差集=[]
+[PASS] A6 openapi 每 operation 4XX 码集合 = 清单：不一致 0 条
+[PASS] A7 md 表头定位无异常
+[PASS] A8 md 行 ID 集合 = 清单 ID 集合：差集=[]
+[FAIL] A9 md 每行错误码列 = 清单：不一致 10 条
+      · ADM-Q01: md=['E-1401', 'E-1402', 'E-1403', 'E-1404', 'E-1405', 'E-1601'] 清单=['E-1401', 'E-1402', 'E-1405']
+      · AUTH-02: md=['E-1001', 'E-1101'] 清单=['E-1001', 'E-1101', 'E-1903']
+      · CRED-04: md=['E-1001', 'E-1104'] 清单=['E-1001', 'E-1104', 'E-1601']
+      · DET-02: md=['E-1304', 'E-1901'] 清单=['E-1304']
+      · PROV-02: md=['E-1001', 'E-1104'] 清单=['E-1001', 'E-1104', 'E-1601']
+      · QT-03: md=['E-1406'] 清单=['E-1401']
+      · QT-06: md=['E-1406'] 清单=[]
+      · QT-07: md=['E-1406'] 清单=['E-1401']
+      · QT-08: md=['E-1001', 'E-1104', 'E-1401', 'E-1402', 'E-1403', 'E-1404'] 清单=['E-1001', 'E-1401', 'E-1402', 'E-1403']
+      · QT-11: md=['E-1401'] 清单=[]
+--- 零写副作用自检 ---
+[PASS] Z1 五处源文件指纹未变（脚本零写副作用）：被改写=[]
+
+断言 16 条：PASS 14，FAIL 2
+rc=1
+===== audit-query-params.py  =====
+根目录：E:/workspaces/hioas/hioas-aap-001（仓库外路径也照常显示，skill 坑 34）
+--- 正向对照（解析器真的解析到了，skill 坑 46）---
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b D 行数 = total（裸 split 会漏行，坑 48）：parsed=90 期望=90
+[PASS] A0c O operation 数 = total：parsed=90 期望=90
+[PASS] A0d I 解析到控制器方法数 ≥ total：parsed=91 条（含无查询参数的方法）
+[PASS] A0e 非空查询参数端点被真的解析出来（否则本审计空转）：M 非空 25 条；D 非空 24 条；O 非空 25 条；I 非空 25 条
+[PASS] A0f I 解析无异常
+[PASS] A0g O 解析无异常
+[PASS] A0h D 解析无异常
+--- A1 md 清单 ⇔ endpoints.json（逐端点：查询参数名集合）---
+[FAIL] A1 md 逐行 `q：…` = endpoints.json query_params：不一致 3 条
+      · ADM-PAY01: 清单=['page', 'pageSize', 'status'] md=['page', 'pageSize']
+      · ADM-R05: 清单=['page', 'pageSize', 'quoteId'] md=['quoteId']
+      · QT-06: 清单=['page', 'pageSize'] md=[]
+--- A2 openapi ⇔ endpoints.json（逐端点：in: query 参数名集合）---
+[PASS] A2 openapi 每 operation 的 query 参数 = endpoints.json：不一致 0 条
+--- A3 实现 ⇔ 清单（逐端点：@RequestParam 形参名集合）---
+[PASS] A3a 清单每条端点都在实现里定位到同方法同路径的控制器方法：未定位 0 条
+[FAIL] A3b 实现 @RequestParam 集合 = 清单 query_params：不一致 5 条
+      · ADM-CFG01: 清单=['page', 'pageSize'] 实现=['page', 'pageSize', 'status']
+      · ADM-CFG06: 清单=['page', 'pageSize'] 实现=['page', 'pageSize', 'status']
+      · ADM-R05: 清单=['page', 'pageSize', 'quoteId'] 实现=['quoteId']
+      · QT-04: 清单=[] 实现=['reason']
+      · QT-06: 清单=['page', 'pageSize'] 实现=[]
+--- A4 客户端 GET 调用点 ⊆ 清单（客户端不得传清单外的查询参数）---
+[PASS] A4 客户端 GET 查询参数都在清单内：越界 0 处
+--- A6 可选性（信息项，不作硬断言；理由见文件头）---
+      · 实现里 `required = true`（不带 required=false）的查询参数：0 条（本项目一律 required = false，必填校验在服务层）
+--- 信息项（不算漂移）---
+      · md 用 `q：分页` 简写（= page + pageSize，§0 约定）的端点 6 条
+      · 客户端未能静态判定的 GET 调用点 4 处（不当漂移）：["credential.ts: GET '/credentials' 的 data 非对象字面量（未能静态判定）", "usage.ts: GET '/usage/summary' 的 data 非对象字面量（未能静态判定）", "usage.ts: GET '/usage/summary' 的 data 非对象字面量（未能静态判定）", "usage.ts: GET '/usage/hourly' 的 data 非对象字面量（未能静态判定）"]
+      · 客户端 GET 调用点中带 data 对象字面量的 2 处（12 个 api 文件）
+--- 零写副作用自检 ---
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+
+断言 14 条：PASS 12，FAIL 2
+rc=1
+===== check-openapi-parses.py  =====
+OK: docs\backend\openapi.yaml 可解析；paths=78 operations=90
+rc=0
+===== audit-secret-leak.py =====
+仓库：E:\workspaces\hioas\hioas-aap-001
+密钥目录：E:\env（5 个 .env 文件）
+Tier A（变量名含密钥语义、值长 >= 8）：13 个变量 —— 必须 0 命中
+Tier B（其余，非密钥低熵）：15 个变量 —— 仅信息项
+[PASS] 正向对照：读到 28 个变量（扫描器确实有输入）
+[PASS] 暂存差异：Tier A 命中 0
+[PASS] 提交历史 HEAD 树：Tier A 命中 0
+[PASS] 已跟踪工作树：Tier A 命中 0
+[PASS] 未跟踪文件（13 个）：Tier A 命中 0
+--- Tier B（信息项，只报名字/长度/指纹，不回显值）---
+      · DB_HOST（aap-server.env）len=9 sha256:8=49960de5
+      · DB_PORT（aap-server.env）len=4 sha256:8=4aeb7ad6
+      · DB_NAME（aap-server.env）len=14 sha256:8=3b8fa3c8
+      · DB_TEST_NAME（aap-server.env）len=15 sha256:8=8e65c174
+      · DB_USER（aap-server.env）len=3 sha256:8=ef260e9a
+      · SERVER_PORT（aap-server.env）len=4 sha256:8=7c7fead4
+      · AAP_SMS_EXPOSE_CODE（aap-server.env）len=4 sha256:8=b5bea41b
+      · LOG_DIR（aap-server.env）len=4 sha256:8=98f38f12
+      · userName（jdcloud.env）len=8 sha256:8=766fb19b
+      · ip（jdcloud.env）len=13 sha256:8=afe57b75
+      · username（jdcloud.env）len=4 sha256:8=4813494d
+      · TENCENT_IM_SDKAPPID（tencent-im.env）len=10 sha256:8=3750aa4b
+      · tencent_account（tencent.env）len=7 sha256:8=77dd531f
+      · ip（tencent.env）len=13 sha256:8=e1b75326
+      · username（tencent.env）len=4 sha256:8=4813494d
+--- .gitignore 覆盖与 .env 跟踪面 ---
+[PASS] .gitignore 含 `.env`
+[PASS] .gitignore 含 `.env.*`
+[PASS] .gitignore 含 `target/`
+[PASS] .gitignore 含 `node_modules/`
+[PASS] 被跟踪的 .env 类文件只有 .env.example：['aap-server/.env.example']
+
+结论：Tier A 泄漏命中 0 处
+rc=0

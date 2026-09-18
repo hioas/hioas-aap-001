@@ -1,0 +1,214 @@
+===== gen-backend-models-selftest.py =====
+---- 分支 A：正向（干净仓库）----
+  [PASS] 干净仓库 --check → rc=0  (rc=0)
+  [PASS] 输出声明 84/84 个产物一致  (check ok: 84/84 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）)
+  [PASS] 零写副作用：84 个产物 (mtime,size,md5) 全不变  (变化的文件数=0 [])
+---- 分支 B：语义漂移（改 title）----
+  [PASS] 漂移后 --check → rc=1  (rc=1)
+  [PASS] stderr 点名漂移文件  (生成物与生成器不一致: docs/backend/json-schema/models/audit-log.schema.json)
+  [PASS] 只读：工具未改写漂移文件（不是靠覆盖来「修好」）
+  [PASS] 自测已还原注入的漂移
+---- 分支 C1：产物缺失 ----
+  [PASS] 产物缺失后 --check → rc=1  (rc=1)
+  [PASS] stderr 点名缺失产物  (生成物与生成器不一致: docs/backend/json-schema/models/report-template.schema.json)
+---- 分支 C2：孤儿产物（生成器已不产出）----
+  [PASS] 出现孤儿产物后 --check → rc=1  (rc=1)
+  [PASS] stderr 判为孤儿产物  (孤儿产物（生成器已不产出）: docs/backend/json-schema/models/report-template-renamed.schema.json)
+---- 分支 D：生成模式逐字节一致 ----
+  [PASS] 生成模式 → rc=0  (rc=0)
+  [PASS] 生成产物与基线逐字节一致（内容 md5 不变，仅 mtime 变）  (内容变化的文件数=0 [])
+---- 收尾：仓库必须干净（自测零残留）----
+  [PASS] 所有产物内容回到基线（无残留）  (残留=[])
+
+结果：全部通过（14 条断言，自测有判别力）
+rc=0
+===== audit-endpoint-tests-selftest.py =====
+---- 自测输出（审计 stdout）----
+端点「真实 HTTP 用例」可追溯性审计（只读）
+清单：C:\Users\laitz\AppData\Local\Temp\aap-audit-selftest-fct63t14\fake-endpoints.json（9 条）
+测试源：C:\Users\laitz\AppData\Local\Temp\aap-audit-selftest-fct63t14\tests（1 个 .java 文件）
+
+exact （路径骨架 + 方法都吻合的真实 HTTP 调用点）：7
+prefix（路径命中但方法不吻合 / 仅静态前缀，弱证据）：1
+none  （无任何调用点 —— 真发现）            ：1
+端点 ID 在测试源里可追溯（含组合引用展开）  ：5/9
+  其中仅裸字面量可追溯                      ：2/9
+  靠组合引用（`A-05/06`、`A-01…05`）才算命中  ：3
+ID 引用与真实 HTTP 调用点同文件（更严一档）  ：5/9
+
+== none 明细（只有路由注册，未找到真实 HTTP 用例）==
+  PATH-01    GET    /api/v1/nonexistent/never-called                 task=T00 id_refs=0
+
+== prefix 明细（弱证据：仅静态前缀命中）==
+  PATH-02    GET    /api/v1/syn/probe/only-post                      sites=1 例：post("/syn/probe/only-post", null, token);
+
+== 测试源里未出现端点 ID 的端点（可追溯性缺口，不影响「有用例」判定）==
+  SYN-04, SYN-09, PATH-01, PATH-02
+
+== ID 引用与真实 HTTP 调用点**不同文件**的端点（弱可追溯）==
+  SYN-04, SYN-09, PATH-01, PATH-02
+
+
+
+---- 断言 ----
+  [PASS] 路径骨架+方法吻合 → exact  (exact=7（期望 7 = SYN-01…06 + SYN-09）)
+  [PASS] 路径不存在 → none 且 rc=1  (none=1 rc=1)
+  [PASS] 方法不吻合 → prefix（弱证据，不冒充 exact）  (prefix=1（期望 1 = 只有 PATH-02）)
+  [PASS] 短路径不得在长路径里当子串命中（尾部边界守卫）  (prefix=1)
+  [PASS] 区间引用 `SYN-01…03` 展开 → 3 条可追溯  (id_traceable=5（期望 ≥4 = SYN-01/02/03 + SYN-06）)
+  [PASS] 枚举引用 `SYN-05/06` 展开 → SYN-06 可追溯  (SYN-06 已判为可追溯)
+  [PASS] 区间不得外溢：SYN-04 必须判不可追溯  (SYN-04 已判为不可追溯（区间未过度展开）)
+  [PASS] 未被提及的 SYN-09 必须判不可追溯  (SYN-09 已判为不可追溯)
+  [PASS] 同文件档：ID 引用与调用点同文件  (same_file=5（期望 ≥4）)
+
+结果：全部通过（审计有判别力）
+夹具目录：C:\Users\laitz\AppData\Local\Temp\aap-audit-selftest-fct63t14
+rc=0
+===== audit-contract-keys-selftest.py =====
+[PASS] A1 正向 OpenAPI 集合键名 items → rc=0
+[PASS] A1b 正向 A 分支有 PASS 记录（证明解析器真的解析到了）
+[PASS] E2 正向 客户端接口声明 items → E 分支 PASS
+[PASS] Z1 审计对夹具零写副作用（mtime_ns/size/md5 全等）
+[PASS] A2 反向 集合键名 list → A 分支 FAIL 且点名 DEMO-01
+[PASS] B1 反向 分页端点未 PageMeta 包装 → B 分支 FAIL 且点名 DEMO-01
+[PASS] C1 反向 page schema 只写 list → C 三分支（required/properties/旧键名）全 FAIL
+[PASS] D1 反向 PageResult 首分量 list → D 分支 FAIL
+[PASS] E1 反向 客户端接口只声明 records → E 分支 FAIL
+[PASS] F1 反向 清单 §0 未写 data:{items: → F 分支 FAIL
+[PASS] G1 夹具目录缺文件 → 报 FAIL 且不崩溃（rc=1，有 rows）
+
+合计 11 条断言：PASS 11，FAIL 0
+rc=0
+===== audit-auth-contract-selftest.py =====
+夹具根目录：C:\Users\laitz\AppData\Local\Temp
+被测审计：tools\audit-auth-contract.py
+
+[PASS] case_positive：rc=0(期望 0) 命中「断言 17 条：PASS 17，FAIL 0」=是
+[PASS] case_repo_external_root：rc=0(期望 0) 命中「根目录：C:/Users/laitz/AppData/Local/Temp/aap-auth-selftest-positive-1789716544392」=是
+[PASS] case_zero_write：夹具 8 个文件 (mtime,size,md5) 不变
+[PASS] case_parser_pathvar_braces：rc=0(期望 0) 命中「A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 0 条」=是
+[PASS] case_parser_order_before：rc=0(期望 0) 命中「A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 0 条」=是
+[PASS] case_parser_class_inherit：rc=0(期望 0) 命中「A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 0 条」=是
+[PASS] case_parser_alias：rc=0(期望 0) 命中「A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 0 条」=是
+[PASS] case_md_same_as_above：rc=0(期望 0) 命中「A8 md「角色」列 = 清单角色集合」=是
+[PASS] case_md_escaped_pipe：rc=0(期望 0) 命中「A0b D 行数 = total：parsed=6 期望=6」=是
+[PASS] case_md_same_as_above_no_prev：rc=1(期望 1) 命中「A9 md 表头定位无异常」=是
+[PASS] case_anon_not_public：rc=1(期望 1) 命中「A3a 清单 anon 的端点都在 SecurityConfig.PUBLIC_PATHS 里」=是
+[PASS] case_anon_leak：rc=1(期望 1) 命中「A3b 非 anon 的端点都不在 PUBLIC_PATHS 里」=是
+[PASS] case_anon_with_preauth：rc=1(期望 1) 命中「A4 anon 端点上没有 @PreAuthorize」=是
+[PASS] case_role_drift：rc=1(期望 1) 命中「A5 清单角色集合 = 实现 @PreAuthorize 角色集合（逐端点，别名归一）：不一致 1 条」=是
+[PASS] case_auth_only_restricted：rc=1(期望 1) 命中「A6 清单 `authenticated` 的端点实现里不带角色限制」=是
+[PASS] case_openapi_anon_mismatch：rc=1(期望 1) 命中「A2 openapi `security: []` 集合 = 清单 anon 集合」=是
+[PASS] case_md_anon_mismatch：rc=1(期望 1) 命中「A7 md 的 `免` 行集合 = 清单 anon 集合」=是
+[PASS] case_md_role_mismatch：rc=1(期望 1) 命中「A8 md「角色」列 = 清单角色集合」=是
+[PASS] case_route_unlocated：rc=1(期望 1) 命中「A1 清单每条端点都能在实现里定位到路由」=是
+[PASS] case_missing_source：rc=1(期望 1) 命中「源文件缺失」=是
+
+自测断言 20 条：PASS 20，FAIL 0
+rc=0
+===== audit-routes-selftest.py =====
+夹具根目录：C:\Users\laitz\AppData\Local\Temp
+被测审计：E:\workspaces\hioas\hioas-aap-001\tools\audit-routes.py
+
+[PASS] case_positive：rc=0(期望 0) 命中「断言 13 条：PASS 13，FAIL 0」=是
+[PASS] case_repo_external_root：rc=0(期望 0) 命中「根目录：C:/Users/laitz/AppData/Local/Temp/aap-routes-selftest-positive-1789716547942」=是
+[PASS] case_impl_prefix_stripped：rc=0(期望 0) 命中「A3 清单每条端点都在实现里有同方法同路径的路由：未定位 0 条」=是
+[PASS] case_http_declaration_not_call：rc=0(期望 0) 命中「未能静态判定 0 处」=是
+[PASS] case_client_helper_template：rc=0(期望 0) 命中「A0e C 解析到客户端调用点：parsed=4 个调用点」=是
+[PASS] case_client_comment_not_call：rc=0(期望 0) 命中「A4 客户端每个调用点都在冻结清单内且方法一致：越界调用 0 个」=是
+[PASS] case_zero_write：夹具 6 个文件 (mtime,size,md5) 不变
+[PASS] case_client_stray_call：rc=1(期望 1) 命中「A4 客户端每个调用点都在冻结清单内且方法一致：越界调用 1 个」=是
+[PASS] case_client_method_drift：rc=1(期望 1) 命中「A4 客户端每个调用点都在冻结清单内且方法一致：越界调用 1 个」=是
+[PASS] case_md_method_drift：rc=1(期望 1) 命中「A1 md 逐行「方法+路径」= endpoints.json（未归一前缀）：不一致 1 条」=是
+[PASS] case_md_path_drift：rc=1(期望 1) 命中「A1 md 逐行「方法+路径」= endpoints.json（未归一前缀）：不一致 1 条」=是
+[PASS] case_md_row_dropped：rc=1(期望 1) 命中「A0b D 行数 = total」=是
+[PASS] case_md_escaped_pipe：rc=0(期望 0) 命中「A0b D 行数 = total（裸 split 会漏行，坑 48）：parsed=6 期望=6」=是
+[PASS] case_md_same_as_above：rc=0(期望 0) 命中「A1 md 逐行「方法+路径」= endpoints.json（未归一前缀）：不一致 0 条」=是
+[PASS] case_md_same_as_above_no_prev：rc=1(期望 1) 命中「A6 md 表头/行定位无异常」=是
+[PASS] case_openapi_path_drift：rc=1(期望 1) 命中「A2 openapi 每 operation 的「方法+路径」= endpoints.json：不一致 1 条」=是
+[PASS] case_openapi_method_drift：rc=1(期望 1) 命中「A2 openapi 每 operation 的「方法+路径」= endpoints.json：不一致 1 条」=是
+[PASS] case_impl_missing_route：rc=1(期望 1) 命中「A3 清单每条端点都在实现里有同方法同路径的路由：未定位 1 条」=是
+[PASS] case_pathvar_name_drift：rc=1(期望 1) 命中「A5 路径变量名序列逐端点一致（清单 / md / openapi）：不一致 1 条」=是
+[PASS] case_missing_source：rc=1(期望 1) 命中「源文件/目录缺失」=是
+
+自测断言 20 条：PASS 20，FAIL 0
+rc=0
+===== audit-error-codes-selftest.py =====
+夹具根目录：C:\Users\laitz\AppData\Local\Temp
+被测审计：tools\audit-error-codes.py
+
+[PASS] case_positive：rc=0(期望 0) 命中「断言 16 条：PASS 16，FAIL 0」=是
+[PASS] case_zero_write：夹具 5 个文件 (mtime,size,md5) 不变
+[PASS] case_manifest_code_unknown：rc=1(期望 1) 命中「A3 清单声明的码都在 ErrorCode.java 目录里」=是
+[PASS] case_orphan_code：rc=1(期望 1) 命中「孤儿=['E-1501']」=是
+[PASS] case_openapi_op_mismatch：rc=1(期望 1) 命中「A6 openapi 每 operation 4XX 码集合 = 清单」=是
+[PASS] case_md_row_mismatch：rc=1(期望 1) 命中「A9 md 每行错误码列 = 清单」=是
+[PASS] case_md_escaped_pipe：rc=0(期望 0) 命中「A0c D 行数 = total：parsed=2」=是
+[PASS] case_md_range_ok：rc=0(期望 0) 命中「A9 md 每行错误码列 = 清单」=是
+[PASS] case_md_range_no_overflow：rc=1(期望 1) 命中「A9 md 每行错误码列 = 清单」=是
+[PASS] case_openapi_decoy_enum：rc=0(期望 0) 命中「A2 O.ResultCode 与 J 一致」=是
+[PASS] case_openapi_missing_enum：rc=1(期望 1) 命中「A0f O ResultCode enum 非空」=是
+[PASS] case_missing_source：rc=1(期望 1) 命中「源文件缺失」=是
+
+自测断言 12 条：PASS 12，FAIL 0
+rc=0
+===== audit-query-params-selftest.py =====
+夹具根目录：C:\Users\laitz\AppData\Local\Temp
+被测审计：E:\workspaces\hioas\hioas-aap-001\tools\audit-query-params.py
+
+[PASS] case_positive：rc=0(期望 0) 命中「断言 14 条：PASS 14，FAIL 0」=是
+[PASS] case_repo_external_root：rc=0(期望 0) 命中「根目录：C:/Users/laitz/AppData/Local/Temp/aap-qparam-selftest-positive-1789716554037」=是
+[PASS] case_md_body_field_not_query：md 请求体字段未被误当查询参数（SY-02 的 `body：` 单元格）
+[PASS] case_mapping_no_args_annotation：裸 @GetMapping 直接跟签名（无 @PreAuthorize 间隔）的方法体定位正常
+[PASS] case_object_literal_value_not_key：`data: { page: params?.page, … }` 解析出的键 = {page,pageSize}
+[PASS] case_md_paging_notations：`q：分页`（§0 简写）与 `page/pageSize`（斜杠写法）都被识别
+[PASS] case_zero_write：夹具 6 个文件 (mtime,size,md5) 不变
+[PASS] case_md_missing_param：rc=1(期望 1) 命中「A1 md 逐行 `q：…` = endpoints.json query_params：不一致 1 条」=是
+[PASS] case_md_escaped_pipe：rc=0(期望 0) 命中「A0b D 行数 = total（裸 split 会漏行，坑 48）：parsed=6 期望=6」=是
+[PASS] case_openapi_path_param_ok：rc=0(期望 0) 命中「A2 openapi 每 operation 的 query 参数 = endpoints.json：不一致 0 条」=是
+[PASS] case_openapi_missing_param：rc=1(期望 1) 命中「A2 openapi 每 operation 的 query 参数 = endpoints.json：不一致 1 条」=是
+[PASS] case_impl_missing_param：rc=1(期望 1) 命中「A3b 实现 @RequestParam 集合 = 清单 query_params：不一致 1 条」=是
+[PASS] case_impl_explicit_name：rc=0(期望 0) 命中「A3b 实现 @RequestParam 集合 = 清单 query_params：不一致 0 条」=是
+[PASS] case_impl_missing_route：rc=1(期望 1) 命中「A3a 清单每条端点都在实现里定位到同方法同路径的控制器方法：未定位 1 条」=是
+[PASS] case_client_stray_query：rc=1(期望 1) 命中「A4 客户端 GET 查询参数都在清单内：越界 1 处」=是
+[PASS] case_client_non_get_ignored：rc=0(期望 0) 命中「A4 客户端 GET 查询参数都在清单内：越界 0 处」=是
+[PASS] case_client_var_data：rc=0(期望 0) 命中「A4 客户端 GET 查询参数都在清单内：越界 0 处」=是
+[PASS] case_missing_source：rc=1(期望 1) 命中「源文件/目录缺失」=是
+[PASS] teeth_mutation_applied：未命中锚点：A=[] B=[]（非空即为空转，skill 坑 41）
+[PASS] teeth_body_brace_guard：rc=1(期望 1) 命中「A0f I 解析无异常」=是
+[PASS] teeth_object_keys_guard：rc=1(期望 1) 命中「A4 客户端 GET 查询参数都在清单内：越界 1 处」=是
+
+自测断言 21 条：PASS 21，FAIL 0
+rc=0
+===== audit-secret-leak.py --selftest =====
+[PASS] 正向对照：扫描器能在文本里找到模式值
+[PASS] 负向对照：无该值的文本判 0 命中
+[PASS] 边界：空文本判 0 命中
+
+自测 3 条：PASS 3，FAIL 0
+rc=0
+===== audit-time-format-selftest.py =====
+# audit-time-format 负向自测（夹具根=C:\Users\laitz\AppData\Local\Temp\aap-timefmt-selftest-7_vs6t70，仓库外，坑 34）
+[PASS] C0 合规夹具：审计 rc=0 且 15 条断言全 PASS（正向对照） — rc=0；断言 15 条：PASS 15，FAIL 0
+[PASS] C1 审计对夹具零写副作用（运行前后指纹一致） — 夹具文件被改写
+[PASS] C2 A0b/A0c 格式串漂移（第二份出口用毫秒精度） —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+[PASS] C2 A0b/A0c 格式串漂移（第二份出口用毫秒精度） —— 恰好命中预期断言且 rc=1 — rc=1；FAIL 断言=['A0b 所有 DateTimeFormatter 格式串只有 1 种', "A0c 格式串 = 秒精度 UTC（yyyy-MM-dd'T'HH:mm:ss'Z'）"]（预期 ['A0b', 'A0c']）
+[PASS] C3 A0d 辅助方法体漂移（少了 withOffsetSameInstant） —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+[PASS] C3 A0d 辅助方法体漂移（少了 withOffsetSameInstant） —— 恰好命中预期断言且 rc=1 — rc=1；FAIL 断言=['A0d 所有辅助方法体归一化后只有 1 种']（预期 ['A0d']）
+[PASS] C4 A1b 响应时间值未包裹出口（直接进 DTO 构造器） —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+[PASS] C4 A1b 响应时间值未包裹出口（直接进 DTO 构造器） —— 恰好命中预期断言且 rc=1 — rc=1；FAIL 断言=['A1b 所有进入响应的时间值都被统一出口包裹']（预期 ['A1b']）
+[PASS] C5 A1c 内部读取超阈值（4 处仅判空用途） —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+[PASS] C5 A1c 内部读取超阈值（4 处仅判空用途） —— 恰好命中预期断言且 rc=1 — rc=1；FAIL 断言=['A1c 「内部读取」判为信息项的条数不超过阈值（否则本规则形同虚设，坑 57）']（预期 ['A1c']）
+[PASS] C6 A2 时间列按数据库文本直出（getString） —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+[PASS] C6 A2 时间列按数据库文本直出（getString） —— 恰好命中预期断言且 rc=1 — rc=1；FAIL 断言=['A2 没有把时间列按数据库文本原样透传（getString）']（预期 ['A2']）
+[PASS] C7 A3b 响应 DTO 时间字段声明为 OffsetDateTime —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+[PASS] C7 A3b 响应 DTO 时间字段声明为 OffsetDateTime —— 恰好命中预期断言且 rc=1 — rc=1；FAIL 断言=['A3b 响应 DTO 时间字段一律声明为 String（避免 Jackson 直出）']（预期 ['A3b']）
+[PASS] C8 A4b 客户端时间字段声明为 number —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+[PASS] C8 A4b 客户端时间字段声明为 number —— 恰好命中预期断言且 rc=1 — rc=1；FAIL 断言=['A4b 客户端时间字段类型为 string（不得 number）']（预期 ['A4b']）
+[PASS] C9 A5b schema 时间字段类型写成 number —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+[PASS] C9 A5b schema 时间字段类型写成 number —— 恰好命中预期断言且 rc=1 — rc=1；FAIL 断言=['A5b schema 时间字段类型含 string（不得 number/integer）']（预期 ['A5b']）
+[PASS] C10 空夹具：8 条正向对照/唯一性断言必须变红（解析器失效不得判 PASS） — rc=1；FAIL 断言=['A0a 正向对照：解析到出口定义（解析器真的工作了）', 'A0b 所有 DateTimeFormatter 格式串只有 1 种', "A0c 格式串 = 秒精度 UTC（yyyy-MM-dd'T'HH:mm:ss'Z'）", 'A0d 所有辅助方法体归一化后只有 1 种', 'A1a 正向对照：解析到被出口包裹的时间取值点', 'A3a 正向对照：解析到响应 DTO 时间字段', 'A4a 正向对照：解析到客户端时间字段', 'A5a 正向对照：解析到 schema 时间字段']（预期 ['A0a', 'A0b', 'A0c', 'A0d', 'A1a', 'A3a', 'A4a', 'A5a']）
+[PASS] C11 --root 指向仓库外时审计能正常输出（文件路径展示为相对路径，不抛 ValueError） — 含夹具绝对路径的非表头行 []
+
+自测断言 20 条：PASS 20，FAIL 0
+rc=0

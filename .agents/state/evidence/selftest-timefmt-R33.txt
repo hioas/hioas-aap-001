@@ -1,0 +1,23 @@
+# audit-time-format 负向自测（夹具根=C:\Users\laitz\AppData\Local\Temp\aap-timefmt-selftest-ld46nczv，仓库外，坑 34）
+[PASS] C0 合规夹具：审计 rc=0 且 15 条断言全 PASS（正向对照） — rc=0；断言 15 条：PASS 15，FAIL 0
+[PASS] C1 审计对夹具零写副作用（运行前后指纹一致） — 夹具文件被改写
+[PASS] C2 A0b/A0c 格式串漂移（第二份出口用毫秒精度） —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+[PASS] C2 A0b/A0c 格式串漂移（第二份出口用毫秒精度） —— 恰好命中预期断言且 rc=1 — rc=1；FAIL 断言=['A0b 所有 DateTimeFormatter 格式串只有 1 种', "A0c 格式串 = 秒精度 UTC（yyyy-MM-dd'T'HH:mm:ss'Z'）"]（预期 ['A0b', 'A0c']）
+[PASS] C3 A0d 辅助方法体漂移（少了 withOffsetSameInstant） —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+[PASS] C3 A0d 辅助方法体漂移（少了 withOffsetSameInstant） —— 恰好命中预期断言且 rc=1 — rc=1；FAIL 断言=['A0d 所有辅助方法体归一化后只有 1 种']（预期 ['A0d']）
+[PASS] C4 A1b 响应时间值未包裹出口（直接进 DTO 构造器） —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+[PASS] C4 A1b 响应时间值未包裹出口（直接进 DTO 构造器） —— 恰好命中预期断言且 rc=1 — rc=1；FAIL 断言=['A1b 所有进入响应的时间值都被统一出口包裹']（预期 ['A1b']）
+[PASS] C5 A1c 内部读取超阈值（4 处仅判空用途） —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+[PASS] C5 A1c 内部读取超阈值（4 处仅判空用途） —— 恰好命中预期断言且 rc=1 — rc=1；FAIL 断言=['A1c 「内部读取」判为信息项的条数不超过阈值（否则本规则形同虚设，坑 57）']（预期 ['A1c']）
+[PASS] C6 A2 时间列按数据库文本直出（getString） —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+[PASS] C6 A2 时间列按数据库文本直出（getString） —— 恰好命中预期断言且 rc=1 — rc=1；FAIL 断言=['A2 没有把时间列按数据库文本原样透传（getString）']（预期 ['A2']）
+[PASS] C7 A3b 响应 DTO 时间字段声明为 OffsetDateTime —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+[PASS] C7 A3b 响应 DTO 时间字段声明为 OffsetDateTime —— 恰好命中预期断言且 rc=1 — rc=1；FAIL 断言=['A3b 响应 DTO 时间字段一律声明为 String（避免 Jackson 直出）']（预期 ['A3b']）
+[PASS] C8 A4b 客户端时间字段声明为 number —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+[PASS] C8 A4b 客户端时间字段声明为 number —— 恰好命中预期断言且 rc=1 — rc=1；FAIL 断言=['A4b 客户端时间字段类型为 string（不得 number）']（预期 ['A4b']）
+[PASS] C9 A5b schema 时间字段类型写成 number —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+[PASS] C9 A5b schema 时间字段类型写成 number —— 恰好命中预期断言且 rc=1 — rc=1；FAIL 断言=['A5b schema 时间字段类型含 string（不得 number/integer）']（预期 ['A5b']）
+[PASS] C10 空夹具：8 条正向对照/唯一性断言必须变红（解析器失效不得判 PASS） — rc=1；FAIL 断言=['A0a 正向对照：解析到出口定义（解析器真的工作了）', 'A0b 所有 DateTimeFormatter 格式串只有 1 种', "A0c 格式串 = 秒精度 UTC（yyyy-MM-dd'T'HH:mm:ss'Z'）", 'A0d 所有辅助方法体归一化后只有 1 种', 'A1a 正向对照：解析到被出口包裹的时间取值点', 'A3a 正向对照：解析到响应 DTO 时间字段', 'A4a 正向对照：解析到客户端时间字段', 'A5a 正向对照：解析到 schema 时间字段']（预期 ['A0a', 'A0b', 'A0c', 'A0d', 'A1a', 'A3a', 'A4a', 'A5a']）
+[PASS] C11 --root 指向仓库外时审计能正常输出（文件路径展示为相对路径，不抛 ValueError） — 含夹具绝对路径的非表头行 []
+
+自测断言 20 条：PASS 20，FAIL 0

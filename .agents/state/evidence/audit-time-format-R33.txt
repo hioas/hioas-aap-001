@@ -1,0 +1,33 @@
+# 时间字段序列化格式一致性审计（只读）root=E:\workspaces\hioas\hioas-aap-001
+--- A0 统一出口定义（格式串 + 辅助方法体）---
+[PASS] A0a 正向对照：解析到出口定义（解析器真的工作了） — 出口格式串声明 17 处、辅助方法 14 处（为 0 即解析器失效，不得判 PASS）
+[PASS] A0b 所有 DateTimeFormatter 格式串只有 1 种 — 实测 1 种：["yyyy-MM-dd'T'HH:mm:ss'Z'"]
+[PASS] A0c 格式串 = 秒精度 UTC（yyyy-MM-dd'T'HH:mm:ss'Z'） — 实测 ["yyyy-MM-dd'T'HH:mm:ss'Z'"]
+[PASS] A0d 所有辅助方法体归一化后只有 1 种 — 副本 14 处 → 形态 1 种
+      · 形态：return V == null ? null : RFC3339.format(V.withOffsetSameInstant(ZoneOffset.UTC));
+      · 观察项：同一出口有 14 份副本（aap-server/src/main/java/com/hioas/aap/adminconfig/DetectionConfigService.java、aap-server/src/main/java/com/hioas/aap/adminconfig/ReportTemplateService.java、aap-server/src/main/java/com/hioas/aap/compile/CompilationService.java、aap-server/src/main/java/com/hioas/aap/contract/ContractService.java、aap-server/src/main/java/com/hioas/aap/credential/CredentialService.java、aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java、aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java、aap-server/src/main/java/com/hioas/aap/report/ReportController.java、aap-server/src/main/java/com/hioas/aap/review/ReviewService.java、aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java、aap-server/src/main/java/com/hioas/aap/support/AuditLogQueryService.java、aap-server/src/main/java/com/hioas/aap/support/NotificationService.java 等）——逐字节相同，但属「同一函数两种写法」的漂移高发地（坑 44）
+      · 信息项：非出口的 DateTimeFormatter（常量名不含 RFC3339/ISO，如键值格式）2 处、2 种：['yyyyMM', 'yyyyMMdd'] —— 不参与 A0b/A0c 断言（否则假漂移，坑 29/46）
+--- A1/A2 时间列的取值路径是否被统一出口包裹 ---
+[PASS] A1a 正向对照：解析到被出口包裹的时间取值点 — 已包裹 29 处（为 0 即解析器失效，不得判 PASS）
+[PASS] A1b 所有进入响应的时间值都被统一出口包裹 — 未包裹 0 处
+[PASS] A1c 「内部读取」判为信息项的条数不超过阈值（否则本规则形同虚设，坑 57） — 内部读取 1 处：["aap-server/src/main/java/com/hioas/aap/support/NotificationService.java:112 ['read_at']"]
+      · 信息项（判据：语句里既无出口包裹、也不构造响应 DTO → 不进入响应）：
+        - aap-server/src/main/java/com/hioas/aap/support/NotificationService.java:112 ['read_at']
+[PASS] A2 没有把时间列按数据库文本原样透传（getString） — 文本直出 0 处
+--- A3 响应 DTO（*Views.java）时间字段声明类型 ---
+[PASS] A3a 正向对照：解析到响应 DTO 时间字段 — 14 个 *Views.java、时间字段 58 个
+[PASS] A3b 响应 DTO 时间字段一律声明为 String（避免 Jackson 直出） — 非 String 0 处
+--- A4 客户端时间字段声明类型（坑 1：跨页面通用字段以客户端为准）---
+[PASS] A4a 正向对照：解析到客户端时间字段 — 13 个
+[PASS] A4b 客户端时间字段类型为 string（不得 number） — 异常 0 处
+      · 客户端解析点（`new Date(value)`）出现在 3 个文件：['aap-client/src/utils/format.ts', 'aap-client/src/utils/messages-model.ts', 'aap-client/src/utils/usage-model.ts'] —— 解析要求服务端输出**带偏移/Z 的 ISO-8601**（坑 1 的时间侧）
+--- A5 JSON Schema 侧时间字段类型 ---
+[PASS] A5a 正向对照：解析到 schema 时间字段 — 87 个（date-time 或 *_at）
+[PASS] A5b schema 时间字段类型含 string（不得 number/integer） — 异常 0 处
+--- A6 信息项（说明门禁为何看不见）---
+      · 两种等价写法并存：helper 调用 46 处、内联 `RFC3339.format(...)` 24 处（坑 44：同一出口两种写法，未来改一处忘另一处即漂移）
+      · 测试源里时间格式相关字样（date-time/RFC3339/…T…/Z"）共 279 处；契约测试只校验 JSON Schema，而 `format: date-time` 对秒/毫秒/偏移/无偏移**全部放行** → 格式漂移 204 例不可见
+--- 零写副作用自检 ---
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用） — 被改写=0 个：[]
+
+断言 15 条：PASS 15，FAIL 0
