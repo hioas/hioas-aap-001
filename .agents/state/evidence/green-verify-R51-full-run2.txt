@@ -1,0 +1,43 @@
+== R51 全量集成测试 run2（串行；工作树现状，含他方未提交文件） ==
+命令：export PATH="$HOME/bin:$PATH"; cd aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test
+判据：surefire 汇总行 + BUILD SUCCESS；[ERROR] 行数 = 0（不等于 0 即为编译/告警噪音，须单独说明）
+坑 96 说明：门禁结论取「EndpointCoverageTest 自身 1/1 通过」+ 覆盖报告**字段值**，不靠 grep 类名抓摘要。
+
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 22.83 s -- in com.hioas.aap.adminconfig.DetectionConfigContractTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.310 s -- in com.hioas.aap.adminconfig.ReportTemplateContractTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in com.hioas.aap.adminconfig.ReportTemplateWordingTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.885 s -- in com.hioas.aap.common.ApiContractTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in com.hioas.aap.common.ApiEnvelopeTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.873 s -- in com.hioas.aap.common.LoggingAndHealthTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.587 s -- in com.hioas.aap.common.MigrationTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.046 s -- in com.hioas.aap.common.OutboundUrlGuardTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.443 s -- in com.hioas.aap.common.PersistenceBaseTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.038 s -- in com.hioas.aap.compile.BillingCompilerTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.532 s -- in com.hioas.aap.compile.CompilationContractTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.714 s -- in com.hioas.aap.contract.ContractContractTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.147 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.745 s -- in com.hioas.aap.credential.AdminCredentialContractTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.391 s -- in com.hioas.aap.credential.CredentialContractTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.114 s -- in com.hioas.aap.detection.DetectionContractTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.040 s -- in com.hioas.aap.detection.ProbeScoringTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.640 s -- in com.hioas.aap.detection.RecheckServiceTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.390 s -- in com.hioas.aap.iam.AuthContractTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.108 s -- in com.hioas.aap.provider.AdminProviderContractTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.559 s -- in com.hioas.aap.provider.ProviderContractTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.661 s -- in com.hioas.aap.quote.AdminQuoteCompareContractTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.227 s -- in com.hioas.aap.quote.QuoteContractTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in com.hioas.aap.quote.QuoteValidationTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.638 s -- in com.hioas.aap.report.ReportContractTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.273 s -- in com.hioas.aap.review.ReviewContractTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.106 s -- in com.hioas.aap.settlement.PaymentContractTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.862 s -- in com.hioas.aap.support.NotificationContractTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.837 s -- in com.hioas.aap.sync.SyncAdminContractTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in com.hioas.aap.ToolchainSmokeTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.493 s -- in com.hioas.aap.usage.UsageContractTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in com.hioas.aap.usage.UsageMetricsTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.135 s -- in com.hioas.aap.usage.UsageRefreshDegradedTest
+[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+
+汇总行：[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+[ERROR] 行数 = 0

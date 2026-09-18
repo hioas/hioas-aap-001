@@ -2625,3 +2625,102 @@ openapi 与客户端 TS 不被任何测试读取/执行 → 缺省/上限写错�
 * 飞书通知失败留痕（第 25 轮同因：home channel 未绑定，不阻塞交付）。
 * 台账：R50 行「提交」列填为 `7f1ec60`；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」；
   R 行连续性核对 R27 → R50 无缺号（坑 71）。
+
+## R51（2026-09-19）巡检轮：90/90 连续第 33 轮全绿 + 抽查「状态机取值域与迁移守卫」（第二十五类可审计不变量）
+
+### 结论
+* 覆盖门禁 **90/90**（`missing=0`），连续第 33 轮（R18 → R51）。
+* 全量集成测试**两轮 204 例全绿**（0 失败 / 0 错误 / 0 跳过，33 个测试类）；逐类结果先剥 `Time elapsed` 再排序后
+  **diff 为空**（坑 59/79），无 flaky；`@Test` 词边界计数 204 与 surefire 汇总一致，禁用扫描 0 条（无用例被削弱）。
+* 既有 **14 套只读审计 + 13 个负向自测**复跑：rc 序列与 R50 逐条一致、FAIL 明细剥来源前缀后逐行一致（零回归），
+  13 个自测全 rc=0；零写副作用守卫 84/84 产物 (size,md5) 全等。
+* `missing=0` → **本轮未改业务代码 / 未改清单 / 未改生成器 / 未改 md / 未动任何断言**。
+
+### 本轮新增抽查：状态机「取值域 + 迁移守卫」跨源一致性（第二十五类可审计不变量）
+**不变量**：对有状态列的资源，「状态取值域」与「合法迁移（from→to）」必须在
+md 清单 / ER 文档 / JSON Schema / 生成器状态目录 / 实现状态写入点 五处一致；实现写入的状态不得越出声明域。
+
+* **为什么两套门禁都看不见**：契约测试只校验**响应体**与 JSON Schema —— 而 schema 里的 `status` enum 只约束
+  **取值域**、完全不表达「谁能转到谁」；**状态写入点（SQL set / 实体 setter）不是任何响应的一部分**；
+  更要命的是部分状态类响应**压根没被 `assertModel` 覆盖**（DET-05 取消只断言 status/body；
+  quote 的 `REVIEWING` 只出现在 review 链路的报价单上，而被 assertModel 的是 `review-task`）；
+  覆盖门禁只比「HTTP 方法 + 路径」；openapi 与客户端 TS 不被任何测试读取/执行。
+  → 实现写出「契约声明域之外的状态」时，**204 例全绿也完全看不见**。
+* **真源五处**：M = `02-API接口模型清单.md`（显式 `FROM→TO` 迁移 3 条 + 端点错误码列 70 行）
+  ⇔ I = 实现（SQL 文本块 `set <col> = 'X'` 16 条 + ORM 实体 setter 41 条；接收者类型**回查 `@Table` 声明**得表名）
+  ⇔ E = `01-ER数据模型.md`（20 张表 21 个 status 列取值域，表格行 + 行内两种写法）
+  ⇔ S = `json-schema/models/*.schema.json` 的 status 列 enum（12 处）
+  ⇔ G = `tools/gen-backend-models.py` 的状态目录（10 个枚举）。
+* **断言 PASS 87 / FAIL 7**；零漂移项：A2 全部 SQL from 守卫在声明域内（4 条）、A3 md 三条显式迁移全部定位（3/3）、
+  A4 md 声明的 6 个状态类码在实现里全部有抛点、A7 4 处 schema enum 与 ER 取值域逐值一致、
+  A5 状态机表无「无条件状态写」（2 条非用户驱动状态机另列信息项）。
+
+### 本轮四条真实漂移（双向取证 + 分级，坑 50/51/53/54）
+1. **`aap_quote.status` 写 `REVIEWING`，契约侧写 `IN_REVIEW`（同一逻辑状态两个名字）**
+   * 实现：`ReviewService:338` `quote.setStatus("REVIEWING")`（领取报价单进入审核中）；`QuoteEntity` 注释同。
+   * 第三方裁判（三处一致指向**契约侧为错侧**）：① 测试 `ReviewContractTest:260` 用 `isEqualTo("REVIEWING")` 断言库值；
+     ② `QuoteContractTest:370` 直接以 `?status=SUBMITTED,REVIEWING` 过滤；③ 客户端 `quotes-model.ts` 注明
+     「状态真源 = 17-spec `QuoteStatus = DRAFT/SUBMITTED/REVIEWING/REJECTED/APPROVED/CONVERTED`」并据此做筛选映射。
+   * 契约侧错在：ER §`aap_quote` 行、`quote-detail.schema.json`/`quote-row.schema.json` 的 enum、
+     生成器 `QuoteStatus`、openapi 内联 enum 全是 `IN_REVIEW`（且额外含实现从不写的 `CONTRACT_CREATED`）。
+   * **为什么全绿**：`REVIEWING` 只出现在**报价单**状态上，而领取端点响应体是 `ReviewTask`（被 assertModel 的是
+     `review-task`）；`quote-detail`/`quote-row` 的 assertModel 只覆盖 DRAFT/SUBMITTED 路径 → 永不触达枚举校验。
+   * 分级：**待拍板（契约变更）**，证据强度高（实现+测试+客户端三处一致）；改 `IN_REVIEW`→`REVIEWING` 需同步
+     ER 行 / schema enum / 生成器 / openapi 四处并跑全量。
+2. **`aap_detection_job.status` 写 `CANCELLED`，契约声明域缺该状态**
+   * 实现 `DetectionService:183`；测试 `DetectionContractTest:134` 断言 `CANCELLED`；
+     偏差已登记 `D-STATE-01`（17-spec §4 未列、15-数据模型 §4.4 有 → 以 15-数据模型为准）。
+   * 但 ER §`aap_detection_job` 行（引「17-spec §4」）、`detection-job.schema.json` enum、生成器
+     `DetectionJobStatus` **均未补 `CANCELLED`** → 契约声明域与已裁定的偏差自相矛盾。
+   * **为什么全绿**：DET-05 取消响应**未调用 `SchemaAssert.assertModel`**（该用例只断言 HTTP 200 与 body.status）。
+   * 分级：**待拍板（契约变更，已有 D-STATE-01 依据）**：把 `CANCELLED` 补进生成器目录 + ER 行 + schema enum。
+3. **`aap_compiled_expression.status` 写 `FAILED`（ER 声明 `VERIFY_FAILED`）**
+   * 实现 `CompilationService:256` `entity.setStatus(failedField == null ? "VERIFIED" : "FAILED")`。
+   * ER §`aap_compiled_expression` 的 `status` 域为 `DRAFT/COMPILED/VERIFIED/VERIFY_FAILED/CONFIRMED/PUBLISHED/SUPERSEDED`。
+   * 佐证（A6）：`VERIFY_FAILED` 是 ER 声明域里**唯一全仓库零出现**的状态 → 实现把「验证失败」写成了 `FAILED`，
+     而声明域里的名字是 `VERIFY_FAILED`。
+   * 无测试背书：`CompilationContractTest` 4 处断言只覆盖 `COMPILED/VERIFIED/CONFIRMED`，**验证失败路径零断言**。
+   * 分级：**待拍板**（改实现为 `VERIFY_FAILED`，或改声明域为 `FAILED`；前者与 ER/命名一致性更好）。
+4. **`aap_compiled_expression.gate_status` 写 `FAILED`，而声明域无 `FAILED`**
+   * 实现 `CompilationService:255` `entity.setGateStatus(failedField == null ? "VERIFIED" : "FAILED")`。
+   * ER 声明 `gate_status`(COMPILED/VERIFIED/CONFIRMED/REJECTED) —— 最接近的应是 `REJECTED`。
+   * **为什么全绿**：`compilation-result.schema.json` 的 `gate_status` **没有 enum**（只有 `string|null`）→
+     契约测试对它的取值**零约束**（与坑 43 同源：契约测试只读 schema，schema 不表达的东西它看不见）。
+   * 分级：**待拍板**（同上）。
+
+### 信息项（不属漂移）
+* **A6 整表未接线 `aap_outbox_event`**：ER + DDL 已声明（`status` 域 NEW/DISPATCHED/FAILED/DEAD），
+  实现（`aap-server/src/main/java`）**零引用**（全仓库仅 DDL / ER / 设计总览 / 迁移测试提及）→
+  事务性发件箱尚未接线，属**范围/文档一致性项**（不是状态漂移）。需人拍板是否本轮列入交付范围。
+* **A5 非用户驱动状态机的无条件状态写 2 条**：`SyncAttemptRecorder`→`aap_sync_task`、
+  `UsageService`→`aap_usage_sync_cursor`（调度器自持游标，非用户触发状态机）→ 信息项。
+* **A1b 未能静态判定**：`aap_review_task.status`（生成器无 ReviewTask 状态目录，最匹配 QuoteStatus 重合不足）
+  → 按「不猜」记信息项，未判为漂移。
+
+### 本轮踩坑（新增 7 条，全部是抽查脚本自身返工 —— **先怀疑解析器**，坑 46/57/64/75/98 再现）
+1. **ER 行内取值域正则的可选前缀把 `gate_status` 折叠成 `status`**：`(?:gate_)?status` 会把 `gate_status`(…) 也
+   匹配成「status 列」，后出现的 match 覆盖前一个 → 两列取值域互相污染（A1 报出错误的 ER 域）。规则：**捕获前缀当列名**。
+2. **单字状态被漏收**：`[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+` 要求至少一个下划线 → `COMPLETED`/`QUEUED`/`NEW`/`OK`
+   全部漏收，A1 对这类写入点**空转**（判绿）。规则：状态字面量用 `[A-Z][A-Z0-9_]{1,}`，并排除 HTTP 方法等噪声。
+3. **switch 的 `case` 标签被当成写入值**（坑 64 同族）：`provider.setStatus(switch (r) { case "PASS" -> "DETECT_PASSED"; …})`
+   的实参跨度里既有匹配标签又有写入值 → 报出 `PASS/FAIL` 越界（**假发现**）。规则：先剥 `case "X" ->` 再取字面量。
+4. **SQL set/where 的关联不能「按文件+表」覆盖**：同一文件里多条 UPDATE 会把最后一条的 where 守卫写给所有写入点
+   → `md CREATED→PENDING_SIGN 缺 from 守卫`（**假红**）。规则：**块内自洽**（解析完一块就把 frm/excl 附到该块的写入点）。
+5. **生成器目录按「有交集」选族 → 错配**：`aap_review_task.status` 被匹配到 `QuoteStatus`（重合 2 个 APPROVED/REJECTED）
+   → 报出 `CLAIMED/PENDING` 越界（**假发现**）。规则：**最大重合 + 最多允许 1 个越界值**，否则记「未能静态判定」。
+6. **A6 把「DDL 默认值」与「整表未接线」当孤儿状态**：首版报出 **14 张表**全量孤儿（假发现）——因为状态写入大量走
+   ORM setter 与 DDL default。规则：排除该列 DDL default；表在实现里**零引用**时另立「整表未接线」信息项；
+   其余「有出现但未定位」记信息项，**只有「全仓库零出现且非默认值」才判真孤儿**。
+7. **A3g 在 md 无迁移声明时空转判绿**（坑 98）：`found or not mig` 在 `mig` 为空时恒真 → 空夹具下 A3g 判 PASS。
+   规则：改成「必须全部定位**且** mig > 0」，空夹具下点名转红。
+
+### 本轮未做（纪律）
+* 未新增仓库工具（`missing=0` 只校验不改代码），抽查脚本与夹具分目录落在
+  `$LOCALAPPDATA/Temp/aap-r51-spotcheck*`（坑 106）；
+* 未并发跑测试（单进程串行两轮；跑前 `jps` 确认无其它 surefire JVM）；
+* 他方未提交改动（`aap-client/vite.config.ts`、`aap-server/src/main/resources/application.yml`、
+  `log4j2-spring.xml`、`src/test/resources/application-test.yml`）**未触碰**（坑 15）。
+
+### 台账
+* 追加 R51 行（「提交」列先留空，提交后由收尾提交补齐）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」；
+  R 行连续性核对：R27 → R51 无缺号（坑 71）。

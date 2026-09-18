@@ -1,0 +1,194 @@
+== R51 抽查：状态机「取值域 + 迁移守卫」跨源一致性（第二十五类可审计不变量） ==
+脚本：C:/Users/laitz/AppData/Local/Temp/aap-r51-spotcheck/aap-r51-status-machine.py（抽查式，不新建仓库工具）
+真源：M=md 清单迁移声明/状态码 ⇔ I=实现状态写入点（SQL set 文本块 + ORM 实体 setter，回查 @Table）
+      ⇔ E=ER 文档 status 取值域 ⇔ S=JSON Schema status enum ⇔ G=生成器状态目录
+为什么两套门禁都看不见：契约测试只校验**响应体**与 JSON Schema（schema 的 enum 只约束取值域、不表达迁移）；
+状态写入点不是任何响应的一部分；且部分状态类响应**未被 assertModel 覆盖**；覆盖门禁只比方法+路径。
+
+== R51 抽查：状态机「取值域 + 迁移守卫」跨源一致性（第二十五类可审计不变量） ==
+真源：M=md 清单迁移声明/状态码 ⇔ I=实现状态写入点（SQL set + ORM setter，回查 @Table）
+      ⇔ E=ER 文档 status 取值域 ⇔ S=JSON Schema status enum ⇔ G=生成器状态目录
+
+== 解析结果（每个源都必须 > 0，否则判解析器失效） ==
+M  md 显式迁移声明 = 3 条；端点错误码行 = 70 条
+E  ER 取值域 = 20 张表 / 21 个 status 列
+S  schema status enum = 12 处
+G  生成器状态目录 = 10 个（CacheParseStatus, ContractStatus, CredentialDetectionStatus, CredentialStatus, DetectionJobStatus, PaymentStatus, ProbeStatus, ProviderStatus, QuoteStatus, SyncStatus）
+I  SQL 状态写入点 = 16（其中字面量 13 / 参数化 3）
+I  ORM setter 写入点 = 41（涉及 14 张表）
+I  未能静态判定的写入点 = 8
+I  全仓库状态字面量 = 230 个
+
+[PASS] A0a 正向对照：解析到 3 条（要求 > 0）
+[PASS] A0b 正向对照：解析到 57 条（要求 > 0）
+[PASS] A0c 正向对照：解析到 21 条（要求 > 0）
+[PASS] A0d 正向对照：解析到 12 条（要求 > 0）
+[PASS] A0e 正向对照：解析到 10 条（要求 > 0）
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/adminconfig/DetectionConfigService.java aap_detection_config.status = ['PUBLISHED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/adminconfig/DetectionConfigService.java aap_detection_config.status = ['SUPERSEDED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/adminconfig/ReportTemplateService.java aap_report_template.status = ['PUBLISHED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/adminconfig/ReportTemplateService.java aap_report_template.status = ['SUPERSEDED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/contract/ContractService.java aap_contract.status = ['SUPPLIER_SIGNED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/contract/ContractService.java aap_contract.status = ['PENDING_SIGN']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/contract/ContractService.java aap_contract.status = ['SIGNED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/review/ReviewService.java aap_review_task.status = ['CLAIMED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/review/ReviewService.java aap_review_task.status = ['CLAIMED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/review/ReviewService.java aap_review_task.status = ['APPROVED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/review/ReviewService.java aap_review_task.status = ['REJECTED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/review/ReviewService.java aap_review_task.status = ['PENDING']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java aap_payment_record.status = ['CONFIRMED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/compile/CompilationService.java aap_compiled_expression.status = ['COMPILED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/compile/CompilationService.java aap_compiled_expression.gate_status = ['COMPILED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/compile/CompilationService.java aap_verify_run.status = ['FAILED', 'PASSED']
+[FAIL] A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/compile/CompilationService.java aap_compiled_expression.gate_status 写入=['FAILED', 'VERIFIED'] 越界=['FAILED']（ER=['COMPILED', 'CONFIRMED', 'REJECTED', 'VERIFIED']）[ORM]
+[FAIL] A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/compile/CompilationService.java aap_compiled_expression.status 写入=['FAILED', 'VERIFIED'] 越界=['FAILED']（ER=['COMPILED', 'CONFIRMED', 'DRAFT', 'PUBLISHED', 'SUPERSEDED', 'VERIFIED', 'VERIFY_FAILED']）[ORM]
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/compile/CompilationService.java aap_compiled_expression.gate_status = ['CONFIRMED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/compile/CompilationService.java aap_compiled_expression.status = ['CONFIRMED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/credential/CredentialPrecheckRecorder.java aap_credential.status = ['PRECHECK_FAILED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/credential/CredentialPrecheckRecorder.java aap_credential.status = ['ACTIVE']
+[INFO] A1 未能静态判定（ER 无 aap_credential.detection_status 取值域）：aap-server/src/main/java/com/hioas/aap/credential/CredentialPrecheckRecorder.java target=['RUNNING']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/credential/CredentialPrecheckRecorder.java aap_detection_job.status = ['QUEUED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/credential/CredentialService.java aap_credential.status = ['PENDING_PRECHECK']
+[INFO] A1 未能静态判定（ER 无 aap_credential.detection_status 取值域）：aap-server/src/main/java/com/hioas/aap/credential/CredentialService.java target=['PENDING']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/credential/CredentialService.java aap_credential.status = ['PENDING_PRECHECK']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/credential/CredentialService.java aap_credential_precheck.status = ['FAILED', 'PASSED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java aap_detection_job.status = ['QUEUED']
+[INFO] A1 未能静态判定（ER 无 aap_credential.detection_status 取值域）：aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java target=['RUNNING']
+[FAIL] A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java aap_detection_job.status 写入=['CANCELLED'] 越界=['CANCELLED']（ER=['COMPLETED', 'FAILED', 'PARTIAL_DONE', 'QUEUED', 'REPORT_GENERATED', 'RUNNING']）[ORM]
+[INFO] A1 未能静态判定（ER 无 aap_credential.detection_status 取值域）：aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java target=['PENDING']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java aap_detection_job.status = ['COMPLETED']
+[INFO] A1 未能静态判定（ER 无 aap_credential.detection_status 取值域）：aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java target=['PASS']
+[INFO] A1 未能静态判定（ER 无 aap_provider.status 取值域）：aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java target=['DETECT_PASSED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java aap_detection_job.status = ['COMPLETED']
+[INFO] A1 未能静态判定（ER 无 aap_credential.detection_status 取值域）：aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java target=['FAIL', 'PASS', 'PENDING']
+[INFO] A1 未能静态判定（ER 无 aap_provider.status 取值域）：aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java target=['DETECTING', 'DETECT_FAILED', 'DETECT_PASSED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/iam/AuthService.java aap_provider_account.status = ['ACTIVE']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/iam/AuthService.java aap_provider_account.status = ['ACTIVE']
+[INFO] A1 未能静态判定（ER 无 aap_provider.status 取值域）：aap-server/src/main/java/com/hioas/aap/iam/AuthService.java target=['PENDING_CREDENTIAL']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/provider/ProviderService.java aap_provider_qualification.status = ['UPLOADED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java aap_quote.status = ['DRAFT']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java aap_quote.status = ['VOID']
+[INFO] A1 未能静态判定（ER 无 aap_quote_item.compile_status 取值域）：aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java target=['NOT_COMPILED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java aap_quote.status = ['SUBMITTED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java aap_quote.status = ['DRAFT']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/report/ReportService.java aap_report.status = ['GENERATED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/review/ReviewService.java aap_review_task.status = ['PENDING']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/review/ReviewService.java aap_quote.status = ['APPROVED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/review/ReviewService.java aap_quote.status = ['REJECTED']
+[FAIL] A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/review/ReviewService.java aap_quote.status 写入=['REVIEWING'] 越界=['REVIEWING']（ER=['APPROVED', 'CONTRACT_CREATED', 'CONVERTED', 'DRAFT', 'IN_REVIEW', 'REJECTED', 'SUBMITTED', 'VOID']）[ORM]
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/review/ReviewService.java aap_contract.status = ['CREATED']
+[PASS] A1 写入状态在声明域内：aap-server/src/main/java/com/hioas/aap/support/NotificationService.java aap_notification.status = ['SENT']
+[PASS] A1g A1 判定覆盖率 44/54（> 0，否则断言被架空）
+[PASS] A1b 生成器域覆盖：aap_contract.status 写入=['CREATED', 'PENDING_SIGN', 'SIGNED', 'SUPPLIER_SIGNED'] ⊆ ContractStatus
+[PASS] A1b 生成器域覆盖：aap_credential.detection_status 写入=['FAIL', 'PASS', 'PENDING', 'RUNNING'] ⊆ CredentialDetectionStatus
+[PASS] A1b 生成器域覆盖：aap_credential.status 写入=['ACTIVE', 'PENDING_PRECHECK', 'PRECHECK_FAILED'] ⊆ CredentialStatus
+[FAIL] A1b 实现写入的状态不在生成器声明域内：aap_detection_job.status 写入=['CANCELLED', 'COMPLETED', 'QUEUED'] 越界=['CANCELLED']（最匹配目录 DetectionJobStatus=['COMPLETED', 'FAILED', 'PARTIAL_DONE', 'QUEUED', 'REPORT_GENERATED', 'RUNNING']）
+[PASS] A1b 生成器域覆盖：aap_provider.status 写入=['DETECTING', 'DETECT_FAILED', 'DETECT_PASSED', 'PENDING_CREDENTIAL'] ⊆ ProviderStatus
+[FAIL] A1b 实现写入的状态不在生成器声明域内：aap_quote.status 写入=['APPROVED', 'DRAFT', 'REJECTED', 'REVIEWING', 'SUBMITTED', 'VOID'] 越界=['REVIEWING']（最匹配目录 QuoteStatus=['APPROVED', 'CONTRACT_CREATED', 'CONVERTED', 'DRAFT', 'IN_REVIEW', 'REJECTED', 'SUBMITTED', 'VOID']）
+[PASS] A1bg A1b 判定条数 = 6（> 0，否则断言被架空）
+[INFO] A1b 未能静态判定（无对应生成器状态目录，最匹配=DetectionJobStatus）：aap_compiled_expression.gate_status 写入=['COMPILED', 'CONFIRMED', 'FAILED', 'VERIFIED']
+[INFO] A1b 未能静态判定（无对应生成器状态目录，最匹配=DetectionJobStatus）：aap_compiled_expression.status 写入=['COMPILED', 'CONFIRMED', 'FAILED', 'VERIFIED']
+[INFO] A1b 未能静态判定（无对应生成器状态目录，最匹配=DetectionJobStatus）：aap_credential_precheck.status 写入=['FAILED', 'PASSED']
+[INFO] A1b 未能静态判定（无对应生成器状态目录，最匹配=ProviderStatus）：aap_detection_config.status 写入=['PUBLISHED', 'SUPERSEDED']
+[INFO] A1b 未能静态判定（无对应生成器状态目录，最匹配=None）：aap_notification.status 写入=['SENT']
+[INFO] A1b 未能静态判定（无对应生成器状态目录，最匹配=PaymentStatus）：aap_payment_record.status 写入=['CONFIRMED']
+[INFO] A1b 未能静态判定（无对应生成器状态目录，最匹配=CredentialStatus）：aap_provider_account.status 写入=['ACTIVE']
+[INFO] A1b 未能静态判定（无对应生成器状态目录，最匹配=None）：aap_provider_qualification.status 写入=['UPLOADED']
+[INFO] A1b 未能静态判定（无对应生成器状态目录，最匹配=None）：aap_quote_item.compile_status 写入=['NOT_COMPILED']
+[INFO] A1b 未能静态判定（无对应生成器状态目录，最匹配=None）：aap_report.status 写入=['GENERATED']
+[INFO] A1b 未能静态判定（无对应生成器状态目录，最匹配=ProviderStatus）：aap_report_template.status 写入=['PUBLISHED', 'SUPERSEDED']
+[INFO] A1b 未能静态判定（无对应生成器状态目录，最匹配=QuoteStatus）：aap_review_task.status 写入=['APPROVED', 'CLAIMED', 'PENDING', 'REJECTED']
+[INFO] A1b 未能静态判定（无对应生成器状态目录，最匹配=DetectionJobStatus）：aap_verify_run.status 写入=['FAILED', 'PASSED']
+[PASS] A2 from 守卫在声明域内：aap-server/src/main/java/com/hioas/aap/adminconfig/DetectionConfigService.java aap_detection_config.status from=['DRAFT']
+[PASS] A2 from 守卫在声明域内：aap-server/src/main/java/com/hioas/aap/adminconfig/DetectionConfigService.java aap_detection_config.status from=['PUBLISHED']
+[PASS] A2 from 守卫在声明域内：aap-server/src/main/java/com/hioas/aap/adminconfig/ReportTemplateService.java aap_report_template.status from=['DRAFT']
+[PASS] A2 from 守卫在声明域内：aap-server/src/main/java/com/hioas/aap/adminconfig/ReportTemplateService.java aap_report_template.status from=['PUBLISHED']
+[PASS] A2 from 守卫在声明域内：aap-server/src/main/java/com/hioas/aap/contract/ContractService.java aap_contract.status from=['PENDING_SIGN']
+[PASS] A2 from 守卫在声明域内：aap-server/src/main/java/com/hioas/aap/contract/ContractService.java aap_contract.status from=['CREATED']
+[PASS] A2 from 守卫在声明域内：aap-server/src/main/java/com/hioas/aap/contract/ContractService.java aap_contract.status from=['SUPPLIER_SIGNED']
+[PASS] A2 from 守卫在声明域内：aap-server/src/main/java/com/hioas/aap/review/ReviewService.java aap_review_task.status from=['PENDING']
+[PASS] A2 from 守卫在声明域内：aap-server/src/main/java/com/hioas/aap/review/ReviewService.java aap_review_task.status from=['PENDING']
+[PASS] A2 from 守卫在声明域内：aap-server/src/main/java/com/hioas/aap/review/ReviewService.java aap_review_task.status from=['CLAIMED', 'PENDING']
+[PASS] A2 from 守卫在声明域内：aap-server/src/main/java/com/hioas/aap/review/ReviewService.java aap_review_task.status from=['CLAIMED', 'PENDING']
+[PASS] A2 from 守卫在声明域内：aap-server/src/main/java/com/hioas/aap/review/ReviewService.java aap_review_task.status from=[]
+[PASS] A2 from 守卫在声明域内：aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java aap_payment_record.status from=['PAYMENT_RECORDED']
+[PASS] A2g A2 判定条数 = 13（> 0）
+[PASS] A3 md L182 CREATED→PENDING_SIGN 有条件守卫（aap-server/src/main/java/com/hioas/aap/contract/ContractService.java aap_contract）
+[PASS] A3 md L183 SUPPLIER_SIGNED→SIGNED 有条件守卫（aap-server/src/main/java/com/hioas/aap/contract/ContractService.java aap_contract）
+[PASS] A3 md L185 PAYMENT_RECORDED→CONFIRMED 有条件守卫（aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java aap_payment_record）
+[PASS] A3g md 迁移声明定位率 3/3（要求全部定位且 > 0）
+[PASS] A4g md 声明的状态类码 = ['E-1303', 'E-1305', 'E-1407', 'E-1601', 'E-1701']
+[PASS] A4 E-1303 有实现抛点（2 文件）
+[PASS] A4 E-1305 有实现抛点（1 文件）
+[PASS] A4 E-1407 有实现抛点（1 文件）
+[PASS] A4 E-1601 有实现抛点（11 文件）
+[PASS] A4 E-1701 有实现抛点（2 文件）
+[PASS] A5g 状态机表无条件写 = 0 条（要求 0）；信息项 = 0 条
+[INFO] A6 整表未接线（ER 声明 aap_outbox_event.status，实现零引用；DDL 已建表）：域=['DEAD', 'DISPATCHED', 'FAILED', 'NEW']
+[FAIL] A6 真孤儿状态：ER 声明 aap_compiled_expression.status 含 VERIFY_FAILED，全仓库零出现且非 DDL 默认值
+[INFO] A6 ER 声明 aap_channel_binding.status 的 DISABLED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_channel_binding.status 的 ENABLED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_channel_binding.status 的 FAILED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_channel_binding.status 的 PARTIAL 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_channel_binding.status 的 PENDING 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_channel_binding.status 的 ROLLED_BACK 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_channel_binding.status 的 SYNCED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_channel_binding.status 的 SYNCING 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_compiled_expression.gate_status 的 REJECTED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_compiled_expression.status 的 PUBLISHED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_compiled_expression.status 的 SUPERSEDED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_contract.status 的 ARCHIVED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_contract.status 的 VOIDED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_credential.status 的 INVALID 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_credential.status 的 PRECHECK_PASSED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_detection_job.status 的 FAILED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_detection_job.status 的 PARTIAL_DONE 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_detection_job.status 的 REPORT_GENERATED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_detection_job.status 的 RUNNING 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_detection_result.status 的 FAILED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_detection_result.status 的 NOT_MEASURABLE 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_detection_result.status 的 SKIPPED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_detection_result.status 的 SUCCESS 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_notification.status 的 FAILED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_payment_record.status 的 PAYMENT_RECORDED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_payment_record.status 的 VOID 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_provider_account.status 的 DISABLED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_provider_account.status 的 SUSPENDED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_provider_qualification.status 的 REJECTED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_provider_qualification.status 的 VERIFIED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_quote.status 的 CONTRACT_CREATED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_quote.status 的 CONVERTED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_quote.status 的 IN_REVIEW 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_report.status 的 PUBLISHED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_sync_task.status 的 FAILED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_sync_task.status 的 MANUAL 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_sync_task.status 的 RUNNING 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_sync_task.status 的 SKIPPED 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_sync_task.status 的 SUCCESS 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 ER 声明 aap_usage_hourly.cache_parse_status 的 NO_CACHE_FIELD 未在已定位写入面出现（可能是比较/过滤用法或未静态判定）
+[INFO] A6 汇总：真孤儿 = 1，未定位写入 = 40，整表未接线 = 1
+[PASS] A7 schema channel-binding.schema.json 的 status enum 与 ER aap_channel_binding 逐值一致（9 值）
+[PASS] A7 schema contract.schema.json 的 status enum 与 ER aap_contract 逐值一致（6 值）
+[INFO] A7 schema credential-detail.schema.json 的 detection_status enum 与任何 ER 取值域都无子集关系（模型可能是跨表视图，未能静态判定）
+[PASS] A7 schema credential-detail.schema.json 的 status enum 与 ER aap_credential 逐值一致（5 值）
+[INFO] A7 schema credential-row.schema.json 的 detection_status enum 与任何 ER 取值域都无子集关系（模型可能是跨表视图，未能静态判定）
+[PASS] A7 schema detection-job.schema.json 的 status enum 与 ER aap_detection_job 逐值一致（6 值）
+[PASS] A7 schema detection-result.schema.json 的 status enum 与 ER aap_detection_result 逐值一致（4 值）
+[PASS] A7 schema payment.schema.json 的 status enum 与 ER aap_payment_record 逐值一致（4 值）
+[INFO] A7 schema provider-profile.schema.json 的 status enum 与任何 ER 取值域都无子集关系（模型可能是跨表视图，未能静态判定）
+[PASS] A7 schema quote-detail.schema.json 的 status enum 与 ER aap_quote 逐值一致（8 值）
+[PASS] A7 schema quote-row.schema.json 的 status enum 与 ER aap_quote 逐值一致（8 值）
+[PASS] A7 schema usage-hourly-bucket.schema.json 的 cache_parse_status enum 与 ER aap_usage_hourly 逐值一致（2 值）
+[PASS] A7g A7 判定条数 = 9（> 0）
+[INFO] A8 未能静态判定的 ORM 写入点 = 8 条
+[INFO]    aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java response.setStatus(实参非字面量)
+[INFO]    aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java row.setStatus(实参非字面量)
+[INFO]    aap-server/src/main/java/com/hioas/aap/provider/ProviderService.java provider.setStatus(接收者类型未能解析(cls=None))
+[INFO]    aap-server/src/main/java/com/hioas/aap/provider/ProviderService.java provider.setStatus(实参非字面量)
+[INFO]    aap-server/src/main/java/com/hioas/aap/review/ReviewService.java record.setBeforeStatus(实参非字面量)
+[INFO]    aap-server/src/main/java/com/hioas/aap/review/ReviewService.java record.setAfterStatus(实参非字面量)
+[INFO]    aap-server/src/main/java/com/hioas/aap/support/idempotency/IdempotencyFilter.java response.setStatus(实参非字面量)
+[INFO]    aap-server/src/main/java/com/hioas/aap/support/idempotency/IdempotencyFilter.java response.setStatus(实参非字面量)
+[PASS] A8g 未能静态判定条数 8 ≤ 上限 30
+
+汇总：PASS 87 / FAIL 7

@@ -1,0 +1,44 @@
+== R51 抽查脚本负向自测（判别力实测） ==
+夹具根：C:/Users/laitz/AppData/Local/Temp/aap-r51-spotcheck-fixtures（与脚本目录分开命名，坑 106）
+被测：C:/Users/laitz/AppData/Local/Temp/aap-r51-spotcheck/aap-r51-status-machine.py
+每条注入用例：合规夹具基线 → 断言锚点全部命中（坑 66/94）→ 断言 FAIL 明细行恰好新增目标断言（坑 82/93）
+另含：空夹具必须点名 A0a…A0e 且 A1g/A2g/A3g 不得空转判绿（坑 98）；switch case 标签不得被当写入值（坑 64）；
+真实仓库零写副作用 + FAIL>0 正向对照（坑 39/46/97）。
+
+[PASS] R0 真实仓库零写副作用 :: changed=0
+[PASS] R1 真实仓库 FAIL 行数 > 0（正向对照） :: FAIL=7
+[PASS] R2 真实仓库 A1 有判定（> 0）
+[PASS] C1 合规夹具 rc=0 :: rc=0
+[PASS] C2 合规夹具 FAIL 数 = 0 :: []
+[PASS] C3 合规夹具正向对照（输出里有 A0a/A1/A2/A3g/A4g/A7g 的 PASS 行）
+[PASS] C4 空夹具 rc=1
+[PASS] C4 空夹具点名 A0a :: ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A1g', 'A1bg', 'A2g', 'A3g', 'A4g', 'A7g']
+[PASS] C4 空夹具点名 A0b :: ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A1g', 'A1bg', 'A2g', 'A3g', 'A4g', 'A7g']
+[PASS] C4 空夹具点名 A0c :: ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A1g', 'A1bg', 'A2g', 'A3g', 'A4g', 'A7g']
+[PASS] C4 空夹具点名 A0d :: ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A1g', 'A1bg', 'A2g', 'A3g', 'A4g', 'A7g']
+[PASS] C4 空夹具点名 A0e :: ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A1g', 'A1bg', 'A2g', 'A3g', 'A4g', 'A7g']
+[PASS] C4 空夹具 A1g/A2g/A3g 不得空转判绿 :: ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A1g', 'A1bg', 'A2g', 'A3g', 'A4g', 'A7g']
+[PASS] I1 ER 域删掉实现写入的状态 CANCELLED → A1 :: 锚点全部命中 :: 未命中=[]
+[PASS] I1 ER 域删掉实现写入的状态 CANCELLED → A1 :: 恰好新增 1 条 A1 :: 命中=["[FAIL] A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/thing/ThingService.java aap_thing.status 写入=['CANCELLED'] 越界=['CANCELLED']（ER=['ARCHIVED', 'DRAFT', 'PUBLISHED', 'SUPERSEDED']）[ORM]"]（全部新增=["[FAIL] A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/thing/ThingService.java aap_thing.status 写入=['CANCELLED'] 越界=['CANCELLED']（ER=['ARCHIVED', 'DRAFT', 'PUBLISHED', 'SUPERSEDED']）[ORM]", '[FAIL] A6 真孤儿状态：ER 声明 aap_thing.status 含 ARCHIVED，全仓库零出现且非 DDL 默认值', '[FAIL] A7g A7 判定条数 = 0（> 0）']）
+[PASS] I2 生成器枚举删掉 CANCELLED → A1b :: 锚点全部命中 :: 未命中=[]
+[PASS] I2 生成器枚举删掉 CANCELLED → A1b :: 恰好新增 1 条 A1b :: 命中=["[FAIL] A1b 实现写入的状态不在生成器声明域内：aap_thing.status 写入=['CANCELLED', 'PUBLISHED', 'SUPERSEDED'] 越界=['CANCELLED']（最匹配目录 ThingStatus=['ARCHIVED', 'DRAFT', 'PUBLISHED', 'SUPERSEDED']）"]（全部新增=["[FAIL] A1b 实现写入的状态不在生成器声明域内：aap_thing.status 写入=['CANCELLED', 'PUBLISHED', 'SUPERSEDED'] 越界=['CANCELLED']（最匹配目录 ThingStatus=['ARCHIVED', 'DRAFT', 'PUBLISHED', 'SUPERSEDED']）"]）
+[PASS] I3 实现写入域外状态 → A1 :: 锚点全部命中 :: 未命中=[]
+[PASS] I3 实现写入域外状态 → A1 :: 恰好新增 1 条 A1 :: 命中=["[FAIL] A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/thing/ThingService.java aap_thing.status 写入=['WITHDRAWN'] 越界=['WITHDRAWN']（ER=['CANCELLED', 'DRAFT', 'PUBLISHED', 'SUPERSEDED']）[ORM]"]（全部新增=["[FAIL] A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/thing/ThingService.java aap_thing.status 写入=['WITHDRAWN'] 越界=['WITHDRAWN']（ER=['CANCELLED', 'DRAFT', 'PUBLISHED', 'SUPERSEDED']）[ORM]", "[FAIL] A1b 实现写入的状态不在生成器声明域内：aap_thing.status 写入=['PUBLISHED', 'SUPERSEDED', 'WITHDRAWN'] 越界=['WITHDRAWN']（最匹配目录 ThingStatus=['CANCELLED', 'DRAFT', 'PUBLISHED', 'SUPERSEDED']）"]）
+[PASS] I4 SQL from 守卫越域 → A2 :: 锚点全部命中 :: 未命中=[]
+[PASS] I4 SQL from 守卫越域 → A2 :: 恰好新增 1 条 A2 :: 命中=["[FAIL] A2 from 守卫越出声明域：aap-server/src/main/java/com/hioas/aap/thing/ThingService.java aap_thing.status from=['BOGUS'] 越界=['BOGUS']"]（全部新增=["[FAIL] A2 from 守卫越出声明域：aap-server/src/main/java/com/hioas/aap/thing/ThingService.java aap_thing.status from=['BOGUS'] 越界=['BOGUS']", '[FAIL] A3 md L4 DRAFT→PUBLISHED 缺 from 守卫：实现写 PUBLISHED 但无 DRAFT 约束（aap-server/src/main/java/com/hioas/aap/thing/ThingService.java aap_thing）', '[FAIL] A3g md 迁移声明定位率 0/1（要求全部定位且 > 0）']）
+[PASS] I5 SQL 删掉 from 守卫 → A5 :: 锚点全部命中 :: 未命中=[]
+[PASS] I5 SQL 删掉 from 守卫 → A5 :: 恰好新增 1 条 A5 :: 命中=['[FAIL] A5 状态机表出现无条件状态写：aap-server/src/main/java/com/hioas/aap/thing/ThingService.java aap_thing.status=PUBLISHED（md 已声明该表迁移，必须有 from 守卫）']（全部新增=['[FAIL] A2g A2 判定条数 = 0（> 0）', '[FAIL] A3 md L4 DRAFT→PUBLISHED 缺 from 守卫：实现写 PUBLISHED 但无 DRAFT 约束（aap-server/src/main/java/com/hioas/aap/thing/ThingService.java aap_thing）', '[FAIL] A3g md 迁移声明定位率 0/1（要求全部定位且 > 0）', '[FAIL] A5 状态机表出现无条件状态写：aap-server/src/main/java/com/hioas/aap/thing/ThingService.java aap_thing.status=PUBLISHED（md 已声明该表迁移，必须有 from 守卫）', '[FAIL] A5g 状态机表无条件写 = 1 条（要求 0）；信息项 = 0 条']）
+[PASS] I6 md 声明不存在的迁移 → A3 :: 锚点全部命中 :: 未命中=[]
+[PASS] I6 md 声明不存在的迁移 → A3 :: 恰好新增 1 条 A3 :: 命中=['[FAIL] A3 md L4 DRAFT→ARCHIVED 在实现里无任何写入点（目标状态 ARCHIVED 零处）']（全部新增=['[FAIL] A3 md L4 DRAFT→ARCHIVED 在实现里无任何写入点（目标状态 ARCHIVED 零处）', '[FAIL] A3g md 迁移声明定位率 0/1（要求全部定位且 > 0）']）
+[PASS] I7 md 声明孤儿状态码 → A4 :: 锚点全部命中 :: 未命中=[]
+[PASS] I7 md 声明孤儿状态码 → A4 :: 恰好新增 1 条 A4 :: 命中=['[FAIL] A4 E-1701 md 有声明但实现零处抛出（孤儿码）']（全部新增=['[FAIL] A4 E-1701 md 有声明但实现零处抛出（孤儿码）']）
+[PASS] I8 ER 域加全仓库零出现的状态 → A6 :: 锚点全部命中 :: 未命中=[]
+[PASS] I8 ER 域加全仓库零出现的状态 → A6 :: 恰好新增 1 条 A6 :: 命中=['[FAIL] A6 真孤儿状态：ER 声明 aap_thing.status 含 QUARANTINED，全仓库零出现且非 DDL 默认值']（全部新增=['[FAIL] A6 真孤儿状态：ER 声明 aap_thing.status 含 QUARANTINED，全仓库零出现且非 DDL 默认值', "[FAIL] A7 schema thing.schema.json 的 status enum 比 ER aap_thing 少声明：缺 ['QUARANTINED']（客户端类型/运行时校验会判为非法值）"]）
+[PASS] I9 schema enum 比 ER 少一个值 → A7 :: 锚点全部命中 :: 未命中=[]
+[PASS] I9 schema enum 比 ER 少一个值 → A7 :: 恰好新增 1 条 A7 :: 命中=["[FAIL] A7 schema thing.schema.json 的 status enum 比 ER aap_thing 少声明：缺 ['CANCELLED', 'SUPERSEDED']（客户端类型/运行时校验会判为非法值）"]（全部新增=["[FAIL] A7 schema thing.schema.json 的 status enum 比 ER aap_thing 少声明：缺 ['CANCELLED', 'SUPERSEDED']（客户端类型/运行时校验会判为非法值）"]）
+[PASS] P1 switch case 标签不被当写入值（不新增 FAIL） :: 新增=[]
+[PASS] P2 实体映射改到别表 → A1 报越界（CANCELLED 不在 aap_other 域） :: 新增=["[FAIL] A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/thing/ThingService.java aap_other.status 写入=['CANCELLED'] 越界=['CANCELLED']（ER=['DONE', 'NEW']）[ORM]", "[FAIL] A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/thing/ThingService.java aap_other.status 写入=['SUPERSEDED'] 越界=['SUPERSEDED']（ER=['DONE', 'NEW']）[ORM]", '[FAIL] A6 真孤儿状态：ER 声明 aap_other.status 含 DONE，全仓库零出现且非 DDL 默认值']
+[PASS] S1 forbid 前缀正确（PASS 行不含 FAIL 标记）
+[PASS] S2 基线变量 ok_lines 未被后续用例覆盖（注入后仍为空） :: ok_lines=[]
+
+自测汇总：PASS 35 / FAIL 0
