@@ -1,0 +1,45 @@
+### 微信开发者工具内冒烟（真微信 runtime）
+### 时间: 2026-09-19 07:05:58
+
+微信开发者工具内冒烟
+  ws=ws://127.0.0.1:9420  后端=http://127.0.0.1:8084/api/v1  账号=13800138000
+
+  ✓ 连接自动化端口 — ws://127.0.0.1:9420
+  ✓ 系统信息（真 runtime） — platform=devtools model=iPhone 12/13 (Pro) SDK=3.17.2
+  ✓ 取短信验证码（真实接口） — ttl=300
+  ✗ 登录（真机点击 → 真后端 → 跳工作台） — mp.$ is not a function
+
+全页面冒烟（22 页）
+  ✓ pages/login/index — 落点=pages/login/index 可见文本≈1065
+  ✓ pages/workbench/index — 落点=pages/workbench/index 可见文本≈810
+  ✓ pages/credentials/index — 落点=pages/credentials/index 可见文本≈407
+  ✓ pages/credential-submit/index — 落点=pages/credential-submit/index 可见文本≈533
+  ✓ pages/credential-submit/form — 落点=pages/credential-submit/form 可见文本≈645
+  ✓ pages/detecting/index — 落点=pages/detecting/index 可见文本≈484
+  ✓ pages/report/index — 落点=pages/report/index 可见文本≈2342
+  ✓ pages/report-failed/index — 落点=pages/report-failed/index 可见文本≈970
+  ✓ pages/quotes/index — 落点=pages/quotes/index 可见文本≈145
+  ✓ pages/quote-models/index — 落点=pages/quote-models/index 可见文本≈960
+  ✓ pages/model-pricing/index — 落点=pages/model-pricing/index 可见文本≈1541
+  ✓ pages/profile-edit/index — 落点=pages/profile-edit/index 可见文本≈956
+  ✓ pages/profile/index — 落点=pages/profile/index 可见文本≈1040
+  ✓ pages/quote-preview/index — 落点=pages/quote-preview/index 可见文本≈461
+  ✗ pages/quote-form/index — 落点=pages/quote-form/index 可见文本≈0
+  ✗ pages/quote-form/apikey — 落点=pages/quote-form/apikey 可见文本≈0
+  ✓ pages/quote-form/success — 落点=pages/quote-form/success 可见文本≈696
+  ✓ pages/contract/index — 落点=pages/contract/index 可见文本≈479
+  ✓ pages/messages/index — 落点=pages/messages/index 可见文本≈87
+  ✓ pages/mine/index — 落点=pages/mine/index 可见文本≈307
+  ✓ pages/usage/index — 落点=pages/usage/index 可见文本≈547
+  ✓ pages/settings/index — 落点=pages/settings/index 可见文本≈499
+
+────────────────────────────────────────────────────────────────────────────
+步骤 26：通过 23，失败 3；页面 22：通过 22，失败 0
+
+失败明细：
+  ✗ 登录（真机点击 → 真后端 → 跳工作台） — mp.$ is not a function
+  ✗ pages/quote-form/index — 落点=pages/quote-form/index 可见文本≈0
+  ✗ pages/quote-form/apikey — 落点=pages/quote-form/apikey 可见文本≈0
+
+明细已写入 .agents/state/evidence/mp-ide-smoke.json
+exit=1
