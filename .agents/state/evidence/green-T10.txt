@@ -1,0 +1,28 @@
+=== GREEN 基线 · T10 审核（ADM-R01…R05）· 2026-09-18T09:22:37+0800 ===
+命令: cd aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test -Dtest=ReviewContractTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.54 s -- in com.hioas.aap.review.ReviewContractTest
+[INFO] BUILD SUCCESS
+
+12 例（每条端点至少一条真实 HTTP 用例）:
+  approveGeneratesContract
+  approveTwiceIsRejected
+  claimIsOptimisticLocked
+  claimMovesTaskAndQuote
+  claimSnapshotsLatestReport
+  pendingPoolDeniesNonAdmin
+  pendingPoolListsSubmittedQuote
+  recordsTimeline
+  rejectRequiresReasonCode
+  rejectTwiceIsRejected
+  resubmitReusesSameTask
+  techOpsReadOnly
+
+端点 → 用例映射:
+  ADM-R01 GET /admin/reviews            : pendingPoolListsSubmittedQuote, pendingPoolDeniesNonAdmin
+  ADM-R02 POST /admin/reviews/{id}/claim: claimMovesTaskAndQuote, claimIsOptimisticLocked, claimSnapshotsLatestReport
+  ADM-R03 POST .../approve              : approveGeneratesContract, approveTwiceIsRejected
+  ADM-R04 POST .../reject               : rejectRequiresReasonCode, rejectTwiceIsRejected
+  ADM-R05 GET /admin/reviews/records    : recordsTimeline, techOpsReadOnly
+  QT-09×T10 集成                        : resubmitReusesSameTask
+
+红基线对照: evidence/red-T10.txt（同 12 例，实现前 404 E-1406 全红）

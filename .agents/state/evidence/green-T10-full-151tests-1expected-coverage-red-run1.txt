@@ -1,0 +1,11 @@
+=== 全量复跑 run1 · 2026-09-18T09:22:26+0800 ===
+命令: cd aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test
+结果: Tests run: 151, Failures: 1, Errors: 0, Skipped: 0
+唯一红项 = EndpointCoverageTest（覆盖门禁，设计内红：清单 90 条已注册 54 / 未注册 36）。
+★ 本文件【不是】全绿证据，只是「除门禁外全绿」：17 个测试类全绿 + 覆盖门禁 1 红。
+T10 本人用例: 12/12 绿（见 .agents/state/evidence/green-T10.txt）。
+
+--- 关键行 ---
+清单 90 条 · 已注册 54 · 未注册 36 · 进程内业务路由 60 条
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.798 s -- in com.hioas.aap.review.ReviewContractTest
+[ERROR] Tests run: 151, Failures: 1, Errors: 0, Skipped: 0

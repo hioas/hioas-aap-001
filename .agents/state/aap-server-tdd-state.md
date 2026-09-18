@@ -276,19 +276,61 @@
   `UsageController`（USE-01/02）、`AdminUsageController`（ADM-U01/02）、`V4__usage_sequences.sql`、
   用例 18 例（`UsageContractTest` 11 / `UsageMetricsTest` 6 / `UsageRefreshDegradedTest` 1）
 
+## R12 · T10 审核（ADM-R01…R05，5/5 已注册）
+
+- 红基线：`.agents/state/evidence/red-T10.txt` —— 12 例 **运行时红（断言级，不是编译红）**：用例只引用
+  既有类（T03 管理端 JWT、T06 检测服务、T08 报价），全部真跑，失败一律 `404 E-1406 接口或资源不存在`
+  （`/admin/reviews*` 尚未注册）。比 T12 的「编译红」更有牙齿。
+- 绿：`.agents/state/evidence/green-T10.txt`（**12/12，BUILD SUCCESS**）；全量两轮
+  `green-T10-full-151tests-1expected-coverage-red-run{1,2}.txt`（151 例，唯一红项仍是覆盖门禁）。
+- 覆盖：`total=90 / implemented=54 / missing=36`（T10 5/5 ✅，missing 41 → 36）。
+- 交付：`com.hioas.aap.review`（`ReviewTaskEntity`/`ReviewRecordEntity` + Mapper、`ReviewViews`、
+  `ReviewService`、`AdminReviewController`）、`com.hioas.aap.contract`（`ContractEntity`/`ContractMapper`）、
+  `QuoteService#submit` 挂「提交即入池」钩子、用例 12 例（`ReviewContractTest`）。
+
+### 本轮踩坑（三条都是真返工，已修）
+
+1. **同一请求内「Mapper 写 + JdbcTemplate 读」会读到写之前的状态**（最大一坑，白扔两轮）：
+   领取接口库里明明已成 CLAIMED（后续请求的 Mapper 读得到），但**同一次响应里**用 JdbcTemplate 查出来的
+   还是 PENDING；通过/驳回同样「少一刀」。根因是两套客户端各拿各的连接，未提交的写对另一个连接不可见
+   （PG READ COMMITTED）。**规则：同一请求内的写与随后要读回的状态必须同源**——本模块因此把四条状态流转
+   SQL（claim/approve/reject/reset）改到 `JdbcTemplate`，顺带拿到**真实影响行数**，乐观锁判定才成立。
+   附带教训：只断言「HTTP 200 + 库里对」会漏掉「响应对不对」；本轮给状态断言加 `.as(body)`，
+   响应体一进失败信息，根因立刻现形。
+2. **同一实体连续两次 `update()` 会被乐观锁挡下（第二次影响 0 行且不报错）**：`QuoteService#submit`
+   先更新提交态、再用同一实体把 `current_version` +1，第二次 update 的 `where version=?` 已过期 →
+   库里版本原地不动，响应里的 `current_version=2` 只是**内存值**（T08 断言只看响应，因此一直没被发现）。
+   后果：驳回后重提插入相同 `version_no` → 撞 `uq_quote_version` → **500 E-2001**（被本轮
+   `resubmitReusesSameTask` 抓出）。修法：推进版本号前**重新读取实体**并检查影响行数为 1；
+   用例补「重提后库里 `current_version=3`」断言把缺陷钉住。
+3. **夹具也会写错**：技术指标快照用例只插一份 `detected_at = null` 的报告就当「最新」，而真实检测报告
+   （有 `detected_at`）排序在前 → 断言红。**修夹具不改断言**：改成「1 小时前 60 分」+「1 小时后 91.5 分」
+   两份，期望值仍是 91.5，顺带让「取最近一份」这条口径真正可检验。
+
+### 本轮偏差表
+
+| 编号 | 内容 | 理由 |
+|---|---|---|
+| D-STATE-02 | 通过后 `aap_quote.status = APPROVED`（非 `CONVERTED`），同事务生成 `CREATED` 合同并回写 `contract_id` | 清单 ADM-R03 只写「→ APPROVED，自动生成合同」；`CONVERTED` 语义留给 T11 签发，避免两族各自定义同一状态 |
+| D-STATE-03 | `tech_reviewed_by/at` 本轮不写 | 清单内无「技术指标复核」端点（TECH_OPS 只读），不臆造写入路径 |
+| D-AUDIT-01 | 领取（ASSIGN）只写 `aap_review_record`，不写 `aap_audit_log` | `AuditAction` 枚举由清单冻结且无领取值；扩枚举=改契约（硬约束 1） |
+| D-AUDIT-02 | 领取使报价单进入 `REVIEWING` 的审计借用 `QUOTE_SAVE`，原因写进 summary | 同上，但「状态流转必须留痕」（A13）不能省 |
+| D-API-11 | `GET /admin/reviews/records` 返回 `{items:[ReviewRecord]}`（非分页、无 page meta） | 清单该行如此定义 |
+
 ## 未决与下一步
 
-- 下一轮：**R11 · T13 站内信与审计**（NTF-01/02、ADM-A01，3 条）——本轮余项里最小的一族，
-  且直接解锁客户端序号 20 站内信列表（现在仍是 mock）；随后 **T10 审核**（ADM-R01…05）→
-  **T11 合同/打款/结算**（11 条，依赖 T10）→ **T14 同步与配置**（22 条，依赖 T09/T12）。
+- 上一轮已完成：**T10 审核**（R12，5/5）。
+- 下一轮：**T11 合同/打款/结算**（CON-01…04、PAY-01、ADM-CT01…03、ADM-PAY01…03，11 条）——
+  合同实体与审核通过后的生成链本轮已就位（`aap_contract` + `ContractEntity`），T11 只需补签发/签署/
+  打款/结算台账与状态流转；随后 **T13 站内信/审计**（3 条）→ **T14 同步与配置**（22 条，依赖 T09/T12）。
 - **待拍板（本轮新增，不阻塞现有代码可用）**
   1. **D-API-05**：AC-45 的 `PARTIAL_CACHE` 是否要纳入 `CacheParseStatus` 枚举？纳入即需改生成器 + 重生成 schema。
   2. **D-API-04**：成本构成按 token 类型的拆解口径（小时表只有总额）——是否需要新增按类型的金额列？
   3. **D-USAGE-01**：真实 new-api 用量日志源（表 or HTTP）契约未冻结 → T14 接入前需要定契约。
   4. **D-API-03**：`docs/api/接口字段级schema.md` §2 的 `{list}` 需回改为 `{items}`（文档口径统一）。
-- 剩余任务：T10 审核（5）、T11 合同/打款/结算（11）、T13 站内信/审计（3）、T14 同步与配置（22）、
+- 剩余任务：T11 合同/打款/结算（11）、T13 站内信/审计（3）、T14 同步与配置（22）、
   T15 端到端联调与容器化交付（`docs/backend/03-任务与TDD计划.md` §1 为完整清单）。
-- 覆盖门禁纪律：`EndpointCoverageTest` 在 41 条未注册期间**必然红**，它是「还剩多少没落地」的仪表；
+- 覆盖门禁纪律：`EndpointCoverageTest` 在 36 条未注册期间**必然红**，它是「还剩多少没落地」的仪表；
   每轮证据只允许写「除门禁外全绿 + missing 下降」，禁止写「全量全绿」。
 - **待前端处理（O-01）**：`aap-client/src/utils/report-model.ts:51` 兜底免责声明含 R-26 禁用字样，建议改为与
   服务端 `ReportService.DISCLAIMER` 同文案。

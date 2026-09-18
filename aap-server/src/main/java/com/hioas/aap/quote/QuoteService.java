@@ -71,12 +71,15 @@ public class QuoteService {
     private final ProviderMapper providerMapper;
     private final DocNoGenerator docNoGenerator;
     private final AuditService auditService;
+    /** T10：提交即入审核池（ADM-R01 待审池由提交驱动，不在查询时反推）。 */
+    private final com.hioas.aap.review.ReviewService reviewService;
 
     public QuoteService(QuoteMapper quoteMapper, QuoteItemMapper itemMapper, QuoteVersionMapper versionMapper,
                         PriceTimeRuleMapper timeRuleMapper, PriceTimeSegmentMapper segmentMapper,
                         PriceTierRuleMapper tierRuleMapper, PriceTierMapper tierMapper,
                         PriceRequestRuleMapper requestRuleMapper, CredentialMapper credentialMapper,
-                        ProviderMapper providerMapper, DocNoGenerator docNoGenerator, AuditService auditService) {
+                        ProviderMapper providerMapper, DocNoGenerator docNoGenerator, AuditService auditService,
+                        com.hioas.aap.review.ReviewService reviewService) {
         this.quoteMapper = quoteMapper;
         this.itemMapper = itemMapper;
         this.versionMapper = versionMapper;
@@ -89,6 +92,7 @@ public class QuoteService {
         this.providerMapper = providerMapper;
         this.docNoGenerator = docNoGenerator;
         this.auditService = auditService;
+        this.reviewService = reviewService;
     }
 
     // ------------------------------------------------------------------ 命令模型
@@ -368,8 +372,19 @@ public class QuoteService {
         snapshot.setVersionNo(quote.getCurrentVersion());
         snapshot.setSnapshot(JsonCodec.toJson(snapshotMap(quote, rows)));
         versionMapper.insert(snapshot);
-        quote.setCurrentVersion(quote.getCurrentVersion() + 1);
-        quoteMapper.update(quote);
+        // 版本号推进必须**重新读取后再更新**：同一实体连续两次 update 时第二次会被乐观锁的
+        // version 条件挡下（影响 0 行且不报错），结果是 current_version 留在原值 →
+        // 下次提交插入相同 version_no，撞 uq_quote_version（实测过的真实返工）。
+        QuoteEntity versioned = quoteMapper.selectOneById(quoteId);
+        int nextVersion = (versioned.getCurrentVersion() == null ? 0 : versioned.getCurrentVersion()) + 1;
+        versioned.setCurrentVersion(nextVersion);
+        if (quoteMapper.update(versioned) != 1) {
+            throw new ApiException(ErrorCode.E_1601, "报价单版本号推进失败，请重试");
+        }
+        quote.setCurrentVersion(nextVersion);
+
+        // T10：提交即入审核池（ADM-R01 待审池由提交驱动；驳回后重提复用同一任务并复位为 PENDING）
+        reviewService.onQuoteSubmitted(quote);
 
         auditService.record(AuditService.AuditAction.QUOTE_SUBMIT, "quote", quoteId,
                 "提交报价（" + before + "→SUBMITTED，version=" + snapshot.getVersionNo() + "）",

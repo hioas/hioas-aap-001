@@ -1,0 +1,43 @@
+=== RED 基线 · T10 审核（ADM-R01…R05）· 2026-09-18T09:13:24+0800 ===
+命令: cd aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test -Dtest=ReviewContractTest
+结果: Tests run: 12, Failures: 12, Errors: 0, Skipped: 0 — BUILD FAILURE
+红的性质: **运行时红（断言级）**，不是编译红 —— 测试只引用已存在的类，全部 12 例真正跑起来后失败：
+  典型失败: expected 200 but was 404, body={"code":"E-1406","message":"接口或资源不存在"}（/admin/reviews* 尚未注册）
+  因此本基线可证明 T10 五条端点在实现前确实不可用（不是「编译不过所以没跑」）。
+
+--- surefire 摘要 ---
+Tests run: 12, Failures: 12, Errors: 0, Skipped: 0, Time elapsed: 21.18 s <<< FAILURE! -- in com.hioas.aap.review.ReviewContractTest
+com.hioas.aap.review.ReviewContractTest.recordsTimeline -- Time elapsed: 2.726 s <<< FAILURE!
+	at com.hioas.aap.review.ReviewContractTest.poolTaskId(ReviewContractTest.java:190)
+	at com.hioas.aap.review.ReviewContractTest.recordsTimeline(ReviewContractTest.java:461)
+com.hioas.aap.review.ReviewContractTest.claimSnapshotsLatestReport -- Time elapsed: 0.371 s <<< FAILURE!
+	at com.hioas.aap.review.ReviewContractTest.poolTaskId(ReviewContractTest.java:190)
+	at com.hioas.aap.review.ReviewContractTest.claimSnapshotsLatestReport(ReviewContractTest.java:294)
+com.hioas.aap.review.ReviewContractTest.approveGeneratesContract -- Time elapsed: 0.400 s <<< FAILURE!
+	at com.hioas.aap.review.ReviewContractTest.poolTaskId(ReviewContractTest.java:190)
+	at com.hioas.aap.review.ReviewContractTest.approveGeneratesContract(ReviewContractTest.java:312)
+com.hioas.aap.review.ReviewContractTest.rejectRequiresReasonCode -- Time elapsed: 0.383 s <<< FAILURE!
+	at com.hioas.aap.review.ReviewContractTest.poolTaskId(ReviewContractTest.java:190)
+	at com.hioas.aap.review.ReviewContractTest.rejectRequiresReasonCode(ReviewContractTest.java:374)
+com.hioas.aap.review.ReviewContractTest.approveTwiceIsRejected -- Time elapsed: 0.368 s <<< FAILURE!
+	at com.hioas.aap.review.ReviewContractTest.poolTaskId(ReviewContractTest.java:190)
+	at com.hioas.aap.review.ReviewContractTest.approveTwiceIsRejected(ReviewContractTest.java:357)
+com.hioas.aap.review.ReviewContractTest.claimIsOptimisticLocked -- Time elapsed: 0.362 s <<< FAILURE!
+	at com.hioas.aap.review.ReviewContractTest.poolTaskId(ReviewContractTest.java:190)
+	at com.hioas.aap.review.ReviewContractTest.claimIsOptimisticLocked(ReviewContractTest.java:272)
+com.hioas.aap.review.ReviewContractTest.pendingPoolDeniesNonAdmin -- Time elapsed: 0.362 s <<< FAILURE!
+	at com.hioas.aap.review.ReviewContractTest.pendingPoolDeniesNonAdmin(ReviewContractTest.java:238)
+com.hioas.aap.review.ReviewContractTest.resubmitReusesSameTask -- Time elapsed: 0.326 s <<< FAILURE!
+	at com.hioas.aap.review.ReviewContractTest.poolTaskId(ReviewContractTest.java:190)
+	at com.hioas.aap.review.ReviewContractTest.resubmitReusesSameTask(ReviewContractTest.java:434)
+com.hioas.aap.review.ReviewContractTest.pendingPoolListsSubmittedQuote -- Time elapsed: 0.346 s <<< FAILURE!
+	at com.hioas.aap.review.ReviewContractTest.pendingPoolListsSubmittedQuote(ReviewContractTest.java:208)
+com.hioas.aap.review.ReviewContractTest.rejectTwiceIsRejected -- Time elapsed: 0.345 s <<< FAILURE!
+	at com.hioas.aap.review.ReviewContractTest.poolTaskId(ReviewContractTest.java:190)
+	at com.hioas.aap.review.ReviewContractTest.rejectTwiceIsRejected(ReviewContractTest.java:415)
+com.hioas.aap.review.ReviewContractTest.claimMovesTaskAndQuote -- Time elapsed: 0.331 s <<< FAILURE!
+	at com.hioas.aap.review.ReviewContractTest.poolTaskId(ReviewContractTest.java:190)
+	at com.hioas.aap.review.ReviewContractTest.claimMovesTaskAndQuote(ReviewContractTest.java:248)
+com.hioas.aap.review.ReviewContractTest.techOpsReadOnly -- Time elapsed: 0.322 s <<< FAILURE!
+	at com.hioas.aap.review.ReviewContractTest.poolTaskId(ReviewContractTest.java:190)
+	at com.hioas.aap.review.ReviewContractTest.techOpsReadOnly(ReviewContractTest.java:493)
