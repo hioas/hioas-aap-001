@@ -1,0 +1,96 @@
+### 全业务链路联调 轮2（8085 + allow-loopback + mock 上游）
+### 时间: 2026-09-19 06:48:57
+
+小程序编译产物 × aap-server 全业务链路联调
+  产物 dist/build/mp-weixin/api/**   目标 http://127.0.0.1:8085/api/v1   账号 13800138000
+
+P0 · 认证（AUTH）
+  ✓ [P0] POST /auth/sms/send — ttl=300
+  ✓ [P0] POST /auth/sms/login — role=SUPPLIER providerId=458589638116450304
+  ✓ [P0] GET /auth/me — phone=138****8000 role=SUPPLIER
+
+P1 · 供应商档案与资质（PROV）
+  ✓ [P1] GET /provider/profile — company_name=联调测试科技有限公司 status=PENDING_CREDENTIAL
+  ✓ [P1] PUT /provider/profile — company_name=联调测试科技有限公司
+  ✓ [P1] GET /provider/qualifications — 条数=0
+  ✓ [P1] POST /provider/qualifications — id=458689413348270080
+  ✓ [P1] DELETE /provider/qualifications/{id} — 已删除 458689413348270080
+
+P2 · 测试凭证（CRED）  ⚠️ 创建端点前端未接线
+  ✗ [P2] POST /credentials  [非前端调用点·直连] — E-1104 该 APIKey 已提交过（指纹重复）
+  ✓ [P2] GET /credentials — 条数=1
+  ✗ [P2] GET /credentials/{id} — 跳过：凭证未创建
+  ✗ [P2] PUT /credentials/{id} — 跳过：凭证未创建
+  ✗ [P2] POST /credentials/{id}/precheck — 跳过：凭证未创建
+
+P3 · 检测引擎（DET）
+  ✗ [P3] POST /detection-jobs — 跳过：凭证未创建
+  ✗ [P3] GET /detection-jobs/{jobId} — 跳过：凭证未创建
+  ✗ [P3] GET /detection-jobs/{jobId}/results — 跳过：凭证未创建
+
+P4 · 检测报告（RPT）
+  ✓ [P4] GET /reports — 条数=0 first=-
+  ✗ [P4] GET /reports/{reportId} — 跳过：无报告（检测未产出）
+  ✗ [P4] GET /reports/{reportId}/export — 跳过：无报告
+
+P5 · 报价单与定价（QT）
+  ✓ [P5] GET /quotes — 条数=0
+  ✗ [P5] POST /quotes — 跳过：凭证未创建
+  ✗ [P5] POST /quotes/{quoteId}/items — 跳过：凭证未创建
+  ✗ [P5] GET /quotes/{quoteId}/items — 跳过：凭证未创建
+  ✗ [P5] GET /quotes/items/{itemId} — 跳过：凭证未创建
+  ✗ [P5] PUT /quotes/items/{itemId} — 跳过：凭证未创建
+  ✗ [P5] GET /quotes/{quoteId} — 跳过：凭证未创建
+  ✗ [P5] POST /quotes/{quoteId}/submit — 跳过：凭证未创建
+
+P6 · 合同（CON）
+  ✓ [P6] 管理员登录(BIZ_OPERATOR) — role=BIZ_OPERATOR
+  ✗ [P6] [ADMIN] 领取并审核通过报价 — 无待审任务
+  ✗ [P6] [ADMIN] 签发合同 — 未生成合同
+  ✓ [P6] GET /contracts — 条数=0 first=-
+  ✗ [P6] GET /contracts/{id} — 跳过：无合同
+  ✗ [P6] GET /contracts/{id}/file — 跳过：无合同
+  ✗ [P6] POST /contracts/{id}/sign — 跳过：无合同
+
+P7 · 站内信 / 打款 / 用量
+  ✓ [P7] GET /notifications — 条数=0 first=-
+  ✗ [P7] POST /notifications/{id}/read — 跳过：无站内信
+  ✓ [P7] GET /payments — 条数=0
+  ✓ [P7] GET /usage/summary — 字段数=31
+  ✗ [P7] GET /usage/hourly — E-1001 from 缺失（RFC3339 UTC）
+
+P9 · 令牌轮换与登出（必须最后跑）
+  ✓ [P9] POST /auth/refresh — 已换发并落盘（旧 token 已失效）
+  ✓ [P9] 换发后的 token 可用（证明轮换生效） — role=SUPPLIER
+  ✓ [P9] POST /auth/logout — token 已清除
+
+──────────────────────────────────────────────────────────────────────────────
+总计 42 步：通过 19，失败 23；HTTP 请求 20 次；相对 URL 失败 0 次
+
+失败明细：
+  ✗ [P2] POST /credentials  [非前端调用点·直连] — E-1104 该 APIKey 已提交过（指纹重复）
+  ✗ [P2] GET /credentials/{id} — 跳过：凭证未创建
+  ✗ [P2] PUT /credentials/{id} — 跳过：凭证未创建
+  ✗ [P2] POST /credentials/{id}/precheck — 跳过：凭证未创建
+  ✗ [P3] POST /detection-jobs — 跳过：凭证未创建
+  ✗ [P3] GET /detection-jobs/{jobId} — 跳过：凭证未创建
+  ✗ [P3] GET /detection-jobs/{jobId}/results — 跳过：凭证未创建
+  ✗ [P4] GET /reports/{reportId} — 跳过：无报告（检测未产出）
+  ✗ [P4] GET /reports/{reportId}/export — 跳过：无报告
+  ✗ [P5] POST /quotes — 跳过：凭证未创建
+  ✗ [P5] POST /quotes/{quoteId}/items — 跳过：凭证未创建
+  ✗ [P5] GET /quotes/{quoteId}/items — 跳过：凭证未创建
+  ✗ [P5] GET /quotes/items/{itemId} — 跳过：凭证未创建
+  ✗ [P5] PUT /quotes/items/{itemId} — 跳过：凭证未创建
+  ✗ [P5] GET /quotes/{quoteId} — 跳过：凭证未创建
+  ✗ [P5] POST /quotes/{quoteId}/submit — 跳过：凭证未创建
+  ✗ [P6] [ADMIN] 领取并审核通过报价 — 无待审任务
+  ✗ [P6] [ADMIN] 签发合同 — 未生成合同
+  ✗ [P6] GET /contracts/{id} — 跳过：无合同
+  ✗ [P6] GET /contracts/{id}/file — 跳过：无合同
+  ✗ [P6] POST /contracts/{id}/sign — 跳过：无合同
+  ✗ [P7] POST /notifications/{id}/read — 跳过：无站内信
+  ✗ [P7] GET /usage/hourly — E-1001 from 缺失（RFC3339 UTC）
+
+明细已写入 E:\workspaces\hioas\hioas-aap-001\.agents\state\evidence\mp-e2e-full.json
+exit=1
