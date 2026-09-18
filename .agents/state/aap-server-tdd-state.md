@@ -1045,11 +1045,28 @@ md5 与 R19–R26 完全一致 → 自 R19 起零变化，未纳入本次提交�
   `contract-model.ts` 的 `raw.records` 是**签署记录**数组（非分页集合），不属本不变量。
 - B 分支只判定「带 `pageSize` 参数的端点是否被 `PageMeta` 包装」，不判定**每个端点的 item 模型选择是否正确**。
 
+### 提交态复跑（干净 detached worktree @ HEAD `892cfca`，不含他方未提交的 4 个文件）
+
+| 检查 | 结果 |
+| --- | --- |
+| 生成器 `--check` | rc=0 / `84/84 个生成物与生成器完全一致、孤儿 0` |
+| 集合键名审计 | `88 条断言：PASS 88，FAIL 0` |
+| 审计负向自测 | `11 条断言：PASS 11，FAIL 0` |
+| 生成器负向自测 | `14 条断言全部通过` |
+| 全量测试 | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0` / `BUILD SUCCESS` / `Total time: 01:01 min` / `[ERROR]`=0 |
+| 工具零写副作用 | 跑完 `git status` 只有 `M .agents/state/evidence/coverage-report.json`（门禁用例重新生成，属预期） |
+| worktree 收尾 | `git worktree remove --force` 成功；`git worktree list` 只剩主工作区（未做递归删除，坑 28） |
+
+结论：**提交 `892cfca` 自洽** —— 不依赖他方未提交改动。证据 `evidence/commitstate-verify-R27.txt`。
+
 ### 结论与待拍板
 
 - **90/90 维持全绿（连续第 10 轮：R18 → … → R27）**，未见 flaky；`missing=0` → 未改业务代码、未新增/删除/跳过用例、未动断言。
 - 本轮真正增量 = **首次执行的分页集合键名跨真源审计**，发现并修复了生成器 OpenAPI 产物中 56 个端点的
-  `list`/`items` 漂移（D-API-01 的残留）+ PROV-03 分页漏包装。
+  `list`/`items` 漂移（D-API-01 的残留）+ PROV-03 分页漏包装。提交 `892cfca`。
+- 密钥自检（硬规则 4）：暂存差异正则 0 命中；`E:/env/*.env` 真实值比对 **Tier A（13 个密钥类变量）0 命中**；
+  被跟踪的 `.env` 类文件只有 `aap-server/.env.example`。证据 `evidence/secret-leak-audit-R27.txt`
+  （含一次方法学自纠：第一版把 `DB_HOST`/库名这类非密钥低熵值也算作泄漏 → 12 处假命中，已按「名字是否含密钥语义」分层修正）。
 - **待拍板（维持 R23–R26，无新增）**：飞书 home channel 未绑定 —— 人工执行
   `hermes config set FEISHU_HOME_CHANNEL <channel_id>`（或发送时显式 `-t feishu:<channel>`）。
 - **待拍板（本轮新增，1 条）**：清单 `PROV-03` 行原先写 `[FileAsset]`，本轮按**实现与既有 schema**改为

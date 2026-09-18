@@ -1,0 +1,22 @@
+提交态复跑（R27 · 干净 detached worktree @ HEAD 892cfca） — 证据
+================================================================
+目的：证明**提交本身自洽** —— 不依赖同机上他方未提交的 4 个文件
+（aap-client/vite.config.ts、aap-server/.../application.yml、log4j2-spring.xml、application-test.yml）。
+方法：`git worktree add --detach <临时目录带时间戳唯一名> HEAD`（坑 27/28：全程不碰他人工作区；
+目录名带时间戳，不写「先删目录再建」的递归删除）。收尾用 `git worktree remove --force`。
+
+worktree 路径：C:/Users/laitz/AppData/Local/Temp/aap-verify-r27-130953（detached HEAD 892cfca）
+
+| 检查 | 结果 |
+| --- | --- |
+| 生成器 `--check` | rc=0 / `check ok: 84/84 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）` |
+| 集合键名审计 `audit-contract-keys.py` | `合计 88 条断言：PASS 88，FAIL 0` / 结论：五处真源一致 |
+| 审计负向自测 | `合计 11 条断言：PASS 11，FAIL 0` |
+| 生成器负向自测 | `结果：全部通过（14 条断言，自测有判别力）` |
+| 全量测试 | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0` / `BUILD SUCCESS` / `Total time: 01:01 min` / `[ERROR]` 行数 0 |
+| 工具零写副作用 | 跑完 `git status --porcelain` 只显示 `M .agents/state/evidence/coverage-report.json`（覆盖门禁用例运行时重新生成该报告，属预期；与 R25 同现象：语义等价、仅 HashMap 键序不同） |
+| worktree 收尾 | `git worktree remove --force` 成功；主工作区 `git worktree list` 只剩主工作树 |
+
+结论：**提交 892cfca 自洽** —— 生成器一致性、契约键名审计、两组负向自测与全量 204 例在干净树上同样成立。
+
+原始输出：$LOCALAPPDATA/Temp/r27-commitstate.log（含上述全量测试完整日志）
