@@ -555,3 +555,42 @@ python .agents/state/gen-ledger.py             # 刷新台账（会保留已有�
   按 `uni.request` 的真实类型对齐（uni 的 method 联合**不含 PATCH**；`res.data` 是 `string|AnyObject|ArrayBuffer`，
   要经 `unknown` 转换）。**后续每页提交前都应跑 `npm run type-check`**，它现在真的会报错。
   （根治可考虑升到 typescript@5 + vue-tsc@2，但那是依赖变更，需单独评估。）
+
+## 7. 小程序前后端联调（2026-09-19 建立）
+
+> 本机未装微信开发者工具，故「联调」分两层，**汇报时必须写清是哪一层**，不得混为一谈：
+> - **产物级联调（可在本机自动跑）**：加载 `dist/build/mp-weixin/api/**` 的**真实编译产物**，
+>   把 uni 运行时（`common/vendor.js`）换成忠实实现微信语义的桩，真实 HTTP 打 aap-server。
+> - **开发者工具 / 真机联调（需人类）**：装工具 + 扫码登录 + 导入 `dist/build/mp-weixin`。
+
+```bash
+npm run build:mp-weixin
+npm run check:mp-api-base   # 产物门禁：交给 wx.request 的基址必须是绝对 URL
+npm run e2e:mp              # 产物级联调：短信登录 → token → 工作台取数
+```
+
+### 7.1 ⚠️ 头号坑：小程序不接受相对 URL（H5 验收 100% 看不见）
+
+`src/api/http.ts` 曾把基址硬编码为 `'/api/v1'`。H5 能跑通，是因为 dev server 的 `server.proxy`
+把 `/api` 反代到 aap-server；而小程序里 `uni.request` 直接落到 `wx.request`，
+**相对 URL 一律 `request:fail invalid url`**，且小程序运行时没有 proxy。
+→ 这个缺陷在浏览器截图验收里完全不可见，只有在小程序产物/运行时才暴露。
+
+**规矩**：
+
+1. 基址一律走 `src/api/base-url.ts` 的 `resolveApiBase()`，**不得再出现字面量相对基址**。
+2. 平台判据用 `uni.getSystemInfoSync().uniPlatform`（实测：H5 = `"web"`，mp-weixin = `"mp-weixin"`）。
+3. 小程序缺 `VITE_API_BASE` 时回落 `http://127.0.0.1:8084/api/v1`（开发者工具需勾「不校验合法域名」；
+   真机不可达 127.0.0.1，生产必须配已备案 https 域名）。
+4. **产物门禁必须跑**，且判据要「执行态」而非 grep：基址修好后产物里是 `url:` + 模板拼接
+   （运行时算出来的），grep 抓不到 → 会假绿。门禁拦不到任何请求时必须退出码 2（空转防假绿）。
+
+### 7.2 其它实测事实
+
+- 产物里 `uni` **不是全局**：被编译成 `require("../common/vendor.js").index`。
+  桩要按模块导出形状提供 `{ index: {...} }`，否则 `MODULE_NOT_FOUND`。
+- 桩必须**如实实现微信端约束**（相对 URL 直接 fail、GET 拼 query、其余 JSON body），
+  否则联调脚本会自己把缺陷掩盖掉。
+- 后端同手机号短信有 60s 频控（`E-1903`）；联调脚本要**如实等待重试**，不得绕过。
+- 鉴权真伪要用「伪造 token 应被拒（E-1902）」正向证明，不能只看 200。
+- 沙箱目录 `.mp-gate-sandbox` / `.mp-e2e-sandbox` 已进 `.gitignore`；脚本收尾自行清理。
