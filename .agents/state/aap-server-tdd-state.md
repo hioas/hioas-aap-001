@@ -3563,3 +3563,16 @@ md 行内错误码列 → {A2b,A4}；实现守卫码 → {A2}；ErrorCode 状态
 + `evidence/audit-regression-R63-faildiff.txt` + `evidence/audit-regression-R63-rcseq.txt` + `evidence/green-verify-R63-full-run1.txt`
 + `evidence/green-verify-R63-full-run2.txt` + `evidence/green-verify-R63-classdiff.txt` + `evidence/green-verify-R63-testcount.txt`
 + `evidence/green-verify-R63-coverage-fields.txt`。
+
+**R63 提交态复跑**（临时 worktree，detached HEAD `534a490`；坑 27/28）：204 例全绿（0 失败/0 错误/0 跳过）
++ `EndpointCoverageTest` 自身 1/1 + `[ERROR]` 行数 0 + BUILD SUCCESS + worktree 内 `coverage-report.json` 逐字段
+`total=90/implemented=90/missing=0/registered_routes=96/not_registered=[]`（`by_task` 12 族合计 90/90）
+→ **提交本身自洽、不依赖他方 4 个未提交改动**；收尾 `git worktree remove --force`（`git worktree list` 只剩主工作树）。
+证据：`evidence/green-verify-R63-worktree-HEAD.txt`。
+
+**R63 台账收尾**：R63 行「提交」列填为 `534a490`（不留台账债）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」
+且末行「提交」列非空；R 行连续性 R27 → R63 无缺号（坑 71）。飞书通知失败留痕（第 38 轮同因：feishu home channel 未绑定，
+不阻塞交付）。
+
+**R63 观察项（坑 56 复现）**：工作区 `coverage-report.json` 每轮被测试重写，`git diff` 恒为 24 增 24 删 ——
+`Map.of(...)` 迭代顺序按 JVM SALT 随机化导致键序互换，**逐字段值完全一致**。该文件与 R59/R60/R61/R62 一致地不纳入提交。

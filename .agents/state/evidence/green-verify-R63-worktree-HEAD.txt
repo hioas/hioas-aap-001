@@ -1,0 +1,149 @@
+== R63 提交态复跑（临时 worktree，detached HEAD 534a490）==
+目的：验证「提交本身自洽、不依赖他方 4 个未提交改动」（skill 坑 27）；
+worktree 目录加时间戳取唯一名，收尾用 git worktree remove --force（不写递归删除，坑 28）
+
+REPO=E:/workspaces/hioas/hioas-aap-001
+worktree=C:/Users/laitz/AppData/Local/Temp/aap-verify-r63-045814
+HEAD=534a490
+
+Updating files:  20% (568/2782)
+Updating files:  21% (585/2782)
+Updating files:  22% (613/2782)
+Updating files:  23% (640/2782)
+Updating files:  24% (668/2782)
+Updating files:  25% (696/2782)
+Updating files:  26% (724/2782)
+Updating files:  27% (752/2782)
+Updating files:  28% (779/2782)
+Updating files:  29% (807/2782)
+Updating files:  30% (835/2782)
+Updating files:  31% (863/2782)
+Updating files:  32% (891/2782)
+Updating files:  33% (919/2782)
+Updating files:  34% (946/2782)
+Updating files:  35% (974/2782)
+Updating files:  36% (1002/2782)
+Updating files:  37% (1030/2782)
+Updating files:  38% (1058/2782)
+Updating files:  39% (1085/2782)
+Updating files:  40% (1113/2782)
+Updating files:  41% (1141/2782)
+Updating files:  42% (1169/2782)
+Updating files:  43% (1197/2782)
+Updating files:  44% (1225/2782)
+Updating files:  45% (1252/2782)
+Updating files:  46% (1280/2782)
+Updating files:  47% (1308/2782)
+Updating files:  48% (1336/2782)
+Updating files:  49% (1364/2782)
+Updating files:  50% (1391/2782)
+Updating files:  50% (1400/2782)
+Updating files:  51% (1419/2782)
+Updating files:  52% (1447/2782)
+Updating files:  53% (1475/2782)
+Updating files:  54% (1503/2782)
+Updating files:  55% (1531/2782)
+Updating files:  56% (1558/2782)
+Updating files:  57% (1586/2782)
+Updating files:  58% (1614/2782)
+Updating files:  59% (1642/2782)
+Updating files:  60% (1670/2782)
+Updating files:  61% (1698/2782)
+Updating files:  62% (1725/2782)
+Updating files:  63% (1753/2782)
+Updating files:  64% (1781/2782)
+Updating files:  65% (1809/2782)
+Updating files:  66% (1837/2782)
+Updating files:  67% (1864/2782)
+Updating files:  68% (1892/2782)
+Updating files:  69% (1920/2782)
+Updating files:  70% (1948/2782)
+Updating files:  71% (1976/2782)
+Updating files:  72% (2004/2782)
+Updating files:  73% (2031/2782)
+Updating files:  74% (2059/2782)
+Updating files:  75% (2087/2782)
+Updating files:  76% (2115/2782)
+Updating files:  77% (2143/2782)
+Updating files:  78% (2170/2782)
+Updating files:  79% (2198/2782)
+Updating files:  80% (2226/2782)
+Updating files:  81% (2254/2782)
+Updating files:  82% (2282/2782)
+Updating files:  83% (2310/2782)
+Updating files:  84% (2337/2782)
+Updating files:  85% (2365/2782)
+Updating files:  86% (2393/2782)
+Updating files:  86% (2397/2782)
+Updating files:  87% (2421/2782)
+Updating files:  88% (2449/2782)
+Updating files:  89% (2476/2782)
+Updating files:  90% (2504/2782)
+Updating files:  91% (2532/2782)
+Updating files:  92% (2560/2782)
+Updating files:  93% (2588/2782)
+Updating files:  94% (2616/2782)
+Updating files:  95% (2643/2782)
+Updating files:  96% (2671/2782)
+Updating files:  97% (2699/2782)
+Updating files:  98% (2727/2782)
+Updating files:  99% (2755/2782)
+Updating files: 100% (2782/2782)
+Updating files: 100% (2782/2782), done.
+HEAD is now at 534a490 chore(evidence): R63 巡检轮取证（90/90 连续第 45 轮全绿；204 例两轮全绿且逐类一致 + 14 套只读审计/7 套抽查/20 个负向自测零回归 + 新增抽查「乐观锁/并发控制契约」（第三十七类可审计不变量，7 条真发现）+ 台账回写）
+worktree add rc=0
+
+mvn test rc=0
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 16.51 s -- in com.hioas.aap.adminconfig.DetectionConfigContractTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.050 s -- in com.hioas.aap.adminconfig.ReportTemplateContractTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in com.hioas.aap.adminconfig.ReportTemplateWordingTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.735 s -- in com.hioas.aap.common.ApiContractTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 s -- in com.hioas.aap.common.ApiEnvelopeTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.196 s -- in com.hioas.aap.common.LoggingAndHealthTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.898 s -- in com.hioas.aap.common.MigrationTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.056 s -- in com.hioas.aap.common.OutboundUrlGuardTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.254 s -- in com.hioas.aap.common.PersistenceBaseTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.022 s -- in com.hioas.aap.compile.BillingCompilerTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.038 s -- in com.hioas.aap.compile.CompilationContractTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.441 s -- in com.hioas.aap.contract.ContractContractTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.125 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.550 s -- in com.hioas.aap.credential.AdminCredentialContractTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.945 s -- in com.hioas.aap.credential.CredentialContractTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.736 s -- in com.hioas.aap.detection.DetectionContractTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.023 s -- in com.hioas.aap.detection.ProbeScoringTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.485 s -- in com.hioas.aap.detection.RecheckServiceTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.279 s -- in com.hioas.aap.iam.AuthContractTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.749 s -- in com.hioas.aap.provider.AdminProviderContractTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.499 s -- in com.hioas.aap.provider.ProviderContractTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.629 s -- in com.hioas.aap.quote.AdminQuoteCompareContractTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.199 s -- in com.hioas.aap.quote.QuoteContractTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.019 s -- in com.hioas.aap.quote.QuoteValidationTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.133 s -- in com.hioas.aap.report.ReportContractTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.170 s -- in com.hioas.aap.review.ReviewContractTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.263 s -- in com.hioas.aap.settlement.PaymentContractTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.909 s -- in com.hioas.aap.support.NotificationContractTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.142 s -- in com.hioas.aap.sync.SyncAdminContractTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.hioas.aap.ToolchainSmokeTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.334 s -- in com.hioas.aap.usage.UsageContractTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in com.hioas.aap.usage.UsageMetricsTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.831 s -- in com.hioas.aap.usage.UsageRefreshDegradedTest
+[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Total time:  01:21 min
+[ERROR] 行数 = 0
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.125 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+worktree 内 coverage-report.json 逐字段：total=90 implemented=90 missing=0 registered_routes=96 not_registered=[]
+by_task 族数=12 族合计 total=90 implemented=90
+
+worktree remove rc=0
+
+-- git worktree list --
+E:/workspaces/hioas/hioas-aap-001 534a490 [main]
+
+（coverage-report.json 键序不比对，坑 56；worktree 的移除用 git 自带命令，不写递归删除，坑 28）
+
+--- worktree 内 mvn test 关键行 ---
+门禁自身：[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.125 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+[INFO] Total time:  01:21 min
+[ERROR] 行数 = 0（期望 0）
