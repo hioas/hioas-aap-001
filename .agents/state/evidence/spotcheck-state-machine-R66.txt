@@ -1,0 +1,46 @@
+== R66 抽查（只读）：状态变更（from → to）语义一致性（第四十类可审计不变量） ==
+为什么两套门禁都看不见：契约测试只把**响应体**与 JSON Schema 比对 —— 一次**被静默接受的非法流转**照样返回 200 + 合法 schema，
+状态列是否被合法推进**不在任何 schema 里** → 204 例全绿也看不见；覆盖门禁只比「方法 + 路径」；openapi 与客户端 TS 不被任何测试读取/执行。
+真源：M md 清单逐端点「错误码」列（状态类码）与「请求/响应」列 from→to 声明／S 实现手写 SQL（**含常量引用**）`set status`
+的 where 守卫集合／O 实现 ORM `setStatus(` 写点（区分「创建时置初始状态」与「流转」）及其守卫分类／J 实现自述（Javadoc 流转）／
+E ErrorCode.java 状态类码／T 测试源（码级断言 vs 结构级 409 断言）／P spec §4 状态枚举／D 落库状态值可追溯性（spec §4 ∪ md ∪ ER ∪ prd15）。
+命令：python <tmp>/aap-r66-spotcheck/spotcheck-state-machine-R66-v2.py --root E:/workspaces/hioas/hioas-aap-001
+退出码 = 1（1 = 存在 FAIL 明细，属预期：本轮抽查发现 3 条真发现）
+
+== R66 抽查（只读）：状态变更（from → to）语义一致性（第四十类可审计不变量） ==
+为什么两套门禁都看不见：契约测试只把**响应体**与 JSON Schema 比对 —— 被静默接受的非法流转照样返回 200 +
+合法 schema，状态列是否被合法推进不在 schema 里；覆盖门禁只比「方法 + 路径」；openapi 与客户端 TS 不被执行。
+真源：M md 逐端点错误码列/响应列 · S 手写 SQL（含常量引用）set status 的 where 守卫 · O ORM setStatus 写点
+      与其守卫分类 · J 实现自述（Javadoc 流转） · E ErrorCode.java 状态类码 · T 测试码级/结构级断言 ·
+      P spec §4 状态枚举 · D 落库状态值可追溯性（spec §4 ∪ md ∪ ER ∪ prd15）。
+root = E:\workspaces\hioas\hioas-aap-001
+解析计数：spec 状态枚举 10 组/47 值 · md 清单 90 行（10 列表 8 + 7 列表 4）· md 码表 27 码（状态类 3）· 实现 SQL 状态变更语句 16（带守卫 13）· ORM setStatus 写点 34（流转 12 / 创建 22 / 未判定 0）· 实现自述流转 26 · md from→to 声明 3 · 测试状态类码断言 28 处 / HTTP 状态断言 200×207、400×53、401×33、403×39、404×24、409×33、429×3、500×1、502×4、503×1
+ORM 流转守卫分类：optimistic=1、related=2、sibling=1、strong=8
+
+[PASS] A0a spec §4 解析到状态枚举 10 组 / 47 个状态值
+[PASS] A0b md §4 码表解析到 27 个码，其中状态类码 3 个：E-1305 E-1601 E-1701
+[PASS] A0c md 清单解析到 90 行（两套表头 8 + 4 合计，坑 89）
+[PASS] A0d 实现解析到 SQL 状态变更语句 16 条（含常量引用解析），其中带 from 守卫 13 条
+[PASS] A0e 实现解析到 ORM setStatus 写点 34 个（流转 12 / 创建 22）
+[PASS] A0f md 清单解析到 from→to 声明 3 条：ADM-CT02 CREATED→PENDING_SIGN、ADM-CT03 SUPPLIER_SIGNED→SIGNED、ADM-PAY02 PAYMENT_RECORDED→CONFIRMED
+[PASS] A0g 测试源解析到状态类码断言 28 处（码级背书）
+[PASS] A0h 实现自述（Javadoc）解析到流转声明 26 条
+[FAIL] A1 手写 SQL 状态变更**缺 from 守卫** 3 条（非法流转会被静默接受）：aap-server/src/main/java/com/hioas/aap/sync/SyncAdminService.java:328 update aap_channel_binding set status = ?, last_synced_a（表 aap_channel_binding，to=?，参数化目标状态） | aap-server/src/main/java/com/hioas/aap/sync/SyncAttemptRecorder.java:33 update aap_sync_task set status = ?, attempt_count = ?, （表 aap_sync_task，to=?，参数化目标状态） | aap-server/src/main/java/com/hioas/aap/usage/UsageService.java:279 update aap_usage_sync_cursor set cursor_hour = ?, last_r（表 aap_usage_sync_cursor，to=?，参数化目标状态）
+[PASS] A2 全部 12 个 ORM 状态流转点都有守卫证据（分类见 A2c/A2d/A2e）
+[INFO] A2c 守卫在**关联实体**状态上（需同时有对被写实体的乐观锁/条件更新断言） 2 个（上限 4）：aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:232 quote.setStatus("APPROVED") | aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:274 quote.setStatus("REJECTED")
+[INFO] A2d 守卫在**姊妹列**上（如 gate_status） 1 个（上限 2）：aap-server/src/main/java/com/hioas/aap/compile/CompilationService.java:288 entity.setStatus("CONFIRMED")
+[INFO] A2e **仅乐观锁**守卫（防并发，不防非法流转） 1 个（上限 2）：aap-server/src/main/java/com/hioas/aap/credential/CredentialService.java:192 entity.setStatus("PENDING_PRECHECK")
+[PASS] A3 md 声明的 3 条 from→to 与实现的守卫/目标状态逐条一致
+[PASS] A3b 实现自述的 26 条流转声明与实现的守卫集合一致（其中 ORM 内存守卫 20 条仅核验「有守卫」）
+[INFO] A3c 自述流转的守卫承接方式 20 条（SQL 守卫可直接核验 from；ORM 内存守卫只能核验「有守卫」）：aap-server/src/main/java/com/hioas/aap/adminconfig/AdminDetectionConfigController.java:21 自述 DRAFT→PUBLISHED ⇔ SQL 守卫 DRAFT 一致 | aap-server/src/main/java/com/hioas/aap/adminconfig/AdminDetectionConfigController.java:69 自述 DRAFT→PUBLISHED ⇔ SQL 守卫 DRAFT 一致 | aap-server/src/main/java/com/hioas/aap/adminconfig/AdminReportTemplateController.java:75 自述 DRAFT→PUBLISHED ⇔ SQL 守卫 DRAFT 一致 | aap-server/src/main/java/com/hioas/aap/adminconfig/DetectionConfigService.java:32 自述 DRAFT→PUBLISHED ⇔ SQL 守卫 DRAFT 一致 | aap-server/src/main/java/com/hioas/aap/adminconfig/DetectionConfigService.java:190 自述 DRAFT→PUBLISHED ⇔ SQL 守卫 DRAFT 一致 | aap-server/src/main/java/com/hioas/aap/adminconfig/ReportTemplateService.java:28 自述 DRAFT→PUBLISHED ⇔ SQL 守卫 DRAFT 一致 | aap-server/src/main/java/com/hioas/aap/adminconfig/ReportTemplateService.java:156 自述 DRAFT→PUBLISHED ⇔ SQL 守卫 DRAFT 一致 | aap-server/src/main/java/com/hioas/aap/contract/AdminContractController.java:49 自述 CREATED→PENDING_SIGN ⇔ SQL 守卫 CREATED 一致 | aap-server/src/main/java/com/hioas/aap/contract/AdminContractController.java:63 自述 SUPPLIER_SIGNED→SIGNED ⇔ SQL 守卫 SUPPLIER_SIGNED 一致 | aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:184 自述 PENDING_SIGN→SUPPLIER_SIGNED ⇔ SQL 守卫 PENDING_SIGN 一致 | aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:228 自述 CREATED→PENDING_SIGN ⇔ SQL 守卫 CREATED 一致 | aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:294 自述 SUPPLIER_SIGNED→SIGNED ⇔ SQL 守卫 SUPPLIER_SIGNED 一致 | aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java:31 自述 PARTIAL_DONE→COMPLETED 由 ORM 内存守卫承接（create/strong），from 集合无法静态核验 | aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:193 自述 PENDING→CLAIMED ⇔ SQL 守卫 PENDING 一致 | aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:218 自述 PENDING|CLAIMED→APPROVED ⇔ SQL 守卫 CLAIMED/PENDING 一致 | aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:252 自述 PENDING|CLAIMED→REJECTED ⇔ SQL 守卫 CLAIMED/PENDING 一致 | aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:331 自述 SUBMITTED→REVIEWING 由 ORM 内存守卫承接（strong），from 集合无法静态核验 | aap-server/src/main/java/com/hioas/aap/settlement/AdminPaymentController.java:44 自述 PAYMENT_RECORDED→CONFIRMED ⇔ SQL 守卫 PAYMENT_RECORDED 一致 | aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:27 自述 PAYMENT_RECORDED→CONFIRMED ⇔ SQL 守卫 PAYMENT_RECORDED 一致 | aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:126 自述 PAYMENT_RECORDED→CONFIRMED ⇔ SQL 守卫 PAYMENT_RECORDED 一致
+[PASS] A4 md 声明的 3 个状态类码在实现里都有抛点（E-1305×1、E-1601×41、E-1701×3）
+[PASS] A5 全部 28 个落库状态值都可在冻结文档里追溯
+[INFO] A5b spec §4 未声明、但 md/ER/prd15 已声明并实际落库的状态值 10 个（文档一致性项，需人拍板是补 spec §4 还是判实现越界）：CANCELLED(1 处)、CLAIMED(2 处)、COMPILED(1 处)、CREATED(1 处)、GENERATED(1 处)、SENT(1 处)、SUPERSEDED(2 处)、SUPPLIER_SIGNED(1 处)、UPLOADED(1 处)、VOID(1 处)
+[INFO] A6 声明状态类码的端点 21 个：码级背书 21 / 零背书 0（无）
+[INFO] A6b E-1305 测试断言 1 处（DetectionContractTest.java:220）
+[INFO] A6b E-1601 测试断言 23 处（DetectionConfigContractTest.java:276、DetectionConfigContractTest.java:305、ReportTemplateContractTest.java:183、ReportTemplateContractTest.java:219）
+[INFO] A6b E-1701 测试断言 4 处（ContractContractTest.java:218、ContractContractTest.java:237、ContractContractTest.java:347、PaymentContractTest.java:204）
+[INFO] A6c **结构级**（HTTP 状态）背书：409 断言 33 处 / 200 断言 207 处 —— 码级断言不能替代状态码断言（坑 143-①：码断言 + 状态码断言才是完整背书）
+[INFO] A7 宽守卫（status <> X / is null，可能放行未声明来源）1 条；目标状态为参数（to 无法静态判定）3 条：aap-server/src/main/java/com/hioas/aap/sync/SyncAdminService.java:328 表 aap_channel_binding 守卫=无 | aap-server/src/main/java/com/hioas/aap/sync/SyncAttemptRecorder.java:33 表 aap_sync_task 守卫=无 | aap-server/src/main/java/com/hioas/aap/usage/UsageService.java:279 表 aap_usage_sync_cursor 守卫=无
+
+汇总：PASS 13 / FAIL 1 / INFO 11

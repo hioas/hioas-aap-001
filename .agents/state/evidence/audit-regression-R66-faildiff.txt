@@ -1,0 +1,65 @@
+== R65 → R66 rc 序列逐条比对 ==
+正向对照：R65 解析到 45 条 rc；R66 解析到 47 条（都必须 > 0）
+共有条目 rc 不一致 = 0 条 []
+R66 新增条目（只允许本轮新抽查 + 其负向自测）= ['spotcheck-state-machine', 'spotcheck-state-machine-selftest']
+R65 有而 R66 缺 = []
+
+--- R66 全量 rc 序列 ---
+gen-check rc=0
+openapi-parses rc=0
+endpoint-tests rc=0
+contract-keys rc=0
+auth-contract rc=1
+routes rc=0
+error-codes rc=1
+query-params rc=1
+time-format rc=0
+enum-sets rc=1
+response-shape rc=1
+id-types rc=1
+request-body rc=1
+secret-leak rc=0
+spotcheck-required rc=1
+spotcheck-unique rc=1
+spotcheck-success-shape rc=1
+spotcheck-string-length rc=1
+spotcheck-numeric-range rc=1
+spotcheck-idempotency rc=1
+spotcheck-lock rc=1
+spotcheck-throttle rc=1
+spotcheck-audit-cols rc=1
+spotcheck-state-machine rc=1
+gen-selftest rc=0
+endpoint-tests-selftest rc=0
+contract-keys-selftest rc=0
+auth-contract-selftest rc=0
+routes-selftest rc=0
+error-codes-selftest rc=0
+query-params-selftest rc=0
+time-format-selftest rc=0
+enum-sets-selftest rc=0
+response-shape-selftest rc=0
+id-types-selftest rc=0
+request-body-selftest rc=0
+secret-leak-selftest rc=0
+spotcheck-required-selftest rc=0
+spotcheck-unique-selftest rc=0
+spotcheck-success-shape-selftest rc=0
+spotcheck-string-length-selftest rc=0
+spotcheck-numeric-range-selftest rc=0
+spotcheck-idempotency-selftest rc=0
+spotcheck-lock-selftest rc=0
+spotcheck-throttle-selftest rc=0
+spotcheck-audit-cols-selftest rc=0
+spotcheck-state-machine-selftest rc=0
+
+== FAIL 明细集合比对（剥行首来源前缀后逐行；排除 [PASS] 行） ==
+正向对照：R65 解析到 64 行 / R66 解析到 65 行（都必须 > 0，否则收集器失效）
+新增 = 1 行；消失 = 0 行
+
+--- 新增（应为本轮新抽查的 FAIL 明细 + 同源连带） ---
++ [FAIL] A1 手写 SQL 状态变更**缺 from 守卫** 3 条（非法流转会被静默接受）：aap-server/src/main/java/com/hioas/aap/sync/SyncAdminService.java:328 update aap_channel_binding set status = ?, last_synced_a（表 aap_channel_binding，to=?，参数化目标状态） | aap-server/src/main/java/com/hioas/aap/sync/SyncAttemptRecorder.java:33 update aap_sync_task set status = ?, attempt_count = ?, （表 aap_sync_task，to=?，参数化目标状态） | aap-server/src/main/jav
+
+--- 消失（必须逐条能解释，否则视为回归） ---
+
+结论：rc 序列零不一致；FAIL 明细新增 1 行（本轮新抽查 + 同源连带）、消失 0 行

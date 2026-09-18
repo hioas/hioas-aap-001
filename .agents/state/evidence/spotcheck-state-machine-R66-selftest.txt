@@ -1,0 +1,69 @@
+== R66 抽查脚本的负向自测（判别力取证） ==
+用例：合规夹具 rc=0 且 FAIL 明细空 · 8 条 A0* 正向对照全 PASS · 6 组注入缺陷（各断言「锚点命中 + 恰好新增目标断言」）·
+豁免超限（姊妹列 3 > 上限 2 → A2d 必红）· 空夹具必须变红并点名全部 A0* 且不得有 A0* PASS ·
+夹具目录零写副作用（含不得留下 __pycache__）· 真实仓库两次运行 FAIL 明细一致（只读、无状态）+ A0* 全 PASS。
+命令：python <tmp>/aap-r66-spotcheck/spotcheck-state-machine-R66-selftest.py
+退出码 = 0（自测全通过）
+
+== 合规夹具 ==
+== R66 抽查（只读）：状态变更（from → to）语义一致性（第四十类可审计不变量） ==
+为什么两套门禁都看不见：契约测试只把**响应体**与 JSON Schema 比对 —— 被静默接受的非法流转照样返回 200 +
+合法 schema，状态列是否被合法推进不在 schema 里；覆盖门禁只比「方法 + 路径」；openapi 与客户端 TS 不被执行。
+真源：M md 逐端点错误码列/响应列 · S 手写 SQL（含常量引用）set status 的 where 守卫 · O ORM setStatus 写点
+      与其守卫分类 · J 实现自述（Javadoc 流转） · E ErrorCode.java 状态类码 · T 测试码级/结构级断言 ·
+      P spec §4 状态枚举 · D 落库状态值可追溯性（spec §4 ∪ md ∪ ER ∪ prd15）。
+root = C:\Users\laitz\AppData\Local\Temp\aap-r66-spotcheck-fixtures\compliant
+解析计数：spec 状态枚举 2 组/3 值 · md 清单 3 行（10 列表 1 + 7 列表 1）· md 码表 2 码（状态类 1）· 实现 SQL 状态变更语句 2（带守卫 2）· ORM setStatus 写点 5（流转 4 / 创建 1 / 未判定 0）· 实现自述流转 5 · md from→to 声明 1 · 测试状态类码断言 1 处 / HTTP 状态断言 409×1
+ORM 流转守卫分类：optimistic=1、related=1、sibling=1、strong=1
+
+[PASS] A0a spec §4 解析到状态枚举 2 组 / 3 个状态值
+[PASS] A0b md §4 码表解析到 2 个码，其中状态类码 1 个：E-1601
+[PASS] A0c md 清单解析到 3 行（两套表头 1 + 1 合计，坑 89）
+[PASS] A0d 实现解析到 SQL 状态变更语句 2 条（含常量引用解析），其中带 from 守卫 2 条
+[PASS] A0e 实现解析到 ORM setStatus 写点 5 个（流转 4 / 创建 1）
+[PASS] A0f md 清单解析到 from→to 声明 1 条：DEMO-01 OPEN→DONE
+[PASS] A0g 测试源解析到状态类码断言 1 处（码级背书）
+[PASS] A0h 实现自述（Javadoc）解析到流转声明 5 条
+[PASS] A1 全部 2 条手写 SQL 状态变更语句都带 from 守卫
+[PASS] A2 全部 4 个 ORM 状态流转点都有守卫证据（分类见 A2c/A2d/A2e）
+[INFO] A2c 守卫在**关联实体**状态上（需同时有对被写实体的乐观锁/条件更新断言） 1 个（上限 4）：src/com/hioas/aap/demo/DemoService.java:51 demo.setStatus("DONE")
+[INFO] A2d 守卫在**姊妹列**上（如 gate_status） 1 个（上限 2）：src/com/hioas/aap/demo/DemoService.java:64 entity.setStatus("DONE")
+[INFO] A2e **仅乐观锁**守卫（防并发，不防非法流转） 1 个（上限 2）：src/com/hioas/aap/demo/DemoService.java:74 entity.setStatus("OPEN")
+[PASS] A3 md 声明的 1 条 from→to 与实现的守卫/目标状态逐条一致
+[PASS] A3b 实现自述的 5 条流转声明与实现的守卫集合一致（其中 ORM 内存守卫 5 条仅核验「有守卫」）
+[INFO] A3c 自述流转的守卫承接方式 5 条（SQL 守卫可直接核验 from；ORM 内存守卫只能核验「有守卫」）：src/com/hioas/aap/demo/DemoService.java:17 自述 OPEN→DONE ⇔ SQL 守卫 OPEN 一致 | src/com/hioas/aap/demo/DemoService.java:36 自述 OPEN→VERIFIED ⇔ SQL 守卫 OPEN 一致 | src/com/hioas/aap/demo/DemoService.java:41 自述 OPEN→DONE ⇔ SQL 守卫 OPEN 一致 | src/com/hioas/aap/demo/DemoService.java:57 自述 OPEN→DONE ⇔ SQL 守卫 OPEN 一致 | src/com/hioas/aap/demo/DemoService.java:78 自述 OPEN→DONE ⇔ SQL 守卫 OPEN 一致
+[PASS] A4 md 声明的 1 个状态类码在实现里都有抛点（E-1601×6）
+[PASS] A5 全部 3 个落库状态值都可在冻结文档里追溯
+[INFO] A5b spec §4 未声明、但 md/ER/prd15 已声明并实际落库的状态值 0 个（文档一致性项，需人拍板是补 spec §4 还是判实现越界）：
+[INFO] A6 声明状态类码的端点 2 个：码级背书 2 / 零背书 0（无）
+[INFO] A6b E-1601 测试断言 1 处（DemoContractTest.java:6）
+[INFO] A6c **结构级**（HTTP 状态）背书：409 断言 1 处 / 200 断言 0 处 —— 码级断言不能替代状态码断言（坑 143-①：码断言 + 状态码断言才是完整背书）
+[INFO] A7 宽守卫（status <> X / is null，可能放行未声明来源）0 条；目标状态为参数（to 无法静态判定）0 条：
+
+汇总：PASS 14 / FAIL 0 / INFO 9
+
+[PASS] C1 合规夹具 FAIL 明细为空（rc=0） rc=0 FAIL=[]
+[PASS] C2 合规夹具 8 条正向对照全 PASS PASS=['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A0f', 'A0g', 'A0h']
+[PASS] C3 合规夹具 A2 无「无守卫」流转点 A2 未 PASS
+[PASS] I-inj-sql-drop-guard 注入锚点命中 未命中=[]
+[PASS] I-inj-sql-drop-guard 恰好新增 A1（同源连带 A3b；rc!=0） 新增=['A1', 'A3b'] rc=1
+[PASS] I-inj-orm-drop-guard 注入锚点命中 未命中=[]
+[PASS] I-inj-orm-drop-guard 恰好新增 A2（且 rc!=0） 新增=['A2'] rc=1
+[PASS] I-inj-md-wrong-from 注入锚点命中 未命中=[]
+[PASS] I-inj-md-wrong-from 恰好新增 A3（且 rc!=0） 新增=['A3'] rc=1
+[PASS] I-inj-impl-drop-throw 注入锚点命中 未命中=[]
+[PASS] I-inj-impl-drop-throw 恰好新增 A4（且 rc!=0） 新增=['A4'] rc=1
+[PASS] I-inj-unknown-status 注入锚点命中 未命中=[]
+[PASS] I-inj-unknown-status 恰好新增 A5（且 rc!=0） 新增=['A5'] rc=1
+[PASS] I-inj-selfdecl-mismatch 注入锚点命中 未命中=[]
+[PASS] I-inj-selfdecl-mismatch 恰好新增 A3b（且 rc!=0） 新增=['A3b'] rc=1
+[PASS] I-inj-weak-cap 姊妹列豁免超限 → 恰好新增 A2d 新增=['A2d'] rc=1
+[PASS] E1 空夹具 rc!=0 且点名全部 8 条 A0* rc=1 缺失=[]
+[PASS] E2 空夹具不得出现 PASS 的 A0* PASS=[]
+[PASS] Z1 审计对夹具目录零写副作用 差异=[]
+[PASS] Z2 夹具目录无 __pycache__ 
+[PASS] R1 真实仓库两次运行 FAIL 明细一致（只读、无状态） rc=1/1 FAIL=[]
+[PASS] R2 真实仓库解析到 FAIL 行数 > 0（正向对照，坑 46/98） FAIL=['A1']
+[PASS] R3 真实仓库 A0* 全 PASS（解析器有效） PASS=['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A0f', 'A0g', 'A0h']
+
+== 自测汇总：全部通过（FAIL 0） ==

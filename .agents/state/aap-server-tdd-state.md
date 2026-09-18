@@ -3673,3 +3673,78 @@ worktree 内 `coverage-report.json` 逐字段 **90/90/0**（registered_routes=96
    但业务表是否允许 created_by 为 NULL 无书面约定（01-ER 只写「审计字段（业务表通用）」）。需人拍板：补文档约定，或要求系统写路径也落一个 SYSTEM 哨兵值。
 3. **审计列的取值级背书只覆盖 ORM 路径**（`PersistenceBaseTest` 断言 createdBy/updatedBy = 9001L）——
    21 条手写 SQL 写路径零取值级背书，故上述漏填对全部 204 例不可见。补断言属测试增强（非本轮擅自改动）。
+
+## R66 巡检轮（2026-09-19；missing=0 → 只校验不改代码；第四十类可审计不变量：状态变更 from→to 守卫一致性）
+
+**结论**：`missing=0` 连续第 **48** 轮（90/90）；全量两轮 **204 例全绿**（33 类，逐类 diff = 0）；
+覆盖门禁 90/90（registered_routes=96、missing=0、by_task 12 族合计 90/90）；`@Test` 词边界计数 204 与 surefire 合计 204 吻合、
+禁用扫描 0 条；既有 14 套只读审计 + 10 套抽查 + 23 个负向自测复跑：**rc 序列与 R65 逐条一致**（45 → 47 条，仅新增本轮 2 条）、
+零写副作用（84 个产物 size+md5 全等）。本轮**未改业务代码/清单/生成器/md/断言**。
+
+### R66 新增抽查：状态变更（from → to）语义一致性（第四十类可审计不变量）
+
+**为什么两套门禁都看不见**：契约测试只把**响应体**与 JSON Schema 比对 —— 一次**被静默接受的非法流转**照样返回 200 + 合法 schema，
+「状态列是否被合法推进」**不在任何 schema 里** → 204 例全绿也查不出；覆盖门禁只比「方法 + 路径」；openapi 与客户端 TS 不被任何测试读取/执行。
+
+**真源**：M md 清单逐端点「错误码」列（状态类码）与「请求/响应」列 from→to 声明／S 实现手写 SQL（**含常量引用**）`set status`
+的 where 守卫集合（`status =` / `in` / `<>` / `is null`）／O 实现 ORM `setStatus(` 写点（区分「创建时置初始状态」与「流转」）
+及其守卫分类（强 / 关联实体 / 姊妹列 / 仅乐观锁）／J 实现自述（Javadoc 流转声明）／E `ErrorCode.java` 状态类码／
+T 测试源（码级断言 vs 结构级 409 断言）／P spec §4 状态枚举／D 落库状态值可追溯性（spec §4 ∪ md ∪ ER ∪ prd15）。
+
+**解析计数**（正向对照，坑 46/75）：spec 状态枚举 10 组/47 值 · md 清单 90 行（两套表头 8 + 4，坑 89 的合计对照）·
+md 码表 27 码（状态类 3：E-1305/E-1601/E-1701）· 实现 SQL 状态变更语句 16 条（带守卫 13）· ORM `setStatus` 写点 34 个（流转 12 / 创建 22）·
+实现自述流转 26 条 · md from→to 声明 3 条 · 测试状态类码断言 28 处 / 结构级 409 断言 33 处。
+
+**真发现 1 条判据、3 处写点**：`A1 手写 SQL 状态变更缺 from 守卫`
+① `SyncAdminService.java:328`（`update aap_channel_binding set status = ?`，where 仅 `id + deleted`）；
+② `SyncAttemptRecorder.java:33`（`update aap_sync_task set status = ?`，where 仅 `id + deleted`）；
+③ `UsageService.java:279`（`update aap_usage_sync_cursor set cursor_hour/last_batch_id/status = ?`，where 仅 `data_source + deleted`）。
+三张表的 `status` 列 DDL 默认值分别为 `NOT_SYNCED` / `PENDING` /（无默认）→ 实现可从**任意**当前状态写入下一状态
+（非法流转被静默接受），且这三条语句都**没有影响行数判定**（无法发现「状态已被他人改动」）。
+**风险分级（诚实分级，坑 54/88）**：三者都是**内部派生写路径**（非客户端端点、md 清单无端点声明、客户端零调用）
+→ 列「待拍板」而非线上故障；若日后开放为客户端可达端点则升级为硬缺陷。
+
+**正面结论（带正向对照）**：A2 全部 12 个 ORM 状态流转点都有守卫证据（强 8 / 关联实体 2 / 姊妹列 1 / 仅乐观锁 1，豁免均设上限且未超限）；
+A3 md 声明的 3 条 from→to（ADM-CT02 `CREATED→PENDING_SIGN`、ADM-CT03 `SUPPLIER_SIGNED→SIGNED`、ADM-PAY02 `PAYMENT_RECORDED→CONFIRMED`）
+与实现的守卫/目标状态**逐条一致**；A3b/A3c 实现自述（Javadoc）26 条流转与守卫承接方式一致（SQL 守卫可直接核验 from、ORM 内存守卫只核验「有守卫」）；
+A4 md 声明的 3 个状态类码在实现里都有抛点（E-1305×1、E-1601×41、E-1701×3）；A5 全部 28 个落库状态值都可在冻结文档里追溯；
+A6 声明状态类码的端点 21 个**全部有码级背书**（E-1305 1 处 / E-1601 23 处 / E-1701 4 处）+ 结构级 409 断言 33 处。
+信息项 A5b：spec §4 未声明、但 md/ER/prd15 已声明并实际落库的状态值 **10 个**
+（CANCELLED / CLAIMED / COMPILED / CREATED / GENERATED / SENT / SUPERSEDED / SUPPLIER_SIGNED / UPLOADED / VOID）
+→ 文档一致性项（spec §4 覆盖不全），需人拍板补 spec §4 还是判实现越界。
+
+### R66 抽查脚本自身返工 3 处（**先怀疑判据**，坑 46/81/98/102）
+
+1. **方法签名正则的返回类型字符类漏 `\s`** → `PageResult<Map<String, Object>>`（逗号后带空格）整段收不进方法表，
+   其内的 `setStatus` 被判「未能静态判定（不在任何解析到的方法体内）」（`ProviderService:180` 的创建路径被漏判）。
+   指纹：**「未能静态判定」条数 > 0 且集中在带泛型返回类型的方法里**。修后 流转 12 / 创建 22 全部分类到位。
+2. **A3b 只按 SQL 守卫核验 from** → ORM **内存守卫**（`"SUBMITTED".equals(quote.getStatus())` + `throw`；
+   `"CANCELLED".equals(job.getStatus())` + `throw`）被误判成「写向该状态的语句全部没有守卫」→ **2 条假 FAIL**（判据范围与语义不符，坑 81/140）。
+   修法：有**手写 SQL 写点**时才做 from 覆盖的硬断言；纯 ORM 写点只核验「有没有守卫」（无守卫才 FAIL），其余记 INFO（A3c）。
+3. **A4 在状态类码集合为空时会空转判 PASS**（`missing_throw` 为空 → `else` 分支 PASS）→ 补「集合为空即判不可用」（坑 98）。
+
+### R66 判别力自测（负向，23/23 PASS）
+
+合规夹具 rc=0 且 FAIL 明细空 + A0a…A0h 八条正向对照全 PASS + **6 组注入缺陷**（去 SQL 守卫 / 去 ORM 守卫 / 改 md from /
+去实现抛点 / 写未声明状态值 / 改自述 from）各断言「**锚点命中**（注入必须真的改到源码，坑 66/90/94）+ **恰好新增目标断言**」+
+**豁免超限**（姊妹列 3 > 上限 2 → A2d 必红）+ 空夹具 rc≠0 且点名全部 A0* 且无 A0* PASS + 夹具目录零写副作用（含不得留下 `__pycache__`）+
+真实仓库两次运行 FAIL 明细一致（只读、无状态）且 A0* 全 PASS。
+其中 1 处「同源连带」已在判据里写明：去掉 `VERIFIED` 语句的守卫后，A3b（自述 `OPEN → VERIFIED`）**必然同时点名**
+→ 该用例判据写成「必须包含 A1 且不越界」（坑 82/93/136）。
+
+### R66 台账
+
+- 追加 R66 行（8 列，CSV 解析复核「每行列数 = 表头列数」且 R 行连续 R27 → R66 无缺号，坑 71/80）；
+- 顺带**规范化 R65 行内的重复前缀残留**（该行状态列以 `R65,,,,` 开头，属上一轮写入瑕疵）；
+- 飞书通知：见 `feishu-notify-failures.txt`（已知问题：feishu home channel 未绑定，不阻塞交付）。
+
+**证据**：`green-verify-R66-full-run1.txt`；`green-verify-R66-full-run2.txt`；`green-verify-R66-classdiff.txt`；
+`green-verify-R66-testcount.txt`；`green-verify-R66-coverage-fields.txt`；`audit-regression-R66.txt`；
+`audit-regression-R66-faildiff.txt`；`audit-regression-R66-rcseq.txt`；`spotcheck-state-machine-R66.txt`；
+`spotcheck-state-machine-R66-selftest.txt`。
+
+**待拍板**（本轮新增 1 项）：① 3 处**内部派生写路径**的状态变更缺 from 守卫（`aap_channel_binding` / `aap_sync_task` /
+`aap_usage_sync_cursor`）—— 补条件 UPDATE 属实现变更（改行为），需人拍板；② spec §4 未声明 10 个已落库状态值（文档一致性项）。
+
+**观察项**（非缺陷）：工作区 `coverage-report.json` 每轮被测试重写，`git diff` 恒为 24 增 24 删 —— `Map.of(...)` 迭代顺序按
+JVM SALT 随机化（键序互换而**逐字段值完全一致**，本轮实测 total=90/implemented=90/missing=0）；与 R59–R65 一致地**不纳入提交**（坑 56）。
