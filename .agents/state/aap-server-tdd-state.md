@@ -590,3 +590,38 @@
 - **待前端处理（O-01）**：`aap-client/src/utils/report-model.ts:51` 兜底免责声明含 R-26 禁用字样，建议改为与
   服务端 `ReportService.DISCLAIMER` 同文案。
 - 待办（跨轮）：`aap-server/README.md` 运行说明；T15 时把 `aap-client` 的 `baseUrl` 指向本服务做联调截图。
+
+## R19（2026-09-18 11:09–11:11）· 验收巡检：90/90 全绿复验（**不改代码**）
+
+**触发条件**：`coverage-report.json` = total 90 / implemented 90 / **missing 0**，任务规则第 4 步生效
+→ 本轮**不写任何代码、不动任何断言**，只做独立复验并留证。
+
+**复验结果（真实执行，非自述）**
+
+| 项 | 结果 |
+|---|---|
+| 全量 run1（工作树现状） | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0` / `BUILD SUCCESS` |
+| 全量 run2（防 flaky 第二轮） | 同上，完全一致 / `Total time: 50.812 s` |
+| 覆盖门禁 | `EndpointCoverageTest` `Tests run: 1, Failures: 0` → 90/90 转绿（registered_routes=96，not_registered=[]） |
+| 证据文件 | `evidence/green-verify-R19-full-204tests-run1.txt`、`green-verify-R19-full-204tests-run2.txt` |
+| 台账 | `evidence/coverage-history.txt` 追加 3 行（2 行本轮 + 1 行时间戳更正） |
+
+**本轮观察（供下一轮参考，均未改代码）**
+
+1. **工作树里混着他方未提交的改动**（`application.yml` 把 `expose-code` 改为 `${AAP_SMS_EXPOSE_CODE:false}`、
+   `application-test.yml` 把日志目录拆到 `logs/test`、`log4j2-spring.xml`、`aap-client/vite.config.ts`）。
+   本轮的全量复验**就是在这些未提交改动之上**跑的，204 例仍全绿 → 说明这些改动当前不破坏测试；
+   但它们**不属于本任务**，本轮一个 hunk 都没提交（只提交 `.agents/state/` 下自己的证据与台账）。
+2. **覆盖门禁现在是双向的**：既查「清单有但没注册」，也查「代码注册了但清单没有」。90/90 之后
+   任何端点改动都必须先改 `tools/gen-backend-models.py` 的 PATHS 表 + 冻结清单，否则门禁会红。
+3. **常驻进程**：`jps` 显示 `com.hioas.aap.AapServerApplication`（PID 6220，08:03 启动）仍在跑，
+   属他方联调进程，本轮只做只读观察，未 kill、未重启；测试库 `aap_server_test` 与之无冲突
+   （本轮两轮连跑结果完全一致，无幽灵失败）。
+4. **台账时间戳卫生**：上一轮写入的 11:05/11:08/11:18 与证据 mtime（10:54/10:55/10:58）不符，
+   已在 `coverage-history.txt` 显式更正（结论不变）。教训：**台账时间戳应当场用 `date` 取**，
+   不要事后凭印象补写 —— 否则「证据文件名/mtime/台账」三者的时间线会对不上，评审时无法互证。
+
+**未决与下一步（不变）**：仅剩 T15 端到端验收与交付（`aap-server/README.md` 运行说明 +
+`aap-client` 指向本服务联调截图）；`docs/backend/03-任务与TDD计划.md` §1 为完整清单。
+待拍板事项见上一节（D-API-12/14、D-STATE-04、D-PAY-01、D-API-24/25、D-SYNC-01…05、D-ADM-01…03 等），
+本轮无新增、无变化。

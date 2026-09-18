@@ -19,3 +19,6 @@
 2026-09-18T11:05 全量 run1 | total=90 implemented=90 missing=0 | 推进 T14 批次四（ADM-P01…03、ADM-C01/02、ADM-Q02） | 204 例全绿 + 覆盖门禁 90/90 转绿（首次真正「全量全绿」） | 证据 green-T14-batch4-full-run1.txt
 2026-09-18T11:08 全量 run2（提交前连跑第二轮） | total=90 implemented=90 missing=0 | 与 run1 结果一致（204 例全绿） | 证据 green-T14-batch4-full-run2.txt
 2026-09-18T11:18 提交态复跑（干净 worktree @ HEAD 13f6fc4，无他方未提交改动） | total=90 implemented=90 missing=0 | 204 例全绿 + 门禁 90/90 → 提交 13f6fc4 自洽 | 证据 green-T14-batch4-commitstate-full.txt
+2026-09-18T11:09 全量 run1（工作树现状，含他方未提交的 yml 改动） | total=90 implemented=90 missing=0 | R19 巡检复验（missing==0 → 不改代码）：204 例全绿（0 失败/0 错误/0 跳过）+ EndpointCoverageTest 90/90 绿 | 证据 green-verify-R19-full-204tests-run1.txt
+2026-09-18T11:10 全量 run2（防 flaky 连跑第二轮） | total=90 implemented=90 missing=0 | 与 run1 完全一致（204 例全绿，Total time 50.8s）| 证据 green-verify-R19-full-204tests-run2.txt
+2026-09-18T11:11 台账时间戳更正（证据卫生，非结论变更） | 第 19–21 行写的 11:05/11:08/11:18 与证据文件 mtime（10:54/10:55/10:58）及提交时间（13f6fc4@10:57:10、b3dbb8e@10:59:11）不一致，属上一轮写入时的估算值，不是伪造证据；权威锚点以 mtime + commit 时间为准。另：第 11–15 行存在 10:18 早于 10:12 的顺序倒挂，不影响结论
