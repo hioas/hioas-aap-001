@@ -3892,3 +3892,14 @@ A1/A2/A3/A4 且无 A0* PASS + **6 组注入缺陷**（GET 链上加写 / 写端�
 `coverage-report.json` 被门禁（Java 侧）以 **CRLF** 重写（实测工作区 CR 字节 = 56，index/HEAD = 0）→
 `git ls-files --eol` 显示 `i/lf w/crlf`、`git status` 恒显示 M，但 `git diff --numstat` **无行变化**（逐字段值一致，坑 56 同族）。
 本轮已按 LF 归一（读全文 → 替换 CRLF → 写回），归一度 = 0、与 HEAD 逐字节一致（`git status` 干净）。
+
+#### R68 收尾（台账 + 提交态复跑）
+
+- **提交态复跑**（临时 worktree，detached HEAD 5bb4bb7）：204 例全绿 + 门禁自身 1/1 + `[ERROR]` 行数 0 + BUILD SUCCESS +
+  worktree 内 `coverage-report.json` 逐字段 90/90/0 → **提交自洽、不依赖他方未提交改动**；
+  收尾用 `git worktree remove --force`（git 自带命令，不做目录递归删除，坑 28）。
+- **台账**：追加 R68 行（8 列；用真正的 csv 解析复核「每行列数 = 表头列数」、R 行连续 R27 → R68 无缺号，坑 71/80/155），
+  并在本轮把「提交」列回填为 5bb4bb7（不留台账债）。
+- **飞书通知**：本轮 `hermes send -t feishu` 的结果是 **skipped**（「本 cron 作业会自动把最终回复投递到同一目标」），
+  与 R65–R67 的「No home channel set for feishu」失败**不同因**：通知由本作业的最终回复承载，非失败；
+  已在该形态变化写入 `evidence/feishu-notify-failures.txt`。

@@ -1,0 +1,14 @@
+== R68 提交态 worktree 复跑（验证「提交本身自洽、不依赖他方未提交改动」，坑 27/28） ==
+临时 worktree（detached HEAD 5bb4bb7）：C:/Users/laitz/AppData/Local/Temp/aap-verify-r68b-071636
+命令：export PATH="$HOME/bin:$PATH"; cd <worktree>/aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test
+rc = 0（脚本实测）
+
+汇总：[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS = True；[ERROR] 行数 = 0
+门禁自身：[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.222 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+
+worktree 内 coverage-report.json 逐字段：total=90 implemented=90 missing=0 registered_routes=96 not_registered=[]
+by_task 合计：total=90 implemented=90
+
+结论：**提交 5bb4bb7 自洽**（工作树里他方的未提交改动未参与本轮复跑），门禁与全量用例在提交态同样全绿。
+收尾：`git worktree remove --force <path>`（git 自带命令，不做目录递归删除，坑 28）
