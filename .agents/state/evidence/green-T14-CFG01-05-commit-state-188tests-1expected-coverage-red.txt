@@ -1,0 +1,9 @@
+== T14 批次二 提交态复跑（HEAD 版本 yml，排除他人未提交改动）==
+方法：cp 备份工作树 4 个 M 文件 → git checkout -- 覆盖为 HEAD 版本 → 跑全量 → 还原备份
+时间：2026-09-18 10:15:24+0800  HEAD=bdb3121
+
+结论：188 例、唯一红项仍是覆盖门禁（12 条未注册，属设计）→ 提交 78ad322 自洽，不依赖他方未提交改动。
+
+[ERROR] com.hioas.aap.coverage.EndpointCoverageTest.everyListedEndpointIsRegistered -- Time elapsed: 0.112 s <<< FAILURE!
+	at com.hioas.aap.coverage.EndpointCoverageTest.everyListedEndpointIsRegistered(EndpointCoverageTest.java:143)
+[ERROR]   EndpointCoverageTest.everyListedEndpointIsRegistered:143 [以下接口在冻结清单中但未注册（明细见 .agents/state/evidence/coverage-report.json）] 
