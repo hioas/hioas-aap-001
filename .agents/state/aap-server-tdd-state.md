@@ -3198,3 +3198,71 @@ DTO 分量 **776** 个（带必填类注解 **10**）·带 `@RequestBody` 路由
 * R57 行「提交」列填为 `22e2988`（不留台账债）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」且末行「提交」列非空；
   R 行连续性：R27 → R57 **无缺号**（坑 71）。
 * 飞书通知失败留痕（第 32 轮同因：feishu home channel 未绑定，不阻塞交付）→ `evidence/feishu-notify-failures.txt`。
+
+## R58 巡检轮（2026-09-19；missing=0 → 只校验不改代码；第三十二类可审计不变量：唯一性约束 ⇔ 冲突语义）
+
+### 新增抽查：唯一性约束 ⇔ 冲突语义（第三十二类可审计不变量）
+
+**不变量**：DDL 唯一约束 ⇔ 实现对该冲突的处置方式（upsert / 捕获唯一冲突 / 查重后写入）⇔ 全局兜底 handler ⇔
+契约声明的冲突业务码 ⇔ 测试背书。
+
+**为什么两套门禁都看不见**：契约测试只把**真实响应**与各模型 JSON Schema 比对，而**唯一冲突的并发路径不在任何用例里**
+（204 例全是串行单请求）；覆盖门禁只比「HTTP 方法 + 路径」是否注册；`openapi.yaml` 与客户端 TS 不被任何测试读取/执行 →
+「唯一索引存在、但实现只做查重后插入（check-then-insert）、且没有任何地方把唯一冲突映射成业务码」这类 **TOCTOU 竞态**
+对全量用例完全不可见（坑 62/85/88/100 同族）。
+
+**真源五处**：
+* **U** = DDL 唯一键：`V1__baseline.sql` 的 `create unique index`（42 条）＋内联 `primary key`（53 条，作信息项，不参与冲突判定）；
+* **I** = 实现处置：① `on conflict (...) do update`（upsert）② `catch (DuplicateKeyException|DataIntegrityViolationException)`
+  （判据是 **catch 子句**，只 `import` 不算 —— 否则「删掉捕获」的注入判不出来）③ 同方法内对该表唯一列做**计数/存在性**查询（强预查）
+  ④ 无任何处置；
+* **G** = `GlobalExceptionHandler` 是否含唯一冲突分支；
+* **C** = 契约可触发表面 = `requests/*.schema.json` 属性名 ∪ 路径变量名 ∪ 查询参数名（归一化后比对，用于区分「用户可触发的重复」与
+  「服务端派生值的重复」）；
+* **T** = 测试源对冲突业务码的断言。
+
+**断言结果：PASS 13 / FAIL 1 / INFO 12**（正向对照全部 PASS：DDL 唯一索引 42 条、实现 169 文件/1610 方法、契约表面 113 名+90 端点、
+处置证据 5 条、部分唯一索引 34 条、测试源业务码 25 种、md §4 冲突码 1 条、endpoints.json 声明冲突码端点 9 条）。
+
+**真发现（FAIL A2，5 条，均为「仅靠强预查、无捕获、无 upsert」且唯一列名命中契约表面）**：
+
+| 唯一索引 | 表 | 唯一列 | 实现机制（人工核对） | 契约承诺 |
+|---|---|---|---|---|
+| `uq_provider_uscc` | aap_provider | uscc | `ProviderService.updateProfile` → `ensureUsccUnique`(selectCount) → 写库 | PROV-02 声明 E-1104（409） |
+| `uq_credential_fingerprint` | aap_credential | provider_id, api_key_fingerprint | `CredentialService.create` → `ensureFingerprintUnique`(selectCount) → insert | CRED-02/04 声明 E-1104 |
+| `uq_credential_primary` | aap_credential | provider_id（谓词 `primary_flag = true`） | `create:124-126` → `demoteExistingPrimary`（改旧主）→ insert；**无查重** | CRED-02 声明 E-1104 |
+| `uq_job_active` | aap_detection_job | credential_id（谓词 `active_flag = true`） | `DetectionService.createJob` → `hasActiveJob`(selectCount) → `enqueue`(insert) | DET-01/CRED-05 声明 E-1301（409） |
+| `uq_quote_item_model` | aap_quote_item | quote_id, model_name | `QuoteService.setItems` → `selectOne(...)` 为空则 insert（check-then-insert） | QT-02/05 明细写入 |
+
+**机制**：`GlobalExceptionHandler` 只有 `ApiException` / 校验类 / `AccessDenied` / `Authentication` / `Exception` 分支，
+**没有** `DuplicateKeyException` / `DataIntegrityViolationException` 分支 → 未被捕获的唯一冲突落到 `Exception` 分支 = **500 E-2001**。
+两个并发请求同时通过查重（PG 默认 READ COMMITTED，查重与写入之间无锁/无 `for update`）→ 后者撞唯一索引 → 客户端拿到 500 + E-2001，
+而契约承诺 409 + 业务码。**分级：并发竞态，非必现；属「契约承诺的错误码在竞态下不成立」，需人拍板是否补全局兜底映射或改 `on conflict`。**
+
+**分层信息项（不夸大、不缩水）**：
+* 仅靠强预查但列名**未**命中契约表面 4 条（`uq_auth_jti`/`uq_job_no`/`uq_quote_no`/`uq_contract_no`，服务端派生值，重复即代码缺陷）；
+* 预查证据**弱**（方法内无计数/存在性上下文，可能只是按该列查询而非查重）11 条；
+* **零处置**唯一索引 20 条，其中列名命中契约表面 6 条（弱证据，含同名碰撞需人工复核：`aap_role.code` 与短信 `code` 同名等）；
+* 内联 primary key 53 条（`id` 由雪花/序列生成，重复即生成器缺陷，不参与冲突判定）。
+
+**正面结论（均带正向对照）**：42 条唯一索引全部解析到；34 条带 `deleted = false` 部分谓词，与 ORM 预查自动追加的逻辑删除过滤
+（`mybatis-flex.global-config.logic-delete-column=deleted`，application.yml:38）一致；2 条 flag 谓词索引（`uq_credential_primary`、`uq_job_active`）；
+1 条 upsert（`uq_usage_hourly` 用量桶，`on conflict ... do update`）；1 条真捕获（`IdempotencyFilter` 对 `aap_idempotency_record`）；
+契约侧 9 个端点声明冲突类码（E-1104/E-1301/E-1402）；测试源冲突类码出现 21 处。
+
+**本轮脚本自身返工 5 条（先怀疑解析器，坑 46/63/87/124 再现）**：
+1. 方法切分正则用 `[\w<>\[\],.\s?]+` 贪婪跨行 → 把整份文件吞成一个「方法」，绝大多数方法丢失（预查证据塌到 3 条）；
+   修法：限定**行首修饰符 + 同一行内签名**（`^[ 	]*(?:public|private|protected)[ 	]+([^
+(]*?)(\w+)[ 	]*\(`）再用**括号深度扫描**方法体。
+2. `@Table` 实体类名在**注解之后**声明，却按「注解之前的最后一个 class」回查 → 实体 token 永远取不到（token 集只剩表字面量）。
+3. Mapper↔表 关联按命名猜测（`aap_provider` → `AapProviderEntity`）→ 猜不中；改为「`BaseMapper<X>` 的 X → `@Table` 声明的表名」映射。
+4. 字段引用是**小写驼峰**（`providerMapper`），而 token 集只有大驼峰类名 → 方法体判定 `refs_table` 恒假；补小写驼峰变体。
+5. 捕获判据只写 `DuplicateKeyException` 字面量 → 仅 `import` 也算「已捕获」，「删掉 catch」的注入判不出来（判别力假绿，坑 66/90）；
+   改为匹配 **catch 子句**。配套：抽查脚本对缺失文件必须返回空结构（`jload` 兜底），否则空夹具下直接崩、连 FAIL 明细都没有（坑 128）。
+
+**判别力自测 18/18 PASS**：合规夹具 rc=0 且 FAIL 0；空夹具点名 8 条正向对照；4 组注入缺陷（删捕获 / 删契约表面 / 删唯一索引 /
+改全局兜底）各**恰好新增目标断言**且**锚点全部命中**（注入必须真的改到源码，坑 66/94）；判据敏感性（去契约表面 → A2 消失，
+证明 A2 真的依赖该维度而不是恒真）；真实仓库只读守卫（`git status` 前后一致）；夹具目录零写副作用。
+
+**R58 结论**：90/90 维持全绿（连续第 40 轮：R18 → … → R58）；本轮未改业务代码、未改清单、未改生成器、未改 md、未动断言
+（只读校验 + 抽查 + 台账回写）。新增待拍板 1 项（唯一冲突在并发竞态下返回 500 E-2001 而非契约承诺的 409 业务码 → 是否补全局兜底映射）。

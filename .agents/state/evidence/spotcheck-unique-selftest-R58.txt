@@ -1,0 +1,20 @@
+[PASS] T1 合规夹具 rc=0 rc=0 fails=[]
+[PASS] T2 合规夹具 FAIL 0 []
+[PASS] T3 正向对照齐全（A0a/A0b/A0c/A0e/A0f 全部 PASS） A0a/A0b/A0c/A0e/A0f
+[PASS] T4 夹具目录零写副作用 changed=0
+[PASS] T5 合规夹具下唯一键被解析到（A0a 计数 > 0） 
+[PASS] T6 空夹具 rc!=0 rc=1
+[PASS] T7 空夹具点名 A0a（解析器失效必须转红，坑 46/75） ['A0a', 'A0c', 'A0e', 'A4a', 'A5a', 'A5b', 'A5c', 'A5d']
+[PASS] T8 注入1 锚点命中（注入真的改到源码） []
+[PASS] T9 注入1 恰好新增 A2（仅预查、无捕获） ['A2']
+[PASS] T10 注入2 锚点全部命中 []
+[PASS] T11 注入2 后 A2 消失（证明 A2 判据真的依赖「契约表面」这一维度） fails=[]
+[PASS] T12 注入3 锚点命中 []
+[PASS] T13 注入3 点名 A0a（唯一索引消失必须转红） fails=['A0a', 'A0e', 'A4a', 'A5d']
+[PASS] T14 注入4 锚点命中 []
+[PASS] T15 无全局兜底时 A0d 走 INFO 分支（且不产生 FAIL） fails=[]
+[PASS] T16 真实仓库只读（git status 不变） 
+[PASS] T17 真实仓库解析到 42 条唯一索引 + 5 条契约可触发唯一键命中 A2 rc=1
+[PASS] T18 真实仓库 FAIL 集合恰好 = {A2} ['A2']
+
+自测汇总：18/18 PASS

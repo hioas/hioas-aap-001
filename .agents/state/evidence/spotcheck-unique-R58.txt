@@ -1,0 +1,103 @@
+== R58 抽查：唯一性约束 ⇔ 冲突语义（第三十二类可审计不变量）==
+真源：U=DDL 唯一键 / I=实现处置 / G=全局兜底 / C=契约可触发表面 / T=测试背书
+
+== 正向对照 ==
+
+== A1 逐唯一索引处置 ==
+  uq_account_phone_hash          aap_provider_account         cols=phone_hash                               pred=deleted = false                                → 仅预查
+      预查证据（1 处，其中强证据 0）：AuthService.java#findByPhoneHash
+  uq_account_wx_openid           aap_provider_account         cols=wx_openid                                pred=deleted = false and wx_openid is not null      → 仅预查
+      预查证据（1 处，其中强证据 0）：AuthService.java#wechatLogin
+  uq_admin_username              aap_admin_user               cols=username                                 pred=deleted = false                                → 零处置
+  uq_role_code                   aap_role                     cols=code                                     pred=deleted = false                                → 零处置
+  uq_user_role                   aap_user_role                cols=user_id,user_type,role_code              pred=deleted = false                                → 零处置
+  uq_wechat_openid               aap_wechat_binding           cols=openid                                   pred=deleted = false                                → 零处置
+  uq_auth_jti                    aap_auth_token               cols=jti                                      pred=-                                              → 仅预查
+      预查证据（2 处，其中强证据 1）：AuthService.java#logout; JwtAuthenticationFilter.java#isRevoked
+  uq_provider_no                 aap_provider                 cols=provider_no                              pred=deleted = false                                → 零处置
+  uq_provider_code               aap_provider                 cols=provider_code                            pred=deleted = false                                → 仅预查
+      预查证据（1 处，其中强证据 0）：AuthService.java#ensureProvider
+  uq_provider_uscc               aap_provider                 cols=uscc                                     pred=deleted = false and uscc is not null           → 仅预查
+      预查证据（1 处，其中强证据 1）：ProviderService.java#ensureUsccUnique
+  uq_provider_short_code         aap_provider                 cols=short_code                               pred=deleted = false and short_code is not null     → 零处置
+  uq_credential_primary          aap_credential               cols=provider_id                              pred=primary_flag = true and deleted = false        → 仅预查
+      预查证据（5 处，其中强证据 2）：CredentialService.java#demoteExistingPrimary; CredentialService.java#ensureFingerprintUnique; CredentialService.java#list; QuoteService.java#create
+  uq_credential_fingerprint      aap_credential               cols=provider_id,api_key_fingerprint          pred=deleted = false                                → 仅预查
+      预查证据（1 处，其中强证据 1）：CredentialService.java#ensureFingerprintUnique
+  uq_challenge_code              aap_provider_challenge       cols=challenge_code                           pred=-                                              → 零处置
+  uq_detection_config_version    aap_detection_config         cols=version_no                               pred=deleted = false                                → 零处置
+  uq_config_probe                aap_detection_config_probe   cols=config_id,probe_code                     pred=deleted = false                                → 零处置
+  uq_job_no                      aap_detection_job            cols=job_no                                   pred=-                                              → 仅预查
+      预查证据（4 处，其中强证据 2）：DetectionService.java#enqueue; DetectionService.java#recordProbeResults; DetectionService.java#release; ReportService.java#generate
+  uq_job_active                  aap_detection_job            cols=credential_id                            pred=active_flag = true and deleted = false         → 仅预查
+      预查证据（2 处，其中强证据 2）：CredentialService.java#hasActiveJob; DetectionService.java#enqueue
+  uq_result_job_probe            aap_detection_result         cols=job_id,probe_code                        pred=deleted = false                                → 仅预查
+      预查证据（1 处，其中强证据 0）：DetectionService.java#result
+  uq_report_template_ver         aap_report_template          cols=template_no,version_no                   pred=deleted = false                                → 零处置
+  uq_report_no                   aap_report                   cols=report_no                                pred=deleted = false                                → 仅预查
+      预查证据（1 处，其中强证据 0）：ReportService.java#generate
+  uq_report_job                  aap_report                   cols=job_id                                   pred=deleted = false                                → 仅预查
+      预查证据（1 处，其中强证据 0）：ReportService.java#generate
+  uq_report_section              aap_report_section           cols=report_id,section_code                   pred=deleted = false                                → 零处置
+  uq_quote_no                    aap_quote                    cols=quote_no                                 pred=-                                              → 仅预查
+      预查证据（3 处，其中强证据 2）：CompilationService.java#compile; QuoteService.java#create; QuoteService.java#submit
+  uq_quote_version               aap_quote_version            cols=quote_id,version_no                      pred=deleted = false                                → 零处置
+  uq_quote_item_model            aap_quote_item               cols=quote_id,model_name                      pred=deleted = false                                → 仅预查
+      预查证据（1 处，其中强证据 1）：QuoteService.java#setItems
+  uq_time_rule_item              aap_price_time_rule          cols=item_id                                  pred=deleted = false                                → 仅预查
+      预查证据（2 处，其中强证据 0）：QuoteService.java#loadTimeRule; QuoteService.java#saveTimeRule
+  uq_tier_rule_item              aap_price_tier_rule          cols=item_id                                  pred=deleted = false                                → 仅预查
+      预查证据（2 处，其中强证据 0）：QuoteService.java#loadTierRule; QuoteService.java#saveTierRule
+  uq_price_tier_seq              aap_price_tier               cols=tier_rule_id,seq                         pred=deleted = false                                → 仅预查
+      预查证据（1 处，其中强证据 0）：QuoteService.java#saveTierRule
+  uq_review_quote                aap_review_task              cols=quote_id                                 pred=deleted = false                                → 仅预查
+      预查证据（1 处，其中强证据 0）：ReviewService.java#onQuoteSubmitted
+  uq_contract_no                 aap_contract                 cols=contract_no                              pred=deleted = false                                → 仅预查
+      预查证据（1 处，其中强证据 1）：ContractService.java#issue
+  uq_statement_no                aap_settlement_statement     cols=statement_no                             pred=deleted = false                                → 零处置
+  uq_compilation_source_hash     aap_compiled_expression      cols=source_hash                              pred=deleted = false                                → 仅预查
+      预查证据（2 处，其中强证据 0）：CompilationService.java#compile; CompilationService.java#confirm
+  uq_model_expression            aap_model_expression         cols=compilation_id,model_name                pred=deleted = false                                → 零处置
+  uq_channel_name                aap_channel_binding          cols=channel_name                             pred=deleted = false                                → 零处置
+  uq_sync_task_no                aap_sync_task                cols=task_no                                  pred=deleted = false                                → 零处置
+  uq_sync_idempotency            aap_sync_task                cols=idempotency_key                          pred=-                                              → 零处置
+  uq_usage_hourly                aap_usage_hourly             cols=stat_hour,channel_id,model_name,group_name pred=-                                              → upsert
+  uq_usage_cursor_source         aap_usage_sync_cursor        cols=data_source                              pred=deleted = false                                → 零处置
+  uq_file_key                    aap_file_asset               cols=file_key                                 pred=deleted = false                                → 零处置
+  uq_outbox_event_id             aap_outbox_event             cols=event_id                                 pred=-                                              → 零处置
+  uq_idempotency_key             aap_idempotency_record       cols=idempotency_key                          pred=-                                              → 捕获
+      预查证据（1 处，其中强证据 0）：IdempotencyFilter.java#find
+      捕获证据：IdempotencyFilter.java
+
+== A4 部分唯一索引谓词（软删 / 可空）与主键信息项 ==
+
+== A5 测试背书 / 契约声明 ==
+
+== 汇总 ==
+[PASS] A0a DDL 解析到唯一键 95 条（unique index 42 + inline primary key 53）
+[PASS] A0b 实现源文件 169 个 / 方法 1771 个
+[PASS] A0c 契约可触发表面：请求体属性 113 名 ·端点 90·路径变量 52·查询参数 79
+[PASS] A0e 唯一索引 42 条：实现有处置证据 22 条 / 零处置 20 条
+[PASS] A0f 处置证据计数：预查 21 / upsert 1 / 捕获 1（含重复计数）
+[PASS] A2m 人工补录 5 条全部同时被机器判据命中（上限 6）
+[PASS] A2n 人工补录条数 5 ≤ 上限 6（豁免不得把规则架空）
+[PASS] A4a 带 `deleted = false` 谓词的部分唯一索引 34 条；带 `is not null` 3 条；带 flag 谓词 2 条（uq_credential_primary,uq_job_active）
+[PASS] A5a 测试源出现业务码 25 种：E-1001,E-1101,E-1104,E-1201,E-1301,E-1302,E-1303,E-1304,E-1305,E-1401,E-1402,E-1403,E-1404,E-1405,E-1406,E-1407,E-1501,E-1505,E-1601,E-1602,E-1701,E-1801,E-1901,E-1902,E-1903
+[PASS] A5b md §4 码表「唯一/冲突」语义行 1 条：E-1104→409
+[PASS] A5c endpoints.json 声明冲突类码的端点 9 条：PROV-02:E-1104; CRED-02:E-1104; CRED-04:E-1104; CRED-05:E-1301; DET-01:E-1301; QT-08:E-1402; QT-09:E-1402; QT-12:E-1402; ADM-Q01:E-1402
+[PASS] A5d 唯一索引 42 条中，唯一列名在测试源出现的 36 条（弱证据）
+[PASS] A5e 测试源中冲突类码出现 21 处（含断言与夹具）
+[FAIL] A2 「仅靠强预查（查重后插入）、无捕获、无 upsert」且唯一列名命中契约表面 5 条 —— 预查与写入之间无锁，并发重复提交撞唯一索引 → 500 E-2001，而契约承诺 409 业务码：uq_provider_uscc,uq_credential_primary,uq_credential_fingerprint,uq_job_active,uq_quote_item_model
+[INFO] A0d GlobalExceptionHandler 无 DuplicateKeyException/DataIntegrityViolationException 分支 → 未被捕获的唯一冲突落 Exception 分支 = 500 E-2001
+[INFO] A2e uq_provider_uscc 机制：ProviderService.updateProfile → ensureUsccUnique(selectCount) → 写库；无捕获
+[INFO] A2e uq_credential_primary 机制：CredentialService.create:124-126 → demoteExistingPrimary(改旧主) → insert；无查重、无捕获
+[INFO] A2e uq_credential_fingerprint 机制：CredentialService.create → ensureFingerprintUnique(selectCount) → insert；无捕获
+[INFO] A2e uq_job_active 机制：DetectionService.createJob → hasActiveJob(selectCount) → enqueue(insert)；无捕获
+[INFO] A2e uq_quote_item_model 机制：QuoteService.setItems → selectOne(quote_id,model_name) 为空则 insert（check-then-insert）；无捕获
+[INFO] A2b 仅靠强预查但列名未命中契约表面（服务端派生值，重复即代码缺陷）4 条：uq_auth_jti,uq_job_no,uq_quote_no,uq_contract_no
+[INFO] A2c 预查证据为弱（方法内无计数/存在性上下文，可能只是按该列查询而非查重）11 条：uq_account_phone_hash,uq_account_wx_openid,uq_provider_code,uq_result_job_probe,uq_report_no,uq_report_job,uq_time_rule_item,uq_tier_rule_item,uq_price_tier_seq,uq_review_quote,uq_compilation_source_hash
+[INFO] A3 零处置唯一索引 20 条；其中「唯一列名命中契约表面」6 条（弱证据，含同名碰撞需人工复核）：uq_role_code,uq_config_probe,uq_report_section,uq_quote_version,uq_model_expression,uq_sync_idempotency
+[INFO] A3b 零处置且列名未命中契约表面 14 条：uq_admin_username,uq_user_role,uq_wechat_openid,uq_provider_no,uq_provider_short_code,uq_challenge_code,uq_detection_config_version,uq_report_template_ver,uq_statement_no,uq_channel_name,uq_sync_task_no,uq_usage_cursor_source,uq_file_key,uq_outbox_event_id
+[INFO] A4b ORM 预查（QueryWrapper/selectCountByQuery）的逻辑删除过滤由全局配置自动追加（mybatis-flex.global-config.logic-delete-column=deleted，application.yml:38）→ 与索引谓词 `deleted = false` 一致；jdbc 裸 SQL 预查需另核
+[INFO] A4c 内联 primary key 53 条（id 由雪花/序列生成，重复即生成器缺陷，非业务冲突场景 → 不参与 A2/A3 判定）
+汇总：PASS=13 FAIL=1 INFO=12
