@@ -76,7 +76,8 @@ app:
     max-attempts: 5
     lock-minutes: 15
     # 仅测试环境置 true：把验证码放进响应体便于端到端验收（生产严禁开启）
-    expose-code: false
+    # 是否把验证码回显在响应里：默认 false（生产红线）；仅本地联调时用 AAP_SMS_EXPOSE_CODE=true 打开
+    expose-code: ${AAP_SMS_EXPOSE_CODE:false}
   logging:
     dir: ${LOG_DIR:logs}
   usage:

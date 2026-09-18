@@ -8,6 +8,9 @@ spring:
     clean-disabled: false
 
 app:
+  # 测试日志与应用日志分离：否则「日志无 ERROR」会被失败路径用例的预期报错污染（SOP §5）
+  logging:
+    dir: logs/test
   jwt:
     secret: ${AAP_JWT_SECRET}
   detection:
@@ -23,8 +26,6 @@ app:
   usage:
     # 用量聚合的日志源（本项目 mock 适配器）：聚合用例自行写入该文件后调 ADM-U02
     log-file: ${java.io.tmpdir}/aap-usage-log-fixture.json
-  logging:
-    dir: ${LOG_DIR:logs}
 
 logging:
   level:

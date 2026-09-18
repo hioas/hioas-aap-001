@@ -6,7 +6,7 @@
 -->
 <Configuration status="WARN">
     <Properties>
-        <Property name="LOG_DIR">${env:LOG_DIR:-logs}</Property>
+        <Property name="LOG_DIR">${spring:app.logging.dir:-logs}</Property>
         <Property name="PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] [%X{traceId}] %logger{36} - %msg%n</Property>
     </Properties>
 
