@@ -594,3 +594,32 @@ npm run e2e:mp              # 产物级联调：短信登录 → token → 工�
 - 后端同手机号短信有 60s 频控（`E-1903`）；联调脚本要**如实等待重试**，不得绕过。
 - 鉴权真伪要用「伪造 token 应被拒（E-1902）」正向证明，不能只看 200。
 - 沙箱目录 `.mp-gate-sandbox` / `.mp-e2e-sandbox` 已进 `.gitignore`；脚本收尾自行清理。
+
+### 7.3 微信开发者工具内联调（2026-09-19 建立）
+
+```bash
+# 前置：IDE 已登录（cli islogin → true），且用 auto（不是 open！）打开项目
+cli.bat auto --project "<dist/build/mp-weixin 绝对路径>" --auto-port 9420
+npm i -D miniprogram-automator
+node tools/mp-ide-smoke.mjs        # 22 页冒烟（真 wx runtime）
+node tools/mp-ide-loggedin.mjs     # 已登录态：真 storage + 真取数
+```
+
+**坑（都实测过）**：
+
+1. **`cli open --project` 对 `touristappid` 报「不存在此 AppID」（code 10）**，
+   登录了也一样；但 **`cli auto --project ... --auto-port 9420` 可以**（会同时开自动化端口）。
+   本项目产物的 `project.config.json` 是 `appid=touristappid` + `urlCheck=false`，无需真实 appid。
+2. **CLI 首次用要先开「服务端口」**：`~/AppData/Local/微信开发者工具/User Data/<hash>/WeappLocalData/localstorage_*.json`
+   里的 `security.enableServicePort`（默认 false）。CLI 会提示输 `y`，但**管道喂 y 无效**（要真 TTY），
+   改配置文件 + 重启 IDE 最稳。
+3. ⚠️ **`page.$$('view,text')` 与 `wx.createSelectorQuery()` 都不跨自定义组件边界**：
+   内容全在子组件里的薄壳页面（如 `quote-form/index` → `QuoteFormView`）页面级文本**恒为 0**，
+   会被误判成「白屏」。**判据只能用「落点路由是否正确」**，低文本页面必须**截图**核对，别报缺陷。
+   （`quote-form/success` 自带内容所以有 23 个页面级 `<text>`，可作对照。）
+4. **`miniprogram-automator@0.12.1` 的 `element.tap()` 不触发页面 `bindtap`**：
+   `scrollTop` 后再 tap、`touchstart`+`touchend` 均无效，`boundingBox()` 返回 undefined。
+   真机点击只能人工点一次；自动化侧改用等价路径——真接口取 token 写入小程序 storage
+   （与登录页 `afterLogin` 一致）再验已登录页面取数。
+5. `wx.request` 在小程序 runtime 内确实能打到后端（实测收到后端错误码回执）→
+   可先用它单独验证「域名白名单/网络」这一层，避免把网络问题误判成页面问题。
