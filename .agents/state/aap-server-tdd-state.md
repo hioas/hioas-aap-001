@@ -2724,3 +2724,12 @@ md 清单 / ER 文档 / JSON Schema / 生成器状态目录 / 实现状态写入
 ### 台账
 * 追加 R51 行（「提交」列先留空，提交后由收尾提交补齐）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」；
   R 行连续性核对：R27 → R51 无缺号（坑 71）。
+
+### R51 提交态复跑与收尾
+* 临时 worktree（detached HEAD `521096d`，唯一名目录；收尾用 `git worktree remove --force`）内复跑全量：
+  **204 例全绿**（0 失败 / 0 错误 / 0 跳过）+ `EndpointCoverageTest` **1/1**（门禁自身断言）+ `[ERROR]` 行数 0 +
+  BUILD SUCCESS + `coverage-report.json` 逐字段 total=90 / implemented=90 / missing=0 / registered_routes=96 /
+  not_registered=[] → **提交本身自洽、不依赖他方未提交改动**（坑 27/28）。
+* 飞书通知失败留痕（第 26 轮同因：home channel 未绑定，不阻塞交付）。
+* 台账：R51 行「提交」列填为 `521096d`；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」；
+  R 行连续性核对 R27 → R51 无缺号（坑 71）。
