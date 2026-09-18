@@ -3024,3 +3024,12 @@ DB 级 FK 约束 **0** ·ER `FK*` 声明 **23** 条 ·请求体引用端点 **9*
   `$LOCALAPPDATA/Temp/aap-r55-spotcheck` 与 `…-fixtures`（坑 106），**不新建仓库工具**；
 * 未并发跑测试（单进程串行两轮，坑 11/20）；他方未提交改动（`aap-client/vite.config.ts`、`aap-server` 的 `application.yml`/
   `log4j2-spring.xml`/`application-test.yml`、`coverage-report.json` 及 `aap-client` 下未跟踪文件）**未触碰、未纳入提交**（坑 15/16）。
+
+### R55 台账收尾
+* R55 行「提交」列填为 `88c2929`（不留台账债）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」且末行「提交」列非空；
+  R 行连续性：R27 → R55 **无缺号**（坑 71）。
+* 提交态 worktree 复跑（干净 detached HEAD `88c2929`，不含他方 4 个未提交文件）：**204 例全绿**（0 失败/0 错误/0 跳过，33 类）
+  ＋ `EndpointCoverageTest` 自身 **1/1 通过** ＋ `[ERROR]` = 0 ＋ BUILD SUCCESS ＋ worktree 内 `coverage-report.json` 逐字段
+  `total=90 / implemented=90 / missing=0 / registered_routes=96 / not_registered=[]` → **提交本身自洽**；
+  收尾 `git worktree remove --force`（`git worktree list` 只剩主工作树）。证据 `evidence/green-verify-R55-worktree-HEAD.txt`。
+* 飞书通知失败留痕（第 30 轮同因：feishu home channel 未绑定，不阻塞交付）→ `evidence/feishu-notify-failures.txt`。

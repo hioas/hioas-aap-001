@@ -1,0 +1,16 @@
+== R55 提交态复跑（干净 detached worktree @ HEAD 88c2929，不含他方未提交的 4 个文件） ==
+worktree 路径：$LOCALAPPDATA/Temp/aap-verify-r55-0155（时间戳唯一名，避免任何递归删除动作，坑 28）
+命令：cd <worktree>/aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test
+
+surefire 汇总：[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+BUILD 行：BUILD SUCCESS
+[ERROR] 行数 = 0
+逐类结果行数 = 33
+覆盖门禁 EndpointCoverageTest 自身：[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.104 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+
+worktree 内 coverage-report.json 逐字段：
+  total=90 implemented=90 missing=0 registered_routes=96 not_registered=[]
+  by_task（逐族 implemented/total）：T03=6/6, T04=5/5, T05=7/7, T06=6/6, T07=4/4, T08=11/11, T09=6/6, T10=5/5, T11=11/11, T12=4/4, T13=3/3, T14=22/22
+
+结论：提交本身自洽（不依赖他方 4 个未提交改动）——204 例全绿、门禁自身通过、[ERROR]=0、覆盖报告 90/90/0。
+收尾：git worktree remove --force（git 自带命令，不触碰任何他人工作区）。
