@@ -1,0 +1,236 @@
+== R36 新增审计：全局枚举取值集合（第十一类契约不变量） ==
+工具：tools/audit-enum-sets.py（只读，不写任何仓库文件）
+自测：tools/audit-enum-sets-selftest.py（29/29 PASS，rc=0；含「注入必须真的改到源码」断言）
+
+五处真源（＋1 处裁决源）：
+  M = docs/backend/02-API接口模型清单.md §5 全局枚举字典（＋§4 错误码表）
+  O = docs/backend/openapi.yaml components.schemas 内联 `type: string` + `enum`（21 个）
+  S = docs/backend/json-schema/{models,requests,common} 逐属性 `enum`（34 处）
+  C = aap-client/src/**/*.ts `export type X = 'A' | 'B'`（2 个联合类型）
+  I = aap-server/src/main/java 实现侧：①SQL 文本块内取值字面量 ②显式声明的取值集合
+      （`Set.of(...)` 常量 / `@Pattern(regexp = "^(A|B)$")`）
+  E = docs/backend/01-ER数据模型.md 列取值域（仅用于给 A8 的未声明项做双向取证）
+
+为什么两套门禁都看不见：
+  * 契约测试只把**真实 HTTP 响应**与 JSON Schema 的 enum 比对 → 只能发现「实现产出了
+    schema 未声明的取值」；**schema/openapi/md 声明了、实现永不产出**的取值（死枚举）全绿。
+  * openapi 的内联 enum 组件与客户端 TS 联合类型**从不被任何测试读取或执行** → 两处漂移不可见。
+  * 客户端拿不到某个取值时 UI 状态分支静默落兜底（空白/未知），与坑 1（字段名漂移）同类后果。
+
+解析计数（正向对照，任一为 0 即说明解析器失效）：M=16 族/28 码  O=21/102 组件  S=34  C=2
+  I①=16 字面量  I②=11 个显式集合  E=ER 列取值域（≥5 才算解析成功）
+
+【首轮 3 处假发现的归因（如实留痕，不掩盖）】
+  1. **M 解析到 0 个族** → md 表格行以 `|` 开头，切分后首元素是空串，脚本取 cells[0] 当枚举名
+     → 全部行被静默跳过（`md_enums=0`）。A0.1 正向对照当场变红，否则本轮会得出
+     「md §5 无枚举族」的荒谬结论（坑 46：没有正向对照的「0 发现」不可信）。
+  2. **A8 报 `sign_method`(SMS/SEAL)、`category`(BUSINESS_LICENSE/AUTHORIZATION/OTHER)
+     「契约未声明」→ 2 条假发现**：S 分支只扫了 `json-schema/models/`，漏掉 `requests/`
+     （这两个 enum 恰好声明在 requests 侧）。修法：递归扫 `json-schema/` 全部子目录。
+     指纹与坑 29 一致：**源没扫全 → 「找不到」被当成「不存在」**。
+  3. **A6 报 QuoteStatus 42 个 schema-only 取值** → `assign` 字典只按属性名（如 `status`）作键，
+     跨文件串味（同一属性名在不同模型属于不同枚举族）。修法：键改为 **(文件, 属性路径)**。
+     修后 A6 15/15 全 PASS。
+
+【本轮真实发现（全部为「文档/契约一致性」项，无实现侧 bug）】
+
+发现 1：md §5 全局枚举字典**漏登记 8 个枚举族**（A2 + A5，12 条断言命中同一根因）
+  族名(取值数) / 已在何处登记 / 取值三方是否一致
+  - AuditAction(18)              变更记录以数量登记（12→18）；schema/openapi 一致
+  - CredentialDetectionStatus(4) md 正文 CRED-01 注里列了取值；schema/openapi 一致
+  - QuoteRejectReason(7)         ER 有 `reject_reason_code` 列；schema/openapi/实现三处一致
+  - ResultCode(28)               §4 错误码表已逐码登记（A9 PASS：openapi 集合 == §4 集合）
+  - SignMethod(2)                requests/contract-sign.schema.json 声明；ER `sign_method`(SMS/SEAL)
+  - Currency(1)                  requests/*.schema.json 声明（单值 USD）
+  - IndustryCategory(3)          ER `industry_category`(ORIGINAL/RESELLER/AGGREGATOR)＋PROV-02 请求列
+  - QualificationCategory(3)     ER `category`(BUSINESS_LICENSE/AUTHORIZATION/OTHER)
+  判定依据（双向取证）：A6 15/15 PASS（同族 schema 并集 == openapi 集合）、A9 PASS、
+  A8 显示 6 处实现集合与契约集合**完全相等** → 取值的**三处一致**，仅 §5 字典缺条目。
+  → 待拍板：是否在 md §5 补齐这 8 行（属契约文档变更，本轮 missing==0 未改清单）。
+
+发现 2：**2 个状态枚举族在契约中完全没有取值域声明**（A8，实现在用、ER 有据、契约无 enum）
+  - `ReviewService.java:57 REVIEWABLE = {PENDING, CLAIMED}` → 族：审核任务状态
+    ER `aap_review_task.status`(PENDING/CLAIMED/APPROVED/REJECTED)；
+    但 `models/review-task.schema.json` 的 `status`（required）**只有 type 没有 enum**。
+  - `SyncAdminService.java:73 RETRYABLE = {FAILED, MANUAL}` → 族：同步任务状态
+    ER `aap_sync_task.status`(PENDING/RUNNING/SUCCESS/FAILED/MANUAL/SKIPPED)；
+    但 `models/sync-task.schema.json` 的 `status`（required）**只有 type 没有 enum**。
+  → 后果：客户端拿到 `status` 字符串却无取值域可依；且 openapi 里同名的 `SyncStatus`
+    是**渠道绑定**状态族（PENDING/SYNCING/SYNCED/…，与同步任务状态**部分重叠但不同**），
+    客户端若复用该联合类型会误判（如把 `MANUAL` 当未知态）。→ 待拍板：是否补 enum。
+
+【A7 信息项（弱证据，未超阈值 25）】实现 SQL 文本块里 3 个字面量不在 §5∪§4 全集内：
+  CLAIMED×4（审核任务状态族，见发现 2）、SUPERSEDED×2（审计动作/历史标记）、UTC×1（时区字面量，非枚举）。
+  → 前两项与发现 1/2 同根因，不单列。
+
+【零漂移项】A1（md↔openapi 15 个共有族逐名一致）、A4（客户端 2 个联合类型逐名一致）、
+  A6（schema↔openapi 15 族一致）、A9（ResultCode ↔ §4 码表 28 码一致）→ 全 PASS。
+
+----------------------------------------------------------------------
+以下为 tools/audit-enum-sets.py 原始输出（rc=1，FAIL 全部为上述「文档/契约一致性」待拍板项）：
+----------------------------------------------------------------------
+== 解析计数（正向对照，任一为 0 即说明解析器失效，坑 46） ==
+   M(§5 枚举族)=16  M(§4 错误码)=28  O(openapi 内联 enum)=21/102 组件  S(schema enum 属性)=34  C(客户端联合类型)=2  I①(SQL 字面量)=16  I②(显式集合)=11
+   [M-note] §5 行 `TierField` 无大写取值 token（字段名/非枚举项）：`len`（**固定**，禁 `p`）
+
+== A0 解析器正向对照 ==
+[PASS] A0.1 M 解析到 ≥10 个枚举族 | 实际 16
+[PASS] A0.2 M 解析到 ≥10 个错误码 | 实际 28
+[PASS] A0.3 O 解析到 ≥1 个内联枚举 | 实际 21
+[PASS] A0.4 S 解析到 ≥1 个 enum 属性 | 实际 34
+[PASS] A0.5 C 解析到 ≥1 个联合类型 | 实际 2
+[PASS] A0.6 I① 解析到 ≥1 个 SQL 字面量 | 实际 16
+[PASS] A0.7 I② 解析到 ≥2 个显式取值集合 | 实际 11
+[PASS] A0.8 E(ER 列取值域) 解析到 ≥5 个 | 实际 25
+
+== A1 M↔O（共有枚举名）取值集合逐名比对 ==
+[PASS] A1.0 可比对共有枚举名 ≥5 | 实际 15
+[PASS] A1 CacheParseStatus md↔openapi 一致
+[PASS] A1 Confidence md↔openapi 一致
+[PASS] A1 ContractStatus md↔openapi 一致
+[PASS] A1 CredentialStatus md↔openapi 一致
+[PASS] A1 DetectionJobStatus md↔openapi 一致
+[PASS] A1 PaymentStatus md↔openapi 一致
+[PASS] A1 PriceStrategy md↔openapi 一致
+[PASS] A1 ProbeStatus md↔openapi 一致
+[PASS] A1 ProviderStatus md↔openapi 一致
+[PASS] A1 QuoteStatus md↔openapi 一致
+[PASS] A1 ReportResult md↔openapi 一致
+[PASS] A1 Role md↔openapi 一致
+[PASS] A1 SyncStatus md↔openapi 一致
+[PASS] A1 TriggerType md↔openapi 一致
+[PASS] A1 WeekdayScope md↔openapi 一致
+
+== A2 openapi 侧孤儿枚举（名字未在 §5 字典登记） ==
+[FAIL] A2 openapi 内联枚举名全部在 md §5 登记 | 孤儿 5: AuditAction(18), CredentialDetectionStatus(4), IndustryCategory(3), QuoteRejectReason(7), ResultCode(28)
+
+== A3 md 侧有、openapi 无（信息项） ==
+[INFO] md 有而 openapi 无的枚举族 0: []
+
+== A4 M↔C（客户端联合类型）逐名比对 ==
+[PASS] A4 ContractStatus md↔客户端 一致
+[PASS] A4 Role md↔客户端 一致
+
+== A5 S 的每个 enum 取值集合必须能归属到一个枚举族 ==
+  [FAIL ] common\envelope.schema.json:code 取值 ['0', 'E-1001', 'E-1101', 'E-1102', 'E-1104', 'E-1201', 'E-1301', 'E-1302', 'E-1303', 'E-1304', 'E-1305', 'E-1401', 'E-1402', 'E-1403', 'E-1404', 'E-1405', 'E-1406', 'E-1407', 'E-1501', 'E-1505', 'E-1601', 'E-1602', 'E-1701', 'E-1801', 'E-1901', 'E-1902', 'E-1903', 'E-2001'] 不匹配任何 md §5 族（与 openapi 族 ResultCode 相同 → 疑似 §5 漏登记）
+  [FAIL ] common\error.schema.json:code 取值 ['E-1001', 'E-1101', 'E-1102', 'E-1104', 'E-1201', 'E-1301', 'E-1302', 'E-1303', 'E-1304', 'E-1305', 'E-1401', 'E-1402', 'E-1403', 'E-1404', 'E-1405', 'E-1406', 'E-1407', 'E-1501', 'E-1505', 'E-1601', 'E-1602', 'E-1701', 'E-1801', 'E-1901', 'E-1902', 'E-1903', 'E-2001'] 不匹配任何 md §5 族（是 openapi 族 ResultCode 的子集 → 疑似 §5 漏登记）
+  [FAIL ] models\audit-log.schema.json:action 取值 ['AUTH_LOGIN', 'CONFIG_PUBLISH', 'CONTRACT_SIGN', 'CREDENTIAL_REVEAL', 'DETECTION_RELEASE', 'PAYMENT_CONFIRM', 'PROFILE_UPDATE', 'PROVIDER_RESUME', 'PROVIDER_SUSPEND', 'QUOTE_APPROVE', 'QUOTE_CREATE', 'QUOTE_REJECT', 'QUOTE_SAVE', 'QUOTE_SUBMIT', 'QUOTE_VOID', 'QUOTE_WITHDRAW', 'SYNC_EXECUTE', 'SYNC_WRITE_PRICE'] 不匹配任何 md §5 族（与 openapi 族 AuditAction 相同 → 疑似 §5 漏登记）
+  [exact ] models\channel-binding.schema.json:status == SyncStatus (9 值)
+  [exact ] models\contract.schema.json:status == ContractStatus (6 值)
+  [exact ] models\credential-detail.schema.json:status == CredentialStatus (5 值)
+  [FAIL ] models\credential-detail.schema.json:detection_status 取值 ['FAIL', 'PASS', 'PENDING', 'RUNNING'] 不匹配任何 md §5 族（与 openapi 族 CredentialDetectionStatus 相同 → 疑似 §5 漏登记）
+  [FAIL ] models\credential-row.schema.json:detection_status 取值 ['FAIL', 'PASS', 'PENDING', 'RUNNING'] 不匹配任何 md §5 族（与 openapi 族 CredentialDetectionStatus 相同 → 疑似 §5 漏登记）
+  [exact ] models\detection-job.schema.json:status == DetectionJobStatus (6 值)
+  [exact ] models\detection-job.schema.json:trigger_type == TriggerType (3 值)
+  [exact ] models\detection-job.schema.json:result == ReportResult (3 值)
+  [exact ] models\detection-job.schema.json:confidence == Confidence (3 值)
+  [exact ] models\detection-result.schema.json:status == ProbeStatus (4 值)
+  [exact ] models\login-result.schema.json:role == Role (5 值)
+  [exact ] models\me-result.schema.json:role == Role (5 值)
+  [exact ] models\payment.schema.json:status == PaymentStatus (4 值)
+  [md-name-only] models\price-tier-rule.schema.json:tier_field §5 行 `TierField` 无取值可比 → 记 INFO，不判 FAIL
+  [exact ] models\price-tier-rule.schema.json:price_strategy == PriceStrategy (2 值)
+  [exact ] models\price-time-rule.schema.json:weekday_scope == WeekdayScope (3 值)
+  [exact ] models\provider-profile.schema.json:status == ProviderStatus (12 值)
+  [exact ] models\quote-detail.schema.json:status == QuoteStatus (8 值)
+  [exact ] models\quote-row.schema.json:status == QuoteStatus (8 值)
+  [exact ] models\report-summary.schema.json:result == ReportResult (3 值)
+  [exact ] models\report.schema.json:result == ReportResult (3 值)
+  [FAIL ] models\review-task.schema.json:reject_reason_code 取值 ['CACHE_PRICE_MISSING', 'MISSING_INFO', 'OTHER', 'PRICE_STRUCTURE_INVALID', 'PRICE_TOO_HIGH', 'TECH_RISK', 'VALIDITY_ISSUE'] 不匹配任何 md §5 族（与 openapi 族 QuoteRejectReason 相同 → 疑似 §5 漏登记）
+  [exact ] models\usage-hourly-bucket.schema.json:cache_parse_status == CacheParseStatus (2 值)
+  [subset] requests\binding-status.schema.json:target_status ⊆ SyncStatus (2 值) → 合法收窄
+  [FAIL ] requests\contract-sign.schema.json:sign_method 取值 ['SEAL', 'SMS'] 不匹配任何 md §5 族
+  [exact ] requests\detection-job-create.schema.json:trigger_type == TriggerType (3 值)
+  [FAIL ] requests\payment-record.schema.json:currency 取值 ['USD'] 不匹配任何 md §5 族
+  [FAIL ] requests\provider-profile-update.schema.json:industry_category 取值 ['AGGREGATOR', 'ORIGINAL', 'RESELLER'] 不匹配任何 md §5 族（与 openapi 族 IndustryCategory 相同 → 疑似 §5 漏登记）
+  [FAIL ] requests\qualification-create.schema.json:category 取值 ['AUTHORIZATION', 'BUSINESS_LICENSE', 'OTHER'] 不匹配任何 md §5 族
+  [FAIL ] requests\quote-create.schema.json:currency 取值 ['USD'] 不匹配任何 md §5 族
+  [FAIL ] requests\review-reject.schema.json:reason_code 取值 ['CACHE_PRICE_MISSING', 'MISSING_INFO', 'OTHER', 'PRICE_STRUCTURE_INVALID', 'PRICE_TOO_HIGH', 'TECH_RISK', 'VALIDITY_ISSUE'] 不匹配任何 md §5 族（与 openapi 族 QuoteRejectReason 相同 → 疑似 §5 漏登记）
+[FAIL] A5 全部 schema enum 均归属到 md §5 枚举族（未归属的已逐条 FAIL） | 已归属 21 / 34，未归属 12
+
+== A6 S↔O 逐族一致（同一族的 schema 取值并集 == openapi 集合） ==
+[PASS] A6 CacheParseStatus schema↔openapi 一致
+[PASS] A6 Confidence schema↔openapi 一致
+[PASS] A6 ContractStatus schema↔openapi 一致
+[PASS] A6 CredentialStatus schema↔openapi 一致
+[PASS] A6 DetectionJobStatus schema↔openapi 一致
+[PASS] A6 PaymentStatus schema↔openapi 一致
+[PASS] A6 PriceStrategy schema↔openapi 一致
+[PASS] A6 ProbeStatus schema↔openapi 一致
+[PASS] A6 ProviderStatus schema↔openapi 一致
+[PASS] A6 QuoteStatus schema↔openapi 一致
+[PASS] A6 ReportResult schema↔openapi 一致
+[PASS] A6 Role schema↔openapi 一致
+[PASS] A6 SyncStatus schema↔openapi 一致
+[PASS] A6 TriggerType schema↔openapi 一致
+[PASS] A6 WeekdayScope schema↔openapi 一致
+
+== A7 实现 SQL 字面量 ⊆ (md §5 ∪ §4 错误码) ==
+[INFO] 未分类 SQL 字面量 3: CLAIMEDx4, SUPERSEDEDx2, UTCx1
+[PASS] A7 未分类 SQL 字面量 ≤ 阈值 | 3 ≤ 25
+
+== A8 实现显式取值集合必须落在契约取值域内（未声明项做 ER 双向取证） ==
+  [exact ] ContractService.java:62 == requests\contract-sign.schema.json:sign_method (schema) (2 值)
+  [exact ] DetectionController.java:37 (@Pattern) == TriggerType (openapi) (3 值)
+  [exact ] ProviderController.java:47 (@Pattern) == IndustryCategory (openapi) (3 值)
+  [exact ] ProviderController.java:59 (@Pattern) == requests\qualification-create.schema.json:category (schema) (3 值)
+  [subset] QuoteService.java:56 ⊆ QuoteStatus (openapi) (2 值) → 合法收窄（可编辑/可选状态集）
+  [subset] QuoteService.java:58 ⊆ QuoteStatus (openapi) (2 值) → 合法收窄（可编辑/可选状态集）
+  [subset] QuoteService.java:60 ⊆ QuoteStatus (openapi) (3 值) → 合法收窄（可编辑/可选状态集）
+  [FAIL ] ReviewService.java:57 ['CLAIMED', 'PENDING']：契约(schema/openapi)未声明该取值域，但 ER 文档有据（列 ['status']）→ 契约完备性项
+  [exact ] ReviewService.java:60 == QuoteRejectReason (openapi) (7 值)
+  [FAIL ] SyncAdminService.java:73 ['FAILED', 'MANUAL']：契约(schema/openapi)未声明该取值域，但 ER 文档有据（列 ['status']）→ 契约完备性项
+  [subset] SyncAdminService.java:76 ⊆ SyncStatus (openapi) (3 值) → 合法收窄（可编辑/可选状态集）
+[FAIL] A8 实现声明的取值域均在契约中声明 | 未声明 2: ReviewService.java:57=['CLAIMED', 'PENDING']; SyncAdminService.java:73=['FAILED', 'MANUAL']
+
+== A9 ResultCode ↔ md §4 错误码表（同一码集两处声明） ==
+[PASS] A9 openapi ResultCode 集合 == md §4 码表集合
+
+== 汇总 ==
+断言 FAIL 15 条；INFO 2 条
+  FAIL: A2 openapi 内联枚举名全部在 md §5 登记
+  FAIL: A5 common\envelope.schema.json:code 无匹配
+  FAIL: A5 common\error.schema.json:code 无匹配
+  FAIL: A5 models\audit-log.schema.json:action 无匹配
+  FAIL: A5 models\credential-detail.schema.json:detection_status 无匹配
+  FAIL: A5 models\credential-row.schema.json:detection_status 无匹配
+  FAIL: A5 models\review-task.schema.json:reject_reason_code 无匹配
+  FAIL: A5 requests\contract-sign.schema.json:sign_method 无匹配
+  FAIL: A5 requests\payment-record.schema.json:currency 无匹配
+  FAIL: A5 requests\provider-profile-update.schema.json:industry_category 无匹配
+  FAIL: A5 requests\qualification-create.schema.json:category 无匹配
+  FAIL: A5 requests\quote-create.schema.json:currency 无匹配
+  FAIL: A5 requests\review-reject.schema.json:reason_code 无匹配
+  FAIL: A5 全部 schema enum 均归属到 md §5 枚举族（未归属的已逐条 FAIL）
+  FAIL: A8 实现声明的取值域均在契约中声明
+[PASS] clean rc=0 | rc=0
+[PASS] clean A0.1 解析到 13 个族
+[PASS] clean A0.7/A0.8 解析到实现集合与 ER 域
+[PASS] clean A1 逐名一致
+[PASS] clean A6/A9 一致
+[PASS] clean 无 FAIL 行
+[PASS] md_lead_pipe 回归守卫（行首竖线）
+[PASS] mutate md_escaped_pipe 真的改到
+[PASS] md_escaped_pipe 仍解析 13 个族且 rc=0 | rc=0
+[PASS] mutate a1_drift 真的改到
+[PASS] a1_drift → A1 点名 FAIL 且 rc=1
+[PASS] mutate a2_orphan 真的改到
+[PASS] a2_orphan → A2 FAIL 且点名 Gamma
+[PASS] mutate a5_typo 真的改到
+[PASS] a5_typo → A5 点名 FAIL 且 rc=1
+[PASS] mutate a6_drift 真的改到
+[PASS] a6_drift → A6 FAIL（openapi-only 出现 FAM01_B）
+[PASS] mutate a7_sql 真的改到
+[PASS] a7_sql → A7 阈值 FAIL
+[PASS] mutate a8_impl 真的改到
+[PASS] a8_impl → A8 FAIL 且点名 Svc.java
+[PASS] mutate a8_subset 真的改到
+[PASS] a8_subset → 该分支不判 FAIL（rc=0） | rc=0
+[PASS] mutate a9_mismatch 真的改到
+[PASS] a9_mismatch → A9 FAIL 且给出双向差集
+[PASS] mutate empty 真的改到
+[PASS] empty → A0.1 FAIL 且 rc=1（空夹具不得全绿）
+[PASS] 真实仓库：解析到 16 个族 / 34 个 schema enum / 21 个 openapi enum | rc=1
+[PASS] 真实仓库：A6/A9 一致（其余 FAIL 为已裁决漂移项）
+
+== 自测汇总：29/29 PASS ==

@@ -1678,3 +1678,62 @@ A2 openapi↔清单 0 漂移、A3a 清单 90/90 都能定位到实现、A4 客�
 
 结论：**90/90 维持全绿（连续第 17 轮）**；本轮**无实现侧漂移**，新增 1 条文档一致性待拍板项
 （`channel_id` 缺 description）；其余待拍板与 R34 相同。
+
+### R36 巡检轮（missing==0 → 只校验不改代码，连续第 18 轮全绿）
+
+本轮按作业约定「missing==0 时不改代码，只校验并报告」，**未改业务代码 / 清单 / 生成器 / md / 断言**，
+只做只读校验、一次新增审计与台账回写。证据 `evidence/green-verify-R36-summary.txt`。
+
+| 项 | 结果 |
+| --- | --- |
+| 全量 run1 / run2（串行，绝不并发） | 两轮均 `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0`，BUILD SUCCESS，`[ERROR]`=0；两轮**逐类 diff 为空**（33 类，剔除 Time elapsed，坑 59） |
+| 覆盖门禁 | `EndpointCoverageTest` 90/90（`registered_routes=96`、`not_registered=[]`） |
+| 既有只读审计 | 生成器 `--check` rc=0（84 个产物文件、孤儿 0）；端点用例 exact 90/prefix 0/none 0；分页键名 rc=0；鉴权 16/1（同 R30）；路由 13/0（同 R31）；错误码 14/2（同 R28/R29）；查询参数 12/2（同 R32）；时间格式 15/0（同 R33）；openapi 可解析 rc=0；密钥 Tier A 0 命中 |
+| 负向自测 | 10 个脚本全部 rc=0（含本轮新增的枚举集合审计 29/29） |
+| 零写副作用守卫 | 运行前后 84 个产物文件 md5 **全等**；`git status` 被跟踪文件仍只有他方未提交的 4 个 |
+
+#### 本轮新增：第十一类契约不变量「全局枚举取值集合」（新工具 + 29 例负向自测）
+
+工具 `tools/audit-enum-sets.py`（只读）＋ `tools/audit-enum-sets-selftest.py`。
+六处来源：**M** md §5 全局枚举字典（＋§4 码表）／**O** openapi 内联 `type: string` + `enum` 组件（21 个）／
+**S** `json-schema/{models,requests,common}` 逐属性 `enum`（34 处）／**C** 客户端 TS 联合类型（2 个）／
+**I** 实现（SQL 文本块取值字面量 + `Set.of(...)` 常量 + `@Pattern(regexp="^(A|B)$")`）／
+**E** `01-ER数据模型.md` 列取值域（仅用于给未声明项做双向取证）。
+
+为什么两套门禁查不出：契约测试只把真实 HTTP 响应与 **JSON Schema** 的 enum 比对 → 只能发现
+「实现产出了 schema 未声明的取值」；**schema/openapi/md 声明了、实现永不产出**的取值全绿，
+而 openapi 内联 enum 与客户端 TS 联合类型**从不被任何测试读取或执行**。后果与坑 1 同族：
+客户端拿不到某个取值时 UI 状态分支静默落兜底（空白/未知）。
+
+**首轮 3 处假发现的归因（如实留痕）**：
+1. `md_enums=0` —— md 表格行以 `|` 开头，切分后首元素是空串，脚本取 `cells[0]` 当枚举名 → **全部行被静默跳过**。
+   A0.1 正向对照当场变红（坑 46：没有正向对照的「0 发现」无法区分「真干净」与「解析全错」）。
+2. A8 报 `sign_method`(SMS/SEAL) 与资质 `category` 三值「契约未声明」→ **2 条假发现**：S 分支只扫了
+   `json-schema/models/`，漏掉 `requests/`（这两个 enum 恰好声明在 requests 侧）。指纹同坑 29：
+   **源没扫全 → 「找不到」被当成「不存在」**。
+3. A6 报 QuoteStatus 42 个 schema-only 取值 → `assign` 字典只按**属性名**（`status`）作键，跨文件串味；
+   键改为 **(文件, 属性路径)** 后 A6 15/15 全 PASS。
+
+**本轮真实发现（均为文档/契约一致性项，无实现侧 bug）**：
+* **md §5 漏登记 8 个枚举族**：AuditAction(18)、CredentialDetectionStatus(4)、QuoteRejectReason(7)、
+  ResultCode(28)（§4 码表已逐码登记）、SignMethod(2)、Currency(1)、IndustryCategory(3)、
+  QualificationCategory(3)。取证：A6 15/15 PASS（同族 schema 并集 == openapi 集合）＋ A9 PASS
+  （ResultCode == §4 的 28 码）＋ A8 显示 6 处实现集合与契约集合**完全相等** → 取值三处一致，仅字典缺条目。
+* **2 个状态枚举族在契约中完全没有 enum 声明**：`ReviewService.REVIEWABLE = {PENDING, CLAIMED}`
+  （ER `aap_review_task.status` 4 值）与 `SyncAdminService.RETRYABLE = {FAILED, MANUAL}`
+  （ER `aap_sync_task.status` 6 值）—— 两个响应 schema 的 `status` 是 required 但**只有 type、无 enum**。
+  更要紧的是 openapi 里同名的 `SyncStatus` 是**渠道绑定**状态族（`PENDING/SYNCING/SYNCED/…`，
+  与同步任务状态部分重叠、语义不同），客户端若复用该联合类型会把 `MANUAL` 当未知态。
+* A7 信息项：SQL 文本块内 3 个字面量不在 §5∪§4 全集（`CLAIMED`×4 属上一条、`SUPERSEDED`×2、`UTC`×1），
+  未超阈值 25。
+
+#### 台账维护（坑 16/71 同族）
+
+* 补齐 **R35 行的「提交」列**（原为空 → `8fb0a36`）。
+* 删除台账第 101 行的**空白行**（会让 `csv.reader` 产出空行、naive 解析器直接 IndexError）。
+  `git diff --numstat` = 2 增 2 删，无整表重排。
+* `coverage-report.json` 每次跑测试都被重写，但 diff 是 **24 增 24 删、逐字段值全等**
+  （`Map.of` 键序跨 JVM 随机化，坑 56），且工作区 CRLF、索引 LF → 用 `git checkout --` 还原，**未提交**。
+
+结论：**90/90 维持全绿（连续第 18 轮）**；本轮**无实现侧漂移**，新增 2 条待拍板
+（§5 漏登记 8 族；审核任务/同步任务状态族缺 enum 声明）；其余待拍板与 R35 相同。

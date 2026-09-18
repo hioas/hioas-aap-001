@@ -1,0 +1,36 @@
+== R36 巡检轮汇总（missing==0 → 只校验不改代码；连续第 18 轮全绿） ==
+时间：2026-09-18（cron 无人值守；串行执行，全程只有一个 mvn test 进程）
+
+| 项 | 结果 |
+| --- | --- |
+| 全量 run1 | Tests run: 204, Failures: 0, Errors: 0, Skipped: 0；BUILD SUCCESS；[ERROR] 行 0 条 |
+| 全量 run2（防 flaky 连跑） | 同上 204 例全绿；与 run1 **逐类 diff 为空**（33 个测试类，比对前剔除 Time elapsed，坑 59） |
+| 覆盖门禁 EndpointCoverageTest | 90/90（registered_routes=96、not_registered=[]） |
+| 既有只读审计复跑 | 生成器 --check rc=0（84 个产物文件比对、孤儿 0）；端点用例 exact 90/prefix 0/none 0；分页键名 rc=0；鉴权 rc=1（16/1，同 R30）；路由 rc=0（13/0）；错误码 rc=1（14/2，同 R28/29）；查询参数 rc=1（12/2，同 R32）；时间格式 rc=0（15/0）；openapi 可解析 rc=0；密钥审计 Tier A 0 命中 |
+| 负向自测复跑 | 10 个脚本全部 rc=0（gen 14/14、端点用例、分页、鉴权、路由、错误码、查询参数、时间格式、密钥、**R36 新增枚举集合 29/29**） |
+| 零写副作用守卫 | 运行前后 **84 个产物文件 md5 全等**（PASS） |
+| 三套 rc=1 的既有审计 | 均为**已裁决的待拍板漂移项**（鉴权 md 角色列 32 条 / 错误码 10 条 / 查询参数 8 条），非本轮新增 |
+
+本轮未改业务代码、未改清单、未改生成器、未改 md、未动断言（本轮只做只读校验 + 新增只读审计 + 台账回写）。
+
+== 本轮新增：第十一类契约不变量「全局枚举取值集合」审计 ==
+工具 tools/audit-enum-sets.py ＋ tools/audit-enum-sets-selftest.py（29/29 PASS）
+证据 .agents/state/evidence/audit-enum-sets-R36.txt（含首轮 3 处假发现的归因）
+断言：A0 正向对照 8 条全 PASS；A1 md↔openapi 15 族逐名一致（PASS）；
+      A4 客户端 2 个联合类型一致（PASS）；A6 schema↔openapi 15 族一致（PASS）；
+      A9 openapi ResultCode == md §4 码表 28 码（PASS）；A7 未分类 SQL 字面量 3 ≤ 阈值（PASS）。
+FAIL 15 条 = 2 个根因（均为「文档/契约一致性」待拍板项，无实现侧 bug）：
+  1. md §5 全局枚举字典漏登记 8 个族（AuditAction 18 / CredentialDetectionStatus 4 /
+     QuoteRejectReason 7 / ResultCode 28〔§4 已登记〕/ SignMethod 2 / Currency 1 /
+     IndustryCategory 3 / QualificationCategory 3）——取值在 schema↔openapi↔实现三处一致。
+  2. 2 个状态枚举族在契约中**完全没有取值域声明**：审核任务状态（ER PENDING/CLAIMED/
+     APPROVED/REJECTED）与同步任务状态（ER PENDING/RUNNING/SUCCESS/FAILED/MANUAL/SKIPPED）
+     —— 两个响应 schema 的 `status` 是 required 但只有 type、无 enum；且 openapi 的同名
+     `SyncStatus` 是**渠道绑定**状态族（部分重叠、语义不同），客户端复用会误判。
+
+== 本轮台账维护 ==
+* 补齐 R35 行的「提交」列（原为空；R35 的证据提交为 8fb0a36）。
+* 观察到 `.agents/state/evidence/coverage-report.json` 每次跑测试都会被重写：diff 为
+  **24 增 24 删但逐字段值全等**（`Map.of` 键序跨 JVM 随机化，坑 56），且工作区是 CRLF
+  而索引是 LF。本轮**未提交该文件**，用 `git checkout --` 还原为索引版本，避免把纯键序抖动
+  当成漂移提交（这正是坑 56 描述的「报告说产物变了、值却全等」）。
