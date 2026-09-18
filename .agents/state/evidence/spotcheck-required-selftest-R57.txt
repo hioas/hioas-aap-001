@@ -1,0 +1,20 @@
+[PASS] ok 夹具 rc=0：rc=0
+[PASS] ok 夹具 FAIL 0（正向对照：判据不瞎报）：FAIL=[]
+[PASS] ok 夹具解析到 2 个可选 token（**花括号回归守卫**：v1 用 match_paren 配 {} → 只解析到第一个字段）：['[PASS] A0b M 解析到「显式可选（?）」token > 0（否则 `?` 解析器失效）：可选 token 2；必填候选 token 2']
+[PASS] bad-a1：点名 A1（md 标可选而 schema.required 含之）：rc=1 FAIL=['A1']
+[PASS] bad-a2：点名 A2（required ∧ nullable 自相矛盾）：rc=1 FAIL=['A2']
+[PASS] bad-a3：点名 A3（schema.required 但实现侧零校验）：rc=1 FAIL=['A0f', 'A3']
+[PASS] bad-a4：点名 A4（实现声明必填而 schema.required 未声明）：rc=1 FAIL=['A4']
+[PASS] 空夹具 rc=1 且 A0a…A0j 全部点名（解析器失效必须可见，坑 46/128）：rc=1 未点名=[]
+[PASS] 真实仓库跑通且解析到 FAIL 明细 > 0（正向对照，坑 97）：rc=1 FAIL=['A2', 'A3']
+[PASS] 真实仓库 A0b 可选 token ≥ 10（v1 只有 6，是花括号 bug 的指纹）：可选 token=11
+[PASS] mut-matchparen：注入真的改到源码（锚点命中，坑 66/94）：锚点 'e = match_pair(brace, 0)' 命中=True
+[PASS] mut-matchparen：把花括号配对改回圆括号 → A0b 可选 token 必须下降（花括号回归守卫有牙齿）：注入后可选 token=6（基线 11）
+[PASS] mut-ann-format：注入真的改到源码（锚点命中，坑 66/94）：锚点 'REQUIRED_ANN = ("NotBlank", "NotNull", "NotEmpty")' 命中=True
+[PASS] mut-ann-format：把注解白名单写成带 @ 的形式（v1 的 bug）→ A0f 必须转红（正向对照有效）：注入后新增 FAIL=['A0f']
+[PASS] mut-evidence：注入真的改到源码（锚点命中，坑 66/94）：锚点 'EVIDENCE_TIERS = {"注解", "守卫(直接)", "守卫(别名·直接)"}' 命中=True
+[PASS] mut-evidence：把「无证据」也算作证据 → A3 必须消失（证明 A3 不是空转）：注入后消失 FAIL=['A3']
+[PASS] 真实仓库只读（被读 schema 文件 mtime 未变）：变化=[]
+
+== 自测断言：PASS 17 / FAIL 0 ==
+夹具目录：C:\Users\laitz\AppData\Local\Temp\aap-r57-spotcheck-fixtures

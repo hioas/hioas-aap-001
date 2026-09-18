@@ -3109,3 +3109,79 @@ DB 级 FK 约束 **0** ·ER `FK*` 声明 **23** 条 ·请求体引用端点 **9*
 * R56 行「提交」列填为 `7a0585e`（不留台账债）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」且末行「提交」列非空；
   R 行连续性：R27 → R56 **无缺号**（坑 71）。
 * 飞书通知失败留痕（第 31 轮同因：feishu home channel 未绑定，不阻塞交付）→ `evidence/feishu-notify-failures.txt`。
+
+## R57 巡检轮（missing=0 → 只校验不改代码；第三十一类可审计不变量：请求体字段必填性）
+
+### 本轮结果
+* 全量两轮 **204 例全绿**（0 失败/0 错误/0 跳过，33 个测试类）＋逐类结果 diff = **0 行**（先剥 `Time elapsed` 再排序，坑 79）；
+  证据 `evidence/green-verify-R57-full-run1.txt`、`green-verify-R57-full-run2.txt`、`green-verify-R57-classdiff.txt`。
+* 覆盖门禁 **90/90**（`EndpointCoverageTest` 自身 1/1；`coverage-report.json` 逐字段
+  `total=90 / implemented=90 / missing=0 / registered_routes=96 / not_registered=[]`）→ 连续第 39 轮 90/90。
+* 既有 14 套只读审计 + 13 个负向自测复跑：rc 与 R56 一致（`gen-check/endpoint-tests/contract-keys/routes/time-format/secret-leak` rc=0，
+  6 套审计因已裁决漂移 rc=1，13 个自测 rc=0）；**FAIL 明细剥来源前缀后 R56=28 / R57=30，新增 2 条（本轮新抽查 A2/A3）、消失 0**
+  → 零回归（`evidence/audit-regression-R57-faildiff.txt`）。
+* **零写副作用**：运行前后 84 个产物 `(size, md5)` 全等（`evidence/audit-regression-R57.txt` 末尾）。
+  观察项：84 个产物 mtime 在复跑期间被改写而内容全等 —— 由 `gen-backend-models-selftest.py` 第 D 步**不带 `--check`** 跑生成器写回同内容导致（坑 39 的已知形态），**不作为漂移**。
+
+### 新增抽查：请求体字段「必填性」跨源一致性 + required 的运行时强制（第三十一类可审计不变量）
+**为什么两套门禁都看不见**：契约测试把**真实响应**与 JSON Schema 比对（`SchemaAssert`；`json-schema-validator` 是 `<scope>test</scope>`），
+**请求模型 schema 运行时不参与任何校验**（main 源码零引用）；覆盖门禁只比「方法+路径」；openapi 与客户端 TS 不被任何测试执行。
+真源：M=md 清单「请求」列（`?` 显式可选标记；反引号式/花括号式两种写法）／S=`requests/*.schema.json`（`required` + 逐属性 nullable）／
+D=`endpoints.json`（`request_model` 绑定）／I=控制器 `@RequestBody` DTO 分量与校验注解 + **同包**服务层 null 守卫（含别名回查）／
+R=运行时强制（pom 依赖 scope + main 引用点）／T=测试请求体构造点／G=DDL NOT NULL 兜底。
+断言：A0a…A0j 正向对照 10 条 + A1/A2/A3/A4 硬断言 + A5…A9 信息项 → **PASS 11 / FAIL 2 / INFO 9**。
+
+关键计数：md 有请求体端点 **16** 个（可选 token **11**、必填候选 **60**）·请求模型 **24** 个（带 `required` **18**）·
+DTO 分量 **776** 个（带必填类注解 **10**）·带 `@RequestBody` 路由 **26** 条·测试请求体构造点 **63** 处·DDL NOT NULL 列 **157** 个。
+
+### 本轮发现
+| 断言 | 内容 | 判定 |
+|---|---|---|
+| A1 | md 显式可选（11 个 token）无一落在 `schema.required` | PASS |
+| A2 | 4 个模型存在 `required ∧ nullable` 自相矛盾：contract-issue.file_id、detection-job-create.credential_id、payment-record.provider_id+contract_id、quote-create.credential_id | **FAIL（契约自相矛盾；实现侧均有守卫 → 风险低）** |
+| A3 | 3 条「schema 必填但实现侧零校验」：CRED-02 api_key、CRED-04 api_key、PROV-04 category | **FAIL（见下分级）** |
+| A4 | 实现声明必填（10 个字段）全部在 `schema.required` | PASS |
+| A6 | md **§0 未定义必填性标注规则** → 9 个端点 37 个字段「md 未标 `?` 而 schema 非 required」（含 PROV-02 全 14 字段） | 信息项/待拍板 |
+
+**真发现 1（实现侧，静态判定）**：`CRED-02 api_key` —— md 与 schema 都必填，但 DTO 无必填注解、**同包**服务层无 null 守卫
+（`CredentialService.create` 直接 `crypto.sha256Hex(apiKey)`／`crypto.encrypt(apiKey)`，而 `CryptoService.encrypt(null)` 返回 `null`）
+→ 省略该字段将撞 `aap_credential.api_key_cipher / api_key_mask / api_key_fingerprint` 三列 **NOT NULL** →
+**500 `E-2001` 而不是 400 `E-1801`**。
+**真发现 2（实现侧，静态判定）**：`PROV-04 category` —— DTO 只有 `@Pattern`（Bean Validation 对 `null` **放行**）、服务层无 null 检查、
+`aap_provider_qualification.category` NOT NULL → 省略该字段同样得 **500**。
+**真发现 3（生成物侧）**：`CRED-04 api_key` —— md 明示可选（`api_key?` 轮换）、实现 update 走
+`if (apiKey != null && !isBlank)` 的轮换语义，而该端点**复用** `credential-create` schema（`required` 含 `api_key`）
+→ **模型级 schema 被 create/update 共用导致 `required` 对 update 端点不成立**（与坑 73「该不该分页」同源的模型级/端点级冲突）。
+* 三条均为**静态判定**：本轮只读、未做运行时验证（无测试覆盖「省略必填字段」这一分支，实测测试源里该形态 0 处）。
+* 判据分级：A3 只认**实现侧**证据（DTO 注解 / 同包服务层守卫 / 别名守卫）；跨包同名**形参**的判空只作弱证据（见返工 3）。
+
+### 正面结论（带正向对照）
+* md 显式可选的 11 个 token 无一落入 `schema.required`（A1）；实现声明必填的 10 个字段全部被 `schema.required` 覆盖（A4）；
+* 「非必填但不可空」6 个字段（provider-profile-update 4 个 + quote-item-save.tier_rule/time_rule）与 §0「缺字段一律 null 或省略」并存 → 契约完备性项（信息项）；
+* 可选字段的「省略=保持」写路径存在：实现 `coalesce(...)` 36 处（5 个文件）（坑 21 的正面处置）；
+* 运行时强制证据已取证：`json-schema-validator` 依赖 `scope=test`、main 源码引用点 **0** 处 → 请求侧契约确实只存在于文档层。
+
+### 本轮踩坑（抽查/复跑脚本自身返工 5 条 —— 一律「先怀疑解析器/判据」）
+1. **花括号必须用花括号配对**：v1 用 `match_paren`（只数圆括号）去配 `{}` → 恒返回 -1 → 退化成 `brace[1:]`，
+   末尾残留 `}`/反引号让**最后一个**字段匹配失败 → 实测 `{phone, captcha}` 只解析到 `phone`、`{code}` 一个都没有、
+   `{credential_id, trigger_type?}` 丢掉 `trigger_type?`。**唯一指纹是 A0b「可选 token 6」（真实 11）**。
+   修法：新增 `match_pair` 花括号配对扫描，并把「ok 夹具可选 token = 2」写进自测作回归守卫。
+2. **注解名格式不一致 → 交集恒空**：v1 把注解捕获成 `NotBlank` 而白名单写成 `@NotBlank` → A3 报出 8 条假发现，
+   且 **A4 的 PASS 是空转假绿**。指纹：`A0e/A0f 带必填类注解 0 个`（正向对照是发现它的唯一手段）。
+   修法：注解统一存 `@Xxx` 形式，并加注入缺陷用例「白名单写成带 `@` → A0f 必须转红」。
+3. **跨包同名「形参」的判空不是对请求字段的校验**（坑 125-③）：`CryptoService.maskApiKey(String apiKey)` 里的
+   `apiKey == null` 曾把 CRED-02 的 `api_key` 判成「已校验」→ **假阴性，差点漏掉真发现 1**。
+   修法：证据只认**同包**（坑 81）；跨包命中降级为「弱证据（不作数）」。
+   同族：v2 还把 `SyncAdminService.validateTargetStatus` 的**别名守卫**（`String raw = …request.targetStatus(); if (raw == null …)`）
+   判成「无强制」→ ADM-S05 假发现；修法：回查别名（坑 107 的正当做法）。
+4. **A0h 的 `or` 短路让空输入也判 PASS**（空转假绿，坑 98）：`bool(scopes) or main_refs == 0` 在空夹具下为真 →
+   改成 `and`，自测的「空夹具必须点名 A0a…A0j」当场抓出（修的是守卫，不是期望值）。
+5. **复跑脚本自身 2 条返工**：① `fp.py diff` 把 JSON 往返后的 **list** 与 Python **tuple** 比 →
+   84 个产物「值全等」被判成「全被改写」的**假 FAIL**（指纹：报告说漂移、`git status` 干净、逐字段复核 0 变化 —— 坑 40 的固定指纹）；
+   ② `audit-secret-leak-selftest.py` **不存在**（该自测走 `--selftest` 参数）→ 误报 rc=2。
+   另记口径差异：本轮 `openapi-parses rc=0`（R56 为 rc=1「本机无 PyYAML」），属环境差异，不当作回归。
+
+### R57 台账回写
+* 追加 R57 行（「提交」列先留空，提交后由收尾提交补齐）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」；
+  R 行连续性核对：R27 → R57 无缺号（坑 71）。
+* 飞书通知失败留痕（同因：feishu home channel 未绑定，不阻塞交付）。

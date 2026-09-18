@@ -1,0 +1,76 @@
+== 请求体字段「必填性（required vs optional）」跨源一致性抽查（第三十一类不变量，只读） ==
+仓库根：E:\workspaces\hioas\hioas-aap-001
+
+--- A0 正向对照（每个源都必须真的解析到条目；任一为 0 先怀疑解析器，坑 46/75/98）---
+[PASS] A0a M 解析到「有请求体」的端点 > 0：23 个端点（md 解析行 24）
+[PASS] A0b M 解析到「显式可选（?）」token > 0（否则 `?` 解析器失效）：可选 token 11；必填候选 token 60
+[PASS] A0c S 解析到带 required 的请求模型 > 0：请求模型 24 个，带 required 18 个
+[PASS] A0d S 解析到请求模型属性 > 0：属性 107 个
+[PASS] A0e I 解析到控制器 DTO 分量 > 0：DTO 分量 776 个
+[PASS] A0f I 解析到带必填类注解的分量 > 0（v1 的返工点：注解名格式不一致 → 交集恒空）：带必填类注解 10 个
+[PASS] A0g I 解析到 @RequestBody 路由 > 0：26 条路由带 @RequestBody
+[PASS] A0h R 运行时强制证据已取证（必须真的读到 pom 依赖 scope；空输入不得空转判 PASS）：json-schema-validator scope=['test']；main 源码引用点 0 处
+[PASS] A0i T 解析到测试请求体构造点 > 0：构造点 63 处（39 个测试文件）
+[PASS] A0j G 解析到 DDL 的 NOT NULL 列 > 0：NOT NULL 列 157 个
+
+--- A1 md 显式可选（?）⊄ schema.required（逐端点，单向硬断言）---
+[PASS] A1 md 标可选的字段都未出现在 schema.required：不一致 0 条
+
+--- A2 schema.required 字段不得允许 null（required ∧ nullable = 校验放行 null）---
+[FAIL] A2 无「必填同时可空」的自相矛盾属性：矛盾模型 4 个：{'contract-issue': ['file_id'], 'detection-job-create': ['credential_id'], 'payment-record': ['contract_id', 'provider_id'], 'quote-create': ['credential_id']}
+
+--- A3 schema.required 字段的运行时强制（DTO 必填注解 / 服务层 null 守卫）---
+[FAIL] A3 每个 schema.required 字段都能找到实现侧强制证据（注解 / 守卫 / 别名守卫）：无强制证据 3 个：[('CRED-02', 'api_key', []), ('CRED-04', 'api_key', []), ('PROV-04', 'category', ['aap_notification', 'aap_provider_qualification'])]
+      · 分级：{'注解': 14, '守卫(直接)': 9, '守卫(别名·直接)': 1, '弱证据(跨包同名形参，不作数)': 2, '无': 1}；未能比对端点 1 个（[('QT-09', '实现无 @RequestBody（或路由未定位）')]）
+        - ADM-CFG02 name：守卫(直接)（注解 []，命中 DetectionConfigService.java，DDL 同名列 ['aap_detection_config', 'aap_newapi_endpoint', 'aap_role']，模型名窄化后 ['aap_detection_config']）
+        - ADM-CFG04 name：守卫(直接)（注解 []，命中 DetectionConfigService.java，DDL 同名列 ['aap_detection_config', 'aap_newapi_endpoint', 'aap_role']，模型名窄化后 ['aap_detection_config']）
+        - ADM-CFG07 title：守卫(直接)（注解 []，命中 ReportTemplateService.java，DDL 同名列 ['aap_notification', 'aap_report_template']，模型名窄化后 ['aap_report_template']）
+        - ADM-CFG09 title：守卫(直接)（注解 []，命中 ReportTemplateService.java，DDL 同名列 ['aap_notification', 'aap_report_template']，模型名窄化后 ['aap_report_template']）
+        - ADM-CT02 file_id：守卫(直接)（注解 []，命中 ContractService.java，DDL 同名列 []，模型名窄化后 []）
+        - ADM-R04 reason_code：守卫(直接)（注解 []，命中 ReviewService.java，DDL 同名列 []，模型名窄化后 []）
+        - ADM-S05 target_status：守卫(别名·直接)（注解 []，命中 SyncAdminService.java#raw，DDL 同名列 []，模型名窄化后 []）
+        - CRED-02 api_key：弱证据(跨包同名形参，不作数)（注解 []，命中 CryptoService.java，DDL 同名列 []，模型名窄化后 []）
+        - CRED-04 api_key：弱证据(跨包同名形参，不作数)（注解 []，命中 CryptoService.java，DDL 同名列 []，模型名窄化后 []）
+        - PROV-04 category：无（注解 ['@Pattern']，命中 ，DDL 同名列 ['aap_notification', 'aap_provider_qualification']，模型名窄化后 ['aap_provider_qualification']）
+        - PROV-04 file_name：守卫(直接)（注解 []，命中 ProviderService.java，DDL 同名列 ['aap_provider_qualification']，模型名窄化后 ['aap_provider_qualification']）
+        - QT-02 credential_id：守卫(直接)（注解 []，命中 QuoteService.java，DDL 同名列 ['aap_credential_precheck', 'aap_detection_job']，模型名窄化后 []）
+        - QT-02 name：守卫(直接)（注解 ['@Size']，命中 QuoteValidation.java，DDL 同名列 ['aap_detection_config', 'aap_newapi_endpoint', 'aap_role']，模型名窄化后 []）
+
+--- A3b 分级发现：schema.required 但**实现侧零校验**（省略该字段 → 库约束/空值，不是 400）---
+      · 共 3 条：
+        - CRED-02 api_key（判据分级：弱证据(跨包同名形参，不作数)）：DDL 同名列 （无同名列，列名不同形）；模型名窄化后 （无）
+        - CRED-04 api_key（判据分级：弱证据(跨包同名形参，不作数)）：DDL 同名列 （无同名列，列名不同形）；模型名窄化后 （无）
+        - PROV-04 category（判据分级：无）：DDL 同名列 ['aap_notification', 'aap_provider_qualification']；模型名窄化后 ['aap_provider_qualification']
+
+--- A9 信息项：schema.required 字段的 DDL NOT NULL 兜底（列名同名映射）---
+      · 同名 NOT NULL 列命中 9 个：[('ADM-CFG02', 'name', ['aap_detection_config']), ('ADM-CFG04', 'name', ['aap_detection_config']), ('ADM-CFG07', 'title', ['aap_report_template']), ('ADM-CFG09', 'title', ['aap_report_template']), ('CRED-02', 'base_url', ['aap_credential']), ('CRED-04', 'base_url', ['aap_credential']), ('DET-01', 'credential_id', ['aap_detection_job']), ('PROV-04', 'category', ['aap_provider_qualification']), ('PROV-04', 'file_name', ['aap_provider_qualification'])]
+
+--- A4 实现必填注解 ⊆ schema.required（反向漂移：契约漏声明必填）---
+[PASS] A4 实现声明必填的字段都在 schema.required 里：不一致 0 条
+
+--- A5 信息项：「非必填但不可空」字段（显式传 null 与 schema 冲突）---
+      · 共 6 个：['provider-profile-update.company_name', 'provider-profile-update.industry_category', 'provider-profile-update.short_name', 'provider-profile-update.uscc', 'quote-item-save.tier_rule', 'quote-item-save.time_rule']
+      · 运行时不做 schema 校验（A0h）→ 只影响把 schema 当客户端契约的一方；与 §0「缺字段一律 null 或省略」并存 → 契约完备性项
+
+--- A6 信息项/待拍板：md 未标 ? 而 schema 非 required（§0 未定义必填性标注规则）---
+      · 端点 9 个、字段 37 个
+        - ADM-CFG02（detection-config-save）2 个：['pass_score', 'veto_rule']
+        - ADM-CFG07（report-template-save）3 个：['disclaimer', 'logo_file_id', 'section_order']
+        - ADM-CT02（contract-issue）3 个：['platform_fee_rate', 'valid_from', 'valid_to']
+        - ADM-R04（review-reject）1 个：['reason_text']
+        - CRED-02（credential-create）6 个：['alias', 'declared_context_window', 'declared_rpm', 'declared_tpm', 'declared_vendor', 'primary_flag']
+        - PROV-02（provider-profile-update）14 个：['address', 'city', 'company_intro', 'company_name', 'contact_email', 'contact_name'] …
+        - PROV-04（qualification-create）2 个：['content_type', 'file_size']
+        - QT-02（quote-create）5 个：['currency', 'provider_id', 'remark', 'valid_from', 'valid_to']
+        - QT-08（quote-item-save）1 个：['note']
+
+--- A7 信息项：可选字段的「省略=保持」写路径（坑 21 的正面处置）---
+      · 实现 coalesce(...) 36 处（5 个文件）
+
+--- A8 信息项：测试背书计数 ---
+      · 测试源「缺少/未提供/missing」字样 79 处；显式 null 构造 5 处
+
+--- Z1 零写副作用自检 ---
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写 0 个：[]
+
+== 断言：PASS 13 / FAIL 2（读文件 412 个）==
