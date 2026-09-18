@@ -1,0 +1,36 @@
+== R64 抽查脚本的负向自测（判别力实测） ==
+覆盖：合规夹具必须 rc=0 且 FAIL 0 + A0a…A0i 九条正向对照全 PASS + 空夹具必须变红并点名全部正向对照与条件化断言 +
+16 组注入缺陷各**恰好**新增目标断言（含 2 组双锚点注入）+ 全部注入锚点命中且新文本真的出现（坑 66/90/94）+
+真实仓库关键文件 md5 不变（只读）+ 夹具目录零写副作用（含不得留下 __pycache__，坑 106）。
+命令：python <tmp>/aap-r64-spotcheck/spotcheck-throttle-R64-selftest.py
+退出码 = 0（0 = 27/27 PASS）
+== R64 抽查负向自测（spotcheck-throttle-R64-selftest） ==
+[PASS] 合规夹具 rc=0
+[PASS] 合规夹具 FAIL 0
+[PASS] 合规夹具零写副作用
+[PASS] 夹具目录无 __pycache__
+[PASS] 合规夹具下 A0a…A0i 九条正向对照全 PASS
+[PASS] 空夹具 rc≠0
+[PASS] 空夹具点名全部 A0* 正向对照
+[PASS] 空夹具点名条件化断言（A3a/A3b/A4a/A5/A6）
+[PASS] 注入 yml-60-90 → 恰好新增 ['A1']
+[PASS] 注入 yml-quota-5-3 → 恰好新增 ['A2']
+[PASS] 注入 impl-backoff-8m-10m → 恰好新增 ['A3a', 'A3c']
+[PASS] 注入 impl-backoff-append-2h → 恰好新增 ['A3a', 'A3c']
+[PASS] 注入 md-window-60-90 → 恰好新增 ['A1']
+[PASS] 注入 md-del-sync-row → 恰好新增 ['A0c', 'A3a', 'A3b']
+[PASS] 注入 prd-8m-10m → 恰好新增 ['A3b']
+[PASS] 注入 test-del-ttl → 恰好新增 ['A4a']
+[PASS] 注入 test-del-window60 → 恰好新增 ['A4b']
+[PASS] 注入 test-del-lock15 → 恰好新增 ['A4c']
+[PASS] 注入 test-del-quota-loop → 恰好新增 ['A4d']
+[PASS] 注入 test-del-backoff-exp → 恰好新增 ['A3c', 'A4e']
+[PASS] 注入 impl-hardcoded-15min → 恰好新增 ['A5']
+[PASS] 注入 client-del-429 → 恰好新增 ['A6']
+[PASS] 注入 errcode-429-403 → 恰好新增 ['A7']
+[PASS] 注入 md-del-429-rows → 恰好新增 ['A0f', 'A7']
+[PASS] 全部注入锚点命中且真的改到源码（坑 66/90/94）
+[PASS] 真实仓库关键文件 md5 不变（只读）
+[PASS] 真实仓库 FAIL 集合 = {A3a,A3b,A4a,A4b,A4c,A5,A6}
+
+SELFTEST PASS 27/27

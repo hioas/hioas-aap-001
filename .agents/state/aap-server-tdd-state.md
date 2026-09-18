@@ -3576,3 +3576,29 @@ md 行内错误码列 → {A2b,A4}；实现守卫码 → {A2}；ErrorCode 状态
 
 **R63 观察项（坑 56 复现）**：工作区 `coverage-report.json` 每轮被测试重写，`git diff` 恒为 24 增 24 删 ——
 `Map.of(...)` 迭代顺序按 JVM SALT 随机化导致键序互换，**逐字段值完全一致**。该文件与 R59/R60/R61/R62 一致地不纳入提交。
+
+**R64 巡检轮（missing=0 → 只校验不改代码）**：全量两轮 204 例全绿（33 类，逐类 diff=0）+ 覆盖门禁 90/90 + 既有 14 套只读审计与 8 套抽查 + 21 个负向自测零回归（rc 序列与 R63 逐条一致）+ 零写副作用（84 产物 size+md5 全等）。
+
+**本轮新增抽查（不新建仓库工具，抽查式）：频控 / 配额 / 退避阈值契约（第三十八类可审计不变量）**
+
+真源八处：M md 清单（逐端点「幂等/并发」列〔10 列表〕/「请求·响应」列〔7 列表〕+ §4 码表场景列）／Y `application.yml`／J 实现（SmsService 取值点与用户可见文案 / DetectionService `@Value` 默认值与守卫 / SyncAdminService `MAX_ATTEMPTS` 与 `BACKOFF`）／E `ErrorCode`（码 → HTTP 状态）／T 测试源（阈值数值断言）／C 客户端（频控码处置）／P PRD 17-spec R-40（第三方裁判）。
+
+**为什么两套门禁都看不见**：契约测试只把**响应体**与 JSON Schema 比对，而阈值是**行为语义**（「60s 内重复发码被拒」「连续 5 次错码锁定 15 分钟」「日配额 5 次」「退避 30s/2m/8m/30m ≤5 次」）——任何 schema 里都没有阈值数值；覆盖门禁只比「方法 + 路径」；openapi 与客户端 TS 不被任何测试读取/执行。
+
+**真发现 7 条**：
+1. **A3a（文档 ⇔ 实现不一致）**：md ADM-S03 行声明 `30s/2m/8m/30m/2h`（5 档），实现 `BACKOFF` 只有 4 档（`MAX_ATTEMPTS=5` = 1 次立即 + 4 次退避）→ 声明的最长退避 2h 在实现中不存在。
+2. **A3b（md ⇔ PRD 不一致）**：md 第 3 档 8m 而 PRD R-40 写 10m（第三方裁判：PRD）。
+3. **A4a**：AUTH-01 响应 `{ttl:300}` 只有结构背书（schema 校验 ttl 存在），数值零断言。
+4. **A4b**：60s 频控窗口只有「重复发码 → 429 E-1903」的码断言，窗口时长数值零断言。
+5. **A4c**：15 分钟锁定时长只断言 `locked_until` 非空，时长数值零断言。
+6. **A5（同值硬编码副本）**：`SmsService` 两处用户可见文案硬编码「15 分钟」，实际锁定时长取自 `config.lockMinutes()` → 配置改值后提示失真。
+7. **A6（风险项，待拍板）**：客户端对 429 / 频控码零专门处置（`http.ts` 仅 401 分支）→ 频控提示只能靠服务端 message 透传。
+
+**正面结论（带正向对照）**：① 短信四项阈值 md ⇔ yml 逐项一致（ttl 300 / 60s / 5 次 / 15 分钟），实现 5 个取值点全部走 config、0 处阈值硬编码；② 日配额 md=5 ⇔ yml=5 ⇔ 实现默认值=5 且有守卫（`today >= dailyQuota`）；
+③ 退避档序列 实现 ⇔ 测试期望一致（`expectedSeconds {30,120,480,1800}` + `isBetween` 容差）；④ 限流/配额码 → HTTP 429 与 §4 一致（E-1302/E-1903）；⑤ 九条解析器正向对照全部 > 0。
+
+**抽查脚本自身返工 3 处**（先怀疑判据，坑 46/81/125）：① 阈值声明正则漏收「5 次**错锁** 15 分钟」（子串是「次错锁」）→ AUTH-02 整行漏收、A1 假 FAIL；② 错误码解析的码名拼接 bug（模板已含 `E-` 又传全码）→ A7 假 FAIL；③ A4d 判据过宽（`dailyQuota` 命中**方法名**）→ 收紧为只认循环上界与配置键。
+
+**判别力自测（负向，27/27 PASS）**：合规夹具 rc=0 且 FAIL 0 + 九条正向对照全 PASS + 空夹具点名全部 A0* 与五条条件化断言 + 16 组注入缺陷各**恰好**新增目标断言 + 全部注入锚点命中且新文本真的出现 + 夹具零写副作用+ 真实仓库只读（关键文件 md5 不变）。
+
+**证据**：`green-verify-R64-full-run1.txt`；`green-verify-R64-full-run2.txt`；`green-verify-R64-classdiff.txt`；`green-verify-R64-testcount.txt`；`green-verify-R64-coverage-fields.txt`；`audit-regression-R64.txt`；`audit-regression-R64-faildiff.txt`；`audit-regression-R64-rcseq.txt`；`spotcheck-throttle-R64.txt`；`spotcheck-throttle-R64-selftest.txt`。

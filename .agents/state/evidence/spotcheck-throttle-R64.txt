@@ -1,0 +1,41 @@
+== R64 抽查（只读）：频控 / 配额 / 退避阈值契约（第三十八类可审计不变量） ==
+为什么两套门禁都看不见：契约测试只把**响应体**与 JSON Schema 比对，阈值是**行为语义**（60s 频控 / 5 次错锁 15 分钟 /
+日配额 5 次 / 退避 30s·2m·8m·30m ≤5 次），任何 schema 里都没有阈值数值；覆盖门禁只比「方法 + 路径」；
+openapi 与客户端 TS 不被任何测试读取/执行 → 204 例全绿也查不出「文档声明 2h 退避而实现只排到 30 分钟」这类漂移。
+真源：M md 清单（逐端点「幂等/并发」列〔10 列表〕/「请求·响应」列〔7 列表〕+ §4 码表）／Y application.yml／
+J 实现（SmsService 取值点与文案 / DetectionService 默认值与守卫 / SyncAdminService MAX_ATTEMPTS 与 BACKOFF）／
+E ErrorCode（码 → HTTP）／T 测试源（阈值数值断言）／C 客户端（频控码处置）／P PRD 17-spec R-40（第三方裁判）。
+命令：python <tmp>/aap-r64-spotcheck/spotcheck-throttle-R64.py --root E:/workspaces/hioas/hioas-aap-001
+退出码 = 1（1 = 存在 FAIL 明细，属预期：本轮抽查发现 7 条真发现）
+== R64 抽查：频控 / 配额 / 退避阈值契约（第三十八类可审计不变量） ==
+root = E:\workspaces\hioas\hioas-aap-001
+解析计数：md 端点行 90（10 列 8 / 7 列 4）· 阈值声明行 4 · §4 码 27 · yml 阈值键 5 · 退避 md=[30, 120, 480, 1800, 7200] 实现=[30, 120, 480, 1800] PRD=[30, 120, 600, 1800, 7200] 测试=[30, 120, 480, 1800]
+
+[PASS] A0a md 端点行解析到 90 行
+[PASS] A0b 双表头各解析到行（10 列 8 / 7 列 4），坑 89
+[PASS] A0c 阈值声明行 4 条（10 列 3：AUTH-01,AUTH-02,DET-01；7 列 1：ADM-S03）
+[PASS] A0d yml 解析到 5 个阈值键：ttl-seconds,resend-interval-seconds,max-attempts,lock-minutes,daily-quota
+[PASS] A0e 实现解析到 SmsService 取值点 5 个、检测配额默认值 5、重试上限 5、退避 4 档
+[PASS] A0f §4 码表解析到 27 个码，其中 429 共 2 个
+[PASS] A0g 测试源解析到 429 状态断言 3 处（auth 2 / detection 1）
+[PASS] A0h 客户端解析到状态分支 1 个（401）
+[PASS] A0i PRD R-40 退避序列解析到 5 档（[30, 120, 600, 1800, 7200]）
+[PASS] A1 短信阈值 md ⇔ yml 逐项一致：ttl(秒)=300, 频控窗口(秒)=60, 锁定次数=5, 锁定时长(分钟)=15；实现 5 个取值点全部走 config（exposeCode,lockMinutes,maxAttempts,resendIntervalSeconds,ttlSeconds），0 处阈值硬编码
+[PASS] A2 日配额 md=5 ⇔ yml=5 ⇔ 实现默认值=5，且实现有守卫（today >= dailyQuota）
+[PASS] A3c 退避档序列 实现 ⇔ 测试期望一致：[30, 120, 480, 1800]（含 isBetween 容差断言）
+[PASS] A4d 日配额 5 次有测试背书（造满 5 条后 429 E-1302）
+[PASS] A4e 退避 4 档数值有测试背书（expectedSeconds + isBetween）
+[PASS] A7 限流/配额码 → HTTP 429 与 §4 一致：E-1302 md=429 实现=429, E-1903 md=429 实现=429
+[FAIL] A3a 退避档序列 md ⇔ 实现不一致：md=[30, 120, 480, 1800, 7200]（5 档）实现=[30, 120, 480, 1800]（4 档，MAX_ATTEMPTS=5，语义=1 次立即 + 4 次退避）→ 声明的最长退避在实现中不存在
+[FAIL] A3b 退避档序列 md ⇔ PRD R-40 不一致：md=[30, 120, 480, 1800, 7200] PRD=[30, 120, 600, 1800, 7200]（第三方裁判：PRD）
+[FAIL] A4a ttl=300 只有结构背书（schema 校验 ttl 存在），数值零断言 → 阈值可被改成任意值而全量用例仍绿
+[FAIL] A4b 60s 频控窗口只有「重复发码 → 429」的码断言，窗口时长数值零断言（测试无法证明是 60s）
+[FAIL] A4c 15 分钟锁定时长只有「locked_until 非空」的断言，时长数值零断言（无法证明是 15 分钟）
+[FAIL] A5 用户可见文案硬编码时长 2 处（15 分钟），与 config.lockMinutes() 脱钩 → 配置改值后提示失真（同值硬编码副本，坑 122 的阈值版）
+[FAIL] A6 客户端对 429 / 频控码零专门处置（仅 401 分支）→ 频控提示只能靠服务端 message 透传（风险项，待拍板）
+[INFO] A8 已知登记项（R29 裁决，不在本轮新增）：md AUTH-02 行的错误码列未声明实现真会抛的 E-1903；§4 对 E-1903 的语义描述为「限流（短信 60s 频控等）」，未显式覆盖「连续错码锁定」
+[INFO] A9 阈值真源分布：md §0 通用约定**无**频控/配额行（0 处），阈值声明只在逐端点列与 §4 码表；PRD R-12（压测成本保护 $2/任务）与 R-13（RPM 硬上限 60 req/s）不在 md 清单端点行 → 不属冻结契约表面，不判漂移
+
+== 汇总 ==
+PASS 15 / FAIL 7 / INFO 2
+FAIL token 集合 = ['A3a', 'A3b', 'A4a', 'A4b', 'A4c', 'A5', 'A6']
