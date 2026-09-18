@@ -1,0 +1,18 @@
+== R56 提交态复跑（临时 worktree，干净 detached HEAD，坑 27/28） ==
+worktree = C:/Users/laitz/AppData/Local/Temp/aap-verify-r56-014912（时间戳唯一名，避免递归删除被安全策略拦下）
+目的：验证**提交本身自洽**——不依赖他方 4 个未提交改动（`aap-client/vite.config.ts`、`aap-server` 的 `application.yml`/`log4j2-spring.xml`/`application-test.yml`）。
+命令：`export PATH="$HOME/bin:$PATH"; cd <wt>/aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test`
+门禁结论取「测试自身 1/1 通过 + 报告文件逐字段值」（坑 96：不 grep 类名当摘要——编译告警行会命中）。
+
+== 关键结果 ==
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.123 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+[INFO] Total time:  01:07 min
+
+== worktree 内 coverage-report.json（逐字段） ==
+{"total":90,"implemented":90,"missing":0,"by_task":{"T03":{"total":6,"implemented":6},"T04":{"total":5,"implemented":5},"T05":{"total":7,"implemented":7},"T06":{"total":6,"implemented":6},"T07":{"total":4,"implemented":4},"T08":{"total":11,"implemented":11},"T09":{"total":6,"implemented":6},"T10":{"total":5,"implemented":5},"T11":{"total":11,"implemented":11},"T12":{"total":4,"implemented":4},"T13":{"total":3,"implemented":3},"T14":{"total":22,"implemented":22}},"registered_routes":96,"not_registered":[]}
+
+解读：total=90 / implemented=90 / missing=0 / registered_routes=96 / not_registered=[] → 90/90；
+204 例全绿（0 失败/0 错误/0 跳过）+ EndpointCoverageTest 自身 1/1 + [ERROR]=0 + BUILD SUCCESS。
+→ **提交自洽**。收尾 `git worktree remove --force`（不触发安全策略、不碰他人工作区）。
