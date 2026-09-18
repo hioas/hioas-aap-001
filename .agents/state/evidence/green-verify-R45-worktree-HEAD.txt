@@ -1,0 +1,16 @@
+== R45 提交态复跑（临时 worktree，detached HEAD 3deeb64；坑 27/28） ==
+时间：2026-09-18T20:2x+0800
+目的：验证「提交本身自洽、不依赖他方 4 个未提交改动」（application.yml / application-test.yml /
+      log4j2-spring.xml / aap-client/vite.config.ts 均**未**进入本提交）。
+方法：git worktree add --detach C:/Users/laitz/AppData/Local/Temp/aap-verify-r45-2027 HEAD
+      （给目录加时间戳取唯一名，不做递归删除；收尾用 git worktree remove --force —— 全程不碰他人工作区）
+命令：export PATH="$HOME/bin:$PATH"; cd <worktree>/aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.114 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+说明：上面含门禁类名的那一行是**测试自身**的 1/1 通过行（EndpointCoverageTest），不是编译告警 ——
+      本轮未出现「getPatternsCondition() 已过时」类告警被误当摘要的情况（坑 96）。
+结论：提交态 204 例全绿（0 失败 / 0 错误 / 0 跳过）+ 覆盖门禁自身断言 1/1 + BUILD SUCCESS
+      → 提交 3deeb64 自洽，不依赖他方未提交改动。
+[ERROR] 行数 = 0
+收尾：git worktree remove --force 后 git worktree list 只剩主工作树
