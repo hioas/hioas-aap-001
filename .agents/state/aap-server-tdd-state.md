@@ -3330,3 +3330,11 @@ openapi 对这些端点统一输出通用 `Envelope`，无法区分「真包络�
 
 **R59 台账回写**：追加 R59 行（「提交」列先留空，提交后由收尾提交补齐）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」（坑 36/80）；
 R 行连续性 R27 → R59 无缺号（坑 71）。
+
+**R59 提交态复跑**（临时 worktree，detached HEAD `d35893c`；坑 27/28）：204 例全绿（0 失败/0 错误/0 跳过）+ `EndpointCoverageTest` 自身 1/1 +
+`[ERROR]` 行数 0 + BUILD SUCCESS + worktree 内 `coverage-report.json` 逐字段 `total=90/implemented=90/missing=0/registered_routes=96/not_registered=[]`
+→ **提交本身自洽、不依赖他方 4 个未提交改动**；收尾 `git worktree remove --force`（`git worktree list` 只剩主工作树）。
+证据：`evidence/green-verify-R59-worktree-HEAD.txt`。
+
+**R59 台账收尾**：R59 行「提交」列填为 `d35893c`（不留台账债）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」且末行「提交」列非空；
+R 行连续性 R27 → R59 无缺号（坑 71）。飞书通知失败留痕（第 34 轮同因：feishu home channel 未绑定，不阻塞交付）。
