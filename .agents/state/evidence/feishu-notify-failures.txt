@@ -9,3 +9,4 @@
   处理：按 SOP 不中断工作；本条只影响「主动推送」，不影响代码/测试/提交（T10 已提交 1906c80）。
   恢复办法（需人工一次性操作）：在 Hermes 里执行 `hermes config set FEISHU_HOME_CHANNEL <channel_id>`
         绑定目标频道，之后本 job 的每轮进度通知即可自动送达。
+2026-09-18T09:41 T11 完成通知发送失败：hermes send -t feishu 报 'No home channel set for feishu ... set FEISHU_HOME_CHANNEL'（沿用：目标未绑定，需人工配置）。工作不因此中断，提交 738153c 已完成。
