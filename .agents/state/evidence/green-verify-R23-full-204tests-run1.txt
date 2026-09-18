@@ -1,0 +1,14 @@
+# R23 巡检复验 · 全量测试 run1（2026-09-18T12:02）
+# cmd: cd aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test
+# 说明：本轮仅改 tools/*.py（只读审计脚本，不参与构建），未改业务代码、未改/删/跳过任何用例。
+
+2026-09-18 11:54:43.799 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.coverage.EndpointCoverageTest]: EndpointCoverageTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-18 11:54:43.817 INFO  [main] [] org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.hioas.aap.AapServerApplication for test class com.hioas.aap.coverage.EndpointCoverageTest
+2026-09-18 11:54:43.817 INFO  [main] [] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.hioas.aap.coverage.EndpointCoverageTest]: EndpointCoverageTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-18 11:54:43.818 INFO  [main] [] org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.hioas.aap.AapServerApplication for test class com.hioas.aap.coverage.EndpointCoverageTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.131 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+[INFO] Total time:  01:25 min
+
+grep -c '^\[ERROR\]' = 0

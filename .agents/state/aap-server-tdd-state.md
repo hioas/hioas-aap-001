@@ -740,3 +740,46 @@
 30. **方法也要一起比对**：只比路径会把「路径对但方法不同」的调用算成强证据。本工具用
     `get/post/put/delete/patch` 助手名反推真实方法（`send(...)` 显式传方法 → 视为弱证据），
     方法不吻合的降级为 `prefix`。负向自测里 `FAKE-02` 正是这种情况。
+31. **端点 ID 是「组合引用」写的，裸子串判断会把 19 条真引用误报成缺口**（R23 修正 R22 的结论）：
+    本项目测试源的既有书写是**族引用** —— 类注释里 `T06 · 检测任务验收（接口 DET-01…06；AC-13/19/20/47）`、
+    `@DisplayName("AUTH-05/06 登录态：…")`、`PROV-03/04/05`、`ADM-CFG01…05`。
+    R22 只做 `ep["id"] in text`，`AUTH-06` 不是 `AUTH-05/06` 的子串 → 判「19 条端点 ID 不可追溯」，
+    **是 100% 假发现**（那 19 条正是「仅靠组合引用命中」的 19 条）。
+    规则：审计脚本要同时支持 `/` 枚举与 `…` 区间展开，且**候选串必须回查清单 ID 全集**再算命中；
+    更严一档要求「ID 引用与真实 HTTP 调用点同文件」，否则「类注释里列了 ID、文件里没人调」会冒充可追溯。
+32. **负向自测要覆盖每一个判定分支，不能只覆盖一个**：R22 的自测只打了「路径→exact/prefix/none」分支，
+    ID 可追溯分支从未被自测过，于是假发现一路带到了结论里。规则：**判定有几个分支，自测就要有几条反例**。
+    R23 补的自测（`tools/audit-endpoint-tests-selftest.py`）钉死三条边界：
+    区间 `SYN-01…03` 必须展开、**不得外溢到 SYN-04**、没提过的 `SYN-09` 必须判不可追溯。
+33. **短路径会在长路径里当子串命中**：`/syn/probe` 的正则未加尾部边界时会匹配 `/syn/probe/only-post` 那一行，
+    若两者方法恰好相同，短端点就白捡一个 `exact` 假证据。规则：骨架正则补 `(?![A-Za-z0-9_/])`。
+    加边界后真清单仍是 **exact 90 / prefix 0 / none 0**，说明此前 90 条不是靠子串蹭出来的。
+34. **`--tests-dir` 指向仓库外会让审计崩溃**：`f.relative_to(ROOT)` 抛 `ValueError: … is not in the subpath of …`，
+    于是「换一份夹具目录」的负向自测根本跑不起来（此前自测只换清单、不换测试目录，所以从未暴露）。
+    规则：路径展示统一走已有的 `rel_path()`（仓库外回退绝对路径）。
+
+---
+
+## R23（2026-09-18）巡检复验 + **修正 R22 的假发现**（本轮不改业务代码）
+
+| 项 | run1（工作树） | run2（工作树，防 flaky） |
+| --- | --- | --- |
+| 用例 | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0` / `BUILD SUCCESS` / `Total time: 01:25 min` | 同上，完全一致 / `Total time: 58.632 s`；`grep -c '^\[ERROR\]'` = **0** |
+| 覆盖门禁 | `EndpointCoverageTest` 绿 → 90/90（`registered_routes=96`、`not_registered=[]`） | 同左 |
+| 证据文件 | `evidence/green-verify-R23-full-204tests-run1.txt` | `evidence/green-verify-R23-full-204tests-run2.txt` |
+
+**本轮增量**
+
+1. **推翻 R22 第 3 条（19 条「ID 不可追溯」）**：那是审计脚本的假发现，不是仓库的可追溯性缺口。
+   修正后：`端点 ID 可追溯 90/90`（裸字面量 71 + 组合引用 19），`ID 引用与真实 HTTP 调用点同文件 90/90`。
+   R22 的 19 条**逐条**都能在测试源里找到族引用（如 `AUTH-01…06`、`DET-01…06`、`RPT-01…04`），
+   见 `evidence/audit-endpoint-tests-R23.txt`。
+2. **修正审计工具** `tools/audit-endpoint-tests.py`：新增组合引用展开（`/` 枚举 + `…` 区间，回查清单 ID 全集）、
+   新增「ID 引用与调用点同文件」更严一档、骨架正则补尾部边界、`--tests-dir` 出仓库不再崩溃。
+3. **新增负向自测** `tools/audit-endpoint-tests-selftest.py`（9 条断言，全部 PASS，rc=0）：
+   合成夹具覆盖 `exact / prefix / none / 区间展开 / 区间不外溢 / 枚举展开 / 未提及即不可追溯 / 子串边界`。
+   证据 `evidence/audit-selftest-negative-R23.txt`。
+4. **结论：90/90 维持全绿（连续第 6 轮：R18 → R19 → R20 → R21 → R22 → R23）**，
+   `missing=0` → 本轮**未改业务代码、未新增/删除/跳过任何用例、未动任何断言**（改动仅限 `tools/*.py`）。
+5. **待拍板（维持，未变）**：R22 列的「是否补 19 个 ID」已由本轮**证伪**，无需拍板；
+   当前唯一悬置项是**飞书 home channel 未绑定**（`hermes config set FEISHU_HOME_CHANNEL <channel_id>` 需人工执行）。

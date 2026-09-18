@@ -19,6 +19,13 @@
   `.agents/state/evidence/endpoint-test-audit.json`  —— 机器可读逐条结果
   `.agents/state/evidence/endpoint-test-audit.txt`   —— 人类可读摘要
 退出码：0 = 每条端点都有调用点（exact/prefix 均可）；1 = 存在 none。
+
+ID 可追溯性三档（R23 修正：R22 曾因只做裸子串判断误报「19 条 ID 不可追溯」）：
+  1. 裸字面量命中 `AUTH-05`；
+  2. **组合引用**命中：`AUTH-05/06`、`PROV-03/04/05`（枚举）、`DET-01…06`（区间）；
+  3. 更严一档：ID 引用必须与真实 HTTP 调用点**落在同一文件**。
+判别力由 `tools/audit-endpoint-tests-selftest.py` 的负向自测保证（区间不得外溢、
+未被提及的 ID 必须判不可追溯、短路径不得在长路径里当子串命中）。
 """
 from __future__ import annotations
 
@@ -52,6 +59,38 @@ VAR_ALT = (r'(?:"\s*\+\s*[A-Za-z0-9_.()\[\]"\' ]+\s*\+\s*"'
            r'|[A-Za-z0-9_.()\[\]]+)')
 API_PREFIX = "/api/v1"
 
+# 项目既有约定：同一族端点常写成**组合引用**，例如 `AUTH-05/06`、`PROV-03/04/05`、
+# `ADM-CFG01…05`、`QT-01…11；AC-22…27`。只做 `ep["id"] in text` 的裸子串判断会把
+# 这些引用全部漏掉 → 得出「19 条端点 ID 不可追溯」的**假发现**（踩坑 29 同族：
+# 审计脚本必须对齐被测代码的真实书写约定，否则「0 发现/假发现」无法区分）。
+GROUPED_ID = re.compile(r"([A-Z]+(?:-[A-Z]+)*-?)(\d+)((?:\s*(?:/|…|\.\.\.)\s*\d+)*)")
+
+
+def referenced_ids(text: str, known: set[str]) -> set[str]:
+    """从源码里抽出被引用的端点 ID（含 `/` 枚举与 `…` 区间的组合引用）。
+
+    注意清单里并存两种书写：`AUTH-05`（前缀后带连字符）与 `ADM-CFG01`（连字符后直接接数字），
+    因此保留匹配到的前缀原文（含可能的尾连字符）再拼数字，两种都能还原。
+    候选串一律回查 `known`（清单 ID 全集）后才算命中，避免凭空构造出不存在的 ID。
+    """
+    found: set[str] = set()
+    for m in GROUPED_ID.finditer(text):
+        base, first = m.group(1), int(m.group(2))
+        prev = first
+        seq: list[int] = [first]
+        for sep, num in re.findall(r"(\s*(?:/|…|\.\.\.)\s*)(\d+)", m.group(3)):
+            n = int(num)
+            if "…" in sep or "..." in sep:      # 区间：补齐中间值
+                seq.extend(range(min(prev, n), max(prev, n) + 1))
+            else:                               # 枚举
+                seq.append(n)
+            prev = n
+        for n in seq:
+            for cand in (f"{base}{n}", f"{base}{n:02d}"):
+                if cand in known:
+                    found.add(cand)
+    return found
+
 # 调用助手名 → 它实际发出的 HTTP 方法（send 显式传 method，视为方法未定）
 HELPER_METHOD = {"get": "GET", "post": "POST", "put": "PUT", "delete": "DELETE", "patch": "PATCH"}
 
@@ -64,7 +103,9 @@ def skeleton_regex(path: str) -> re.Pattern[str]:
         body += re.escape(part)
         if i < len(parts) - 1:
             body += VAR_ALT
-    return re.compile(body)
+    # 尾部边界：防止短路径在长路径里**当子串**命中（`/syn/probe` 会匹配 `/syn/probe/only-post`，
+    # 若两者方法又恰好相同，短端点就会白捡一个 exact 假证据）。
+    return re.compile(body + r"(?![A-Za-z0-9_/])")
 
 
 def variants(path: str) -> list[str]:
@@ -101,17 +142,24 @@ def main() -> int:
         print(f"清单缺失：{MANIFEST}（先跑 python tools/gen-backend-models.py）", file=sys.stderr)
         return 2
     endpoints = json.loads(MANIFEST.read_text(encoding="utf-8"))["endpoints"]
+    known_ids = {ep["id"] for ep in endpoints}
 
     sources: dict[str, str] = {}
     for f in sorted(TESTS_DIR.rglob("*.java")):
-        sources[f.relative_to(ROOT).as_posix()] = f.read_text(encoding="utf-8", errors="replace")
+        # 用 rel_path()：`--tests-dir` 指向仓库外（负向自测夹具）时 relative_to(ROOT) 会抛 ValueError
+        sources[rel_path(f)] = f.read_text(encoding="utf-8", errors="replace")
+
+    # 逐文件预抽 ID 引用（组合引用已展开），避免每条端点重复扫描
+    file_ids: dict[str, set[str]] = {rel: referenced_ids(text, known_ids)
+                                     for rel, text in sources.items()}
 
     rows = []
     for ep in endpoints:
         raw_path = ep["path"]
         exact: list[dict] = []
         weak: list[dict] = []
-        id_refs = sorted(rel for rel, text in sources.items() if ep["id"] in text)
+        id_refs = sorted(rel for rel, ids in file_ids.items() if ep["id"] in ids)
+        id_refs_literal = sorted(rel for rel, text in sources.items() if ep["id"] in text)
 
         regexes = [skeleton_regex(v) for v in variants(raw_path)]
         # 弱证据：首个变量之前的静态前缀（保留 /api/v1 与去前缀两种写法）
@@ -138,11 +186,18 @@ def main() -> int:
                         weak.append({"file": rel, "line": line[:200], "helper": None})
 
         kind = "exact" if exact else ("prefix" if weak else "none")
+        # 更严的一档：ID 引用必须落在**同时含真实 HTTP 调用点**的同一文件里，
+        # 否则「类注释里列了 ID、文件里却没人调」会冒充可追溯（假绿）。
+        exact_files = {h["file"] for h in exact}
+        id_refs_with_call = [f for f in id_refs if f in exact_files]
         rows.append({
             "id": ep["id"], "method": ep["method"], "path": raw_path,
             "task": ep.get("task"), "tag": ep.get("tag"),
             "evidence": kind,
             "id_refs": id_refs,
+            "id_refs_with_call": id_refs_with_call,
+            "id_refs_literal": id_refs_literal,
+            "id_grouped_only": bool(id_refs) and not id_refs_literal,
             "exact_sites": len(exact), "prefix_sites": len(weak),
             "exact_sample": exact[:2], "prefix_sample": weak[:2],
         })
@@ -150,6 +205,8 @@ def main() -> int:
     none_rows = [r for r in rows if r["evidence"] == "none"]
     prefix_rows = [r for r in rows if r["evidence"] == "prefix"]
     no_id_ref = [r for r in rows if not r["id_refs"]]
+    grouped_only = [r for r in rows if r["id_grouped_only"]]
+    no_id_with_call = [r for r in rows if not r["id_refs_with_call"]]
 
     report = {
         "total": len(rows),
@@ -157,7 +214,11 @@ def main() -> int:
         "prefix": len(prefix_rows),
         "none": len(none_rows),
         "id_traceable": len(rows) - len(no_id_ref),
+        "id_traceable_literal_only": sum(1 for r in rows if r["id_refs_literal"]),
+        "id_grouped_only": len(grouped_only),
+        "id_traceable_same_file_as_call": len(rows) - len(no_id_with_call),
         "id_not_traceable": [r["id"] for r in no_id_ref],
+        "id_not_traceable_same_file_as_call": [r["id"] for r in no_id_with_call],
         "none_ids": [r["id"] for r in none_rows],
         "prefix_ids": [r["id"] for r in prefix_rows],
         "endpoints": rows,
@@ -176,7 +237,10 @@ def main() -> int:
         f"exact （路径骨架 + 方法都吻合的真实 HTTP 调用点）：{report['exact']}",
         f"prefix（路径命中但方法不吻合 / 仅静态前缀，弱证据）：{report['prefix']}",
         f"none  （无任何调用点 —— 真发现）            ：{report['none']}",
-        f"端点 ID 在测试源里可追溯                    ：{report['id_traceable']}/{report['total']}",
+        f"端点 ID 在测试源里可追溯（含组合引用展开）  ：{report['id_traceable']}/{report['total']}",
+        f"  其中仅裸字面量可追溯                      ：{report['id_traceable_literal_only']}/{report['total']}",
+        f"  靠组合引用（`A-05/06`、`A-01…05`）才算命中  ：{report['id_grouped_only']}",
+        f"ID 引用与真实 HTTP 调用点同文件（更严一档）  ：{report['id_traceable_same_file_as_call']}/{report['total']}",
         "",
     ]
     if none_rows:
@@ -193,6 +257,10 @@ def main() -> int:
     if no_id_ref:
         lines.append("== 测试源里未出现端点 ID 的端点（可追溯性缺口，不影响「有用例」判定）==")
         lines.append("  " + ", ".join(r["id"] for r in no_id_ref))
+        lines.append("")
+    if no_id_with_call:
+        lines.append("== ID 引用与真实 HTTP 调用点**不同文件**的端点（弱可追溯）==")
+        lines.append("  " + ", ".join(r["id"] for r in no_id_with_call))
         lines.append("")
 
     text = "\n".join(lines) + "\n"
