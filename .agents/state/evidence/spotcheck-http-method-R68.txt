@@ -1,0 +1,33 @@
+== R68 抽查：HTTP 方法语义（读端点写副作用）（第四十二类可审计不变量） ==
+脚本：C:\Users\laitz\AppData\Local\Temp\aap-r68-spotcheck\spotcheck-http-method-R68.py（只读；零写副作用见 audit-regression-R68.txt）
+命令：python spotcheck-http-method-R68.py --root E:/workspaces/hioas/hioas-aap-001
+rc = 0
+
+== R68 抽查：HTTP 方法语义（读端点写副作用） ==
+扫描目录：E:\workspaces\hioas\hioas-aap-001\aap-server\src\main\java（169 个 .java）
+方法 1628 个；写调用点 105 处；映射方法 91 个；方法分布 {'DELETE': 2, 'GET': 46, 'POST': 38, 'PUT': 5}；调用点解析成功 1043 对
+读端点 46 个（链上写 > 0 者 0）；写端点 45 个（链上写 = 0 者 1，其中未能解析 0）
+
+-- 读端点链上写副作用明细（应全为 0） --
+
+-- 写端点链上零写明细 --
+    QuoteController              compilePreview           POST   L221   节点=14  未能静态判定=0
+
+[PASS] A0a 解析到 main 源码文件 169 个
+[PASS] A0b 解析到方法 1628 个
+[PASS] A0c 解析到控制器映射方法 91 个（清单端点 90）
+[PASS] A0d 解析到读端点（GET）46 个
+[PASS] A0e 解析到写端点（POST/PUT/PATCH/DELETE）45 个
+[PASS] A0f 解析到写调用点 105 处（含常量引用 SQL）
+[PASS] A0g 调用点解析成功 1043 对（接收者类型感知 + 实参个数选重载）
+[PASS] A0h 调用链解析到 ≥2 个节点的端点 91 个
+[PASS] A1 全部 46 个读端点（GET）链上累计写调用点 = 0（读语义无副作用）
+[PASS] A1b 读端点写副作用豁免 0 条 ≤ 上限 1
+[PASS] A2 全部 44 个写端点在已解析的调用链上都有写调用点（≥1；豁免 1 条：javadoc 声明只读语义，见 A2e）
+[PASS] A2e 只读语义豁免 1 条 ≤ 上限 2
+[PASS] A2b 「未能静态判定」的写端点 0 条 ≤ 上限 2
+[PASS] A3 实现方法分布 ⊇ 清单（差异：GET 实现 46 / 清单 45；已知 1 条超出冻结契约的 GET 调试路由，坑 61）
+[PASS] A4 测试源存在 GET 调用点 278 处（读端点有真实 HTTP 用例的结构级背书）
+[INFO] A2f 写端点按 javadoc 声明为只读语义（豁免，链上 0 写；依据关键词命中）：QuoteController.compilePreview:POST:221
+
+PASS 15 / FAIL 0 / INFO 1

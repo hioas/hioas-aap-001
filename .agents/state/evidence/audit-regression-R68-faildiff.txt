@@ -1,0 +1,23 @@
+== R68 跨轮 FAIL 明细比对（R67 → R68） ==
+比对键：剥**行首**来源名前缀（坑 109/135）、排除 [PASS] 自指行（坑 47/77）与汇总行（坑 103）
+正向对照：R67 解析到 FAIL 行 73 条 / R68 解析到 FAIL 行 73 条（均须 > 0，否则收集器失效 → 坑 46/98）
+R67 唯一集合 66 条 / R68 唯一集合 66 条
+新增 0 条；消失 0 条
+
+-- 新增 --（无）
+
+-- 消失 --（无）
+
+== R68 环境归属说明（同机多代理，坑 15/27） ==
+首跑 `spotcheck-unique-selftest` rc=1，唯一失败项 T16「真实仓库只读（git status 不变）」：
+该守卫当时比**全仓库** git status，而另一代理在本轮比对窗口内改动了客户端文件
+（实测 aap-client/package.json mtime = 2026-09-19 07:04:16，落在窗口内；另新增未跟踪的
+aap-client/tools/mp-ide-smoke.mjs 等）→ 属**他方改动被算到本抽查头上**，不是本仓库后端/文档被写。
+复核：单独复跑该自测 → 18/18 PASS、rc=0（无并发窗口）→ 归因成立。
+判据修正：T16 收窄到本抽查的读写范围（`git status --porcelain -- aap-server docs tools`）——
+语义是「本抽查没写仓库」，全仓库口径与语义不符（坑 81/140）；修正后 rc 序列与 R67 逐条一致（仅新增 2 条 rc=0）。
+
+== R68 观察项：覆盖门禁产物的行尾（坑 69） ==
+`coverage-report.json` 被门禁（Java 侧）以 CRLF 重写（实测工作区 CR 字节 = 56，index/HEAD 为 LF 0 字节）→
+`git ls-files --eol` 显示 `i/lf w/crlf`，`git status` 恒显示 M 但 `git diff --numstat` 无行变化（逐字段值一致，坑 56 同族）。
+本轮已按 LF 归一（读全文 → 替换 CRLF → 写回），归一后与 HEAD 逐字节一致（`git status` 干净）。

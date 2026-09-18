@@ -1,0 +1,39 @@
+== R68 抽查负向自测（夹具 + 注入缺陷判别力） ==
+脚本：C:\Users\laitz\AppData\Local\Temp\aap-r68-spotcheck\spotcheck-http-method-R68-selftest.py
+命令：python spotcheck-http-method-R68-selftest.py
+rc = 0
+
+== R68 抽查负向自测 ==
+[PASS] 合规夹具 rc=0 | rc=0
+[PASS] 合规夹具 FAIL 明细为空 | FAIL 行 0
+[PASS] 合规夹具正向对照 A0a…A0h 全 PASS
+[PASS] 合规夹具 A1/A2/A3/A4 全 PASS
+[PASS] 合规夹具解析到 2 个端点（GET 1 / POST 1）
+[PASS] 空夹具 rc≠0 | rc=1
+[PASS] 空夹具点名全部 A0* 与条件化断言 A1/A2/A3/A4 | 缺：[]
+[PASS] 空夹具无 A0* PASS（条件化断言不得空转假绿，坑 98/132/141）
+[PASS] 注入 inj-get-write 锚点全部命中 | 未命中：[]
+[PASS] 注入 inj-get-write 新文本真的出现
+[PASS] 注入 inj-get-write 恰好新增目标断言 A1 | 新增 ['A1'] / 消失 []
+[PASS] 注入 inj-post-noread 锚点全部命中 | 未命中：[]
+[PASS] 注入 inj-post-noread 新文本真的出现
+[PASS] 注入 inj-post-noread 恰好新增目标断言 A2 | 新增 ['A2'] / 消失 []
+[PASS] 注入 inj-arity 锚点全部命中 | 未命中：[]
+[PASS] 注入 inj-arity 锚点全部命中（服务侧） | 未命中：[]
+[PASS] 注入 inj-arity 新文本真的出现
+[PASS] 注入 inj-arity 恰好新增目标断言 A2（重载无匹配 → 链断 → 写不可见） | 新增 ['A2'] / 消失 []
+[PASS] 回归守卫 inj-const-inline 锚点全部命中 | 未命中：[]
+[PASS] 回归守卫 inj-const-inline 新文本真的出现
+[PASS] 回归守卫 inj-const-inline 结果必须不变（两种写法都要被计入） | FAIL 差异：[] rc=0
+[PASS] 回归守卫 inj-fq-simple 锚点全部命中 | 未命中：[]
+[PASS] 回归守卫 inj-fq-simple 新文本真的出现
+[PASS] 回归守卫 inj-fq-simple 结果必须不变（FQ 与简单类型都要归一） | FAIL 差异：[] rc=0
+[PASS] 注入 inj-manifest-method 锚点全部命中 | 未命中：[]
+[PASS] 注入 inj-manifest-method 新文本真的出现
+[PASS] 注入 inj-manifest-method 恰好新增目标断言 A3 | 新增 ['A3'] / 消失 []
+[PASS] 注入 inj-no-test 恰好新增目标断言 A4 | 新增 ['A4'] / 消失 []
+[PASS] 夹具目录零写副作用（无 __pycache__/.pyc/.tmp 残留） | 残留：[]
+[PASS] 真实仓库关键文件 md5 不变（只读守卫） | 变化：[]
+[PASS] 空夹具产出 FAIL 明细行 > 0（收集器有效，坑 98/46） | 空夹具 FAIL 明细 12 行
+
+自测：31 条，PASS 31 / FAIL 0
