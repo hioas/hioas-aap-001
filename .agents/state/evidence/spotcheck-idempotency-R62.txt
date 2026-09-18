@@ -1,0 +1,42 @@
+== R62 抽查：幂等重放语义契约（第三十六类可审计不变量，只读） ==
+真源：M=md 清单 / O=openapi / D=DDL / I=实现 / C=客户端 / T=测试源 / R=可达性
+
+--- A0 正向对照（每个源都必须真的解析到条目；任一为 0 先怀疑解析器，坑 46/75/98/132）---
+[PASS] A0a  M md §0 幂等约定行解析到：头名='Idempotency-Key' TTL=24 h
+[PASS] A0b  M 逐端点行=90（10 列表头），其中声明 Idempotency-Key 的端点=10 条
+[PASS] A0c  D aap_idempotency_record 列数=15，唯一索引 uq_idempotency_key 命中=1
+[PASS] A0d  I 幂等过滤器解析到：aap-server\src\main\java\com\hioas\aap\support\idempotency\IdempotencyFilter.java 头名='Idempotency-Key' TTL=24 h
+[PASS] A0e  O openapi 解析到 operations=90、`in: query` 参数点=79、`in: header` 参数点=0
+[PASS] A0f  T 测试源 39 文件，幂等重放用例=2（含「只落一次/逐字一致/返回首次」=2）
+
+--- A1 头名一致（M §0 / I 常量 / O 逐 operation / C 发送点）---
+[PASS] A1a  M §0 头名='Idempotency-Key' ⇔ I 常量='Idempotency-Key'（必须一致）
+[FAIL] A1b  O openapi 逐 operation 声明 `in: header`（Idempotency-Key）的条数=0，而 M 声明该头的端点数=10 → 生成物侧漏声明（第三处真源缺失；契约测试只读 JSON Schema，头不在 schema 里，204 例全绿也看不见）
+
+--- A2 TTL 语义（24h 声明 ⇔ 常量 ⇔ 重放查询是否按 expire_at 过滤 ⇔ 清理路径）---
+[PASS] A2a  M 声明 TTL=24 h ⇔ I 常量 TTL_HOURS=24
+[FAIL] A2b  I 重放查询 find() 只按 `idempotency_key` 过滤、**不按 `expire_at`** → M/实体 javadoc 声明的 「24h 有效」在**重放路径上失效**：过期记录仍会被重放（首次响应体无限期返回）
+[FAIL] A2c  I 零清理路径（含 DDL 表名或 IdempotencyRecordMapper 且带 @Scheduled + 删除的文件数=0） + 表无 TTL 清理 → 过期记录**永久留存**并被永久重放（与 A2b 同源，A2b/A2c 任一为真即构成语义缺口）
+[INFO] A2d  D 索引 idx_idempotency_expire on aap_idempotency_record 存在，而实现零读取路径 → **孤儿索引**（为「按 expire_at 过期」预留却未接线；与 A2b/A2c 同源）
+
+--- A3 重放形状（命中返回首次响应体）与空响应体可达性 ---
+[PASS] A3a  I 重放分支回放首次 `response_body` + `response_status`（完整包体，含 traceId）
+[PASS] A3b  「空响应体不落库（state 永停 IN_PROGRESS → 该端点重放失效）」当前**不可达**：控制器 22 个、204/ResponseEntity<Void> 线索=0 处（空体守卫存在=True）→ 降级为**潜在陷阱（当前不可达）**，待新增 204 写端点时须一并处置
+
+--- A4 并发首写兜底（唯一索引 + 捕获）---
+[PASS] A4a  D 唯一索引 uq_idempotency_key['idempotency_key'] 存在 ⇔ I 捕获 DuplicateKeyException（撞键方转重放）
+[INFO] A4b  唯一键列集合=['idempotency_key']（`endpoint` 未入键 → 同键跨端点不冲突；实现以 `request_hash` 做同键不同体判 400，跨端点同体场景由 hash 相等兜住，无实证风险）
+
+--- A5 逐端点：M 声明集合 ⇔ I 覆盖面 ⇔ T 测试背书 ---
+[PASS] A5a  I 为**全局过滤器**（所有 `/api/` 写请求带头即生效）⇒ 覆盖面 ⊇ M 声明的 10 条（CON-04 CRED-02 CRED-05 DET-01 PROV-02 PROV-04 QT-02 QT-05 QT-09 QT-12）→ 实现更宽，非缺口
+[FAIL] A5b  M 声明的 10 条端点中仅 2 条有幂等重放用例背书（['CON-04', 'PROV-02']），8 条零背书：['CRED-02', 'CRED-05', 'DET-01', 'PROV-04', 'QT-02', 'QT-05', 'QT-09', 'QT-12'] → 「幂等重放」语义在其余端点**只靠全局过滤器实现，无任何真实 HTTP 用例**（门禁只要求「有真实 HTTP 用例」，不要求覆盖幂等语义）
+
+--- A6 契约冲突码（同键不同请求体 → 400 E-1001）---
+[FAIL] A6a  M「错误码」列漏声明 E-1001 的声明端点=4 条：['CON-04', 'CRED-05', 'DET-01', 'QT-12']（实现为全局过滤器，这些端点同键不同体同样抛 400 E-1001 → md 少声明了实现真会抛的码；门禁与契约测试都看不见）
+
+--- A7 客户端是否消费该头（信息项 / 风险项，坑 54/88 措辞分档）---
+[INFO] A7a  C 客户端**零处**设置 Idempotency-Key（仅文件头注释提到，剥注释后 0 命中）→ M 措辞为「**支持**」不是「必须带」；客户端不带该头时并发重复提交**不享幂等保护**，属风险项（待拍板），不是硬漂移（`aap-client` 零按码/按状态分支）
+[INFO] A7b  「同键不同请求体」的冲突码 400 E-1001 在 md §0 幂等约定行未出现（§0 只承诺「24h，命中返回首次响应体」）→ 文档一致性项
+
+汇总 PASS 12 / FAIL 5 / INFO 4
+正向对照 A0a…A0f 全部必须为 PASS；任一为 FAIL 时本报告结论无效（先修解析器，坑 46/98）

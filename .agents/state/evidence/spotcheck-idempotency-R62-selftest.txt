@@ -1,0 +1,87 @@
+== R62 抽查脚本负向自测（合成夹具）==
+脚本：C:\Users\laitz\AppData\Local\Temp\aap-r62-spotcheck\spotcheck-idempotency-R62.py
+
+[OK ] 夹具写入 C:\Users\laitz\AppData\Local\Temp\aap-r62-spotcheck-fixtures（8 文件）；空夹具目录 C:\Users\laitz\AppData\Local\Temp\aap-r62-spotcheck-fixtures-empty
+
+[OK ] 合规夹具 rc=0（实际 rc=0）
+[OK ] 合规夹具 FAIL 集合为空（实际 []）
+[OK ] 合规夹具正向对照 A0a 为 PASS
+[OK ] 合规夹具正向对照 A0b 为 PASS
+[OK ] 合规夹具正向对照 A0c 为 PASS
+[OK ] 合规夹具正向对照 A0d 为 PASS
+[OK ] 合规夹具正向对照 A0e 为 PASS
+[OK ] 合规夹具正向对照 A0f 为 PASS
+[OK ] 合规夹具输出含汇总行（正向对照：解析器真的解析到了）
+
+[OK ] 空夹具 rc≠0（实际 rc=1）
+[OK ] 空夹具点名解析器正向对照 A0a（坑 46/75/98）
+[OK ] 空夹具点名解析器正向对照 A0b（坑 46/75/98）
+[OK ] 空夹具点名解析器正向对照 A0c（坑 46/75/98）
+[OK ] 空夹具点名解析器正向对照 A0d（坑 46/75/98）
+[OK ] 空夹具点名解析器正向对照 A0e（坑 46/75/98）
+[OK ] 空夹具点名解析器正向对照 A0f（坑 46/75/98）
+[OK ] 空夹具点名条件化断言 A1a（坑 98 空转假绿守卫）
+[OK ] 空夹具点名条件化断言 A3b（坑 98 空转假绿守卫）
+[OK ] 空夹具点名条件化断言 A5a（坑 98 空转假绿守卫）
+
+== 注入缺陷判别力（先跑基线，再断言 FAIL 集合恰好新增目标断言）==
+[OK ] 注入 md-ttl 锚点全部命中（未命中即空转通过，坑 66/94） — 未命中=[]
+[OK ] 注入 md-ttl → 恰好新增目标断言 ['A2a']（实际 ['A2a']）
+[OK ] 注入 md-ttl → rc≠0
+[OK ] 注入 md-header 锚点全部命中（未命中即空转通过，坑 66/94） — 未命中=[]
+[OK ] 注入 md-header → 恰好新增目标断言 ['A1a']（实际 ['A1a']）
+[OK ] 注入 md-header → rc≠0
+[OK ] 注入 md-ttl-drop 锚点全部命中（未命中即空转通过，坑 66/94） — 未命中=[]
+[OK ] 注入 md-ttl-drop → 恰好新增目标断言 ['A0a', 'A2a']（实际 ['A0a', 'A2a']）
+[OK ] 注入 md-ttl-drop → rc≠0
+[OK ] 注入 md-idem-row-drop 锚点全部命中（未命中即空转通过，坑 66/94） — 未命中=[]
+[OK ] 注入 md-idem-row-drop → 恰好新增目标断言 ['A0a', 'A1a', 'A2a']（实际 ['A0a', 'A1a', 'A2a']）
+[OK ] 注入 md-idem-row-drop → rc≠0
+[OK ] 注入 md-one-row-drop 锚点全部命中（未命中即空转通过，坑 66/94） — 未命中=[]
+[OK ] 注入 md-one-row-drop → 恰好新增目标断言 ['A1b']（实际 ['A1b']）
+[OK ] 注入 md-one-row-drop → rc≠0
+[OK ] 注入 md-all-rows-drop 锚点全部命中（未命中即空转通过，坑 66/94） — 未命中=[]
+[OK ] 注入 md-all-rows-drop → 恰好新增目标断言 ['A0b', 'A1b', 'A5a', 'A5b', 'A6a']（实际 ['A0b', 'A1b', 'A5a', 'A5b', 'A6a']）
+[OK ] 注入 md-all-rows-drop → rc≠0
+[OK ] 注入 md-drop-code 锚点全部命中（未命中即空转通过，坑 66/94） — 未命中=[]
+[OK ] 注入 md-drop-code → 恰好新增目标断言 ['A6a']（实际 ['A6a']）
+[OK ] 注入 md-drop-code → rc≠0
+[OK ] 注入 oa-drop-header 锚点全部命中（未命中即空转通过，坑 66/94） — 未命中=[]
+[OK ] 注入 oa-drop-header → 恰好新增目标断言 ['A1b']（实际 ['A1b']）
+[OK ] 注入 oa-drop-header → rc≠0
+[OK ] 注入 oa-no-query 锚点全部命中（未命中即空转通过，坑 66/94） — 未命中=[]
+[OK ] 注入 oa-no-query → 恰好新增目标断言 ['A0e']（实际 ['A0e']）
+[OK ] 注入 oa-no-query → rc≠0
+[OK ] 注入 ddl-drop-uq 锚点全部命中（未命中即空转通过，坑 66/94） — 未命中=[]
+[OK ] 注入 ddl-drop-uq → 恰好新增目标断言 ['A0c', 'A4a']（实际 ['A0c', 'A4a']）
+[OK ] 注入 ddl-drop-uq → rc≠0
+[OK ] 注入 impl-drop-ttl 锚点全部命中（未命中即空转通过，坑 66/94） — 未命中=[]
+[OK ] 注入 impl-drop-ttl → 恰好新增目标断言 ['A0d', 'A2a']（实际 ['A0d', 'A2a']）
+[OK ] 注入 impl-drop-ttl → rc≠0
+[OK ] 注入 impl-no-expire 锚点全部命中（未命中即空转通过，坑 66/94） — 未命中=[]
+[OK ] 注入 impl-no-expire → 恰好新增目标断言 ['A2b']（实际 ['A2b']）
+[OK ] 注入 impl-no-expire → rc≠0
+[OK ] 注入 impl-no-cleanup 锚点全部命中（未命中即空转通过，坑 66/94） — 未命中=[]
+[OK ] 注入 impl-no-cleanup → 恰好新增目标断言 ['A2c']（实际 ['A2c']）
+[OK ] 注入 impl-no-cleanup → rc≠0
+[OK ] 注入 impl-no-catch 锚点全部命中（未命中即空转通过，坑 66/94） — 未命中=[]
+[OK ] 注入 impl-no-catch → 恰好新增目标断言 ['A4a']（实际 ['A4a']）
+[OK ] 注入 impl-no-catch → rc≠0
+[OK ] 注入 impl-no-replay 锚点全部命中（未命中即空转通过，坑 66/94） — 未命中=[]
+[OK ] 注入 impl-no-replay → 恰好新增目标断言 ['A3a']（实际 ['A3a']）
+[OK ] 注入 impl-no-replay → rc≠0
+[OK ] 注入 ctrl-204 锚点全部命中（未命中即空转通过，坑 66/94） — 未命中=[]
+[OK ] 注入 ctrl-204 → 恰好新增目标断言 ['A3b']（实际 ['A3b']）
+[OK ] 注入 ctrl-204 → rc≠0
+[OK ] 注入 test-drop-case 锚点全部命中（未命中即空转通过，坑 66/94） — 未命中=[]
+[OK ] 注入 test-drop-case → 恰好新增目标断言 ['A5b']（实际 ['A5b']）
+[OK ] 注入 test-drop-case → rc≠0
+[OK ] 注入 test-drop-idem 锚点全部命中（未命中即空转通过，坑 66/94） — 未命中=[]
+[OK ] 注入 test-drop-idem → 恰好新增目标断言 ['A0f']（实际 ['A0f']）
+[OK ] 注入 test-drop-idem → rc≠0
+
+[OK ] 夹具目录零写副作用（8 文件 size+md5 全等）
+[OK ] 真实仓库关键文件 md5 不变（只读）
+[OK ] 空夹具目录仍为空（审计未写入任何文件）
+
+自测汇总：OK 76 / BAD 0
