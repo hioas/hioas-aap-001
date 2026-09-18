@@ -1,0 +1,11 @@
+# 飞书通知失败记录（非阻断，继续干活）
+
+2026-09-18T09:26+0800  T10 审核完成后按 SOP 发进度通知，失败：
+  命令：hermes send -t feishu -s 'AAP TDD 进度' '<一句话进度>'
+  错误：hermes send: No home channel set for feishu to determine where to send the message.
+        Either specify a channel directly with 'feishu:CHANNEL_NAME', or set a home channel via:
+        hermes config set FEISHU_HOME_CHANNEL <channel_id>
+  探测：`hermes config get FEISHU_HOME_CHANNEL` → Config key not set（未绑定）。
+  处理：按 SOP 不中断工作；本条只影响「主动推送」，不影响代码/测试/提交（T10 已提交 1906c80）。
+  恢复办法（需人工一次性操作）：在 Hermes 里执行 `hermes config set FEISHU_HOME_CHANNEL <channel_id>`
+        绑定目标频道，之后本 job 的每轮进度通知即可自动送达。
