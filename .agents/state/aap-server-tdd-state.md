@@ -3748,3 +3748,14 @@ A6 声明状态类码的端点 21 个**全部有码级背书**（E-1305 1 处 / 
 
 **观察项**（非缺陷）：工作区 `coverage-report.json` 每轮被测试重写，`git diff` 恒为 24 增 24 删 —— `Map.of(...)` 迭代顺序按
 JVM SALT 随机化（键序互换而**逐字段值完全一致**，本轮实测 total=90/implemented=90/missing=0）；与 R59–R65 一致地**不纳入提交**（坑 56）。
+
+### R66 收尾（台账 + 提交态复跑）
+
+- R66 行「提交」列填为 `b75391f`（不留台账债）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」且 R 行连续 R27 → R66 无缺号；
+  （返工留痕：第一版写入时写成 `last[:-1] + COMMIT`，把字段分隔符逗号一起吃掉了 → 末行列数 8 → 7、提交号粘在引号后；
+  已按「保留分隔符 + 真正的 csv 解析复核列数」修正 —— 坑 80 的同族：**改 CSV 行尾时误动分隔符**，只看 numstat 看不出来。）
+- **提交态复跑**（临时 worktree，detached HEAD `b75391f`）：204 例全绿 + 门禁自身 1/1 + `[ERROR]` 行数 0 + BUILD SUCCESS +
+  worktree 内 `coverage-report.json` 逐字段 90/90/0 → **提交自洽、不依赖他方 4 个未提交改动**；
+  收尾用 `git worktree remove --force`（git 自带、不触发拦截、不碰他人工作区）；worktree 内 `git status` 只有
+  `coverage-report.json` 一处 M，属已知键序观察项（坑 56，逐字段值一致），非漂移；
+- 飞书通知失败留痕（第 41 轮同因：feishu home channel 未绑定，不阻塞交付）。
