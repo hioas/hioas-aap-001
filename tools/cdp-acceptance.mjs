@@ -27,7 +27,7 @@ const [baseUrl = 'http://localhost:5173', outDir = 'logs/screenshots', phone = '
 const PORT = Number(portArg || process.env.AAP_CDP_PORT || (9400 + (process.pid % 500)));
 const PROFILE_NAME = 'aap-cdp-profile';
 const CHROME = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-const PROFILE = join(tmpdir(), 'aap-cdp-profile');
+const PROFILE = join(tmpdir(), PROFILE_NAME + '-' + process.pid);
 mkdirSync(outDir, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const stamp = () => new Date().toISOString().replace(/[-:T]/g, '').slice(0, 15);
@@ -35,7 +35,7 @@ const stamp = () => new Date().toISOString().replace(/[-:T]/g, '').slice(0, 15);
 function launchChrome() {
   const child = spawn(CHROME, [
     `--remote-debugging-port=${PORT}`, `--user-data-dir=${PROFILE}`,
-    '--no-first-run', '--no-default-browser-check', '--window-size=1440,900', '--window-position=40,40', baseUrl,
+    '--no-first-run', '--no-default-browser-check', '--enable-automation', '--window-size=1440,900', '--window-position=40,40', baseUrl,
   ], { detached: true, stdio: 'ignore' });
   child.unref();
 }
@@ -95,16 +95,26 @@ class Cdp {
     if (r.exceptionDetails) throw new Error(r.exceptionDetails.text);
     return r.result?.value;
   }
-  /** 真实鼠标左键点击（元素中心） */
+  /** 真实鼠标左键点击（元素中心）：先滚入视口再取坐标，避免点到视口外落空 */
   async clickSelector(selector) {
+    await this.eval(`(() => {
+      const el = document.querySelector(${JSON.stringify(selector)});
+      if (el) el.scrollIntoView({ block: 'center', inline: 'center' });
+      return true;
+    })()`);
+    await sleep(300);
     const box = await this.eval(`(() => {
       const el = document.querySelector(${JSON.stringify(selector)});
       if (!el) return null;
       const r = el.getBoundingClientRect();
       if (!r.width || !r.height) return null;
-      return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) };
+      const x = Math.round(r.x + r.width / 2);
+      const y = Math.round(r.y + r.height / 2);
+      const inView = x >= 0 && y >= 0 && x <= innerWidth && y <= innerHeight;
+      return { x, y, inView };
     })()`);
     if (!box) return false;
+    if (!box.inView) console.log(`   [警告] ${selector} 的中心仍在视口外 (${box.x},${box.y})，点击可能落空`);
     for (const type of ['mousePressed', 'mouseReleased']) {
       await this.send('Input.dispatchMouseEvent', { type, x: box.x, y: box.y, button: 'left', clickCount: 1 });
     }
@@ -239,12 +249,19 @@ async function main() {
   console.log(`   同意协议勾选: ${agreedOk ? '已勾选 ✓' : '未勾选 ✗'}`);
   const clickedLogin = await cdp.clickSelector('.submit');
   console.log(`④ 点击「登录 / 注册」: ${clickedLogin ? '已点击' : '未找到 .submit'}`);
-  await sleep(6000);
+  // 轮询等待离开登录页（最多 12s），避免固定 sleep 后页面还在加载就判定失败
+  let leftLogin = false;
+  for (let i = 0; i < 24; i++) {
+    await sleep(500);
+    const b = await cdp.text();
+    if (b && !/手机号登录/.test(b)) { leftLogin = true; break; }
+  }
+  await sleep(1500);
   await cdp.shot('04-after-login');
   const url = await cdp.eval('location.href');
   const body = await cdp.text();
   const loggedIn = !/手机号登录/.test(body);
-  console.log(`   登录后 URL=${url}  页面是否离开登录页=${loggedIn ? '是 ✓' : '否 ✗'}`);
+  console.log(`   登录后 URL=${url}  页面是否离开登录页=${loggedIn ? '是 ✓' : '否 ✗'}${leftLogin ? '（轮询已确认离开）' : ''}`);
 
   // ⑤ 主链路：进入业务页（报价 / 我的 / 凭证）
   const navClicked = await cdp.eval(`(() => {

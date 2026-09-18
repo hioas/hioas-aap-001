@@ -1,0 +1,55 @@
+# T15 端到端验收留证（浏览器主链路）
+
+日期：2026-09-18 22:38–22:43（本地）
+执行：主会话（人工驱动），工具 `tools/cdp-acceptance.mjs`（自建 CDP，有头，独立 profile + 随机空闲端口 + 归属校验）
+
+## 环境
+
+| 组件 | 状态 |
+|---|---|
+| aap-server | 经 IDE 运行配置 `AapServer(dev)` 启动，PID 21432，Tomcat 8084，profile `dev` |
+| Flyway | 启动时校验 8 个迁移，`public` 由 v3 升到 **v8**（usage/report-template/detection-config/sync-operation 序列 + provider 暂停态） |
+| aap-client H5 | vite dev server 5173，dev 反代 `/api → 127.0.0.1:8084` |
+| /actuator/health | `{"status":"UP"}` |
+| 本地联调开关 | `AAP_SMS_EXPOSE_CODE=true`（仅本地 env 文件，不入库） |
+
+## 主链路实测结果（真实执行，非模拟）
+
+```
+① 入口页 title="登录 / 注册"                               截图 01-login.png
+② 图形验证码（读页面）: A7K9；表单 input 数量: 3
+   手机号: 已填写；图形验证码: 已填写                       截图 02-filled.png
+③ 点击「获取验证码」: 已点击 → 后端回显 dev_code 已捕获       截图 03-code-sent.png
+   短信验证码: 已填写；同意协议勾选: 已勾选 ✓
+④ 点击「登录 / 注册」: 已点击
+   登录后 URL = http://127.0.0.1:5173/#/pages/workbench/index
+   页面是否离开登录页 = 是 ✓（轮询已确认）
+   控制台 error/warning: 无 ✓
+   失败请求（4xx/5xx）: 无 ✓                                截图 04-after-login.png
+验收结论: 通过 ✓
+```
+
+工作台渲染内容（截图目视核对）：标题 `数据台 · 2026-09-18`；卡片「本月词元用量」（环形图，指标 输入/输出/缓存命中/图片/音频/视频 + 调用请求 + 缓存命中率）显示 `—`；卡片「模型调用量」显示空态 `暂无模型调用数据`；底部导航 `工作台 / 报告 / 报价 / 我的`；顶部 toast `Token 登录成功`。
+→ **无 404、无加载失败**；指标为 `—` 属**空数据态**（该账号尚无调用记录），非缺陷。此前工作台首页依赖的 `GET /api/v1/usage/summary` 曾 404，现已注册（未认证访问返回 401 E-1902 信封，符合预期）。
+
+## 本轮修复的真实缺陷（脚本侧）
+
+1. **点击落空**：`.submit` 在视口外（页面有滚动条），按元素中心坐标派发鼠标事件落在视口外 → 登录按钮实际未被点击，表现为「点击已派发但页面无变化、控制台零报错」。
+   修法：`clickSelector` 先 `scrollIntoView({block:'center'})` 再重测坐标，并输出视口内/外告警。
+2. **固定 sleep 判失败**：点击后固定 `sleep(6000)` 就判定是否离开登录页，网络慢时误判。
+   修法：改为**轮询**（最多 12s）直到页面文本不含「手机号登录」。
+3. **profile 锁冲突**：上一轮遗留的 Chrome 实例占着同一 `user-data-dir`，新实例无法开调试端口 → `CDP 未就绪`。
+   修法：验收脚本 profile 改为**每轮独立**（`aap-cdp-profile-<pid>`）；另建 `tools/cdp-close-own.mjs` 按「端口→PID→命令行」校验归属后收尾自己的实例。
+
+## 多项目共存安全（硬约束，已实测）
+
+`tools/cdp-close-own.mjs` 归属校验实测：
+
+```
+① node tools/cdp-close-own.mjs 9223   → 拒绝关闭：PID 42592 不属于本脚本（profile 前缀 aap-cdp-profile* 不匹配）
+                                         该实例 user-data-dir = .../Temp/aim-cdp-profile → exit=3
+                                         校验后 aim 的 9223 仍有 4 个页面、页面仍为 已登录 状态（未受影响）
+② node tools/cdp-close-own.mjs 9333   → 归属确认（本脚本 profile）→ CDP Browser.close 优雅关闭 → exit=0
+```
+
+结论：**不会误伤其他项目（如 aim-tdd 的 9223 + aim-cdp-profile）**；且全程无 `taskkill /IM chrome.exe` 之类按镜像名杀进程的操作。
