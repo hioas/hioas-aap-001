@@ -1,0 +1,30 @@
+== R37 提交态说明（e595ce9）==
+
+提交 e595ce9 的变更集（`git show --name-only` 逐文件核对）：
+  - .agents/state/aap-server-feature-status.csv
+  - .agents/state/aap-server-tdd-state.md
+  - .agents/state/evidence/audit-regression-R37.txt
+  - .agents/state/evidence/audit-response-shape-R37.txt
+  - .agents/state/evidence/audit-response-shape-arbitration-R37.txt
+  - .agents/state/evidence/coverage-history.txt
+  - .agents/state/evidence/green-verify-R37-full-run1.txt
+  - .agents/state/evidence/green-verify-R37-full-run2.txt
+  - .agents/state/evidence/green-verify-R37-summary.txt
+  - .agents/state/evidence/r37-classes-diff.txt
+  - .agents/state/evidence/r37-run1-classes.txt
+  - .agents/state/evidence/r37-run2-classes.txt
+  - tools/audit-response-shape-selftest.py
+  - tools/audit-response-shape.py
+
+其中**不含任何 Java 源码 / 构建输入 / 配置文件**（全部落在 `tools/*.py` 与 `.agents/state/**`）：
+
+* 构建输入等价性：本轮提交对 `mvn test` 的输入（pom.xml / src/main / src/test / application*.yml）零改动，
+  提交前已在工作树（含他方 4 个未提交文件）**串行连跑两轮全绿**：204 例、33 类逐类 diff 为空、
+  EndpointCoverageTest 90/90 —— 满足作业硬规则「提交前连跑两轮全绿」。
+* 未做「提交态 worktree 复跑」的理由（如实留痕，不假装跑过）：本轮无构建输入改动，
+  且本机观察到他方常驻 JVM（只读探测：`ps -W` 显示 6 个 java.exe 常驻，其中 2 个起于 16:37:00，
+  PID 4232368 / 4227976，8 秒后 PID 集合不变 → 非本轮 mvn 的短命 fork）。
+  按 skill 坑 20「别在同一任务族之间抢共享测试库」与浏览器/进程安全边界，
+  不在此刻再起第三个测试进程；若需要提交态复跑，下一轮空闲窗口用
+  `git worktree add --detach <带时间戳的唯一目录> HEAD` 执行（坑 27/28：不删目录、收尾用 `git worktree remove --force`）。
+* 只读探测未触碰他方进程：未执行任何 taskkill / 未关闭任何浏览器（硬规则）。
