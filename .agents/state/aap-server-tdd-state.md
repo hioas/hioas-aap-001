@@ -3033,3 +3033,68 @@ DB 级 FK 约束 **0** ·ER `FK*` 声明 **23** 条 ·请求体引用端点 **9*
   `total=90 / implemented=90 / missing=0 / registered_routes=96 / not_registered=[]` → **提交本身自洽**；
   收尾 `git worktree remove --force`（`git worktree list` 只剩主工作树）。证据 `evidence/green-verify-R55-worktree-HEAD.txt`。
 * 飞书通知失败留痕（第 30 轮同因：feishu home channel 未绑定，不阻塞交付）→ `evidence/feishu-notify-failures.txt`。
+## R56 巡检轮（2026-09-19T01:4x+0800）—— 分页参数取值域/越界行为抽查（复核 R41/R46 + 纠正 1 处前轮假发现）
+
+### 结论
+* `total=90 implemented=90 missing=0`；覆盖门禁 `EndpointCoverageTest` 1/1（门禁自身断言）＋报告逐字段
+  `total=90 / implemented=90 / missing=0 / registered_routes=96 / not_registered=[]` → **90/90 连续第 38 轮全绿**（R18 → … → R56）。
+* 全量 **204 例两轮全绿**（0 失败/0 错误/0 跳过，33 个测试类）；两轮**逐类结果 diff 为空**（先剥 `Time elapsed` 再排序，坑 79），
+  正向对照「两侧解析到的类数 = 33」。
+* 既有 **14 套只读审计 + 13 个负向自测**复跑：**FAIL 明细 28/28 逐行一致（新增 0、消失 0）**；**零写副作用**（84 个生成物 md5+size 全等）。
+* 本轮 `missing=0` → **未改业务代码 / 清单 / 生成器 / md / 断言**；他方未提交文件（`aap-client/vite.config.ts`、`aap-server` 的
+  `application.yml`/`log4j2-spring.xml`/`application-test.yml`、`coverage-report.json` 及 `aap-client` 下未跟踪文件）**未触碰、未纳入提交**。
+
+### 本轮新增抽查（只读脚本在 `$LOCALAPPDATA/Temp/aap-r56-spotcheck/`，不新建仓库工具）
+**不变量：分页参数「取值域 / 越界行为」一致性**（第三十类「两套门禁都看不见」的契约不变量）：
+契约测试只把**响应体**与 JSON Schema 比对（**query 参数不在 schema 里**；响应里的 `pageSize` 是**夹取后**的值，故「夹取口径」漂移全绿）；
+覆盖门禁只比「方法+路径」；openapi 与客户端 TS 不被任何测试读取/执行。
+
+**诚实说明**：该主题 **R41 首查、R46 复核升级**，本轮**不是新主题**，价值在 3 条新判据 + **1 处前轮假发现的纠正**：
+* 新判据 1（A7/A0h）：**绕过 `PageQuery` 的手写分页**扫描（`limit <字面量>`），配正向对照「解析到 `limit ? offset ?` 语句 **13** 处」——
+  没有正向对照时「0 处绕过」无法区分「真干净」与「解析器失效」（坑 46/75/98）。首版判据把 4 处 `limit 1`（**单行取回**）误判为分页绕过 → 判据收窄为
+  「字面量 > 1 或带 `offset`」（坑 81：判据范围与语义不符）。
+* 新判据 2（A2b）：越界语义三合一（**夹取** / `page < 1` 回 1 / **不抛错**）。
+* 新判据 3（A0f/A6）：测试越界断言 + 控制器 `@RequestParam` 的 `required`/`defaultValue` 声明面（R46 未查控制器声明面）。
+* **纠正前轮假发现（本轮最高价值项）**：R46 证据 `spotcheck-pagination-defaults-R46.txt:24` 登记
+  「`[INFO] I1` 上限 200 **无任何测试断言**（实现夹取逻辑不被用例守卫）」——**假发现**：
+  `NotificationContractTest.listParamsAndAuth`（243–246 行）用**越界请求** `get("/notifications?page=0&pageSize=1000")`
+  断言 `page=1` 且 `pageSize=200`（越界请求 + 响应回夹取后的值）。
+  全仓库 `path("pageSize")…isEqualTo(N)` 断言 **11 处**（取值 `{2,20,200}`），越界请求参数用例 **1 处**。
+  **漏因**：R46 的 `upper_asserts` 只匹配字面量 `MAX_PAGE_SIZE` / `pageSize = 2xx`，不认「越界请求参数 + 响应断言夹取后的值」形态；
+  同一份证据的 A8 正则（`pageSize")…isEqualTo(N)`）**不区分取值**，把 `isEqualTo(200)` 也算成「缺省断言」→
+  同一证据里「有 11 处缺省断言」与「上限无断言」**自相矛盾**（坑 95：证据行必须自己不自相矛盾；坑 46/86：0 发现先怀疑解析器）。
+  → 结论修正：**上限 200 的夹取行为有测试背书**，R46 的 I1 应从「信息项」改为「已证伪」。
+
+### 本轮发现（PASS 16 / FAIL 3 / INFO 1）
+| 断言 | 内容 | 判定 |
+|---|---|---|
+| A1/A2/A2b | 实现 `DEFAULT_PAGE_SIZE=20`/`MAX_PAGE_SIZE=200` 与 md §0 一致；夹取 + `page<1→1` + 不抛错 | PASS |
+| A3/A3b | 契约 `page.schema.json` 的 `pageSize.maximum=200`、`page/pageSize.minimum=1` 与实现一致 | PASS |
+| A6 | 控制器 **42 处** `page/pageSize` 声明全为 `required=false`、`defaultValue` 0 处（缺省由 `PageQuery` 兜底，与 md「缺省容忍」一致） | PASS |
+| A7/A0h | **无绕过 `PageQuery` 的手写分页**（`limit` 字面量 >1 或带 `offset` 0 处）；正向对照 `limit ? offset ?` **13** 处 | PASS |
+| A8 | 客户端 `pageSize` 字面量 **7 处**，取值 `{1,20}` 全 ≤ 上限；客户端无夹取逻辑（上限由服务端负责） | PASS |
+| A4 | openapi **0/23** 个 `pageSize` 参数声明 `maximum: 200`（md §0 与契约 `page.schema.json` 都有） | **待拍板**（生成物侧漏声明；R46 A2 已登记，非新发现） |
+| A5/A5b | openapi **0/23** 未声明 `default: 20`、**0/23** 未声明 `default: 1`（`_query_schema()` 只输出 `type`+`minimum`，而同一生成器在 `page-meta` 模型里写了 `maximum`） | **待拍板**（同上；R46 A1 已登记） |
+| INFO | md §0 是唯一声明缺省/上限的真源；`endpoints.json` 只记参数名 | 信息项 |
+
+### 正面结论（带正向对照）
+* 实现 ⇔ md §0 ⇔ 契约 schema 三方一致（缺省 20 / 上限 200 / 下限 1 / 夹取语义）；
+* 控制器声明面与「缺省容忍」语义一致（无一处把分页参数声明为必填）；
+* 分页语句**全部**经 `PageQuery`（13 处 `limit ? offset ?` 无一手写字面量），越界参数不会放大查询；
+* 客户端实参值域 `{1,20}` 全部合法。
+
+### 本轮踩坑（抽查脚本自身返工 —— 一律「先怀疑解析器/判据」）
+1. **判据过宽 → 假发现**：`limit <字面量>` 的扫描把 4 处 `limit 1`（**单行取回**，如 `ReviewTaskMapper` 的按 `quote_id` 取一条）当成
+   「绕过夹取的手写分页」→ 收窄为「字面量 > 1 或带 `offset`」，并补正向对照 `limit ? offset ?` 13 处（坑 81/46）。
+2. **断言正则多了一个括号 → 静默 0 命中**：`path("pageSize"))…` 多写一个 `)` → 该分支解析到 **0 处**
+   （A0f 仍因另一分支命中而 PASS，属于「一半判据空转」）。修正后同一正则得到 11 处（取值 `{2,20,200}`）——
+   **这正是 R46 假发现的同族根因**（坑 46/86：0 发现先怀疑解析器）。
+3. **空夹具会让脚本崩掉而不是「点名解析器失效」**：缺失文件时 `read_text` 抛 `FileNotFoundError` → 无 `[FAIL]` 明细行、
+   自测的「空夹具必须变红」判据无法成立。修法：每个解析器对缺失文件返回空结构，空夹具下 A0a…A0h 全红（坑 75/98）。
+4. **合规夹具缺「字面量实参」→ 正向对照假红**：夹具客户端只写 `pageSize: params?.pageSize`（非字面量）→ A0e 判 0 处；
+   夹具补一处 `pageSize: 20` 后合规夹具 rc=0/FAIL 0（**修夹具，不是放宽判据**，坑 19）。
+
+### R56 台账回写
+* 追加 R56 行（「提交」列先留空，提交后由收尾提交补齐）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」；
+  R 行连续性核对：R27 → R56 无缺号（坑 71）。
+* 飞书通知失败留痕（同因：feishu home channel 未绑定）。

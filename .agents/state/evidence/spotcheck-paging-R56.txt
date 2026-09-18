@@ -1,0 +1,45 @@
+== R56 新增抽查（只读，不新增仓库工具）：**分页参数「取值域 / 越界行为」一致性**（第三十类可审计不变量） ==
+
+诚实说明（与既有轮次的关系，避免重复申报）：该主题 **R41 首查、R46 复核升级**（R46 把 openapi 缺 `default`/`maximum` 登记为待拍板项 A1/A2）。本轮**不是新主题**，而是再复核 + 三条新判据 + **一处前轮假发现的纠正**：
+  * 新判据 1（A7/A0h）：是否存在**绕过 PageQuery 的手写分页**（`limit <字面量>`）——配正向对照「解析到 `limit ? offset ?` 语句 13 处」，否则「0 处绕过」无法区分「真干净」与「解析器失效」（坑 46/75/98）；
+  * 新判据 2（A2b）：越界语义三合一（夹取 / page 下限回 1 / **不抛错**）；
+  * 新判据 3（A0f/A6）：测试越界断言 + 控制器 `required`/`defaultValue` 声明面（R46 未查控制器声明面）；
+  * **纠正前轮假发现**：R46 证据 `spotcheck-pagination-defaults-R46.txt` 第 24 行登记「[INFO] I1 上限 200 无任何测试断言（实现夹取逻辑不被用例守卫）」——**经本轮复核为假发现**：
+    `NotificationContractTest.listParamsAndAuth` 第 243–246 行 `get("/notifications?page=0&pageSize=1000")` 断言 `page=1` 且 `pageSize=200`（越界请求 + 响应回夹取后的值）。
+    全仓库 `path("pageSize")...isEqualTo(N)` 断言 11 处（取值分布 [2, 20, 200]），其中 N>200 的 0 处；越界请求参数 `page<1 / pageSize<1 / pageSize>200` 的用例 1 处。
+    前轮判据漏因：R46 的 `upper_asserts` 只匹配字面量 `MAX_PAGE_SIZE` 或 `pageSize = 2xx`，不认「越界请求参数 + 响应断言夹取后的值」这一形态；同一份证据里 A8「11 处缺省断言」的正则（`pageSize")...isEqualTo(N)`）**不区分取值**，把 `isEqualTo(200)` 也算成「缺省断言」→同一证据出现「有 11 处缺省断言」与「上限无断言」**自相矛盾**（坑 95：证据行必须自己不自相矛盾）。
+    → 结论修正：**上限 200 的夹取行为有测试背书**；R46 的 I1 应从「信息项」改为「已证伪」。
+
+真源七处（逐处比对）：M1=md §0 分页行（缺省 1 / 缺省 20 / 上限 200）；M2=md 逐端点「请求」列的分页声明；I1=实现 `common/PageQuery.java`（常量 + `of()` 缺省/夹取语义）；I2=控制器 `@RequestParam` 的 required/defaultValue；I3=是否存在绕过 PageQuery 的手写分页；O1=openapi 每个 operation 的 page/pageSize 参数 schema（type/minimum/maximum/default）；S1=契约 `page.schema.json`；C1=客户端分页实参取值；T1=测试越界断言。
+为什么两套门禁都看不见：契约测试只把**响应体**与 JSON Schema 比对（query 参数不在 schema 里；响应里的 pageSize 是**夹取后**的值，故「夹取口径」漂移全绿）；覆盖门禁只比「方法+路径」；openapi 与客户端 TS 不被任何测试读取/执行。
+
+只读脚本：$LOCALAPPDATA/Temp/aap-r56-spotcheck/spotcheck-paging.py（夹具另目录 …-fixtures，坑 106）；rc=1
+
+== 抽查输出（真实仓库） ==
+# R56 抽查：分页参数取值域一致性（第三十类可审计不变量） root=E:\workspaces\hioas\hioas-aap-001
+[INFO] M2: md 逐端点声明分页的端点 16 条（openapi pageSize 参数 23 个）
+[PASS] A0a: md §0 分页行解析：page 默认=1 / pageSize 默认=20 / 上限=200
+[PASS] A0b: 实现常量解析：DEFAULT_PAGE_SIZE=20 / MAX_PAGE_SIZE=200
+[PASS] A0c: openapi 解析到 page/pageSize 参数块 46 个
+[PASS] A0d: 控制器 @RequestParam(page/pageSize) 解析到 42 处
+[PASS] A0e: 客户端 pageSize 字面量实参解析到 7 处
+[PASS] A0f: 测试越界行为断言解析到 1 处（page=0 / pageSize>200）
+[PASS] A0g: 契约 page.schema.json 解析到 page/pageSize 属性（required=['items', 'page', 'pageSize', 'total']）
+[PASS] A1: 缺省页大小：实现 20 vs md §0 20
+[PASS] A2: 页大小上限：实现 200 vs md §0 200
+[PASS] A2b: 越界语义：夹取=True / page 下限回 1=True / 不抛错=True
+[PASS] A3: page.schema.json.pageSize.maximum=200 vs 实现上限 200
+[PASS] A3b: page/pageSize minimum：1/1
+[FAIL] A4: openapi 声明 pageSize 上限 200 的 operation：0/23
+[FAIL] A5: openapi 声明 pageSize 默认值 20 的 operation：0/23
+[FAIL] A5b: openapi 声明 page 默认值 1 的 operation：0/23
+[PASS] A6: 控制器把 page/pageSize 声明为必填的处数=0（应为 0，缺省容忍）；带 defaultValue 的处数=0（0 = 缺省由 PageQuery 兜底）
+[PASS] A7: 手写 limit 字面量（>1 或带 offset）的分页写点 0 处（应为 0）；PageQuery/JdbcTemplate 驱动的 `limit ? offset ?` 语句 13 处（正向对照 > 0）
+[PASS] A0h: 分页语句正向对照：解析到 `limit ? offset ?` 13 处
+[PASS] A8: 客户端 pageSize 字面量越界 0 处（取值集合 [1, 20]）；客户端夹取逻辑 0 处（上限由服务端夹取，客户端只传固定页大小）
+汇总：PASS 16 / FAIL 3 / INFO 1
+
+== 本轮判定 ==
+* FAIL 3 条（A4/A5/A5b）＝ **已登记待拍板项**（R46 A1/A2：openapi 的 page/pageSize 参数未声明 `default`、`pageSize` 未声明 `maximum: 200`）——生成物侧漏声明，**非新发现**；服务端 `PageQuery.of` 已夹取，故用户不可见。
+* PASS 16 条：md §0 ⇔ 实现常量/夹取语义 ⇔ 契约 page.schema.json ⇔ 控制器声明面 ⇔ 客户端实参取值域 全部一致；且**无绕过 PageQuery 的手写分页**（正向对照：`limit ? offset ?` 13 处）。
+* 新纠正 1 条：R46 的 I1「上限无测试断言」为**假发现**（见上）。
