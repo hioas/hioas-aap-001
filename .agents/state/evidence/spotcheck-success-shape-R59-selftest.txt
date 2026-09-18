@@ -1,0 +1,21 @@
+== R59 抽查脚本的负向自测（判别力实测） ==
+覆盖：合规夹具 rc=0 且 FAIL 0；空夹具点名 A0a；5 组注入缺陷各恰好新增目标断言；注入锚点必须命中；真实仓库只读；夹具零写副作用。
+
+[PASS] T1 合规夹具 rc=0 rc=0 fails=[]
+[PASS] T2 合规夹具 FAIL 0 []
+[PASS] T3 正向对照齐全（A0a/A0b/A0c/A0d/A0e/A0f/A1a/A1b/A1c/A2a/A3a/A4a/A5a/A6a/A7a1/A7d 全 PASS） 
+[PASS] T4 夹具目录零写副作用 changed=0
+[PASS] T5 合规夹具解析到 2 条端点 / 90 类计数（A0a 计数 = 2） 
+[PASS] T6 空夹具 rc!=0 rc=1
+[PASS] T7 空夹具点名 A0a（解析器失效必须转红） ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A0f', 'A1a', 'A1b', 'A2a', 'A5a', 'A6a', 'A7d']
+[PASS] T8 注入1 后 FAIL 集合恰好新增 {A2b} new=['A2b']
+[PASS] T9 注入2 后 FAIL 集合恰好新增 {A2b, A3a}（md↔实现 非包络维度有判别力） new=['A2b', 'A3a']
+[PASS] T10 注入3 后 FAIL 集合恰好新增 {A1c}（成功非 200 维度有判别力） new=['A1c']
+[PASS] T11 注入4 后 FAIL 集合恰好新增 {A4a}（客户端消费维度有判别力） new=['A4a']
+[PASS] T12 注入5 后 FAIL 集合恰好新增 {A6b}（md↔openapi 成功状态维度有判别力） new=['A6b']
+[PASS] T13 全部注入锚点命中（未命中/未改变语义 = 空转通过，坑 66/90/94） []
+[PASS] T14 真实仓库只读（git status 不变） 
+[PASS] T15 真实仓库 FAIL 集合恰好 = {A2b}（RPT-03 生成物侧漂移） ['A2b']
+[PASS] T16 真实仓库正向对照：控制器定位 90/90 且解析到 90 个 operation rc=1
+
+自测汇总：16/16 PASS

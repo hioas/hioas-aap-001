@@ -3275,3 +3275,58 @@ R 行连续性 R29 → R58 无缺号（坑 71）；`git diff --numstat` 验收�
 `[ERROR]` 行数 0 + BUILD SUCCESS + worktree 内 `coverage-report.json` 逐字段 `total=90/implemented=90/missing=0/registered_routes=96/not_registered=[]`
 → **提交本身自洽、不依赖他方 4 个未提交改动**；收尾 `git worktree remove --force`（`git worktree list` 只剩主工作树）。
 证据：`evidence/green-verify-R58-worktree-HEAD.txt`。
+
+## R59 巡检轮（2026-09-19；missing=0 → 只校验不改代码；第三十三类可审计不变量：成功响应「HTTP 状态码 + 内容类型/包络形状」）
+
+**结论**：全量两轮 **204 例全绿**（0 失败 / 0 错误 / 0 跳过，33 个测试类）+ 逐类结果 diff = 0（先剥 `Time elapsed` 再排序，坑 79）
++ 覆盖门禁 **90/90**（`EndpointCoverageTest` 自身 1/1；`coverage-report.json` 逐字段 `total=90/implemented=90/missing=0/registered_routes=96/not_registered=[]`；
+`by_task` 12 族合计 90/90）+ 既有 14 套只读审计与 15 个负向自测**零回归**（rc 序列与 R58 逐条一致，仅新增本轮 2 条新项；
+FAIL 明细剥来源前缀后 R58=31 / R59=32，**新增 1 条 = 本轮新抽查 A2b**，消失 0）+ 零写副作用（84 个产物 `(size,md5)` 全等）。
+本轮**未改业务代码 / 清单 / 生成器 / md / 断言**；他方 4 个未提交文件（`aap-client/vite.config.ts`、`application.yml`、`log4j2-spring.xml`、`application-test.yml`）未触碰、未纳入提交。
+
+### 本轮新增抽查：成功响应「HTTP 状态码 + 内容类型/包络形状」跨源一致性（第三十三类可审计不变量）
+
+**为什么两套门禁都看不见**：① 契约测试把**响应体**与 JSON Schema 比对，而 RPT-03 的用例（`ReportContractTest.htmlAndExport`）
+只断言 `status` / `content-type` / body 文本，**从不做 schema 校验**；② 覆盖门禁只比「方法 + 路径」注册表；③ openapi 与客户端 TS
+不被任何测试读取/执行。⇒ openapi 把 `text/html` 端点声明成 `application/json` 包络，204 例全绿也查不出。
+
+真源六处：M = md（§4 码表「`0` | 200 | 成功」行 / §0「响应包体」行 / 逐端点「响应」列）；O = openapi 逐 operation 成功状态码集合 + media type；
+I = 实现（控制器成功返回类型 / `produces` / 是否非 200 成功包装）；C = 客户端 `http.ts` 成功路径判定 + 调用点；T = 测试对成功状态码的断言（双形态，坑 86）。
+
+**真发现 1 条（生成物侧漂移）**：`GET /reports/{reportId}/html`（RPT-03）——openapi 声明成功响应 `application/json` + `Envelope`，
+而 md 逐端点列写 `text/html`、实现是 `ResponseEntity<String>` + `produces = MediaType.TEXT_HTML_VALUE`（**md 与实现两侧一致 → 判生成物侧错**）。
+根因：生成器不具备「非 JSON 成功响应」表达能力（生成器全文 `text/html` 0 处；成功响应装配处恒写 `application/json`）。
+
+**正面结论（带正向对照）**：成功状态码恒 200 —— 实现成功路径非 200 返回 **0 处**（91 条控制器路由，排除 `GlobalExceptionHandler` 错误路径）、
+openapi **90/90** 条 operation 成功状态码 = {200} 与 md §4 一致、测试 2xx 状态断言 **49 处全部 = 200**；控制器路由定位到清单端点 **90/90**；
+md 声明非包络端点 1 条 ⇔ 实现 `produces` 非 JSON 1 条（双向一致）；客户端调用点解析 38 处（可静态判定 32 处）且对非包络端点调用点 **0 处**。
+
+**信息项 / 观察项**：① 客户端 `http.ts` 成功路径强制包络（`typeof body.code !== 'string'` → reject `E-2001`「响应格式非法」）
+→ 非包络端点一旦被客户端消费必然失败（当前零消费，风险低）；② `endpoints.json` 中 `response_model` 为 null 的端点 3 条 →
+openapi 对这些端点统一输出通用 `Envelope`，无法区分「真包络」与「非 JSON 响应」；③ 控制器已注册但清单无声明的路由 1 条
+（`GET /detection-jobs/{jobId}/digest`，坑 61 已登记项，非本轮新增）；④ 客户端 status 判定只覆盖 401 与 >=400，3xx 会落入成功分支
+→ body 非包络 → `E-2001`（实现恒 200，当前不可达）。
+
+### 本轮脚本自身返工（先怀疑解析器）
+
+1. md 表头判定写成 `5 if "响应" in header else 4 if "请求/响应" in header` → 7 列表头（含「请求/响应」）也含子串「响应」→ `resp_idx`
+   落到**错误码列**（优先级写反，坑 44/89 同族）；修法：先判「请求/响应」。
+2. A0c 第一版写成 `len(ctrl)/len(ctrl)` 恒等式「定位率」= **空转假绿**（坑 75/87）；改为「清单端点 key ∩ 控制器路由 key / 清单端点数」= 90/90，
+   并把多出的 1 条路由单列为信息项。
+3. 测试状态断言只报总数会掩盖「某分支恒 0 命中」→ 改按形态分开计数（`.statusCode()` 2 处 / `.status()` 153 处；显式 `isEqualTo` 形态 155 处 / 实参形态 0 处，坑 129）。
+4. 根因定位第一版用正则取 `def _enveloped` 函数体并数其中的 `application/json` → 得 0 处（该字面量在**调用处**而非函数体）→ 改判据为
+   「生成器全文 `application/json` 出现次数 > 0 作正向对照 + 全文 `text/html` = 0」，否则「0 处」无法区分「真没有」与「正则没匹配到」（坑 46）。
+5. 证据行尾：本轮由 python 工具输出拼装的证据文件带入 CRLF（`audit-regression-R59.txt` CR=1092 / `green-verify-R59-full-run1.txt` CR=3）
+   → 用字节级手段（`raw.count(b"\r")`，坑 70）归一到 LF（与 R58 的 CR=0 一致），避免提交后整文件行尾改写（坑 69）。
+
+### 判别力自测（负向，16/16 PASS）
+
+合规夹具 rc=0 且 FAIL 0 + 16 条正向对照全 PASS + 空夹具 rc=1 且点名 A0a（另点名 A0b/A0c/A0d/A0e/A0f/A1a/A1b/A2a/A5a/A6a/A7d）
++ 5 组注入缺陷各**恰好**新增目标断言（openapi 把 html 端点声明成 json → `{A2b}`；实现 `produces` 改 json → `{A2b,A3a}`；
+控制器加 `@ResponseStatus(HttpStatus.CREATED)` → `{A1c}`；客户端新增非包络端点调用点 → `{A4a}`；md 成功行改 201 → `{A6b}`）
++ 全部注入锚点命中（未命中即空转通过，坑 66/90/94）+ 真实仓库只读（`git status` 不变）且 FAIL 集合恰好 = `{A2b}` + 夹具目录零写副作用。
+
+证据：`evidence/spotcheck-success-shape-R59.txt` + `evidence/spotcheck-success-shape-R59-selftest.txt`。
+
+**R59 台账回写**：追加 R59 行（「提交」列先留空，提交后由收尾提交补齐）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」（坑 36/80）；
+R 行连续性 R27 → R59 无缺号（坑 71）。

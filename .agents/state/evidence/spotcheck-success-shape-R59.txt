@@ -1,0 +1,54 @@
+== R59 新增抽查：成功响应「HTTP 状态码 + 内容类型/包络形状」跨源一致性（第三十三类可审计不变量） ==
+真源：M=md（§4 码表「0|200」行 / §0「响应包体」行 / 逐端点「响应」列）｜O=openapi 逐 operation 成功状态码+media type
+      ｜I=实现（控制器成功返回类型 / produces / 是否有非 200 成功包装）｜C=客户端 http.ts 成功路径判定 + 调用点
+      ｜T=测试对成功状态码的断言（双形态，坑 86）
+为什么两套门禁都看不见：契约测试把**响应体**与 JSON Schema 比对（RPT-03 的用例只断言 status/content-type/body 文本，
+从不做 schema 校验）；覆盖门禁只比「方法+路径」；openapi 与客户端 TS 不被任何测试读取/执行。
+判据纪律：每个源配 > 0 正向对照；注入缺陷必须真的改到源码；空夹具必须转红（负向自测见 spotcheck-success-shape-selftest-R59.txt）。
+== R59 抽查：成功响应「HTTP 状态码 + 内容类型/包络形状」跨源一致性（第三十三类可审计不变量）==
+真源：M=md（§4 码表/§0 响应包体/逐端点响应列）/ O=openapi / I=实现控制器 / C=客户端 http.ts+调用点 / T=测试断言
+
+== 正向对照 ==
+
+== A1 实现侧：成功路径是否恒 200（md §4「0 | 200 | 成功」）==
+
+== A2 openapi 逐端点成功 media type ⇔ 实现 produces ==
+
+== A3 md 声明的非包络端点 ⇔ 实现 produces 非 JSON ==
+
+== A4 客户端是否消费「非包络端点」（消费即必判 E-2001 响应格式非法）==
+
+== A5 测试对成功状态码的断言值域 ==
+
+== A6 openapi 成功状态码集合 ==
+
+== A7 根因定位：生成器是否具备「非 JSON 响应」表达能力 ==
+
+== 汇总 ==
+[PASS] A0a md 逐端点表解析到 90 条（10 列表头行 + 7 列表头行合计）
+[PASS] A0b openapi 解析到 90 个 operation，其中声明了 2xx 成功响应的 90 个
+[PASS] A0c 控制器路由定位到清单端点 90/90（控制器路由总数 91，Controller 文件 22 个）
+[PASS] A0d 测试成功状态断言解析到 155 处（`.statusCode()` 形态 2 处 / `.status()` 形态 153 处；显式 `.isEqualTo(N)` 形态 155 处 / 实参形态 0 处，坑 86）
+[PASS] A0e 客户端成功路径判定分支解析到（401 分支=True / >=400 分支=True / 包络形状校验=True / 业务码判定=True）
+[PASS] A0f 客户端调用点解析到 38 处（其中可静态判定路径 32 处）
+[PASS] A1a md §4 码表成功行：业务码 `0` → HTTP 200
+[PASS] A1b md §0「响应包体」行解析到：`{"code":"0
+[PASS] A1c 成功路径非 200 返回 = 0 处（91 条控制器路由全部走默认 200）
+[PASS] A2a openapi 与实现逐端点定位到 90 条（正向对照 > 0）
+[PASS] A3a md 声明非包络端点 1 条 ⇔ 实现 produces 非 JSON 1 条（双向一致：GET /reports/{}/html→text/html）
+[PASS] A4a 客户端对非包络端点（GET /reports/{}/html）调用点 = 0 处（正向对照：已解析调用点 38 处）
+[PASS] A5a 状态断言取值集合 = [200, 400, 401, 403, 404, 409, 429, 500, 503]（共 155 处：2xx 49 处 / 4xx-5xx 106 处）
+[PASS] A5b 2xx 断言 49 处全部 = 200（无非 200 的 2xx 值）→ 与「成功恒 200」一致
+[PASS] A6a openapi 成功状态码集合分布：['200']×90
+[PASS] A6b openapi 全部 90 条 operation 的成功状态码 = {200}（与 md §4 一致）
+[PASS] A7a1 生成器源码出现 `application/json` 3 处（正向对照 > 0，说明根因判据真的读到了生成器）
+[PASS] A7d endpoints.json 解析到 90 条端点（正向对照 > 0）
+[FAIL] A2b openapi 成功响应 media type 与实现不一致 1 条（生成物侧漂移，两套门禁都看不见）：GET /reports/{}/html：openapi 声明 application/json，实现 produces=text/html
+[INFO] A0c2 控制器已注册但清单无声明的路由 1 条（实现超出冻结契约，坑 61 已登记项）：GET /detection-jobs/{}/digest
+[INFO] A1d 控制器成功返回类型：ApiEnvelope 包装 90 条 / ResponseEntity 包装 1 条（GET /api/v1/reports/{reportId}/html → ResponseEntity<String>）
+[INFO] A4b 客户端成功路径要求包络（`typeof body.code !== 'string'` → reject E-2001「响应格式非法」）→ 非包络端点一旦被消费必失败（当前零消费）
+[INFO] A7a 生成器全文出现 `text/html` 0 处 + 无 `produces` 支持；成功响应在 `op["responses"]` 处恒写 `application/json` → **生成器不具备「非 JSON 成功响应」表达能力**，RPT-03 这类端点必然被错声明
+[INFO] A7a2 生成器成功响应装配片段："200": { "description": "成功", "content": {"application/json": {"schema": _enveloped(res)}},
+[INFO] A7b 生成器 PATHS 的 RPT-03 行：("RPT-03", "get", "/reports/{reportId}/html", "Report", "PROVIDER", None, None, [], ["E-1401"], "推断"),
+[INFO] A7c endpoints.json 中 response_model 为 null 的端点 3 条（openapi 对这些端点统一输出通用 Envelope，无法区分「真包络」与「非 JSON 响应」）
+汇总：PASS=18 FAIL=1 INFO=7
