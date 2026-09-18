@@ -1,0 +1,16 @@
+R31 全量回归 run2（防 flaky 连跑第二轮；工作树现状）
+命令：export PATH="$HOME/bin:$PATH"; cd aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test
+时间：2026-09-18（R31 第 2 轮，与 run1 串行、**绝不同时**跑，坑 11/20）
+
+覆盖门禁：total=90  implemented=90  missing=0（registered_routes=96、not_registered=[]）
+
+测试：Tests run: 204, Failures: 0, Errors: 0, Skipped: 0（33 个测试类）
+      BUILD SUCCESS，Total time 43.966 s，日志中 [ERROR] 计数 = 0
+逐类结果：.agents/state/evidence/r31-run2-classes.txt
+
+两轮一致性：`diff r31-run1-classes.txt r31-run2-classes.txt` → **空**（rc=0）
+  口径说明：比对前剔除 `Time elapsed` 字段（耗时天然不同）；剔除后 33 个测试类的
+  `Tests run / Failures / Errors / Skipped` **逐类完全一致**。
+  未剔除时的差异**只**出现在耗时上（首版 diff 因此 rc=1），已用 r31-classes-diff.txt 固化。
+
+结论：R31 两轮全量 204 例全绿且逐类一致 → 无 flaky；missing=0 未变。

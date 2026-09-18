@@ -1,0 +1,26 @@
+根目录：E:/workspaces/hioas/hioas-aap-001（仓库外路径也照常显示，skill 坑 34）
+--- 正向对照（解析器真的解析到了，skill 坑 46）---
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b D 行数 = total（裸 split 会漏行，坑 48）：parsed=90 期望=90
+[PASS] A0c O operation 数 = total：parsed=90 期望=90
+[PASS] A0d I 解析到控制器路由：parsed=91 条路由
+[PASS] A0e C 解析到客户端调用点：parsed=39 个调用点（12 个文件）；未能静态判定 0 处
+[PASS] A0f I 解析无异常
+--- A1 md 清单 ⇔ endpoints.json（逐端点：方法 + 路径）---
+[PASS] A1 md 逐行「方法+路径」= endpoints.json（未归一前缀）：不一致 0 条
+--- A2 openapi ⇔ endpoints.json（逐端点：方法 + 路径）---
+[PASS] A2 openapi 每 operation 的「方法+路径」= endpoints.json：不一致 0 条
+--- A3 清单 ⊆ 实现（逐端点定位到同方法同路径的 Spring 路由）---
+[PASS] A3 清单每条端点都在实现里有同方法同路径的路由：未定位 0 条
+--- A4 客户端 ⊆ 清单（客户端不得调用清单里没有的接口）---
+[PASS] A4 客户端每个调用点都在冻结清单内且方法一致：越界调用 0 个
+--- A5 路径变量名（`{id}` vs `{jobId}`）逐端点一致（门禁把变量名折叠掉了）---
+[PASS] A5 路径变量名序列逐端点一致（清单 / md / openapi）：不一致 0 条
+[PASS] A6 md 表头/行定位无异常
+--- 信息项（不算漂移）---
+      · 实现里注册但清单未声明的路由 1 条（框架/内部路由属正常）：[('GET', '/detection-jobs/{}/digest')]
+      · 客户端未接线的清单端点 51 条（适配层按页面逐步接线，属正常）
+--- 零写副作用自检 ---
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+
+断言 13 条：PASS 13，FAIL 0

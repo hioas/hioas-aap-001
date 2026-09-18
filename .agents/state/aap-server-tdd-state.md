@@ -1332,3 +1332,89 @@ S `SecurityConfig.PUBLIC_PATHS` ／ O `openapi.yaml` 每 operation 的 `security
 - **待拍板（R29 已裁决待执行）**：错误码漂移 10 条 + 孤儿码 2 个（含 E-1404 生成器漏声明）。
 - **待拍板（R30 新增）**：md「角色」列 32 行补 `SUPER_ADMIN`（强证据 17 条 / 弱证据 15 条，改法见
   `audit-auth-adjudication-R30.txt`）。
+
+## R31（2026-09-18 14:24–14:40）巡检复验 + **首次执行「路由（方法+路径+路径变量名）」契约五处真源审计**（业务代码零改动、清单零改动、生成器零改动、断言零改动）
+
+### 本轮全量测试（串行执行，无并发测试进程，坑 11/20）
+
+| 轮次 | 结果 | 证据 |
+| --- | --- | --- |
+| run1 | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0`（33 个测试类）；`EndpointCoverageTest` 90/90（`registered_routes=96`、`not_registered=[]`）；BUILD SUCCESS，`Total time 49.596 s`，`[ERROR]` 0 行 | `green-verify-R31-full-run1.txt` |
+| run2（防 flaky） | 同 run1（`Total time 43.966 s`，`[ERROR]` 0 行）；两轮**逐类结果 diff 为空** | `green-verify-R31-full-run2.txt` + `r31-run1-classes.txt` / `r31-run2-classes.txt` / `r31-classes-diff.txt` |
+
+> 口径说明：跨轮比对前**必须剔除 `Time elapsed` 字段** —— 首版直接 diff 原始行，因为耗时天然不同而 rc=1，
+> 会把「结果一致」误报成「有波动」。剔除后 33 个类的 `Tests run/Failures/Errors/Skipped` 逐类完全一致。
+
+### 本轮增量：`tools/audit-routes.py`（路由契约，只读）
+
+**为什么需要它（坑 43/49 族）**：契约测试只校验 JSON Schema，而 **JSON Schema 里没有路径**；
+覆盖门禁 `EndpointCoverageTest` 只比 **Spring 路由注册表 ⇔ endpoints.json** —— 也就是说
+**md 清单 / openapi.yaml / aap-client 三处与清单的路由一致性，此前从未被任何门禁或审计比对过**；
+且该门禁的 `normalize()` 把 `{...}` 一律折叠成 `{}` → **路径变量名（`{id}` vs `{jobId}`）全仓库无人校验**，
+而变量名正是客户端 codegen 与真实调用方拼 URL 的依据。
+
+不变量：同一端点的 **(HTTP 方法, 路径, 路径变量名序列)** 必须在**五处真源**逐端点一致 ——
+
+| 简称 | 来源 | 承载方式 |
+| --- | --- | --- |
+| M | `docs/backend/endpoints.json` | 逐端点 `method` + `path`（**含** `/api/v1` 前缀） |
+| D | `docs/backend/02-API接口模型清单.md` | 逐行「方法」「路径」列（10 列 / 7 列**两套表头**，坑 49） |
+| O | `docs/backend/openapi.yaml` | 路径项下的 `get\|post\|put\|delete\|patch` + `operationId` |
+| I | `aap-server/**/*Controller.java` | 类级 `@RequestMapping` 前缀 + 方法级映射注解 |
+| C | `aap-client/src/api/*.ts` | `http(...)` 调用点（方法由 `method:` 推、缺省 GET；解析文件内 `path()` 助手与模板字面量） |
+
+方向性是**刻意设计**（避免假发现）：`M ⊆ I`（清单是承诺，实现必须有同方法同路径的路由）、
+`C ⊆ M`（客户端不得打清单里没有的接口）；反向（实现有、清单没有）只作**信息项**输出 —— 框架/内部路由属正常。
+
+### 结果（13 条断言，13 PASS / 0 FAIL）
+
+| 断言 | 结果 |
+| --- | --- |
+| A0a–A0f 正向对照（解析器真的解析到了） | M 90/90、D 90/90、O 90/90、I 91 条路由、C 39 个调用点（12 个文件）、控制器解析异常 0 |
+| A1 md 逐行「方法+路径」= endpoints.json | **不一致 0 条** |
+| A2 openapi 每 operation = endpoints.json | **不一致 0 条** |
+| A3 清单 90 条都能定位到同方法同路径的实现路由 | **未定位 0 条** |
+| A4 客户端 39 个调用点全在清单内且方法一致 | **越界调用 0 个** |
+| A5 路径变量名序列（清单/md/openapi） | **不一致 0 条** |
+| Z1 全部被读文件指纹未变（零写副作用） | PASS |
+
+### 自纠：本审计首轮的两处真缺陷（均已修 + 均已配回归守卫）
+
+1. **A3 报 90 条「未定位」= 全部假发现**：拿**未归一 `/api/v1` 前缀**的实现路由，与**已归一前缀**的清单键比对。
+   修法：实现路由也走同一个 `key_of()`（`strip_prefix` + `{}` 折叠）。
+2. **`export function http<T>(path: string…)` 函数声明被当成客户端调用点**（噪声项）。
+   修法：客户端解析跳过 `function http` 声明；`A0e` 的「未能静态判定」由 1 处回到 **0 处**。
+
+判别力证据（**注入缺陷实测**，坑 41 防空转）：注入缺陷 1 → 负向自测 **9 条**转红（含专用守卫
+`case_impl_prefix_stripped`）；注入缺陷 2 → **恰好 1 条**转红（`case_http_declaration_not_call`，
+说明守卫不越界、不是「全都红」）。
+首轮输出按坑 12 **诚实命名并复现固化**：`red-R31-audit-routes-firstrun.txt`（复现方式 = 把两处缺陷注入副本后同仓库重跑）。
+
+### 本轮新发现（信息项，**不是**漂移，待拍板）
+
+- 实现里注册、但**冻结清单 / `endpoints.json` / `openapi.yaml` / 客户端四处全无**的路由 **1 条**：
+  `GET /api/v1/detection-jobs/{jobId}/digest`（`DetectionController:103`）。代码注释自称
+  「供内部调试使用的任务摘要（不对外暴露契约）」，带 `@PreAuthorize(hasAnyRole('SUPPLIER','PROVIDER'))`、
+  **零测试覆盖**、`aap-client` 零调用。
+- 性质：**实现超出冻结契约**（违反硬约束 1「清单先冻结、新增先改清单再改代码」）。风险等级低（有角色守卫），
+  但属未声明的生产路由（攻击面 + 文档一致性）。**按本轮 missing=0「不改代码」规则未动实现**，
+  建议二选一：删掉该路由，或补进清单后再改代码。
+
+### 本轮其它只读校验复跑（全部与历史同结论）
+
+| 校验 | 结果 | 证据 |
+| --- | --- | --- |
+| 生成器 `--check` | 84/84 一致、孤儿 0（零写副作用） | `gencheck-R31.txt` |
+| 端点用例审计 | `exact 90 / prefix 0 / none 0`；ID 可追溯 90/90（含同文件档） | `audit-endpoint-tests-R31.txt` |
+| 密钥泄漏审计 | Tier A 0 命中（四处比对）；`.gitignore` 四项覆盖 PASS；被跟踪 `.env` 类文件只有 `.env.example` | `secret-leak-audit-R31.txt` / `secret-leak-selftest-R31.txt` |
+| 新审计负向自测 | **20/20**（含 2 条真实返工回归守卫） | `selftest-routes-R31.txt` / `selftest-routes-R31-teeth.txt` |
+
+### 结论与待拍板
+
+- **90/90 维持全绿（连续第 14 轮：R18 → … → R31）**，两轮逐类结果完全一致，未见 flaky；
+  `missing=0` → 未改业务代码、未改 md、未改生成器、未新增/删除/跳过用例、未动断言。
+- 本轮真正增量 = **首次执行的路由契约审计**：结论是「**清单 / md / openapi / 实现 / 客户端五处路由零漂移**」
+  （A1–A5 全 PASS），并**首次把「路径变量名」纳入校验**（A5）。
+- **待拍板（维持）**：飞书 home channel 未绑定（R23–R30 同因）；PROV-03 item 模型口径；
+  错误码漂移 10 条 + 孤儿码 2 个（R29 已裁决待执行）；md「角色」列 32 行补 `SUPER_ADMIN`（R30）。
+- **待拍板（R31 新增）**：`GET /detection-jobs/{jobId}/digest` —— 实现超出契约（删掉 or 补进清单）。

@@ -1,0 +1,46 @@
+红基线（审计工具自身）：tools/audit-routes.py 首轮两处缺陷的复现输出
+复现方式：把首轮的两处缺陷注入副本后在**同一仓库**上重跑（非首轮原始 stdout，缺陷内容一致）
+  缺陷 1：A3 用未归一 /api/v1 前缀的实现路由 与 已归一的清单键 比对 → 90 条「未定位」假发现（坑 46 族）
+  缺陷 2：`export function http<T>(path: string…)` 函数声明被当成客户端调用点 → 噪声项
+注入副本：C:\Users\laitz\AppData\Local\Temp\audit-routes-firstrun-repro-1789713152884.py
+rc=1（缺陷版 rc=1；修好后同仓库 13/13 PASS，见 audit-routes-R31.txt）
+==============================================================================
+根目录：E:/workspaces/hioas/hioas-aap-001（仓库外路径也照常显示，skill 坑 34）
+--- 正向对照（解析器真的解析到了，skill 坑 46）---
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b D 行数 = total（裸 split 会漏行，坑 48）：parsed=90 期望=90
+[PASS] A0c O operation 数 = total：parsed=90 期望=90
+[PASS] A0d I 解析到控制器路由：parsed=91 条路由
+[PASS] A0e C 解析到客户端调用点：parsed=39 个调用点（12 个文件）；未能静态判定 1 处
+[PASS] A0f I 解析无异常
+--- A1 md 清单 ⇔ endpoints.json（逐端点：方法 + 路径）---
+[PASS] A1 md 逐行「方法+路径」= endpoints.json（未归一前缀）：不一致 0 条
+--- A2 openapi ⇔ endpoints.json（逐端点：方法 + 路径）---
+[PASS] A2 openapi 每 operation 的「方法+路径」= endpoints.json：不一致 0 条
+--- A3 清单 ⊆ 实现（逐端点定位到同方法同路径的 Spring 路由）---
+[FAIL] A3 清单每条端点都在实现里有同方法同路径的路由：未定位 90 条
+      · ADM-A01: 清单=['GET', '/admin/audit-logs']
+      · ADM-C01: 清单=['GET', '/admin/credentials/{}']
+      · ADM-C02: 清单=['POST', '/admin/credentials/{}/reveal']
+      · ADM-CFG01: 清单=['GET', '/admin/detection-configs']
+      · ADM-CFG02: 清单=['POST', '/admin/detection-configs']
+      · ADM-CFG03: 清单=['GET', '/admin/detection-configs/{}']
+      · ADM-CFG04: 清单=['PUT', '/admin/detection-configs/{}']
+      · ADM-CFG05: 清单=['POST', '/admin/detection-configs/{}/publish']
+      · ADM-CFG06: 清单=['GET', '/admin/report-templates']
+      · ADM-CFG07: 清单=['POST', '/admin/report-templates']
+      · ADM-CFG08: 清单=['GET', '/admin/report-templates/{}']
+      · ADM-CFG09: 清单=['PUT', '/admin/report-templates/{}']
+--- A4 客户端 ⊆ 清单（客户端不得调用清单里没有的接口）---
+[PASS] A4 客户端每个调用点都在冻结清单内且方法一致：越界调用 0 个
+--- A5 路径变量名（`{id}` vs `{jobId}`）逐端点一致（门禁把变量名折叠掉了）---
+[PASS] A5 路径变量名序列逐端点一致（清单 / md / openapi）：不一致 0 条
+[PASS] A6 md 表头/行定位无异常
+--- 信息项（不算漂移）---
+      · 实现里注册但清单未声明的路由 91 条（框架/内部路由属正常）：[('DELETE', '/api/v1/provider/qualifications/{}'), ('DELETE', '/api/v1/quotes/{}'), ('GET', '/api/v1/admin/audit-logs'), ('GET', '/api/v1/admin/channel-bindings'), ('GET', '/api/v1/admin/compilations'), ('GET', '/api/v1/admin/compilations/{}'), ('GET', '/api/v1/admin/contracts'), ('GET', '/api/v1/admin/credentials/{}')]
+      · 客户端未接线的清单端点 51 条（适配层按页面逐步接线，属正常）
+      · 客户端未能静态判定的调用点 1 处（不当漂移）：['http.ts: path: string']
+--- 零写副作用自检 ---
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+
+断言 13 条：PASS 12，FAIL 1
