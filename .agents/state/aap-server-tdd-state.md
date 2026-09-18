@@ -2167,3 +2167,74 @@ P2：客户端零消费、无线上风险，但契约不一致）；其余待拍
 ### 台账收尾与通知
 * R43 行「提交」列**本轮直接填为 `5f376b7`**（不留「下一轮补齐」的台账债，沿用 R40/R42 的做法）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」。
 * 飞书通知**第 20 轮同因失败**（`No home channel set for feishu`）→ 留痕 `evidence/feishu-notify-failures.txt`，不阻塞交付。
+
+---
+
+## R44 巡检轮（2026-09-18）—— missing=0，只校验不改代码
+
+### 全量测试（串行单进程两轮，坑 11/20）
+| 轮次 | 结果 | 证据 |
+|---|---|---|
+| 第 1 轮 | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0` → BUILD SUCCESS，`[ERROR]` 行 0 | `evidence/green-verify-R44-full-run1.txt` |
+| 第 2 轮 | 同上（防 flaky） | `evidence/green-verify-R44-full-run2.txt` |
+| 逐类比对 | 两轮各 33 个测试类；**先剥 `Time elapsed` 再排序**后 diff 为空（坑 59/79） | 同上 |
+
+覆盖门禁：`coverage-report.json` → `total=90 / implemented=90 / missing=0`，`registered_routes=96`、`not_registered=[]`。
+测试重写该文件后**逐字段 JSON 全等**（仅 `Map.of` 键序 + CRLF 变化，坑 56/69）→ 已 `git checkout` 还原，不提交。
+
+### 既有审计复跑（零回归）
+| 项 | 结果 |
+|---|---|
+| 14 套只读审计 | rc 序列与 R43 **逐条一致**（34 条）；6 套 rc=1 全为已登记待拍板（鉴权 16/1、错误码 14/2、查询参数 12/2、枚举集合、响应形状、ID 类型、请求体） |
+| FAIL 断言行 | R43=44 / R44=44 → **新增 0、消失 0、逐行一致** |
+| 13 个负向自测 | 全 rc=0 |
+| 零写副作用 | PASS（84 个产物 md5+size 全等） |
+| 证据 | `evidence/audit-regression-R44.txt` |
+
+### 本轮抽查：第十八类不变量「响应包络字段集合 + traceId 出口语义」
+真源五处：md §0「响应包体」字面量/「traceId」行 ↔ `envelope.schema.json` ↔ `error.schema.json` ↔
+openapi `Envelope` 组件（`$ref` 目标）↔ 实现（`ApiEnvelope` record 分量 / `TraceIdFilter.HEADER` / `MDC_KEY`）↔
+客户端（`ApiEnvelope` 接口 / `ApiError` 构造实参 / `body.details` 读取点）；第三方裁判 = `ApiContractTest` 头名字面量断言。
+
+**为什么值得查（两套门禁为什么看不见）**：契约测试对**成功响应**用 `envelope.schema.json` 校验，
+而该 schema 是 `additionalProperties: true` → 实现多输出一个字段（`details`）**204 例全绿也看不见**；
+openapi 的 `Envelope` 是同一个文件的 `$ref`；客户端 TS 不被任何测试执行（坑 43/62/85 同族）。
+
+结果 **PASS 28 / FAIL 4**，4 条 FAIL 全为真实发现（无一条来自解析器缺陷）：
+
+| # | 发现 | 判定 |
+|---|---|---|
+| A2 | 实现 `ApiEnvelope` 分量集合（5）!= `envelope.schema.json` 键集合（4），差异 = `details` | 待拍板（实现超出/文档漏登记） |
+| A9 | 成功路径实际输出字段数（5）!= md §0 声明字段数（4）—— 与 A2 同源（`default-property-inclusion: always` 会把 `null` 也输出） | 与 A2 同源 |
+| A3 | `envelope.schema.json`（4 键）!= `error.schema.json`（5 键），差异 = `details` → **同一包络两种形状** | 文档一致性项 |
+| A5 | 客户端 `body.details` 读取点 = **0**，而 `ApiError` 有 `details` 字段、注释承诺 `code+message+traceId+details` | 待拍板（客户端缺口） |
+
+**诚实标注（坑 12：证据不能骗人）**：traceId **头名**不属盲区 —— 契约测试有 **4 处**头名字面量断言
+（`ApiContractTest` 断言「响应头 == 包体 traceId」）；真正对两套门禁不可见的是「**成功路径**包络字段集合」。
+不吹成「两套门禁都看不见」。
+
+**风险分级**：`details` 只靠 `additionalProperties: true` 放行、客户端零消费 → 风险低，属**契约文档缺口**，
+不按线上故障优先级报（坑 54）。按硬规则「无依据的契约不得臆造」→ 列**待拍板**，本轮不动代码。
+
+### 本轮自己踩的坑（值得记）
+* **审计报告里的 FAIL 标记可能写成 `[FAIL ]`（方括号内带空格）**：比对器用 `"[FAIL]" in line` 判据只捕获
+  **15/44** 条 → 「0 新增 FAIL」是**解析器失效**造成的假结论（坑 46/29）。修正为 `\[FAIL\s*\]`
+  并配正向对照「解析到的 FAIL 断言行 > 20」后结论才成立。
+* **openapi 的 `$ref` 要按 `openapi.yaml` 所在目录解析**：`./json-schema/...` 相对的是
+  `docs/backend/`，按仓库根解析 → 报出 O1/O2/A8 三条**假发现**（坑 92 同族：跨源比对先看「每个源解析到几条」）。
+* **Java 常量可能是常量引用**：`MDC_KEY = ApiEnvelope.TRACE_ID` 不是字符串字面量 → 只匹配 `"..."` 的解析器
+  报出 I3/A7 两条**假发现**。规则：解析到 `= X.NAME` 时**回查被引用的常量**，或显式记「未能静态判定」。
+* **`not hits or all(h == x for h in hits)` 是空转假绿**：hits 为空时判绿 → 注入「让证据源消失」的缺陷时守卫看不见
+  （坑 75）。改成 `len(hits) > 0 and all(...)`。**修的是守卫，不是期望值**。
+* **自测自身的期望/锚点也会写错**（坑 82/90/93）：I1 漏 `M0`、I2 漏 `A1`、I7 的锚点 `"X-Trace-Id"` 在契约测试里
+  出现 **4 次**（首版只替换 1 次 → 未命中即判失败，正是坑 66 的正确行为）、A6 的空转漏洞。四条都由自测自己暴露。
+* **跨盘符 `os.path.relpath` 抛 ValueError**（夹具在 C:、仓库在 E:）→ 加 `rel_safe()` 兜底（坑 34）。
+
+### 本轮未做（纪律）
+* 未新增仓库工具（按作业要求 `missing=0` 只校验不改代码），抽查脚本与自测均落在 `$LOCALAPPDATA/Temp/`；
+* 未在同一个任务族内并发跑测试（单进程串行两轮，坑 11/20）；跑测试前确认无 `java.exe` 在跑，
+  9223 端口属他项目（hioas-aim 的 CDP，**只读观察，未触碰**）。
+
+### 台账
+* R44 行「提交」列先留空，提交后由收尾提交补齐（沿用 R40/R42/R43 做法）；CSV 以真正的 csv 解析复核
+  「每行列数 = 表头列数（8）」；R 行连续性核对：R27 → R44 无缺号（坑 71）。

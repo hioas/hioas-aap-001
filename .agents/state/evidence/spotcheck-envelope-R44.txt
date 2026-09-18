@@ -1,0 +1,62 @@
+== R44 抽查（只读）：响应包络字段集合 + traceId 出口（头名/包体/MDC）语义 —— 第十八类可审计不变量 ==
+脚本落在仓库外 $LOCALAPPDATA/Temp（本轮按作业要求「missing=0 只校验不改代码」，未新增仓库工具）。
+真源五处：md §0「响应包体」字面量 + 「traceId」行 / envelope.schema.json / error.schema.json /
+openapi Envelope 组件（$ref 目标）/ 实现（ApiEnvelope record 分量 + TraceIdFilter.HEADER/MDC_KEY）/
+客户端（ApiEnvelope 接口 + ApiError 构造实参 + body.details 读取点）；第三方裁判 = ApiContractTest 头名字面量断言。
+结果：32 条断言 PASS 28 / FAIL 4；4 条 FAIL 全部为真实发现（无一条来自解析器缺陷）：
+  A2 实现 ApiEnvelope 分量集合(5) != envelope.schema.json 键集合(4)，差异 = details
+  A9 成功路径包络实际输出字段数(5) != md §0 声明字段数(4)   ← 与 A2 同源
+  A3 envelope.schema.json(4 键) != error.schema.json(5 键)，差异 = details（同一包络两种形状）
+  A5 客户端 body.details 读取点 = 0（ApiError 有 details 字段、注释承诺 code+message+traceId+details）
+诚实标注：traceId **头名**不属盲区 —— 契约测试有 4 处头名字面量断言（ApiContractTest 断言「头 == 包体 traceId」）；
+本条不变量真正对两套门禁不可见的部分是「**成功路径**包络字段集合」（envelope.schema.json 是 additionalProperties:true
+→ 多输出一个字段 204 例全绿也看不见）。
+本轮自查修掉的 3 个**自身解析器缺陷**（先怀疑解析器，坑 46/57）：$ref 未按 openapi.yaml 所在目录解析、
+常量引用（MDC_KEY = ApiEnvelope.TRACE_ID）未回查、A6 的 all([]) 空转漏洞（注入「测试里字面量消失」时判绿）。
+下方为脚本原始输出。
+== R44 抽查：响应包络字段集合 + traceId 出口语义（只读）==
+根目录：E:/workspaces/hioas/hioas-aap-001
+--- 正向对照（解析器真的解析到了）---
+[OK  ] S0 源可读：docs/backend/02-API接口模型清单.md
+[OK  ] S0 源可读：docs/backend/json-schema/common/envelope.schema.json
+[OK  ] S0 源可读：docs/backend/json-schema/common/error.schema.json
+[OK  ] S0 源可读：docs/backend/openapi.yaml
+[OK  ] S0 源可读：aap-server/src/main/java/com/hioas/aap/common/ApiEnvelope.java
+[OK  ] S0 源可读：aap-server/src/main/java/com/hioas/aap/common/TraceIdFilter.java
+[OK  ] S0 源可读：aap-server/src/main/resources/application.yml
+[OK  ] S0 源可读：aap-client/src/api/http.ts
+[OK  ] S0 源可读：aap-server/src/test/java/com/hioas/aap/common/ApiContractTest.java
+[OK  ] M0 md §0 包络字面量解析到键 > 0：keys=['code', 'message', 'data', 'traceId']
+[OK  ] S0 envelope.schema.json properties 解析到键 > 0：keys=['code', 'message', 'data', 'traceId']
+[OK  ] E0 error.schema.json properties 解析到键 > 0：keys=['code', 'message', 'data', 'traceId', 'details']
+[OK  ] I0 ApiEnvelope record 分量解析到 > 0：components=['code', 'message', 'data', 'traceId', 'details']
+[OK  ] I1 ApiEnvelope 分量数 == 实现实际输出字段数（Jackson always → null 也输出）：components=['code', 'message', 'data', 'traceId', 'details']，default-property-inclusion=always
+[OK  ] O0 openapi Envelope 组件解析到 $ref > 0：refs=['./json-schema/common/envelope.schema.json']
+[OK  ] O1 openapi Envelope 组件指向 envelope.schema.json：ref=./json-schema/common/envelope.schema.json → 解析为 docs/backend/json-schema/common/envelope.schema.json
+[OK  ] O2 openapi Envelope 的 $ref 目标可解析且键 > 0：keys=['code', 'message', 'data', 'traceId']
+[OK  ] M1 md §0 traceId 行解析到头名：header=X-Trace-Id
+[OK  ] I2 TraceIdFilter.HEADER 常量解析到：header=X-Trace-Id
+[OK  ] I3 ApiEnvelope.TRACE_ID / TraceIdFilter.MDC_KEY 解析到：TRACE_ID=traceId MDC_KEY=traceId（常量引用 ApiEnvelope.TRACE_ID）
+[OK  ] T0 契约测试里出现 traceId 头名字面量（第三方裁判）：hits=4
+[OK  ] C0 客户端 ApiEnvelope 接口字段解析到 > 0：keys=['code', 'message', 'data', 'traceId']
+[OK  ] C1 客户端 ApiError 构造实参解析到 > 0：args=5
+[OK  ] A1 md §0 包络键集合 == envelope.schema.json 键集合：md=['code', 'data', 'message', 'traceId'] schema=['code', 'data', 'message', 'traceId'] 差异=[]
+[OK  ] A4 客户端 ApiEnvelope 接口字段 ⊆ 服务端包络键集合：client=['code', 'data', 'message', 'traceId'] impl=['code', 'data', 'details', 'message', 'traceId'] 越界=[]
+[OK  ] A6 头名字面量三处一致（md §0 == TraceIdFilter.HEADER == 契约测试）：md=X-Trace-Id impl=X-Trace-Id tests=['X-Trace-Id']（测试侧命中 4 处；==0 时本条**不得**因 all([]) 空转而判绿，坑 75）
+[OK  ] A7 包体字段名与 MDC 键同源（TRACE_ID == MDC_KEY == 'traceId'）：TRACE_ID=traceId MDC_KEY=traceId
+[OK  ] A8 openapi Envelope 键集合 == envelope.schema.json 键集合（$ref 解析后）：openapi=['code', 'data', 'message', 'traceId'] schema=['code', 'data', 'message', 'traceId']
+
+--- 不变量断言 / 反例 ---
+[FAIL] A2 实现 ApiEnvelope 分量集合 == envelope.schema.json 键集合：impl=['code', 'data', 'details', 'message', 'traceId'] schema=['code', 'data', 'message', 'traceId'] 差异=['details']
+[FAIL] A3 envelope.schema.json 与 error.schema.json 包络键集合一致（同一包络两种形状 = 漂移温床）：envelope=['code', 'data', 'message', 'traceId'] error=['code', 'data', 'details', 'message', 'traceId'] 差异=['details']
+[FAIL] A5 客户端是否接线读取包体 details（承诺 vs 实现）：body.details 读取点=0；客户端 ApiError 注释承诺 details，且 ApiError 有 details 字段
+[FAIL] A9 成功路径包络实际字段数 == md 声明字段数（Jackson always 会把 null 字段也输出）：实现输出 5 个字段 vs md 声明 4 个
+
+--- 观察项（信息，不判红）---
+[INFO] 包络第 5 字段 details：实现 record 含 details（成功路径恒为 null，因 inclusion=always）；md §0 字面量与 envelope.schema.json 均未声明；error.schema.json 声明了 → 仅靠 additionalProperties:true 放行（契约测试对成功路径完全看不见）
+[INFO] 客户端 details 消费：客户端 4 处出现 details 字样，其中从包体读取 0 处 → 服务端 E-1001 字段级明细到不了 UI（客户端注释承诺 code+message+traceId+details）
+[INFO] error.schema.json required：required=['code', 'message']（data/traceId/details 均可省略）
+[INFO] envelope.schema.json required：required=['code', 'message']
+[INFO] traceId 头名测试背书：契约测试 4 处头名字面量断言 → 头名**不是**盲区（诚实标注，不吹成『两套门禁都看不见』）
+
+合计 32 条断言：PASS 28，FAIL 4
