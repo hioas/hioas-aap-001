@@ -1,0 +1,40 @@
+== R65 两轮全量结果逐类比对（先剥 Time elapsed 再排序，坑 59/79） ==
+行尾归一：run1 CR 2837→0，run2 CR 2837→0（坑 146/69）
+run1 解析到 33 个类；run2 解析到 33 个类（正向对照：两者都必须 > 0，否则解析器失效，坑 46）
+逐类一致：True（仅 run1 有 0 / 仅 run2 有 0）
+run1 逐类 run= 合计 = 204（应与 surefire 的 Tests run 总数一致）
+
+run1 逐类：
+com.hioas.aap.ToolchainSmokeTest | run=1 fail=0 err=0 skip=0
+com.hioas.aap.adminconfig.DetectionConfigContractTest | run=7 fail=0 err=0 skip=0
+com.hioas.aap.adminconfig.ReportTemplateContractTest | run=6 fail=0 err=0 skip=0
+com.hioas.aap.adminconfig.ReportTemplateWordingTest | run=3 fail=0 err=0 skip=0
+com.hioas.aap.common.ApiContractTest | run=8 fail=0 err=0 skip=0
+com.hioas.aap.common.ApiEnvelopeTest | run=5 fail=0 err=0 skip=0
+com.hioas.aap.common.LoggingAndHealthTest | run=2 fail=0 err=0 skip=0
+com.hioas.aap.common.MigrationTest | run=5 fail=0 err=0 skip=0
+com.hioas.aap.common.OutboundUrlGuardTest | run=5 fail=0 err=0 skip=0
+com.hioas.aap.common.PersistenceBaseTest | run=5 fail=0 err=0 skip=0
+com.hioas.aap.compile.BillingCompilerTest | run=8 fail=0 err=0 skip=0
+com.hioas.aap.compile.CompilationContractTest | run=7 fail=0 err=0 skip=0
+com.hioas.aap.contract.ContractContractTest | run=9 fail=0 err=0 skip=0
+com.hioas.aap.coverage.EndpointCoverageTest | run=1 fail=0 err=0 skip=0
+com.hioas.aap.credential.AdminCredentialContractTest | run=2 fail=0 err=0 skip=0
+com.hioas.aap.credential.CredentialContractTest | run=12 fail=0 err=0 skip=0
+com.hioas.aap.detection.DetectionContractTest | run=9 fail=0 err=0 skip=0
+com.hioas.aap.detection.ProbeScoringTest | run=13 fail=0 err=0 skip=0
+com.hioas.aap.detection.RecheckServiceTest | run=2 fail=0 err=0 skip=0
+com.hioas.aap.iam.AuthContractTest | run=9 fail=0 err=0 skip=0
+com.hioas.aap.provider.AdminProviderContractTest | run=3 fail=0 err=0 skip=0
+com.hioas.aap.provider.ProviderContractTest | run=9 fail=0 err=0 skip=0
+com.hioas.aap.quote.AdminQuoteCompareContractTest | run=3 fail=0 err=0 skip=0
+com.hioas.aap.quote.QuoteContractTest | run=7 fail=0 err=0 skip=0
+com.hioas.aap.quote.QuoteValidationTest | run=8 fail=0 err=0 skip=0
+com.hioas.aap.report.ReportContractTest | run=5 fail=0 err=0 skip=0
+com.hioas.aap.review.ReviewContractTest | run=12 fail=0 err=0 skip=0
+com.hioas.aap.settlement.PaymentContractTest | run=4 fail=0 err=0 skip=0
+com.hioas.aap.support.NotificationContractTest | run=8 fail=0 err=0 skip=0
+com.hioas.aap.sync.SyncAdminContractTest | run=8 fail=0 err=0 skip=0
+com.hioas.aap.usage.UsageContractTest | run=11 fail=0 err=0 skip=0
+com.hioas.aap.usage.UsageMetricsTest | run=6 fail=0 err=0 skip=0
+com.hioas.aap.usage.UsageRefreshDegradedTest | run=1 fail=0 err=0 skip=0

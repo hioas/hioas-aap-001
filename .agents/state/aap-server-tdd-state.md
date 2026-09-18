@@ -3602,3 +3602,49 @@ md 行内错误码列 → {A2b,A4}；实现守卫码 → {A2}；ErrorCode 状态
 **判别力自测（负向，27/27 PASS）**：合规夹具 rc=0 且 FAIL 0 + 九条正向对照全 PASS + 空夹具点名全部 A0* 与五条条件化断言 + 16 组注入缺陷各**恰好**新增目标断言 + 全部注入锚点命中且新文本真的出现 + 夹具零写副作用+ 真实仓库只读（关键文件 md5 不变）。
 
 **证据**：`green-verify-R64-full-run1.txt`；`green-verify-R64-full-run2.txt`；`green-verify-R64-classdiff.txt`；`green-verify-R64-testcount.txt`；`green-verify-R64-coverage-fields.txt`；`audit-regression-R64.txt`；`audit-regression-R64-faildiff.txt`；`audit-regression-R64-rcseq.txt`；`spotcheck-throttle-R64.txt`；`spotcheck-throttle-R64-selftest.txt`。
+
+## R65（巡检轮：missing=0 → 只校验不改代码）
+
+**结论**：90/90 连续第 47 轮全绿；全量 **204 例两轮全绿**（33 类逐类一致）；覆盖门禁自身 1/1；
+`@Test\b` = 204 与 surefire 对账一致、禁用扫描 0 条；14 套只读审计 + 9 套抽查 + 22 个负向自测零回归
+（rc 序列与 R64 逐条一致，仅新增本轮 2 条；FAIL 明细剥行首来源前缀后 **R64=61 → R65=64**，新增 3 条全部来自本轮新抽查、**消失 0**）；
+零写副作用（84 个产物 size+md5 全等）。本轮**未改业务代码 / 清单 / 生成器 / md / 断言**。
+
+**新增抽查：写路径「审计留痕列」填充一致性（第三十九类可审计不变量）**
+
+- 真源：D DDL（表 → 是否含 created_by/updated_by）／O ORM 路径（实体 `@Table` 的 onInsert/onUpdate 挂载）／
+  I 手写 SQL 路径（insert 列清单、update 的 set 清单、`on conflict … do update set` 分支）／
+  A AuditContext 链路入口／M md 声明（01-ER「审计字段（业务表通用）」+ append-only 行）／
+  T 测试背书（结构级 vs 取值级）／X 出口。
+- 为什么两套门禁都看不见：契约测试只把**响应体**与 JSON Schema 比对，而 created_by/updated_by 是否真的落库
+  **不在 schema 里**（审计列不出现在响应模型或为 nullable）→ 写路径漏填时库里恒为 NULL、漏刷新时库里
+  **保留上一次操作者**，204 例全绿也查不出；覆盖门禁只比「方法 + 路径」；openapi 与客户端 TS 不被任何测试读取/执行。
+- 真发现 3 条：
+  1. **A1**：手写 insert 未填充审计列 3 处（`SyncAttemptRecorder:42` aap_sync_operation、`UsageService:246`
+     aap_usage_hourly、`UsageService:287` aap_usage_sync_cursor）——三张表 DDL 都有 created_by/updated_by，
+     语句只写 created_at/updated_at → 操作者留痕恒为 NULL。
+  2. **A2**：手写 update / upsert 分支未刷新 updated_by 6 处（`DetectionConfigService:207` 与
+     `ReportTemplateService:173` 的「旧活版置 SUPERSEDED」、`NotificationService:131` 标记已读、
+     `SyncAttemptRecorder:34` 同步重试、`UsageService:246` upsert 的 do-update 分支、`UsageService:280` 游标）——
+     **已刷 updated_at 却不刷 updated_by** → 该行 updated_by 保留**上一次操作者**（误导性留痕，比 NULL 更坏）；
+     且 `DetectionConfigService.publish` 同一方法内两次 update 一次带 updated_by 一次不带（同函数两种写法，坑 44）。
+  3. **A3**：`AuditListeners.Update` 的 updated_by 赋值被 `actorId != null` 守卫 → SYSTEM 触发的更新保留旧操作者。
+- 正面结论（带正向对照）：DDL 55 张表全部含 created_by/updated_by 与 md「业务表通用」声明一致（A5）；
+  34 个实体全部挂 onInsert 监听器（A1b）；34 个含审计列实体中仅 append-only 的 `aap_audit_log` 未挂 onUpdate
+  且实现零 update 路径（按 md 声明豁免、上限 2，A2b/A2c）；手写 SQL 21 条 update 中 15 条正确刷新 updated_by；
+  审计列取值级背书 2 处（`PersistenceBaseTest` 断言 createdBy/updatedBy = 9001L，A4）。
+
+**抽查脚本自身返工 3 处**（先怀疑判据，坑 46/81）：① 语句动词判据取错字符 → 6 条 insert 全被当成 update、
+A0d/A1 报「解析到 0 条」假发现（改用动词首词判定）；② upsert 的 do-update 分支只在 update 循环里检查 →
+insert 型 upsert（aap_usage_hourly）整条漏检（改为遍历全部写语句）；③ A2b 判据过宽：把 append-only 的
+`aap_audit_log` 判成「未挂 onUpdate」（实现零 update 路径 + md 声明 append-only）→ 改为按 md 声明豁免并设上限 2（坑 57/68）。
+
+**判别力自测（负向，36/36 PASS）**：合规夹具 rc=0 且 FAIL 0 + A0a…A0g 七条正向对照全 PASS +
+空夹具 rc≠0 且点名全部 A0* 与七条条件化断言（A1/A1b/A2/A2b/A3/A4/A5，坑 98/132）+ 12 组注入缺陷各**恰好**新增目标断言
++ 全部注入锚点命中且新文本真的出现（坑 66/90/94）+ 夹具目录零写副作用（含不得留下 `__pycache__`，坑 106）+
+真实仓库 FAIL 集合 = {A1,A2,A3}（只读）。
+
+**证据**：`green-verify-R65-full-run1.txt`；`green-verify-R65-full-run2.txt`；`green-verify-R65-classdiff.txt`；
+`green-verify-R65-testcount.txt`；`green-verify-R65-coverage-fields.txt`；`audit-regression-R65.txt`；
+`audit-regression-R65-faildiff.txt`；`audit-regression-R65-rcseq.txt`；`spotcheck-audit-cols-R65.txt`；
+`spotcheck-audit-cols-R65-selftest.txt`。

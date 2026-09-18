@@ -1,0 +1,45 @@
+== R65 抽查脚本的负向自测（判别力实测） ==
+覆盖：合规夹具必须 rc=0 且 FAIL 0 + A0a…A0g 七条正向对照全 PASS + 空夹具必须变红并点名全部正向对照与条件化断言 +
+12 组注入缺陷各**恰好**新增目标断言（含 1 组多锚点、1 组解析器失效）+ 全部注入锚点命中且新文本真的出现（坑 66/90/94）+
+夹具目录零写副作用（含不得留下 __pycache__，坑 106）+ 真实仓库 FAIL 集合与预期一致（只读）。
+命令：python <tmp>/aap-r65-spotcheck/spotcheck-audit-cols-R65-selftest.py
+退出码 = 0（0 = 36/36 PASS）
+== R65 抽查负向自测（spotcheck-audit-cols-R65-selftest） ==
+[PASS] 合规夹具 rc=0（实际 0）
+[PASS] 合规夹具 FAIL 0（实际 []）
+[PASS] 合规夹具下 A0a…A0g 七条正向对照全部出现（实际 ['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A0f', 'A0g']）
+[PASS] 合规夹具下 A0a…A0g 七条正向对照全部 PASS
+[PASS] 合规夹具下无 A0* FAIL
+[PASS] 合规夹具零写副作用（8 个文件 md5 全等）
+[PASS] 夹具目录无 __pycache__
+[PASS] 空夹具 rc≠0（实际 1）
+[PASS] 空夹具点名全部 A0* 正向对照（缺 []）
+[PASS] 空夹具点名全部条件化断言（缺 []）
+[PASS] 注入 sql-insert-del-created-by 的锚点全部命中且真的改到源码
+[PASS] 注入 sql-insert-del-created-by → 恰好新增 ['A1']（实际 ['A1']）
+[PASS] 注入 entity-del-oninsert 的锚点全部命中且真的改到源码
+[PASS] 注入 entity-del-oninsert → 恰好新增 ['A1b']（实际 ['A1b']）
+[PASS] 注入 entity-del-onupdate 的锚点全部命中且真的改到源码
+[PASS] 注入 entity-del-onupdate → 恰好新增 ['A2b']（实际 ['A2b']）
+[PASS] 注入 sql-update-del-updated-by 的锚点全部命中且真的改到源码
+[PASS] 注入 sql-update-del-updated-by → 恰好新增 ['A2']（实际 ['A2']）
+[PASS] 注入 upsert-del-updated-by 的锚点全部命中且真的改到源码
+[PASS] 注入 upsert-del-updated-by → 恰好新增 ['A2']（实际 ['A2']）
+[PASS] 注入 listeners-update-guard 的锚点全部命中且真的改到源码
+[PASS] 注入 listeners-update-guard → 恰好新增 ['A3']（实际 ['A3']）
+[PASS] 注入 md-del-claim 的锚点全部命中且真的改到源码
+[PASS] 注入 md-del-claim → 恰好新增 ['A0g', 'A5']（实际 ['A0g', 'A5']）
+[PASS] 注入 ddl-add-table-no-audit 的锚点全部命中且真的改到源码
+[PASS] 注入 ddl-add-table-no-audit → 恰好新增 ['A5']（实际 ['A5']）
+[PASS] 注入 test-del-value 的锚点全部命中且真的改到源码
+[PASS] 注入 test-del-value → 恰好新增 ['A4']（实际 ['A4']）
+[PASS] 注入 test-del-struct 的锚点全部命中且真的改到源码
+[PASS] 注入 test-del-struct → 恰好新增 ['A0f']（实际 ['A0f']）
+[PASS] 注入 svc-del-writes 的锚点全部命中且真的改到源码
+[PASS] 注入 svc-del-writes → 恰好新增 ['A0c', 'A0d', 'A1', 'A2']（实际 ['A0c', 'A0d', 'A1', 'A2']）
+[PASS] 注入 md-del-append-only 的锚点全部命中且真的改到源码
+[PASS] 注入 md-del-append-only → 恰好新增 ['A2b']（实际 ['A2b']）
+[PASS] 真实仓库 rc=1（存在 FAIL 明细，实际 1）
+[PASS] 真实仓库 FAIL 集合 = {A1,A2,A3}（实际 ['A1', 'A2', 'A3']）
+
+SELFTEST PASS 36/36

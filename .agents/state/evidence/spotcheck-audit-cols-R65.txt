@@ -1,0 +1,36 @@
+== R65 抽查（只读）：写路径「审计留痕列」填充一致性（第三十九类可审计不变量） ==
+为什么两套门禁都看不见：契约测试只把**响应体**与 JSON Schema 比对，而 created_by/updated_by 是否真的落库**不在 schema 里**
+（审计列不出现在响应模型，或为 nullable）→ 写路径漏填时库里恒为 NULL、漏刷新时库里**保留上一次操作者**，
+204 例全绿也查不出；覆盖门禁只比「方法 + 路径」；openapi 与客户端 TS 不被任何测试读取/执行。
+真源：D DDL（表 → 是否含 created_by/updated_by）／O ORM 路径（实体 @Table 的 onInsert/onUpdate 挂载）／
+I 手写 SQL 路径（insert 列清单、update 的 set 清单、on conflict do update set 分支）／A AuditContext 链路入口／
+M md 声明（01-ER「审计字段（业务表通用）」+ append-only 行）／T 测试背书（结构级 vs 取值级）／X 出口。
+命令：python <tmp>/aap-r65-spotcheck/spotcheck-audit-cols-R65.py --root E:/workspaces/hioas/hioas-aap-001
+退出码 = 1（1 = 存在 FAIL 明细，属预期：本轮抽查发现 3 条真发现）
+root = E:\workspaces\hioas\hioas-aap-001
+解析计数：DDL 表 55（含审计列 55）· 实体 @Table 34（挂 onInsert 34）· 手写写语句 27（insert 6 / update 21）· insert 列清单含 created_by 3 · AuditContext.set 4/clear 1 · md 审计字段行 2 · 测试结构引用 2 / 取值引用 2 · 响应/实现里审计列名 39
+
+[PASS] A0a DDL 解析到含审计列的表 55 张
+[PASS] A0b 实体 @Table 解析到 34 个，其中挂 onInsert 监听器 34 个
+[PASS] A0c 手写 SQL 写语句解析到 27 条（insert 6 / update 21）
+[PASS] A0d insert 列清单解析器正向对照：解析到列清单且含 created_by 的 insert 3 条
+[PASS] A0e AuditContext 链路入口解析到 set 4 处 / clear 1 处
+[PASS] A0f 测试源里出现审计列名字面量 2 处
+[PASS] A0g md 声明「审计字段（业务表通用）」行 2 条
+[FAIL] A1 手写 insert 未填充审计列 3 条：SyncAttemptRecorder.java:42 insert into aap_sync_operation 缺 created_by+updated_by（无 ORM 实体） | UsageService.java:246 insert into aap_usage_hourly 缺 created_by+updated_by（无 ORM 实体） | UsageService.java:287 insert into aap_usage_sync_cursor 缺 created_by+updated_by（无 ORM 实体）
+[PASS] A1b 全部 34 个含审计列的 ORM 实体都挂了 onInsert 监听器
+[FAIL] A2 手写 update / upsert 分支未刷新 updated_by 6 处：DetectionConfigService.java:207 update aap_detection_config 的 set 缺 updated_by（无 ORM 实体） | ReportTemplateService.java:173 update aap_report_template 的 set 缺 updated_by（无 ORM 实体） | NotificationService.java:131 update aap_notification 的 set 缺 updated_by（有 ORM 实体（手写路径绕过监听器）） | SyncAttemptRecorder.java:34 update aap_sync_task 的 set 缺 updated_by（无 ORM 实体） | UsageService.java:246 upsert aap_usage_hourly 的 do-update 分支缺 updated_by（已刷 updated_at 却不刷 updated_by） | UsageService.java:280 update aap_usage_sync_cursor 的 set 缺 updated_by（无 ORM 实体）
+[PASS] A2b 含审计列的 ORM 实体（34 个，已豁免 append-only 1 个）全部挂了 onUpdate 监听器
+[INFO] A2c append-only 豁免 1 个（上限 2）：aap_audit_log（md 声明 append-only；实现 update 路径=0；实体 onUpdate=False）
+[FAIL] A3 AuditListeners.Update 的 updated_by 赋值被 `actorId != null` 守卫：SYSTEM 触发的更新会**保留上一次操作者**（留痕误导，非 NULL）
+[PASS] A4 审计列取值级背书 2 处（结构级 2 处）
+[INFO] A4b 取值级背书的覆盖范围：全部来自 ORM 路径（PersistenceBaseTest 断言 createdBy/updatedBy = 9001L）；手写 SQL 写路径 27 条**零**取值级背书
+[PASS] A5 md 声明「业务表通用」⇔ DDL 55 张表全部含 created_by/updated_by
+[INFO] A6 既无 ORM 实体也无手写写路径的含审计列表 13 张（只读或经别处写入）：aap_baseline_sample, aap_detection_baseline, aap_file_asset, aap_newapi_endpoint, aap_outbox_event, aap_probe_question, aap_provider_challenge, aap_reference_price
+[INFO] A7 响应/实现里出现审计列名的位置 39 处（出口是否暴露 created_by/updated_by 需人工看上下文）
+[INFO] A9 同文件内同表「带/不带 updated_by」两种写法并存 2 处（坑 44 的漂移高发形态）：aap_detection_config@DetectionConfigService.java（有 updated_by 2 处 / 无 1 处） | aap_report_template@ReportTemplateService.java（有 updated_by 2 处 / 无 1 处）
+[INFO] A8 监听器源：AuditListeners.java；Update 守卫=True
+
+== 汇总 ==
+PASS 11 / FAIL 3 / INFO 6
+FAIL token 集合 = ['A1', 'A2', 'A3']

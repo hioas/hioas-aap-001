@@ -1,0 +1,8 @@
+== R65 用例计数对账（坑 35：@Test 必须词边界，@TestConfiguration 不得计入） ==
+测试源 .java 文件数 = 39
+@Test\b 计数 = 204
+surefire run1 汇总 = Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+surefire run2 汇总 = Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+禁用/跳过扫描（@Disabled|@Ignore\b|@DisabledIf|assumeTrue|Assumptions\.）命中 = 0 条
+对账：源码 @Test\b=204 ⇔ surefire Tests run=204 → 一致（无用例被静默跳过）
+结论：测试未被削弱（0 条禁用/跳过）

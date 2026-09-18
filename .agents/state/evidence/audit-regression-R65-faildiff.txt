@@ -1,0 +1,16 @@
+== R64 → R65 FAIL 明细比对（剥行首来源前缀 + 排除 PASS 行） ==
+判据：方括号内允许空格的 FAIL 标记（坑 97/135）
+采集模式：R64=唯一集合小节（原始命中 61 行）/ R65=唯一集合小节（原始命中 64 行）
+正向对照：R64 解析到 61 条；R65 解析到 64 条（都必须 > 0，否则先怀疑收集器，坑 46/98）
+R64 集合大小 61 / R65 集合大小 64
+
+R65 新增 3 条：
+  + [FAIL] A1 手写 insert 未填充审计列 3 条：SyncAttemptRecorder.java:42 insert into aap_sync_operation 缺 created_by+updated_by（无 ORM 实体） | UsageService.java:246 insert into aap_usage_hourly 缺 created_by+updated_by（无 ORM 实体） | UsageService.java:287 insert into aap_usage_sync_cursor 缺 created_by+updated_by（无 ORM 实体）
+  + [FAIL] A2 手写 update / upsert 分支未刷新 updated_by 6 处：DetectionConfigService.java:207 update aap_detection_config 的 set 缺 updated_by（无 ORM 实体） | ReportTemplateService.java:173 update aap_report_template 的 set 缺 updated_by（无 ORM 实体） | NotificationService.java:131 update aap_notification 的 set 缺 updated_by（有 ORM 实体（手写路径绕过监听器）） | SyncAttemptRecorder.java:34 update aap_sync_task 的 set 缺 updated_by（无 ORM 实体） | UsageService.java:246 upsert aap_usage_hourly 的 do-update 分支缺 updated_by（已刷 updated_at 却不刷 updated_by） | UsageService.java:280 update aap_usage_sync_cursor 的 set 缺 updated_by（无 ORM 实体）
+  + [FAIL] A3 AuditListeners.Update 的 updated_by 赋值被 `actorId != null` 守卫：SYSTEM 触发的更新会**保留上一次操作者**（留痕误导，非 NULL）
+
+R64 有而 R65 缺（应为 0，除非确证解析器失效）0 条：
+
+断言 token 集合：R64=['A1', 'A10', 'A1b', 'A2', 'A2b', 'A2c', 'A3', 'A3a', 'A3b', 'A3c', 'A4', 'A4a', 'A4b', 'A4c', 'A5', 'A5b', 'A6', 'A6a', 'A7', 'A8', 'A9', 'ReviewService', 'SyncAdminService', 'common', 'models', 'requests']
+断言 token 集合：R65=['A1', 'A10', 'A1b', 'A2', 'A2b', 'A2c', 'A3', 'A3a', 'A3b', 'A3c', 'A4', 'A4a', 'A4b', 'A4c', 'A5', 'A5b', 'A6', 'A6a', 'A7', 'A8', 'A9', 'ReviewService', 'SyncAdminService', 'common', 'models', 'requests']
+token 新增 = []；token 消失 = []
