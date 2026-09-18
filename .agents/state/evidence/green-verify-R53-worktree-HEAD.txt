@@ -1,0 +1,18 @@
+== R53 提交态复跑（临时 worktree，detached HEAD；坑 27/28） ==
+命令：git worktree add --detach C:/Users/laitz/AppData/Local/Temp/aap-verify-r53-1789749634 HEAD  →  cd aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test
+HEAD = 3aea609 chore(evidence): R53 巡检轮取证（90/90 连续第 35 轮全绿；204 例两轮全绿且逐类一致 + 14 套只读审计零回归（FAIL 28/28 逐行一致）+ 13 个负向自测 rc=0 + 新增抽查「敏感字段（明文/密文/掩码）对外键集合一致性」（第二十七类可审计不变量，判别力自测 36/36，4 条真实契约/生成物侧发现）+ 台账回写）
+结论：204 例全绿（0 失败/0 错误/0 跳过，33 个测试类）；BUILD SUCCESS；[ERROR] 行数 = 0
+门禁自身：EndpointCoverageTest 1/1 通过（测试自身断言，非 grep 类名，坑 96）
+worktree 内 coverage-report.json（.agents\state\evidence\coverage-report.json）逐字段：
+  total = 90
+  implemented = 90
+  missing = 0
+  registered_routes = 96
+  not_registered = []
+  by_task 合计 = 90/90（族数 12）
+→ 提交本身自洽：不依赖他方 4 个未提交改动（worktree 只含 HEAD 内容）
+
+surefire 汇总行：
+  [INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+
+收尾：git worktree remove --force（git 自带，不触发 cron 危险命令拦截、不碰他人工作区）
