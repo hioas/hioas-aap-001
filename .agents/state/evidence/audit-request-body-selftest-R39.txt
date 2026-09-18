@@ -1,0 +1,29 @@
+== R39 新增审计 audit-request-body.py 的负向自测（2026-09-18T18:10） ==
+
+== audit-request-body.py 负向自测 ==
+  [PASS] case_empty_fixture：空夹具 rc=1 且 A0 正向对照转红  (rc=1；A0 FAIL=5)
+  [PASS] case_ok_fixture：完整夹具 rc=0 且 FAIL 0  (rc=0；FAIL=[])
+  [PASS] case_missing_schema_file：rc=1(期望 1) 命中「A1a」  (rc=1；FAIL=['A1a 每个 request_model 都有对应的请求模型 schema 文件', 'A3a 请求体组件 $ref 悬空引用 = 0', 'A4 md「请求」列字段都在请求模型 schema 的 properties 里', 'A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）', 'A6 客户端 data 键都在请求模型 schema 里'])
+  [PASS] case_orphan_schema：rc=1(期望 1) 命中「A1b」  (rc=1；FAIL=['A1b 孤儿请求模型 schema 文件 = 0（仓库里有、清单无端点引用）'])
+  [PASS] case_openapi_missing_body：rc=1(期望 1) 命中「A2a」  (rc=1；FAIL=['A2a 清单有请求体而 openapi 无 requestBody = 0'])
+  [PASS] case_openapi_extra_body：rc=1(期望 1) 命中「A2b」  (rc=1；FAIL=['A2b openapi 有 requestBody 而清单无请求体 = 0'])
+  [PASS] case_md_no_body_has_model：rc=1(期望 1) 命中「A2c」  (rc=1；FAIL=['A2c md 说「无请求体」而清单声明 request_model = 0'])
+  [PASS] case_md_body_no_model：rc=1(期望 1) 命中「A2d」  (rc=1；FAIL=['A1b 孤儿请求模型 schema 文件 = 0（仓库里有、清单无端点引用）', 'A2b openapi 有 requestBody 而清单无请求体 = 0', 'A2d md 写了请求体字段而清单无 request_model = 0', 'A4 md「请求」列字段都在请求模型 schema 的 properties 里'])
+  [PASS] case_dangling_ref：rc=1(期望 1) 命中「A3a」  (rc=1；FAIL=['A3a 请求体组件 $ref 悬空引用 = 0'])
+  [PASS] case_inline_prop_drift：rc=1(期望 1) 命中「A3b」  (rc=1；FAIL=['A3b 每个请求体组件解析到的属性集合 = 该端点的请求模型 schema'])
+  [PASS] case_md_field_missing：rc=1(期望 1) 命中「A4」  (rc=1；FAIL=['A4 md「请求」列字段都在请求模型 schema 的 properties 里', 'A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）', 'A6 客户端 data 键都在请求模型 schema 里'])
+  [PASS] case_dto_missing_field：rc=1(期望 1) 命中「A5」  (rc=1；FAIL=['A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）'])
+  [PASS] case_dto_extra_field：rc=1(期望 1) 命中「A5」  (rc=1；FAIL=['A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）'])
+  [PASS] case_client_key_out：rc=1(期望 1) 命中「A6」  (rc=1；FAIL=['A6 客户端 data 键都在请求模型 schema 里'])
+  [PASS] case_client_get_ignored：GET 的 data 不被当请求体（rc=0）  (rc=0；FAIL=[])
+  [PASS] case_md_style_guards：`q：` 行判「无请求体」而不是漂移  (SYN-05=frozenset())
+  [PASS] case_md_style_guards：花括号式取到 {gamma,delta}  (SYN-02=frozenset({'delta', 'gamma'}))
+  [PASS] case_md_style_guards：嵌套花括号只取最外层键（items）  (SYN-06=frozenset({'items'}))
+  [PASS] case_md_style_guards：引用式写法记「未能静态判定」而不是漂移  (undec=引用式写法（body：同 SYN-01 的可写子集）)
+  [PASS] case_md_style_guards：正向对照 —— 反引号式取到 {alpha,beta}  (SYN-01=frozenset({'beta', 'alpha'}))
+  [PASS] case_injection_teeth：注入锚点真的改到了源码（坑 66）  (锚点命中=True)
+  [PASS] case_injection_teeth：注入后 A5 明细变化且点名注入字段（判别力实测）  (基线 A5=1 条；注入后 A5=1 条；点名=True)
+  [PASS] case_injection_teeth：注入不新增/不减少断言类型（判据不越界）  (基线 3 类 / 注入后 3 类；差=[])
+  [PASS] case_zero_write：真实仓库跑一遍只读（4 个关键文件 md5 全等）  (rc=1（真实仓库 rc=1 是预期的：存在待拍板漂移）)
+
+== 自测结果：PASS 24 / FAIL 0 ==

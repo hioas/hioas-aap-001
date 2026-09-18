@@ -1,0 +1,176 @@
+== R39 既有只读审计复跑（2026-09-18T18:08） ==
+--- 生成器 --check（含孤儿扫描；只读） ---
+gen_rc=0
+check ok: 84/84 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）
+ok: models=55 requests=24 paths=78 operations=90 files=82
+--- audit-endpoint-tests rc=0 ---
+--- audit-contract-keys rc=0 ---
+== B. OpenAPI 分页端点必须被 PageMeta 包装：23/23 PASS ==
+== C. page.schema.json 必须 required/properties 含 items：3/3 PASS ==
+== D. 运行时 PageResult 分量名：1/1 PASS ==
+== E. 客户端列表响应接口必须声明 items：3/3 PASS ==
+== F. 冻结清单 §0 分页字段名约定：1/1 PASS ==
+合计 88 条断言：PASS 88，FAIL 0
+--- audit-auth-contract rc=1 ---
+[PASS] A6 清单 `authenticated` 的端点实现里不带角色限制（= 任意已认证）：越权收窄 {}；清单共 4 条 ['AUTH-05', 'AUTH-06', 'NTF-01', 'NTF-02']
+[PASS] A7 md 的 `免` 行集合 = 清单 anon 集合：不一致 {}
+[FAIL] A8 md「角色」列 = 清单角色集合（仅逐条列角色的 7 列表头行）：不一致 32 条
+[PASS] A9 md 表头定位无异常
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+断言 17 条：PASS 16，FAIL 1
+--- audit-routes rc=0 ---
+[PASS] A3 清单每条端点都在实现里有同方法同路径的路由：未定位 0 条
+[PASS] A4 客户端每个调用点都在冻结清单内且方法一致：越界调用 0 个
+[PASS] A5 路径变量名序列逐端点一致（清单 / md / openapi）：不一致 0 条
+[PASS] A6 md 表头/行定位无异常
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+断言 13 条：PASS 13，FAIL 0
+--- audit-error-codes rc=1 ---
+[PASS] A6 openapi 每 operation 4XX 码集合 = 清单：不一致 0 条
+[PASS] A7 md 表头定位无异常
+[PASS] A8 md 行 ID 集合 = 清单 ID 集合：差集=[]
+[FAIL] A9 md 每行错误码列 = 清单：不一致 10 条
+[PASS] Z1 五处源文件指纹未变（脚本零写副作用）：被改写=[]
+断言 16 条：PASS 14，FAIL 2
+--- audit-query-params rc=1 ---
+[PASS] A2 openapi 每 operation 的 query 参数 = endpoints.json：不一致 0 条
+[PASS] A3a 清单每条端点都在实现里定位到同方法同路径的控制器方法：未定位 0 条
+[FAIL] A3b 实现 @RequestParam 集合 = 清单 query_params：不一致 5 条
+[PASS] A4 客户端 GET 查询参数都在清单内：越界 0 处
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+断言 14 条：PASS 12，FAIL 2
+--- audit-time-format rc=0 ---
+[PASS] A4a 正向对照：解析到客户端时间字段 — 13 个
+[PASS] A4b 客户端时间字段类型为 string（不得 number） — 异常 0 处
+[PASS] A5a 正向对照：解析到 schema 时间字段 — 87 个（date-time 或 *_at）
+[PASS] A5b schema 时间字段类型含 string（不得 number/integer） — 异常 0 处
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用） — 被改写=0 个：[]
+断言 15 条：PASS 15，FAIL 0
+--- audit-secret-leak rc=0 ---
+[PASS] 未跟踪文件（13 个）：Tier A 命中 0
+[PASS] .gitignore 含 `.env`
+[PASS] .gitignore 含 `.env.*`
+[PASS] .gitignore 含 `target/`
+[PASS] .gitignore 含 `node_modules/`
+[PASS] 被跟踪的 .env 类文件只有 .env.example：['aap-server/.env.example']
+--- check-openapi-parses rc=0 ---
+OK: docs\backend\openapi.yaml 可解析；paths=78 operations=90
+--- audit-enum-sets rc=1 ---
+== A8 实现显式取值集合必须落在契约取值域内（未声明项做 ER 双向取证） ==
+[FAIL] A8 实现声明的取值域均在契约中声明 | 未声明 2: ReviewService.java:57=['CLAIMED', 'PENDING']; SyncAdminService.java:73=['FAILED', 'MANUAL']
+== A9 ResultCode ↔ md §4 错误码表（同一码集两处声明） ==
+[PASS] A9 openapi ResultCode 集合 == md §4 码表集合
+== 汇总 ==
+断言 FAIL 15 条；INFO 2 条
+--- audit-response-shape rc=1 ---
+[PASS] A6a md 说「列表」而 openapi 非分页 ≤ 5（超出先怀疑散文解析，坑 65）：1 条
+[PASS] A6b D 解析到「列表」形状的端点 > 0（散文解析器的正向对照，坑 46）：列表=26 单对象=60
+[PASS] A7 每个漂移端点都有第三方证伪（schema required 或 md 散文列未声明分页字段）：无法证伪 0 条
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+== 断言：PASS 19 / FAIL 2 ==
+结论：存在响应形状（分页包装）契约漂移 —— openapi 与实现/清单至少一侧不一致，两套门禁都看不见（契约测试只读 JSON Schema；覆盖门禁只比方法+路径）。
+--- audit-id-types rc=1 ---
+[PASS] A5b 例外必须在 S 与 I 两侧都真实出现（不是凭空写的白名单）：缺 0 处：{}
+[PASS] A5c 每个例外都有实现注释依据（双向取证，坑 51；搜全部实现源码而非仅 Views）：无依据 0 条：{}（搜了 169 个 .java）
+[FAIL] A6 同名 ID 字段在所有模型里对外类型一致：不一致 1 个字段名：{'channel_id': ['integer', 'string']}
+[PASS] A7 ER 文档标注 channel_id 的 new-api 语义（支撑「非雪花」判定）：channel_id`(new-api)
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+== 断言：PASS 15 / FAIL 1 ==
+--- audit-request-body (R39 新增) rc=1 ---
+[PASS] A4 md「请求」列字段都在请求模型 schema 的 properties 里：缺 0 条：{}
+[PASS] A5b 正向对照：真的完成了 D↔I 逐端点比对的端点 > 0：完成比对 18 个端点
+[FAIL] A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）：不一致 9 条：{'ADM-CFG07': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-CFG09': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-U02': "usage-refresh schema-not-in-dto=['batch_id'] dto-not-in-schema=[]", 'CRED-02': "credential-create schema-not-in-dto=['is_primary'] dto-not-in-schema=[]", 'CRED-04': "credential-create schema-not-in-dto=['is_primary'] dto-not-in-schema=[]", 'PROV-02': "provider-profile-update schema-not-in-dto=[] dto-not-in-schema=['manual_override', 'override_reason']", 'PROV-04': "qualification-create schema-not-in-dto=['company_name', 'contact_name', 'contact_phone', 'remark', 'uscc'] dto-not-in-schema=[]", 'QT-08': "quote-item-save schema-not-in-dto=['tier_rule', 'time_rule'] dto-not-in-schema=['price_tier_rule', 'price_time_rule']"}
+[PASS] A6 客户端 data 键都在请求模型 schema 里：越界 0 条：{}（匹配到端点 1 个）
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+== 断言：PASS 15 / FAIL 3 ==
+
+== 负向自测复跑（判别力对照） ==
+--- selftest gen-backend-models rc=0 ---
+  [PASS] 漂移后 --check → rc=1  (rc=1)
+  [PASS] stderr 点名漂移文件  (生成物与生成器不一致: docs/backend/json-schema/models/audit-log.schema.json)
+  [PASS] 产物缺失后 --check → rc=1  (rc=1)
+  [PASS] stderr 点名缺失产物  (生成物与生成器不一致: docs/backend/json-schema/models/report-template.schema.json)
+  [PASS] 出现孤儿产物后 --check → rc=1  (rc=1)
+  [PASS] 生成模式 → rc=0  (rc=0)
+--- selftest audit-endpoint-tests rc=0 ---
+== none 明细（只有路由注册，未找到真实 HTTP 用例）==
+== prefix 明细（弱证据：仅静态前缀命中）==
+== 测试源里未出现端点 ID 的端点（可追溯性缺口，不影响「有用例」判定）==
+== ID 引用与真实 HTTP 调用点**不同文件**的端点（弱可追溯）==
+  [PASS] 路径不存在 → none 且 rc=1  (none=1 rc=1)
+--- selftest audit-contract-keys rc=0 ---
+[PASS] C1 反向 page schema 只写 list → C 三分支（required/properties/旧键名）全 FAIL
+[PASS] D1 反向 PageResult 首分量 list → D 分支 FAIL
+[PASS] E1 反向 客户端接口只声明 records → E 分支 FAIL
+[PASS] F1 反向 清单 §0 未写 data:{items: → F 分支 FAIL
+[PASS] G1 夹具目录缺文件 → 报 FAIL 且不崩溃（rc=1，有 rows）
+合计 11 条断言：PASS 11，FAIL 0
+--- selftest audit-auth-contract rc=0 ---
+[PASS] case_auth_only_restricted：rc=1(期望 1) 命中「A6 清单 `authenticated` 的端点实现里不带角色限制」=是
+[PASS] case_openapi_anon_mismatch：rc=1(期望 1) 命中「A2 openapi `security: []` 集合 = 清单 anon 集合」=是
+[PASS] case_md_anon_mismatch：rc=1(期望 1) 命中「A7 md 的 `免` 行集合 = 清单 anon 集合」=是
+[PASS] case_md_role_mismatch：rc=1(期望 1) 命中「A8 md「角色」列 = 清单角色集合」=是
+[PASS] case_route_unlocated：rc=1(期望 1) 命中「A1 清单每条端点都能在实现里定位到路由」=是
+[PASS] case_missing_source：rc=1(期望 1) 命中「源文件缺失」=是
+--- selftest audit-routes rc=0 ---
+[PASS] case_md_same_as_above_no_prev：rc=1(期望 1) 命中「A6 md 表头/行定位无异常」=是
+[PASS] case_openapi_path_drift：rc=1(期望 1) 命中「A2 openapi 每 operation 的「方法+路径」= endpoints.json：不一致 1 条」=是
+[PASS] case_openapi_method_drift：rc=1(期望 1) 命中「A2 openapi 每 operation 的「方法+路径」= endpoints.json：不一致 1 条」=是
+[PASS] case_impl_missing_route：rc=1(期望 1) 命中「A3 清单每条端点都在实现里有同方法同路径的路由：未定位 1 条」=是
+[PASS] case_pathvar_name_drift：rc=1(期望 1) 命中「A5 路径变量名序列逐端点一致（清单 / md / openapi）：不一致 1 条」=是
+[PASS] case_missing_source：rc=1(期望 1) 命中「源文件/目录缺失」=是
+--- selftest audit-error-codes rc=0 ---
+[PASS] case_md_escaped_pipe：rc=0(期望 0) 命中「A0c D 行数 = total：parsed=2」=是
+[PASS] case_md_range_ok：rc=0(期望 0) 命中「A9 md 每行错误码列 = 清单」=是
+[PASS] case_md_range_no_overflow：rc=1(期望 1) 命中「A9 md 每行错误码列 = 清单」=是
+[PASS] case_openapi_decoy_enum：rc=0(期望 0) 命中「A2 O.ResultCode 与 J 一致」=是
+[PASS] case_openapi_missing_enum：rc=1(期望 1) 命中「A0f O ResultCode enum 非空」=是
+[PASS] case_missing_source：rc=1(期望 1) 命中「源文件缺失」=是
+--- selftest audit-query-params rc=0 ---
+[PASS] case_client_non_get_ignored：rc=0(期望 0) 命中「A4 客户端 GET 查询参数都在清单内：越界 0 处」=是
+[PASS] case_client_var_data：rc=0(期望 0) 命中「A4 客户端 GET 查询参数都在清单内：越界 0 处」=是
+[PASS] case_missing_source：rc=1(期望 1) 命中「源文件/目录缺失」=是
+[PASS] teeth_mutation_applied：未命中锚点：A=[] B=[]（非空即为空转，skill 坑 41）
+[PASS] teeth_body_brace_guard：rc=1(期望 1) 命中「A0f I 解析无异常」=是
+[PASS] teeth_object_keys_guard：rc=1(期望 1) 命中「A4 客户端 GET 查询参数都在清单内：越界 1 处」=是
+--- selftest audit-time-format rc=0 ---
+[PASS] C8 A4b 客户端时间字段声明为 number —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+[PASS] C8 A4b 客户端时间字段声明为 number —— 恰好命中预期断言且 rc=1 — rc=1；FAIL 断言=['A4b 客户端时间字段类型为 string（不得 number）']（预期 ['A4b']）
+[PASS] C9 A5b schema 时间字段类型写成 number —— 注入锚点全部命中（坑 66：注入必须真的改到源码） — 未命中锚点 []
+[PASS] C9 A5b schema 时间字段类型写成 number —— 恰好命中预期断言且 rc=1 — rc=1；FAIL 断言=['A5b schema 时间字段类型含 string（不得 number/integer）']（预期 ['A5b']）
+[PASS] C10 空夹具：8 条正向对照/唯一性断言必须变红（解析器失效不得判 PASS） — rc=1；FAIL 断言=['A0a 正向对照：解析到出口定义（解析器真的工作了）', 'A0b 所有 DateTimeFormatter 格式串只有 1 种', "A0c 格式串 = 秒精度 UTC（yyyy-MM-dd'T'HH:mm:ss'Z'）", 'A0d 所有辅助方法体归一化后只有 1 种', 'A1a 正向对照：解析到被出口包裹的时间取值点', 'A3a 正向对照：解析到响应 DTO 时间字段', 'A4a 正向对照：解析到客户端时间字段', 'A5a 正向对照：解析到 schema 时间字段']（预期 ['A0a', 'A0b', 'A0c', 'A0d', 'A1a', 'A3a', 'A4a', 'A5a']）
+[PASS] C11 --root 指向仓库外时审计能正常输出（文件路径展示为相对路径，不抛 ValueError） — 含夹具绝对路径的非表头行 []
+--- selftest audit-enum-sets rc=0 ---
+[PASS] a9_mismatch → A9 FAIL 且给出双向差集
+[PASS] mutate empty 真的改到
+[PASS] empty → A0.1 FAIL 且 rc=1（空夹具不得全绿）
+[PASS] 真实仓库：解析到 16 个族 / 34 个 schema enum / 21 个 openapi enum | rc=1
+[PASS] 真实仓库：A6/A9 一致（其余 FAIL 为已裁决漂移项）
+== 自测汇总：29/29 PASS ==
+--- selftest audit-response-shape rc=0 ---
+[PASS] 注入#1（分页判据加一个不存在的分量）→ ok 夹具必须转红且恰好命中 A2：rc=1
+[PASS] 注入#2 真的改到了源码（锚点命中）
+[PASS] 注入#2（md 散文解析失效）→ ok 夹具转红（A6b 正向对照兜底）：rc=1
+[PASS] 注入#3 真的改到了源码（锚点命中）
+[PASS] 注入#3（组件表解析失效）→ 空转假绿必须被 A0d 兜住：rc=1
+[PASS] 真实仓库跑一遍：只读（4 个关键文件 md5 全等）：rc=1（真实仓库本轮 rc=1 是预期的：存在待拍板漂移）
+--- selftest audit-id-types rc=0 ---
+  [PASS] case_er_missing：rc=1(期望 1) 命中「A7」=是；FAIL 列表=['A7 ER 文档标注 channel_id 的 new-api 语义（支撑「非雪花」判定）']
+== C. 注入缺陷判别力（坑 57 / 66：注入必须真的改到源码） ==
+  [PASS] inj#1 真实仓库副本注入 biz_id=integer → FAIL 集合恰好新增 A1（不越界到 A3/A4） — 锚点命中=True rc=1 基线 FAIL=['A6 同名 ID 字段在所有模型里对外类型一致'] 注入后=['A1 非 string 的 ID 字段都在例外白名单内', 'A6 同名 ID 字段在所有模型里对外类型一致'] 新增=['A1 非 string 的 ID 字段都在例外白名单内']
+== D. 零写副作用守卫 ==
+  [PASS] D1 真实仓库跑一遍：只读（3 个关键文件 md5 全等） — rc=1（真实仓库 rc=1 是预期的：存在 A6 待拍板漂移）
+== 自测结果：PASS 16 / FAIL 0 ==
+--- selftest audit-request-body (R39 新增) rc=0 ---
+  [PASS] case_dto_missing_field：rc=1(期望 1) 命中「A5」  (rc=1；FAIL=['A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）'])
+  [PASS] case_dto_extra_field：rc=1(期望 1) 命中「A5」  (rc=1；FAIL=['A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）'])
+  [PASS] case_client_key_out：rc=1(期望 1) 命中「A6」  (rc=1；FAIL=['A6 客户端 data 键都在请求模型 schema 里'])
+  [PASS] case_client_get_ignored：GET 的 data 不被当请求体（rc=0）  (rc=0；FAIL=[])
+  [PASS] case_zero_write：真实仓库跑一遍只读（4 个关键文件 md5 全等）  (rc=1（真实仓库 rc=1 是预期的：存在待拍板漂移）)
+== 自测结果：PASS 24 / FAIL 0 ==
+--- selftest audit-secret-leak rc=0 ---
+[PASS] 正向对照：扫描器能在文本里找到模式值
+[PASS] 负向对照：无该值的文本判 0 命中
+[PASS] 边界：空文本判 0 命中
+
+零写副作用守卫：运行前后 84 个产物文件 md5 **全等**（PASS）

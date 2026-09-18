@@ -1,0 +1,40 @@
+== R39 请求体字段名/有无请求体 契约审计（第十四类不变量；只读） ==
+运行时间：2026-09-18T18:07
+
+== 请求体字段名集合 / 有无请求体 契约审计（第十四类不变量；只读） ==
+仓库根：E:\workspaces\hioas\hioas-aap-001
+--- A0 正向对照：每个源都真的解析到了条目 ---
+[PASS] A0a M 解析到 md「请求」列的请求体字段 > 0：有请求体的端点 21 个 / 解析到端点 87 个
+[PASS] A0b D 解析到 endpoints.json 的 request_model > 0：带 request_model 的端点 27 个 / 请求模型文件 24 个
+[PASS] A0c O 解析到 openapi 的 requestBody > 0：带 requestBody 的 operation 27 个 / 解析到 x-aap-id 90 个
+[PASS] A0d I 解析到控制器 @RequestBody > 0：带 @RequestBody 的控制器方法 26 个 / 解析到方法 91 个 / record 定义 134 个（同名歧义 14 个）
+[PASS] A0e C 解析到客户端 data 对象字面量 > 0：data 字面量 1 处
+--- A1 D：request_model ↔ 请求模型 schema 文件 ---
+[PASS] A1a 每个 request_model 都有对应的请求模型 schema 文件：缺 0 个：[]
+[FAIL] A1b 孤儿请求模型 schema 文件 = 0（仓库里有、清单无端点引用）：孤儿 1 个：['payment-record']
+--- A2 O：openapi requestBody 存在性 ⇔ endpoints.json request_model ---
+[PASS] A2a 清单有请求体而 openapi 无 requestBody = 0：缺 0 条：[]
+[PASS] A2b openapi 有 requestBody 而清单无请求体 = 0：多 0 条：[]
+[FAIL] A2c md 说「无请求体」而清单声明 request_model = 0：不一致 3 条：['ADM-CFG04', 'ADM-CFG09', 'QT-09']
+[PASS] A2d md 写了请求体字段而清单无 request_model = 0：不一致 0 条：[]
+--- A3 O：请求体组件 $ref 可解析、属性集合 = 请求模型 schema ---
+[PASS] A3a 请求体组件 $ref 悬空引用 = 0：悬空 0 条：[]
+[PASS] A3b 每个请求体组件解析到的属性集合 = 该端点的请求模型 schema：不一致 0 条：{}
+--- A4 M⊆D：md 声明的请求字段必须都在请求模型 schema 里（文档字段必须可校验） ---
+[PASS] A4 md「请求」列字段都在请求模型 schema 的 properties 里：缺 0 条：{}
+--- A5 D↔I：请求模型 schema 属性 ↔ 控制器 @RequestBody DTO 分量（双向） ---
+[PASS] A5b 正向对照：真的完成了 D↔I 逐端点比对的端点 > 0：完成比对 18 个端点
+[FAIL] A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）：不一致 9 条：{'ADM-CFG07': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-CFG09': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-U02': "usage-refresh schema-not-in-dto=['batch_id'] dto-not-in-schema=[]", 'CRED-02': "credential-create schema-not-in-dto=['is_primary'] dto-not-in-schema=[]", 'CRED-04': "credential-create schema-not-in-dto=['is_primary'] dto-not-in-schema=[]", 'PROV-02': "provider-profile-update schema-not-in-dto=[] dto-not-in-schema=['manual_override', 'override_reason']", 'PROV-04': "qualification-create schema-not-in-dto=['company_name', 'contact_name', 'contact_phone', 'remark', 'uscc'] dto-not-in-schema=[]", 'QT-08': "quote-item-save schema-not-in-dto=['tier_rule', 'time_rule'] dto-not-in-schema=['price_tier_rule', 'price_time_rule']"}
+--- A6 C⊆D：客户端发送的请求体键必须都在 schema 里（客户端为准，坑 1） ---
+[PASS] A6 客户端 data 键都在请求模型 schema 里：越界 0 条：{}（匹配到端点 1 个）
+--- A7 信息项（不判 FAIL；未能静态判定的写法一律不当漂移，坑 65） ---
+      · M 未能静态判定 3 条：{'ADM-CT02': '花括号式含不可静态判定项（{file_id,valid_from,valid_to,platform_fee}）', 'CRED-04': '引用式写法（body：同 CRED-02 的可写子集（`api_key?` 轮换））', 'QT-08': "描述式残留 '八大单价'"}
+      · D↔I 未完成比对 9 条（原因见 A5 明细）
+      · C 未能静态判定 0 条（data 为变量或含展开键）：{}
+      · M ADM-CT02: 花括号式含不可静态判定项（{file_id,valid_from,valid_to,platform_fee}）
+      · M CRED-04: 引用式写法（body：同 CRED-02 的可写子集（`api_key?` 轮换））
+      · M QT-08: 描述式残留 '八大单价'
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+
+== 断言：PASS 15 / FAIL 3 ==
+结论：存在请求体字段名/有无请求体 契约漂移（两套门禁都看不见：契约测试只读响应 JSON Schema，覆盖门禁只比方法+路径；openapi 与客户端 TS 不被任何测试读取/执行）。

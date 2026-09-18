@@ -1,0 +1,110 @@
+== R39 请求体字段名/有无请求体 漂移仲裁（双向取证，skill 坑 51 / 53；只读） ==
+裁判优先级：md 冻结清单「请求」列 + 实现绑定/消费点 + 客户端发送键 + 用例断言；被告：生成器 tools/gen-backend-models.py（产物 openapi.yaml / requests/*.schema.json）。
+
+### D-REQ-01 CRED-02 / CRED-04（credential-create，schema 多字段）
+  · md 冻结清单 CRED-02「请求」列**原文** = body：`alias` `base_url` `api_key` `primary_flag` `declared_vendor` `declared_rpm` `declared_tpm` `declared_context_window` `model_list[]`
+  · md 冻结清单 CRED-04「请求」列**原文** = body：同 CRED-02 的可写子集（`api_key?` 轮换）
+  · md 解析出的请求字段（可静态判定部分）= ['alias', 'api_key', 'base_url', 'declared_context_window', 'declared_rpm', 'declared_tpm', 'declared_vendor', 'model_list', 'primary_flag']
+  · endpoints.json request_model = credential-create
+  · schema（生成物）properties = ['alias', 'api_key', 'base_url', 'declared_context_window', 'declared_rpm', 'declared_tpm', 'declared_vendor', 'env_tag', 'is_primary', 'model_list', 'primary_flag']
+  · 生成器 REQUEST_MODELS['credential-create'] 源码里出现的属性名（含嵌套 JSON-Schema 关键字，仅示被告侧源码形状）= ['alias', 'api_key', 'base_url', 'declared_context_window', 'declared_rpm', 'declared_tpm', 'declared_vendor', 'env_tag', 'format', 'is_primary', 'items', 'model_list', 'primary_flag', 'type']
+  · 实现 CRED-02 @RequestBody CredentialRequest（CredentialController.java）分量 = ['alias', 'base_url', 'api_key', 'primary_flag', 'declared_vendor', 'declared_rpm', 'declared_tpm', 'declared_context_window', 'model_list', 'env_tag']
+  · 实现 CRED-04 @RequestBody CredentialRequest（CredentialController.java）分量 = ['alias', 'base_url', 'api_key', 'primary_flag', 'declared_vendor', 'declared_rpm', 'declared_tpm', 'declared_context_window', 'model_list', 'env_tag']
+  · 客户端键位置出现 `is_primary`：1 处，样本 ['quote-form-model.ts:297 is_primary?: boolean']
+  · 客户端键位置出现 `primary_flag`：2 处，样本 ['credential-form-model.ts:48 primary_flag?: boolean', 'quote-form-model.ts:299 primary_flag?: boolean']
+
+### D-REQ-02 ADM-CFG07 / ADM-CFG09（report-template-save，schema 多字段）
+  · md 冻结清单 ADM-CFG07「请求」列**原文** = body：`title` `logo_file_id` `section_order` `disclaimer` → `ReportTemplate`
+  · md 冻结清单 ADM-CFG09「请求」列**原文** = → `ReportTemplate`
+  · md 解析出的请求字段（可静态判定部分）= ['disclaimer', 'logo_file_id', 'section_order', 'title']
+  · endpoints.json request_model = report-template-save
+  · schema（生成物）properties = ['disclaimer', 'logo_file_id', 'section_order', 'status', 'title']
+  · 生成器 REQUEST_MODELS['report-template-save'] 源码里出现的属性名（含嵌套 JSON-Schema 关键字，仅示被告侧源码形状）= ['disclaimer', 'items', 'logo_file_id', 'section_order', 'status', 'title', 'type']
+  · 实现 ADM-CFG07 @RequestBody SaveRequest（AdminReportTemplateController.java）分量 = ['title', 'logo_file_id', 'section_order', 'disclaimer']
+  · 实现 ADM-CFG09 @RequestBody SaveRequest（AdminReportTemplateController.java）分量 = ['title', 'logo_file_id', 'section_order', 'disclaimer']
+  · 客户端键位置出现 `status`：28 处，样本 ['auth.ts:29 status?: string', 'auth.ts:36 status?: string', 'contract.ts:21 status?: string']
+
+### D-REQ-03 ADM-U02（usage-refresh，schema 多字段）
+  · md 冻结清单 ADM-U02「请求」列**原文** = body `{from?,to?}` → `{batch_id,inserted,updated,cache_parse_status}`（UPSERT 幂等）
+  · md 解析出的请求字段（可静态判定部分）= ['from', 'to']
+  · endpoints.json request_model = usage-refresh
+  · schema（生成物）properties = ['batch_id', 'from', 'to']
+  · 生成器 REQUEST_MODELS['usage-refresh'] 源码里出现的属性名（含嵌套 JSON-Schema 关键字，仅示被告侧源码形状）= ['batch_id', 'from', 'to']
+  · 实现 ADM-U02 @RequestBody RefreshRequest（AdminUsageController.java）分量 = ['from', 'to']
+  · 客户端键位置出现 `batch_id`：0 处（客户端不发送该字段）
+  · 客户端键位置出现 `from`：2 处，样本 ['contract-model.ts:147 export function validRangeText(from: unknown, to: unknown): string {', "contract-model.ts:148 const a = String(from ?? '').trim()"]
+  · 客户端键位置出现 `to`：2 处，样本 ['contract-model.ts:147 export function validRangeText(from: unknown, to: unknown): string {', "contract-model.ts:149 const b = String(to ?? '').trim()"]
+
+### D-REQ-04 PROV-04（qualification-create，schema 多字段）
+  · md 冻结清单 PROV-04「请求」列**原文** = body：`category` `file_name` `file_size` `content_type` `file_id?`
+  · md 解析出的请求字段（可静态判定部分）= ['category', 'content_type', 'file_id', 'file_name', 'file_size']
+  · endpoints.json request_model = qualification-create
+  · schema（生成物）properties = ['category', 'company_name', 'contact_name', 'contact_phone', 'content_type', 'file_id', 'file_name', 'file_size', 'remark', 'uscc']
+  · 生成器 REQUEST_MODELS['qualification-create'] 源码里出现的属性名（含嵌套 JSON-Schema 关键字，仅示被告侧源码形状）= ['category', 'company_name', 'contact_name', 'contact_phone', 'content_type', 'enum', 'file_id', 'file_name', 'file_size', 'maximum', 'remark', 'type', 'uscc']
+  · 实现 PROV-04 @RequestBody QualificationRequest（ProviderController.java）分量 = ['category', 'file_name', 'file_size', 'content_type', 'file_id']
+  · 客户端键位置出现 `company_name`：8 处，样本 ['provider.ts:22 company_name?: string', 'access-application-model.ts:185 company_name: string', 'access-application-model.ts:195 company_name: normalize(form.companyName),']
+  · 客户端键位置出现 `uscc`：7 处，样本 ['access-application-model.ts:148 uscc: string', "access-application-model.ts:160 uscc: '',", 'profile-edit-model.ts:130 uscc: string']
+  · 客户端键位置出现 `contact_name`：5 处，样本 ['provider.ts:31 contact_name?: string', 'access-application-model.ts:187 contact_name?: string', 'profile-edit-model.ts:171 contact_name?: string']
+  · 客户端键位置出现 `contact_phone`：5 处，样本 ['provider.ts:33 contact_phone?: string', 'access-application-model.ts:188 contact_phone?: string', 'profile-edit-model.ts:173 contact_phone?: string']
+  · 客户端键位置出现 `remark`：2 处，样本 ['access-application-model.ts:151 remark: string', "access-application-model.ts:163 remark: '',"]
+
+### D-REQ-05 QT-08（quote-item-save，字段名不一致）
+  · md 冻结清单 QT-08「请求」列**原文** = body：八大单价 + `price_time_rule?` + `price_tier_rule?` + `request_rules?` + `note`
+  · md 解析出的请求字段（可静态判定部分）= （该列是描述式/引用式，见上原文）
+  · endpoints.json request_model = quote-item-save
+  · schema（生成物）properties = ['audio_input_price', 'audio_output_price', 'billing_mode', 'cache_read_price', 'cache_write_1h_price', 'cache_write_price', 'image_input_price', 'image_output_price', 'input_price', 'model_alias', 'note', 'output_price', 'request_rules', 'tier', 'tier_rule', 'time_rule']
+  · 生成器 REQUEST_MODELS['quote-item-save'] 源码里出现的属性名（含嵌套 JSON-Schema 关键字，仅示被告侧源码形状）= ['audio_input_price', 'audio_output_price', 'billing_mode', 'cache_read_price', 'cache_write_1h_price', 'cache_write_price', 'image_input_price', 'image_output_price', 'input_price', 'items', 'minimum', 'model_alias', 'note', 'output_price', 'request_rules', 'tier', 'tier_rule', 'time_rule', 'type']
+  · 实现 QT-08 @RequestBody SaveItemRequest（QuoteController.java）分量 = ['input_price', 'output_price', 'cache_read_price', 'cache_write_price', 'cache_write_1h_price', 'image_input_price', 'image_output_price', 'audio_input_price', 'audio_output_price', 'model_alias', 'tier', 'billing_mode', 'note', 'price_time_rule', 'price_tier_rule', 'request_rules']
+  · 客户端键位置出现 `time_rule`：0 处（客户端不发送该字段）
+  · 客户端键位置出现 `tier_rule`：0 处（客户端不发送该字段）
+  · 客户端键位置出现 `price_time_rule`：0 处
+  · 客户端键位置出现 `price_tier_rule`：0 处
+
+### D-REQ-06 PROV-02（provider-profile-update，实现 DTO 多字段）
+  · md 冻结清单 PROV-02「请求」列**原文** = body：`company_name` `uscc` `contact_name` `contact_phone` `contact_email` `contact_title` `province` `city` `address` `website` `company_intro` `recheck_interval_days` `short_name` `industry_category`
+  · md 解析出的请求字段（可静态判定部分）= ['address', 'city', 'company_intro', 'company_name', 'contact_email', 'contact_name', 'contact_phone', 'contact_title', 'industry_category', 'province', 'recheck_interval_days', 'short_name', 'uscc', 'website']
+  · endpoints.json request_model = provider-profile-update
+  · schema（生成物）properties = ['address', 'city', 'company_intro', 'company_name', 'contact_email', 'contact_name', 'contact_phone', 'contact_title', 'industry_category', 'province', 'recheck_interval_days', 'short_name', 'uscc', 'website']
+  · 生成器 REQUEST_MODELS['provider-profile-update'] 源码里出现的属性名（含嵌套 JSON-Schema 关键字，仅示被告侧源码形状）= ['address', 'city', 'company_intro', 'company_name', 'contact_email', 'contact_name', 'contact_phone', 'contact_title', 'enum', 'industry_category', 'maximum', 'minimum', 'pattern', 'province', 'recheck_interval_days', 'short_name', 'type', 'uscc', 'website']
+  · 实现 PROV-02 @RequestBody UpdateProfileRequest（ProviderController.java）分量 = ['short_name', 'company_name', 'uscc', 'industry_category', 'province', 'city', 'address', 'website', 'contact_name', 'contact_title', 'contact_phone', 'contact_email', 'company_intro', 'recheck_interval_days', 'manual_override', 'override_reason']
+  · 客户端键位置出现 `manual_override`：0 处
+  · 客户端键位置出现 `override_reason`：0 处
+
+### D-REQ-07 孤儿请求模型 payment-record（生成物里有、契约全无）
+  · requests/payment-record.schema.json 存在 = True
+  · openapi 组件 RequestPaymentRecord 定义 = 有；被 operation 引用处数 = 0
+  · endpoints.json 里 request_model=payment-record 的端点数 = 0
+  · md 清单提及 payment-record 处数 = 0
+  · 生成器 REQUEST_MODELS['payment-record'] 源码属性 = ['amount', 'contract_id', 'currency', 'enum', 'minimum', 'provider_id', 'remark', 'type', 'voucher_file_id']
+  · 判定：生成物侧的**死码**（schema 文件 + openapi 组件，零消费者）——实现/客户端/清单三处都没有它；修法二选一（补清单+实现接线，或从生成器删除）需人拍板。
+
+### D-REQ-08 QT-09 —— 清单/openapi 声明请求体，而 md 与实现都说「没有请求体」（A2c）
+  · md 冻结清单 QT-09「请求」列**原文** = —（无请求体）
+  · 实现 QuoteController.submit（QT-09）：**没有** @RequestBody（只有 @PathVariable quoteId）
+  · endpoints.json：request_model = quote-submit；openapi：有 requestBody（组件 RequestQuoteSubmit）
+  · 生成物 quote-submit.schema.json 的 properties = {}（**空请求体模型**）
+  · 判定：**清单/openapi 侧错**（md 与实现一致）→ 应去掉该端点的 request_model，否则客户端 codegen 会生成一个并不存在的请求类型（待拍板）
+
+### D-REQ-09 ADM-CFG04 / ADM-CFG09 —— md 未写请求体，而清单/openapi/实现都有（A2c）
+  · md 冻结清单 ADM-CFG04「请求」列**原文** = → `DetectionConfig`（DRAFT 可改）
+  · md 冻结清单 ADM-CFG09「请求」列**原文** = → `ReportTemplate`
+  · 实现 AdminDetectionConfigController / AdminReportTemplateController 的 PUT 方法均绑定 `@RequestBody(required = false) SaveRequest`（= 确有请求体）
+  · 判定：**md 侧漏写**（7 列表头的管理端表格把「请求/响应」合成一列，更新行只写了响应）；实现+清单+openapi 三处一致 → 文档补齐请求体说明即可（待拍板，风险低）
+
+### 裁判汇总（每条漂移的错侧判定）
+  · D-REQ-01/02/03/04：schema(openapi) 侧多出**响应字段/他端点字段**（md 与实现 DTO 一致）→ 生成器错侧
+  · D-REQ-05：schema 侧字段名与 md **和** 实现都不符（2 源 vs 1 源）→ 生成器错侧，**最严重**（客户端按文档发字段会被静默忽略）
+  · D-REQ-06：实现 DTO 多两个字段且**被服务层消费**（ProviderService:99-126）→ 实现超出冻结契约（待拍板：补契约 or 删实现）
+  · D-REQ-07：生成物孤儿（payment-record）→ 待拍板（删 or 接线）
+  · D-REQ-08：清单/openapi 声明了不存在的请求体（QT-09 空模型）→ 生成器/清单错侧
+  · D-REQ-09：md 漏写请求体（ADM-CFG04/09）→ 文档侧待补
+
+### 漂移规模（供排优先级）
+  · 字段名/字段集合类：7 个端点（CRED-02/04、ADM-CFG07/09、ADM-U02、PROV-02、PROV-04、QT-08）
+  · 有无请求体类：3 个端点（QT-09 生成物多写；ADM-CFG04/09 文档漏写）
+  · 孤儿产物类：1 个请求模型（payment-record）
+
+### 两套门禁为什么看不见（skill 坑 43 / 62 / 73）
+  · 契约测试：只把**真实响应**与各模型自己的 JSON Schema 比对；请求模型 schema 的`additionalProperties: true` + 无 required 校验 → 字段名写错/多写都放行；
+  · 覆盖门禁：只比「方法 + 路径」注册表；
+  · 客户端 TS 与 openapi.yaml 不被任何测试读取/执行。

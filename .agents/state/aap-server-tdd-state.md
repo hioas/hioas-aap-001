@@ -1859,3 +1859,68 @@ A2 openapi↔清单 0 漂移、A3a 清单 90/90 都能定位到实现、A4 客�
 结论：**90/90 维持全绿（连续第 20 轮：R18 → … → R38）**；本轮**零实现侧漂移**，
 未改业务代码 / 清单 / 生成器 / md / 断言；**新增 1 条待拍板**（同名 `channel_id` 跨模型对外类型不一致，
 P2：客户端零消费、无线上风险，但契约不一致）；其余待拍板与 R37 完全相同。
+
+## R39（巡检轮；missing=0 → 只校验不改代码）
+
+* **全量两轮 204 例全绿**（0 失败/0 错误/0 跳过，33 个测试类）＋覆盖门禁 90/90
+  （`registered_routes=96`、`not_registered=[]`）；两轮**逐类结果 diff 为空**
+  （比对前先剥 `Time elapsed` 再排序，坑 79）。
+* **新增第十四类契约不变量审计**：`tools/audit-request-body.py`
+  —— **请求体字段名集合 / 有无请求体**，五处真源逐端点比对：
+  M = md 清单「请求」列 ／ D = `endpoints.json` 的 `request_model` → `requests/*.schema.json` 属性
+  ／ O = `openapi.yaml` 的 `requestBody` 存在性 + 组件 `$ref` → 文件属性
+  ／ I = 控制器 `@RequestBody` DTO 的 record 分量 ／ C = 客户端 `data:` 对象字面量键（弱证据）。
+  配 `tools/audit-request-body-selftest.py`（24 例：18 分支反例 + 正向对照 + 空夹具变红 +
+  注入缺陷判别力实测 + 零写副作用守卫），**24/24 PASS**。
+
+### 本轮新发现（3 类，均待拍板；两套门禁都看不见）
+1. **生成器把「响应字段 / 他端点字段」混进了请求模型**（5 处）：
+   `credential-create` 多 `is_primary`（响应字段；md 与实现都只有 `primary_flag`）、
+   `report-template-save` 多 `status`、`usage-refresh` 多 `batch_id`（md 明写它是**响应**字段）、
+   `qualification-create` 多 5 个档案字段（`company_name/uscc/contact_name/contact_phone/remark`，实为 PROV-02 的字段）。
+   → 客户端按文档发这些字段会被**静默忽略**；修法：改 `tools/gen-backend-models.py` 的 `REQUEST_MODELS`。
+2. **请求体字段名漂移（最严重）**：`quote-item-save` 的 schema 写 `time_rule`/`tier_rule`，
+   而 md 冻结清单（`price_time_rule?`/`price_tier_rule?`）与实现 DTO（`SaveItemRequest`）都写
+   `price_time_rule`/`price_tier_rule` —— **2 源 vs 1 源**，生成器为错侧。
+3. **有无请求体不一致（3 条）**：`QT-09` 清单/openapi 声明了请求体（`quote-submit` 是**空模型** `properties: {}`），
+   而 md 写「—（无请求体）」、实现 `submit()` 也没有 `@RequestBody` → 生成物侧多写；
+   `ADM-CFG04`/`ADM-CFG09` 反之：md 的 7 列表头「请求/响应」合成列只写了响应，实现确有 `@RequestBody` → md 漏写。
+4. **孤儿请求模型** `payment-record`：schema 文件 + openapi 组件（`RequestPaymentRecord`）零消费者
+   （0 个端点、md 0 处提及、客户端 0 处）→ 生成物侧死码。
+5. **实现超出冻结契约**：`provider-profile-update` 的 DTO `UpdateProfileRequest` 多
+   `manual_override`/`override_reason` 两个字段，且**被服务层真实消费**
+   （`ProviderService:99-126`：`manual_override=true` 必须带理由、并写 `provider` 两列）——
+   md 与 schema 都没声明它们。
+
+### 本轮自己踩的坑（值得记）
+* **跨源比对两侧必须走同一个归一函数（坑 57 重现）**：A5 第一版在实现侧保留 `/api/v1` 前缀、
+  在清单侧 `replace("/api/v1","")` → 27 条端点全部报「未定位到控制器方法」的**假发现**
+  （指纹：报告说大面积漂移，而实现里明明有该路由）。修法：抽出唯一 `norm_key(method, path)` 两侧共用。
+* **同名 record 不能用「全局首匹配」**：本项目 `SaveRequest`（detection-config / report-template）
+  与 `RefreshRequest`（auth / usage）各出现 2 次 → 全局首匹配把 report-template 的分量算到
+  detection-config 端点上，产出 **5 条假漂移**。修法：① 同文件优先 → ② `import` 解析
+  （`…DetectionConfigViews.SaveRequest` → 文件 `DetectionConfigViews.java`）→ ③ 全仓库唯一同名兜底，
+  都不行才记「未能静态判定（同名歧义）」。
+* **`@RequestBody` 之后可能紧跟修饰符**：`@RequestBody(required=false) X x` 与
+  `@RequestBody` 换行跟方法签名两种写法之外，自测夹具还抓出第三处 ——
+  解析窗口里若出现 `public Object b(SynRequest request)`，正则会把 **`public` 当类型名**
+  （报「未找到 record public」）。修法：先剥 `public/private/protected/static/final` 再取类型。
+* **md「请求」列的四种写法要分开处理（坑 65 的具体化）**：GET 行的 `q：page pageSize` 是**查询参数**
+  （属查询参数审计），必须记「无请求体」而不是「未能静态判定」；
+  `body {items:[{model_name,model_alias?}]}` 的**嵌套花括号只取最外层键**（`items`）——
+  第一版扁平化成 4 个字段 → 报出 QT-05 假漂移（与生成器 `quote-items-create` 对比）；
+  `body：同 CRED-02 的可写子集` 与 `八大单价 + …` 是**引用式/描述式** → 记信息项，绝不当漂移。
+* **注入缺陷的断言不能假设「FAIL 集合会新增」**：基线本来就有 A5 FAIL（真实漂移），
+  注入 `env_tag` 改名后断言类型集合**不变** → 「新增 = 空」的旧写法会空转失败。
+  改为三条：① 锚点真的改到源码；② **A5 明细变化且点名注入字段**；③ 断言类型集合不越界。
+* **自测夹具要写「真实写法」**：第一版把裸 `@RequestBody` 写在**方法上**（现实中不存在，
+  它属于**参数**注解）→ 解析到的是返回类型。夹具写法不对，测的就不是真实解析路径（坑 63 的夹具版）。
+
+### 本轮未做（纪律）
+* `missing=0` → **未改业务代码 / 清单 / 生成器 / md / 断言**；他方 4 个未提交文件
+  （`aap-client/vite.config.ts`、`application.yml`、`log4j2-spring.xml`、`application-test.yml`）**未触碰**；
+* `coverage-report.json` 被测试重写但逐字段值全等（`Map.of` 键序跨 JVM 随机化，坑 56）→ `git checkout --` 还原，未提交。
+
+结论：**90/90 维持全绿（连续第 21 轮：R18 → … → R39）**；本轮零实现侧改动、零回归；
+新增 3 类**待拍板**（请求体字段名/字段集合 7 个端点、有无请求体 3 个端点、孤儿请求模型 1 个），
+其余待拍板与 R38 完全相同。
