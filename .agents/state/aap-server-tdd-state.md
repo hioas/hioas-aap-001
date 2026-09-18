@@ -361,11 +361,47 @@
 | D-PAY-01 | 钱包三项 = 互斥三态：`pending_settlement`=UNSETTLED、`available_balance`=PAYMENT_RECORDED、`total_settled`=CONFIRMED（VOID 不计） | 清单标注「约定，无 PRD 依据」；三态互斥避免重复计数，合计=全部有效打款金额 |
 | D-STATE-04 | 签署完成后不推进 `aap_quote.status`（停留 APPROVED） | T11 范围提到「上架 PUBLISHED」，但冻结清单内无对应端点、枚举里也无 `PUBLISHED` → 不臆造（待拍板） |
 
+## R14 · T13 站内信与审计查询（NTF-01/02、ADM-A01，3/3 已注册）—— ✅ 完成
+
+- 红：`.agents/state/evidence/red-T13.txt`（8 例全红——三条路由未注册，真实 HTTP 全回 404 `E-1406`；
+  走真实 HTTP 而不是路由探测，未注册只能是 404，不存在假红）。
+- 绿：`.agents/state/evidence/green-T13.txt`（**8/8 BUILD SUCCESS**）；全量两轮
+  `green-T13-full-172tests-1expected-coverage-red-run{1,2}.txt`（172 例，唯一红项仍是覆盖门禁）。
+- 覆盖：`total=90 / implemented=68 / missing=22`（T13 3/3 ✅，missing 25 → 22；`registered_routes=74`）。
+- 交付：`com.hioas.aap.support`（`NotificationViews`/`NotificationController`；`AuditLogViews`/
+  `AuditLogController`/`AuditLogQueryService`；`NotificationService` 的读路径从 ORM 重写为 `JdbcTemplate`）；
+  用例 8 例（`NotificationContractTest`）。
+- 契约口径（实现即契约）：
+  - **NTF-01** 响应 `{items,page,pageSize,total,unread_count}`；单条字段对齐客户端
+    `aap-client/src/utils/messages-model.ts`：`id/title/content/created_at/read_at/read/is_read/event_code/biz_type/biz_id/channel/category/kind/status`；
+    `kind`（detect/quote/contract/bill/system）由服务端派生（与客户端 `resolveMessageKind` 同规则），
+    `read` 与 `is_read` 同值，真源是 `read_at` 空即未读。
+  - **作用域**：供应商 = `recipient_type=PROVIDER` + 本人 provider；管理端 = `ADMIN` + 本人账号
+    → 同一端点两端复用（清单标 `authenticated`，非仅供应商）。未认证一律 401。
+  - **NTF-02 幂等**：条件 UPDATE（`... and read_at is null`）+ **读回库值** → 响应里的 `read_at`
+    就是落库值本身；重复调用影响 0 行，不刷新首次已读时间（断言同时钉响应与库值，并钉 `version` 停在 1）。
+  - **ADM-A01**：`TECH_OPS/SUPER_ADMIN` 可读，`BIZ_OPERATOR`/供应商 403 `E-1901`；`action` 必须命中审计字典
+    （否则 `E-1001`）；时间窗半开 `[from,to)`；**真实登录链路产生的 `AUTH_LOGIN` 审计行可按 traceId 检索到**，
+    且 trace_id 与该次登录响应头 `X-Trace-Id` 一致（审计不是摆设）。
+- 测试期望修正（2 处，均为**断言写错**，未迁就实现）：
+  1. `category=ORDER&unread=true` 的期望应为 1（夹具 800013 是 ORDER 且未读），初版误写 0；
+  2. `assertThat(bad.data()).isNull()` 恒失败 —— `JsonNode#path("data")` 对 `"data":null` 返回
+     **NullNode** 而不是 Java null，改用项目既有的 `isNullish(...)` 断言。
+
+### 本轮偏差表
+
+| 编号 | 内容 | 理由 |
+|---|---|---|
+| D-API-16 | ADM-A01 的 `action`/`from`/`to` 非法值回 400 `E-1001`（清单错误码列只列 `E-1901`） | 参数校验用全项目统一错误码；拼错的动作名静默回空集会让技术运营误判「没有该操作」 |
+| D-API-17 | `unread_count` 口径 = 本人未读总数（与 `unread`/`category` 过滤无关） | 清单只给字段名未给口径；徽标「N 条未读」不应随列表筛选跳动（客户端注释亦按此理解） |
+| D-API-18 | NTF-01/NTF-02 对管理端主体开放（管理端收件箱 `recipient_type=ADMIN`） | 清单标 `authenticated`；隔离由 recipient 维度保证，不靠 403 |
+| D-API-19 | `kind`/`read`/`is_read` 为服务端派生字段（schema 中可空非必填） | 客户端 `messages-model.ts` 明确「服务端给 kind 时优先」；冗余命名是为兼容客户端容错读取 |
+
 ## 未决与下一步
 
-- 上一轮已完成：**T11 合同/打款/结算**（R13，11/11）。
-- 下一轮：**T13 站内信/审计**（NTF-01/02、ADM-A01，3 条）→ **T14 同步与配置/渠道/供应商管理**
-  （22 条，依赖 T09/T12）。
+- 上一轮已完成：**T13 站内信/审计**（R14，3/3：NTF-01/02、ADM-A01）。
+- 下一轮：**T14 同步与配置/渠道/供应商管理**（22 条，依赖 T09/T12；清单 §2.4
+  同步任务/渠道绑定 + §2.5 供应商与凭证管理 + §2.6 检测配置/报告模板）→ 之后是 T15 端到端联调与容器化交付。
 - **待拍板（本轮新增）**
   1. **D-API-12**：对象存储签名/限时 URL 的接线方式（合同 PDF 与报告 PDF 是同一问题）。
   2. **D-API-14**：合同短信签署是否走真实短信核验（若走，需先把「合同签署验证码发送」端点写进清单再实现）。
@@ -373,9 +409,9 @@
   4. **D-PAY-01**：钱包三项口径需产品确认（清单自述无 PRD 依据）。
 - **待拍板（沿用）**：D-API-05（`PARTIAL_CACHE` 是否入枚举）、D-USAGE-01（new-api 用量日志源契约）、
   D-API-03（`docs/api/接口字段级schema.md` §2 的 `{list}` → `{items}` 回改）。
-- 剩余任务：T13 站内信/审计（3）、T14 同步与配置（22）、T15 端到端联调与容器化交付
+- 剩余任务：T14 同步与配置（22）、T15 端到端联调与容器化交付
   （`docs/backend/03-任务与TDD计划.md` §1 为完整清单）。
-- 覆盖门禁纪律：`EndpointCoverageTest` 在 25 条未注册期间**必然红**，它是「还剩多少没落地」的仪表；
+- 覆盖门禁纪律：`EndpointCoverageTest` 在 22 条未注册期间**必然红**，它是「还剩多少没落地」的仪表；
   每轮证据只允许写「除门禁外全绿 + missing 下降」，禁止写「全量全绿」。
 - **待前端处理（O-01）**：`aap-client/src/utils/report-model.ts:51` 兜底免责声明含 R-26 禁用字样，建议改为与
   服务端 `ReportService.DISCLAIMER` 同文案。
