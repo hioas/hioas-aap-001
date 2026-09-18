@@ -928,3 +928,30 @@
 - **待拍板（维持 R23–R25，无新增）**：飞书 home channel 未绑定 —— 人工执行
   `hermes config set FEISHU_HOME_CHANNEL <channel_id>`（或发送时显式 `-t feishu:<channel>`）。
   本轮无新批次落地 → 按「每完成一个批次才通知」的规则不发通知（避免 5 分钟一次重复推送）。
+
+### 提交态复跑（干净 detached worktree @ HEAD `e026bd6`，不含他方未提交的 4 个文件）
+
+| 检查 | 结果 |
+| --- | --- |
+| 生成器 `--check` | rc=0 / `84/84 个生成物与生成器完全一致、孤儿 0` |
+| 生成器负向自测 | `tools/gen-backend-models-selftest.py` **14 条断言全 PASS**、rc=0 |
+| 端点审计 | 可追溯 90/90（裸字面量 71 + 组合引用 19）；`exact=90 / prefix=0 / none=0` |
+| 全量测试 | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0` / `BUILD SUCCESS` / `Total time: 58.952 s` / `[ERROR]` 行数 0 |
+| worktree 收尾 | `git worktree remove --force` 成功；`git worktree list` 只剩主工作区（未用 `rm -rf`，坑 28） |
+
+结论：**提交 `e026bd6` 自洽** —— 工具修复在干净树上同样成立，不依赖他方未提交改动。
+证据 `evidence/commitstate-verify-R26.txt`。
+
+### 飞书通知（硬要求）
+
+本轮**无新端点批次落地**，按「每完成一个批次才通知」的规则本可不发；仍试发一次以取证：
+
+```
+hermes send -t feishu -s 'AAP TDD 进度' 'R26 巡检：90/90 已注册维持全绿（204 例两轮全绿）；本轮修复生成器 --check 真缺陷（全产物只读比对 + 孤儿扫描，负向自测 14/14），提交 e026bd6'
+→ hermes send: No home channel set for feishu to determine where to send the message.
+  Either specify a channel directly with 'feishu:CHANNEL_NAME', or set a home channel via:
+  hermes config set FEISHU_HOME_CHANNEL <channel_id>
+```
+
+`hermes send --list` 仍显示 `Feishu: (no channels discovered yet …)` → 连可用频道都未被发现，**无法自动绑定**。
+已记入 `evidence/feishu-notify-failures.txt`；不阻塞 TDD 循环。
