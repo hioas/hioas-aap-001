@@ -1,0 +1,22 @@
+== R32 提交态复跑（干净 detached worktree @ HEAD `f15c2a7`，**不含他方未提交的 4 个文件**） ==
+
+口径（与 R28–R31 同）：工作树的三轮全绿是在**含他方未提交改动**（aap-client/vite.config.ts、
+aap-server application.yml / log4j2-spring.xml / application-test.yml）的树上跑的；
+本行是「**去掉他方改动后仍全绿**」的独立证据 → 证明**提交 `f15c2a7` 自洽**。
+
+worktree：`C:/Users/laitz/AppData/Local/Temp/aap-verify-r32-150744`（时间戳唯一名，未做递归删除，坑 28）
+
+| 项 | 结果 |
+| --- | --- |
+| 新审计（提交态） | **14 断言 12 PASS / 2 FAIL**，与工作树**同结论、可复现**：A1 md↔清单 3 条、A3b 实现↔清单 5 条、A2 0 条、A3a 定位 90/90、A4 客户端 0 越界 |
+| 新审计负向自测（提交态） | **21/21 PASS**（含两条注入缺陷判别力实测） |
+| 生成器 `--check`（提交态） | `84/84 个生成物与生成器完全一致、孤儿 0`；`models=55 requests=24 paths=78 operations=90 files=82`（零写副作用） |
+| 全量测试（提交态） | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0`；BUILD SUCCESS；`[ERROR]` 0 行 |
+| worktree `git status` | 仅 `.agents/state/evidence/coverage-report.json` 显示为修改（门禁产物被本轮测试重写） |
+
+覆盖门禁产物逐字段核对：`"total" : 90` / `"implemented" : 90` / `"missing" : 0`
+→ 与工作树一致；该文件的内容差异仅来自 `by_task` 条目的**键序**（`Map.of` 的迭代顺序按 JVM 随机化，
+R30 已记为观察项，属**测试代码**变更需拍板，本轮 missing=0 未改）。
+
+结论：**提交 `f15c2a7` 自洽**；worktree 收尾用 `git worktree remove --force`（git 自带命令，
+未做递归删除，不碰任何人正在编辑的文件）。
