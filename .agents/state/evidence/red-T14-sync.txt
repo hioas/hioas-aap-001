@@ -1,0 +1,25 @@
+红基线 · T14 批次三 · new-api 同步运维（ADM-S01…06）
+================================================================
+仓库：E:/workspaces/hioas/hioas-aap-001（aap-server）
+命令：../tools/with-env.sh aap-server mvn -B -ntp test -Dtest=SyncAdminContractTest -DfailIfNoTests=false
+原始输出：.agents/state/evidence/red-T14-sync-raw.txt
+
+结果：Tests run: 8, Failures: 8, Errors: 0
+红因（逐条一致，符合 tdd-state 踩坑 23 的「缺路由 → 404 E-1406」特征）：
+  8 个用例首个断言都拿到 {"code":"E-1406","message":"接口或资源不存在"}，
+  因为 /api/v1/admin/sync/** 与 /api/v1/admin/channel-bindings 六条路由尚未注册。
+
+用例清单（全红）：
+  taskListAndDetail                        ADM-S01/S02
+  retryWithoutEndpointRequeuesImmediately  ADM-S03
+  retryBackoffScheduleAndExhaustion        ADM-S03（AC-35 退避 30s/2m/8m/30m + ≤5 次）
+  retryUpstreamAuthFailureGoesManual       ADM-S03（A8 鉴权失败不重试转 MANUAL；AC-50 E-1505）
+  bindingList                              ADM-S04
+  bindingStatusChange                      ADM-S05（读前写后三段式 / 只读端点 E-1505 / 未同步 409 / 同目标幂等）
+  upstreamModels                           ADM-S06
+  permissions                              ADM-S01…06
+
+过程留痕（不作为结论）：首轮红另外混入 4 个夹具 SQL 错误
+（`aap_channel_binding.last_synced_at` / `aap_sync_task.next_retry_at` 参数漏了 `::timestamptz` 强转，
+PostgreSQL 报「column is of type timestamptz but expression is of type character varying」）。
+按踩坑 19 处理：**修夹具、不动期望值**，重跑得到上面这份纯净红基线（8 红全为缺路由）。

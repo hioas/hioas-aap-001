@@ -471,11 +471,61 @@
 | D-API-26 | ADM-CFG01…05 放行 `TECH_OPS` + `SUPER_ADMIN`（清单只列 TECH_OPS） | 沿用 D-API-22 的能力矩阵口径（超管全量权限） |
 | D-API-27 | ADM-CFG01 额外支持可选 `status` 过滤（清单 `query_params` 只有 `page`/`pageSize`） | 纯附加过滤参数（缺省=不过滤），与 ADM-CFG06 同一做法，不改既有语义 |
 
+## R17 · T14 批次三：new-api 同步运维（ADM-S01…06，84/90 已注册）—— ✅ 完成
+
+- 红基线：`evidence/red-T14-sync.txt`（原始 `evidence/red-T14-sync-raw.txt`）—— **8 例全红**，
+  首个断言都是 HTTP **404 `E-1406`「接口或资源不存在」**（= 六条 `/admin/sync/**`、`/admin/channel-bindings`
+  路由未注册，不是实现 bug；与踩坑 23 的状态码判读一致）。
+- 绿证据：`evidence/green-T14-sync.txt`（定向 **8/8 真绿**，原始 `green-T14-sync-try3.txt`）；
+  全量两轮 `evidence/green-T14-sync-full-run{1,2}.txt`（**196 例，唯一红项仍是覆盖门禁**，两轮一致）。
+- 覆盖：`total=90 / implemented=84 / missing=6`（missing **12 → 6**）。
+- 交付：`com.hioas.aap.sync`（`SyncViews` / `NewApiSyncClient` / `SyncAttemptRecorder` /
+  `SyncAdminService` / `AdminSyncController`）+ 迁移 `V7__sync_operation_sequences.sql`（`seq_sync_operation`）。
+- 口径（实现即契约）：
+  - **重试退避与上限（AC-35）**：第 1 次立即 → `+30s` → `+2min` → `+8min` → `+30min`，**≤5 次**；
+    第 5 次转 `MANUAL`（再重试 409 `E-1601`，且被拒的重试不推进 `attempt_count`）；
+    鉴权类（上游 401/403）**不重试**直接 `MANUAL`（PRD §5 / A8）。只允许从 `FAILED`/`MANUAL` 重试。
+  - **`E-1505`（403「同步接口权限不足」）= new-api 侧拒绝**：端点 `readonly=true` 时的写操作，
+    或上游返回 401/403。清单只在 S03/S05/S06 列该码 —— 这三条正是会碰上游的接口，纯 DB 读的
+    S01/S02/S04 不产生它（见偏差 `D-SYNC-01`，语义**待拍板**）。
+  - **启停走读前写后三段式（AC-34）**：读现值 → 写 → 回读比对，成功才置态并回填
+    `last_synced_at` + `last_readback_hash`；**回读不一致 → 502 `E-1501` 且库里状态保持原值**
+    （只更新回读摘要，等人工介入，绝不谎报成功）。同目标状态 = **幂等**（不打上游）。
+  - 渠道状态机：仅 `SYNCED`/`ENABLED`/`DISABLED` 可启停（`NOT_SYNCED` 等 → 409 `E-1601`）。
+  - 任务详情/列表/重试响应**统一带 `operations`**：子集合在一处补齐（列表复用详情映射，踩坑 22）。
+  - 每次重试都落一行 `aap_sync_operation`（attempt_no + result + error）与一条 `SYNC_EXECUTE` 审计；
+    失败路径**先落库再抛错**（独立事务 `SyncAttemptRecorder`，踩坑 2）。
+
+### 本轮踩坑
+
+1. **`channel_id` 是 `bigint`，视图契约是 `integer`**：`rs.getObject("channel_id", Integer.class)` 抛
+   `conversion to class java.lang.Integer from int8 not supported`，HTTP 层只看到 **500 `E-2001`**，
+   根因只在服务端日志（与踩坑 13 的聚合 `numeric` 同族）。规则：**先按 `Long` 读、再显式收窄**，
+   别让列的物理类型去猜视图契约类型。
+2. **契约里的 ID 是 string，服务层要 Long**：视图字段（`binding_id`/`endpoint_id`）对外是 string，
+   直接回传内部方法会编译不过；统一加 `toId()`，非法值 → 400 `E-1001`（不静默当 null）。
+3. **夹具的时间参数要带 `::timestamptz`**：`insert ... values (?, ...)` 里 String 参数直落 timestamptz 列会报
+   「column is of type timestamp with time zone but expression is of type character varying」；
+   首轮红基线里混进 4 个这类夹具错误 —— 按纪律**修夹具不改期望值**，重跑得到纯净红基线。
+4. **期望值先算再写**：`taskCount()` 断言写了 4 而夹具只有 3 条（踩坑 6/19 的重演）—— 改期望值。
+5. **重试类失败用例必须在同一请求里落库**：调用方抛 `E-1501` 时若无独立事务，任务状态与操作明细会一起回滚，
+   「502 之后任务仍是原状态」看起来像实现没生效（踩坑 2）。
+
+### 本轮偏差表（T14 批次三）
+
+| 编号 | 内容 | 理由 |
+|---|---|---|
+| D-SYNC-01 | `E-1505` 解释为**上游/new-api 侧拒绝**（端点只读、上游 401/403），角色不足仍是全局 `E-1901`（**待拍板**：若产品意图是「非 TECH_OPS 访问同步接口也回 E-1505」，需改安全层错误码，影响面在 §4 错误码表） | 清单只在 S03/S05/S06 列 E-1505，而这三条正是会碰上游的接口；纯 DB 读的 S01/S02/S04 未列 |
+| D-SYNC-02 | `NewApiSyncClient` 的**写侧路径为 mock 口径**：`GET {base}/models`、`PUT {base}/api/channel/`、`GET {base}/api/channel/{id}`（**待拍板**） | PRD §3 只冻结字段映射与幂等键，未冻结 new-api HTTP 契约（new-api 侧需源码改造）；接入真实实现只替换本类路径 |
+| D-SYNC-03 | 本批次只做**运维接口**（查/重试/启停/读上游），不含同步任务执行器与调度（谁消费 `PENDING`、写价如何落编译产物） | 执行器跨 T09/T15（`SYNC_WRITE_PRICE` 与编译器接线），需人拍板后再动 |
+| D-SYNC-04 | ADM-S01…06 放行 `TECH_OPS` + `SUPER_ADMIN`（清单只列 TECH_OPS） | 沿用 D-API-22/26 的能力矩阵口径（超管全量权限） |
+| D-SYNC-05 | 端点解析失败（`binding.endpoint_id` 指向不存在/非 ACTIVE 的端点）时按「未接 new-api」处理：重试直接入队、启停只改本地状态（**待拍板**：是否应报 502） | 联调期允许「本地先行」；不静默假装做过上游回读（回读摘要留空以区分） |
+
 ## 未决与下一步
 
-- 上一轮已完成：**T14 批次二 · 检测配置版本**（R16，ADM-CFG01…05，78/90 已注册）。
-- 下一轮：**T14 批次三 · 同步任务与渠道绑定**（ADM-S01…06，6 条）→ 批次四 · 供应商/凭证/报价对比
-  （ADM-P01…03、ADM-C01/02、ADM-Q02，6 条）→ 之后是 T15 端到端联调与容器化交付。
+- 上一轮已完成：**T14 批次三 · new-api 同步运维**（R17，ADM-S01…06，84/90 已注册）。
+- 下一轮：**T14 批次四 · 供应商 / 凭证 / 报价对比**（ADM-P01…03、ADM-C01/02、ADM-Q02，6 条）→
+  之后 missing 归零，覆盖门禁转绿 → T15 端到端联调与容器化交付。
 - **待拍板（本轮新增）**
   1. **D-API-12**：对象存储签名/限时 URL 的接线方式（合同 PDF 与报告 PDF 是同一问题）。
   2. **D-API-14**：合同短信签署是否走真实短信核验（若走，需先把「合同签署验证码发送」端点写进清单再实现）。
@@ -485,11 +535,16 @@
      若要「同一配置的草稿/发布演进」，需要新列或新端点。
   6. **D-API-25**（R16 新增）：已发布检测配置何时被**检测任务**消费（`aap_detection_job.config_snapshot`
      的接入点跨 T06 检测任务族，本期未动检测打分口径）。
+  7. **D-SYNC-01**（R17 新增）：`E-1505` 的语义归属 —— 本实现按「上游/new-api 侧拒绝」落地；
+     若产品意图是「非 TECH_OPS 访问同步接口也回 E-1505」，需改安全层错误码（影响 §4 错误码表）。
+  8. **D-SYNC-02**（R17 新增）：new-api 的真实 HTTP 契约（写渠道/读回读的路径与方法）需 new-api 侧提供后替换 mock 口径。
+  9. **D-SYNC-03**（R17 新增）：同步任务**执行器**（谁消费 `PENDING`、`WRITE_PRICE` 如何与编译产物接线）归 T15 还是本期补齐。
+  10. **D-SYNC-05**（R17 新增）：端点解析失败时「本地先行」还是直接 502。
 - **待拍板（沿用）**：D-API-05（`PARTIAL_CACHE` 是否入枚举）、D-USAGE-01（new-api 用量日志源契约）、
   D-API-03（`docs/api/接口字段级schema.md` §2 的 `{list}` → `{items}` 回改）。
-- 剩余任务：T14 余 12 条（同步与渠道绑定 6 / 供应商与凭证 6）、T15 端到端联调与容器化交付
+- 剩余任务：T14 余 6 条（ADM-P01…03、ADM-C01/02、ADM-Q02）、T15 端到端联调与容器化交付
   （`docs/backend/03-任务与TDD计划.md` §1 为完整清单）。
-- 覆盖门禁纪律：`EndpointCoverageTest` 在 12 条未注册期间**必然红**，它是「还剩多少没落地」的仪表；
+- 覆盖门禁纪律：`EndpointCoverageTest` 在 6 条未注册期间**必然红**，它是「还剩多少没落地」的仪表；
   每轮证据只允许写「除门禁外全绿 + missing 下降」，禁止写「全量全绿」。
 - **待前端处理（O-01）**：`aap-client/src/utils/report-model.ts:51` 兜底免责声明含 R-26 禁用字样，建议改为与
   服务端 `ReportService.DISCLAIMER` 同文案。

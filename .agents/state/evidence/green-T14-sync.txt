@@ -1,0 +1,36 @@
+绿证据 · T14 批次三 · new-api 同步运维（ADM-S01…06，6 条端点）
+================================================================
+仓库：E:/workspaces/hioas/hioas-aap-001（aap-server）
+
+① 定向用例（本轮新增 8 例）：
+   命令：../tools/with-env.sh aap-server mvn -B -ntp test -Dtest=SyncAdminContractTest
+   结果：Tests run: 8, Failures: 0, Errors: 0 —— BUILD SUCCESS
+   原始输出：evidence/green-T14-sync-raw.txt（实现期中间态另存为 evidence/wip-T14-sync-run1-compile-error.txt
+   与 evidence/wip-T14-sync-run2-4of8-red.txt —— 文件名如实反映当时的红/绿状态）
+
+② 全量两轮（提交前连跑，防 flaky；串行，无并发测试进程）：
+   命令：../tools/with-env.sh aap-server mvn -B -ntp test
+   run1：Tests run: 196, Failures: 1, Errors: 0 → evidence/green-T14-sync-full-run1.txt
+   run2：Tests run: 196, Failures: 1, Errors: 0 → evidence/green-T14-sync-full-run2.txt
+   两轮唯一红项都是 EndpointCoverageTest（覆盖门禁），且 missing 一致 —— 结论：
+   **除覆盖门禁外全量 195/195 绿；覆盖门禁仍红=设计**（本轮结束后清单 90 条中仍有 6 条未注册：
+   ADM-P01…03、ADM-C01/02、ADM-Q02）。
+   覆盖进度：total=90 implemented=84 missing=6（本轮由 missing=12 → 6，见 coverage-report.json）。
+   逐族：T03 6/6、T04 5/5、T05 7/7、T06 6/6、T07 4/4、T08 11/11、T09 6/6、T10 5/5、T11 11/11、
+        T12 4/4、T13 3/3、T14 16/22。
+
+本轮落地端点（全部有真实 HTTP 用例）：
+   ADM-S01 GET  /api/v1/admin/sync/tasks                       任务列表（status/bindingId 过滤 + 分页 + operations）
+   ADM-S02 GET  /api/v1/admin/sync/tasks/{taskId}              任务详情（含 operations）
+   ADM-S03 POST /api/v1/admin/sync/tasks/{taskId}/retry        重试（退避 30s/2m/8m/30m，≤5 次；鉴权类不重试转 MANUAL）
+   ADM-S04 GET  /api/v1/admin/channel-bindings                 渠道绑定列表
+   ADM-S05 POST /api/v1/admin/channel-bindings/{bindingId}/status 渠道启停（读前写后三段式 + 回读一致）
+   ADM-S06 GET  /api/v1/admin/sync/models/upstream             上游 new-api 模型清单
+
+过程留痕（实现期返工，属正常红→绿过程；证据文件与真实结论一致）：
+   try1 编译错误：视图里 bindingId/endpointId 是 string（对外契约），回传服务层需要转 Long —— 已加 toId()。
+   try2 4 红，两类根因：
+     (a) 500 E-2001（bindingList/bindingStatusChange/permissions）：`aap_channel_binding.channel_id` 是 **bigint**，
+         `rs.getObject("channel_id", Integer.class)` 抛 "conversion to class java.lang.Integer from int8 not supported"，
+         HTTP 层只见 500 E-2001、根因只在服务端日志（与踩坑 13 同族）。改为按 Long 读再收窄为 Integer。
+     (b) 断言期望值算错：`taskCount()` 写成 4，实际夹具 3 条 —— 按纪律**改期望值而非实现**（踩坑 6/19）。
