@@ -1,0 +1,23 @@
+启动独立 Chrome（有头，独立 user-data-dir）→ http://localhost:5173
+① 入口页 title="登录 / 注册"  截图留证
+  [截图] logs\screenshots\20260918002710.-01-login.png
+② 图形验证码（读页面）: A7K9
+   表单 input 数量: 3
+   手机号: 已填写
+   图形验证码: 已填写
+  [截图] logs\screenshots\20260918002711.-02-filled.png
+③ 点击「获取验证码」: 已点击
+   后端回显 dev_code: 已从网络响应捕获
+  [截图] logs\screenshots\20260918002714.-03-code-sent.png
+   短信验证码: 已填写
+   同意协议勾选: 已勾选 ✓
+④ 点击「登录 / 注册」: 已点击
+  [截图] logs\screenshots\20260918002721.-04-after-login.png
+   登录后 URL=http://localhost:5173/#/pages/workbench/index  页面是否离开登录页=是 ✓
+⑤ 候选导航: []
+   未找到可点导航（页面可能仍在加载）
+=== 浏览器控制台 error/warning ===
+   无 ✓
+=== 失败请求（4xx/5xx） ===
+   404 XHR http://localhost:5173/api/v1/usage/summary
+验收结论: 未通过 ✗（截图目录 logs/screenshots）

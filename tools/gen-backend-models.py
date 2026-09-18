@@ -751,7 +751,7 @@ def openapi() -> dict:
             "version": "1.0.0",
             "description": "供应商端 + 管理端接口。模型定义见 ./json-schema/**；接口清单见 02-API接口模型清单.md。",
         },
-        "servers": [{"url": "http://localhost:8083", "description": "本地"}],
+        "servers": [{"url": "http://localhost:8084", "description": "本地"}],
         "tags": [{"name": t} for t in ["Auth", "Provider", "Credential", "Detection", "Report", "Quote",
                                        "Contract", "Payment", "Notification", "Usage", "Admin"]],
         "paths": paths,
@@ -873,6 +873,34 @@ def _yaml_scalar(v) -> str:
     return s
 
 
+def emit_endpoint_manifest(out_dir: str) -> int:
+    """产出 docs/backend/endpoints.json —— 供「全接口覆盖测试」与定时任务遍历（单一事实源=本脚本 PATHS）。
+
+    任务号（T01…T15）从台账 .agents/state/aap-server-feature-status.csv 反查；台账不存在则该字段为空。
+    """
+    import csv
+    task_of = {}
+    ledger = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                          ".agents", "state", "aap-server-feature-status.csv")
+    if os.path.exists(ledger):
+        with open(ledger, encoding="utf-8") as fh:
+            for row in csv.DictReader(fh):
+                if row.get("接口ID"):
+                    task_of[row["接口ID"]] = row.get("任务号", "")
+    rows = []
+    for (eid, method, path, tag, roles, req, res, params, errors, note) in PATHS:
+        rows.append({
+            "id": eid, "method": method.upper(), "path": "/api/v1" + path, "tag": tag,
+            "auth": roles, "request_model": req, "response_model": res,
+            "query_params": params, "error_codes": errors, "source": note,
+            "task": task_of.get(eid, ""),
+        })
+    path = os.path.join(out_dir, "endpoints.json")
+    with open(path, "w", encoding="utf-8", newline="\n") as fh:
+        json.dump({"total": len(rows), "endpoints": rows}, fh, ensure_ascii=False, indent=2)
+    return len(rows)
+
+
 def main() -> int:
     check = "--check" in sys.argv
     gen_common()
@@ -890,6 +918,8 @@ def main() -> int:
     else:
         with open(out, "w", encoding="utf-8", newline="\n") as fh:
             fh.write(text)
+    manifest = emit_endpoint_manifest("docs/backend")
+    print(f"manifest={manifest} endpoints.json written")
     print(f"ok: models={len(MODELS)} requests={len(REQUESTS)} paths={len({p for *_, p in []} or {})} "
           f"operations={len(PATHS)} files={len(MODELS) + len(REQUESTS) + 3}")
     return 0

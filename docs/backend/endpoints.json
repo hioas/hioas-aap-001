@@ -1,0 +1,1451 @@
+{
+  "total": 90,
+  "endpoints": [
+    {
+      "id": "AUTH-01",
+      "method": "POST",
+      "path": "/api/v1/auth/sms/send",
+      "tag": "Auth",
+      "auth": "anon",
+      "request_model": "auth-sms-send",
+      "response_model": "sms-send-result",
+      "query_params": [],
+      "error_codes": [
+        "E-1001",
+        "E-1903"
+      ],
+      "source": "真源",
+      "task": "T03"
+    },
+    {
+      "id": "AUTH-02",
+      "method": "POST",
+      "path": "/api/v1/auth/sms/login",
+      "tag": "Auth",
+      "auth": "anon",
+      "request_model": "auth-sms-login",
+      "response_model": "login-result",
+      "query_params": [],
+      "error_codes": [
+        "E-1001",
+        "E-1101",
+        "E-1903"
+      ],
+      "source": "真源",
+      "task": "T03"
+    },
+    {
+      "id": "AUTH-03",
+      "method": "POST",
+      "path": "/api/v1/auth/wechat/login",
+      "tag": "Auth",
+      "auth": "anon",
+      "request_model": "auth-wechat-login",
+      "response_model": "login-result",
+      "query_params": [],
+      "error_codes": [
+        "E-1001"
+      ],
+      "source": "真源",
+      "task": "T03"
+    },
+    {
+      "id": "AUTH-04",
+      "method": "POST",
+      "path": "/api/v1/auth/refresh",
+      "tag": "Auth",
+      "auth": "anon",
+      "request_model": "auth-refresh",
+      "response_model": "login-result",
+      "query_params": [],
+      "error_codes": [
+        "E-1902"
+      ],
+      "source": "推断",
+      "task": "T03"
+    },
+    {
+      "id": "AUTH-05",
+      "method": "POST",
+      "path": "/api/v1/auth/logout",
+      "tag": "Auth",
+      "auth": "authenticated",
+      "request_model": null,
+      "response_model": null,
+      "query_params": [],
+      "error_codes": [],
+      "source": "真源",
+      "task": "T03"
+    },
+    {
+      "id": "AUTH-06",
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "tag": "Auth",
+      "auth": "authenticated",
+      "request_model": null,
+      "response_model": "me-result",
+      "query_params": [],
+      "error_codes": [
+        "E-1902"
+      ],
+      "source": "真源+约定",
+      "task": "T03"
+    },
+    {
+      "id": "PROV-01",
+      "method": "GET",
+      "path": "/api/v1/provider/profile",
+      "tag": "Provider",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "provider-profile",
+      "query_params": [],
+      "error_codes": [
+        "E-1101"
+      ],
+      "source": "真源",
+      "task": "T04"
+    },
+    {
+      "id": "PROV-02",
+      "method": "PUT",
+      "path": "/api/v1/provider/profile",
+      "tag": "Provider",
+      "auth": "PROVIDER",
+      "request_model": "provider-profile-update",
+      "response_model": "provider-profile",
+      "query_params": [],
+      "error_codes": [
+        "E-1001",
+        "E-1104",
+        "E-1601"
+      ],
+      "source": "真源+约定",
+      "task": "T04"
+    },
+    {
+      "id": "PROV-03",
+      "method": "GET",
+      "path": "/api/v1/provider/qualifications",
+      "tag": "Provider",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "qualification-created",
+      "query_params": [
+        "page",
+        "pageSize"
+      ],
+      "error_codes": [],
+      "source": "真源",
+      "task": "T04"
+    },
+    {
+      "id": "PROV-04",
+      "method": "POST",
+      "path": "/api/v1/provider/qualifications",
+      "tag": "Provider",
+      "auth": "PROVIDER",
+      "request_model": "qualification-create",
+      "response_model": "qualification-created",
+      "query_params": [],
+      "error_codes": [
+        "E-1001"
+      ],
+      "source": "真源",
+      "task": "T04"
+    },
+    {
+      "id": "PROV-05",
+      "method": "DELETE",
+      "path": "/api/v1/provider/qualifications/{id}",
+      "tag": "Provider",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": null,
+      "query_params": [],
+      "error_codes": [
+        "E-1901",
+        "E-2001"
+      ],
+      "source": "真源",
+      "task": "T04"
+    },
+    {
+      "id": "CRED-01",
+      "method": "GET",
+      "path": "/api/v1/credentials",
+      "tag": "Credential",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "credential-row",
+      "query_params": [
+        "page",
+        "pageSize",
+        "status"
+      ],
+      "error_codes": [],
+      "source": "真源",
+      "task": "T05"
+    },
+    {
+      "id": "CRED-02",
+      "method": "POST",
+      "path": "/api/v1/credentials",
+      "tag": "Credential",
+      "auth": "PROVIDER",
+      "request_model": "credential-create",
+      "response_model": "credential-detail",
+      "query_params": [],
+      "error_codes": [
+        "E-1001",
+        "E-1104",
+        "E-1201"
+      ],
+      "source": "推断",
+      "task": "T05"
+    },
+    {
+      "id": "CRED-03",
+      "method": "GET",
+      "path": "/api/v1/credentials/{id}",
+      "tag": "Credential",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "credential-detail",
+      "query_params": [],
+      "error_codes": [
+        "E-1901"
+      ],
+      "source": "真源",
+      "task": "T05"
+    },
+    {
+      "id": "CRED-04",
+      "method": "PUT",
+      "path": "/api/v1/credentials/{id}",
+      "tag": "Credential",
+      "auth": "PROVIDER",
+      "request_model": "credential-create",
+      "response_model": "credential-detail",
+      "query_params": [],
+      "error_codes": [
+        "E-1001",
+        "E-1104",
+        "E-1601"
+      ],
+      "source": "真源",
+      "task": "T05"
+    },
+    {
+      "id": "CRED-05",
+      "method": "POST",
+      "path": "/api/v1/credentials/{id}/precheck",
+      "tag": "Credential",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "precheck-result",
+      "query_params": [],
+      "error_codes": [
+        "E-1101",
+        "E-1201",
+        "E-1301"
+      ],
+      "source": "真源",
+      "task": "T05"
+    },
+    {
+      "id": "CRED-06",
+      "method": "GET",
+      "path": "/api/v1/credentials/{id}/precheck/latest",
+      "tag": "Credential",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "credential-precheck",
+      "query_params": [],
+      "error_codes": [
+        "E-1101"
+      ],
+      "source": "推断",
+      "task": "T05"
+    },
+    {
+      "id": "CRED-07",
+      "method": "POST",
+      "path": "/api/v1/credentials/{id}/reveal",
+      "tag": "Credential",
+      "auth": "SUPER_ADMIN",
+      "request_model": "credential-reveal",
+      "response_model": "reveal-result",
+      "query_params": [],
+      "error_codes": [
+        "E-1901",
+        "E-1902"
+      ],
+      "source": "真源",
+      "task": "T05"
+    },
+    {
+      "id": "DET-01",
+      "method": "POST",
+      "path": "/api/v1/detection-jobs",
+      "tag": "Detection",
+      "auth": "PROVIDER",
+      "request_model": "detection-job-create",
+      "response_model": "job-created",
+      "query_params": [],
+      "error_codes": [
+        "E-1301",
+        "E-1302",
+        "E-1303"
+      ],
+      "source": "真源",
+      "task": "T06"
+    },
+    {
+      "id": "DET-02",
+      "method": "GET",
+      "path": "/api/v1/detection-jobs/{jobId}",
+      "tag": "Detection",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "detection-job",
+      "query_params": [],
+      "error_codes": [
+        "E-1304"
+      ],
+      "source": "真源",
+      "task": "T06"
+    },
+    {
+      "id": "DET-03",
+      "method": "GET",
+      "path": "/api/v1/detection-jobs/{jobId}/results",
+      "tag": "Detection",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "detection-result",
+      "query_params": [],
+      "error_codes": [
+        "E-1304"
+      ],
+      "source": "真源",
+      "task": "T06"
+    },
+    {
+      "id": "DET-04",
+      "method": "GET",
+      "path": "/api/v1/detection-jobs/{jobId}/results/{probeCode}",
+      "tag": "Detection",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "detection-result",
+      "query_params": [],
+      "error_codes": [
+        "E-1304"
+      ],
+      "source": "推断",
+      "task": "T06"
+    },
+    {
+      "id": "DET-05",
+      "method": "POST",
+      "path": "/api/v1/detection-jobs/{jobId}/cancel",
+      "tag": "Detection",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "detection-job",
+      "query_params": [],
+      "error_codes": [
+        "E-1305",
+        "E-1601"
+      ],
+      "source": "推断",
+      "task": "T06"
+    },
+    {
+      "id": "DET-06",
+      "method": "POST",
+      "path": "/api/v1/detection-jobs/{jobId}/release",
+      "tag": "Detection",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": "detection-release",
+      "response_model": "detection-job",
+      "query_params": [],
+      "error_codes": [
+        "E-1601"
+      ],
+      "source": "真源",
+      "task": "T06"
+    },
+    {
+      "id": "RPT-01",
+      "method": "GET",
+      "path": "/api/v1/reports",
+      "tag": "Report",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "report-summary",
+      "query_params": [
+        "page",
+        "pageSize",
+        "result"
+      ],
+      "error_codes": [],
+      "source": "真源",
+      "task": "T07"
+    },
+    {
+      "id": "RPT-02",
+      "method": "GET",
+      "path": "/api/v1/reports/{reportId}",
+      "tag": "Report",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "report",
+      "query_params": [],
+      "error_codes": [
+        "E-1401"
+      ],
+      "source": "真源",
+      "task": "T07"
+    },
+    {
+      "id": "RPT-03",
+      "method": "GET",
+      "path": "/api/v1/reports/{reportId}/html",
+      "tag": "Report",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": null,
+      "query_params": [],
+      "error_codes": [
+        "E-1401"
+      ],
+      "source": "推断",
+      "task": "T07"
+    },
+    {
+      "id": "RPT-04",
+      "method": "GET",
+      "path": "/api/v1/reports/{reportId}/export",
+      "tag": "Report",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "report-export",
+      "query_params": [],
+      "error_codes": [
+        "E-1401"
+      ],
+      "source": "真源",
+      "task": "T07"
+    },
+    {
+      "id": "QT-01",
+      "method": "GET",
+      "path": "/api/v1/quotes",
+      "tag": "Quote",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "quote-row",
+      "query_params": [
+        "page",
+        "pageSize",
+        "status"
+      ],
+      "error_codes": [],
+      "source": "真源",
+      "task": "T08"
+    },
+    {
+      "id": "QT-02",
+      "method": "POST",
+      "path": "/api/v1/quotes",
+      "tag": "Quote",
+      "auth": "PROVIDER",
+      "request_model": "quote-create",
+      "response_model": "quote-detail",
+      "query_params": [],
+      "error_codes": [
+        "E-1602",
+        "E-1001"
+      ],
+      "source": "真源",
+      "task": "T08"
+    },
+    {
+      "id": "QT-03",
+      "method": "GET",
+      "path": "/api/v1/quotes/{quoteId}",
+      "tag": "Quote",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "quote-detail",
+      "query_params": [],
+      "error_codes": [
+        "E-1401"
+      ],
+      "source": "真源",
+      "task": "T08"
+    },
+    {
+      "id": "QT-04",
+      "method": "DELETE",
+      "path": "/api/v1/quotes/{quoteId}",
+      "tag": "Quote",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "quote-detail",
+      "query_params": [],
+      "error_codes": [
+        "E-1601"
+      ],
+      "source": "真源",
+      "task": "T08"
+    },
+    {
+      "id": "QT-05",
+      "method": "POST",
+      "path": "/api/v1/quotes/{quoteId}/items",
+      "tag": "Quote",
+      "auth": "PROVIDER",
+      "request_model": "quote-items-create",
+      "response_model": "quote-detail",
+      "query_params": [],
+      "error_codes": [
+        "E-1001",
+        "E-1401"
+      ],
+      "source": "真源",
+      "task": "T08"
+    },
+    {
+      "id": "QT-06",
+      "method": "GET",
+      "path": "/api/v1/quotes/{quoteId}/items",
+      "tag": "Quote",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "quote-item",
+      "query_params": [
+        "page",
+        "pageSize"
+      ],
+      "error_codes": [],
+      "source": "真源",
+      "task": "T08"
+    },
+    {
+      "id": "QT-07",
+      "method": "GET",
+      "path": "/api/v1/quotes/items/{itemId}",
+      "tag": "Quote",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "quote-item",
+      "query_params": [],
+      "error_codes": [
+        "E-1401"
+      ],
+      "source": "真源",
+      "task": "T08"
+    },
+    {
+      "id": "QT-08",
+      "method": "PUT",
+      "path": "/api/v1/quotes/items/{itemId}",
+      "tag": "Quote",
+      "auth": "PROVIDER",
+      "request_model": "quote-item-save",
+      "response_model": "quote-item",
+      "query_params": [],
+      "error_codes": [
+        "E-1001",
+        "E-1401",
+        "E-1402",
+        "E-1403"
+      ],
+      "source": "真源",
+      "task": "T08"
+    },
+    {
+      "id": "QT-09",
+      "method": "POST",
+      "path": "/api/v1/quotes/{quoteId}/submit",
+      "tag": "Quote",
+      "auth": "PROVIDER",
+      "request_model": "quote-submit",
+      "response_model": "quote-detail",
+      "query_params": [],
+      "error_codes": [
+        "E-1001",
+        "E-1401",
+        "E-1402",
+        "E-1601",
+        "E-1602"
+      ],
+      "source": "真源",
+      "task": "T08"
+    },
+    {
+      "id": "QT-10",
+      "method": "POST",
+      "path": "/api/v1/quotes/{quoteId}/withdraw",
+      "tag": "Quote",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "quote-detail",
+      "query_params": [],
+      "error_codes": [
+        "E-1601"
+      ],
+      "source": "真源",
+      "task": "T08"
+    },
+    {
+      "id": "QT-11",
+      "method": "GET",
+      "path": "/api/v1/quotes/{quoteId}/versions",
+      "tag": "Quote",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "quote-version",
+      "query_params": [
+        "page",
+        "pageSize"
+      ],
+      "error_codes": [],
+      "source": "推断",
+      "task": "T08"
+    },
+    {
+      "id": "QT-12",
+      "method": "POST",
+      "path": "/api/v1/quotes/{quoteId}/compile-preview",
+      "tag": "Quote",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "compilation-result",
+      "query_params": [],
+      "error_codes": [
+        "E-1401",
+        "E-1402",
+        "E-1405"
+      ],
+      "source": "真源",
+      "task": "T09"
+    },
+    {
+      "id": "CON-01",
+      "method": "GET",
+      "path": "/api/v1/contracts",
+      "tag": "Contract",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "contract",
+      "query_params": [
+        "page",
+        "pageSize",
+        "status"
+      ],
+      "error_codes": [],
+      "source": "真源",
+      "task": "T11"
+    },
+    {
+      "id": "CON-02",
+      "method": "GET",
+      "path": "/api/v1/contracts/{id}",
+      "tag": "Contract",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "contract",
+      "query_params": [],
+      "error_codes": [
+        "E-1701"
+      ],
+      "source": "真源",
+      "task": "T11"
+    },
+    {
+      "id": "CON-03",
+      "method": "GET",
+      "path": "/api/v1/contracts/{id}/file",
+      "tag": "Contract",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "report-export",
+      "query_params": [],
+      "error_codes": [
+        "E-1701"
+      ],
+      "source": "真源",
+      "task": "T11"
+    },
+    {
+      "id": "CON-04",
+      "method": "POST",
+      "path": "/api/v1/contracts/{id}/sign",
+      "tag": "Contract",
+      "auth": "PROVIDER",
+      "request_model": "contract-sign",
+      "response_model": "contract",
+      "query_params": [],
+      "error_codes": [
+        "E-1701",
+        "E-1601"
+      ],
+      "source": "真源",
+      "task": "T11"
+    },
+    {
+      "id": "PAY-01",
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "tag": "Payment",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "payment",
+      "query_params": [
+        "page",
+        "pageSize"
+      ],
+      "error_codes": [],
+      "source": "真源+约定",
+      "task": "T11"
+    },
+    {
+      "id": "NTF-01",
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "tag": "Notification",
+      "auth": "authenticated",
+      "request_model": null,
+      "response_model": "notification",
+      "query_params": [
+        "page",
+        "pageSize",
+        "unread",
+        "category"
+      ],
+      "error_codes": [],
+      "source": "真源+推断",
+      "task": "T13"
+    },
+    {
+      "id": "NTF-02",
+      "method": "POST",
+      "path": "/api/v1/notifications/{id}/read",
+      "tag": "Notification",
+      "auth": "authenticated",
+      "request_model": null,
+      "response_model": "notification-read",
+      "query_params": [],
+      "error_codes": [
+        "E-1901"
+      ],
+      "source": "真源",
+      "task": "T13"
+    },
+    {
+      "id": "USE-01",
+      "method": "GET",
+      "path": "/api/v1/usage/summary",
+      "tag": "Usage",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "usage-summary",
+      "query_params": [
+        "startHour",
+        "endHour",
+        "month"
+      ],
+      "error_codes": [
+        "E-1801"
+      ],
+      "source": "真源",
+      "task": "T12"
+    },
+    {
+      "id": "USE-02",
+      "method": "GET",
+      "path": "/api/v1/usage/hourly",
+      "tag": "Usage",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "usage-hourly-bucket",
+      "query_params": [
+        "from",
+        "to",
+        "model",
+        "group",
+        "page",
+        "pageSize"
+      ],
+      "error_codes": [
+        "E-1801"
+      ],
+      "source": "真源",
+      "task": "T12"
+    },
+    {
+      "id": "ADM-P01",
+      "method": "GET",
+      "path": "/api/v1/admin/providers",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "provider-profile",
+      "query_params": [
+        "page",
+        "pageSize",
+        "status",
+        "keyword"
+      ],
+      "error_codes": [],
+      "source": "推断",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-P02",
+      "method": "POST",
+      "path": "/api/v1/admin/providers/{id}/suspend",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,TECH_OPS,SUPER_ADMIN",
+      "request_model": "provider-suspend",
+      "response_model": "provider-profile",
+      "query_params": [],
+      "error_codes": [
+        "E-1601"
+      ],
+      "source": "真源",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-P03",
+      "method": "POST",
+      "path": "/api/v1/admin/providers/{id}/resume",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "provider-profile",
+      "query_params": [],
+      "error_codes": [
+        "E-1601"
+      ],
+      "source": "真源",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-C01",
+      "method": "GET",
+      "path": "/api/v1/admin/credentials/{id}",
+      "tag": "Admin",
+      "auth": "SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "credential-detail",
+      "query_params": [],
+      "error_codes": [
+        "E-1901"
+      ],
+      "source": "推断",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-C02",
+      "method": "POST",
+      "path": "/api/v1/admin/credentials/{id}/reveal",
+      "tag": "Admin",
+      "auth": "SUPER_ADMIN",
+      "request_model": "credential-reveal",
+      "response_model": "reveal-result",
+      "query_params": [],
+      "error_codes": [
+        "E-1901",
+        "E-1902"
+      ],
+      "source": "真源",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-Q01",
+      "method": "POST",
+      "path": "/api/v1/admin/quotes/{id}/compile",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "compilation-result",
+      "query_params": [],
+      "error_codes": [
+        "E-1401",
+        "E-1402",
+        "E-1405"
+      ],
+      "source": "真源",
+      "task": "T09"
+    },
+    {
+      "id": "ADM-Q02",
+      "method": "GET",
+      "path": "/api/v1/admin/quotes/compare",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "quote-compare",
+      "query_params": [
+        "quoteIds"
+      ],
+      "error_codes": [],
+      "source": "推断",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-CP01",
+      "method": "GET",
+      "path": "/api/v1/admin/compilations",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "compilation-result",
+      "query_params": [
+        "page",
+        "pageSize",
+        "status"
+      ],
+      "error_codes": [],
+      "source": "真源",
+      "task": "T09"
+    },
+    {
+      "id": "ADM-CP02",
+      "method": "GET",
+      "path": "/api/v1/admin/compilations/{id}",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "compilation-result",
+      "query_params": [],
+      "error_codes": [
+        "E-1406"
+      ],
+      "source": "真源",
+      "task": "T09"
+    },
+    {
+      "id": "ADM-CP03",
+      "method": "POST",
+      "path": "/api/v1/admin/compilations/{id}/verify",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "verify-report",
+      "query_params": [],
+      "error_codes": [
+        "E-1405"
+      ],
+      "source": "真源",
+      "task": "T09"
+    },
+    {
+      "id": "ADM-CP04",
+      "method": "POST",
+      "path": "/api/v1/admin/compilations/{id}/confirm",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "compilation-result",
+      "query_params": [],
+      "error_codes": [
+        "E-1405",
+        "E-1407"
+      ],
+      "source": "真源",
+      "task": "T09"
+    },
+    {
+      "id": "ADM-R01",
+      "method": "GET",
+      "path": "/api/v1/admin/reviews",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "review-task",
+      "query_params": [
+        "page",
+        "pageSize",
+        "status"
+      ],
+      "error_codes": [],
+      "source": "真源",
+      "task": "T10"
+    },
+    {
+      "id": "ADM-R02",
+      "method": "POST",
+      "path": "/api/v1/admin/reviews/{id}/claim",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "review-task",
+      "query_params": [],
+      "error_codes": [
+        "E-1601"
+      ],
+      "source": "真源",
+      "task": "T10"
+    },
+    {
+      "id": "ADM-R03",
+      "method": "POST",
+      "path": "/api/v1/admin/reviews/{id}/approve",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,SUPER_ADMIN",
+      "request_model": "review-approve",
+      "response_model": "review-task",
+      "query_params": [],
+      "error_codes": [
+        "E-1601"
+      ],
+      "source": "真源",
+      "task": "T10"
+    },
+    {
+      "id": "ADM-R04",
+      "method": "POST",
+      "path": "/api/v1/admin/reviews/{id}/reject",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,SUPER_ADMIN",
+      "request_model": "review-reject",
+      "response_model": "review-task",
+      "query_params": [],
+      "error_codes": [
+        "E-1001",
+        "E-1601"
+      ],
+      "source": "真源",
+      "task": "T10"
+    },
+    {
+      "id": "ADM-R05",
+      "method": "GET",
+      "path": "/api/v1/admin/reviews/records",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "review-record",
+      "query_params": [
+        "quoteId",
+        "page",
+        "pageSize"
+      ],
+      "error_codes": [],
+      "source": "推断",
+      "task": "T10"
+    },
+    {
+      "id": "ADM-CT01",
+      "method": "GET",
+      "path": "/api/v1/admin/contracts",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "contract",
+      "query_params": [
+        "page",
+        "pageSize",
+        "status"
+      ],
+      "error_codes": [],
+      "source": "真源",
+      "task": "T11"
+    },
+    {
+      "id": "ADM-CT02",
+      "method": "POST",
+      "path": "/api/v1/admin/contracts/{id}/issue",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,SUPER_ADMIN",
+      "request_model": "contract-issue",
+      "response_model": "contract",
+      "query_params": [],
+      "error_codes": [
+        "E-1001",
+        "E-1601"
+      ],
+      "source": "真源",
+      "task": "T11"
+    },
+    {
+      "id": "ADM-CT03",
+      "method": "POST",
+      "path": "/api/v1/admin/contracts/{id}/confirm-sign",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "contract",
+      "query_params": [],
+      "error_codes": [
+        "E-1601"
+      ],
+      "source": "真源",
+      "task": "T11"
+    },
+    {
+      "id": "ADM-PAY01",
+      "method": "GET",
+      "path": "/api/v1/admin/payments",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "payment",
+      "query_params": [
+        "page",
+        "pageSize",
+        "status"
+      ],
+      "error_codes": [],
+      "source": "真源",
+      "task": "T11"
+    },
+    {
+      "id": "ADM-PAY02",
+      "method": "POST",
+      "path": "/api/v1/admin/payments/{id}/confirm",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "payment",
+      "query_params": [],
+      "error_codes": [
+        "E-1601",
+        "E-1701"
+      ],
+      "source": "真源",
+      "task": "T11"
+    },
+    {
+      "id": "ADM-PAY03",
+      "method": "GET",
+      "path": "/api/v1/admin/settlements",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "settlement-statement",
+      "query_params": [
+        "page",
+        "pageSize"
+      ],
+      "error_codes": [],
+      "source": "真源",
+      "task": "T11"
+    },
+    {
+      "id": "ADM-S01",
+      "method": "GET",
+      "path": "/api/v1/admin/sync/tasks",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "sync-task",
+      "query_params": [
+        "page",
+        "pageSize",
+        "status",
+        "bindingId"
+      ],
+      "error_codes": [],
+      "source": "真源",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-S02",
+      "method": "GET",
+      "path": "/api/v1/admin/sync/tasks/{taskId}",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "sync-task",
+      "query_params": [],
+      "error_codes": [
+        "E-1501"
+      ],
+      "source": "真源",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-S03",
+      "method": "POST",
+      "path": "/api/v1/admin/sync/tasks/{taskId}/retry",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "sync-task",
+      "query_params": [],
+      "error_codes": [
+        "E-1501",
+        "E-1505"
+      ],
+      "source": "真源",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-S04",
+      "method": "GET",
+      "path": "/api/v1/admin/channel-bindings",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "channel-binding",
+      "query_params": [
+        "page",
+        "pageSize"
+      ],
+      "error_codes": [],
+      "source": "推断",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-S05",
+      "method": "POST",
+      "path": "/api/v1/admin/channel-bindings/{bindingId}/status",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": "binding-status",
+      "response_model": "channel-binding",
+      "query_params": [],
+      "error_codes": [
+        "E-1505"
+      ],
+      "source": "真源",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-S06",
+      "method": "GET",
+      "path": "/api/v1/admin/sync/models/upstream",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "model-info",
+      "query_params": [],
+      "error_codes": [
+        "E-1505"
+      ],
+      "source": "真源",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-U01",
+      "method": "GET",
+      "path": "/api/v1/admin/usage/hourly",
+      "tag": "Admin",
+      "auth": "TECH_OPS,BIZ_OPERATOR,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "usage-hourly-bucket",
+      "query_params": [
+        "from",
+        "to",
+        "providerId",
+        "channelId",
+        "model",
+        "page",
+        "pageSize"
+      ],
+      "error_codes": [
+        "E-1801"
+      ],
+      "source": "真源",
+      "task": "T12"
+    },
+    {
+      "id": "ADM-U02",
+      "method": "POST",
+      "path": "/api/v1/admin/usage/refresh",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": "usage-refresh",
+      "response_model": "usage-refresh-result",
+      "query_params": [],
+      "error_codes": [
+        "E-1801"
+      ],
+      "source": "真源",
+      "task": "T12"
+    },
+    {
+      "id": "ADM-CFG01",
+      "method": "GET",
+      "path": "/api/v1/admin/detection-configs",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "detection-config",
+      "query_params": [
+        "page",
+        "pageSize"
+      ],
+      "error_codes": [],
+      "source": "推断",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-CFG02",
+      "method": "POST",
+      "path": "/api/v1/admin/detection-configs",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": "detection-config-save",
+      "response_model": "detection-config",
+      "query_params": [],
+      "error_codes": [
+        "E-1001"
+      ],
+      "source": "推断",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-CFG03",
+      "method": "GET",
+      "path": "/api/v1/admin/detection-configs/{configId}",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "detection-config",
+      "query_params": [],
+      "error_codes": [
+        "E-1406"
+      ],
+      "source": "推断",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-CFG04",
+      "method": "PUT",
+      "path": "/api/v1/admin/detection-configs/{configId}",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": "detection-config-save",
+      "response_model": "detection-config",
+      "query_params": [],
+      "error_codes": [
+        "E-1601"
+      ],
+      "source": "推断",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-CFG05",
+      "method": "POST",
+      "path": "/api/v1/admin/detection-configs/{configId}/publish",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "detection-config",
+      "query_params": [],
+      "error_codes": [
+        "E-1601"
+      ],
+      "source": "推断",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-CFG06",
+      "method": "GET",
+      "path": "/api/v1/admin/report-templates",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "report-template",
+      "query_params": [
+        "page",
+        "pageSize"
+      ],
+      "error_codes": [],
+      "source": "推断",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-CFG07",
+      "method": "POST",
+      "path": "/api/v1/admin/report-templates",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": "report-template-save",
+      "response_model": "report-template",
+      "query_params": [],
+      "error_codes": [
+        "E-1001"
+      ],
+      "source": "推断",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-CFG08",
+      "method": "GET",
+      "path": "/api/v1/admin/report-templates/{templateId}",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "report-template",
+      "query_params": [],
+      "error_codes": [
+        "E-1406"
+      ],
+      "source": "推断",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-CFG09",
+      "method": "PUT",
+      "path": "/api/v1/admin/report-templates/{templateId}",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": "report-template-save",
+      "response_model": "report-template",
+      "query_params": [],
+      "error_codes": [
+        "E-1601"
+      ],
+      "source": "推断",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-CFG10",
+      "method": "POST",
+      "path": "/api/v1/admin/report-templates/{templateId}/publish",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "report-template",
+      "query_params": [],
+      "error_codes": [
+        "E-1601"
+      ],
+      "source": "推断",
+      "task": "T14"
+    },
+    {
+      "id": "ADM-A01",
+      "method": "GET",
+      "path": "/api/v1/admin/audit-logs",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "audit-log",
+      "query_params": [
+        "page",
+        "pageSize",
+        "actorType",
+        "action",
+        "traceId",
+        "from",
+        "to"
+      ],
+      "error_codes": [
+        "E-1901"
+      ],
+      "source": "真源",
+      "task": "T13"
+    }
+  ]
+}
