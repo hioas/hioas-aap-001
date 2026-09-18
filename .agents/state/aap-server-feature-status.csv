@@ -94,3 +94,4 @@ T14,ADM-CFG10,POST,/admin/report-templates/{templateId}/publish,推断,已实现
 T15,,,,端到端验收与交付,待实现,,
 R27,,,分页集合键名契约审计与修复（OpenAPI 产物 list→items；PROV-03 补 PageMeta 包装）,真源（客户端读法 + 清单 §0 / D-API-01）,已修复(88/88断言),evidence/green-R27-contract-keys.txt,
 R28,,,错误码契约审计（五处真源：md 清单逐行 / endpoints.json / openapi.yaml / ErrorCode.java / error.schema.json）,真源（清单 §4 错误码表 + 实现抛码取证）,已审计(16 断言：14 PASS / 2 FAIL＝真实漂移，本轮未改代码，待拍板),evidence/audit-error-codes-R28.txt,
+R29,,,错误码契约漂移的第三方仲裁（用实现抛点＋既有测试断言当裁判逐条定谁对：md 对 5 条／清单对 4 条／两边都错 1 条；孤儿码 E-1102 零抛点、E-1404 生成器漏声明）,真源（实现抛码取证 + 既有测试断言双向取证；依据 skill 踩坑 51）,已裁决(逐条给出改哪一侧＋补哪些码；本轮 missing=0 未改代码，待拍板执行),evidence/audit-error-codes-adjudication-R29.txt,

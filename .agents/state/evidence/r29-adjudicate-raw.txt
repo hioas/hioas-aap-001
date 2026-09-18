@@ -1,0 +1,73 @@
+=== 1. 漂移端点的清单口径（method/path/清单码）===
+ADM-Q01: POST /api/v1/admin/quotes/{id}/compile  清单码=['E-1401', 'E-1402', 'E-1405']  task=T09
+AUTH-02: POST /api/v1/auth/sms/login  清单码=['E-1001', 'E-1101', 'E-1903']  task=T03
+CRED-04: PUT /api/v1/credentials/{id}  清单码=['E-1001', 'E-1104', 'E-1601']  task=T05
+DET-02: GET /api/v1/detection-jobs/{jobId}  清单码=['E-1304']  task=T06
+PROV-02: PUT /api/v1/provider/profile  清单码=['E-1001', 'E-1104', 'E-1601']  task=T04
+QT-03: GET /api/v1/quotes/{quoteId}  清单码=['E-1401']  task=T08
+QT-06: GET /api/v1/quotes/{quoteId}/items  清单码=[]  task=T08
+QT-07: GET /api/v1/quotes/items/{itemId}  清单码=['E-1401']  task=T08
+QT-08: PUT /api/v1/quotes/items/{itemId}  清单码=['E-1001', 'E-1401', 'E-1402', 'E-1403']  task=T08
+QT-11: GET /api/v1/quotes/{quoteId}/versions  清单码=[]  task=T08
+
+=== 2. 端点 → 控制器方法定位（main 源码，按路径骨架）===
+ADM-Q01 /api/v1/admin/quotes/{id}/compile → 检索键 '/compile'
+AUTH-02 /api/v1/auth/sms/login → 检索键 '/login'
+CRED-04 /api/v1/credentials/{id} → 检索键 '/credentials'
+DET-02 /api/v1/detection-jobs/{jobId} → 检索键 '/detection-jobs'
+PROV-02 /api/v1/provider/profile → 检索键 '/profile'
+QT-03 /api/v1/quotes/{quoteId} → 检索键 '/quotes'
+QT-06 /api/v1/quotes/{quoteId}/items → 检索键 '/items'
+QT-07 /api/v1/quotes/items/{itemId} → 检索键 '/items'
+QT-08 /api/v1/quotes/items/{itemId} → 检索键 '/items'
+QT-11 /api/v1/quotes/{quoteId}/versions → 检索键 '/versions'
+
+=== 3. 孤儿码 / 争议码的实现抛点（main 源码，排除 ErrorCode.java 定义行）===
+--- E-1102: 抛点 0 处 ---
+--- E-1404: 抛点 2 处 ---
+     com/hioas/aap/compile/CompilationService.java:332:                : firstReason.contains("（V12）") ? ErrorCode.E_1404
+     com/hioas/aap/quote/QuoteService.java:752:                throw new ApiException(ErrorCode.E_1404, error.reason(), errors);
+--- E-1401: 抛点 2 处 ---
+     com/hioas/aap/compile/CompilationService.java:330:                || firstReason.contains("（V9）") ? ErrorCode.E_1401
+     com/hioas/aap/quote/QuoteService.java:746:                throw new ApiException(ErrorCode.E_1401, error.reason(), errors);
+--- E-1406: 抛点 35 处 ---
+     com/hioas/aap/adminconfig/DetectionConfigService.java:122:            throw new ApiException(ErrorCode.E_1406, "检测配置不存在");
+     com/hioas/aap/adminconfig/ReportTemplateService.java:99:            throw new ApiException(ErrorCode.E_1406, "报告模板不存在");
+     com/hioas/aap/common/GlobalExceptionHandler.java:84:        return ResponseEntity.status(ErrorCode.E_1406.httpStatus())
+     com/hioas/aap/common/GlobalExceptionHandler.java:85:                .body(ApiEnvelope.fail(ErrorCode.E_1406, "接口或资源不存在"));
+     com/hioas/aap/common/GlobalExceptionHandler.java:91:                .body(ApiEnvelope.fail(ErrorCode.E_1406, "请求方法不被支持：" + ex.getMethod()));
+     com/hioas/aap/compile/CompilationService.java:364:            throw new ApiException(ErrorCode.E_1406, "编译记录不存在");
+     com/hioas/aap/compile/CompilationService.java:372:            throw new ApiException(ErrorCode.E_1406, "报价单不存在");
+     com/hioas/aap/compile/CompilationService.java:381:            throw new ApiException(ErrorCode.E_1406, "报价单不存在");
+     com/hioas/aap/contract/ContractService.java:172:            throw new ApiException(ErrorCode.E_1406, "合同文件不存在：" + row.fileId());
+     com/hioas/aap/contract/ContractService.java:336:            throw new ApiException(ErrorCode.E_1406, "合同不存在：" + contractId);
+--- E-1601: 抛点 41 处 ---
+     com/hioas/aap/adminconfig/DetectionConfigService.java:174:            throw new ApiException(ErrorCode.E_1601,
+     com/hioas/aap/adminconfig/DetectionConfigService.java:202:            throw new ApiException(ErrorCode.E_1601,
+     com/hioas/aap/adminconfig/ReportTemplateService.java:148:            throw new ApiException(ErrorCode.E_1601,
+     com/hioas/aap/adminconfig/ReportTemplateService.java:168:            throw new ApiException(ErrorCode.E_1601,
+     com/hioas/aap/compile/CompilationService.java:90:            throw new ApiException(ErrorCode.E_1601,
+     com/hioas/aap/contract/ContractService.java:201:            throw new ApiException(ErrorCode.E_1601,
+     com/hioas/aap/contract/ContractService.java:216:            throw new ApiException(ErrorCode.E_1601, "合同状态已变化，签署未生效，请刷新后重试");
+     com/hioas/aap/contract/ContractService.java:258:            throw new ApiException(ErrorCode.E_1601,
+     com/hioas/aap/contract/ContractService.java:282:            throw new ApiException(ErrorCode.E_1601, "合同状态已变化，签发未生效，请刷新后重试");
+     com/hioas/aap/contract/ContractService.java:299:            throw new ApiException(ErrorCode.E_1601,
+--- E-1104: 抛点 3 处 ---
+     com/hioas/aap/credential/CredentialService.java:337:            throw new ApiException(ErrorCode.E_1104, "该 APIKey 已提交过（指纹重复）",
+     com/hioas/aap/provider/ProviderService.java:349:            throw new ApiException(ErrorCode.E_1104, "统一社会信用代码已被其他供应商使用",
+     com/hioas/aap/quote/QuoteService.java:295:                throw new ApiException(ErrorCode.E_1104,
+--- E-1901: 抛点 10 处 ---
+     com/hioas/aap/common/GlobalExceptionHandler.java:100:        return ResponseEntity.status(ErrorCode.E_1901.httpStatus())
+     com/hioas/aap/common/GlobalExceptionHandler.java:101:                .body(ApiEnvelope.fail(ErrorCode.E_1901, "权限不足"));
+     com/hioas/aap/config/SecurityConfig.java:60:                                write(response, objectMapper, ErrorCode.E_1901, "权限不足")))
+     com/hioas/aap/credential/CredentialService.java:287:            throw new ApiException(ErrorCode.E_1901, "仅超级管理员可访问凭证明文");
+     com/hioas/aap/credential/CredentialService.java:359:            throw new ApiException(ErrorCode.E_1901, "无权访问该凭证");
+     com/hioas/aap/credential/CredentialService.java:366:            throw new ApiException(ErrorCode.E_1901, "当前账号未绑定供应商主体");
+     com/hioas/aap/credential/CredentialService.java:445:            throw new ApiException(ErrorCode.E_1901, "当前管理员未绑定手机号，无法完成二次验证");
+     com/hioas/aap/support/NotificationController.java:63:            throw new ApiException(ErrorCode.E_1901, "当前账号未绑定供应商主体，无法访问站内信");
+     com/hioas/aap/support/NotificationService.java:127:            throw new ApiException(ErrorCode.E_1901, "站内信不存在或不属于当前账号");
+     com/hioas/aap/usage/UsageController.java:63:            throw new ApiException(ErrorCode.E_1901, "账号未关联供应商主体，无法查看用量");
+--- E-1903: 抛点 3 处 ---
+     com/hioas/aap/iam/SmsService.java:55:                throw new ApiException(ErrorCode.E_1903, "尝试过于频繁，请 15 分钟后再试");
+     com/hioas/aap/iam/SmsService.java:59:                throw new ApiException(ErrorCode.E_1903,
+     com/hioas/aap/iam/SmsService.java:101:            throw new ApiException(ErrorCode.E_1903, "验证码错误次数过多，请 15 分钟后再试");

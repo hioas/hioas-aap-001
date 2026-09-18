@@ -1179,3 +1179,66 @@ md5 与 R19–R26 完全一致 → 自 R19 起零变化，未纳入本次提交�
 
 本轮**无新端点批次落地**（`missing=0`），按「每完成一个批次才通知」的规则本可不发；仍试发一次以取证，
 结果见 `evidence/feishu-notify-failures.txt` 与本文件下方 R28 记录。
+
+---
+
+## R29（2026-09-18 13:38–13:52）巡检复验 + **错误码漂移的第三方仲裁**（业务代码零改动、md 零改动、生成器零改动、断言零改动）
+
+### 本轮定位
+
+`missing=0` 已连续 11 轮，本轮不做「再造一个审计维度」，而是**把 R28 遗留的 11 条待拍板项变成可拍板的证据**：
+按 skill 踩坑 51「审计出的漂移要双向取证再定谁对」，用**实现抛点**与**既有测试断言**当第三方裁判，
+逐条判定 md 清单与 `endpoints.json` 谁对。裁决全部落在 `evidence/audit-error-codes-adjudication-R29.txt`。
+
+### 两轮全量（防 flaky）
+
+| 轮次 | 结果 | 证据 |
+| --- | --- | --- |
+| run1 | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0`；`BUILD SUCCESS`（47.196 s）；`[ERROR]` 计数 0 | `green-verify-R29-full-run1.txt` |
+| run2 | 同上（56.315 s）；与 run1 **逐类结果 diff 为空**（33 个测试类完全一致） | `green-verify-R29-full-run2.txt` + `r29-run1-classes.txt` / `r29-run2-classes.txt` |
+
+覆盖门禁（由用例重生成）：`total=90 implemented=90 missing=0`、`registered_routes=96`、`not_registered=[]`。
+
+### 逐条裁决（10 条漂移 → md 对 5 / 清单对 4 / 两边都错 1）
+
+| 端点 | 裁决 | 第三方证据 |
+| --- | --- | --- |
+| ADM-Q01 | **md 对**（清单漏 E-1001/E-1403/E-1404/E-1601） | `CompilationService` :90 E-1601、:268 E-1405、:330-336 按 V 规则映射 E-1401/E-1403/E-1404/E-1402/E-1001；`CompilationContractTest:216` 断言 E-1402 |
+| AUTH-02 | **清单对**（md 漏 E-1903） | `SmsService:101` 锁定未到期 → E-1903；`AuthContractTest:114`「连续 5 次错码后即使码正确也 429 E-1903」正是该端点 |
+| CRED-04 | **清单对**（md 漏 E-1601） | `CredentialService:177`（方法 javadoc = CRED-04，If-Match 乐观锁）→ E-1601；无该码测试断言（单侧证据） |
+| DET-02 | **清单对**（md 的 E-1901 多写） | `DetectionService.requireJob:380-389` 不存在与**越权**都 → E-1304（隐存口径）；detection 包内 E_1901 抛点 **0 处**；`DetectionContractTest:340` 越权断言 **E-1304** |
+| PROV-02 | **清单对**（md 漏 E-1601） | `ProviderService:94` → E-1601；`ProviderContractTest:165` 直接断言 |
+| QT-03 | **md 对**（清单 E-1401 应为 E-1406） | `QuoteService.requireOwned:721-729` → E-1406；`QuoteContractTest:398` 他人凭证访问断言 404 E-1406 |
+| QT-06 | **md 对**（清单漏 E-1406） | `listItems:265` → requireOwned → E-1406（单侧证据） |
+| QT-07 | **md 对**（清单 E-1401 应为 E-1406） | `getItem:272-279` → E-1406（单侧证据） |
+| QT-08 | **md 对**（清单漏 E-1104/E-1404） | `saveItem` :289 E-1406、:295 E-1104、:736 E-1601、:746/:749/:752/:756 规则族码、:304 E-1001；`QuoteContractTest` :201/:206 E-1401、:212 E-1402、:218 E-1404、:223 E-1403、:275 E-1104（**md 集合逐条有测试背书**） |
+| QT-11 | **两边都错** | `versions:414-427` → requireOwned → **E-1406**；md 写 E-1401、清单为空 → 两侧都应写 E-1406 |
+
+孤儿码：**E-1102 抛点 0 处**（死码 vs 缺失的状态校验，两种含义必须人拍板）；**E-1404 实现真抛 2 处**
+（`QuoteService:752` V12、`CompilationService:332` V12 映射）→ 生成器 PATHS 漏声明，与「md 对」裁决一致。
+
+语义冲突补充评估：md §4 的 E-1401 描述含「或资源不存在」而实现用 E-1406 → 实测 `aap-client/src`
+**不按码分支**（全仓 `E-1406` 命中 0 处，注释明写「前端只透传 message」）→ **当前无客户端功能影响**，
+属文档一致性项；建议 §4 把 E-1401 收窄为「时段区间重叠」。
+
+### 本轮其它只读校验（全部 rc=0）
+
+| 校验 | 结果 | 证据 |
+| --- | --- | --- |
+| 生成器 `--check` | 84/84 一致、孤儿 0（零写副作用） | `audit-regression-R29.txt` |
+| 分页集合键名审计 | 88 条断言 PASS 88 / FAIL 0 | `audit-regression-R29.txt` |
+| 端点用例审计 | `exact 90 / prefix 0 / none 0`；ID 可追溯 90/90（同文件档 90/90） | `audit-regression-R29.txt` |
+| `openapi.yaml` 可解析 | `paths=78 operations=90` | `audit-regression-R29.txt` |
+| 四个审计负向自测 | 14/14、全部通过、11/11、12/12（全 rc=0） | `selftest-regression-R29.txt` |
+| 错误码审计（复跑） | 16 断言 PASS 14 / FAIL 2（与 R28 同结论，可复现） | `audit-error-codes-R29.txt` |
+| 密钥泄漏审计 | 见下方专节 | `secret-leak-audit-R29.txt` |
+
+### 结论与待拍板
+
+- **90/90 维持全绿（连续第 12 轮：R18 → … → R29）**，未见 flaky；`missing=0` → 未改业务代码、未改 md、未改生成器、未动断言。
+- 本轮真正增量 = **错误码漂移的第三方仲裁**：10 条漂移中 **md 对 5 条 / 清单对 4 条 / 两边都错 1 条**，
+  2 个孤儿码分别为「死码（E-1102，待拍板）」与「生成器漏声明（E-1404）」，已给出**可直接执行的一次性改法**
+  （改哪一侧、改哪个文件、补哪些码）。
+- **待拍板（维持）**：飞书 home channel 未绑定；PROV-03 item 模型口径。
+- **待拍板（R28 新增，本轮已给出裁决证据，等待执行批准）**：错误码漂移 10 条 + 孤儿码 2 个；
+  另需拍板「全局角色拒绝码 E-1901 是否逐端点声明」（md 8 条 / 清单 7 条，差集恰为 DET-02）。

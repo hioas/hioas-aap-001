@@ -1,0 +1,33 @@
+=== R29 审计负向自测复跑 2026-09-18 13:43:18 ===
+--- gen-backend-models-selftest ---
+  [PASS] 生成模式 → rc=0  (rc=0)
+  [PASS] 生成产物与基线逐字节一致（内容 md5 不变，仅 mtime 变）  (内容变化的文件数=0 [])
+---- 收尾：仓库必须干净（自测零残留）----
+  [PASS] 所有产物内容回到基线（无残留）  (残留=[])
+
+结果：全部通过（14 条断言，自测有判别力）
+rc=0
+--- audit-endpoint-tests-selftest ---
+  [PASS] 区间不得外溢：SYN-04 必须判不可追溯  (SYN-04 已判为不可追溯（区间未过度展开）)
+  [PASS] 未被提及的 SYN-09 必须判不可追溯  (SYN-09 已判为不可追溯)
+  [PASS] 同文件档：ID 引用与调用点同文件  (same_file=5（期望 ≥4）)
+
+结果：全部通过（审计有判别力）
+夹具目录：C:\Users\laitz\AppData\Local\Temp\aap-audit-selftest-own5xz9q
+rc=0
+--- audit-contract-keys-selftest ---
+[PASS] D1 反向 PageResult 首分量 list → D 分支 FAIL
+[PASS] E1 反向 客户端接口只声明 records → E 分支 FAIL
+[PASS] F1 反向 清单 §0 未写 data:{items: → F 分支 FAIL
+[PASS] G1 夹具目录缺文件 → 报 FAIL 且不崩溃（rc=1，有 rows）
+
+合计 11 条断言：PASS 11，FAIL 0
+rc=0
+--- audit-error-codes-selftest ---
+[PASS] case_md_range_no_overflow：rc=1(期望 1) 命中「A9 md 每行错误码列 = 清单」=是
+[PASS] case_openapi_decoy_enum：rc=0(期望 0) 命中「A2 O.ResultCode 与 J 一致」=是
+[PASS] case_openapi_missing_enum：rc=1(期望 1) 命中「A0f O ResultCode enum 非空」=是
+[PASS] case_missing_source：rc=1(期望 1) 命中「源文件缺失」=是
+
+自测断言 12 条：PASS 12，FAIL 0
+rc=0

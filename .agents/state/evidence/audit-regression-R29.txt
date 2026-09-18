@@ -1,0 +1,49 @@
+=== R29 既有只读校验复跑 2026-09-18 13:43:15 ===
+--- gen-backend-models.py --check ---
+check ok: 84/84 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）
+ok: models=55 requests=24 paths=78 operations=90 files=82
+rc=0
+--- audit-contract-keys.py ---
+== A. OpenAPI 分页集合键名（应为 items）：57/57 PASS ==
+   [OK ] 集合键名 items：57 个端点 → PROV-01 PROV-02 PROV-03 CRED-01 CRED-06 DET-03 DET-04 RPT-01 …
+
+== B. OpenAPI 分页端点必须被 PageMeta 包装：23/23 PASS ==
+   [OK ] 全部 23 个带 pageSize 参数的端点均已 PageMeta 包装
+
+== C. page.schema.json 必须 required/properties 含 items：3/3 PASS ==
+   [OK ] docs/backend/json-schema/common/page.schema.json required：required 含 'items'
+   [OK ] docs/backend/json-schema/common/page.schema.json properties：properties 含 'items'
+   [OK ] docs/backend/json-schema/common/page.schema.json no-rejected-key：未出现被否定的旧键名
+
+== D. 运行时 PageResult 分量名：1/1 PASS ==
+   [OK ] aap-server/src/main/java/com/hioas/aap/common/PageResult.java record-components：PageResult 分量 = ['items', 'page', 'pageSize', 'total']
+
+== E. 客户端列表响应接口必须声明 items：3/3 PASS ==
+   [OK ] aap-client/src/api/contract.ts#ContractListRaw ContractListRaw：声明字段 = ['items', 'list', 'records']
+   [OK ] aap-client/src/api/payment.ts#PaymentListRaw extends MineWalletSource PaymentListRaw extends MineWalletSource：声明字段 = ['items', 'list', 'records']
+   [OK ] aap-client/src/api/report.ts#ReportListRaw ReportListRaw：声明字段 = ['items', 'list']
+
+== F. 冻结清单 §0 分页字段名约定：1/1 PASS ==
+   [OK ] docs/backend/02-API接口模型清单.md §0-分页约定：§0 写明 data:{items:…}
+
+合计 88 条断言：PASS 88，FAIL 0
+结论：分页集合键名在 OpenAPI / JSON Schema / 运行时 / 客户端 / 清单五处一致。
+rc=0
+--- audit-endpoint-tests.py ---
+端点「真实 HTTP 用例」可追溯性审计（只读）
+清单：docs/backend/endpoints.json（90 条）
+测试源：aap-server/src/test/java（39 个 .java 文件）
+
+exact （路径骨架 + 方法都吻合的真实 HTTP 调用点）：90
+prefix（路径命中但方法不吻合 / 仅静态前缀，弱证据）：0
+none  （无任何调用点 —— 真发现）            ：0
+端点 ID 在测试源里可追溯（含组合引用展开）  ：90/90
+  其中仅裸字面量可追溯                      ：71/90
+  靠组合引用（`A-05/06`、`A-01…05`）才算命中  ：19
+ID 引用与真实 HTTP 调用点同文件（更严一档）  ：90/90
+
+
+rc=0
+--- check-openapi-parses.py ---
+OK: docs\backend\openapi.yaml 可解析；paths=78 operations=90
+rc=0
