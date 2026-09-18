@@ -12,3 +12,6 @@
 2026-09-18T09:41 T11 完成通知发送失败：hermes send -t feishu 报 'No home channel set for feishu ... set FEISHU_HOME_CHANNEL'（沿用：目标未绑定，需人工配置）。工作不因此中断，提交 738153c 已完成。
 2026-09-18T10:24 T13 完成通知发送失败：同上（FEISHU_HOME_CHANNEL 未绑定，需人工 `hermes config set FEISHU_HOME_CHANNEL <channel_id>`）。工作不中断，提交 01dc624 已完成。
 2026-09-18T10:25 T14 批次一（报告模板 ADM-CFG06…10）完成通知发送失败：同上。工作不中断，提交 55621a8 已完成。
+[2026-09-18 10:14:24+0800] 通知失败（第 N 次）：hermes send -t feishu -s 'AAP TDD 进度' 'T14 批次二 ADM-CFG01…05 完成，已注册 78/90，提交 78ad322'
+  原因：hermes send: No home channel set for feishu to determine where to send the message. Either specify a channel directly with 'feishu:CHANNEL_NAME', or set a home channel via: hermes config set FEISHU_HOME_CHANNEL <channel_id>
+  处置：不中断开发（硬要求已满足不了：飞书目标未绑定）；需人工在 Hermes 侧绑定 home channel（或指定 feishu:<频道名>）后重发。
