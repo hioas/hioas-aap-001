@@ -1,0 +1,34 @@
+== R60 抽查脚本的负向自测（判别力实测） ==
+覆盖：合规夹具 rc=0 且 FAIL 0 + A0a…A0g 正向对照全 PASS；空夹具 rc=1 且点名全部解析器正向对照；
+6 组注入缺陷各**恰好**新增目标断言且锚点全部命中；真实仓库只读且 FAIL 集合 = 3 类（9 条明细）；夹具零写副作用。
+
+[PASS] S1 合规夹具 rc=0 rc=0
+[PASS] S2 合规夹具 FAIL 0 FAIL=[]
+[PASS] S3 合规夹具正向对照 A0a…A0g 全 PASS A0 正向对照=7 条
+[PASS] S4 合规夹具解析到 DDL/schema/实现/端点/测试 ['DDL: 1 表 / 3 varchar 列 / 3 宽度种类', '测试: 1 处 repeat(N)']
+[PASS] S5 夹具零写副作用 
+[PASS] S6 空夹具 rc=1 且点名全部解析器正向对照 rc=1 缺失=[]
+[PASS] S7 注入①schema maxLength 64→999（越界放行） · 锚点全部命中 未命中=[]
+[PASS] S7 注入①schema maxLength 64→999（越界放行） · 恰好新增目标断言 新增=['A2', 'A3b'] 期望=['A2', 'A3b'] 消失=[]
+[PASS] S7 注入①schema maxLength 64→999（越界放行） · rc=1 rc=1
+[PASS] S8 注入②DDL varchar(64)→varchar(32)（库比声明更窄） · 锚点全部命中 未命中=[]
+[PASS] S8 注入②DDL varchar(64)→varchar(32)（库比声明更窄） · 恰好新增目标断言 新增=['A2', 'A4'] 期望=['A2', 'A4'] 消失=[]
+[PASS] S8 注入②DDL varchar(64)→varchar(32)（库比声明更窄） · rc=1 rc=1
+[PASS] S9 注入③删掉 title 的 @Size(min=2,max=64)（上限+下限同时失控） · 锚点全部命中 未命中=[]
+[PASS] S9 注入③删掉 title 的 @Size(min=2,max=64)（上限+下限同时失控） · 恰好新增目标断言 新增=['A3b', 'A5b'] 期望=['A3b', 'A5b'] 消失=[]
+[PASS] S9 注入③删掉 title 的 @Size(min=2,max=64)（上限+下限同时失控） · rc=1 rc=1
+[PASS] S10 注入④@Size(max=64)→@Size(max=999)（实现放行、库拒绝） · 锚点全部命中 未命中=[]
+[PASS] S10 注入④@Size(max=64)→@Size(max=999)（实现放行、库拒绝） · 恰好新增目标断言 新增=['A3b', 'A4'] 期望=['A3b', 'A4'] 消失=[]
+[PASS] S10 注入④@Size(max=64)→@Size(max=999)（实现放行、库拒绝） · rc=1 rc=1
+[PASS] S11 注入⑤remark 的**唯一**证据（服务层形参 length()）上限 200→999 · 锚点全部命中 未命中=[]
+[PASS] S11 注入⑤remark 的**唯一**证据（服务层形参 length()）上限 200→999 · 恰好新增目标断言 新增=['A3b'] 期望=['A3b'] 消失=[]
+[PASS] S11 注入⑤remark 的**唯一**证据（服务层形参 length()）上限 200→999 · rc=1 rc=1
+[PASS] S12 注入⑥删掉 code 的 @NotBlank（minLength=1 失控） · 锚点全部命中 未命中=[]
+[PASS] S12 注入⑥删掉 code 的 @NotBlank（minLength=1 失控） · 恰好新增目标断言 新增=['A5b'] 期望=['A5b'] 消失=[]
+[PASS] S12 注入⑥删掉 code 的 @NotBlank（minLength=1 失控） · rc=1 rc=1
+[PASS] S13 真实仓库 FAIL 断言集合 = 已人工回查的 3 类 实际=['A3b', 'A3c', 'A5b'] 期望=['A3b', 'A3c', 'A5b']
+[PASS] S14 真实仓库 rc=1 rc=1
+[PASS] S15 真实仓库只读（关键文件 md5 不变） 
+[PASS] S16 真实仓库 FAIL 明细 9 条 FAIL 明细=9
+
+自测汇总：28/28 PASS

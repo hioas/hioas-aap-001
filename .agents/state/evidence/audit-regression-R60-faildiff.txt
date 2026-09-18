@@ -1,0 +1,16 @@
+== R60 审计 FAIL 明细比对（基线 = R59 复跑结果） ==
+判据：方括号内允许空格的 FAIL 标记；排除 PASS 行（自指噪声）；比对键先剥来源名前缀（坑 109）
+两侧解析到的 FAIL 明细行数：R59 = 32 ；R60 = 41 （正向对照：两侧都必须 > 0，坑 46/97）
+新增 = 9 ；消失 = 0
+
+R60 新增 FAIL：
+  [FAIL] A3b qualification-create.file_name 声明 maxLength=255 但实现侧零强制，且 DDL 同名列是 varchar(255) → 超长(>255) 撞库为 **500 E-2001**，而契约承诺 400 E-1001（端点 PROV-04）
+  [FAIL] A3c detection-release.override_reason 声明 maxLength=500 但实现侧零强制，DDL 侧为 text（无长度上限）→ 超长输入被**静默接受**，契约声明的上限无效（端点 DET-06）
+  [FAIL] A3c review-approve.comment 声明 maxLength=500 但实现侧零强制，DDL 侧为 text（无长度上限）→ 超长输入被**静默接受**，契约声明的上限无效（端点 ADM-R03）
+  [FAIL] A3c review-reject.reason_text 声明 maxLength=500 但实现侧零强制，DDL 侧为 无同名列（无长度上限）→ 超长输入被**静默接受**，契约声明的上限无效（端点 ADM-R04）
+  [FAIL] A5b credential-create.alias 声明 minLength=2 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+  [FAIL] A5b credential-create.api_key 声明 minLength=8 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+  [FAIL] A5b detection-release.override_reason 声明 minLength=2 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+  [FAIL] A5b quote-create.name 声明 minLength=1 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+  [FAIL] A5b review-reject.reason_text 声明 minLength=2 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+

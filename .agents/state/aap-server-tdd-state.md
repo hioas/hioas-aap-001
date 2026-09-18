@@ -3338,3 +3338,65 @@ R 行连续性 R27 → R59 无缺号（坑 71）。
 
 **R59 台账收尾**：R59 行「提交」列填为 `d35893c`（不留台账债）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」且末行「提交」列非空；
 R 行连续性 R27 → R59 无缺号（坑 71）。飞书通知失败留痕（第 34 轮同因：feishu home channel 未绑定，不阻塞交付）。
+
+## R60 巡检轮（2026-09-19；missing=0 → 只校验不改代码；第三十四类可审计不变量：字符串字段「长度上限/下限」）
+
+**结论**：全量两轮 **204 例全绿**（0 失败 / 0 错误 / 0 跳过，33 个测试类）+ 逐类结果 diff = 0（先剥 `Time elapsed` 再排序，坑 79）
++ 覆盖门禁 **90/90**（`EndpointCoverageTest` 自身 1/1；`coverage-report.json` 逐字段 `total=90/implemented=90/missing=0/registered_routes=96/not_registered=[]`；
+`by_task` 12 族合计 90/90）+ `@Test` 词边界计数 204 与 surefire 对账一致、禁用扫描 0 条 + 既有 **14 套只读审计 + 4 套抽查 + 17 个负向自测零回归**
+（rc 序列与 R59 逐条一致，仅新增本轮 2 条；FAIL 明细剥**行首**来源前缀后 R59=32 / R60=41，**新增 9 条 = 本轮新抽查**，消失 0）
++ 零写副作用（84 个产物 `(size,md5)` 全等）。本轮**未改业务代码 / 清单 / 生成器 / md / 断言**；
+他方 4 个未提交文件（`aap-client/vite.config.ts`、`application.yml`、`log4j2-spring.xml`、`application-test.yml`）未触碰、未纳入提交。
+
+### 本轮新增抽查：字符串字段「长度上限 / 下限」跨源一致性（第三十四类可审计不变量）
+
+**为什么两套门禁都看不见**：① 契约测试把**真实响应**与 JSON Schema 比对，而 `requests/*.schema.json` 的
+`maxLength`/`minLength` 在**运行时不参与任何校验**（R57 已取证：`json-schema-validator` 是 `<scope>test</scope>`、main 零引用）
+→ 「schema 声明长度约束、实现不校验」对全部 204 例不可见；② 覆盖门禁只比「方法 + 路径」注册表；③ openapi 与客户端 TS 不被任何测试读取/执行。
+
+真源六处：D = DDL `varchar(n)` 列（宽度 / 列类型 / NOT NULL）；S = `requests/*.schema.json` 的 `maxLength`+`minLength`（含 `$ref` 跟进）；
+E = `endpoints.json` 的 `request_model` → 端点；I = 实现字段级注解 + 服务层**同域** `length()`/`isBlank()` 检查；T = 测试超长构造；M = md 清单长度措辞（信息项）。
+
+**真发现 9 条（1 硬 + 3 契约漂移 + 5 下限）**
+
+| 断言 | 字段 / 端点 | 事实 | 后果 |
+  |---|---|---|---|
+| **A3b（硬）** | `qualification-create.file_name` / PROV-04 | schema `maxLength=255`；DDL `aap_provider_qualification.file_name varchar(255) NOT NULL`；实现只校验扩展名白名单与 ≤10MB 体积、**零长度校验** | 超长（>255）文件名通过校验后撞库 → **500 E-2001**，契约承诺 **400 E-1001** |
+| **A3c ×3** | `detection-release.override_reason` / DET-06；`review-approve.comment` / ADM-R03；`review-reject.reason_text` / ADM-R04 | schema 声明 `maxLength=500` 而实现零强制；DDL 侧是 `text`（**无**长度上限） | 超长输入被**静默接受**，声明的上限无效（无 500 风险，属契约一致性） |
+| **A5b ×5** | `credential-create.alias`(2)、`credential-create.api_key`(8)、`detection-release.override_reason`(2)、`quote-create.name`(1)、`review-reject.reason_text`(2) | 实现侧零下限校验（`alias`/`name` 只有 `@Size(max=)`；`api_key` 只判非空；`override_reason` 只有 `@NotBlank` ≥1） | 过短输入被接受（契约与实现不一致） |
+
+**正面结论（带正向对照）**：7 个「schema `maxLength` 且有 DDL 同名列」的字段两侧**逐字段相等**
+（`alias=64` / detection-config `name=64` / `short_name=64` / `company_name=128` / `file_name=255` / quote `name=64` / `title=128`）；
+**无**「schema maxLength > DDL 宽度」的越界放行（已比对 7 个同名 DDL 列）；7 个声明上限有**同域强证据**强制；
+`provider-suspend.suspend_reason` 上下限齐全（`@Size(min=2,max=500)`）、`auth-wechat-login.code` `minLength=1` 由 `@NotBlank` 覆盖；
+实现 `@Size(max)` 的 4 个字段对应 DDL 列宽均 ≥ 声明上限；DDL `varchar` 列名命中请求字段的条目**全部有长度约束**（正向对照：请求字段名 12 个）；
+测试有 3 处超长构造守卫（`DetectionConfigContractTest` repeat(65) / `ReportTemplateContractTest` repeat(129) / `QuoteValidationTest` repeat(65)）。
+
+**信息项 / 观察项**：① 响应侧 `models/*.schema.json` **无任何 `maxLength`**（0 处 / 0 文件）→ 响应字符串无声明上限、客户端无裁剪依据；
+② md 清单长度措辞 0 处（长度真源只在 schema 与实现）；③ 同名碰撞 1 处（`aap_role.code` ← `auth-wechat-login.code`，通用列名碰撞，不判漂移，坑 95）；
+④ **判据已知限制（诚实标注）**：实现侧 camelCase 字段名（`overrideReason`）与 schema 的 snake_case（`override_reason`）不同形
+→ 按名匹配收不到 camelCase 别名的长度校验，方向只会「多报 FAIL」不会漏报；每条 FAIL 均已**人工回查实现源码**确认。
+
+### 本轮脚本自身返工（先怀疑解析器，坑 46/63/81/125）
+
+1. `@NotBlank`/`@NotEmpty` ≡ `minLength >= 1` 漏收 → `auth-wechat-login.code` **假 FAIL**。
+2. DDL 兜底未分列类型：`text` 列**没有**长度上限（超长只静默接受），v1 对 4 个字段一律写「撞库 500」是错的（判据范围与语义不符，坑 81）。
+3. 注解实参用 `[^)]*` 被实参内层 `)` 截断（`@Pattern(regexp = "^(A|B)$")`）→ 漏收 3 个 `@Size` → **3 条假 FAIL**（修法：括号配对 `match_paren`，坑 63）。
+4. 服务层证据未做作用域/同域判定 → **3 处假 PASS**（`quote-create.name` 被 `DetectionConfigService` 的 `name.length()` 与别的局部变量
+   `name.isEmpty()` 冒充当证据）→ 最终判据 = 「被检查 token 必须是**所在方法形参**或**请求对象取值**（含别名）」+「证据文件必须与请求模型**同域**」（坑 125）。
+5. FAIL 跨轮比对脚本按「第一个 `| `」剥来源前缀 → 而审计输出**自身含 ` | `**（`[FAIL] A2 … | 孤儿 5: …`）→ 报出 3 条「消失」+3 条「新增」的**假差异**；
+   修法 = 只剥**行首** `^[A-Za-z0-9_-]+\s\|\s`（坑 109 扩展）。
+
+### 判别力自测（负向，28/28 PASS）
+
+合规夹具 rc=0 且 FAIL 0 + `A0a…A0g` 七条正向对照全 PASS + 空夹具 rc=1 且点名全部解析器正向对照
++ 6 组注入缺陷各**恰好**新增目标断言（schema `maxLength` 64→999 → `{A2,A3b}`；DDL `varchar(64)`→`(32)` → `{A2,A4}`；
+删 `title` 的 `@Size` → `{A3b,A5b}`；`@Size(max=64)`→`(999)` → `{A3b,A4}`；`remark` 的唯一证据（服务层形参检查）200→999 → `{A3b}`；
+删 `code` 的 `@NotBlank` → `{A5b}`）+ 全部注入锚点命中（未命中即空转通过，坑 66/90/94）
++ 真实仓库只读（关键文件 md5 不变）且 FAIL 集合恰好 = `{A3b,A3c,A5b}`（9 条明细）+ 夹具目录零写副作用。
+夹具设计上给每条正向对照留**第二来源兜底**（第 2 个 `@Size(min)`、第 2 个 `@NotBlank`），否则注入会顺带打红正向对照造成假失败（坑 82）。
+
+证据：`evidence/spotcheck-string-length-R60.txt` + `evidence/spotcheck-string-length-R60-selftest.txt`。
+
+**R60 台账回写**：追加 R60 行（「提交」列先留空，提交后由收尾提交补齐）；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」（坑 36/80）；
+R 行连续性 R27 → R60 无缺号（坑 71）。

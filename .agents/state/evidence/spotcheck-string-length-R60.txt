@@ -1,0 +1,50 @@
+== R60 新增抽查：字符串字段「长度上限 / 下限」跨源一致性（第三十四类可审计不变量） ==
+真源：D=DDL varchar(n) 列（宽度/列类型/NOT NULL）｜S=requests/*.schema.json 的 maxLength/minLength
+      ｜E=endpoints.json request_model→端点｜I=实现字段级注解 + 服务层同域 length()/isBlank() 检查
+      ｜T=测试超长构造｜M=md 清单长度措辞（信息项）
+为什么两套门禁都看不见：契约测试把**真实响应**与 JSON Schema 比对，而 requests/*.schema.json 的
+maxLength/minLength 在**运行时不参与任何校验**（R57 已取证：json-schema-validator 为 scope=test、main 零引用）；
+覆盖门禁只比「方法+路径」；openapi 与客户端 TS 不被任何测试读取/执行。
+判据修正史（v1→v6，每一条都是**判据错**、不是期望值错，逐条人工回查实现源码后改判据）：
+  ① @NotBlank/@NotEmpty ≡ minLength>=1（v1 漏收 → auth-wechat-login.code 假 FAIL）；
+  ② DDL 兜底分列类型：text 列无长度上限 → 超长只静默接受，只有 varchar(n) 才撞库 500（v1 一律写 500 是错的）；
+  ③ 注解实参用**括号配对**解析（[^)]* 被实参内层 ) 截断 → v2 漏收 3 个 @Size，报 3 条假 FAIL）；
+  ④ 服务层证据必须**同域**（坑 125）：被检查的 token 必须是所在方法形参或请求对象取值；
+     否则别的 Service/别的局部变量上的同名检查会把「未强制」误判为「已强制」（v3/v4/v5 各修正一处假 PASS）。
+已知限制（诚实标注）：实现侧字段名多为 camelCase（overrideReason）而 schema 为 snake_case（override_reason）
+→ 按名字匹配收不到 camelCase 别名的长度校验（只会「多报 FAIL」方向，不会漏报）；每条 FAIL 已人工回查实现源码。
+=== R60 抽查：字符串长度约束跨源一致性（第三十四类可审计不变量）===
+-- 解析计数 --
+DDL: 53 表 / 207 varchar 列 / 137 宽度种类
+request schema: 24 模型 / 13 带长度约束字段
+实现: @Size(max) 7 / @Size(min) 2 / @Pattern 量词 4 / @NotBlank 12 / 含长度检查文件 5 / 形参域检查 5
+端点: 90 条（23 条带 request_model）
+测试: 3 处 repeat(N)
+
+[PASS] A0a DDL 解析到 53 张表 / 207 个 varchar 列（宽度种类 137）
+[PASS] A0b request schema 解析到 13 个带长度约束字段（maxLength 11 / minLength 7，11 个模型，含 $ref 跟进）
+[PASS] A0c 实现解析到 @Size(max) 7 / @Size(min) 2 / @Pattern 量词 4 / 含长度检查文件 5
+[PASS] A0f 实现解析到 @NotBlank/@NotEmpty 12 处（minLength>=1 的等价证据源）
+[PASS] A0g 服务层长度检查中 5 处被判定为「所在方法形参」（同域强证据源）
+[PASS] A0d endpoints.json 解析到 90 条端点（23 条声明 request_model）
+[PASS] A0e 测试源解析到 3 处超长/边界长度构造（repeat(N)）
+[PASS] A1 schema maxLength 与 DDL 同名列宽度**逐字段相等** 7 处：credential-create.alias=64, detection-config-save.name=64, provider-profile-update.short_name=64, provider-profile-update.company_name=128, qualification-create.file_name=255, quote-create.name=64, report-template-save.title=128
+[PASS] A2 无「schema maxLength > DDL 宽度」的越界放行（正向对照：已比对 7 个同名 DDL 列）
+[PASS] A3a schema 声明 maxLength 的字段中 **7 个有同域强证据强制**：credential-create.alias=64(@Size(max=64)@CredentialController.java), detection-config-save.name=64(DetectionConfigService.java length(param) name >; 弱:@Size(max=64)@QuoteController.java; 弱:DetectionConfigService.java length(foreign) name >), provider-profile-update.short_name=64(@Size(max=64)@ProviderController.java), provider-profile-update.company_name=128(@Size(max=128)@ProviderController.java), provider-suspend.suspend_reason=500(@Size(max=500)@AdminProviderController.java), quote-create.name=64(@Size(max=64)@QuoteController.java; 弱:DetectionConfigService.java length(foreign) name >; 弱:DetectionConfigService.java length(param) name >), report-template-save.title=128(ReportTemplateService.java length(param) title >)
+[PASS] A4b 实现 @Size(max=) 的字段中 4 个对应 DDL 列宽 >= 声明上限（正向对照：有 DDL 同名列的 4 个）
+[PASS] A5a schema 声明的 minLength 中 2 个有实现侧下限校验：auth-wechat-login.code>=1(@NotBlank@AuthController.java), provider-suspend.suspend_reason>=2(@Size(min=2)@AdminProviderController.java)
+[PASS] A6b DDL varchar 列名命中请求字段的条目全部有长度约束（正向对照：请求字段名 12 个）
+[PASS] A9 该不变量有测试守卫：超长构造 3 处（DetectionConfigContractTest.java:207 repeat(65), ReportTemplateContractTest.java:142 repeat(129), QuoteValidationTest.java:159 repeat(65)）
+[INFO] A7 models/*.schema.json（响应侧）maxLength 共 0 处 / 0 个文件 → 响应侧不声明长度上限
+[INFO] A8 md 清单出现长度约束措辞 0 处（信息项）
+[FAIL] A3b qualification-create.file_name 声明 maxLength=255 但实现侧零强制，且 DDL 同名列是 varchar(255) → 超长(>255) 撞库为 **500 E-2001**，而契约承诺 400 E-1001（端点 PROV-04）
+[FAIL] A3c detection-release.override_reason 声明 maxLength=500 但实现侧零强制，DDL 侧为 text（无长度上限）→ 超长输入被**静默接受**，契约声明的上限无效（端点 DET-06）
+[FAIL] A3c review-approve.comment 声明 maxLength=500 但实现侧零强制，DDL 侧为 text（无长度上限）→ 超长输入被**静默接受**，契约声明的上限无效（端点 ADM-R03）
+[FAIL] A3c review-reject.reason_text 声明 maxLength=500 但实现侧零强制，DDL 侧为 无同名列（无长度上限）→ 超长输入被**静默接受**，契约声明的上限无效（端点 ADM-R04）
+[FAIL] A5b credential-create.alias 声明 minLength=2 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+[FAIL] A5b credential-create.api_key 声明 minLength=8 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+[FAIL] A5b detection-release.override_reason 声明 minLength=2 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+[FAIL] A5b quote-create.name 声明 minLength=1 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+[FAIL] A5b review-reject.reason_text 声明 minLength=2 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+
+汇总：PASS 14 / FAIL 9 / INFO 2
