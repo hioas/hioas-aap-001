@@ -1,0 +1,21 @@
+# R28 提交态复跑（干净 detached worktree @ HEAD `36ca183`）
+
+目的：证明**提交本身自洽** —— 不依赖他方未提交的 4 个文件（`aap-client/vite.config.ts`、
+`aap-server/src/main/resources/application.yml`、`log4j2-spring.xml`、`application-test.yml`）。
+方法：`git worktree add --detach <$LOCALAPPDATA/Temp/aap-verify-r28-1335> HEAD`（唯一时间戳目录，不做递归删除，skill 坑 28）。
+
+| 检查 | 结果 |
+| --- | --- |
+| 全量测试 | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0` / `BUILD SUCCESS` / `Total time: 01:00 min` / `[ERROR]`=0 |
+| 新审计 `audit-error-codes.py` | `断言 16 条：PASS 14，FAIL 2` —— 与工作树**同结论**（2 条 FAIL 是真实漂移，见 `audit-error-codes-R28.txt`） |
+| 新审计零写副作用 | `Z1 五处源文件指纹未变（脚本零写副作用）：被改写=[]` |
+| 密钥审计自测 | `自测 3 条：PASS 3，FAIL 0` |
+| 生成器 `--check` | `models=55 requests=24 paths=78 operations=90 files=82`（84/84 一致、孤儿 0） |
+| worktree 内 `git status` | 只有 `M .agents/state/evidence/coverage-report.json`（门禁用例重新生成，属预期） |
+| worktree 收尾 | `git worktree remove --force` 成功；`git worktree list` 只剩主工作区 |
+
+结论：**提交 `36ca183` 自洽** —— 干净工作树上 204 例全绿，新审计结论可复现，工具零写副作用。
+全量日志：`evidence/commitstate-verify-R28-full-log.txt`。
+
+注：主工作区本轮的两轮全量绿（`green-verify-R28-full-run1/2.txt`）是在**含他方未提交改动**的树上跑的；
+本文件是「去掉他方改动后仍然全绿」的独立证据 —— 两者结论一致，但口径不同，不要混为一谈。
