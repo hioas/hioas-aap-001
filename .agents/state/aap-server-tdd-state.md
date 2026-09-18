@@ -783,3 +783,31 @@
    `missing=0` → 本轮**未改业务代码、未新增/删除/跳过任何用例、未动任何断言**（改动仅限 `tools/*.py`）。
 5. **待拍板（维持，未变）**：R22 列的「是否补 19 个 ID」已由本轮**证伪**，无需拍板；
    当前唯一悬置项是**飞书 home channel 未绑定**（`hermes config set FEISHU_HOME_CHANNEL <channel_id>` 需人工执行）。
+
+---
+
+## R24（2026-09-18）巡检复验（本轮不改任何代码、不动任何断言）
+
+| 项 | run1（工作树） | run2（工作树，防 flaky） |
+| --- | --- | --- |
+| 用例 | `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0` / `BUILD SUCCESS` / `Total time: 53.240 s` | 同上，完全一致 / `Total time: 46.042 s`；`grep -c '^\[ERROR\]'` = **0** |
+| 覆盖门禁 | `EndpointCoverageTest` 1/1 绿 → 90/90（`registered_routes=96`、`not_registered=[]`，报告 12:12:00 重新生成） | 同左 |
+| 证据文件 | `evidence/green-verify-R24-full-204tests-run1.txt` | `evidence/green-verify-R24-full-204tests-run2.txt` |
+
+**本轮增量**
+
+1. **`missing=0` → 按规则不改业务代码**：本轮**未新增/删除/跳过任何用例、未动任何断言、未改 `tools/*.py`**，
+   改动仅限 `.agents/state/**` 的台账与证据文件（R23 刚改过审计工具，本轮只做复跑确认，不制造无谓 diff）。
+2. **复核审计仍成立**（只读复跑）：`tools/audit-endpoint-tests.py` → `exact=90 / prefix=0 / none=0`、
+   端点 ID 可追溯 **90/90**（裸字面量 71 + 组合引用 19）、ID 引用与真实 HTTP 调用点同文件 **90/90**。
+   证据 `evidence/audit-endpoint-tests-R24.txt`。
+3. **负向自测仍有判别力**：`tools/audit-endpoint-tests-selftest.py` → 9 条断言全 `[PASS]`、`rc=0`
+   （含区间展开、区间不外溢 `SYN-04`、未提及即不可追溯 `SYN-09`、短路径子串边界）。
+   证据 `evidence/audit-selftest-negative-R24.txt`。
+4. **他方未提交文件 md5 与 R19–R23 完全一致**（`application.yml 7b7c0918…`、`application-test.yml 813b611d…`、
+   `log4j2-spring.xml f449ac92…`、`aap-client/vite.config.ts b1c72cb4…`）→ 工作树自 R19 起零变化，无回归；
+   这 4 个文件**未被纳入本次提交**（坑 15：只提交自己的 hunk）。
+5. **结论：90/90 维持全绿（连续第 7 轮：R18 → R19 → R20 → R21 → R22 → R23 → R24）**，未见 flaky。
+6. **待拍板（维持 R23，无新增）**：唯一悬置项是**飞书 home channel 未绑定**
+   （复核 `profiles/java/config.yaml` 的 `platforms.feishu` 仍只有 `enabled` + `extra.default_group_policy`）。
+   本轮无新批次落地 → 按「每完成一个批次才通知」的规则不发通知（避免 5 分钟一次重复推送）。

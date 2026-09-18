@@ -1,0 +1,40 @@
+---- 自测输出（审计 stdout）----
+端点「真实 HTTP 用例」可追溯性审计（只读）
+清单：C:\Users\laitz\AppData\Local\Temp\aap-audit-selftest-2a160jqm\fake-endpoints.json（9 条）
+测试源：C:\Users\laitz\AppData\Local\Temp\aap-audit-selftest-2a160jqm\tests（1 个 .java 文件）
+
+exact （路径骨架 + 方法都吻合的真实 HTTP 调用点）：7
+prefix（路径命中但方法不吻合 / 仅静态前缀，弱证据）：1
+none  （无任何调用点 —— 真发现）            ：1
+端点 ID 在测试源里可追溯（含组合引用展开）  ：5/9
+  其中仅裸字面量可追溯                      ：2/9
+  靠组合引用（`A-05/06`、`A-01…05`）才算命中  ：3
+ID 引用与真实 HTTP 调用点同文件（更严一档）  ：5/9
+
+== none 明细（只有路由注册，未找到真实 HTTP 用例）==
+  PATH-01    GET    /api/v1/nonexistent/never-called                 task=T00 id_refs=0
+
+== prefix 明细（弱证据：仅静态前缀命中）==
+  PATH-02    GET    /api/v1/syn/probe/only-post                      sites=1 例：post("/syn/probe/only-post", null, token);
+
+== 测试源里未出现端点 ID 的端点（可追溯性缺口，不影响「有用例」判定）==
+  SYN-04, SYN-09, PATH-01, PATH-02
+
+== ID 引用与真实 HTTP 调用点**不同文件**的端点（弱可追溯）==
+  SYN-04, SYN-09, PATH-01, PATH-02
+
+
+
+---- 断言 ----
+  [PASS] 路径骨架+方法吻合 → exact  (exact=7（期望 7 = SYN-01…06 + SYN-09）)
+  [PASS] 路径不存在 → none 且 rc=1  (none=1 rc=1)
+  [PASS] 方法不吻合 → prefix（弱证据，不冒充 exact）  (prefix=1（期望 1 = 只有 PATH-02）)
+  [PASS] 短路径不得在长路径里当子串命中（尾部边界守卫）  (prefix=1)
+  [PASS] 区间引用 `SYN-01…03` 展开 → 3 条可追溯  (id_traceable=5（期望 ≥4 = SYN-01/02/03 + SYN-06）)
+  [PASS] 枚举引用 `SYN-05/06` 展开 → SYN-06 可追溯  (SYN-06 已判为可追溯)
+  [PASS] 区间不得外溢：SYN-04 必须判不可追溯  (SYN-04 已判为不可追溯（区间未过度展开）)
+  [PASS] 未被提及的 SYN-09 必须判不可追溯  (SYN-09 已判为不可追溯)
+  [PASS] 同文件档：ID 引用与调用点同文件  (same_file=5（期望 ≥4）)
+
+结果：全部通过（审计有判别力）
+夹具目录：C:\Users\laitz\AppData\Local\Temp\aap-audit-selftest-2a160jqm
