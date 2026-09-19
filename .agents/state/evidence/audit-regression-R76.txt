@@ -245,7 +245,7 @@ Tier B（其余，非密钥低熵）：15 个变量 —— 仅信息项
 [PASS] 暂存差异：Tier A 命中 0
 [PASS] 提交历史 HEAD 树：Tier A 命中 0
 [PASS] 已跟踪工作树：Tier A 命中 0
-[PASS] 未跟踪文件（93 个）：Tier A 命中 0
+[PASS] 未跟踪文件（98 个）：Tier A 命中 0
 --- Tier B（信息项，只报名字/长度/指纹，不回显值）---
       · DB_HOST（aap-server.env）len=9 sha256:8=49960de5
       · DB_PORT（aap-server.env）len=4 sha256:8=4aeb7ad6
@@ -579,7 +579,7 @@ spotcheck-outbound rc=1（FAIL 断言行 5）
 == 负向自测（29 个） ==
 
 gen-selftest rc=0 | 末行：结果：全部通过（14 条断言，自测有判别力）
-endpoint-tests-selftest rc=0 | 末行：夹具目录：C:\Users\laitz\AppData\Local\Temp\aap-audit-selftest-0a1d_493
+endpoint-tests-selftest rc=0 | 末行：夹具目录：C:\Users\laitz\AppData\Local\Temp\aap-audit-selftest-xn1qg1zp
 contract-keys-selftest rc=0 | 末行：合计 11 条断言：PASS 11，FAIL 0
 auth-contract-selftest rc=0 | 末行：自测断言 20 条：PASS 20，FAIL 0
 routes-selftest rc=0 | 末行：自测断言 20 条：PASS 20，FAIL 0
@@ -677,6 +677,68 @@ spotcheck-pagination-selftest rc=0
 spotcheck-entity-ddl-selftest rc=0
 spotcheck-config-selftest rc=0
 spotcheck-outbound-selftest rc=0
+
+== 回归面脚本清单（绝对路径 + 存在性；坑 169） ==
+gen-check                          EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/gen-backend-models.py
+openapi-parses                     EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/check-openapi-parses.py
+endpoint-tests                     EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-endpoint-tests.py
+contract-keys                      EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-contract-keys.py
+auth-contract                      EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-auth-contract.py
+routes                             EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-routes.py
+error-codes                        EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-error-codes.py
+query-params                       EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-query-params.py
+time-format                        EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-time-format.py
+enum-sets                          EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-enum-sets.py
+response-shape                     EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-response-shape.py
+id-types                           EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-id-types.py
+request-body                       EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-request-body.py
+secret-leak                        EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-secret-leak.py
+spotcheck-required                 EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r57-spotcheck/spotcheck-required-R57.py
+spotcheck-unique                   EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r58-spotcheck/spotcheck-unique-R58.py
+spotcheck-success-shape            EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r59-spotcheck/spotcheck-success-shape-R59.py
+spotcheck-string-length            EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r60-spotcheck/spotcheck-string-length-R60-v6.py
+spotcheck-numeric-range            EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r61-spotcheck/spotcheck-numeric-range-R61.py
+spotcheck-idempotency              EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r62-spotcheck/spotcheck-idempotency-R62.py
+spotcheck-lock                     EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r63-work/spotcheck-lock-R63.py
+spotcheck-throttle                 EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r64-spotcheck/spotcheck-throttle-R64.py
+spotcheck-audit-cols               EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r65-spotcheck/spotcheck-audit-cols-R65.py
+spotcheck-state-machine            EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r66-spotcheck/spotcheck-state-machine-R66-v2.py
+spotcheck-tx-boundary              EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r67-spotcheck/spotcheck-tx-boundary-R67.py
+spotcheck-http-method              EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r68-spotcheck/spotcheck-http-method-R68.py
+spotcheck-pagination               EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r69-spotcheck/spotcheck-pagination-R69.py
+spotcheck-entity-ddl               EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r70-spotcheck/spotcheck-entity-ddl-R70.py
+spotcheck-config                   EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r54-spotcheck/spotcheck-config.py
+spotcheck-outbound                 EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r72-spotcheck/spotcheck-outbound-R72.py
+gen-selftest                       EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/gen-backend-models-selftest.py
+endpoint-tests-selftest            EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-endpoint-tests-selftest.py
+contract-keys-selftest             EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-contract-keys-selftest.py
+auth-contract-selftest             EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-auth-contract-selftest.py
+routes-selftest                    EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-routes-selftest.py
+error-codes-selftest               EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-error-codes-selftest.py
+query-params-selftest              EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-query-params-selftest.py
+time-format-selftest               EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-time-format-selftest.py
+enum-sets-selftest                 EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-enum-sets-selftest.py
+response-shape-selftest            EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-response-shape-selftest.py
+id-types-selftest                  EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-id-types-selftest.py
+request-body-selftest              EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-request-body-selftest.py
+secret-leak-selftest               EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-secret-leak.py
+spotcheck-required-selftest        EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r57-spotcheck/spotcheck-required-R57-selftest.py
+spotcheck-unique-selftest          EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r58-spotcheck/spotcheck-unique-R58-selftest.py
+spotcheck-success-shape-selftest   EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r59-spotcheck/spotcheck-success-shape-R59-selftest.py
+spotcheck-string-length-selftest   EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r60-spotcheck/spotcheck-string-length-R60-selftest.py
+spotcheck-numeric-range-selftest   EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r61-spotcheck/spotcheck-numeric-range-R61-selftest.py
+spotcheck-idempotency-selftest     EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r62-spotcheck/spotcheck-idempotency-R62-selftest.py
+spotcheck-lock-selftest            EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r63-work/spotcheck-lock-R63-selftest.py
+spotcheck-throttle-selftest        EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r64-spotcheck/spotcheck-throttle-R64-selftest.py
+spotcheck-audit-cols-selftest      EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r65-spotcheck/spotcheck-audit-cols-R65-selftest.py
+spotcheck-state-machine-selftest   EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r66-spotcheck/spotcheck-state-machine-R66-selftest.py
+spotcheck-tx-boundary-selftest     EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r67-spotcheck/spotcheck-tx-boundary-R67-selftest.py
+spotcheck-http-method-selftest     EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r68-spotcheck/spotcheck-http-method-R68-selftest.py
+spotcheck-pagination-selftest      EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r69-spotcheck/spotcheck-pagination-R69-selftest.py
+spotcheck-entity-ddl-selftest      EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r70-spotcheck/spotcheck-entity-ddl-R70-selftest.py
+spotcheck-config-selftest          EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r54-spotcheck/spotcheck-config-selftest.py
+spotcheck-outbound-selftest        EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r72-spotcheck/spotcheck-outbound-R72-selftest.py
+清单条数 = 59（正向对照：应为 59 = 30 审计/抽查 + 29 自测）；MISSING = 0
 
 == 正向对照 ==
 解析到的 FAIL 断言行数 = 74（期望 > 0，否则收集器失效 → 不得据此判零回归）

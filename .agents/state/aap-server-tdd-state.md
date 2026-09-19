@@ -4151,3 +4151,18 @@ jsonb 无 typeHandler / 监听器列缺失 / 约定名漂移无注解 / 未映�
   起跑前探测无 `mvn`/surefire 在跑（最新 surefire 报告 11:16，早于起跑 11:30:18），未与他方测试争用共享测试库（坑 11/20）。
 - **飞书通知**：见本轮最终响应（本 cron 作业会把最终响应自动投递到同一目标）。
 - **证据落点跨两个提交（他方 git add 扫入）**：本轮 9 个 R75 证据文件中，5 个（`green-verify-R75-{classdiff,full-run1,full-run2,testcount,coverage-fields}.txt`）与他方前端提交 `3fe000f`（11:40:37）一同被扫入（该提交对 `aap-server/` 零差异，见 `git diff --stat` 行数 0）；其余 4 个（`green-verify-R75-tested-state.txt`、`audit-regression-R75{,-rcseq,-faildiff}.txt` 与台账三件套）由本巡检轮提交 `6c1b934` 落地。两者内容一致（抽检 `audit-regression-R75.txt` 的「R75 rc 序列与 R74 逐条对齐核对」段与 `green-verify-R75-classdiff.txt` 的「逐类一致 33 / 33」段均可读且结论一致）。
+
+#### R76 巡检轮（missing=0 → 只校验不改代码；90/90 连续第 58 轮全绿）
+
+- 全量两轮 **206 例全绿**（33 类，逐类 diff=0，已剥 `Time elapsed` 再排序，坑 59/79）；
+  覆盖门禁 **90/90**（`registered_routes=96`、`missing=0`、`not_registered=[]`、by_task 12 族 90/90）；
+  `@Test` 词边界计数 206 与 surefire 对账一致（朴素计数 208，差 2 = `@TestConfiguration`/`@TestPropertySource`
+  子串误计，坑 35）、禁用扫描 0 条。
+- 回归面：**59 条**审计/抽查/自测，rc 与 R75 **逐条一致**（新增 0、消失 0、rc 变化 0）；
+  FAIL 明细 R75=74 / R76=74（新增 0、消失 0）；零写副作用 84 个产物 (size,md5) 全等。
+- 本轮为**纯巡检轮**：不新增不变量类、不改任何实现或测试代码。
+- **被测状态核对**（证据 `evidence/green-verify-R76-tested-state.txt`）：run1 11:49:20–11:50:27、run2 11:51:36–11:53:00（串行，规范命令不改参数）；
+  窗口内 aap-server 源码 mtime 改动 = 0；轮内 HEAD 位移 = 0 个提交（(无)）；
+  `git diff --stat 4e5b357 HEAD -- aap-server/` 输出行数 = 0（0 = 被测树零差异）；工作区 `git status --short -- aap-server/` 输出行数 = 0。
+  → 两轮全量编译/执行的就是 HEAD = `4e5b357` 的 aap-server 源码。
+- **飞书通知**：见本轮最终响应（本 cron 作业会把最终响应自动投递到同一目标）。
