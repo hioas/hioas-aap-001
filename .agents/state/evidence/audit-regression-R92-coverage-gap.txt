@@ -1,0 +1,34 @@
+== R92 覆盖缺口复核（R80/R82 已补回 R45–R56 十类；R83–R91 复核真缺口 0，本轮再核对无残留缺口，坑 169/177） ==
+判据：解析 `VAR = Path(T + "dir")` 映射 + `str(VAR / "name")` 引用（坑 178 的修正版）；
+      两侧（本轮 gap 集合 / R91 留档分类行）走同一个 key `aap-rNN/name.py`（坑 57）
+留档解析器：支持规范写法（行首 ①②③）与上一轮的 `GAP <cls> <key>` 写法，合成夹具正向对照 2/2
+driver 里解析到的目录变量 = 27 个（正向对照：> 20）
+driver 引用脚本数 = 78（正向对照：> 40）
+候选（名字含 spotcheck/audit）= 69 个（正向对照：> 0）
+已在 driver 内的候选 = 46
+本轮缺口集合 = 18 条（正向对照：> 0）
+R91 留档分类行 = 18 条（正向对照：> 0）
+
+缺口集合与 R91 留档比对：仅本轮有 = 0 []；仅留档有 = 0 [] → 逐条一致 18/18
+按 R91 分类计票：① 旧版本 = 10；② 语义重复 = 8；③ 真缺口 = 0；未分类 = 0
+
+② aap-r41/spotcheck-pagination-selftest.py
+② aap-r41/spotcheck-pagination.py
+① aap-r45-spotcheck/spotcheck-pagination-order.py
+① aap-r52-spotcheck/spotcheck-time-bucket.py
+① aap-r53-spotcheck/spotcheck-sensitive-fields.py
+② aap-r60-spotcheck/spotcheck-required-R57-selftest.py
+② aap-r60-spotcheck/spotcheck-required-R57.py
+① aap-r60-spotcheck/spotcheck-string-length-R60-v2.py
+① aap-r60-spotcheck/spotcheck-string-length-R60-v3.py
+① aap-r60-spotcheck/spotcheck-string-length-R60-v4.py
+① aap-r60-spotcheck/spotcheck-string-length-R60-v5.py
+① aap-r60-spotcheck/spotcheck-string-length-R60.py
+② aap-r60-spotcheck/spotcheck-success-shape-R59-selftest.py
+② aap-r60-spotcheck/spotcheck-success-shape-R59.py
+② aap-r60-spotcheck/spotcheck-unique-R58-selftest.py
+② aap-r60-spotcheck/spotcheck-unique-R58.py
+① aap-r66-spotcheck/spotcheck-state-machine-R66.py
+① aap-r67-spotcheck/spotcheck-tx-boundary-R67-v1.py
+
+结论：无残留缺口、无新增缺口（R80/R82 的十类补入已全部在序列内；本轮缺口集合与 R91 留档逐条一致、③ 真缺口 = 0 → **无需因缺口扩面**；本轮为纯巡检轮、未改回归序列（81 → 81；R91 亦为纯巡检轮，复核链由 R85 补入 driver），见 evidence/audit-regression-R92.txt 的 rc 对齐段）
