@@ -6414,3 +6414,18 @@ R106 的 `fix-guards-r106.py` 把 `verify-final.py` / `final-check.py` 的返工
 - **R78 双写法解析器**：本轮 run1 mm:ss 写法（03:22 min）、run2 mm:ss 写法（01:44 min） —— 只检验了其中一种写法 → 另一种写法本轮未复现，不能声称本轮验证了它（坑 176）。
 - **观察项 / 待拍板**（延续）：① `sms.lock-minutes` 占位符默认值 0 ≠ md 声明 15（已计入基线，本轮 rc 变化 0）；
   ② 是否把「`tools/*.py` ⊆ driver 引用集」提升为常驻 driver 断言（属扩面）；③ R27–R32 台账行依据不足，不猜测性回填。
+
+
+### R123 收尾补充（提交后落地核对 + 通知留痕）
+
+- **主提交** = d1916c2（18 个文件：1 个测试文件修复 + 3 个状态文件 + 14 个证据文件）。
+- **提交内容 = 实测内容**（坑 12/198）：`git show HEAD:<AuthContractTest.java>` 的 blob 与本轮实测的 worktree 文件、
+  工作区文件**三方 md5 一致**（`96f2316eeeefe53120493a637ec85667`，15934 字节）→
+  「两轮全绿跑的就是提交进去的那份代码」有机器证据，不靠推断。
+- **台账行**：8 列；描述正文 2816 字符 + 收尾后缀；HEAD 树里的该行与工作区**逐列相等**；
+  证据列 14 条、14 个证据文件全部在 HEAD 树内（`git ls-files` 核对）；R 行连续 R27 → R123、无缺号。
+- **收尾取证**：`evidence/gap-postcommit-R123.txt`（收尾阶段落盘）→ 本轮证据合计 **15 条**。
+- **飞书通知**：`hermes send -t feishu -s 'AAP TDD 进度' …` 返回 rc=0，输出为
+  「Skipped send_message … This cron job will already auto-deliver its final response to that same target」——
+  属**预期形态**（本 cron 作业的最终响应会自动投递到同一目标）、**非失败**，故不写 `feishu-notify-failures.txt`。
+- **收尾阶段无新增返工项**：返工真值仍为 **4 处**（权威数字）。
