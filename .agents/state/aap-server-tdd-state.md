@@ -4074,3 +4074,27 @@ jsonb 无 typeHandler / 监听器列缺失 / 约定名漂移无注解 / 未映�
   worktree 内 `coverage-report.json` 逐字段 `total/implemented/missing/registered_routes = 90/90/0/96`；
   `worktree_status_lines=0`（干净工作树）→ **提交自洽，不依赖同机他人未提交改动**。
 - 收尾：`git worktree remove --force`（rc=0，全程不做递归删除，坑 28）；证据 `evidence/green-verify-R72-worktree-HEAD.txt`。
+
+#### R73 巡检轮（missing=0 → 只校验不改代码；90/90 连续第 55 轮全绿）
+
+- 全量两轮 **204 例全绿**（33 类，逐类 diff=0，已剥 `Time elapsed` 再排序，坑 59/79）；
+  覆盖门禁 **90/90**（`registered_routes=96`、`missing=0`、by_task 12 族 90/90）；
+  `@Test` 词边界计数 204 与 surefire 对账一致、禁用扫描 0 条。
+- 回归面：**59 条**审计/抽查/自测，rc 与 R72 **逐条一致**（新增 0、消失 0、rc 变化 0）；
+  FAIL 明细 R72=74 / R73=74（新增 0、消失 0）；零写副作用 84 个产物 (size,md5) 全等。
+- 本轮为**纯巡检轮**：不新增不变量类、不改任何实现或测试代码。
+- **口径缺陷 1 处（判据侧，已修）**：`@Test` 计数按工作区现况得 **206** 而 surefire **204**。
+  根因 = **同机他方正在编辑测试源**：`aap-server/src/test/java/com/hioas/aap/iam/AuthContractTest.java`
+  mtime `10:47:41` 在 run1 结束 `10:44:27` **之后**、而该类在 run2 中执行于 `10:46:37`（改前）→
+  两轮跑的都是**改前版本**。工作区 diff 显示他方新增 2 个 `@Test`（缺陷 8：超长 User-Agent 登录应截断落库 +
+  恰好 255 字符边界），属他方**未提交在途改动**，按坑 15 **不纳入本轮提交**。
+  修法：计数口径改为「**被测状态**」（工作区有改动的文件取 `HEAD` 版本内容），修后 204 = 204 = 204。
+  同族：脚本首版把对账写成 `t1.startswith("Tests run: %d,")`，而 surefire 行以 `[INFO] ` 开头 →
+  **恒判「不一致」**（坑 46/168：先怀疑判据）。
+- **证据修补 1 处**：R72 只写了主报告、未写独立 `rcseq`/`faildiff` 留痕 → 本轮补齐
+  `audit-regression-R73-rcseq.txt` / `-faildiff.txt`，并在驱动里加两条正向对照：
+  ① rcseq 缺失时从上一轮主报告「rc 序列」段解析兜底；② 「回归面条数 R72→R73 逐条对齐」（坑 169）。
+- 观察项：工作区 `coverage-report.json` 每轮被 Java 侧重写（`Map.of` 键序随 JVM SALT 随机化、逐字段值全等，
+  坑 56；工作区 CRLF 而 index/HEAD 为 LF）→ 与 R59–R72 一致地不纳入提交。
+- 环境：同机 65 个 node 进程、可用内存 0.4–0.7G；本轮两轮全量**串行**跑完、无 fork 死亡
+  （严格遵循坑 158：审计/抽查/自测一律在全量测试**之后**串行跑）。
