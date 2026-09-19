@@ -112,6 +112,10 @@ describe('缺陷4 · 无凭证标识时就地新建', () => {
       { model_name: 'gpt-4o' },
       { model_name: 'claude-3-5-sonnet' }
     ])
+    // ⚠️ 回写**不得带 api_key**：后端只要收到 api_key 就按「轮换密钥」处理 →
+    //    status 置回 PENDING_PRECHECK → 随后 POST /quotes 报 E-1602
+    //    （实测：凭证状态=PENDING_PRECHECK、检测状态=PASS，报价被拒）
+    expect('api_key' in writeBack.data).toBe(false)
   })
 
   it('缺陷10 · 预检没返回 models（上游读不到）时不得把 model_list 清空', async () => {

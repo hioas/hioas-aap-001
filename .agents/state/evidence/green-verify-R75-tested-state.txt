@@ -1,0 +1,57 @@
+== R75 被测状态核对（两轮全量所编译/执行的源码 = 哪一份） ==
+HEAD = ba14763 | fix(fe): 缺陷10+11 —— 模型清单断链：预检返回被丢弃 + 保存形状与契约不符
+HEAD 提交时刻 = ba147638b25b2851786c8bf8d73acb07a5fe4e25|11:35:36
+run1 起跑 11:30:33 / 结束 11:32:30；run2 起跑 11:32:37 / 结束 11:34:18（串行，规范命令不改参数）
+窗口内（11:30:33 之后）aap-server 下被改写的源码文件数 = 0
+结论：两轮全量测试编译/执行的就是 HEAD = ba14763 的源码（工作区在窗口内无 aap-server 源码改动）
+最新 3 个源码 mtime（全部早于窗口）：
+  11:08:04  aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java
+  11:07:12  aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java
+  10:50:04  aap-server/src/main/java/com/hioas/aap/iam/AuthService.java
+
+未纳入本轮提交的他方工作区改动（坑 15）：
+  [M/?? 见 git status --short 留痕]
+   M .agents/state/mp-e2e-state.json
+   M aap-client/evidence/h5-chain/h5-chain-result.json
+   M aap-client/evidence/ide/01-after-login.png
+   M aap-client/evidence/ide/02-last-page.png
+   M aap-client/evidence/ide/thin-pages_quote-form_index.png
+   M aap-client/src/pages/credential-submit/index.vue
+   M aap-client/tests/pages/credential-create-wiring.spec.ts
+   M aap-client/tools/mp-ide-smoke.mjs
+  ?? .agents/state/evidence/green-fe-12.txt
+  ?? .agents/state/evidence/h5-chain-run5.txt
+  ?? .playwright-mcp/
+  ?? aap-client/evidence/dual/
+  ?? aap-client/evidence/h5-chain/20260919031950.-01-login.png
+  ?? aap-client/evidence/h5-chain/20260919032001.-00-logged-in.png
+  ?? aap-client/evidence/h5-chain/20260919032005.-05-credentials.png
+  ?? aap-client/evidence/h5-chain/20260919032006.-06-submit-form.png
+  ?? aap-client/evidence/h5-chain/20260919032007.-07-form-filled.png
+  ?? aap-client/evidence/h5-chain/20260919032010.-08-saved.png
+  ?? aap-client/evidence/h5-chain/20260919032015.-09-precheck.png
+  ?? aap-client/evidence/h5-chain/20260919032015.-10-detecting.png
+  ?? aap-client/evidence/h5-chain/20260919032019.-11-quotes.png
+  ?? aap-client/evidence/h5-chain/20260919032023.-12-report.png
+  ?? aap-client/evidence/h5-chain/20260919032028.-13-quote-models.png
+  ?? aap-client/evidence/h5-chain/20260919032031.-14-subject-name.png
+  ?? aap-client/evidence/h5-chain/20260919032052.-16-quote-saved.png
+  ?? aap-client/evidence/h5-chain/20260919033710.-01-login.png
+  ?? aap-client/evidence/h5-chain/20260919033718.-00-logged-in.png
+  ?? aap-client/evidence/h5-chain/20260919033722.-05-credentials.png
+  ?? aap-client/evidence/h5-chain/20260919033723.-06-submit-form.png
+  ?? aap-client/evidence/h5-chain/20260919033723.-07-form-filled.png
+  ?? aap-client/evidence/h5-chain/20260919033727.-08-saved.png
+  ?? aap-client/evidence/h5-chain/20260919033731.-09-precheck.png
+  ?? aap-client/evidence/h5-chain/20260919033732.-10-detecting.png
+  ?? aap-client/evidence/h5-chain/20260919033735.-11-quotes.png
+  ?? aap-client/evidence/h5-chain/20260919033739.-12-report.png
+  ?? aap-client/evidence/h5-chain/20260919033744.-13-quote-models.png
+  ?? aap-client/evidence/h5-chain/20260919033746.-14-subject-name.png
+  ?? aap-client/evidence/h5-chain/20260919033750.-15-cred-models.png
+  ?? aap-client/evidence/h5-chain/20260919033755.-16-quote-saved.png
+  ?? aap-client/evidence/ide/h5-pages_login_index.png
+  ?? aap-client/evidence/ide/h5-pages_usage_index.png
+  ?? aap-client/evidence/ide/h5-pages_workbench_index.png
+  ?? aap-client/pnpm-lock.yaml
+  ?? aap-client/pnpm-workspace.yaml

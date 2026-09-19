@@ -334,8 +334,13 @@ async function onSubmit() {
       ? result.models.filter((m) => typeof m === 'string' && m.trim())
       : []
     if (upstreamModels.length > 0) {
+      // ⚠️ **必须剥掉 api_key**：后端 `CredentialService.update` 只要收到 api_key 就按
+      //    「轮换密钥」处理 → `status` 置回 PENDING_PRECHECK（需重新预检）。
+      //    而这次只是回写模型清单、密钥没变，带上它会把刚预检通过的 ACTIVE 打回，
+      //    随后 `POST /quotes` 报 E-1602（实测：凭证状态=PENDING_PRECHECK、检测状态=PASS）。
+      const { api_key: _drop, ...rest } = payloadOf()
       await credentialApi.save(id, {
-        ...payloadOf(),
+        ...rest,
         model_list: upstreamModels.map((m) => ({ model_name: m }))
       })
     }

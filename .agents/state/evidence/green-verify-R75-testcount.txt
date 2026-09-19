@@ -1,0 +1,48 @@
+== R75 @Test 词边界计数对账 + 测试削弱扫描 ==
+口径 = **被测状态**（工作区相对 HEAD 有改动的文件取 HEAD 版本内容，坑 172）；aap-server 下改动文件数 = 0
+测试源文件数 = 39；@Test 词边界计数 = 206（朴素 @Test 计数 = 208，差 2 = @TestConfiguration/@TestPropertySource 子串，坑 35）
+surefire run1 合计 = (206, 0, 0, 0)
+surefire run2 合计 = (206, 0, 0, 0)
+对账：词边界计数 206 vs surefire 206 → 一致
+禁用扫描（@Disabled|@Ignore|@DisabledIf|assumeTrue|Assumptions.）= 0 条 → 未削弱测试
+
+-- 逐文件 @Test 词边界计数 --
+7    aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java
+6    aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateContractTest.java
+3    aap-server/src/test/java/com/hioas/aap/adminconfig/ReportTemplateWordingTest.java
+8    aap-server/src/test/java/com/hioas/aap/common/ApiContractTest.java
+5    aap-server/src/test/java/com/hioas/aap/common/ApiEnvelopeTest.java
+2    aap-server/src/test/java/com/hioas/aap/common/LoggingAndHealthTest.java
+5    aap-server/src/test/java/com/hioas/aap/common/MigrationTest.java
+5    aap-server/src/test/java/com/hioas/aap/common/OutboundUrlGuardTest.java
+5    aap-server/src/test/java/com/hioas/aap/common/PersistenceBaseTest.java
+8    aap-server/src/test/java/com/hioas/aap/compile/BillingCompilerTest.java
+7    aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java
+9    aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java
+1    aap-server/src/test/java/com/hioas/aap/coverage/EndpointCoverageTest.java
+2    aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java
+12   aap-server/src/test/java/com/hioas/aap/credential/CredentialContractTest.java
+9    aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java
+13   aap-server/src/test/java/com/hioas/aap/detection/ProbeScoringTest.java
+2    aap-server/src/test/java/com/hioas/aap/detection/RecheckServiceTest.java
+11   aap-server/src/test/java/com/hioas/aap/iam/AuthContractTest.java
+3    aap-server/src/test/java/com/hioas/aap/provider/AdminProviderContractTest.java
+9    aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java
+3    aap-server/src/test/java/com/hioas/aap/quote/AdminQuoteCompareContractTest.java
+7    aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java
+8    aap-server/src/test/java/com/hioas/aap/quote/QuoteValidationTest.java
+5    aap-server/src/test/java/com/hioas/aap/report/ReportContractTest.java
+12   aap-server/src/test/java/com/hioas/aap/review/ReviewContractTest.java
+4    aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java
+0    aap-server/src/test/java/com/hioas/aap/support/ApiTestBase.java
+0    aap-server/src/test/java/com/hioas/aap/support/DbTestBase.java
+8    aap-server/src/test/java/com/hioas/aap/support/NotificationContractTest.java
+0    aap-server/src/test/java/com/hioas/aap/support/SchemaAssert.java
+0    aap-server/src/test/java/com/hioas/aap/support/TestDb.java
+0    aap-server/src/test/java/com/hioas/aap/support/TestErrorController.java
+0    aap-server/src/test/java/com/hioas/aap/support/TestSecurityConfig.java
+8    aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java
+1    aap-server/src/test/java/com/hioas/aap/ToolchainSmokeTest.java
+11   aap-server/src/test/java/com/hioas/aap/usage/UsageContractTest.java
+6    aap-server/src/test/java/com/hioas/aap/usage/UsageMetricsTest.java
+1    aap-server/src/test/java/com/hioas/aap/usage/UsageRefreshDegradedTest.java
