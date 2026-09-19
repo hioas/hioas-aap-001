@@ -4181,3 +4181,24 @@ jsonb 无 typeHandler / 监听器列缺失 / 约定名漂移无注解 / 未映�
   窗口内 aap-server 源码 mtime 改动 = 0；**窗口内 HEAD 位移 = 2 个提交**（`0bb2a71` 12:13:53、`5e29e22` 12:19:56，均为 `aap-client/tools` 前端侧；会话起点 HEAD = `cd15c4d`）——但 `git diff --stat cd15c4d 5e29e22 -- aap-server/` 输出行数 = 0（aap-server 树零差异），且工作区 `git status --short -- aap-server/` 输出行数 = 0。
   → 两轮全量编译/执行的就是 `cd15c4d`（== `5e29e22`）的 aap-server 源码（位移提交全部落在 aap-client/tools，不触碰被测对象）。
 - **飞书通知**：见本轮最终响应（本 cron 作业会把最终响应自动投递到同一目标）。
+
+#### R78 巡检轮（missing=0 → 只校验不改代码；90/90 连续第 60 轮全绿）
+
+- 全量两轮 **206 例全绿**（33 类，逐类 diff=0，已剥 `Time elapsed` 再排序，坑 59/79）；
+  覆盖门禁 **90/90**（`registered_routes=96`、`missing=0`、`not_registered=[]`、by_task 12 族 90/90）；
+  `@Test` 词边界计数 206 与 surefire 对账一致（朴素计数 208，差 2 = `@TestConfiguration`/`@TestPropertySource`
+  子串误计，坑 35）、禁用扫描 0 条。
+- 回归面：**59 条**审计/抽查/自测，rc 与 R77 **逐条一致**（新增 0、消失 0、rc 变化 0）；
+  FAIL 明细 R77=74 / R78=74（新增 0、消失 0）；零写副作用 84 个产物 (size,md5) 全等。
+- 本轮为**纯巡检轮**：不新增不变量类、不改任何实现或测试代码。
+- **被测状态核对**（证据 `evidence/green-verify-R78-tested-state.txt`）：run1 12:34:54–12:36:25、run2 12:36:25–12:37:26（串行，规范命令不改参数）；
+  会话起点 HEAD = `a30e028`，轮内 HEAD 位移 = **0 个提交**；窗口内 aap-server 源码 mtime 改动 = 0；
+  `git diff --stat a30e028 HEAD -- aap-server/` 输出行数 = 0；工作区 `git status --short -- aap-server/` 输出行数 = 0。
+  → 两轮全量编译/执行的就是 HEAD = `a30e028` 的 aap-server 源码。
+- **本轮真实返工 1 处（判据侧，非被测代码）**：证据脚本从 R77 继承的 maven 耗时解析
+  `Total time: +(\d+):(\d+) min` 只认「mm:ss min」写法；本轮 run2 耗时 58.698 s（**< 1 分钟**）被 maven 写成
+  `Total time:  58.698 s` → `win()` 里 `tt.group(1)` 抛 `AttributeError`，**脚本崩溃**。
+  这是**正确行为**（响亮失败，而不是把「起跑时间 = 结束时间」静默写进证据 —— 坑 46/168 的反面教材）；
+  修法 = **改解析器**（双写法 + 正向对照自检 `2/2`），**没有改任何期望值**。
+  教训：**凡「某个字段解析不到」都先怀疑解析器**；且同一份日志里同一字段可能有多种写法（坑 44/144/145 族新面）。
+- **飞书通知**：见本轮最终响应（本 cron 作业会把最终响应自动投递到同一目标）。
