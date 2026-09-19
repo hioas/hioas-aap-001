@@ -13,9 +13,17 @@ import { mkdirSync, cpSync, writeFileSync, rmSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { tmpdir } from 'node:os'
 
 const here = dirname(fileURLToPath(import.meta.url))
 export const DIST_API = resolve(here, '../dist/build/mp-weixin/api')
+
+/**
+ * 沙箱根目录：**必须放在项目外**。
+ * 放在项目内会被 vite dev server 的文件监听捕获，创建/删除时把 dev server 直接打崩
+ * （实测：`EBUSY` → dev server 退出，5173 拒绝连接）。放 tmpdir 就彻底不在监听范围内。
+ */
+const SANDBOX_ROOT = join(tmpdir(), 'aap-mp-sandboxes')
 
 /**
  * 建一个跑小程序产物的沙箱运行时。
@@ -24,7 +32,7 @@ export const DIST_API = resolve(here, '../dist/build/mp-weixin/api')
  */
 export function createMpRuntime(opts = {}) {
   const apiBase = opts.apiBase || process.env.AAP_API_BASE || 'http://127.0.0.1:8084/api/v1'
-  const sandbox = resolve(here, `../.${opts.sandboxName || 'mp-harness-sandbox'}`)
+  const sandbox = join(SANDBOX_ROOT, `${opts.sandboxName || 'mp-harness'}-${process.pid}`)
 
   rmSync(sandbox, { recursive: true, force: true })
   mkdirSync(join(sandbox, 'common'), { recursive: true })

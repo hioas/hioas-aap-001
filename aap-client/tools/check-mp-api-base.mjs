@@ -19,6 +19,7 @@ import { mkdirSync, cpSync, writeFileSync, existsSync, rmSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { tmpdir } from 'node:os'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const distApi = resolve(here, '../dist/build/mp-weixin/api')
@@ -30,8 +31,9 @@ if (!existsSync(httpJs)) {
   process.exit(1)
 }
 
-/** 沙箱：复制真实产物（整个 api/ 目录），只把 common/vendor.js 换成替身（= uni 运行时桩） */
-const sandbox = resolve(here, '../.mp-gate-sandbox')
+/** 沙箱：复制真实产物（整个 api/ 目录），只把 common/vendor.js 换成替身（= uni 运行时桩）
+ *  ⚠️ 必须放项目外：放项目内会被 vite dev server 文件监听捕获，创建/删除会把 dev server 打崩。 */
+const sandbox = join(tmpdir(), `aap-mp-gate-sandbox-${process.pid}`)
 rmSync(sandbox, { recursive: true, force: true })
 mkdirSync(join(sandbox, 'common'), { recursive: true })
 cpSync(distApi, join(sandbox, 'api'), { recursive: true })
