@@ -1,0 +1,6 @@
+== R105 跨轮 FAIL 明细差异（R104 → R105） ==
+R104 唯一键 123 ；R105 唯一键 123
+新增 1 行（纯巡检轮期望 0；非 0 需逐条解释）：
+  + [FAIL] A1b 读取点键未在任一 yml 声明、仅靠内联默认 = 2 条（运维在 yml 里找不到锚点，与其它键处理不一致）：app.detection.probe-timeout-seconds (aap-server/src/main/java/com/hioas/aap/credential/CredentialService.java:71，内联默认 '10')；app.storage.local-root (aap-server/src/main/java/com/hioas/aap/file/LocalDiskStorage.java:25，内联默认 './data/files')
+消失 1 行：
+  - [FAIL] A1b 读取点键未在任一 yml 声明、仅靠内联默认 = 1 条（运维在 yml 里找不到锚点，与其它键处理不一致）：app.detection.probe-timeout-seconds (aap-server/src/main/java/com/hioas/aap/credential/CredentialService.java:71，内联默认 '10')
