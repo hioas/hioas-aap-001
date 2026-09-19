@@ -3944,3 +3944,12 @@ A4/A5b「分页响应缺 count / 缺 limit」= 0 处；A4b 5 个 ORM 分页（`.
 合规夹具 rc=0 且 FAIL 明细空 + A0a…A0g 七条正向对照全 PASS + 空夹具 rc≠0 且点名全部 A0* 且 A0* 无一条 PASS +
 8 组注入缺陷各断言「**锚点命中 + 源码真的被改** + 恰好新增目标断言」（A1/A1b/A1c/A2/A3/A4/A5b/A6c）+
 2 组回归守卫（常量引用 SQL、谓词内联别名不同）结果不变 + 真实仓库两次运行 FAIL 集合一致（={A6c}）且关键文件 md5 不变 + 夹具目录零写副作用（含不残留 __pycache__）。
+
+### R69 提交态复跑（临时 worktree，detached HEAD；坑 27/28）
+提交态复跑结论：mvn_test_rc=0；全量合计=('204', '0', '0', '0')（0 失败/0 错误/0 跳过）；[ERROR] 行数=0；构建=BUILD SUCCESS；门禁自身 1/0/0/0；worktree 内 coverage-report.json 逐字段 total/implemented/missing/registered_routes=90/90/0/96；worktree HEAD=7d3e16f588c329f325ae9f639be6e10bebebeb2b = 主工作树 HEAD=7d3e16f588c329f325ae9f639be6e10bebebeb2b（同一提交）；收尾 worktree_remove_rc=0
+（详见 `evidence/green-verify-R69-worktree-HEAD.txt`）→ **提交自洽**，不依赖他方未提交改动。
+
+### R69 台账与通知
+- 台账 CSV 追加 R69 行并回填「提交」列 = 7d3e16f（不留台账债）；以真正的 csv 解析复核「每行列数 = 表头列数（8）」且 R 行连续 R27 → R69 无缺号（坑 71/80/155）。
+- 飞书通知：`hermes send -t feishu -s 'AAP TDD 进度' …` → "Skipped send_message to feishu:oc_… : This cron job will already auto-deliver its final response to that same target"
+  → **形态变化（非失败）**：目标已解析成功，通知由本 cron 作业的最终回复承载；已记入 `evidence/feishu-notify-failures.txt`（与 R65–R67 的「home channel 未绑定」不同因）。

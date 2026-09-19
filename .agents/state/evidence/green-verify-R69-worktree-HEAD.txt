@@ -1,0 +1,212 @@
+== R69 提交态复跑（临时 worktree，detached HEAD；坑 27/28） ==
+目的：验证**提交本身自洽**、不依赖他方 3 类未提交改动（aap-client 相关文件与本轮证据之外的工作区改动）。
+纪律：目录带时间戳取唯一名（不写递归删除，坑 28）；收尾用 git worktree remove --force（git 自带）。
+口径：worktree 内跑全量 mvn test；门禁结论取「测试自身 1/1 通过」+ 报告文件**逐字段**值（不靠 grep 类名当摘要，坑 96）。
+== R69 提交态复跑（临时 worktree，detached HEAD；坑 27/28） ==
+主工作树 HEAD = 7d3e16f588c329f325ae9f639be6e10bebebeb2b
+worktree 路径 = C:/Users/laitz/AppData/Local/Temp/aap-verify-r69-082012
+worktree 内 HEAD = 
+
+Preparing worktree (detached HEAD 7d3e16f)
+Updating files:   2% (78/2895)
+Updating files:   3% (87/2895)
+Updating files:   4% (116/2895)
+Updating files:   5% (145/2895)
+Updating files:   6% (174/2895)
+Updating files:   7% (203/2895)
+Updating files:   8% (232/2895)
+Updating files:   9% (261/2895)
+Updating files:  10% (290/2895)
+Updating files:  10% (306/2895)
+Updating files:  11% (319/2895)
+Updating files:  12% (348/2895)
+Updating files:  13% (377/2895)
+Updating files:  14% (406/2895)
+Updating files:  15% (435/2895)
+Updating files:  16% (464/2895)
+Updating files:  17% (493/2895)
+Updating files:  18% (522/2895)
+Updating files:  19% (551/2895)
+Updating files:  19% (576/2895)
+Updating files:  20% (579/2895)
+Updating files:  21% (608/2895)
+Updating files:  22% (637/2895)
+Updating files:  23% (666/2895)
+Updating files:  24% (695/2895)
+Updating files:  25% (724/2895)
+Updating files:  26% (753/2895)
+Updating files:  27% (782/2895)
+Updating files:  28% (811/2895)
+Updating files:  28% (826/2895)
+Updating files:  29% (840/2895)
+Updating files:  30% (869/2895)
+Updating files:  30% (872/2895)
+Updating files:  30% (892/2895)
+Updating files:  31% (898/2895)
+Updating files:  32% (927/2895)
+Updating files:  33% (956/2895)
+Updating files:  34% (985/2895)
+Updating files:  35% (1014/2895)
+Updating files:  36% (1043/2895)
+Updating files:  37% (1072/2895)
+Updating files:  38% (1101/2895)
+Updating files:  39% (1130/2895)
+Updating files:  39% (1152/2895)
+Updating files:  40% (1158/2895)
+Updating files:  41% (1187/2895)
+Updating files:  42% (1216/2895)
+Updating files:  43% (1245/2895)
+Updating files:  44% (1274/2895)
+Updating files:  45% (1303/2895)
+Updating files:  46% (1332/2895)
+Updating files:  47% (1361/2895)
+Updating files:  48% (1390/2895)
+Updating files:  48% (1403/2895)
+Updating files:  49% (1419/2895)
+Updating files:  50% (1448/2895)
+Updating files:  50% (1468/2895)
+Updating files:  51% (1477/2895)
+Updating files:  52% (1506/2895)
+Updating files:  53% (1535/2895)
+Updating files:  54% (1564/2895)
+Updating files:  55% (1593/2895)
+Updating files:  56% (1622/2895)
+Updating files:  57% (1651/2895)
+Updating files:  58% (1680/2895)
+Updating files:  59% (1709/2895)
+Updating files:  59% (1714/2895)
+Updating files:  60% (1737/2895)
+Updating files:  61% (1766/2895)
+Updating files:  62% (1795/2895)
+Updating files:  63% (1824/2895)
+Updating files:  64% (1853/2895)
+Updating files:  65% (1882/2895)
+Updating files:  66% (1911/2895)
+Updating files:  67% (1940/2895)
+Updating files:  68% (1969/2895)
+Updating files:  69% (1998/2895)
+Updating files:  70% (2027/2895)
+Updating files:  71% (2056/2895)
+Updating files:  72% (2085/2895)
+Updating files:  73% (2114/2895)
+Updating files:  73% (2141/2895)
+Updating files:  74% (2143/2895)
+Updating files:  75% (2172/2895)
+Updating files:  76% (2201/2895)
+Updating files:  76% (2229/2895)
+Updating files:  77% (2230/2895)
+Updating files:  78% (2259/2895)
+Updating files:  79% (2288/2895)
+Updating files:  79% (2289/2895)
+Updating files:  79% (2315/2895)
+Updating files:  80% (2316/2895)
+Updating files:  80% (2326/2895)
+Updating files:  81% (2345/2895)
+Updating files:  81% (2359/2895)
+Updating files:  82% (2374/2895)
+Updating files:  82% (2375/2895)
+Updating files:  82% (2389/2895)
+Updating files:  82% (2392/2895)
+Updating files:  82% (2396/2895)
+Updating files:  83% (2403/2895)
+Updating files:  83% (2425/2895)
+Updating files:  84% (2432/2895)
+Updating files:  85% (2461/2895)
+Updating files:  86% (2490/2895)
+Updating files:  86% (2517/2895)
+Updating files:  87% (2519/2895)
+Updating files:  88% (2548/2895)
+Updating files:  88% (2550/2895)
+Updating files:  89% (2577/2895)
+Updating files:  89% (2590/2895)
+Updating files:  90% (2606/2895)
+Updating files:  91% (2635/2895)
+Updating files:  92% (2664/2895)
+Updating files:  93% (2693/2895)
+Updating files:  94% (2722/2895)
+Updating files:  95% (2751/2895)
+Updating files:  95% (2762/2895)
+Updating files:  96% (2780/2895)
+Updating files:  97% (2809/2895)
+Updating files:  98% (2838/2895)
+Updating files:  99% (2867/2895)
+Updating files: 100% (2895/2895)
+Updating files: 100% (2895/2895), done.
+HEAD is now at 7d3e16f chore(evidence): R69 巡检轮取证（90/90 连续第 51 轮全绿；204 例两轮全绿且逐类一致 + 14 套只读审计/13 套抽查/26 个负向自测零回归 + 新增抽查「分页总数与列表谓词一致性」（第四十三类可审计不变量：13/13 SQL 站点谓词与参数同源；真发现 1 条 RPT-01）+ 台账回写）
+worktree_add_rc=0
+worktree 内 HEAD = 7d3e16f588c329f325ae9f639be6e10bebebeb2b
+worktree 内是否含本轮新增证据：
+.agents/state/evidence/audit-regression-R69-faildiff.txt
+.agents/state/evidence/audit-regression-R69-rcseq.txt
+.agents/state/evidence/audit-regression-R69.txt
+.agents/state/evidence/green-verify-R69-classdiff.txt
+.agents/state/evidence/green-verify-R69-full-run1.txt
+.agents/state/evidence/green-verify-R69-full-run2.txt
+.agents/state/evidence/spotcheck-pagination-R69-selftest.txt
+.agents/state/evidence/spotcheck-pagination-R69.txt
+worktree 内 coverage-report.json 是否存在（应为 否，提交里不含该文件）：
+是
+
+mvn_test_rc=0
+
+== 提交态复跑：surefire 摘要行 ==
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 52.73 s -- in com.hioas.aap.adminconfig.DetectionConfigContractTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 25.60 s -- in com.hioas.aap.adminconfig.ReportTemplateContractTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.013 s -- in com.hioas.aap.adminconfig.ReportTemplateWordingTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 39.36 s -- in com.hioas.aap.common.ApiContractTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.041 s -- in com.hioas.aap.common.ApiEnvelopeTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.155 s -- in com.hioas.aap.common.LoggingAndHealthTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 17.40 s -- in com.hioas.aap.common.MigrationTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.082 s -- in com.hioas.aap.common.OutboundUrlGuardTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.89 s -- in com.hioas.aap.common.PersistenceBaseTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.052 s -- in com.hioas.aap.compile.BillingCompilerTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 30.81 s -- in com.hioas.aap.compile.CompilationContractTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 99.63 s -- in com.hioas.aap.contract.ContractContractTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.587 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.444 s -- in com.hioas.aap.credential.AdminCredentialContractTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 29.02 s -- in com.hioas.aap.credential.CredentialContractTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 19.49 s -- in com.hioas.aap.detection.DetectionContractTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.070 s -- in com.hioas.aap.detection.ProbeScoringTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.081 s -- in com.hioas.aap.detection.RecheckServiceTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.53 s -- in com.hioas.aap.iam.AuthContractTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.136 s -- in com.hioas.aap.provider.AdminProviderContractTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 17.36 s -- in com.hioas.aap.provider.ProviderContractTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.981 s -- in com.hioas.aap.quote.AdminQuoteCompareContractTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 16.57 s -- in com.hioas.aap.quote.QuoteContractTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.019 s -- in com.hioas.aap.quote.QuoteValidationTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.752 s -- in com.hioas.aap.report.ReportContractTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 30.57 s -- in com.hioas.aap.review.ReviewContractTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.799 s -- in com.hioas.aap.settlement.PaymentContractTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.778 s -- in com.hioas.aap.support.NotificationContractTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.961 s -- in com.hioas.aap.sync.SyncAdminContractTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.hioas.aap.ToolchainSmokeTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 16.74 s -- in com.hioas.aap.usage.UsageContractTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in com.hioas.aap.usage.UsageMetricsTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.189 s -- in com.hioas.aap.usage.UsageRefreshDegradedTest
+[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+[INFO] Total time:  08:46 min
+
+[ERROR] 行数 = 0
+== 提交态复跑：门禁自身结果（测试自身 1/1，坑 96：不靠 grep 类名当摘要） ==
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.587 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+
+== 提交态复跑：worktree 内 coverage-report.json 逐字段 ==
+total=90 implemented=90 missing=0 registered_routes=96 not_registered=[]
+by_task 族数=12 合计 implemented/total = 90/90
+
+== 收尾：git worktree remove --force（git 自带，不触发递归删除拦截） ==
+worktree_remove_rc=0
+E:/workspaces/hioas/hioas-aap-001 10d0178 [main]
+
+== 主工作树未受影响核对（他方未提交文件应原样保留） ==
+ M .agents/state/evidence/coverage-report.json
+ M .agents/state/evidence/mp-e2e-full.json
+ M .agents/state/mp-e2e-state.json
+?? .playwright-mcp/
+?? aap-client/evidence/ide/h5-pages_login_index.png
+?? aap-client/evidence/ide/h5-pages_usage_index.png
+?? aap-client/evidence/ide/h5-pages_workbench_index.png
+?? aap-client/pnpm-lock.yaml
+?? aap-client/pnpm-workspace.yaml
+
