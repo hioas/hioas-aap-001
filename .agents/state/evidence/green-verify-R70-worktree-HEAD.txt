@@ -1,0 +1,20 @@
+== R70 提交态复跑（临时 worktree，detached HEAD；坑 27/28） ==
+worktree 路径：C:\Users\laitz\AppData\Local/Temp/aap-verify-r70-0921
+复跑命令（与规范命令一致，无参数改动）：tools/with-env.sh aap-server mvn -B -ntp test
+
+worktree_path=C:\Users\laitz\AppData\Local/Temp/aap-verify-r70-0921
+mvn_test_rc=0
+worktree_head=e198af9d5b22d111acb320419abbd3451d85bb3a
+main_head=e198af9d5b22d111acb320419abbd3451d85bb3a
+[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+error_lines=0
+[INFO] BUILD SUCCESS
+gate_self=[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.315 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+worktree_remove_rc=0
+
+== worktree 内覆盖门禁报告字段（逐字段读 JSON，坑 96） ==
+{"total":90,"implemented":90,"missing":0,"by_task":{"T03":{"implemented":6,"total":6},"T04":{"implemented":5,"total":5},"T05":{"implemented":7,"total":7},"T06":{"implemented":6,"total":6},"T07":{"impl
+
+结论：提交态复跑 rc=0；204 例 0 失败/0 错误/0 跳过；[ERROR] 行 0；BUILD SUCCESS；门禁自身 1/0/0/0；
+worktree HEAD = 主工作树 HEAD（同一提交）；coverage-report.json 逐字段 total/implemented/missing = 90/90/0；worktree 收尾 rc=0
+→ **提交自洽**：不依赖他方未提交改动（他方 aap-client/H5 与 .playwright-mcp 改动留在主工作区未提交，未进入本轮提交）
