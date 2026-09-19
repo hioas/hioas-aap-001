@@ -266,9 +266,22 @@ class AuthContractTest extends ApiTestBase {
     void forgedAndExpiredTokensRejected() throws Exception {
         String token = login(PHONE, sendSmsAndGetCode(PHONE)).data().path("token").asText();
 
-        HttpResult tampered = get("/auth/me", token.substring(0, token.length() - 2) + "xy");
-        assertThat(tampered.status()).isEqualTo(401);
-        assertThat(tampered.code()).isEqualTo("E-1902");
+        // 篡改点必须落在**签名段首字符**：该字符覆盖签名的 6 个有效位，篡改后签名必变（确定性）。
+        // 原写法 `token.substring(0, token.length() - 2) + "xy"` 在约 1/1024 的情形下**不改变解码后的签名**
+        // —— JWS(HS256) 签名 32 字节 → base64url 43 字符，末位字符只有高 4 位参与解码（低 2 位是填充位），
+        // 故「第 42 字符 == 'x' ∧ 第 43 字符 == 'w'」时篡改是无操作 → 服务端验签通过 → 200，断言 401 假红。
+        int sigStart = token.lastIndexOf('.') + 1;
+        assertThat(sigStart).isPositive();
+        assertThat(sigStart).isLessThan(token.length());
+        char sigHead = token.charAt(sigStart);
+        String tampered = token.substring(0, sigStart)
+                + (sigHead == 'A' ? 'B' : 'A')
+                + token.substring(sigStart + 1);
+        assertThat(tampered).isNotEqualTo(token);
+
+        HttpResult tamperedRes = get("/auth/me", tampered);
+        assertThat(tamperedRes.status()).isEqualTo(401);
+        assertThat(tamperedRes.code()).isEqualTo("E-1902");
 
         String expired = jwt("expired", -60);
         HttpResult expiredRes = get("/auth/me", expired);

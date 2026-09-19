@@ -1,0 +1,44 @@
+== R123 RED 基线：AuthContractTest 伪造 token 断言 flaky（真实观测，非构造） ==
+
+被测状态：HEAD 的临时 detached worktree C:/Users/laitz/AppData/Local/Temp/aap-r123-wt，检出提交 = fa5d445（= 会话起点 HEAD fa5d445）
+规范命令：../tools/with-env.sh aap-server mvn -B -ntp test（两轮串行，参数未改）
+
+-- run1：**红**（真实失败） --
+surefire 合计 = Tests run/Failures/Errors/Skipped = (211, 1, 0, 0)
+[ERROR] com.hioas.aap.iam.AuthContractTest.forgedAndExpiredTokensRejected -- Time elapsed: 0.616 s <<< FAILURE!
+expected: 401
+ but was: 200
+	at com.hioas.aap.iam.AuthContractTest.forgedAndExpiredTokensRejected(AuthContractTest.java:270)
+expected: 401
+ but was: 200
+
+-- run2：**绿**（同一 worktree、同一份代码，参数未改） --
+surefire 合计 = Tests run/Failures/Errors/Skipped = (211, 0, 0, 0)
+
+⇒ 同一份代码 run1 红、run2 绿 = **flaky**（坑 11：先怀疑并发/环境，再怀疑代码）。
+   并发排除：执行器前置 `jps` 检查无 surefire/classworlds 进程，两轮之间不插入任何审计/自测（坑 11/158/20）。
+   环境排除：两轮之间无编译/依赖变化；aap-server 树与 R122 已测提交逐字节一致
+   （git diff --stat ada5420 fa5d445 -- aap-server/ 输出行数 = 0）。
+
+-- 失败断言的源码（HEAD 版本，AuthContractTest.java） --
+ 266|     void forgedAndExpiredTokensRejected() throws Exception {
+ 267|         String token = login(PHONE, sendSmsAndGetCode(PHONE)).data().path("token").asText();
+ 268| 
+ 269|         HttpResult tampered = get("/auth/me", token.substring(0, token.length() - 2) + "xy");
+ 270|         assertThat(tampered.status()).isEqualTo(401);
+ 271|         assertThat(tampered.code()).isEqualTo("E-1902");
+ 272| 
+ 273|         String expired = jwt("expired", -60);
+ 274|         HttpResult expiredRes = get("/auth/me", expired);
+ 275|         assertThat(expiredRes.status()).isEqualTo(401);
+ 276|         assertThat(expiredRes.code()).isEqualTo("E-1902");
+
+根因（机械取证见 evidence/red-jwt-tamper-mechanism.txt）：
+  篡改写法 `token.substring(0, len-2) + "xy"` **不保证**改变签名：
+  JWS(HS256) 签名 = 32 字节 → base64url = 43 字符，末位字符只有**高 4 位**参与解码（低 2 位恒为 0）。
+  篡改后解码签名与原签名相同 ⟺ 原 token 第 42 字符 == 'x' 且第 43 字符 == 'w' → 概率恰为 1/1024。
+  此时服务端验签**通过** → 200，而断言期望 401 → 假红（测试侧断言缺陷，与实现无关）。
+
+修法（TDD：先落红、再改断言，且**加强**不削弱）：把篡改点移到**签名段首字符**
+  （该字符 6 位全部是有效位 → 篡改后签名必变，确定性），并补 `assertThat(tampered).isNotEqualTo(token)`
+  这条「篡改真的改到了」的守卫（坑 66 的测试侧）。
