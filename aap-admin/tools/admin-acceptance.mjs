@@ -140,6 +140,12 @@ async function main() {
     errors.length = 0;
 
     await page.goto(`${BASE}/#${route}`, { waitUntil: 'domcontentloaded' });
+    // ⚠️ 同 hash 的 goto **不会重载**（浏览器把 hash 变更当路由内跳转）：
+    //    登录后已停在 /dashboard，循环里再 goto 到 /dashboard 就不会重新挂载 →
+    //    该页的取数请求被算在循环之前，显示成「接口 0 次」这种**误导性的假象**。
+    //    所以目标 hash 与当前一致时，强制 reload。
+    const sameHash = await page.evaluate((r) => location.hash === `#${r}`, route);
+    if (sameHash) await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(1600);
 
     const state = await page.evaluate(() => {
