@@ -1,0 +1,6 @@
+== R72 用例计数与禁用扫描 ==
+测试源文件数 = 39
+@Test 词边界计数 = 204（朴素 @Test 计数 = 206；差 2 = @TestConfiguration/@TestPropertySource 等子串误计，坑 35）
+surefire 合计 = 204
+对账结论 = 一致（无用例被静默跳过）
+禁用扫描（@Disabled|@Ignore|@DisabledIf|assumeTrue|Assumptions.）命中 = 0（期望 0，不得削弱测试）

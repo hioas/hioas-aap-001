@@ -1,0 +1,32 @@
+== R72 抽查：出站 HTTP 调用的安全与韧性契约（第四十五类可审计不变量） ==
+真源：E 出站入口/调用点／T 超时（连接级+请求级）／G SSRF 守卫调用点（发请求之前）／R 重试（条件+上限+退避）／C 响应体上限（常量值 + 上限生效位置）／D 重定向（显式次数限制 + 目标是否过守卫）／I 中断语义／X 失败映射错误码／P PRD 声明行／K 测试背书（结构级 vs 数值级）
+为什么两套门禁都看不见：契约测试只把**响应体**与 JSON Schema 比对（出站调用的超时/重试/守卫/上限全不在 schema 里，上游失败时响应体仍是合法错误包络）；覆盖门禁只比「方法 + 路径」；openapi 与客户端 TS 不被任何测试读取/执行。
+rc=1
+
+[PASS] A0a 解析到出站入口方法 = 3（UpstreamProbe.probe, NewApiSyncClient.get, NewApiSyncClient.put）
+[PASS] A0b 解析到出站调用点 = 6
+[PASS] A0c 解析到超时设置点 = 5（请求级 3 / 连接级 2）
+[PASS] A0d PRD 声明行解析到：重定向 2 / 响应体上限 2 / 重试 4 / SSRF 16
+[PASS] A0e 测试背书解析到：HttpServer 桩 24 处、失败码断言 19 处
+[PASS] A1 全部 6 个出站调用点都在发请求之前有 SSRF 守卫证据（同方法内 verify 先于调用，或入口自带）
+[PASS] A2 每个出站入口都有请求级超时（.timeout）+ 其 HttpClient 有连接级超时（connectTimeout）
+[PASS] A3 UpstreamProbe.probe 重试有次数上限（attempts <= MAX_RETRY）
+[PASS] A3b UpstreamProbe.probe 鉴权类（401/403）在重试分支之前 return（不重试）
+[PASS] A4 UpstreamProbe.MAX_BODY_BYTES = 10 MiB ≤ 声明上限 10 MB
+[PASS] A4 NewApiSyncClient.MAX_BODY_BYTES = 1 MiB ≤ 声明上限 10 MB
+[PASS] A6 出站失败码 E-1101 在 ErrorCode.java 声明（HTTP 状态由枚举构造参数给出）
+[PASS] A6 出站失败码 E-1501 在 ErrorCode.java 声明（HTTP 状态由枚举构造参数给出）
+[PASS] A8a 出站失败路径有进程内 stub 用例（HttpServer 24 处）
+[PASS] A8b 「鉴权失败不重试」有**数值级**背书（断言上游调用次数 = 1）
+[INFO] A3c UpstreamProbe.probe 重试路径无退避证据（立即重试）——PRD 09 §检测执行声明「网络失败重试 2 次（指数退避）」，而本项目设计文档（00-设计总览 §实现清单）对本入口只声明「5xx/网络错误 ≤2 次」（同步路径的退避是调度式 next_retry_at，与本入口无关）→ 两份文档口径不一致 + 「指数退避」在预检路径零实现，列**文档一致性项（待拍板）**，不判 FAIL（不把 PRD 的检测项执行声明硬套到凭证预检）
+[INFO] 硬编码出站超时字面量（无 yml 配置项；probe 的请求超时来自 app.detection.probe-timeout-seconds，该键未在 application.yml 声明 → 已知 R54 A1b 项）：UpstreamProbe:Duration.ofSeconds(5), NewApiSyncClient:Duration.ofSeconds(5), NewApiSyncClient:Duration.ofSeconds(10)
+[INFO] PRD 声明行：09-检测验证引擎PRD.md → 安全约束：SSRF 防护（专用代理、禁内网/环回/元数据、仅 http(s)、重定向≤3、响应体≤10MB）；凭证 AE; 17-零歧义执行规格spec.md → 安全：凭证 AES-256-GCM 密文 base64(iv||ct||tag)；脱敏 key `{前4}***{后4}
+[INFO] SSRF 声明行（16 条）：| **安全-SSRF** | 检测引擎出站请求经专用代理，禁用内网网段、禁用非 http/https、限制重定向次数、限制响应体大小             
+[FAIL ] A4b 响应体上限**在读入之后**才生效：NewApiSyncClient, UpstreamProbe 用 BodyHandlers.ofByteArray() 先全量读入内存再截断 → PRD 声明「响应体≤10MB」的防护在超大响应下不成立（应先按 Content-Length/限流流式读取）
+[FAIL ] A5 重定向次数无显式上限：UpstreamProbe.Redirect.NORMAL, NewApiSyncClient.Redirect.NORMAL，PRD 声明「重定向≤3」未落地（依赖 JDK 内部默认上限，且不可配置为 3）
+[FAIL ] A5b 重定向目标不过 SSRF 守卫：UpstreamProbe, NewApiSyncClient 跟随重定向（NORMAL），而 OutboundUrlGuard 只校验初始 base_url，重定向由 JDK 客户端内部完成 → 上游可用 302 把请求引向内网/环回/元数据地址，PRD 声明「禁内网/环回/元数据」在重定向路径上不成立
+[FAIL ] A7 UpstreamProbe.probe 用 catch(Exception) 兜底且其中含 httpClient.send（可抛 InterruptedException），但全类无 Thread.currentThread().interrupt() → 中断/优雅停机信号被吞（同类 NewApiSyncClient 已正确处理）
+[FAIL ] A8c PRD 声明「网络失败重试 2 次」，但测试桩只覆盖状态 [200, 401] —— **5xx/网络错误的重试路径零用例背书**（重试分支从未被执行，204 例全绿也看不见；坑 143-① 数值背书缺失）
+
+断言 20 条：PASS 15，FAIL 5；信息项 4 条
+结论：存在出站调用契约漂移/风险点（见 FAIL）
