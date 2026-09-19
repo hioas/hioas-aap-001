@@ -414,15 +414,25 @@ async function main() {
   await step('⑳ 模型定价 → 保存价格（PUT /quotes/items/{itemId}）', async () => {
     assert(savedQuoteId, '上一步未拿到报价单 id');
     await goto(`#/pages/model-pricing/index?quoteId=${savedQuoteId}`, /模型定价/);
-    // 逐项启用并填价（未勾选的项不会进请求体）
+    // ⚠️ 开关状态只能看 class：本页 checkbox 只有 :class="{'check--on': f.enabled}"，
+    //    **没有 data-checked 属性**。且设计稿默认就启用了输入价/输出价 ——
+    //    无条件点一下会把它们**关掉** → buildItemPayload 跳过未启用字段 → E-1001 输入价必填（V3）。
+    const switchOn = async (field) =>
+      (await cdp.eval(`(document.querySelector('[data-testid="check-${field}"]')?.className || '').includes('check--on')`)) === true;
     for (const [field, value] of [['input_price', '2.5'], ['output_price', '10']]) {
-      await cdp.clickUntil(
-        `[data-testid="check-${field}"]`,
-        async () => (await cdp.eval(`!!document.querySelector('[data-testid="price-${field}"]')`)) === true,
-        { tries: 3, gap: 500 }
-      );
+      if (!(await switchOn(field))) {
+        await cdp.clickUntil(`[data-testid="check-${field}"]`, () => switchOn(field), { tries: 3, gap: 500 });
+      }
+      assert(await switchOn(field), `价格字段 ${field} 未能启用`);
       const w = await cdp.setInput(`[data-testid="price-${field}"]`, value);
       assert(w === true, `价格 ${field} 写入失败: ${w}`);
+      // 回读要走**内层 input**：`price-*` 是 <uni-input> 宿主，宿主上的 .value 是 undefined
+      const got = await cdp.eval(
+        `(() => { const h = document.querySelector('[data-testid="price-${field}"]');` +
+          ` const el = h && h.tagName === 'INPUT' ? h : (h && h.querySelector && h.querySelector('input'));` +
+          ` return el ? el.value : null; })()`
+      );
+      assert(String(got) === value, `价格 ${field} 回读不一致: ${got}`);
     }
     await cdp.shot(outDir, '17-pricing');
     const before = api().filter((c) => c.method === 'PUT' && c.url.includes('/quotes/items/')).length;
@@ -436,13 +446,25 @@ async function main() {
     const puts = api().filter((c) => c.method === 'PUT' && c.url.includes('/quotes/items/'));
     assert(puts.length > 0, '点「保存价格」后未发出 PUT /quotes/items/{itemId}');
     assert(puts[0].code === '0', `保存价格 → ${puts[0].code} ${puts[0].message}`);
-    return `PUT /quotes/items/{itemId} → code=${puts[0].code}`;
+    // 真判据：请求体里**必须真的带上输入价**。只看 code=0 会漏掉「价格没进请求体」
+    // 这种假绿（服务端只在提交时才做 V3 必填校验，保存时可能放过）。
+    const body = String(puts[0].postData ?? '');
+    assert(/input_price/.test(body), `PUT 请求体未带 input_price：${body.slice(0, 300)}`);
+    return `PUT /quotes/items/{itemId} → code=${puts[0].code}；体=${body.slice(0, 160)}`;
   });
 
   await step('㉑ 报价预览 → 提交报价单（POST /quotes/{id}/submit）', async () => {
     assert(savedQuoteId, '未拿到报价单 id');
     await goto(`#/pages/quote-preview/index?quoteId=${savedQuoteId}`, /预览|报价/);
-    await cdp.clickUntil('[data-testid="confirm-check"]', async () => true, { tries: 3, gap: 500 });
+    // 确认勾选框：判据必须是**状态真的翻转**（data-checked=true），
+    // 用 `async () => true` 会在第一次点击后立即返回 —— 点没点中都不知道。
+    await cdp.clickUntil(
+      '[data-testid="confirm-check"]',
+      async () => (await cdp.eval(`document.querySelector('[data-testid="confirm-check"]')?.getAttribute('data-checked')`)) === 'true',
+      { tries: 4, gap: 600 }
+    );
+    const checked = await cdp.eval(`document.querySelector('[data-testid="confirm-check"]')?.getAttribute('data-checked')`);
+    assert(checked === 'true', `确认勾选框未生效（data-checked=${checked}）—— 提交门禁会拦下`);
     await cdp.shot(outDir, '18-preview');
     const before = called('POST', '/submit').length;
     await cdp.clickUntil(
