@@ -1,0 +1,111 @@
+### RED · 缺陷4（POST /credentials 未接线）
+### 命令: npx vitest run tests/pages/credential-create-wiring.spec.ts
+### 时间: 2026-09-19 08:18:24
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+ [31m❯[39m tests/pages/credential-create-wiring.spec.ts [2m([22m[2m5 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[90m 122[2mms[22m[39m
+[31m   [31m×[31m 缺陷4 · 无凭证标识时就地新建[2m > [22m保存草稿：先 POST /credentials 新建，再用返回的 id 走 PUT 保存[90m 68[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ '/api/v1/credentials', …(1) ][39m
+[31m   [31m×[31m 缺陷4 · 无凭证标识时就地新建[2m > [22m提交检测：新建 → 保存 → 预检 → 跳检测页并带 jobId[90m 15[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ '/api/v1/credentials', …(2) ][39m
+[31m   [31m×[31m 缺陷4 · 无凭证标识时就地新建[2m > [22m新建失败：如实透传服务端错误，不继续后续调用[90m 13[2mms[22m[31m[39m
+[31m     → expected [] to deeply equal [ '/api/v1/credentials' ][39m
+[31m   [31m×[31m 缺陷4 · 无凭证标识时就地新建[2m > [22m无凭证标识且未填 APIKey：客户端就拦下（后端 api_key 必填）[90m 8[2mms[22m[31m[39m
+[31m     → expected '缺少凭证标识，无法保存' to contain 'APIKey'[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 4 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/credential-create-wiring.spec.ts[2m > [22m缺陷4 · 无凭证标识时就地新建[2m > [22m保存草稿：先 POST /credentials 新建，再用返回的 id 走 PUT 保存
+[31m[1mAssertionError[22m: expected [] to deeply equal [ '/api/v1/credentials', …(1) ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [[39m
+[32m-   "/api/v1/credentials",[39m
+[32m-   "/api/v1/credentials/c-new-1",[39m
+[32m- ][39m
+[31m+ Array [][39m
+
+[36m [2m❯[22m tests/pages/credential-create-wiring.spec.ts:[2m50:20[22m[39m
+    [90m 48| [39m    [35mawait[39m [34mflushPromises[39m()
+    [90m 49| [39m
+    [90m 50| [39m    [34mexpect[39m([34murls[39m())[33m.[39m[34mtoEqual[39m([[32m'/api/v1/credentials'[39m[33m,[39m [32m'/api/v1/credential[39m…
+    [90m   | [39m                   [31m^[39m
+    [90m 51| [39m    [35mconst[39m post [33m=[39m [34mgetCalls[39m([32m'request'[39m)[[34m0[39m][33m.[39margs[[34m0[39m] [35mas[39m [33mRecord[39m[33m<[39mstring[33m,[39m any[33m>[39m
+    [90m 52| [39m    [34mexpect[39m(post[33m.[39mmethod)[33m.[39m[34mtoBe[39m([32m'POST'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/credential-create-wiring.spec.ts[2m > [22m缺陷4 · 无凭证标识时就地新建[2m > [22m提交检测：新建 → 保存 → 预检 → 跳检测页并带 jobId
+[31m[1mAssertionError[22m: expected [] to deeply equal [ '/api/v1/credentials', …(2) ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [[39m
+[32m-   "/api/v1/credentials",[39m
+[32m-   "/api/v1/credentials/c-new-2",[39m
+[32m-   "/api/v1/credentials/c-new-2/precheck",[39m
+[32m- ][39m
+[31m+ Array [][39m
+
+[36m [2m❯[22m tests/pages/credential-create-wiring.spec.ts:[2m72:20[22m[39m
+    [90m 70| [39m    [35mawait[39m [34mflushPromises[39m()
+    [90m 71| [39m
+    [90m 72| [39m    [34mexpect[39m([34murls[39m())[33m.[39m[34mtoEqual[39m([
+    [90m   | [39m                   [31m^[39m
+    [90m 73| [39m      [32m'/api/v1/credentials'[39m[33m,[39m
+    [90m 74| [39m      [32m'/api/v1/credentials/c-new-2'[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/credential-create-wiring.spec.ts[2m > [22m缺陷4 · 无凭证标识时就地新建[2m > [22m新建失败：如实透传服务端错误，不继续后续调用
+[31m[1mAssertionError[22m: expected [] to deeply equal [ '/api/v1/credentials' ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [[39m
+[32m-   "/api/v1/credentials",[39m
+[32m- ][39m
+[31m+ Array [][39m
+
+[36m [2m❯[22m tests/pages/credential-create-wiring.spec.ts:[2m108:20[22m[39m
+    [90m106| [39m    [35mawait[39m [34mflushPromises[39m()
+    [90m107| [39m
+    [90m108| [39m    [34mexpect[39m([34murls[39m())[33m.[39m[34mtoEqual[39m([[32m'/api/v1/credentials'[39m])
+    [90m   | [39m                   [31m^[39m
+    [90m109| [39m    [35mconst[39m toast [33m=[39m [34mgetCalls[39m([32m'showToast'[39m)[33m.[39m[34mmap[39m((c) [33m=>[39m (c[33m.[39margs[[34m0[39m] [35mas[39m [33mRecor[39m…
+    [90m110| [39m    [34mexpect[39m(toast[33m.[39m[34mjoin[39m([32m' '[39m))[33m.[39m[34mtoContain[39m([32m'E-1104'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/pages/credential-create-wiring.spec.ts[2m > [22m缺陷4 · 无凭证标识时就地新建[2m > [22m无凭证标识且未填 APIKey：客户端就拦下（后端 api_key 必填）
+[31m[1mAssertionError[22m: expected '缺少凭证标识，无法保存' to contain 'APIKey'[39m
+
+Expected: [32m"APIKey"[39m
+Received: [31m"缺少凭证标识，无法保存"[39m
+
+[36m [2m❯[22m tests/pages/credential-create-wiring.spec.ts:[2m125:29[22m[39m
+    [90m123| [39m    [34mexpect[39m([34murls[39m())[33m.[39m[34mtoEqual[39m([])
+    [90m124| [39m    [35mconst[39m toast [33m=[39m [34mgetCalls[39m([32m'showToast'[39m)[33m.[39m[34mmap[39m((c) [33m=>[39m (c[33m.[39margs[[34m0[39m] [35mas[39m [33mRecor[39m…
+    [90m125| [39m    [34mexpect[39m(toast[33m.[39m[34mjoin[39m([32m' '[39m))[33m.[39m[34mtoContain[39m([32m'APIKey'[39m)
+    [90m   | [39m                            [31m^[39m
+    [90m126| [39m  })
+    [90m127| [39m})
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (5)[39m
+[2m   Start at [22m 08:18:58
+[2m   Duration [22m 8.45s[2m (transform 1.41s, setup 137ms, collect 1.67s, tests 122ms, environment 5.34s, prepare 668ms)[22m
+

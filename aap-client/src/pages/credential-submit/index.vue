@@ -282,12 +282,35 @@ function payloadOf() {
   })
 }
 
+/**
+ * 取当前凭证标识；**没有就地新建**。
+ *
+ * 后端 `POST /credentials` 的 `api_key` 必填（credential-create.schema.json），
+ * 故无标识时先校验 APIKey 再新建，避免把必然失败的请求发出去。
+ * 新建成功后把 id 落 storage，供「检测进行中」「报告」等后续页面复用。
+ */
+async function ensureCredentialId(): Promise<string> {
+  if (credentialId.value) return credentialId.value
+  const payload = payloadOf()
+  if (!payload.api_key) throw new ApiError('E-1001', '请输入 APIKey')
+  const created = await credentialApi.create(payload)
+  const id = String(created?.id ?? '')
+  if (!id) throw new ApiError('E-2001', '新建凭证未返回标识')
+  credentialId.value = id
+  try {
+    uni.setStorageSync(CREDENTIAL_ID_KEY, id)
+  } catch {
+    /* 忽略：落盘失败不影响本次流程 */
+  }
+  return id
+}
+
 async function onSave() {
   const invalid = validateForm()
   if (invalid) return toast(invalid)
-  if (!credentialId.value) return toast('缺少凭证标识，无法保存')
   try {
-    await credentialApi.save(credentialId.value, payloadOf())
+    const id = await ensureCredentialId()
+    await credentialApi.save(id, payloadOf())
     toast('已保存草稿')
   } catch (err) {
     toast(err instanceof ApiError ? err.message : '保存失败，请稍后重试')
@@ -298,11 +321,11 @@ async function onSave() {
 async function onSubmit() {
   const invalid = validateForm()
   if (invalid) return toast(invalid)
-  if (!credentialId.value) return toast('缺少凭证标识，无法提交')
   uni.showLoading({ title: '提交中' })
   try {
-    await credentialApi.save(credentialId.value, payloadOf())
-    const result = await credentialApi.precheck(credentialId.value)
+    const id = await ensureCredentialId()
+    await credentialApi.save(id, payloadOf())
+    const result = await credentialApi.precheck(id)
     const jobId = result?.job_id ?? result?.jobId ?? result?.detection_job_id ?? ''
     const query = jobId ? `?jobId=${encodeURIComponent(String(jobId))}` : ''
     uni.hideLoading()

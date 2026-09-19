@@ -30,6 +30,21 @@ export interface PrecheckResultRaw {
 const path = (id: string) => `/credentials/${encodeURIComponent(id)}`
 
 export const credentialApi = {
+  /**
+   * 新建凭证（CRED-02）。契约见 `docs/backend/json-schema/requests/credential-create.schema.json`
+   * （required = `api_key` + `base_url`）。
+   *
+   * ⚠️ 联调发现（2026-09-19）：此前前端**只声明了 list/detail/PUT/precheck，漏了 create**，
+   *   凭证 id 只能靠页面 query/storage 传入 → **小程序/H5 内用户根本无法新建凭证**，
+   *   凭证列表恒空，检测/报告/报价/合同/打款全链路不可达。
+   */
+  create(payload: CredentialSavePayload) {
+    return http<CredentialDetailRaw>('/credentials', {
+      method: 'POST',
+      data: payload as unknown as Record<string, unknown>
+    })
+  },
+
   /** 凭证列表（最近接入优先） */
   list(params?: { page?: number; pageSize?: number }) {
     return http<CredentialListRaw>('/credentials', { method: 'GET', data: params })
