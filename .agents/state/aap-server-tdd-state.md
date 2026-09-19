@@ -4167,3 +4167,17 @@ jsonb 无 typeHandler / 监听器列缺失 / 约定名漂移无注解 / 未映�
   → 两轮全量编译/执行的就是 HEAD = `4e5b357` 的 aap-server 源码。
 - **飞书通知**：见本轮最终响应（本 cron 作业会把最终响应自动投递到同一目标）。
 - **本轮提交**：`8b6983a`（巡检轮证据 + 台账三件套）。回归面与上一轮逐条一致，见 `evidence/audit-regression-R76.txt`。
+
+#### R77 巡检轮（missing=0 → 只校验不改代码；90/90 连续第 59 轮全绿）
+
+- 全量两轮 **206 例全绿**（33 类，逐类 diff=0，已剥 `Time elapsed` 再排序，坑 59/79）；
+  覆盖门禁 **90/90**（`registered_routes=96`、`missing=0`、`not_registered=[]`、by_task 12 族 90/90）；
+  `@Test` 词边界计数 206 与 surefire 对账一致（朴素计数 208，差 2 = `@TestConfiguration`/`@TestPropertySource`
+  子串误计，坑 35）、禁用扫描 0 条。
+- 回归面：**59 条**审计/抽查/自测，rc 与 R76 **逐条一致**（新增 0、消失 0、rc 变化 0）；
+  FAIL 明细 R76=74 / R77=74（新增 0、消失 0）；零写副作用 84 个产物 (size,md5) 全等。
+- 本轮为**纯巡检轮**：不新增不变量类、不改任何实现或测试代码。
+- **被测状态核对**（证据 `evidence/green-verify-R77-tested-state.txt`）：run1 12:14:46–12:16:35、run2 12:16:42–12:19:01（串行，规范命令不改参数）；
+  窗口内 aap-server 源码 mtime 改动 = 0；**窗口内 HEAD 位移 = 2 个提交**（`0bb2a71` 12:13:53、`5e29e22` 12:19:56，均为 `aap-client/tools` 前端侧；会话起点 HEAD = `cd15c4d`）——但 `git diff --stat cd15c4d 5e29e22 -- aap-server/` 输出行数 = 0（aap-server 树零差异），且工作区 `git status --short -- aap-server/` 输出行数 = 0。
+  → 两轮全量编译/执行的就是 `cd15c4d`（== `5e29e22`）的 aap-server 源码（位移提交全部落在 aap-client/tools，不触碰被测对象）。
+- **飞书通知**：见本轮最终响应（本 cron 作业会把最终响应自动投递到同一目标）。
