@@ -1,0 +1,42 @@
+### 管理端联调（本地 Chrome 有头）
+### 时间: 2026-09-19 23:42:47
+
+管理端联调  base=http://127.0.0.1:5174  账号=13900000001  浏览器=本地Chrome(有头)
+
+  ✓ 登录页渲染
+  ✓ 读到图形验证码 — WZYK
+  ✓ 点「获取验证码」发出请求 — code=0
+  ✓ 拿到 dev 回显短信码 — 123456
+  ✓ 登录成功且 token 落 storage — len=307
+  ✓ 全局样式（登录页） — --c-page=rgba(241, 245, 249, 1)，body=rgb(241, 245, 249)/12px
+  ✓ /dashboard  进件状态看板 — 业务内容已渲染；接口 5 次，控制台 0 报错
+  ✓ /usage  用量统计 — 业务内容已渲染；接口 2 次，控制台 0 报错
+  ✓ /models  模型管理 — 业务内容已渲染；接口 2 次（含已声明放行 E-1501/E-1501），控制台 0 报错
+  ✓ /providers  供应商管理 — 骨架（含待实现徽章）；接口 0 次，控制台 0 报错
+  ✓ /detection  检测中心 — 骨架（含待实现徽章）；接口 0 次，控制台 0 报错
+  ✓ /reviews  报价审核 — 业务内容已渲染；接口 4 次，控制台 0 报错
+  ✓ /contracts  合同与结算 — 业务内容已渲染；接口 6 次，控制台 0 报错
+  ✓ /compilation  编译确认台 — 骨架（含待实现徽章）；接口 0 次，控制台 0 报错
+  ✓ /sync  new-api 同步 — 骨架（含待实现徽章）；接口 0 次，控制台 0 报错
+
+──────────────────────────────────────────────────────────────────────────────
+管理端联调：通过 15，失败 0
+
+真实 HTTP 调用流水（/api/v1，共 32 次）：
+  200  GET    /admin/usage/hourly  code=-
+  200  GET    /admin/usage/hourly  code=0
+  502  GET    /admin/sync/models/upstream  code=E-1501
+  502  GET    /admin/sync/models/upstream  code=E-1501
+  200  GET    /admin/reviews  code=0
+  200  GET    /admin/reviews  code=0
+  200  GET    /admin/reviews  code=0
+  200  GET    /admin/reviews  code=0
+  200  GET    /admin/payments  code=0
+  200  GET    /admin/contracts  code=0
+  200  GET    /admin/settlements  code=0
+  200  GET    /admin/settlements  code=0
+  200  GET    /admin/payments  code=0
+  200  GET    /admin/contracts  code=0
+
+明细已写入 evidence\admin\admin-acceptance.json
+exit=0

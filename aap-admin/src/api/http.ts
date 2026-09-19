@@ -44,7 +44,14 @@ export interface ApiEnvelope<T> {
   code: string;
   message?: string;
   data?: T;
+  /**
+   * 追踪号。⚠️ 后端统一响应包用的是**驼峰 `traceId`**（实测
+   * `{"code":"E-1001","message":"参数校验失败","data":null,"traceId":"776b0abc..."}`），
+   * 不是 snake_case。两种都声明并容错，避免排障时拿不到追踪号。
+   */
+  traceId?: string;
   trace_id?: string;
+  details?: unknown;
 }
 
 export interface RequestOptions {
@@ -109,12 +116,13 @@ export async function request<T>(path: string, opts: RequestOptions = {}): Promi
       ElMessage.error('登录已过期，请重新登录');
       if (typeof location !== 'undefined' && !location.hash.startsWith('#/login')) location.hash = '#/login';
     }
-    throw new ApiError(code, env?.message ?? '未认证或登录已过期', { traceId: env?.trace_id, status: res.status });
+    throw new ApiError(code, env?.message ?? '未认证或登录已过期', { traceId: env?.traceId ?? env?.trace_id, status: res.status });
   }
 
   if (!res.ok || code !== '0') {
     throw new ApiError(code, env?.message ?? `请求失败（HTTP ${res.status}）`, {
-      traceId: env?.trace_id,
+      // 后端用驼峰 traceId；旧代码只读 trace_id，追踪号永远拿不到（新写的测试抓到）
+      traceId: env?.traceId ?? env?.trace_id,
       status: res.status
     });
   }

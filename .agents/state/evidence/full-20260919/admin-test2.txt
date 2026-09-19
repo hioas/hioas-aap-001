@@ -1,0 +1,25 @@
+### aap-admin 全量测试（新增用例）
+### 时间: 2026-09-19 23:36:51
+
+[2m    "name": "ApiError",[22m
+[32m-   "traceId": "abc123",[39m
+[31m+   "traceId": undefined,[39m
+[2m  }[22m
+
+[36m [2m❯[22m tests/unit/http.spec.ts:[2m34:5[22m[39m
+    [90m 32| [39m  [34mit[39m([32m'业务码非 0 → 抛 ApiError，且带上 code / message / traceId'[39m[33m,[39m [35masyn[39m…
+    [90m 33| [39m    vi[33m.[39m[34mstubGlobal[39m([32m'fetch'[39m[33m,[39m [34mmockFetch[39m([34m200[39m[33m,[39m { code[33m:[39m [32m'E-1601'[39m[33m,[39m message[33m:[39m [32m'[39m…
+    [90m 34| [39m    [35mawait[39m [34mexpect[39m([34mrequest[39m([32m'/admin/reviews/1/claim'[39m[33m,[39m { method[33m:[39m [32m'POST'[39m })…
+    [90m   | [39m    [31m^[39m
+    [90m 35| [39m      name[33m:[39m [32m'ApiError'[39m[33m,[39m
+    [90m 36| [39m      code[33m:[39m [32m'E-1601'[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m22 passed[39m[22m[90m (23)[39m
+[2m   Start at [22m 23:36:53
+[2m   Duration [22m 43.14s[2m (transform 11.37s, setup 0ms, collect 61.82s, tests 82ms, environment 21.75s, prepare 1.68s)[22m
+
+
+type-check exit=0
