@@ -55,3 +55,9 @@ run1 起跑 11:30:33 / 结束 11:32:30；run2 起跑 11:32:37 / 结束 11:34:18�
   ?? aap-client/evidence/ide/h5-pages_workbench_index.png
   ?? aap-client/pnpm-lock.yaml
   ?? aap-client/pnpm-workspace.yaml
+
+-- 轮内 HEAD 位移分析（他方提交落地） --
+run1 起跑时 HEAD = 392f785（11:22:45）；run2 结束后他方提交 ba14763（11:35:36，fix(fe) 缺陷10+11）
+git diff --stat 392f785 ba14763 -- aap-server/ → 输出行数 = 0（0 = aap-server 树零差异）
+git status --short -- aap-server/ → 输出行数 = 0（0 = 无未提交的 aap-server 改动）
+结论：轮内 HEAD 位移发生在**前端**侧，对被测对象（aap-server）零影响 → 两轮全量结果对 HEAD 有效。
