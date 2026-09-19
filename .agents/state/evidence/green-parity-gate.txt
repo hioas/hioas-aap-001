@@ -1,0 +1,21 @@
+### 双端一致性门禁 · GREEN（当前代码）
+### 时间: 2026-09-19 10:23:47
+
+[31m+   "  src/utils/region-data.ts:12  * 不接受 `#ifdef` 分平台两套实现。故改用两端都支持的 `mode=\"multiSelector\"` + 本文件。",[39m
+[31m+ ][39m
+
+[36m [2m❯[22m tests/unit/platform-parity.spec.ts:[2m124:71[22m[39m
+    [90m122| [39m      })
+    [90m123| [39m    }
+    [90m124| [39m    [34mexpect[39m(hits[33m,[39m [32m`禁止用条件编译分平台给不同 UI，请改用两端都支持的写[39m…
+    [90m   | [39m                                                                      [31m^[39m
+    [90m125| [39m  })
+    [90m126| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m5 passed[39m[22m[90m (6)[39m
+[2m   Start at [22m 10:24:26
+[2m   Duration [22m 17.06s[2m (transform 730ms, setup 356ms, collect 72ms, tests 1.34s, environment 12.26s, prepare 1.76s)[22m
+
