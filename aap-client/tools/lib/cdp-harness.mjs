@@ -253,10 +253,17 @@ export function makeOwnershipGuard(cdp, profile) {
  */
 export async function loginAndVerify(cdp, { baseUrl, phone, outDir } = {}) {
   await cdp.send('Page.navigate', { url: baseUrl });
-  await sleep(5000);
-
-  const captcha = await cdp.eval(`(() => { const el = document.querySelector('.captcha__text'); return el ? el.innerText.trim() : null; })()`);
-  if (!captcha) throw new Error('未读到图形验证码（.captcha__text）——登录页结构变了？');
+  // ⚠️ 不要用固定 sleep：冷启动的 vite dev server（全新浏览器 profile、无模块缓存）
+  //    首次转换模块经常超过 5s 才渲染出登录页 → 假报「未读到图形验证码」。
+  //    实测踩过：同一份代码 h5-chain 能过、h5-smoke 冷启动就报登录页结构变了。
+  const readCaptcha = async () =>
+    cdp.eval(`(() => { const el = document.querySelector('.captcha__text'); return el ? el.innerText.trim() : null; })()`);
+  let captcha = null;
+  for (let i = 0; i < 40 && !captcha; i++) {
+    captcha = await readCaptcha();
+    if (!captcha) await sleep(500);
+  }
+  if (!captcha) throw new Error('未读到图形验证码（.captcha__text）——登录页 20s 内未渲染（服务是否在跑？）');
 
   const setAt = (idx, text) => cdp.eval(`(() => {
     const h = document.querySelectorAll('input')[${idx}];
