@@ -2,7 +2,13 @@
  * 管理端设计令牌
  *
  * 真源：Calicat 文件 2100748148891054080 / 画布 2100748148912025600
- *      逐值取自 .calicat-admin/raw/pages/*/design.json（fills / fontFill / fontSize / cornerRadius）
+ *      逐值取自 .calicat-admin/raw/pages/<page>/design.json（fills / fontFill / fontSize / cornerRadius）
+ *
+ * ⚠️ 血泪教训：注释里**绝不能出现 `星号+斜杠` 序列**（哪怕它是路径的一部分，例如
+ *    `pages/[星]/design.json`）—— 那会**提前终止 CSS 注释**，紧随其后的 `:root {...}`
+ *    整块被当垃圾丢掉，**全部设计令牌消失、页面完全没有样式**。
+ *    已加门禁：tools/check-css-comments.mjs（npm run check:css）。
+ *
  * 字体：设计稿为思源黑体（SourceHanSans-Regular / -Bold）；落地用系统栈优先，
  *      不引入外部字体（合规 + 首屏），仅保持字号/字重/色值一致。
  */

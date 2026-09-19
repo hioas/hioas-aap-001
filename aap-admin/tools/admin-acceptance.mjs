@@ -81,6 +81,49 @@ const record = (name, ok, detail = '') => {
   console.log(`  ${ok ? '✓' : '✗'} ${name}${detail ? ` — ${detail}` : ''}`);
 };
 
+/**
+ * 全局样式门禁（每页都查）。
+ *
+ * 教训：判据只查「DOM 节点 + 文本」时，**CSS 整块失效也能全绿** ——
+ * 实测 tokens.css 的文件头注释里出现了「星号紧跟斜杠」把注释提前终止，
+ * 紧随其后的 `:root{...}` 整块被丢弃 → 设计令牌全丢、页面毫无样式，
+ * 而当时 14 条判据全部通过。所以样式必须进判据。
+ *
+ * 判据用**计算样式**（不是看有没有 class）：
+ *   - 页面底色 = slate-100 rgb(241,245,249)
+ *   - 正文字号 = 12px（令牌 --fs-base）
+ *   - 侧栏底色 = slate-900 rgb(15,23,42)
+ *   - 卡片圆角 = 14px（令牌 --r-card）且白底
+ */
+async function checkGlobalStyles(page) {
+  return page.evaluate(() => {
+    const root = getComputedStyle(document.documentElement);
+    const cs = (sel, prop) => {
+      const e = document.querySelector(sel);
+      return e ? getComputedStyle(e)[prop] : null;
+    };
+    return {
+      tokenPage: root.getPropertyValue('--c-page').trim(),
+      bodyBg: cs('body', 'backgroundColor'),
+      bodyFontSize: cs('body', 'fontSize'),
+      sidebarBg: cs('.sidebar', 'backgroundColor'),
+      cardRadius: cs('.aap-card', 'borderRadius'),
+      cardBg: cs('.aap-card', 'backgroundColor')
+    };
+  });
+}
+
+function styleProblems(s) {
+  const p = [];
+  if (!s.tokenPage) p.push('CSS 变量 --c-page 未定义（tokens.css 未生效 / 注释提前终止）');
+  if (s.bodyBg !== 'rgb(241, 245, 249)') p.push(`页面底色异常：${s.bodyBg}（应为 rgb(241,245,249)）`);
+  if (s.bodyFontSize !== '12px') p.push(`正文字号异常：${s.bodyFontSize}（应为 12px）`);
+  if (s.sidebarBg !== 'rgb(15, 23, 42)') p.push(`侧栏底色异常：${s.sidebarBg}（应为 rgb(15,23,42)）`);
+  if (s.cardRadius !== '14px') p.push(`卡片圆角异常：${s.cardRadius}（应为 14px）`);
+  if (s.cardBg !== 'rgb(255, 255, 255)') p.push(`卡片底色异常：${s.cardBg}（应为白）`);
+  return p;
+}
+
 /** 收集 /api/v1 的真实调用流水（只看后端业务接口，避免把源码模块请求算进来） */
 function attachApiLog(page) {
   const calls = [];
@@ -174,6 +217,14 @@ async function main() {
   }
   await page.screenshot({ path: join(OUT, '01-after-login.png'), fullPage: true });
 
+  // 登录页也要过样式门禁（此时已在后台页，回头验一次登录页样式）
+  await page.goto(`${BASE}/#/login`, { waitUntil: 'domcontentloaded' });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(1200);
+  const loginStyle = await checkGlobalStyles(page);
+  const loginStyleBad = styleProblems(loginStyle);
+  record('全局样式（登录页）', loginStyleBad.length === 0, loginStyleBad.join(' | ') || `--c-page=${loginStyle.tokenPage}，body=${loginStyle.bodyBg}/${loginStyle.bodyFontSize}`);
+
   // ── 2. 逐页核对（渲染 / 标题 / 接口 / 控制台） ────────────────────────
   for (const [route, title] of ROUTES) {
     const before = calls.length;
@@ -214,12 +265,31 @@ async function main() {
         const missing = (req || []).filter((s) => !document.querySelector(s));
         const text = document.body.innerText || '';
         const hitAny = !textAny || textAny.some((t) => text.includes(t));
-        return { missing, hitAny, isStub: text.includes('待实现') };
+        const root = getComputedStyle(document.documentElement);
+        const cs = (sel, prop) => {
+          const e = document.querySelector(sel);
+          return e ? getComputedStyle(e)[prop] : null;
+        };
+        return {
+          missing,
+          hitAny,
+          isStub: text.includes('待实现'),
+          styles: {
+            tokenPage: root.getPropertyValue('--c-page').trim(),
+            bodyBg: cs('body', 'backgroundColor'),
+            bodyFontSize: cs('body', 'fontSize'),
+            sidebarBg: cs('.sidebar', 'backgroundColor'),
+            cardRadius: cs('.aap-card', 'borderRadius'),
+            cardBg: cs('.aap-card', 'backgroundColor')
+          }
+        };
       },
       { require: gate?.require, textAny: gate?.textAny }
     );
 
     const problems = [];
+    const styleBad = styleProblems(gateState.styles ?? {});
+    if (styleBad.length) problems.push(`样式异常：${styleBad.join('；')}`);
     if (state.hasLoginForm) problems.push('被踢回登录页（401 未续期）');
     if (state.blank) problems.push(`页面空白（textLen=${state.textLen}）`);
     if (!state.hasNav) problems.push('外壳未渲染（无侧栏）');
