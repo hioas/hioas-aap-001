@@ -656,4 +656,45 @@ node tools/idea-mcp-call.mjs execute_run_configuration \
 4. 启动日志在 `%LOCALAPPDATA%\JetBrains\IntelliJIdea<版本>\tmp\ij_run__<配置名>_*.log`。
 5. ⚠️ **run config 里明文存着 DB 口令 / JWT 密钥 / AES 密钥**，而文件头注释却写
    「凭据不写进本文件：值从 `E:\env\aap-server.env` 同步而来」——**注释与事实不符**。
-   `.idea/` 已 gitignore（没入库），但改这个文件时别把值复制到别处，也不要写进简报/提交信息。
+   `.idea/` 已 gitignore（没入库），但改这个文件时别把值抄到别处，也不要写进简报/提交信息。
+
+## 9. H5 有头浏览器链路联调（2026-09-19 建立）
+
+> **硬规矩：联调链条必须在真实浏览器里跑，且用有头模式（过程可见）。**
+> Node 侧直调 API 只能证明「后端接口通」，证明不了「页面把参数拼对了、把响应渲染对了、用户点得动」。
+
+```bash
+# 后端需带两个开关（envs 覆盖，见 §8）：
+#   AAP_ALLOW_LOOPBACK=true    预检允许打本机 mock 上游
+#   AAP_SMS_EXPOSE_CODE=true   回显 dev_code，浏览器才能自动登录
+cd aap-client && node tools/h5-chain.mjs http://localhost:5173 evidence/h5-chain 13800138000
+```
+
+产物：`evidence/h5-chain/*.png`（每步截图）+ `h5-chain-result.json`（步骤 + 全部 /api/ 流水）。
+
+**联调账号**（别搞混，混了会得到假的 403）：
+
+| 账号 | 角色 | 用途 |
+|---|---|---|
+| `13800138000` | SUPPLIER | 供应商侧链路（凭证/检测/报价） |
+| `13900000001` | SUPER_ADMIN | 管理端（审核/签发） |
+
+**坑（都实测过）**：
+
+1. **`<input>` 在 H5 里编译成 `<uni-input>` 包裹元素**，`data-testid` 常落在包裹层；
+   `HTMLInputElement.prototype` 的 value setter 只能 call 在内层 `<input>`，否则抛
+   Illegal invocation（CDP 里表现为 `Uncaught`）。→ `Cdp.setInput` 已自动向下找内层 input。
+2. **同 hash 的 `location.hash = ...` 不触发路由变化** → 跳页后要 `Page.reload`。
+3. **`@tap` 不吃 CDP 合成鼠标/触摸事件** → `clickUntil` 用 `MouseEvent('click')` 兜底。
+4. **登录前必须勾选协议**，否则静默拦住、一个请求都不发。
+5. **SMS 有 60s 冷却**（`E-1903`）：连续跑脚本要换手机号或等冷却。
+6. 登录请求体字段是 **`smsCode`**（驼峰），不是 `sms_code`。
+7. 驱动器的 Chrome 用独立 profile（`aap-cdp-profile-<port>`），清理时**只按
+   `*aap-cdp-profile*` 过滤**，绝不按进程名通杀。
+
+**最关键的一条 —— 断言业务结果，不要只看状态码**：
+
+后端存在「HTTP 200 + `code=0` + 业务结果为空」的**假绿**。实测：
+`GET /detection-jobs/{id}/results` 恒返回 `{total: 0, items: []}`、任务恒 `QUEUED`，
+但状态码和业务码都是成功的。只断言状态码的联调会把**坏掉的业务链判成通过**。
+→ `h5-chain.mjs` 第⑪步专门盯这个（它会**故意红**，用来暴露缺陷1）。
