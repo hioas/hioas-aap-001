@@ -28,8 +28,9 @@ E:\workspaces\hioas\hioas-aap-001\
    不凭印象改写；截图用 `vision_analyze` 看图核对，不靠猜。
 3. **接口不得臆造**：一律指向 `.calicat/prd/18-API设计OpenAPI.md` 的路径与方法；无依据标 `阻塞` 并上报。
 4. **一页一提交**：`feat(aap-client): <序号>-<页面名> <做了什么>`；台账 / 状态文件与该页代码同批提交。
-5. **应用经 IDE（IDEA）启动与联调**：能用 IDE MCP 就不用命令行起服务（`node scripts/idea-mcp-call.mjs` 见姊妹仓库 hioas-aim 做法）；
-   本仓库暂无 IDEA 工程与 run configuration，首次需要时先建 `aap-client` 的 npm 运行配置。
+5. **应用经 IDE（IDEA）启动与联调**：能用 IDE MCP 就不用命令行起服务。
+   本仓库已有 IDEA 工程与两个 run configuration（`AapServer(dev)`、`aap-client dev:h5`），
+   **启停一律走 IDEA MCP**，见 §8。
 6. **证据要有牙齿**：vitest 真跑输出、`dist/build/mp-weixin` 产物、H5 截图、日志。`npm run dev` 能起 ≠ 页面能用。
 7. **不碰别人的改动**：`git status` 里不是自己改的文件不提交、不回滚。
 
@@ -623,3 +624,36 @@ node tools/mp-ide-loggedin.mjs     # 已登录态：真 storage + 真取数
    （与登录页 `afterLogin` 一致）再验已登录页面取数。
 5. `wx.request` 在小程序 runtime 内确实能打到后端（实测收到后端错误码回执）→
    可先用它单独验证「域名白名单/网络」这一层，避免把网络问题误判成页面问题。
+
+## 8. IDEA MCP 启停（2026-09-19 建立）
+
+> **硬规矩：应用的启停一律走 IDEA MCP，不用命令行起服务。**
+
+前置：IDEA 里已启用 MCP Server（`Settings | Tools | MCP Server`），默认 `http://127.0.0.1:64342/sse`。
+调用器：`node tools/idea-mcp-call.mjs <tool|tools/list> '<json-args>' [超时秒]`
+
+```bash
+# 看有哪些 run configuration
+node tools/idea-mcp-call.mjs get_run_configurations '{"projectPath":"E:/workspaces/hioas/hioas-aap-001"}'
+
+# 启动后端（联调开关用 envs 覆盖，仅本次生效）
+node tools/idea-mcp-call.mjs execute_run_configuration \
+  '{"configurationName":"AapServer(dev)","projectPath":"E:/workspaces/hioas/hioas-aap-001","envs":{"AAP_ALLOW_LOOPBACK":"true"},"waitForExit":false}' 60
+```
+
+本仓库的 run configuration：`AapServer(dev)`（Spring Boot，8084）、`aap-client dev:h5`（npm）。
+
+**坑（都实测过）**：
+
+1. **必须传 `projectPath`**：IDEA 同时开多个项目时，不传会报
+   `Unable to determine the target project for the current MCP tool call`，并列出全部已开项目。
+2. **联调开关走 `envs` 覆盖，不要写进 run config**：`execute_run_configuration` 的 `envs`
+   是「仅本次启动的合并覆盖」，配置文件的常态值保持生产安全。
+   （`AAP_ALLOW_LOOPBACK=true` 是本地联调专用，见 `OutboundUrlGuard` 注释。）
+3. **MCP 没有「停止」工具**（59 个工具里只有 `execute_run_configuration` / `get_run_configurations`）。
+   停服只能在 IDEA 里点，或用 `execute_terminal_command`；**不要用宽过滤条件的 `Stop-Process`**
+   （实测踩过：按 `*AapServerApplication*` 过滤会连带杀掉命令行起的实例）。
+4. 启动日志在 `%LOCALAPPDATA%\JetBrains\IntelliJIdea<版本>\tmp\ij_run__<配置名>_*.log`。
+5. ⚠️ **run config 里明文存着 DB 口令 / JWT 密钥 / AES 密钥**，而文件头注释却写
+   「凭据不写进本文件：值从 `E:\env\aap-server.env` 同步而来」——**注释与事实不符**。
+   `.idea/` 已 gitignore（没入库），但改这个文件时别把值复制到别处，也不要写进简报/提交信息。

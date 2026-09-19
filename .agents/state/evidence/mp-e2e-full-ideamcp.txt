@@ -1,0 +1,87 @@
+### 全业务链路联调（后端由 IDEA MCP 启动 + AAP_ALLOW_LOOPBACK=true 覆盖）
+### 时间: 2026-09-19 08:14:46
+
+小程序编译产物 × aap-server 全业务链路联调
+  产物 dist/build/mp-weixin/api/**   目标 http://127.0.0.1:8084/api/v1   账号 13800138000
+
+P0 · 认证（AUTH）
+  ✓ [P0] POST /auth/sms/send — ttl=300
+  ✓ [P0] POST /auth/sms/login — role=SUPPLIER providerId=458589638116450304
+  ✓ [P0] GET /auth/me — phone=138****8000 role=SUPPLIER
+
+[管理端] 已登录 13900000001 role=SUPER_ADMIN
+
+P1 · 供应商档案与资质（PROV）
+  ✓ [P1] GET /provider/profile — company_name=联调测试科技有限公司 status=PENDING_CREDENTIAL
+  ✓ [P1] PUT /provider/profile — company_name=联调测试科技有限公司
+  ✓ [P1] GET /provider/qualifications — 条数=0
+  ✓ [P1] POST /provider/qualifications — id=458711021156786176
+  ✓ [P1] DELETE /provider/qualifications/{id} — 已删除 458711021156786176
+
+P2 · 测试凭证（CRED）  ⚠️ 创建端点前端未接线
+  ✓ [P2] POST /credentials  [非前端调用点·直连] — 复用已存在 id=458688754783821824（E-1104 指纹重复，脚本幂等）
+  ✓ [P2] GET /credentials — 条数=1
+  ✓ [P2] GET /credentials/{id} — alias=联调凭证-主(已改) mask=sk-e***cdef
+  ✓ [P2] PUT /credentials/{id} — 已保存
+  ✓ [P2] POST /credentials/{id}/precheck — job=458711023966969856 precheck=PASSED status=ACTIVE
+
+P3 · 检测引擎（DET）
+  ✓ [P3] POST /detection-jobs — 跳过新建：预检已建任务 jobId=458711023966969856（再建会 E-1301 互斥）
+  ✓ [P3] GET /detection-jobs/{jobId} — status=QUEUED
+  ✓ [P3] GET /detection-jobs/{jobId}/results — status=- 分项=0
+  ✗ [P3] GET /detection-jobs/{jobId}/results/{probeCode} — 无分项结果（检测执行器缺失，见报告）
+  ✓ [P3] [ADMIN] POST /detection-jobs/{jobId}/release（DET-06 人工放行） — status=COMPLETED result=PASS
+  ✓ [P3] 放行后复核（任务终态 + 凭证检测状态） — job=COMPLETED 凭证检测状态=PASS
+
+P4 · 检测报告（RPT）
+  ✓ [P4] GET /reports — 条数=0 first=-
+  ✗ [P4] GET /reports/{reportId} — 跳过：无报告（检测未产出）
+  ✗ [P4] GET /reports/{reportId}/export — 跳过：无报告
+
+P5 · 报价单与定价（QT）
+  ✓ [P5] GET /quotes — 条数=1
+  ✓ [P5] POST /quotes — quoteId=458711025170735104
+  ✓ [P5] POST /quotes/{quoteId}/items — 已写入明细行
+  ✓ [P5] GET /quotes/{quoteId}/items — 行数=1 itemId=458711025414004736
+  ✓ [P5] GET /quotes/items/{itemId} — model=gpt-4o
+  ✓ [P5] PUT /quotes/items/{itemId} — 价格已保存
+  ✓ [P5] GET /quotes/{quoteId} — status=DRAFT
+  ✓ [P5] POST /quotes/{quoteId}/submit — status=SUBMITTED
+
+P6 · 合同（CON）
+  ✓ [P6] 管理端会话可用（role=SUPER_ADMIN） — SUPER_ADMIN
+  ✓ [P6] [ADMIN] GET /admin/reviews + 领取 + 审核通过 — reviewId=458711026525495296 已通过
+  ✗ [P6] [ADMIN] GET /admin/contracts + 签发 — E-1001 参数校验失败
+  ✓ [P6] GET /contracts — 条数=2 first=458711028085776384
+  ✓ [P6] GET /contracts/{id} — status=CREATED
+  ✗ [P6] GET /contracts/{id}/file — E-1701 合同尚未签发（当前：CREATED），暂无合同文件
+  ✗ [P6] POST /contracts/{id}/sign — E-1001 参数校验失败
+
+P7 · 站内信 / 打款 / 用量
+  ✓ [P7] GET /notifications — 条数=0 first=-
+  ✗ [P7] POST /notifications/{id}/read — 跳过：无站内信
+  ✓ [P7] GET /payments — 条数=0
+  ✓ [P7] GET /usage/summary — 字段数=31
+  ✗ [P7] GET /usage/hourly（按前端现状：不传参） — E-1001 缺少查询参数 from（RFC3339 UTC） —— 前端 hourly() 未传 from/to，后端要求必填
+  ✓ [P7] GET /usage/hourly（补 from/to 后应通过，证明端点本身可用） — from=2026-08-20T00:14:51Z 桶数=0
+
+P9 · 令牌轮换与登出（必须最后跑）
+  ✓ [P9] POST /auth/refresh — 已换发并落盘（旧 token 已失效）
+  ✓ [P9] 换发后的 token 可用（证明轮换生效） — role=SUPPLIER
+  ✓ [P9] POST /auth/logout — token 已清除
+
+──────────────────────────────────────────────────────────────────────────────
+总计 46 步：通过 38，失败 8；HTTP 请求 39 次；相对 URL 失败 0 次
+
+失败明细：
+  ✗ [P3] GET /detection-jobs/{jobId}/results/{probeCode} — 无分项结果（检测执行器缺失，见报告）
+  ✗ [P4] GET /reports/{reportId} — 跳过：无报告（检测未产出）
+  ✗ [P4] GET /reports/{reportId}/export — 跳过：无报告
+  ✗ [P6] [ADMIN] GET /admin/contracts + 签发 — E-1001 参数校验失败
+  ✗ [P6] GET /contracts/{id}/file — E-1701 合同尚未签发（当前：CREATED），暂无合同文件
+  ✗ [P6] POST /contracts/{id}/sign — E-1001 参数校验失败
+  ✗ [P7] POST /notifications/{id}/read — 跳过：无站内信
+  ✗ [P7] GET /usage/hourly（按前端现状：不传参） — E-1001 缺少查询参数 from（RFC3339 UTC） —— 前端 hourly() 未传 from/to，后端要求必填
+
+明细已写入 E:\workspaces\hioas\hioas-aap-001\.agents\state\evidence\mp-e2e-full.json
+exit=1
