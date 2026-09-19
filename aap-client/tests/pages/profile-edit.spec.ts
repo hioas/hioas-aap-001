@@ -17,6 +17,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import ProfileEditPage from '@/pages/profile-edit/index.vue'
 import { getCalls, pushResponse, resetUniMock, setModalAnswer, storage } from '../setup'
+import { cityIndex, provinceIndex } from '@/utils/region-data'
 
 const ok = (data: unknown) => ({ statusCode: 200, data: { code: '0', message: 'ok', data } })
 
@@ -193,14 +194,60 @@ describe('序号 10 · 页面交互（client-only）', () => {
     expect(requests().length).toBe(2)
   })
 
-  it('地区选择器选省市 → 两个框同步显示', async () => {
+  it('地区选择器用 multiSelector —— 两端都支持的 mode（不是 H5 不支持的 region）', async () => {
     const wrapper = await mountPage()
-    await wrapper
-      .find('[data-testid="region-picker"]')
-      .trigger('change', { detail: { value: ['广东省', '深圳市', '南山区'] } })
+    const picker = wrapper.find('[data-testid="region-picker"]')
+    // 口径：同一套源码构建出的 H5 与 mp-weixin 必须一致 → 只能选两端都支持的 mode。
+    // 回归护栏：uni-h5 的 mode validator 拒绝 region，用了会静默不渲染控件（缺陷 7）。
+    expect(picker.attributes('mode')).toBe('multiSelector')
+    expect(picker.attributes('mode')).not.toBe('region')
+  })
+
+  it('地区选择器两列 = [省列表, 当前省的市列表]，value 定位到当前省市下标', async () => {
+    const wrapper = await mountPage() // PROFILE: 浙江省 / 杭州市
+    const picker = wrapper.find('[data-testid="region-picker"]')
+    const range = String(picker.attributes('range')).split(',')
+    expect(range).toContain('浙江省')
+    expect(range).toContain('杭州市')
+    expect(String(picker.attributes('value'))).toBe(
+      `${provinceIndex('浙江省')},${cityIndex('浙江省', '杭州市')}`
+    )
+  })
+
+  it('切换省（columnchange）→ 第二列换成该省的市', async () => {
+    const wrapper = await mountPage()
+    const picker = wrapper.find('[data-testid="region-picker"]')
+    await picker.trigger('columnchange', { detail: { column: 0, value: provinceIndex('广东省') } })
+    await flushPromises()
+    expect(String(picker.attributes('range')).split(',')).toContain('深圳市')
+  })
+
+  it('地区选择器选省市（下标）→ 两个框同步显示', async () => {
+    const wrapper = await mountPage()
+    const picker = wrapper.find('[data-testid="region-picker"]')
+    await picker.trigger('columnchange', { detail: { column: 0, value: provinceIndex('广东省') } })
+    await picker.trigger('change', {
+      detail: { value: [provinceIndex('广东省'), cityIndex('广东省', '深圳市')] }
+    })
     await flushPromises()
     expect(wrapper.find('[data-testid="province-value"]').text()).toBe('广东省')
     expect(wrapper.find('[data-testid="city-value"]').text()).toBe('深圳市')
+  })
+
+  it('直辖市：省 === 市（与微信原生 region picker 返回形态一致 → 历史数据可回填）', async () => {
+    const wrapper = await mountPage({ ...PROFILE, province: '北京市', city: '北京市' })
+    const picker = wrapper.find('[data-testid="region-picker"]')
+    expect(String(picker.attributes('value'))).toBe(`${provinceIndex('北京市')},0`)
+    await picker.trigger('change', { detail: { value: [provinceIndex('北京市'), 0] } })
+    await flushPromises()
+    expect(wrapper.find('[data-testid="province-value"]').text()).toBe('北京市')
+    expect(wrapper.find('[data-testid="city-value"]').text()).toBe('北京市')
+  })
+
+  it('脏数据（区划表里没有的省市）→ 不崩，下标回落 0', async () => {
+    const wrapper = await mountPage({ ...PROFILE, province: '不存在的省', city: '不存在的市' })
+    const picker = wrapper.find('[data-testid="region-picker"]')
+    expect(String(picker.attributes('value'))).toBe('0,0')
   })
 
   it('简介输入 → 计数实时更新', async () => {

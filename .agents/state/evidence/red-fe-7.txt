@@ -1,0 +1,25 @@
+### RED · 缺陷7 修复前（源码回退到 mode="region"，新测试不动）
+### 时间: 2026-09-19 10:15:01
+
+ [32m✓[39m tests/unit/region-data.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[90m 25[2mms[22m[39m
+[31m   [31m×[31m 序号 10 · 页面交互（client-only）[2m > [22m地区选择器用 multiSelector —— 两端都支持的 mode（不是 H5 不支持的 region）[90m 45[2mms[22m[31m[39m
+[31m     → expected 'region' to be 'multiSelector' // Object.is equality[39m
+[31m   [31m×[31m 序号 10 · 页面交互（client-only）[2m > [22m地区选择器两列 = [省列表, 当前省的市列表]，value 定位到当前省市下标[90m 14[2mms[22m[31m[39m
+[31m     → expected [ 'undefined' ] to include '浙江省'[39m
+[31m   [31m×[31m 序号 10 · 页面交互（client-only）[2m > [22m切换省（columnchange）→ 第二列换成该省的市[90m 15[2mms[22m[31m[39m
+[31m     → expected [ 'undefined' ] to include '深圳市'[39m
+[31m   [31m×[31m 序号 10 · 页面交互（client-only）[2m > [22m地区选择器选省市（下标）→ 两个框同步显示[90m 14[2mms[22m[31m[39m
+[31m     → expected '请选择' to be '广东省' // Object.is equality[39m
+[31m   [31m×[31m 序号 10 · 页面交互（client-only）[2m > [22m直辖市：省 === 市（与微信原生 region picker 返回形态一致 → 历史数据可回填）[90m 7[2mms[22m[31m[39m
+[31m     → expected '北京市,北京市,' to be '0,0' // Object.is equality[39m
+[31m   [31m×[31m 序号 10 · 页面交互（client-only）[2m > [22m脏数据（区划表里没有的省市）→ 不崩，下标回落 0[90m 8[2mms[22m[31m[39m
+[31m     → expected '不存在的省,不存在的市,' to be '0,0' // Object.is equality[39m
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 6 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+[31m[1mAssertionError[22m: expected 'region' to be 'multiSelector' // Object.is equality[39m
+[31m[1mAssertionError[22m: expected [ 'undefined' ] to include '浙江省'[39m
+[31m[1mAssertionError[22m: expected [ 'undefined' ] to include '深圳市'[39m
+[31m[1mAssertionError[22m: expected '请选择' to be '广东省' // Object.is equality[39m
+[31m[1mAssertionError[22m: expected '北京市,北京市,' to be '0,0' // Object.is equality[39m
+[31m[1mAssertionError[22m: expected '不存在的省,不存在的市,' to be '0,0' // Object.is equality[39m
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m6 failed[39m[22m[2m | [22m[1m[32m37 passed[39m[22m[90m (43)[39m

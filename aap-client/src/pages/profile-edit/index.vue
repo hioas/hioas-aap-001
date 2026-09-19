@@ -73,12 +73,20 @@
 
         <view class="field" data-testid="field-region">
           <text class="field__label">{{ LABEL_REGION }}</text>
-          <!-- 地区选择用 uni 原生 region picker（地区数据源 PRD 无定义 → 用平台内置数据，记 missing-prd） -->
+          <!--
+            地区选择用 `mode="multiSelector"` + 共享行政区划数据（`@/utils/region-data`）。
+            不用 `mode="region"`：**uni-app H5 不支持 region**（uni-h5 里 REGION 被注释掉，
+            mode 的 validator 直接拒绝）→ H5 上该控件不渲染，而微信小程序支持 → 两端不一致。
+            口径：同一套源码构建出的 H5 与 mp-weixin 页面必须保持一致，故用两端都支持的 mode。
+            数据源 PRD 未定义 → 见 region-data.ts 头注释（记 missing-prd）。
+          -->
           <picker
-            mode="region"
+            mode="multiSelector"
             data-testid="region-picker"
             class="region-picker"
-            :value="regionValue"
+            :range="regionRange"
+            :value="regionIndexes"
+            @columnchange="onRegionColumnChange"
             @change="onRegionChange"
           >
             <view class="region-row">
@@ -366,6 +374,14 @@ import {
   type QualificationItem,
   type QualificationRow
 } from '@/utils/profile-edit-model'
+import {
+  PROVINCE_NAMES,
+  DEFAULT_REGION,
+  citiesOf,
+  provinceIndex,
+  cityIndex,
+  regionAt
+} from '@/utils/region-data'
 
 /** 本地草稿键（PRD 无草稿语义 → 只落本地，不臆造服务端字段） */
 const DRAFT_KEY = 'aap_provider_profile_draft'
@@ -390,10 +406,23 @@ const completeness = ref<unknown>(undefined)
 const completenessLabel = computed(() => completenessText(completeness.value))
 const introCounter = computed(() => bioCounter(form.intro))
 const usccOk = computed(() => USCC_PATTERN.test(form.uscc.trim()))
-const regionValue = computed<[string, string, string]>(() => [
-  form.province || '浙江省',
-  form.city || '杭州市',
-  ''
+/**
+ * 地区选择（`mode="multiSelector"`，见模板注释）。
+ *
+ * `columnchange` 只给「哪一列变成了哪个下标」，且此时 `form` 还没提交 →
+ * 用 `regionColumnProvince` 暂存当前浏览到的省，好让第二列跟着换；确认后清空回到 `form`。
+ */
+const regionColumnProvince = ref('')
+const activeRegionProvince = computed(
+  () => regionColumnProvince.value || form.province || DEFAULT_REGION.province
+)
+const regionRange = computed<[string[], string[]]>(() => [
+  [...PROVINCE_NAMES],
+  [...citiesOf(activeRegionProvince.value)]
+])
+const regionIndexes = computed<[number, number]>(() => [
+  Math.max(0, provinceIndex(activeRegionProvince.value)),
+  Math.max(0, cityIndex(activeRegionProvince.value, form.city || DEFAULT_REGION.city))
 ])
 
 function toast(title: string) {
@@ -465,12 +494,23 @@ function goBack() {
   uni.navigateBack({ delta: 1 })
 }
 
-/** uni region picker：value = [省, 市, 区] */
+/** multiSelector 的列滚动：第 0 列（省）变了 → 记下来让第二列跟着换 */
+function onRegionColumnChange(event: { detail?: { column?: unknown; value?: unknown } } | undefined) {
+  const column = event?.detail?.column
+  const value = event?.detail?.value
+  if (column !== 0 || typeof value !== 'number') return
+  const province = PROVINCE_NAMES[value]
+  if (province) regionColumnProvince.value = province
+}
+
+/** multiSelector 的确认：`detail.value = [省下标, 市下标]` → 换算成省市名落进 form */
 function onRegionChange(event: { detail?: { value?: unknown } } | undefined) {
   const value = event?.detail?.value
   if (!Array.isArray(value)) return
-  form.province = typeof value[0] === 'string' ? value[0] : ''
-  form.city = typeof value[1] === 'string' ? value[1] : ''
+  const picked = regionAt(Number(value[0]) || 0, Number(value[1]) || 0)
+  form.province = picked.province
+  form.city = picked.city
+  regionColumnProvince.value = ''
 }
 
 async function onSave() {

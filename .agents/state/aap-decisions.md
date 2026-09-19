@@ -172,3 +172,44 @@
 - 联调账号别混：`13800138000`=SUPPLIER（供应商侧链路）· `13900000001`=SUPER_ADMIN（管理端）。
   混用会得到一批 `403 E-1901`，**是账号错不是权限缺陷**。
 
+## 2026-09-19 · 项目级口径：H5 与 mp-weixin 必须共用同一套实现
+
+**用户拍板原文**：「同一套源码构建出的 h5、mp-weixin 页面应该保持一样！」
+
+→ **禁止**用 `#ifdef` / `#ifndef` 或运行时平台判断去分平台给不同 UI；
+遇到「某平台不支持某组件属性」时，正确做法是**换一个两端都支持的写法**，
+而不是为其中一端做降级分支。
+
+**同期全量审计结果**（`grep -rn "#ifdef|#ifndef" src/` 与运行时平台判断）：
+
+- 条件编译：**零命中**，源码结构本来就是平台中立的。
+- 唯一的运行时平台分支：`src/api/base-url.ts`（接口基址）。
+  小程序**必须**绝对 URL，H5 走 vite 代理避免 CORS —— **不影响页面渲染**，属必要差异，保留。
+- `mode="region"` 是当时**唯一**一处把两端做岔的地方（→ 缺陷 7，见下）。
+
+### 缺陷 7 已修复（按上述口径）
+
+原实现 `<picker mode="region">`：uni-h5 不支持 region（`REGION` 在源码里被注释掉，
+`mode` 的 validator 直接拒绝）→ H5 不渲染控件，微信支持 → 两端不一致。
+
+改为 `<picker mode="multiSelector">` + 共享数据 `src/utils/region-data.ts`
+（34 省级 + 下辖地级，**形态对齐微信 region picker：直辖市省===市**，否则历史数据回填错位）。
+
+质量门（真实运行产物）：
+
+| 项 | 结果 |
+|---|---|
+| 红基线（源码回退 `mode="region"`，新测试不动） | **6 失败 / 37 通过**，首条 `expected 'region' to be 'multiSelector'` |
+| 绿 | **43/43** |
+| 全量回归 | **1225/1225（76 files）** |
+| type-check | exit 0 |
+| build:h5 / build:mp-weixin | 均 DONE；mp-weixin 产物 `region` 残留 **0**，h5 产物 `multiSelector` 2 文件 / `mode:"region"` **0** |
+| **真实浏览器 H5 全页冒烟** | **21/21 渲染正常，控制台报错 0**（修复前 profile-edit 稳定 4 条 Vue 告警） |
+
+证据：`.agents/state/evidence/{red,green}-fe-7*.txt` · `aap-client/evidence/h5-smoke/h5-smoke-result.json`。
+方案与取舍全文：`docs/backend/10-三项缺口方案与取舍.md`。
+
+⚠️ 数据源 PRD 未定义（台账序号 10 备注⑫仍记 `missing-prd`）：当前用民政部行政区划口径的内置数据；
+**如需与上游行政区划库对齐，只替换 `region-data.ts`**，页面无需改动。
+台账备注⑫原写「无头环境无法驱动原生控件」**判断有误**，已更正为「H5 端该控件不存在」。
+

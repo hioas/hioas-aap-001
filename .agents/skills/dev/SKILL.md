@@ -698,3 +698,31 @@ cd aap-client && node tools/h5-chain.mjs http://localhost:5173 evidence/h5-chain
 `GET /detection-jobs/{id}/results` 恒返回 `{total: 0, items: []}`、任务恒 `QUEUED`，
 但状态码和业务码都是成功的。只断言状态码的联调会把**坏掉的业务链判成通过**。
 → `h5-chain.mjs` 第⑪步专门盯这个（它会**故意红**，用来暴露缺陷1）。
+
+## 10. 双端口径：H5 与 mp-weixin 必须共用同一套实现（2026-09-19 用户拍板）
+
+> **用户原话：「同一套源码构建出的 h5、mp-weixin 页面应该保持一样！」**
+
+**硬规矩**：
+
+1. **禁止**用 `#ifdef` / `#ifndef` 或运行时平台判断给两个平台**不同的 UI**。
+2. 遇到「某平台不支持某组件属性」时，正确做法是**换一个两端都支持的写法**，
+   而不是为其中一端做降级分支。
+3. 例外（唯一）：`src/api/base-url.ts` 的接口基址 —— 小程序**必须**绝对 URL，
+   H5 走 vite 代理避免 CORS。**不影响页面渲染**，属必要差异。
+
+**已知的坑（踩过）**：`<picker mode="region">` 在 **uni-h5 上不渲染**（uni-h5 源码里
+`REGION` 被注释掉，`mode` 的 validator 直接拒绝），微信小程序却支持 → 两端不一致。
+已在 `src/utils/region-data.ts` + `mode="multiSelector"` 收敛为单一实现。
+
+**审计命令**（改 UI 前先跑一遍）：
+
+```bash
+cd aap-client
+grep -rn "#ifdef\|#ifndef" src/ --include=*.vue --include=*.ts      # 应为空
+grep -rn "uniPlatform\|UNI_PLATFORM\|isH5" src/ --include=*.vue --include=*.ts
+grep -rn '<picker' src/ --include=*.vue                              # 逐个核对 mode 两端是否都支持
+```
+
+**换平台相关组件前的核对法**：读 `node_modules/@dcloudio/uni-h5/dist/uni-h5.es.js` 里
+对应组件的 `props` / 常量表（如 `const mode = {...}`）与 `validator`，**不要靠猜**。
