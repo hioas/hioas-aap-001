@@ -1,0 +1,124 @@
+/**
+ * 管理端设计令牌
+ *
+ * 真源：Calicat 文件 2100748148891054080 / 画布 2100748148912025600
+ *      逐值取自 .calicat-admin/raw/pages/*/design.json（fills / fontFill / fontSize / cornerRadius）
+ * 字体：设计稿为思源黑体（SourceHanSans-Regular / -Bold）；落地用系统栈优先，
+ *      不引入外部字体（合规 + 首屏），仅保持字号/字重/色值一致。
+ */
+
+:root {
+  /* ── 主色与中性色（实测值，非臆造） ───────────────────────── */
+  --c-primary: rgba(37, 99, 235, 1);        /* blue-600  主按钮/链接 */
+  --c-primary-strong: rgba(29, 78, 216, 1); /* blue-700  侧栏激活态 */
+  --c-primary-soft: rgba(239, 246, 255, 1); /* blue-50   浅底徽章 */
+
+  --c-sidebar: rgba(15, 23, 42, 1);         /* slate-900 左侧导航底 */
+  --c-sidebar-card: rgba(30, 41, 59, 1);    /* slate-800 侧栏用户卡 */
+  --c-nav-text: rgba(203, 213, 225, 1);     /* slate-300 导航文字 */
+  --c-nav-group: rgba(71, 85, 105, 1);      /* slate-600 分组标题 */
+
+  --c-page: rgba(241, 245, 249, 1);         /* slate-100 页面底 */
+  --c-surface: rgba(255, 255, 255, 1);
+  --c-surface-alt: rgba(248, 250, 252, 1);  /* slate-50 */
+  --c-border: rgba(226, 232, 240, 1);       /* slate-200 */
+
+  --c-text: rgba(15, 23, 42, 1);            /* slate-900 主文字 */
+  --c-text-sub: rgba(100, 116, 139, 1);     /* slate-500 次要 */
+  --c-text-muted: rgba(148, 163, 184, 1);   /* slate-400 弱化 */
+  --c-text-body: rgba(71, 85, 105, 1);      /* slate-600 正文 */
+
+  /* ── 语义色（状态徽章，PRD 13 §3 五色） ───────────────────── */
+  --c-info: rgba(37, 99, 235, 1);           /* 蓝 = 进行中 */
+  --c-info-soft: rgba(239, 246, 255, 1);
+  --c-warn: rgba(217, 119, 6, 1);           /* 橙 = 待操作 */
+  --c-warn-strong: rgba(180, 83, 9, 1);
+  --c-warn-soft: rgba(255, 247, 237, 1);
+  --c-success: rgba(22, 163, 74, 1);        /* 绿 = 成功 */
+  --c-success-strong: rgba(21, 128, 61, 1);
+  --c-success-soft: rgba(236, 253, 245, 1);
+  --c-danger: rgba(185, 28, 28, 1);         /* 红 = 异常 */
+  --c-danger-soft: rgba(254, 242, 242, 1);
+  --c-muted: rgba(100, 116, 139, 1);        /* 灰 = 终态 */
+
+  /* ── 圆角（设计稿实测频次：10×11 / 14×8 / 12×6 / 4×5 / 6×4 / 16×1） ── */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 10px;
+  --r-xl: 12px;
+  --r-card: 14px;
+  --r-2xl: 16px;
+
+  /* ── 字号（设计稿实测：12 为主，26 为 KPI 数值） ───────────── */
+  --fs-xs: 10px;
+  --fs-sm: 11px;
+  --fs-base: 12px;
+  --fs-md: 13px;
+  --fs-lg: 14px;
+  --fs-xl: 15px;
+  --fs-2xl: 18px;
+  --fs-kpi: 26px;
+
+  /* ── 布局（设计稿：画布 1920×924，侧栏 240，导航项高 42） ──── */
+  --sidebar-w: 240px;
+  --nav-item-h: 42px;
+  --topbar-h: 64px;
+  --content-pad: 20px;
+
+  /* ── 阴影：设计稿卡片为描边式（无重阴影） ─────────────────── */
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-pop: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #app { height: 100%; margin: 0; }
+
+body {
+  font-family: 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: var(--fs-base);
+  color: var(--c-text);
+  background: var(--c-page);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── 通用卡片 ─────────────────────────────────────────────── */
+.aap-card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+}
+
+.aap-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 18px 0;
+}
+
+.aap-card__title {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.aap-card__body { padding: 14px 18px 18px; }
+
+/* ── 状态徽章（PRD 13 §3：蓝进行中 / 橙待操作 / 绿成功 / 红异常 / 灰终态） ── */
+.aap-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: var(--r-md);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.aap-badge--info { color: var(--c-info); background: var(--c-info-soft); }
+.aap-badge--warn { color: var(--c-warn-strong); background: var(--c-warn-soft); }
+.aap-badge--success { color: var(--c-success-strong); background: var(--c-success-soft); }
+.aap-badge--danger { color: var(--c-danger); background: var(--c-danger-soft); }
+.aap-badge--muted { color: var(--c-muted); background: var(--c-surface-alt); }
