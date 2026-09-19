@@ -1,0 +1,19 @@
+== R70 环境事件证据：forked 测试 JVM 原生 OOM 崩溃（非代码缺陷） ==
+来源：aap-server/target/surefire-reports/2026-09-19T08-49-08_547-jvmRun1.dumpstream（surefire 自产）
+现象：全量第一轮跑到第 118 例（com.hioas.aap.provider.AdminProviderContractTest 之前）时 fork 死亡，
+      maven 报「The forked VM terminated without properly saying goodbye. VM crash or System.exit called?」
+根因：同机他方进程（实测 node.exe 66–68 个、java.exe 11 个，物理内存 32G 中可用仅 0.16–0.9G）挤占内存，
+      JVM 原生内存分配失败（malloc 2119960 bytes，Chunk::new = C2 编译 arena）→ 进程被 OS 终止。
+处置：① 不与任何重活并发（本轮把抽查/自测挪到测试之后跑）；② 串行重跑规范命令，两轮均 rc=0；
+      ③ 崩溃转储（aap-server/hs_err_pid*.log，*.log 已在 .gitignore 内）已清理，不留在工作区。
+规范命令（两轮均成功、无任何参数改动）：tools/with-env.sh aap-server mvn -B -ntp test
+
+== dumpstream 原文（节选：原生 OOM 关键行） ==
+Corrupted channel by directly writing to native stream in forked JVM 1. Stream '#'.
+Corrupted channel by directly writing to native stream in forked JVM 1. Stream '# There is insufficient memory for the Java Runtime Environment to continue.'.
+Corrupted channel by directly writing to native stream in forked JVM 1. Stream '# Native memory allocation (malloc) failed to allocate 2119960 bytes. Error detail: Chunk::new'.
+Corrupted channel by directly writing to native stream in forked JVM 1. Stream '# An error report file with more information is saved as:'.
+Corrupted channel by directly writing to native stream in forked JVM 1. Stream '# E:\workspaces\hioas\hioas-aap-001\aap-server\hs_err_pid6968.log'.
+Corrupted channel by directly writing to native stream in forked JVM 1. Stream '#'.
+Corrupted channel by directly writing to native stream in forked JVM 1. Stream '# Compiler replay data is saved as:'.
+Corrupted channel by directly writing to native stream in forked JVM 1. Stream '# E:\workspaces\hioas\hioas-aap-001\aap-server\replay_pid6968.log'.

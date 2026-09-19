@@ -1,0 +1,25 @@
+[INFO]  解析计数：DDL 表 55 · DDL 列 918 · 序列 17 · 分区表 2 · 实体 34 · 实体字段 619
+[PASS] A0a 解析到 DDL 表 55（须 > 0）
+[PASS] A0b 解析到 ORM 实体 34（须 > 0）
+[PASS] A0c 解析到实体字段 619（须 > 0，否则 A1/A2 空转）
+[PASS] A0d 解析到 DDL 序列 17（须 > 0，否则 A7 空转）
+[PASS] A0e 实体表定位率 34 / 34（未定位：无）
+[PASS] A0f 已判定 A1 的字段映射 619 条（须 > 0，定位率不足时不得判「全部通过」，坑 87）
+[PASS] A0g 已判定 A2 的类型对 598 条（须 > 0）
+[PASS] A0h 解析到 jsonb 列 34 · 带 typeHandler 字段 19（两者均须 > 0，否则 A3 空转）
+[INFO] A4 挂审计监听器的实体 34 个，审计列齐备性已判定
+[INFO] A5 ProviderAccountEntity.java 表=aap_provider_account 字段=sms2fa 约定名=sms2fa 显式 @Column=sms_2fa（依赖注解，列存在=True）
+[INFO] A5 QuoteItemEntity.java 表=aap_quote_item 字段=cacheWrite1hPrice 约定名=cache_write1h_price 显式 @Column=cache_write_1h_price（依赖注解，列存在=True）
+[PASS] A5b 依赖显式 @Column 的字段 2 条（上限 3 —— 超限说明命名漂移被注解掩盖）
+[PASS] A0i 解析到手写 SQL 写路径 27 处（须 > 0，否则 A6 的「ORM 独占写入」判定空转）
+[PASS] A6b 手写 SQL 写路径豁免的未映射 NOT NULL 列 0 条（上限 8）
+[INFO] A7 代码引用序列 16 个（nextval 字面量 ∪ nextVal("...") ∪ 常量回查）
+[PASS] A7b 声明未引用的孤儿序列 1 条（上限 3）：['seq_settlement_line']
+[PASS] A0j 解析到 ER 文档表名 54（须 > 0，否则 A8 空转）
+[PASS] A8b ER 文档差异中的分区子表 1 条（上限 2）：['aap_usage_hourly_default']
+[PASS] A0k 解析到手写 SQL 引用的表名 24 个（须 > 0，否则 A9 空转）
+[INFO] A9 手写 SQL 引用的表名 24 个，未命中 DDL 的 0 个（已排除 SQL 关键字）
+
+== 汇总：FAIL 0 条 [] ==
+
+（抽查脚本 rc=0）

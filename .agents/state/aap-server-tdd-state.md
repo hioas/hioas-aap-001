@@ -3953,3 +3953,48 @@ A4/A5b「分页响应缺 count / 缺 limit」= 0 处；A4b 5 个 ORM 分页（`.
 - 台账 CSV 追加 R69 行并回填「提交」列 = 7d3e16f（不留台账债）；以真正的 csv 解析复核「每行列数 = 表头列数（8）」且 R 行连续 R27 → R69 无缺号（坑 71/80/155）。
 - 飞书通知：`hermes send -t feishu -s 'AAP TDD 进度' …` → "Skipped send_message to feishu:oc_… : This cron job will already auto-deliver its final response to that same target"
   → **形态变化（非失败）**：目标已解析成功，通知由本 cron 作业的最终回复承载；已记入 `evidence/feishu-notify-failures.txt`（与 R65–R67 的「home channel 未绑定」不同因）。
+
+## R70 巡检轮（missing=0 → 只校验不改代码；新增第四十四类可审计不变量）
+
+**结论**：`total=90 implemented=90 missing=0`（registered_routes=96、not_registered=[]）；全量两轮 **204 例全绿**（33 类，逐类 diff=0）；55 条审计/抽查/自测 rc 与 R69 **逐条一致**（新增 2 条 = 本轮新抽查与其负向自测，消失 0、rc 变化 0）；FAIL 明细 R69=67 / R70=67（**新增 0、消失 0**）；零写副作用 84 产物 size+md5 全等；`@Test` 词边界计数 204 与 surefire 对账、禁用扫描 0 条。
+
+### R70 新增抽查：**ORM 实体 ↔ DDL 映射一致性**（第四十四类可审计不变量）
+
+**为什么两套门禁都看不见**：契约测试把**真实响应体**与 JSON Schema 比对 —— 实体字段映射到哪一列、列存不存在、列类型与 Java 类型是否相容、
+jsonb 列有没有 typeHandler、审计监听器要写的列在表里有没有，**全都不在任何 schema 里**；覆盖门禁只比「方法 + 路径」；openapi 与客户端 TS 不被任何测试读取/执行。
+→ 实体字段映射到不存在的列（改名/漏加显式 `@Column`）时，**该实体的任何 ORM 查询都会抛 `column ... does not exist`** → HTTP 层只看到 500 `E-2001`（坑 13/24/63 的实体侧），
+而 204 例全绿也看不见（用例未必走到那条查询）。
+
+**真源**：D = DDL（表名 / 列名 + 类型词 / 内联与表级主键 / not null / default / 分区）／O = ORM 实体（`@Table(value=...)` + 字段名 + 紧邻注解块里的 `@Column("x")` 与 `typeHandler`，含 `extends` 基类字段）／
+S = 手写 SQL 写路径（`insert into <表>` / `update <表>`，用于区分「ORM 独占写入」）／Q = 序列引用（`nextval('x')` ∪ `nextVal("x")` ∪ 常量回查）／E = ER 文档表名。
+
+**解析计数**：DDL 55 表 · 918 列 · 序列 17 · 分区子表 1 · 实体 34 · 实体字段 619。
+
+**正面结论（每条都带正向对照）**：A1 619/619 字段映射的列在 DDL 存在（0 漂移）· A1b 34/34 表名存在 · A1c 34/34 有主键（含内联）·
+A1d 0 条同列重复映射 · A2 598 对 Java↔DDL 类型族一致 · A3 jsonb 19 列 ⇔ 19 个 typeHandler 字段双向一致 · A4 34 个挂监听器实体审计列齐备 ·
+A5 约定名≠列名 2 条均带显式 `@Column`（`sms2fa → sms_2fa`、`cacheWrite1hPrice → cache_write_1h_price`，≤ 上限 3）· A6 未映射「NOT NULL 且无 default」列 0 条 ·
+A7 代码引用序列 16/16 均已声明 · A9 手写 SQL 引用表名全部在 DDL 内（SQL 关键字已排除）。
+
+**信息项 2 条（待拍板，非线上故障）**：
+- 孤儿序列 `seq_settlement_line`（声明但零引用；对照 R62 的孤儿索引同族）→ 删声明或补使用点属契约/DDL 变更。
+- ER 文档与 DDL 的唯一差异是 `aap_usage_hourly_default`（分区子表，豁免类 ≤ 上限 2，依据：`partition of aap_usage_hourly default`）。
+
+**判据返工 6 处（先怀疑判据，坑 46/81/91/98/141）**：① DDL 类型词取 `rest.split()[0]` → `numeric(18,6)` 整类被拒（**193 条假「列不存在」**，坑 91 族）→ 取字母前缀；
+② 注解归属用「声明前 260 字符窗口」→ 上一个字段的 `@Column` 算到下一个字段（`sms_2fa` 被算到 `OffsetDateTime` 字段，假类型不符）→ 只认紧邻注解块（坑 107/116）；
+③ 内联 `primary key` 未收 → **34 条假「无主键」** → 补内联判定；④ A2 判 `String ↔ jsonb`（jsonb 属 A3 的域）→ 19 条假类型不符 → A2 跳过 jsonb 列（坑 81）；
+⑤ A0h/A5 的统计口径限定在「已定位实体」→ 表名错时连带打红正向对照 → 改为全 DDL/全实体统计（坑 82 夹具侧）；⑥ A6b 上限按「表数」计 → 单表 9 列超限检不出 → 改为按列数计（坑 57/68）。
+
+**判别力自测（34 项全 PASS）**：合规夹具 rc=0 且 FAIL 明细空 + A0a..A0k 十一条正向对照全 PASS + 4 条上限守卫 PASS +
+空夹具 rc≠0 且点名全部 A0*（11 条）与 8 条条件化断言且无 A0* PASS + **16 组注入缺陷**（列不存在 / 表名错 / 去内联主键 / 同列重复映射 / 类型族不符 /
+jsonb 无 typeHandler / 监听器列缺失 / 约定名漂移无注解 / 未映射 NOT NULL 列 / 引用未声明序列 / 孤儿序列超限 / ER 声明未建表 / 分区子表超限 / 显式 @Column 超限 / SQL 引用未建表 / 手写写路径豁免超限）
+各断言「锚点命中且源码真的被改 + **恰好新增目标断言**」+ 2 组回归守卫（常量引用序列、分区子表豁免）+ 夹具目录零写副作用（无 `__pycache__`）+ 真实仓库关键文件 md5 不变。
+
+### R70 环境事件（非代码缺陷，已留证）
+首跑两轮均在 118/204 例处 fork 死亡（`forked VM terminated without properly saying goodbye`）：根因 = 同机他方进程（node.exe 66–68 个、java.exe 11 个）挤占内存，
+可用内存仅 0.16–0.9G，JVM 原生分配 `malloc 2119960 bytes` 失败（`Chunk::new` = C2 编译 arena）→ 处置：**不与任何重活并发** + 串行重跑规范命令（**无参数改动**）→ 两轮 rc=0。
+证据 `evidence/red-R70-jvm-native-oom.txt`（surefire dumpstream 原文节选）；崩溃转储 `hs_err_pid*.log` 已清理。**教训**：巡检轮把抽查/自测挪到全量测试之后跑，不要与 mvn 测试并发。
+
+### R70 证据
+`evidence/green-verify-R70-full-run1.txt`、`green-verify-R70-full-run2.txt`、`green-verify-R70-classdiff.txt`、
+`audit-regression-R70.txt`、`audit-regression-R70-rcseq.txt`、`audit-regression-R70-faildiff.txt`、
+`spotcheck-entity-ddl-R70.txt`、`spotcheck-entity-ddl-R70-selftest.txt`、`red-R70-jvm-native-oom.txt`
