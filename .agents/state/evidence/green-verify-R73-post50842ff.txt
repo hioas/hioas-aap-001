@@ -1,0 +1,15 @@
+== R73 补充：他方提交 50842ff（缺陷8 超长 User-Agent）落地后的当前 HEAD 复跑 ==
+命令：export PATH="$HOME/bin:$PATH"; ../tools/with-env.sh aap-server mvn -B -ntp test
+日志：C:\Users\laitz\AppData\Local\Temp\aap-r73-run3-post50842ff.log
+
+合计行：[INFO] Tests run: 206, Failures: 0, Errors: 0, Skipped: 0
+合计行条数 = 1（期望 1）
+[ERROR] 行数 = 0
+构建结果 = [INFO] BUILD SUCCESS
+AuthContractTest：[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.965 s -- in com.hioas.aap.iam.AuthContractTest
+门禁用例自身：[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.243 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+
+覆盖门禁（本轮复跑后 coverage-report.json）：total=90 implemented=90 missing=0 registered_routes=96
+
+说明：R73 主体两轮（204 例）跑的是提交态源码（他方在途改动均晚于窗口，见 green-verify-R73-tested-state.txt）；本条为**他方提交落地后**的当前 HEAD 复跑，
+      用例数 204 → 206（+2 = 他方新增的缺陷8 回归 2 例），仍全绿、门禁仍 90/90。
