@@ -1,0 +1,113 @@
+### H5 全页冒烟 v3（路由从 pages.json 读 + 过滤只认 /api/v1/ + 打断与失败分离）
+### 时间: 2026-09-19 08:47:38
+
+启动有头 Chrome（端口 9603）→ http://localhost:5173
+登录成功（13800138000）
+待访问页面 21 个（清单来自 src/pages.json）
+  [截图] evidence\h5-smoke\20260919004825.-pages_workbench_index.png
+  ⚠接口 pages/workbench/index      工作台               196字 错误接口 2 (被打断 1) 
+  [截图] evidence\h5-smoke\20260919004838.-pages_credentials_index.png
+  ⚠接口 pages/credentials/index    凭证列表              123字 错误接口 2  
+  [截图] evidence\h5-smoke\20260919004841.-pages_credential-submit_index.png
+  ✓ pages/credential-submit/index 接入凭证              162字   
+  [截图] evidence\h5-smoke\20260919004845.-pages_credential-submit_form.png
+  ✓ pages/credential-submit/form 接入凭证              207字   
+  [截图] evidence\h5-smoke\20260919004849.-pages_detecting_index.png
+  ✓ pages/detecting/index      检测进行中             120字   
+  [截图] evidence\h5-smoke\20260919004858.-pages_report_index.png
+  ✓ pages/report/index         检测报告              426字   
+  [截图] evidence\h5-smoke\20260919004902.-pages_report-failed_index.png
+  ✓ pages/report-failed/index  检测报告              179字   
+  [截图] evidence\h5-smoke\20260919004914.-pages_quotes_index.png
+  ⚠接口 pages/quotes/index         报价单                63字 错误接口 2  
+  [截图] evidence\h5-smoke\20260919004917.-pages_quote-models_index.png
+  ⚠接口 pages/quote-models/index   新增报价单             206字 错误接口 4  
+  [截图] evidence\h5-smoke\20260919004921.-pages_model-pricing_index.png
+  ✓ pages/model-pricing/index  模型定价              315字   
+  [截图] evidence\h5-smoke\20260919004925.-pages_profile-edit_index.png
+  ⚠接口 pages/profile-edit/index   编辑主体档案            279字 错误接口 4  控制台 2
+  [截图] evidence\h5-smoke\20260919004929.-pages_profile_index.png
+  ⚠接口 pages/profile/index        主体档案              244字 错误接口 4  
+  [截图] evidence\h5-smoke\20260919004933.-pages_quote-preview_index.png
+  ✓ pages/quote-preview/index  报价预览               83字   
+  [截图] evidence\h5-smoke\20260919004936.-pages_quote-form_index.png
+  ✓ pages/quote-form/index     新增报价单             394字   
+  [截图] evidence\h5-smoke\20260919004942.-pages_quote-form_apikey.png
+  ⚠接口 pages/quote-form/apikey    新增报价单             206字 错误接口 2  
+  [截图] evidence\h5-smoke\20260919004947.-pages_quote-form_success.png
+  ✓ pages/quote-form/success   报价单已创建            164字   
+  [截图] evidence\h5-smoke\20260919004950.-pages_contract_index.png
+  ✓ pages/contract/index       合同签署              135字   
+  [截图] evidence\h5-smoke\20260919005003.-pages_messages_index.png
+  ⚠接口 pages/messages/index       消息                 52字 错误接口 2  
+  [截图] evidence\h5-smoke\20260919005015.-pages_mine_index.png
+  ⚠接口 pages/mine/index           我的                121字 错误接口 14  
+  [截图] evidence\h5-smoke\20260919005027.-pages_usage_index.png
+  ⚠接口 pages/usage/index          用量概览              176字 错误接口 2  
+  [截图] evidence\h5-smoke\20260919005039.-pages_settings_index.png
+  ⚠接口 pages/settings/index       账号与设置             137字 错误接口 2  
+
+──────────────────────────────────────────────────────────────────────────────
+页面 21：渲染正常 21，路由不符 0，空白页 0，异常接口 11，控制台报错 1
+（另有 1 次请求被页面 reload 打断 —— 工具时序产物，不计入失败）
+接口返回非 0 业务码：
+  ⚠ pages/workbench/index  GET /api/v1/provider/profile → E-1902 未认证或登录已过期
+  ⚠ pages/workbench/index  GET /api/v1/usage/summary → E-1902 未认证或登录已过期
+  ⚠ pages/credentials/index  GET /api/v1/credentials → E-1902 未认证或登录已过期
+  ⚠ pages/credentials/index  GET /api/v1/credentials → E-1902 未认证或登录已过期
+  ⚠ pages/quotes/index  GET /api/v1/quotes → E-1902 未认证或登录已过期
+  ⚠ pages/quotes/index  GET /api/v1/quotes → E-1902 未认证或登录已过期
+  ⚠ pages/quote-models/index  GET /api/v1/provider/profile → E-1902 未认证或登录已过期
+  ⚠ pages/quote-models/index  GET /api/v1/credentials → E-1902 未认证或登录已过期
+  ⚠ pages/quote-models/index  GET /api/v1/provider/profile → E-1902 未认证或登录已过期
+  ⚠ pages/quote-models/index  GET /api/v1/credentials → E-1902 未认证或登录已过期
+  ⚠ pages/profile-edit/index  GET /api/v1/provider/profile → E-1902 未认证或登录已过期
+  ⚠ pages/profile-edit/index  GET /api/v1/provider/qualifications → E-1902 未认证或登录已过期
+  ⚠ pages/profile-edit/index  GET /api/v1/provider/profile → E-1902 未认证或登录已过期
+  ⚠ pages/profile-edit/index  GET /api/v1/provider/qualifications → E-1902 未认证或登录已过期
+  ⚠ pages/profile/index  GET /api/v1/provider/profile → E-1902 未认证或登录已过期
+  ⚠ pages/profile/index  GET /api/v1/provider/qualifications → E-1902 未认证或登录已过期
+  ⚠ pages/profile/index  GET /api/v1/provider/profile → E-1902 未认证或登录已过期
+  ⚠ pages/profile/index  GET /api/v1/provider/qualifications → E-1902 未认证或登录已过期
+  ⚠ pages/quote-form/apikey  GET /api/v1/credentials → E-1902 未认证或登录已过期
+  ⚠ pages/quote-form/apikey  GET /api/v1/credentials → E-1902 未认证或登录已过期
+  ⚠ pages/messages/index  GET /api/v1/notifications → E-1902 未认证或登录已过期
+  ⚠ pages/messages/index  GET /api/v1/notifications → E-1902 未认证或登录已过期
+  ⚠ pages/mine/index  GET /api/v1/provider/profile → E-1902 未认证或登录已过期
+  ⚠ pages/mine/index  GET /api/v1/payments → E-1902 未认证或登录已过期
+  ⚠ pages/mine/index  GET /api/v1/quotes → E-1902 未认证或登录已过期
+  ⚠ pages/mine/index  GET /api/v1/reports → E-1902 未认证或登录已过期
+  ⚠ pages/mine/index  GET /api/v1/contracts → E-1902 未认证或登录已过期
+  ⚠ pages/mine/index  GET /api/v1/credentials → E-1902 未认证或登录已过期
+  ⚠ pages/mine/index  GET /api/v1/notifications → E-1902 未认证或登录已过期
+  ⚠ pages/mine/index  GET /api/v1/provider/profile → E-1902 未认证或登录已过期
+  ⚠ pages/mine/index  GET /api/v1/quotes → E-1902 未认证或登录已过期
+  ⚠ pages/mine/index  GET /api/v1/payments → E-1902 未认证或登录已过期
+  ⚠ pages/mine/index  GET /api/v1/reports → E-1902 未认证或登录已过期
+  ⚠ pages/mine/index  GET /api/v1/contracts → E-1902 未认证或登录已过期
+  ⚠ pages/mine/index  GET /api/v1/credentials → E-1902 未认证或登录已过期
+  ⚠ pages/mine/index  GET /api/v1/notifications → E-1902 未认证或登录已过期
+  ⚠ pages/usage/index  GET /api/v1/usage/summary → E-1902 未认证或登录已过期
+  ⚠ pages/usage/index  GET /api/v1/usage/summary → E-1902 未认证或登录已过期
+  ⚠ pages/settings/index  GET /api/v1/auth/me → E-1902 未认证或登录已过期
+  ⚠ pages/settings/index  GET /api/v1/auth/me → E-1902 未认证或登录已过期
+控制台报错：
+  ⚠ pages/profile-edit/index  warning: [Vue warn]: Invalid prop: custom validator check failed for prop "mode". 
+ at <Picker>
+at <View>
+at <View>
+at <View>
+at <View>
+at <Index>
+at <AsyncComponentWrap | warning: [Vue warn]: Invalid prop: custom validator check failed for prop "mode". 
+ at <Picker>
+at <View>
+at <View>
+at <View>
+at <View>
+at <Index>
+at <AsyncComponentWrap
+明细已写入 evidence\h5-smoke\h5-smoke-result.json
+
+浏览器保持打开。profile=C:\Users\laitz\AppData\Local\Temp\aap-cdp-profile-9603
+exit=0

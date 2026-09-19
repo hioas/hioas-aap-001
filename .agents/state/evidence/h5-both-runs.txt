@@ -1,0 +1,140 @@
+### H5 链路联调 + 全页冒烟（硬校验登录 + jsClick 兜底）
+### 时间: 2026-09-19 08:59:03
+
+--- 链路 ---
+启动有头 Chrome（独立 profile，端口 9620）→ http://localhost:5173
+
+[1] ① 打开登录页
+  ✗ 登录页未渲染出「登录」字样
+
+[2] ② 登录（逐环硬校验：验证码 → dev_code → token 落 storage）
+  [截图] evidence\h5-chain\20260919005925.-00-logged-in.png
+  ✓ 图形验证码=A7K9；dev_code 已捕获；aap_token(303 字符) 已落 storage；POST /auth/sms/login → code=0
+
+[3] ⑤ 凭证列表页可开
+  [截图] evidence\h5-chain\20260919005929.-05-credentials.png
+  ✓ GET /credentials → code=0
+
+[4] ⑥ 进入「接入凭证」页
+  [截图] evidence\h5-chain\20260919005930.-06-submit-form.png
+  ✓ 命中入口=接入凭证
+
+[5] ⑦ 填表并保存草稿 → 断言 POST /credentials（缺陷4 的修复点）
+  [截图] evidence\h5-chain\20260919005931.-07-form-filled.png
+  [截图] evidence\h5-chain\20260919005935.-08-saved.png
+  ✓ POST /credentials → code=0；PUT 保存 → code=0
+
+[6] ⑧ 提交检测 → 断言 precheck
+  [截图] evidence\h5-chain\20260919005941.-09-precheck.png
+  ✓ POST /credentials/{id}/precheck → code=0 ok
+
+[7] ⑨ 检测进行中页可开
+  [截图] evidence\h5-chain\20260919005941.-10-detecting.png
+  ✓ 页面已进入检测相关视图
+
+[8] ⑩ 报价单列表页可开
+  [截图] evidence\h5-chain\20260919005946.-11-quotes.png
+  ✓ GET /quotes → code=0
+
+[9] ⑪ 检测任务是否真被执行（断言业务结果，非状态码）
+  ✗ 检测任务仍停在 QUEUED（started_at=null）→ 检测执行器缺失，结果恒空（total=0）。这是业务结果失败，不是 HTTP 失败
+
+──────────────────────────────────────────────────────────────────────────────
+真实 HTTP 调用流水（/api/）：
+  200  POST   /api/v1/auth/sms/send                          code=0 ok
+  200  POST   /api/v1/auth/sms/login                         code=0 ok
+  200  GET    /api/v1/provider/profile                       code=0 ok
+  200  GET    /api/v1/usage/summary                          code=0 ok
+  200  GET    /api/v1/credentials?page=1&pageSize=10         code=0 ok
+  200  GET    /api/v1/credentials?page=1&pageSize=10         code=0 ok
+  200  POST   /api/v1/credentials                            code=0 ok
+  200  PUT    /api/v1/credentials/458722269881667584         code=0 ok
+  200  PUT    /api/v1/credentials/458722269881667584         code=0 ok
+  200  POST   /api/v1/credentials/458722269881667584/precheck code=0 ok
+  200  GET    /api/v1/detection-jobs/458722290236624896      code=0 ok
+  200  GET    /api/v1/detection-jobs/458722290236624896/results code=0 ok
+  200  GET    /api/v1/quotes?page=1&pageSize=10              code=0 ok
+  200  GET    /api/v1/quotes?page=1&pageSize=10              code=0 ok
+──────────────────────────────────────────────────────────────────────────────
+步骤 9：通过 7，失败 2；真实 HTTP 14 次
+失败明细：
+  ✗ ① 打开登录页 — 登录页未渲染出「登录」字样
+  ✗ ⑪ 检测任务是否真被执行（断言业务结果，非状态码） — 检测任务仍停在 QUEUED（started_at=null）→ 检测执行器缺失，结果恒空（total=0）。这是业务结果失败，不是 HTTP 失败
+控制台 error/exception：无 ✓
+明细已写入 evidence\h5-chain\h5-chain-result.json
+
+浏览器保持打开（人工核对页面）。profile=C:\Users\laitz\AppData\Local\Temp\aap-cdp-profile-9620
+确认完再关：设 AAP_CLOSE=1 重跑，或在浏览器里直接关闭窗口。
+chain exit=1
+
+=== 等 75s 避开 SMS 冷却 ===
+--- 全页冒烟 ---
+启动有头 Chrome（端口 9621）→ http://localhost:5173
+  [截图] evidence\h5-smoke\20260919010118.-00-logged-in.png
+登录成功（13800138000，图形验证码=A7K9，aap_token 已落 storage ✓）
+待访问页面 21 个（清单来自 src/pages.json）
+  [截图] evidence\h5-smoke\20260919010130.-pages_workbench_index.png
+  ✓ pages/workbench/index      工作台               191字   
+  [截图] evidence\h5-smoke\20260919010142.-pages_credentials_index.png
+  ✓ pages/credentials/index    凭证列表              231字   
+  [截图] evidence\h5-smoke\20260919010147.-pages_credential-submit_index.png
+  ✓ pages/credential-submit/index 接入凭证              162字   
+  [截图] evidence\h5-smoke\20260919010150.-pages_credential-submit_form.png
+  ✓ pages/credential-submit/form 接入凭证              207字   
+  [截图] evidence\h5-smoke\20260919010154.-pages_detecting_index.png
+  ✓ pages/detecting/index      检测进行中             120字   
+  [截图] evidence\h5-smoke\20260919010158.-pages_report_index.png
+  ✓ pages/report/index         检测报告              434字   
+  [截图] evidence\h5-smoke\20260919010202.-pages_report-failed_index.png
+  ✓ pages/report-failed/index  检测报告              179字   
+  [截图] evidence\h5-smoke\20260919010206.-pages_quotes_index.png
+  ✓ pages/quotes/index         报价单               223字   
+  [截图] evidence\h5-smoke\20260919010209.-pages_quote-models_index.png
+  ✓ pages/quote-models/index   新增报价单             228字   
+  [截图] evidence\h5-smoke\20260919010213.-pages_model-pricing_index.png
+  ✓ pages/model-pricing/index  模型定价              315字   
+  [截图] evidence\h5-smoke\20260919010217.-pages_profile-edit_index.png
+  ⚠控制台 pages/profile-edit/index   编辑主体档案            238字   控制台 4
+  [截图] evidence\h5-smoke\20260919010221.-pages_profile_index.png
+  ✓ pages/profile/index        主体档案              307字   
+  [截图] evidence\h5-smoke\20260919010225.-pages_quote-preview_index.png
+  ✓ pages/quote-preview/index  报价预览               83字   
+  [截图] evidence\h5-smoke\20260919010229.-pages_quote-form_index.png
+  ✓ pages/quote-form/index     新增报价单             394字   
+  [截图] evidence\h5-smoke\20260919010232.-pages_quote-form_apikey.png
+  ✓ pages/quote-form/apikey    新增报价单             330字   
+  [截图] evidence\h5-smoke\20260919010236.-pages_quote-form_success.png
+  ✓ pages/quote-form/success   报价单已创建            164字   
+  [截图] evidence\h5-smoke\20260919010240.-pages_contract_index.png
+  ✓ pages/contract/index       合同签署              135字   
+  [截图] evidence\h5-smoke\20260919010252.-pages_messages_index.png
+  ✓ pages/messages/index       消息                 38字   
+  [截图] evidence\h5-smoke\20260919010304.-pages_mine_index.png
+  ✓ pages/mine/index           我的                141字   
+  [截图] evidence\h5-smoke\20260919010307.-pages_usage_index.png
+  ✓ pages/usage/index          用量概览              181字   
+  [截图] evidence\h5-smoke\20260919010319.-pages_settings_index.png
+  ✓ pages/settings/index       账号与设置             145字   
+
+──────────────────────────────────────────────────────────────────────────────
+页面 21：渲染正常 21，路由不符 0，空白页 0，异常接口 0，控制台报错 1
+控制台报错：
+  ⚠ pages/profile-edit/index  warning: [Vue warn]: Invalid prop: custom validator check failed for prop "mode". 
+ at <Picker>
+at <View>
+at <View>
+at <View>
+at <View>
+at <Index>
+at <AsyncComponentWrap | warning: [Vue warn]: Invalid prop: custom validator check failed for prop "mode". 
+ at <Picker>
+at <View>
+at <View>
+at <View>
+at <View>
+at <Index>
+at <AsyncComponentWrap
+明细已写入 evidence\h5-smoke\h5-smoke-result.json
+
+浏览器保持打开。profile=C:\Users\laitz\AppData\Local\Temp\aap-cdp-profile-9621
+smoke exit=0

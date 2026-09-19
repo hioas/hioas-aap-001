@@ -56,7 +56,9 @@ export class Cdp {
     }
     if (m.method === 'Network.requestWillBeSent') {
       const { requestId, request } = m.params;
-      if (request.url.includes('/api/')) this._req.set(requestId, { method: request.method, url: request.url, postData: request.postData });
+      // 只认后端业务接口。坑：写成 '/api/' 会把 vite 的源码模块请求
+      // （如 /src/api/quote.ts、/src/api/http.ts）也算进来，污染「真实 HTTP 次数」统计。
+      if (request.url.includes('/api/v1/')) this._req.set(requestId, { method: request.method, url: request.url, postData: request.postData });
     }
     if (m.method === 'Network.responseReceived') {
       const { requestId, response } = m.params;
@@ -86,7 +88,11 @@ export class Cdp {
               try { snap = data === null ? null : JSON.parse(JSON.stringify(data).slice(0, 800)); } catch { snap = '(不可序列化)'; }
               this.apiCalls.push({ ...rec, code, message, data: snap });
             })
-            .catch(() => this.apiCalls.push({ ...rec, code: '?', message: '(响应体不可读)' }))
+            .catch(() => {
+              // 响应体读不到 = 请求被页面 reload 打断（工具时序产物），不是业务失败。
+              // 必须与「业务码非 0」区分开，否则会把工具噪声报成产品缺陷。
+              this.apiCalls.push({ ...rec, code: null, message: null, aborted: true, data: null });
+            })
         );
       }
     }
@@ -229,4 +235,77 @@ export function makeOwnershipGuard(cdp, profile) {
       return true;
     } catch { return false; }
   };
+}
+
+/**
+ * 登录并**硬校验**（两个脚本共用）。
+ *
+ * 踩过的坑（2026-09-19，代价很大）：早先的「登录成功」判据是
+ * `waitForText(/工作台|凭证|报价|我的/)`，而这些词在**登录页自身文案里就存在** →
+ * 登录失败也判成功，随后 21 个页面全在未登录态跑，满屏 `E-1902`，
+ * 差点被当成「产品缺陷」报出去。**联调的假通过比失败更贵。**
+ *
+ * 所以这里逐环硬校验，任何一环不满足立即抛错：
+ *   ① 读到图形验证码（`.captcha__text`，登录页默认 'A7K9'）
+ *   ② 点「获取验证码」后必须捕获到 `dev_code`（后端需 `AAP_SMS_EXPOSE_CODE=true`；
+ *      60s 内重复发送会被 E-1903 拦掉 → 换手机号或等冷却）
+ *   ③ 提交后 storage 里必须出现 token（`aap_token`，见 src/api/http.ts）
+ */
+export async function loginAndVerify(cdp, { baseUrl, phone, outDir } = {}) {
+  await cdp.send('Page.navigate', { url: baseUrl });
+  await sleep(5000);
+
+  const captcha = await cdp.eval(`(() => { const el = document.querySelector('.captcha__text'); return el ? el.innerText.trim() : null; })()`);
+  if (!captcha) throw new Error('未读到图形验证码（.captcha__text）——登录页结构变了？');
+
+  const setAt = (idx, text) => cdp.eval(`(() => {
+    const h = document.querySelectorAll('input')[${idx}];
+    if (!h) return 'NO_INPUT';
+    const el = h.tagName === 'INPUT' ? h : h.querySelector('input');
+    if (!el) return 'NO_INNER';
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+    el.focus(); setter.call(el, ${JSON.stringify(text)});
+    const fire = (t) => el.dispatchEvent(new CustomEvent(t, { bubbles: true, cancelable: true, detail: { value: ${JSON.stringify(text)} } }));
+    fire('input'); fire('change'); fire('blur');
+    return el.value === ${JSON.stringify(text)} ? true : 'MISMATCH:' + el.value;
+  })()`);
+
+  const a = await setAt(0, phone); if (a !== true) throw new Error(`手机号写入失败: ${a}`);
+  const b = await setAt(1, captcha); if (b !== true) throw new Error(`图形验证码写入失败: ${b}`);
+
+  // 坑（实测反复踩）：`.sms-btn` 是 `<view @tap>`，**CDP 合成鼠标事件经常点不动它**
+  // → 必须像 `.agree__box` / `.submit` 那样用 jsClick（MouseEvent('click')）兜底，
+  //   判据用「请求已发出」而不是「点过了」。
+  const sentSms = () => cdp.apiCalls.some((c) => c.url.includes('/auth/sms/send'));
+  const clicked = await cdp.clickUntil('.sms-btn', sentSms, { tries: 4, gap: 900 });
+  if (!clicked) {
+    throw new Error('点击「获取验证码」未触发请求：.sms-btn 找不到或被 disabled（检查 cooldown.active）');
+  }
+  for (let i = 0; i < 16 && !cdp.devCode; i++) await sleep(500);
+  if (!cdp.devCode) {
+    const err = cdp.apiCalls.find((c) => c.url.includes('/auth/sms/send') && c.code && c.code !== '0');
+    throw new Error(`未捕获 dev_code：短信未发出或后端未开 AAP_SMS_EXPOSE_CODE${err ? `（sms/send → ${err.code} ${err.message}）` : ''}`);
+  }
+  const c = await setAt(2, cdp.devCode); if (c !== true) throw new Error(`短信验证码写入失败: ${c}`);
+
+  // 坑：登录前必须勾选协议，否则静默拦住、一个请求都不发；@tap 不吃合成事件 → clickUntil 兜底
+  const tick = "(() => (document.querySelector('.agree__tick') ? 'checked' : 'unchecked'))()";
+  if ((await cdp.eval(tick)) !== 'checked') {
+    await cdp.clickUntil('.agree__box', async () => (await cdp.eval(tick)) === 'checked');
+  }
+  if ((await cdp.eval(tick)) !== 'checked') throw new Error('协议未勾选成功，登录会被静默拦住');
+
+  await cdp.clickUntil('.submit', async () => await cdp.eval(`!!localStorage.getItem('aap_token')`), { tries: 8, gap: 1000 });
+
+  let token = null;
+  for (let i = 0; i < 20 && !token; i++) {
+    token = await cdp.eval(`localStorage.getItem('aap_token')`);
+    if (!token) await sleep(500);
+  }
+  if (!token) {
+    const login = cdp.apiCalls.filter((c) => c.url.includes('/auth/sms/login'));
+    throw new Error(`登录失败：storage 无 aap_token（URL=${await cdp.url()}；login 调用=${login.map((x) => x.code).join(',') || '未发出'}）`);
+  }
+  if (outDir) await cdp.shot(outDir, '00-logged-in');
+  return { token, captcha };
 }

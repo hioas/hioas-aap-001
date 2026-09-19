@@ -18,10 +18,10 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  Cdp, sleep, launchHeaded, portAlive, targetWs, makeOwnershipGuard
+  Cdp, sleep, launchHeaded, portAlive, targetWs, makeOwnershipGuard, loginAndVerify
 } from './lib/cdp-harness.mjs';
 
-const [baseUrl = 'http://localhost:5173', outDir = 'evidence/h5-chain', phone = '13900000001'] =
+const [baseUrl = 'http://localhost:5173', outDir = 'evidence/h5-chain', phone = '13800138000'] =
   process.argv.slice(2);
 const PORT = Number(process.env.AAP_CDP_PORT || 9400 + (process.pid % 500));
 const KEEP_OPEN = process.env.AAP_CLOSE !== '1';
@@ -90,71 +90,18 @@ async function main() {
   // ═══ ① 登录（真实 UI：读页面验证码 → 获取验证码 → 取 dev_code → 勾协议 → 登录）═══
   await step('① 打开登录页', async () => {
     await cdp.send('Page.navigate', { url: baseUrl });
-    await sleep(5000);
-    const t = await cdp.text();
-    assert(/登录/.test(t), '登录页未渲染出「登录」字样');
+    // 轮询等渲染（固定 sleep 会偶发「未渲染」，实测踩过：5s 不够 → 误报）
+    const ok = await cdp.waitForText(/登录/, { timeoutMs: 15000 });
+    assert(ok, '登录页未渲染出「登录」字样');
     await cdp.shot(outDir, '01-login');
     return `title="${await cdp.eval('document.title')}"`;
   });
 
-  await step('② 填写手机号与图形验证码', async () => {
-    const captcha = await cdp.eval(`(() => {
-      const el = [...document.querySelectorAll('*')].find((e) =>
-        /^[A-Z0-9]{4}$/.test((e.innerText || '').trim()) && e.children.length === 0);
-      return el ? el.innerText.trim() : null;
-    })()`);
-    const n = await cdp.eval('document.querySelectorAll("input").length');
-    assert(n >= 2, `登录页 input 数量异常: ${n}`);
-    const setAt = (idx, text) => cdp.eval(`(() => {
-      const el = document.querySelectorAll('input')[${idx}];
-      if (!el) return false;
-      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
-      el.focus(); setter.call(el, ${JSON.stringify(text)});
-      const fire = (t) => el.dispatchEvent(new CustomEvent(t, { bubbles: true, cancelable: true, detail: { value: ${JSON.stringify(text)} } }));
-      fire('input'); fire('change'); fire('blur');
-      return el.value === ${JSON.stringify(text)};
-    })()`);
-    assert(await setAt(0, phone), '手机号写入失败');
-    // 后端图形验证码**根本不校验**（已记为安全问题），但前端可能校验一致性 → 优先读页面上的码
-    const okCode = await setAt(1, captcha || 'AB12');
-    await cdp.shot(outDir, '02-filled');
-    return `手机号=${phone}，页面验证码=${captcha ?? '(未读到，用 AB12 兜底)'}，写入=${okCode}`;
-  });
-
-  await step('③ 获取短信验证码（捕获后端回显 dev_code）', async () => {
-    await cdp.clickSelector('.sms-btn') || await clickText(/获取验证码/);
-    await sleep(3500);
-    const send = called('POST', '/auth/sms/send');
-    assert(send.length > 0, '未发出 POST /auth/sms/send');
-    assert(send[0].code === '0', `sms/send 业务码=${send[0].code} ${send[0].message ?? ''}`);
-    await cdp.shot(outDir, '03-code-sent');
-    return `POST /auth/sms/send → code=${send[0].code}`;
-  });
-
-  await step('④ 提交登录', async () => {
-    const send = called('POST', '/auth/sms/send')[0];
-    const code = cdp.devCode;
-    const n = await cdp.eval('document.querySelectorAll("input").length');
-    assert(code, '未捕获 dev_code（后端 AAP_SMS_EXPOSE_CODE=true 是否开启？）');
-    if (n >= 3) {
-      await cdp.eval(`(() => {
-        const el = document.querySelectorAll('input')[2];
-        const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
-        el.focus(); setter.call(el, ${JSON.stringify(code)});
-        const fire = (t) => el.dispatchEvent(new CustomEvent(t, { bubbles: true, cancelable: true, detail: { value: ${JSON.stringify(code)} } }));
-        fire('input'); fire('change'); fire('blur'); return true;
-      })()`);
-    }
-    // 坑：登录前必须勾选协议，否则静默拦住；且 @tap 不吃合成事件 → jsClick 兜底
-    const tick = "(() => (document.querySelector('.agree__tick') ? 'checked' : 'unchecked'))()";
-    if ((await cdp.eval(tick)) !== 'checked') await cdp.clickUntil('.agree__box', async () => (await cdp.eval(tick)) === 'checked');
-    assert((await cdp.eval(tick)) === 'checked', '协议未勾选成功');
-    await cdp.clickUntil('.submit', async () => !/手机号登录/.test(await cdp.text()), { tries: 6, gap: 1000 });
-    const left = await cdp.waitForText(/工作台|凭证|报价|我的/, { timeoutMs: 15000 });
-    await cdp.shot(outDir, '04-after-login');
-    assert(left, `登录后仍停在登录页，URL=${await cdp.url()}`);
+  await step('② 登录（逐环硬校验：验证码 → dev_code → token 落 storage）', async () => {
+    const { captcha, token } = await loginAndVerify(cdp, { baseUrl, phone, outDir });
     const login = called('POST', '/auth/sms/login');
-    return `离开登录页 ✓；POST /auth/sms/login → code=${login[0]?.code ?? '未捕获'}`;
+    return `图形验证码=${captcha}；dev_code 已捕获；aap_token(${String(token).length} 字符) 已落 storage；`
+      + `POST /auth/sms/login → code=${login[0]?.code ?? '未捕获'}`;
   });
 
   // ═══ ② 业务链：凭证 → 检测 → 报告 → 报价 ═══

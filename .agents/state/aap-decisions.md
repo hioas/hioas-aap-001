@@ -140,3 +140,35 @@
 - ⑤**「去签署」4 例回归**：`npm test` **1181/1181 · 72 files 连跑两轮**（15:42 轮1 / 轮2）+ `type-check` exit 0 —— 含
   `tests/pages/contract-flow.spec.ts` 的 4 例（入口存在 / 二次确认 / POST sign / 被拒 E-1601 保持状态）全绿。
 
+## 2026-09-19 · H5 有头浏览器链路联调发现（缺陷 7）
+
+**缺陷 7（H5 专有）· `profile-edit` 的「所在地区」选择器在 H5 上不可用**
+
+- 现象：H5 打开 `/pages/profile-edit/index` 时控制台稳定报
+  `[Vue warn]: Invalid prop: custom validator check failed for prop "mode"` at `<Picker>`（4 条/次）。
+- 根因（读 uni-app 源码实证，非推断）：`@dcloudio/uni-h5` 的 Picker 只允许
+  `selector | multiSelector | time | date`，**`region` 被显式注释掉**：
+  ```js
+  const mode = { SELECTOR:"selector", MULTISELECTOR:"multiSelector", TIME:"time", DATE:"date"
+    // 暂不支持城市选择
+    // REGION: 'region'          ← 注释掉
+  };
+  mode: { validator(val) { return Object.values(mode).includes(val) } }
+  ```
+  本页用的是 `mode="region"` → validator 失败 → **H5 上不渲染地区选择器**。
+- **这修正了台账序号 10 备注⑫的原判断**：原文写「无头环境无法驱动原生控件 → 该交互仅单测覆盖」，
+  实际不是「驱动不了」，而是 **H5 端该控件不存在**。微信小程序端支持 region，**故这是一个真实双端差异**。
+- 影响面：H5 用户无法选择所在地区（`province`/`city` 无法填写）→ 档案完整度相关链路受影响。
+- 证据：`aap-client/evidence/h5-smoke/h5-smoke-result.json`（`rows[].consoleErrors`）·
+  `.agents/state/evidence/h5-both-runs.txt` · 截图 `evidence/h5-smoke/*pages_profile-edit_index.png`。
+- 处置建议（未擅自改，等拍板）：①H5 降级为 `mode="selector"` 自绘省市级联；
+  ②或 H5 用 `<input>` 文本录入 + 校验；③或明确「地区仅小程序端可编辑」并在 H5 隐藏该项。
+
+**同时确认（非缺陷，避免重复排查）**：
+
+- H5 全量 21 页在登录态下**渲染正常 21/21**，0 空白页、0 路由不符、**0 异常接口**（14 次真实业务 HTTP 全 `code=0`）。
+- `GET /detection-jobs/{id}/results` 恒返回 `{total:0, items:[]}` 且任务恒 `QUEUED` —— 这是**缺陷 1（检测执行器缺失）**的**假绿**表现：
+  HTTP 200 + `code=0`，只看状态码会判成通过。已在 `h5-chain.mjs` 第⑪步固化为**故意红**的业务结果断言。
+- 联调账号别混：`13800138000`=SUPPLIER（供应商侧链路）· `13900000001`=SUPER_ADMIN（管理端）。
+  混用会得到一批 `403 E-1901`，**是账号错不是权限缺陷**。
+
