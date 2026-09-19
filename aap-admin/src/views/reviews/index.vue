@@ -194,8 +194,10 @@ async function select(t: ReviewTask) {
   items.value = [];
   records.value = [];
   // 明细/时间线取不到不阻断审核，但保持为空并在表 empty-text 说明（不假装有数据）
+  // 明细行：QT-06 `GET /quotes/{quoteId}/items` **没有分页参数**（返回 QuoteViews.Items 全量），
+  // 所以这里不传 page/pageSize（曾经传 page_size 是无效参数，后端静默忽略）。
   try {
-    const r = await request<PageResult<Record<string, unknown>>>(`/quotes/${t.quote_id}/items`, { query: { page: 1, page_size: 100 } });
+    const r = await request<{ items?: Record<string, unknown>[] }>(`/quotes/${t.quote_id}/items`);
     items.value = r?.items ?? [];
   } catch { /* 保持空 */ }
   try {

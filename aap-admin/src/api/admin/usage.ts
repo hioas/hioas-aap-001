@@ -57,7 +57,7 @@ export const usageApi = {
         channelId: params.channelId,
         model: params.model,
         page: params.page ?? 1,
-        page_size: params.pageSize ?? 200
+        pageSize: params.pageSize ?? 200
       }
     });
   },

@@ -72,6 +72,27 @@ const CONTENT_GATES = {
     // 页面会把该错误渲染成显式的缺口说明 —— 这是**被处理的状态**，不是失败。
     // 声明式放行，避免「把已知缺口当回归」；同时新出现的**其它**错误码仍会失败。
     allowCodes: ['E-1501']
+  },
+  // 页 4：供应商管理（page-4-pc）。判据必须能区分「真取到数」与「只有壳」：
+  // 表头「接入线路 / 档案完整度」是设计稿独有列，骨架页没有。
+  '/providers': {
+    require: ['[data-testid="provider-count"]', '[data-testid="provider-table"]', '[data-testid="page-summary"]'],
+    textAny: ['新增供应商', '接入线路', '档案完整度'],
+    mustMatch: [/共 \d+ 家/, /共 \d+ 条，每页 \d+ 条/]
+  },
+  // 页 5：检测中心（page-5-pc）。任务监控**无列表接口**（D-ADM-5）→ 页面必须显式声明缺口；
+  // 真实能力是「人工放行（DET-06）」与「检测项配置（ADM-CFG01…05）」两张卡。
+  '/detection': {
+    require: ['[data-testid="detection-gap-banner"]', '[data-testid="detection-kpi"]', '[data-testid="cfg-table"]'],
+    textAny: ['检测项配置', '人工放行', '无数据来源'],
+    mustMatch: [/D-ADM-5/]
+  },
+  // 页 8：new-api 同步（page-8-pc）。上游模型清单未配置 ACTIVE 端点 → 预期 E-1501（已登记形态）；
+  // 页面把它渲染成「接口异常」标签，属**被处理的状态**。
+  '/sync': {
+    require: ['[data-testid="sync-kpi"]', '[data-testid="binding-table"]', '[data-testid="sync-task-table"]'],
+    textAny: ['渠道价格同步状态', '同步任务与日志', '渠道总数'],
+    allowCodes: ['E-1501']
   }
 };
 
@@ -80,6 +101,38 @@ const record = (name, ok, detail = '') => {
   rows.push({ name, ok, detail });
   console.log(`  ${ok ? '✓' : '✗'} ${name}${detail ? ` — ${detail}` : ''}`);
 };
+
+/**
+ * 证据落盘前**必须**脱敏（真实教训，2026-09-19 夜）。
+ *
+ * 验收脚本把后端响应体原样写进证据 JSON，其中 `/auth/sms/login` 的响应含
+ * **真实 access token（307 字符 JWT）与 refresh token（43 字符）** ——
+ * 一旦入库就等于把可用凭据写进 git 历史。而**看日志根本发现不了**：
+ * 工具输出层会把 JWT 打码显示成 `eyJhbG...xxxx`，肉眼看是「已经脱敏了」。
+ * 所以守卫必须落在**写文件这一步**（机器判据），而不是靠人眼。
+ *
+ * 规则：键名命中 token/secret/password/apikey/authorization 且长度 ≥16 的值，
+ * 以及任何真 JWT 形状的字符串，一律换成 `<redacted len=N>`（保留长度作为证据）。
+ * 独立复核：`python tools/evidence-secrets.py`（命中即 exit 1）。
+ */
+const SECRET_KEY = /(token|secret|password|passwd|api_?key|authorization|credential)/i;
+const JWT_SHAPE = /eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}/g;
+const mask = (v) => `<redacted len=${String(v).length}>`;
+
+function redact(node) {
+  if (Array.isArray(node)) return node.map(redact);
+  if (node && typeof node === 'object') {
+    const out = {};
+    for (const [k, v] of Object.entries(node)) {
+      out[k] = typeof v === 'string' && SECRET_KEY.test(k) && v.length >= 16 && !v.startsWith('<redacted')
+        ? mask(v)
+        : redact(v);
+    }
+    return out;
+  }
+  if (typeof node === 'string') return node.replace(JWT_SHAPE, mask);
+  return node;
+}
 
 /**
  * 全局样式门禁（每页都查）。
@@ -261,10 +314,14 @@ async function main() {
 
     // 业务内容判据：已实现页必须渲染出业务特征；未实现页必须明确带「待实现」徽章
     const gateState = await page.evaluate(
-      ({ require: req, textAny }) => {
+      ({ require: req, textAny, must }) => {
         const missing = (req || []).filter((s) => !document.querySelector(s));
         const text = document.body.innerText || '';
         const hitAny = !textAny || textAny.some((t) => text.includes(t));
+        // mustMatch：用**正则**判文案形态（例如「共 7 家」「共 7 条，每页 20 条」），
+        // 比固定字符串更抗数据变化，同时能抓住「渲染了但没取到数」（共 0 家 也会命中，
+        // 所以它只用来判「渲染形态」，取数真假由接口流水与下面的 allowCodes 判）。
+        const mustMiss = (must || []).filter((src) => !new RegExp(src).test(text));
         const root = getComputedStyle(document.documentElement);
         const cs = (sel, prop) => {
           const e = document.querySelector(sel);
@@ -272,6 +329,7 @@ async function main() {
         };
         return {
           missing,
+          mustMiss,
           hitAny,
           isStub: text.includes('待实现'),
           styles: {
@@ -284,7 +342,7 @@ async function main() {
           }
         };
       },
-      { require: gate?.require, textAny: gate?.textAny }
+      { require: gate?.require, textAny: gate?.textAny, must: gate?.mustMatch?.map((r) => r.source) }
     );
 
     const problems = [];
@@ -297,6 +355,7 @@ async function main() {
     if (gate) {
       if (gateState.missing.length) problems.push(`缺少业务节点：${gateState.missing.join('、')}`);
       if (!gateState.hitAny) problems.push(`未渲染出业务文案（期望含 ${gate.textAny.join(' / ')} 之一）`);
+      if (gateState.mustMiss?.length) problems.push(`文案形态不符：${gateState.mustMiss.join('、')}`);
       if (gateState.isStub) problems.push('已登记为已实现，但仍显示「待实现」徽章');
     } else if (!gateState.isStub) {
       problems.push('尚未实现却缺少「待实现」徽章（状态不明，无法区分完成度）');
@@ -336,7 +395,7 @@ function finish(browser, calls = []) {
   }
   writeFileSync(
     join(OUT, 'admin-acceptance.json'),
-    JSON.stringify({ base: BASE, phone: PHONE, headless: HEADLESS, rows, calls }, null, 2),
+    JSON.stringify(redact({ base: BASE, phone: PHONE, headless: HEADLESS, rows, calls }), null, 2),
     'utf8'
   );
   console.log(`\n明细已写入 ${join(OUT, 'admin-acceptance.json')}`);

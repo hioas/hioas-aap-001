@@ -95,7 +95,7 @@ export const PAYMENT_STATUS: Record<string, { label: string; tone: 'info' | 'war
 
 export const contractApi = {
   list(status?: string, page = 1, pageSize = 20) {
-    return request<PageResult<ContractRow>>('/admin/contracts', { query: { status, page, page_size: pageSize } });
+    return request<PageResult<ContractRow>>('/admin/contracts', { query: { status, page, pageSize } });
   },
   issue(id: string) {
     return request<ContractRow>(`/admin/contracts/${id}/issue`, { method: 'POST' });
@@ -104,12 +104,12 @@ export const contractApi = {
     return request<ContractRow>(`/admin/contracts/${id}/confirm-sign`, { method: 'POST' });
   },
   payments(status?: string, page = 1, pageSize = 20) {
-    return request<PageResult<PaymentRow>>('/admin/payments', { query: { status, page, page_size: pageSize } });
+    return request<PageResult<PaymentRow>>('/admin/payments', { query: { status, page, pageSize } });
   },
   confirmPayment(id: string) {
     return request<PaymentRow>(`/admin/payments/${id}/confirm`, { method: 'POST' });
   },
   statements(page = 1, pageSize = 20) {
-    return request<PageResult<StatementRow>>('/admin/settlements', { query: { page, page_size: pageSize } });
+    return request<PageResult<StatementRow>>('/admin/settlements', { query: { page, pageSize } });
   }
 };

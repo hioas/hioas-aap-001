@@ -95,11 +95,11 @@ async function safeList(path: string, query?: Record<string, unknown>): Promise<
 export async function loadDashboard(): Promise<DashboardData> {
   const warnings: string[] = [];
   const [providers, reviews, contracts, payments, syncTasks] = await Promise.all([
-    safeList('/admin/providers', { page: 1, page_size: 100 }),
-    safeList('/admin/reviews', { page: 1, page_size: 100 }),
-    safeList('/admin/contracts', { page: 1, page_size: 100 }),
-    safeList('/admin/payments', { page: 1, page_size: 100 }),
-    safeList('/admin/sync/tasks', { page: 1, page_size: 100 })
+    safeList('/admin/providers', { page: 1, pageSize: 100 }),
+    safeList('/admin/reviews', { page: 1, pageSize: 100 }),
+    safeList('/admin/contracts', { page: 1, pageSize: 100 }),
+    safeList('/admin/payments', { page: 1, pageSize: 100 }),
+    safeList('/admin/sync/tasks', { page: 1, pageSize: 100 })
   ]);
   for (const [name, r] of [['供应商', providers], ['待审报价', reviews], ['合同', contracts], ['打款', payments], ['同步任务', syncTasks]] as const) {
     if (r.error) warnings.push(`${name}：${r.error}`);

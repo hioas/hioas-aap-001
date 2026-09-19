@@ -65,7 +65,7 @@ export const REVIEW_STATUS: Record<string, { label: string; tone: 'info' | 'warn
 
 export const reviewApi = {
   list(status?: string, page = 1, pageSize = 20) {
-    return request<PageResult<ReviewTask>>('/admin/reviews', { query: { status, page, page_size: pageSize } });
+    return request<PageResult<ReviewTask>>('/admin/reviews', { query: { status, page, pageSize } });
   },
   claim(id: string) {
     return request<ReviewTask>(`/admin/reviews/${id}/claim`, { method: 'POST' });

@@ -1,0 +1,48 @@
+### 缺陷8 回归判据的先红后绿（真实 vitest 输出，非手写）
+### 判据：aap-admin/tests/unit/providers.spec.ts > 分页参数名是 pageSize（不是 page_size）
+
+===== RED：src/api/admin/providers.ts 查询键改回 page_size（复原缺陷8）=====
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-admin[39m
+
+ [31m❯[39m tests/unit/providers.spec.ts [2m([22m[2m18 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[90m 31[2mms[22m[39m
+[31m   [31m×[31m aap-admin · 供应商管理（page-4-pc）契约对齐后端[2m > [22m分页参数名是 pageSize（不是 page_size）[90m 23[2mms[22m[31m[39m
+[31m     → expected '/api/v1/admin/providers?page=1&page_s…' to contain 'pageSize=50'[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/providers.spec.ts[2m > [22maap-admin · 供应商管理（page-4-pc）契约对齐后端[2m > [22m分页参数名是 pageSize（不是 page_size）
+[31m[1mAssertionError[22m: expected '/api/v1/admin/providers?page=1&page_s…' to contain 'pageSize=50'[39m
+
+Expected: [32m"[7mpageS[27mize=50"[39m
+Received: [31m"[7m/api/v1/admin/providers?page=1&page_s[27mize=50"[39m
+
+[36m [2m❯[22m tests/unit/providers.spec.ts:[2m38:17[22m[39m
+    [90m 36| [39m    [35mawait[39m providerApi[33m.[39m[34mlist[39m({ page[33m:[39m [34m1[39m[33m,[39m pageSize[33m:[39m [34m50[39m })[33m;[39m
+    [90m 37| [39m    [35mconst[39m url [33m=[39m [33mString[39m((f[33m.[39mmock[33m.[39mcalls [35mas[39m unknown [35mas[39m string[][])[[34m0[39m][[34m0[39m])[33m;[39m
+    [90m 38| [39m    [34mexpect[39m(url)[33m.[39m[34mtoContain[39m([32m'pageSize=50'[39m)[33m;[39m
+    [90m   | [39m                [31m^[39m
+    [90m 39| [39m    [34mexpect[39m(url)[33m.[39mnot[33m.[39m[34mtoContain[39m([32m'page_size'[39m)[33m;[39m
+    [90m 40| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m17 passed[39m[22m[90m (18)[39m
+[2m   Start at [22m 00:22:29
+[2m   Duration [22m 28.62s[2m (transform 7.51s, setup 0ms, collect 21.47s, tests 31ms, environment 5.71s, prepare 872ms)[22m
+
+RED exit=1
+
+===== GREEN：恢复 pageSize =====
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-admin[39m
+
+ [32m✓[39m tests/unit/providers.spec.ts [2m([22m[2m18 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m18 passed[39m[22m[90m (18)[39m
+[2m   Start at [22m 00:23:02
+[2m   Duration [22m 11.93s[2m (transform 3.09s, setup 0ms, collect 10.54s, tests 12ms, environment 719ms, prepare 232ms)[22m
+
+GREEN exit=0

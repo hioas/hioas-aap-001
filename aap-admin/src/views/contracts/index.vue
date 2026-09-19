@@ -171,8 +171,12 @@
           <ol><li v-for="(t, i) in detail.terms" :key="i">{{ t }}</li></ol>
         </div>
         <p class="ct__note">
-          合同文本 PDF / 盖章件：需文件服务（`aap_file_asset` 主代码零 INSERT、无上传端点）→
-          当前 `file_id` 为 <code>{{ detail.file_id || '空' }}</code>。已登记为缺陷2，待补齐后此处接下载与预览。
+          合同文本 PDF / 盖章件：文件服务**代码已就绪**（缺陷2 已修，提交 <code>9cf495f</code>：
+          <code>POST /files</code> 上传 + <code>GET /files/{id}</code> 下载；⚠️ 当前 dev 实例未重启到该版本，
+          实测 <code>POST /files</code> 仍 404 <code>E-1406</code>）→ 当前 <code>file_id</code> 为
+          <code>{{ detail.file_id || '空' }}</code>（本单尚未发起带文件的签发）。
+          合同专属下载端点 <code>GET /contracts/{id}/file</code> 仅供应商本人可用（CON-03）→
+          管理端若要预览需另立「管理端下载」端点或明确权限口径。
         </p>
       </template>
     </el-drawer>

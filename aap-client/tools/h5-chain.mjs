@@ -31,6 +31,38 @@ const API_BASE = process.env.AAP_API_BASE || 'http://127.0.0.1:8084/api/v1';
 /** 管理端账号：H5/小程序应用是**供应商端**，管理动作（放行/审核/签发）不在应用里 → 只能走 API */
 const ADMIN_PHONE = process.env.AAP_ADMIN_PHONE || '13900000001';
 
+/**
+ * 证据落盘前脱敏（真实教训，2026-09-19 夜）。
+ *
+ * `apiCalls` 里含 `/auth/sms/login` 的**响应体**，其中是真实 access token（303 字符 JWT）
+ * 与 refresh token（43 字符）—— 原样落盘等于把可用凭据写进 git（本文件产出的
+ * `evidence/h5-chain/h5-chain-result.json` 曾**已入库**，本轮已就地脱敏）。
+ * 看日志发现不了：工具输出层会把 JWT 打码成 `eyJhbG...xxxx`，肉眼看像已脱敏。
+ * 所以守卫必须落在**写文件这一步**，判据不能靠人眼。
+ *
+ * 规则：键名命中 token/secret/password/apikey/authorization 且长度 ≥16 的值，
+ * 以及任何真 JWT 形状的字符串 → `<redacted len=N>`（保留长度，证据价值不丢）。
+ * 独立复核：`python tools/evidence-secrets.py`（命中即 exit 1）。
+ */
+const SECRET_KEY = /(token|secret|password|passwd|api_?key|authorization|credential)/i;
+const JWT_SHAPE = /eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}/g;
+const maskSecret = (v) => `<redacted len=${String(v).length}>`;
+
+function redactSecrets(node) {
+  if (Array.isArray(node)) return node.map(redactSecrets);
+  if (node && typeof node === 'object') {
+    const out = {};
+    for (const [k, v] of Object.entries(node)) {
+      out[k] = typeof v === 'string' && SECRET_KEY.test(k) && v.length >= 16 && !v.startsWith('<redacted')
+        ? maskSecret(v)
+        : redactSecrets(v);
+    }
+    return out;
+  }
+  if (typeof node === 'string') return node.replace(JWT_SHAPE, maskSecret);
+  return node;
+}
+
 /** Node 侧直调后端；任何异常都收敛成 {code,message}，不抛（让步骤给出可读失败） */
 async function apiCall(method, path, token, body) {
   const res = await fetch(API_BASE + path, {
@@ -520,7 +552,10 @@ async function main() {
 
   const report = { at: new Date().toISOString(), baseUrl, phone, steps: results, apiCalls: api() };
   const rf = join(outDir, 'h5-chain-result.json');
-  writeFileSync(rf, JSON.stringify(report, null, 2));
+  // ⚠️ 落盘前脱敏：apiCalls 里有 /auth/sms/login 的响应体，含真实 token 与 refresh token。
+  // 看日志发现不了（工具输出层会把 JWT 打码成 eyJhbG...xxxx），所以守卫必须在写文件这一步。
+  // 独立复核：`python tools/evidence-secrets.py`（命中即 exit 1）。
+  writeFileSync(rf, JSON.stringify(redactSecrets(report), null, 2));
   console.log(`明细已写入 ${rf}`);
 
   if (KEEP_OPEN) {

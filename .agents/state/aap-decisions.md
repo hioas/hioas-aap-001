@@ -257,3 +257,127 @@
   **后端一个端点都没有** → 与缺陷1（检测执行器）、缺陷2（文件上传）同类，属**整页能力缺口**。
 - **处置**：页面按设计稿实现 UI 与状态，但所有写操作与数据源**显式标注「后端未提供」**，
   不伪造数据、不假装成功。**待用户拍板**：补后端能力 / 页面降级为只读占位 / 暂缓此页。
+
+---
+
+## 管理端 · 逐页实现进度（2026-09-19 夜）
+
+设计源 11 页 → 管理端 9 个路由（设计稿只画了 9 个菜单项，PRD 13 §2 更多，差异记 missing-design）。
+
+| 设计页 | 路由 | 状态 |
+|---|---|---|
+| page-1-pc 状态看板 | `/dashboard` | ✅ |
+| page-2 用量统计 | `/usage` | ✅ |
+| page-3 模型管理 | `/models` | ⚠️ UI 完整、后端无能力（D-ADM-3） |
+| **page-4-pc 供应商管理（+4.1 抽屉）** | `/providers` | ✅ **本轮实现** |
+| **page-5-pc 检测中心任务监控** | `/detection` | ✅ **本轮实现**（任务监控部分为显式缺口 D-ADM-5） |
+| page-6-pc 报价审核台 | `/reviews` | ✅ |
+| page-7-pc 合同与结算 | `/contracts` | ✅ |
+| **page-8-pc-new-api 同步** | `/sync` | ✅ **本轮实现** |
+| （设计稿未单独出页） | `/compilation` | 骨架（PRD 13 §7 M10；等设计补齐或按 PRD 实现） |
+
+报告与证据：`.agents/state/evidence/adm-pages-4-5-8-REPORT.md` · `redgreen-defect8-pageSize.txt` ·
+`redgreen-defect8-vitest.txt` · `aap-admin/evidence/admin/{admin-acceptance.json,page-*.png}`。
+
+## 缺陷 8 · 管理端分页参数名不匹配（`page_size`）→ 后端静默降级默认 20 条/页 —— `已修复 2026-09-19`
+
+- **现象**：`aap-admin` 各 api 模块发 `page_size`，后端 `@RequestParam(required = false) Integer pageSize` 绑不上 →
+  **静默**用默认 20。请求 100 / 200 / 500 条也只回 20 条，**没有任何报错**。
+- **影响**：仪表盘 KPI（请求 100 条）、用量页（请求 500 条）等**统计口径被截断**；接口 code=0、页面照常渲染，
+  数字却是错的 —— 典型「假绿」（与缺陷1「HTTP 200 + code=0 但业务是假的」同一类）。
+- **实证**（`redgreen-defect8-pageSize.txt`）：`/admin/audit-logs?page=1&page_size=2` → 服务端 `pageSize=20`、`items=20`；
+  同请求用 `pageSize=2` → `items=2`。`total` 一直是 157，所以只看 total 也发现不了。
+- **修复**：`providers.ts` / `reviews.ts` / `contracts.ts`(×3) / `usage.ts` / `dashboard/model.ts`(×5) 全改 `pageSize`；
+  `PageResult` 补响应侧真实字段 `pageSize?`；`reviews` 页对 `/quotes/{id}/items`（该端点**无分页参数**）去掉无效分页参数。
+- **回归判据（先红后绿）**：`tests/unit/providers.spec.ts`「分页参数名是 pageSize（不是 page_size）」，
+  用 `tools/redgreen-defect8.sh` 实测 RED exit=1（`expected '…page_s…' to contain 'pageSize=50'`）→ GREEN exit=0；
+  证据 `redgreen-defect8-vitest.txt`（真实 vitest 输出，LF、CR=0）。
+- **验收侧连带**：`index.html` 补内联空 favicon（否则浏览器默认请求 `/favicon.ico` 得 404，
+  控制台留一条 `Failed to load resource: 404`，污染「控制台 0 报错」判据）。
+
+## 缺陷 11 · 证据文件把**真实令牌**写进 git（本轮自查发现）—— `已修复 2026-09-19`
+
+- **现象**：两个验收脚本都把后端响应体**原样**写进证据 JSON，其中 `/auth/sms/login` 的响应含
+  **真实 access token（303/307 字符 JWT）与 refresh token（43 字符）**：
+  - `aap-client/evidence/h5-chain/h5-chain-result.json` —— **已经进了 git**（历史里仍有）；
+  - `aap-admin/evidence/admin/admin-acceptance.json`（本轮新产出，尚未入库）。
+- **为什么自检没拦住**：项目硬规则要求「提交前敏感值自检」，但**工具输出层会把 JWT 打码显示**
+  （`eyJhbG...xxxx`）—— 看日志/看 diff 都会以为「已经脱敏了」。这是**判据不能靠人眼**的又一例
+  （同族：坑「一个从没见过它失败的判据不是判据」）。
+- **修复**：
+  1. 两个脚本**在写文件这一步**做机器脱敏（`redact`/`redactSecrets`）：白名单键名（token/refresh_token/
+     api_key/secret/password/authorization/credential…）且值 ≥16 字符、或任何**真 JWT 形状**的字符串
+     → `<redacted len=N>`（**保留长度**，证据价值不丢）。
+  2. 新增共享守卫 `tools/evidence-secrets.py`：扫描（命中即 exit 1，可作门禁）/ `--redact` 就地脱敏。
+     两个脚本的注释都指向它做独立复核。
+  3. 已入库的 `h5-chain-result.json` 就地脱敏（**纯文本替换，3 行改动**，其余字节不动）。
+- **验证**：`python tools/evidence-secrets.py` 全仓复扫 **0 命中**；重跑一次有头验收后新写的 JSON
+  复扫仍 0 命中（证明是**写时**脱敏，不是事后擦）；脱敏后 JSON 仍合法、行数与证据内容不变
+  （`git diff` 仅 3 行：token/refresh_token/refreshToken）。
+- **踩坑（已回退）**：第一版实现用 `json.load` + `json.dumps` 重写整个文件 → 把他方会话的 6 个证据文件
+  **整份重新格式化**（行尾/缩进全变，1124 行 diff），会打乱他们「产物零写副作用（size+md5）」的回归守卫；
+  第一版键名还用**子串**匹配 `token` → 误伤 `tokenPage` 这类字段。已 `git checkout` 回退那 6 个文件，
+  改成**纯文本替换 + 键名白名单精确匹配**。
+- **残留风险（需知晓）**：`h5-chain-result.json` 的旧令牌**已在 git 历史里**（本次只改了工作区/新提交）。
+  这些是 **dev 环境**令牌（TTL 2h，本地 dev 密钥签发），实际可利用窗口已过；若在意，需按
+  「历史重写 + dev 密钥轮换」处理 —— 属需要你拍板的事，本轮未动历史。
+
+## 管理端 · 新登记能力缺口（2026-09-19 夜，待拍板）
+
+### D-ADM-4 无「创建供应商」接口 —— 设计 `page-4-1` 抽屉无法真正提交
+- 全仓**没有** `POST /admin/providers`；`AdminProviderController` 只有 list / suspend / resume。
+- **处置**：抽屉按设计实现完整 UI 与校验错误态（逐字用设计稿文案：「供应商名称不能为空」
+  「地址格式不正确，需以 http:// 或 https:// 开头」「请填写 API Key，或点击「测试连通」完成校验」
+  「有 N 项内容需要修正，修正后才能保存供应商」），但**保存 / 保存草稿 / 测试连通**三个动作都明确提示
+  「后端未提供接口 → 本次未发出任何请求」，不伪造成功。
+- **待拍板**：补后端创建接口（含校验规则与重复校验）/ 抽屉降级为只读示例 / 暂缓。
+
+### D-ADM-5 无「管理端检测任务列表」接口 —— page-5-pc 任务监控无数据来源
+- 全仓 admin 侧与检测任务相关的端点只有 `POST /detection-jobs/{id}/release`；
+  `DET-01…05` 全部限供应商本人（管理端调用得 403 `E-1901`）。
+- 因此设计稿的「运行中任务 / 排队等待 / 今日已完成 / 失败率」与任务表格**无法**用真实数据渲染。
+- **处置**：页面顶部可见告警 + 可执行空态；KPI 渲染 `—`（**不用 0 冒充未知**）；
+  筛选控件显式禁用；把**真实可用**的能力做成两张卡 —— 人工放行（DET-06，理由必填、1:1 产报告 AC-18）
+  与检测项配置（ADM-CFG01…05，含 D1–D8 字典、权重/超时、DRAFT→PUBLISHED 发布）。
+- **待拍板**：补管理端任务列表 + 聚合计数（注意与缺陷1 联动：执行器缺失时任务恒 `QUEUED`，列表价值有限）。
+
+### D-ADM-6 无「立即同步 / 同步计划配置」接口 —— page-8-pc 的四个控件无后端
+- 后端只有：读任务（ADM-S01/02）、按任务重试（ADM-S03）、读渠道绑定（ADM-S04）、启停（ADM-S05）、读上游清单（ADM-S06）。
+  **没有**「立即触发渠道同步」，**没有**同步计划（下次同步/间隔）配置端点。
+- **处置**：「立即同步」点击后明确提示「未发出任何请求」；「自动同步」开关禁用并标注原因；
+  「下次同步 / 同步间隔」渲染 `—`；KPI 用真实列表统计（渠道总数 / 已同步 / 待同步 / 同步失败），
+  并在页面上写明每个 KPI 的取数口径。
+- **待拍板**：补触发同步端点与计划配置 / 维持只读 + 按任务重试。
+
+### 设计源内部不一致（登记，不静默二选一）
+- **供应商类型两套措辞**：`page-4-pc` 列表列「渠道商 / 原厂 / 中转商」 vs `page-4-1` 抽屉
+  「官方直连 / 第三方代理 / 自建网关」。取值统一为后端枚举 `ORIGINAL | RESELLER | AGGREGATOR`，
+  两套文案都在代码留痕，页面可见地说明该偏差。
+- `page-8-pc` 的「同步价格」列在 `ChannelBinding` 无对应字段（价格在报价单/编译产物上）→ 渲染 `—`。
+
+## 与他方会话的交汇（同一仓库并发提交，未改写他方提交）
+
+1. **缺陷2（文件服务）已由另一会话修复**：提交 `9cf495f feat(server): 补缺陷2 文件服务 —— 合同链从此可签发、可下载（211/211 全绿）`。
+   新增 `POST /api/v1/files`（multipart，字段 `file`，可选 `biz_type`）与 `GET /api/v1/files/{id}`。
+   - 管理端两处文案已按事实更新（供应商资质文件 / 合同文本）：**代码已就绪**，
+     但 ⚠️ **当前 dev 实例尚未重启到含该版本的构建** —— 实测 `POST /files` 仍返回 404 `E-1406`（2026-09-19 夜）。
+     重启后再验上传/下载与合同签发链路。
+   - 另一条管理端仍存在的限制：把文件挂到某供应商资质上的 `POST /provider/qualifications` 仅**供应商本人**可用
+     （管理端 403 `E-1901`）→ 管理端无法代上传，只能只读展示。
+2. **`aap-admin/index.html` 的内联空 favicon 由他方会话代为提交**（`e362ac6`，内容与本轮改动一致）。
+   本轮的其余改动均在 `e362ac6` 之上，未 rebase / 未 reset / 未改写他方提交。
+
+## 安全发现（静态确证，运行未复现）—— S-1 · `GET /files/{id}` 无归属校验
+
+- **代码层确证**：`FileController` 类上无 `@PreAuthorize`；`SecurityConfig` 只把
+  `/api/v1/**` 一律要求 `authenticated()`（`PUBLIC_PATHS` 不含 `/files`）→
+  **任意已登录角色**（含普通供应商）只要拿到 `file_id` 就能 `GET /files/{id}` 下载**他人**文件
+  （供应商资质、合同盖章件…）。`FileController` 的类注释写明「归属校验由各业务域自己做」，
+  但该端点自身**没有任何归属判断**。
+- **风险**：水平越权（IDOR）。雪花 ID 不易猜，但 `file_id` 会随业务响应下发
+  （如合同详情的 `file_id`、资质文件的 `file_id`），跨账号拿到即可读。
+- **运行层未复现**：本轮实测 `POST /files` 返回 404 `E-1406`（dev 实例未重启到含该版本的构建），
+  因此**无法**在本实例上做「供应商账号读管理员上传文件」的实证 —— 只报代码层结论，不声称已实测。
+- **建议（待拍板，不擅自改他方新代码）**：①`/files/{id}` 增加归属/用途校验（按 `biz_type` + 业务域回调），
+  或 ②改为「一次性签名 URL / 短时效 token」，或 ③管理端专用下载端点（`GET /admin/files/{id}`）单独授权。
+  另建议补一条负向集成测试：**用 B 账号取 A 账号的文件必须 403**。

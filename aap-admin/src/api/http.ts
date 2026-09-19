@@ -129,10 +129,20 @@ export async function request<T>(path: string, opts: RequestOptions = {}): Promi
   return (env?.data ?? (null as unknown as T)) as T;
 }
 
-/** 分页响应的统一形状（后端列表接口） */
+/**
+ * 分页响应的统一形状（后端列表接口）。
+ *
+ * ⚠️ 请求侧参数名是**驼峰 `pageSize`**（`AdminProviderController` 等用 `@RequestParam Integer pageSize`），
+ * 响应侧字段也是**驼峰 `pageSize`**（实测 `{"items":[…],"page":1,"pageSize":20,"total":7}`）。
+ * 曾经这里写成 `page_size`，且各 api 模块也发 `page_size` → 后端**静默忽略**、恒用默认 20 条/页
+ * （请求 100/200/500 条也只回 20 条），是「假绿」型缺陷（缺陷8）。
+ * 现在两处都用 `pageSize`；`page_size` 仅作为历史别名容错保留。
+ */
 export interface PageResult<T> {
   total: number;
   items: T[];
   page?: number;
+  pageSize?: number;
+  /** 历史别名（后端从未返回过，仅容错） */
   page_size?: number;
 }
