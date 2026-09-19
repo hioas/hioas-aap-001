@@ -207,7 +207,21 @@ export interface SavePayloadInput {
 export interface CredentialSavePayload {
   alias: string
   base_url: string
-  model_list: string[]
+  /**
+   * 模型清单。
+   *
+   * ⚠️ 缺陷 11（2026-09-19 H5 联调 + curl 实测确证）：**必须是对象数组**，不是字符串数组。
+   * 契约 `docs/backend/json-schema/requests/credential-create.schema.json` 里
+   * `model_list.items` 是 `$ref: model-entry.schema.json`；后端入参是
+   * `List<Map<String,Object>>`（`CredentialController.CredentialRequest`）。
+   *
+   * 此前这里写的是 `string[]`，实测：
+   *   `[{"model_name":"gpt-4o"}]` → `code=0` ✓
+   *   `["gpt-4o"]`               → `E-1001 请求体不是合法 JSON 或字段类型不匹配` ✗
+   * 即**供应商只要勾选任何一个模型，保存凭证就会失败**。此前没暴露是因为缺陷 10
+   * （前端丢弃预检返回的 models）让它恒为空数组 `[]`，而空数组能通过反序列化。
+   */
+  model_list: ModelEntryRaw[]
   api_key?: string
 }
 
@@ -222,7 +236,8 @@ export function buildSavePayload(input: SavePayloadInput): CredentialSavePayload
   const payload: CredentialSavePayload = {
     alias: text(input.alias).trim(),
     base_url: normalizeBaseUrl(input.baseUrl),
-    model_list: names
+    // 发对象数组（缺陷 11）；后端按 model-entry 解析
+    model_list: names.map((name) => ({ model_name: name }))
   }
   const key = text(input.apiKey).trim()
   if (key) payload.api_key = key

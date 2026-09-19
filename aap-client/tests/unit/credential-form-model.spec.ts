@@ -225,16 +225,22 @@ describe('isAliasInSuggestedRange · 设计稿「建议 6–24 字」为建议�
 })
 
 describe('buildSavePayload · 请求体（不臆造未填字段）', () => {
-  it('未改密钥 → 请求体不含 api_key；base_url 已规范化；model_list 为已勾选模型名', () => {
+  it('未改密钥 → 请求体不含 api_key；base_url 已规范化；model_list 为已勾选模型（**对象数组**，缺陷 11）', () => {
     const payload = buildSavePayload({
       alias: '华东主线路 · GPT 通道',
       baseUrl: 'https://api.example-llm.com/v1/',
       vendors: buildCredentialForm(RAW).vendors
     })
+    // 契约 credential-create.schema.json：model_list.items = $ref model-entry
+    // 后端入参 List<Map<String,Object>>；发字符串数组会被拒（E-1001，实测）
     expect(payload).toEqual({
       alias: '华东主线路 · GPT 通道',
       base_url: 'https://api.example-llm.com/v1',
-      model_list: ['gpt-4o', 'gpt-4o-mini', 'claude-3-5-sonnet']
+      model_list: [
+        { model_name: 'gpt-4o' },
+        { model_name: 'gpt-4o-mini' },
+        { model_name: 'claude-3-5-sonnet' }
+      ]
     })
     expect('api_key' in payload).toBe(false)
   })
@@ -249,10 +255,15 @@ describe('buildSavePayload · 请求体（不臆造未填字段）', () => {
     expect(payload.api_key).toBe('sk-new-1234')
   })
 
-  it('model_list 按厂商顺序展开并去重', () => {
+  it('model_list 按厂商顺序展开并去重（对象数组，缺陷 11）', () => {
     const vendors = toggleModel(buildCredentialForm(RAW).vendors, 'OpenAI::gpt-3.5-turbo')
     const payload = buildSavePayload({ alias: 'A', baseUrl: 'https://a.com', vendors })
-    expect(payload.model_list).toEqual(['gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo', 'claude-3-5-sonnet'])
+    expect(payload.model_list).toEqual([
+      { model_name: 'gpt-4o' },
+      { model_name: 'gpt-4o-mini' },
+      { model_name: 'gpt-3.5-turbo' },
+      { model_name: 'claude-3-5-sonnet' }
+    ])
   })
 
   it('设计稿静态文案原样导出（供页面直接渲染，避免各页各写一套）', () => {

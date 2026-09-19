@@ -305,6 +305,110 @@ async function main() {
     return `报告数=${items.length} · 首份 id=${id} · 详情字段=${fields}`;
   });
 
+  // ═══ ④ 报价单创建（选主体 → 凭证 → 模型 → 定价 → 提交）═══
+  // 坑：本页所有入口都是 `<view @tap>`，**CDP 合成鼠标事件点不动**（实测：
+  //     点 new-quote 后 hash 不变）→ 一律走 clickUntil（内含 jsClick 兜底），
+  //     判据用「目标状态是否出现」而不是「点过了」。
+  await step('⑯ 报价单列表 →「新建报价」', async () => {
+    await goto('#/pages/quotes/index', /报价/);
+    const before = await cdp.eval('location.hash');
+    const ok = await cdp.clickUntil(
+      '[data-testid="new-quote"]',
+      async () => (await cdp.eval('location.hash')) !== before,
+      { tries: 4, gap: 700 }
+    );
+    assert(ok, `点「新建报价」未跳转（@tap 未响应），hash 仍是 ${before}`);
+    assert(await cdp.waitForText(/新增报价单/, { timeoutMs: 10000 }), '未进入新增报价单页');
+    await cdp.shot(outDir, '13-quote-models');
+    return `落点=${await cdp.eval('location.hash')}`;
+  });
+
+  await step('⑰ 选报价主体 + 填报价单名称', async () => {
+    const opened = await cdp.clickUntil(
+      '[data-testid="subject-select"]',
+      async () => (await cdp.eval(`document.querySelectorAll('[data-testid^="subject-option-"]').length`)) > 0,
+      { tries: 3, gap: 700 }
+    );
+    assert(opened, '主体选择器未展开（subject-panel 没出现）');
+    const optCount = await cdp.eval(`document.querySelectorAll('[data-testid^="subject-option-"]').length`);
+    await cdp.clickUntil(
+      '[data-testid^="subject-option-"]',
+      async () => (await cdp.eval(`document.querySelectorAll('[data-testid="subject-panel"]').length`)) === 0,
+      { tries: 3, gap: 600 }
+    );
+    const subject = await cdp.eval(`document.querySelector('[data-testid="subject-value"]')?.innerText.trim()`);
+
+    const name = `联调H5-${Date.now() % 100000}`;
+    const w = await cdp.setInput('[data-testid="name-input"]', name);
+    assert(w === true, `报价单名称写入失败: ${w}`);
+    await cdp.shot(outDir, '14-subject-name');
+    return `主体=${subject ?? '?'}（面板选项 ${optCount} 个）；名称=${name}`;
+  });
+
+  await step('⑱ 选凭证 → 模型列表带出 → 全选模型', async () => {
+    const opened = await cdp.clickUntil(
+      '[data-testid="cred-select"]',
+      async () => (await cdp.eval(`document.querySelectorAll('[data-testid^="cred-option-"]').length`)) > 0,
+      { tries: 3, gap: 700 }
+    );
+    assert(opened, '凭证选择器未展开 —— 是否还没有「检测通过」的可用凭证？');
+    const credCount = await cdp.eval(`document.querySelectorAll('[data-testid^="cred-option-"]').length`);
+    await cdp.clickUntil(
+      '[data-testid^="cred-option-"]',
+      async () => (await cdp.eval(`document.querySelectorAll('[data-testid="cred-panel"]').length`)) === 0,
+      { tries: 3, gap: 700 }
+    );
+    // 模型列表「按凭证实时带出」→ 轮询等它出来，再点全选
+    let modelCount = 0;
+    for (let i = 0; i < 10 && modelCount === 0; i++) {
+      await sleep(900);
+      modelCount = await cdp.eval(`document.querySelectorAll('[data-testid^="model-row-"]').length`);
+    }
+    assert(modelCount > 0, '选了凭证后模型列表仍为空（带不出模型）');
+    await cdp.clickUntil(
+      '[data-testid="select-all"]',
+      async () => {
+        const t = await cdp.eval(`document.querySelector('[data-testid="chip-model-count"]')?.innerText || ''`);
+        return /[1-9]/.test(t);
+      },
+      { tries: 4, gap: 700 }
+    );
+    const selected = await cdp.eval(`document.querySelector('[data-testid="chip-model-count"]')?.innerText.trim()`);
+    const cred = await cdp.eval(`document.querySelector('[data-testid="cred-value"]')?.innerText.trim()`);
+    await cdp.shot(outDir, '15-cred-models');
+    return `凭证=${cred ?? '?'}（面板选项 ${credCount} 个）；模型行=${modelCount}；已选=${selected ?? '?'}`;
+  });
+
+  await step('⑲ 保存报价单 → 断言 POST /quotes 与明细写入', async () => {
+    const before = called('POST', '/quotes').length;
+    await cdp.clickUntil(
+      '[data-testid="btn-save"]',
+      async () => called('POST', '/quotes').length > before,
+      { tries: 6, gap: 900 }
+    );
+    await sleep(3500);
+    await cdp.settle();
+    const post = called('POST', '/quotes');
+    const itemCalls = api().filter((c) => c.method === 'POST' && /\/quotes\/\d+\/items/.test(c.url));
+    await cdp.shot(outDir, '16-quote-saved');
+    assert(post.length > 0, '点「保存」后未发出 POST /quotes');
+    assert(post[0].code === '0', `POST /quotes → ${post[0].code} ${post[0].message}`);
+    assert(itemCalls.length > 0, '报价单已创建但未写入明细行（POST /quotes/{id}/items）');
+    assert(itemCalls[0].code === '0', `写明细 → ${itemCalls[0].code} ${itemCalls[0].message}`);
+    const quoteId = post[0].data?.id ?? post[0].url?.match(/\/(\d+)/)?.[1];
+    return `POST /quotes code=0（id=${quoteId ?? '?'}）；明细写入 code=${itemCalls[0].code}`;
+  });
+
+  await step('⑳ 报价单出现在列表里（业务结果断言，非状态码）', async () => {
+    const supplierToken = await cdp.eval(`localStorage.getItem('aap_token')`);
+    const list = await apiCall('GET', '/quotes?page=1&pageSize=20', supplierToken);
+    assert(list.code === '0', `GET /quotes 失败：${list.code} ${list.message}`);
+    const items = list.data?.items ?? list.data?.list ?? [];
+    assert(items.length > 0, `报价单列表为空（total=${list.data?.total ?? '?'}）`);
+    const draft = items.filter((q) => ['DRAFT', 'SUBMITTED'].includes(q.status));
+    return `报价单 ${items.length} 张，其中草稿/已提交 ${draft.length} 张；最新=${items[0].quote_no ?? items[0].id} status=${items[0].status}`;
+  });
+
   // ═══ 汇总 ═══
   await cdp.settle();
   console.log('\n' + '─'.repeat(78));

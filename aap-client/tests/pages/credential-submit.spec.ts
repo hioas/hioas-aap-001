@@ -223,7 +223,7 @@ describe('页面 4 · 保存草稿（PUT /credentials/{id}）', () => {
     expect(put.data).toEqual({
       alias: '华东主线路 · GPT 通道',
       base_url: 'https://api.example-llm.com/v1',
-      model_list: ['gpt-4o', 'gpt-4o-mini', 'claude-3-5-sonnet']
+      model_list: [{ model_name: 'gpt-4o' }, { model_name: 'gpt-4o-mini' }, { model_name: 'claude-3-5-sonnet' }]
     })
     expect(getCalls('navigateTo')).toHaveLength(0)
   })

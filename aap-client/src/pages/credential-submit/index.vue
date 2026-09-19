@@ -326,6 +326,19 @@ async function onSubmit() {
     const id = await ensureCredentialId()
     await credentialApi.save(id, payloadOf())
     const result = await credentialApi.precheck(id)
+    // 缺陷 10：把预检探到的**上游模型清单**写回凭证的 model_list。
+    // 模型清单由后台接口提供（`PrecheckResult.models` ← 真打 {base_url}/models），
+    // 前端此前直接丢弃 → model_list 恒空 → 报价单创建时「按凭证实时带出」带不出模型
+    // → 供应商无法报价。没有清单时不写回，**更不能把已有 model_list 覆盖成空**。
+    const upstreamModels = Array.isArray(result?.models)
+      ? result.models.filter((m) => typeof m === 'string' && m.trim())
+      : []
+    if (upstreamModels.length > 0) {
+      await credentialApi.save(id, {
+        ...payloadOf(),
+        model_list: upstreamModels.map((m) => ({ model_name: m }))
+      })
+    }
     const jobId = result?.job_id ?? result?.jobId ?? result?.detection_job_id ?? ''
     const query = jobId ? `?jobId=${encodeURIComponent(String(jobId))}` : ''
     uni.hideLoading()

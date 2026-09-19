@@ -64,12 +64,14 @@ describe('缺陷4 · 无凭证标识时就地新建', () => {
 
     pushResponse(ok({ id: 'c-new-2' })) // POST
     pushResponse(ok({ id: 'c-new-2' })) // PUT
-    pushResponse(ok({ job_id: 'job-9' })) // precheck
+    pushResponse(ok({ job_id: 'job-9', models: [] })) // precheck
+    pushResponse(ok({ id: 'c-new-2' })) // 回写 model_list（缺陷10 修复后新增）
 
     await wrapper.find('[data-testid="submit-btn"]').trigger('tap')
     await flushPromises()
 
-    expect(urls()).toEqual([
+    const urls0 = urls()
+    expect(urls0.slice(0, 3)).toEqual([
       '/api/v1/credentials',
       '/api/v1/credentials/c-new-2',
       '/api/v1/credentials/c-new-2/precheck'
@@ -77,6 +79,59 @@ describe('缺陷4 · 无凭证标识时就地新建', () => {
     const nav = getCalls('navigateTo')
     expect(nav.length).toBeGreaterThan(0)
     expect(String((nav[nav.length - 1].args[0] as Record<string, any>).url)).toContain('jobId=job-9')
+  })
+
+  /**
+   * 缺陷 10（H5 联调发现，业务链真实断点）
+   *
+   * `POST /credentials/{id}/precheck` 的响应里有 `models`（后端真打上游 `{base_url}/models` 探到的清单，
+   * 见 `CredentialViews.PrecheckResult`），但前端 `PrecheckResultRaw` **根本没声明这个字段**、
+   * 页面也从不消费 → 凭证 `model_list` 永远为空 → 报价单创建时「按凭证实时带出」带不出任何模型
+   * → **供应商无法报价**（H5 链路第⑱步实测卡死）。
+   */
+  it('缺陷10 · 提交检测后把预检返回的 models 写回 model_list', async () => {
+    const wrapper = mount(CredentialSubmitPage)
+    await flushPromises()
+    await fillForm(wrapper)
+
+    pushResponse(ok({ id: 'c-new-10' })) // POST /credentials
+    pushResponse(ok({ id: 'c-new-10' })) // PUT 保存
+    pushResponse(ok({ job_id: 'job-10', models: ['gpt-4o', 'claude-3-5-sonnet'] })) // precheck
+    pushResponse(ok({ id: 'c-new-10' })) // PUT 回写 model_list
+
+    await wrapper.find('[data-testid="submit-btn"]').trigger('tap')
+    await flushPromises()
+
+    const puts = getCalls('request').filter(
+      (c) => (c.args[0] as Record<string, any>).method === 'PUT'
+    )
+    expect(puts.length).toBe(2)
+    const writeBack = puts[puts.length - 1].args[0] as Record<string, any>
+    expect(writeBack.url).toBe('/api/v1/credentials/c-new-10')
+    expect(writeBack.data.model_list).toEqual([
+      { model_name: 'gpt-4o' },
+      { model_name: 'claude-3-5-sonnet' }
+    ])
+  })
+
+  it('缺陷10 · 预检没返回 models（上游读不到）时不得把 model_list 清空', async () => {
+    const wrapper = mount(CredentialSubmitPage)
+    await flushPromises()
+    await fillForm(wrapper)
+
+    pushResponse(ok({ id: 'c-new-11' }))
+    pushResponse(ok({ id: 'c-new-11' }))
+    pushResponse(ok({ job_id: 'job-11' })) // 无 models 字段
+
+    await wrapper.find('[data-testid="submit-btn"]').trigger('tap')
+    await flushPromises()
+
+    const puts = getCalls('request').filter(
+      (c) => (c.args[0] as Record<string, any>).method === 'PUT'
+    )
+    // 没有模型可写回 → 不应多发一次 PUT，更不能把已有 model_list 覆盖成空
+    expect(puts.length).toBe(1)
+    expect((puts[0].args[0] as Record<string, any>).data.model_list ?? []).toEqual([])
   })
 
   it('已有凭证标识时不重复新建（只走 PUT）', async () => {

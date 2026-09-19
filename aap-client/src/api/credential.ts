@@ -25,6 +25,15 @@ export interface PrecheckResultRaw {
   jobId?: string
   detection_job_id?: string
   status?: string
+  /**
+   * 预检探到的**上游模型清单**（后端真打 `{base_url}/models`，见 `CredentialViews.PrecheckResult.models`）。
+   *
+   * ⚠️ 缺陷 10（2026-09-19 H5 联调发现）：此前**没有声明这个字段**，页面也从不消费它 →
+   *   凭证 `model_list` 永远为空 → 报价单创建时「按凭证实时带出」带不出任何模型
+   *   → **供应商无法报价**（H5 链路实测卡死在这一步）。
+   *   模型清单由后台接口提供，前端必须写回凭证。
+   */
+  models?: string[]
 }
 
 const path = (id: string) => `/credentials/${encodeURIComponent(id)}`

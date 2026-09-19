@@ -42,13 +42,13 @@
       "phase": "P1",
       "name": "POST /provider/qualifications",
       "ok": true,
-      "detail": "id=458691985807204352"
+      "detail": "id=458711021156786176"
     },
     {
       "phase": "P1",
       "name": "DELETE /provider/qualifications/{id}",
       "ok": true,
-      "detail": "已删除 458691985807204352"
+      "detail": "已删除 458711021156786176"
     },
     {
       "phase": "P2",
@@ -78,13 +78,13 @@
       "phase": "P2",
       "name": "POST /credentials/{id}/precheck",
       "ok": true,
-      "detail": "job=458691986562179072 precheck=PASSED status=ACTIVE"
+      "detail": "job=458711023966969856 precheck=PASSED status=ACTIVE"
     },
     {
       "phase": "P3",
       "name": "POST /detection-jobs",
       "ok": true,
-      "detail": "跳过新建：预检已建任务 jobId=458691986562179072（再建会 E-1301 互斥）"
+      "detail": "跳过新建：预检已建任务 jobId=458711023966969856（再建会 E-1301 互斥）"
     },
     {
       "phase": "P3",
@@ -138,13 +138,13 @@
       "phase": "P5",
       "name": "GET /quotes",
       "ok": true,
-      "detail": "条数=0"
+      "detail": "条数=1"
     },
     {
       "phase": "P5",
       "name": "POST /quotes",
       "ok": true,
-      "detail": "quoteId=458691987241656320"
+      "detail": "quoteId=458711025170735104"
     },
     {
       "phase": "P5",
@@ -156,7 +156,7 @@
       "phase": "P5",
       "name": "GET /quotes/{quoteId}/items",
       "ok": true,
-      "detail": "行数=1 itemId=458691987417817088"
+      "detail": "行数=1 itemId=458711025414004736"
     },
     {
       "phase": "P5",
@@ -192,7 +192,7 @@
       "phase": "P6",
       "name": "[ADMIN] GET /admin/reviews + 领取 + 审核通过",
       "ok": true,
-      "detail": "reviewId=458691990014091264 已通过"
+      "detail": "reviewId=458711026525495296 已通过"
     },
     {
       "phase": "P6",
@@ -204,7 +204,7 @@
       "phase": "P6",
       "name": "GET /contracts",
       "ok": true,
-      "detail": "条数=1 first=458691990597099520"
+      "detail": "条数=2 first=458711028085776384"
     },
     {
       "phase": "P6",
@@ -252,13 +252,13 @@
       "phase": "P7",
       "name": "GET /usage/hourly（按前端现状：不传参）",
       "ok": false,
-      "detail": "E-1001 from 缺失（RFC3339 UTC） —— 前端 hourly() 未传 from/to，后端要求必填"
+      "detail": "E-1001 缺少查询参数 from（RFC3339 UTC） —— 前端 hourly() 未传 from/to，后端要求必填"
     },
     {
       "phase": "P7",
       "name": "GET /usage/hourly（补 from/to 后应通过，证明端点本身可用）",
       "ok": true,
-      "detail": "from=2026-08-19T22:59:12Z 桶数=0"
+      "detail": "from=2026-08-20T00:14:51Z 桶数=0"
     },
     {
       "phase": "P9",
@@ -323,7 +323,7 @@
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/provider/qualifications/458691985807204352",
+      "url": "http://127.0.0.1:8084/api/v1/provider/qualifications/458711021156786176",
       "method": "DELETE",
       "status": 200,
       "code": "0"
@@ -361,35 +361,29 @@
     {
       "url": "http://127.0.0.1:8084/api/v1/credentials/458688754783821824/precheck",
       "method": "POST",
-      "status": 409,
-      "code": "E-1301"
-    },
-    {
-      "url": "http://127.0.0.1:8084/api/v1/credentials/458688754783821824/precheck",
-      "method": "POST",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/detection-jobs/458691986562179072",
+      "url": "http://127.0.0.1:8084/api/v1/detection-jobs/458711023966969856",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/detection-jobs/458691986562179072/results",
+      "url": "http://127.0.0.1:8084/api/v1/detection-jobs/458711023966969856/results",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/detection-jobs/458691986562179072/results",
+      "url": "http://127.0.0.1:8084/api/v1/detection-jobs/458711023966969856/results",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/detection-jobs/458691986562179072",
+      "url": "http://127.0.0.1:8084/api/v1/detection-jobs/458711023966969856",
       "method": "GET",
       "status": 200,
       "code": "0"
@@ -419,37 +413,37 @@
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/quotes/458691987241656320/items",
+      "url": "http://127.0.0.1:8084/api/v1/quotes/458711025170735104/items",
       "method": "POST",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/quotes/458691987241656320/items",
+      "url": "http://127.0.0.1:8084/api/v1/quotes/458711025170735104/items",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/quotes/items/458691987417817088",
+      "url": "http://127.0.0.1:8084/api/v1/quotes/items/458711025414004736",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/quotes/items/458691987417817088",
+      "url": "http://127.0.0.1:8084/api/v1/quotes/items/458711025414004736",
       "method": "PUT",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/quotes/458691987241656320",
+      "url": "http://127.0.0.1:8084/api/v1/quotes/458711025170735104",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/quotes/458691987241656320/submit",
+      "url": "http://127.0.0.1:8084/api/v1/quotes/458711025170735104/submit",
       "method": "POST",
       "status": 200,
       "code": "0"
@@ -461,19 +455,19 @@
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/contracts/458691990597099520",
+      "url": "http://127.0.0.1:8084/api/v1/contracts/458711028085776384",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/contracts/458691990597099520/file",
+      "url": "http://127.0.0.1:8084/api/v1/contracts/458711028085776384/file",
       "method": "GET",
       "status": 409,
       "code": "E-1701"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/contracts/458691990597099520/sign",
+      "url": "http://127.0.0.1:8084/api/v1/contracts/458711028085776384/sign",
       "method": "POST",
       "status": 400,
       "code": "E-1001"
@@ -497,13 +491,7 @@
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/usage/hourly",
-      "method": "GET",
-      "status": 400,
-      "code": "E-1001"
-    },
-    {
-      "url": "http://127.0.0.1:8084/api/v1/usage/hourly?from=2026-08-19T22%3A59%3A12Z&to=2026-09-18T22%3A59%3A12Z",
+      "url": "http://127.0.0.1:8084/api/v1/usage/hourly?from=2026-08-20T00%3A14%3A51Z&to=2026-09-19T00%3A14%3A51Z",
       "method": "GET",
       "status": 200,
       "code": "0"
