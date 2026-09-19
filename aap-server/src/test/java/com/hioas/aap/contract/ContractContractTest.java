@@ -47,6 +47,13 @@ class ContractContractTest extends ApiTestBase {
     @Autowired
     private AuthTokenMapper authTokenMapper;
 
+    /** 存储后端（夹具需要真的写入对象，否则下载必然 E-1406）。 */
+    @Autowired
+    private com.hioas.aap.file.StorageBackend storage;
+
+    /** 夹具 PDF 字节（内容不重要，关键是能逐字节取回）。 */
+    private static final byte[] PDF_BYTES = "%PDF-1.4 AAP contract fixture\n".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+
     /** 夹具自增主键（每个用例前 truncate，不跨用例冲突）。 */
     private long seq = 970000L;
 
@@ -99,14 +106,23 @@ class ContractContractTest extends ApiTestBase {
         return adminToken(SUPER_ADMIN_ID, "superadmin-contract", "SUPER_ADMIN");
     }
 
-    /** 文件资产（合同 PDF；对象存储未接线，仍在 file_asset 里留痕）。 */
+    /**
+     * 文件资产夹具（合同 PDF）。
+     *
+     * <p><b>已随缺陷2 修复而更新</b>：原实现只插 {@code aap_file_asset} 元数据、**不写存储对象**，
+     * 注释也写着「对象存储未接线」。文件服务接线后，只插元数据会让下载必然失败
+     * （元数据在、对象不在 → E-1406），所以这里同步把字节写进存储后端，
+     * 让夹具与真实上传后的状态一致。
+     */
     private long asset(String originalName) {
         long id = nextId();
+        String key = "CONTRACT/test/" + id + ".pdf";
+        storage.put(key, PDF_BYTES);
         jdbc.update("""
                 insert into aap_file_asset (id, file_key, bucket, original_name, content_type, size_bytes,
                     biz_type, encrypted, status, created_at, updated_at)
-                values (?, ?, 'aap', ?, 'application/pdf', 2048, 'CONTRACT', false, 'ACTIVE', now(), now())
-                """, id, "contracts/" + id + ".pdf", originalName);
+                values (?, ?, 'local', ?, 'application/pdf', ?, 'CONTRACT', false, 'ACTIVE', now(), now())
+                """, id, key, originalName, PDF_BYTES.length);
         return id;
     }
 
@@ -221,9 +237,18 @@ class ContractContractTest extends ApiTestBase {
         HttpResult file = get("/contracts/" + issued + "/file", supplier);
         assertThat(file.status()).as(file.body()).isEqualTo(200);
         SchemaAssert.assertModel("report-export", json(file.data()));
-        assertThat(file.data().path("url").asText()).as(file.body()).isEqualTo("contracts/" + fileId + ".pdf");
+        // ⚠️ 期望已更新：此前 url 回的是**存储键**（`contracts/{id}.pdf`，因为对象存储未接线），
+        //    这条用例把那个占位值固化成了期望。文件服务接线后，url 必须是**真实可下载地址**，
+        //    否则前端拿到 file_key 根本下不了文件。
+        assertThat(file.data().path("url").asText()).as(file.body())
+                .isEqualTo("/api/v1/files/" + fileId);
         assertThat(file.data().path("file_name").asText()).isEqualTo("合作合同.pdf");
         assertThat(file.data().path("expire_at").asText()).isNotBlank();
+
+        // url 必须真的能下载到东西（不只是格式对）
+        BinaryResult downloaded = getBinary("/files/" + fileId, supplier);
+        assertThat(downloaded.status()).as("合同文件 url 应可下载").isEqualTo(200);
+        assertThat(downloaded.body().length).as("下载内容不应为空").isGreaterThan(0);
 
         // 越权：别人的合同文件同样按不存在处理
         HttpResult foreign = get("/contracts/" + issued + "/file", token(OTHER_PHONE));

@@ -23,9 +23,14 @@ app:
   sms:
     # 测试环境把验证码放进响应体（dev_code），生产必须 false（application.yml 默认 false）
     expose-code: true
+    # 测试恢复锁定语义（主 yml 本地默认 0 = 不锁定，AC-04 用例依赖真实锁定）
+    lock-minutes: 15
   usage:
     # 用量聚合的日志源（本项目 mock 适配器）：聚合用例自行写入该文件后调 ADM-U02
     log-file: ${java.io.tmpdir}/aap-usage-log-fixture.json
+  storage:
+    # 测试文件落 target 下，避免污染工作区（且 mvn clean 会一并清掉）
+    local-root: ./target/test-files
 
 logging:
   level:

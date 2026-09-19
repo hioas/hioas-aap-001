@@ -20,9 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <p>规则：
  * <ul>
- *   <li>验证码 6 位、有效期 300s（{@code app.sms.ttl-seconds}）</li>
+ *   <li>验证码 6 位、有效期 300s（{@code app.sms.ttl-seconds}）；
+ *       {@code app.sms.fixed-code} 非空时统一下发固定码（本地联调用，生产必须留空走随机码）</li>
  *   <li>同手机号 60s 内不可重复发送 → {@code E-1903}</li>
- *   <li>连续 5 次校验失败 → 锁定 15 分钟（其间即使码正确也拒绝，{@code E-1903}）</li>
+ *   <li>连续 5 次校验失败 → 锁定 15 分钟（其间即使码正确也拒绝，{@code E-1903}）；
+ *       {@code app.sms.lock-minutes <= 0} 时不启用锁定（本地联调用，生产必须 &gt; 0）</li>
  *   <li>只存 {@code SHA-256(code)}，不落明文；用后即置 {@code used_at}（一次性）</li>
  * </ul>
  */
@@ -61,7 +63,9 @@ public class SmsService {
             }
         });
 
-        String code = crypto.randomNumericCode(6);
+        // 默认固定码 123456（本期不接真实短信通道）；随机码生成保留，后续接真实通道时切回
+        String code = config.fixedCode() != null && !config.fixedCode().isBlank()
+                ? config.fixedCode() : crypto.randomNumericCode(6);
         SmsCodeEntity entity = new SmsCodeEntity();
         entity.setPhoneHash(phoneHash);
         entity.setPhoneMasked(crypto.maskPhone(phone));
@@ -73,8 +77,10 @@ public class SmsService {
         entity.setClientIp(clientIp);
         smsCodeMapper.insert(entity);
 
+        boolean fixed = config.fixedCode() != null && !config.fixedCode().isBlank();
         // 网关适配：真实通道接入前只记录「已下发」，绝不把验证码写进日志
-        log.info("短信验证码已下发 phone={} scene=LOGIN ttl={}s (不记录验证码)", entity.getPhoneMasked(), config.ttlSeconds());
+        log.info("短信验证码已下发 phone={} scene=LOGIN ttl={}s fixed={} (不记录验证码)",
+                entity.getPhoneMasked(), config.ttlSeconds(), fixed);
         return new SentCode(config.ttlSeconds(), entity.getExpireAt(), config.exposeCode() ? code : null);
     }
 
@@ -103,7 +109,8 @@ public class SmsService {
 
         if (!crypto.sha256Hex(code).equals(record.getCodeHash())) {
             int attempts = (record.getAttemptCount() == null ? 0 : record.getAttemptCount()) + 1;
-            boolean lock = attempts >= config.maxAttempts();
+            // lock-minutes <= 0 表示不启用锁定（本地联调用，生产必须 > 0）
+            boolean lock = config.lockMinutes() > 0 && attempts >= config.maxAttempts();
             OffsetDateTime lockedUntil = lock ? now.plusMinutes(config.lockMinutes()) : null;
             attemptRecorder.recordFailure(record.getId(), attempts, lockedUntil, lock);
             if (lock) {

@@ -90,8 +90,21 @@ public class CryptoService {
         if (value == null) {
             return null;
         }
+        return sha256Hex(value.getBytes(UTF_8));
+    }
+
+    /**
+     * 字节内容摘要（文件完整性校验用）。
+     *
+     * <p>与 {@link #sha256Hex(String)} 同一套算法，避免「字符串摘要」与「文件摘要」
+     * 两套实现产生不可比的结果。
+     */
+    public String sha256Hex(byte[] content) {
+        if (content == null) {
+            return null;
+        }
         try {
-            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(UTF_8)));
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(content));
         } catch (Exception e) {
             throw new IllegalStateException("SHA-256 计算失败", e);
         }

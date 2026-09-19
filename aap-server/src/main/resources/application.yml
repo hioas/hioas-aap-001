@@ -74,10 +74,17 @@ app:
     ttl-seconds: 300
     resend-interval-seconds: 60
     max-attempts: 5
-    lock-minutes: 15
+    # <= 0 表示不启用连续错码锁定（本地联调用；生产必须 > 0，原值 15）
+    lock-minutes: ${AAP_SMS_LOCK_MINUTES:0}
+    # 非空时所有手机号统一下发该固定验证码（本地联调用；生产必须留空走随机码）
+    fixed-code: ${AAP_SMS_FIXED_CODE:123456}
     # 仅测试环境置 true：把验证码放进响应体便于端到端验收（生产严禁开启）
     # 是否把验证码回显在响应里：默认 false（生产红线）；仅本地联调时用 AAP_SMS_EXPOSE_CODE=true 打开
     expose-code: ${AAP_SMS_EXPOSE_CODE:false}
+  storage:
+    # 文件本体落盘根目录（补缺陷2 的文件服务）。生产若换对象存储，
+    # 另提供 StorageBackend 实现并标 @Primary 即可，业务代码不动。
+    local-root: ${AAP_STORAGE_ROOT:./data/files}
   logging:
     dir: ${LOG_DIR:logs}
   usage:

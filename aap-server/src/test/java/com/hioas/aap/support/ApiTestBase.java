@@ -139,6 +139,78 @@ public abstract class ApiTestBase {
         }
     }
 
+    /**
+     * multipart/form-data 上传（文件服务用）。
+     *
+     * <p>为什么单独一个方法：其余接口都是 JSON，但文件上传必须是 multipart ——
+     * 用 JSON 传字节会 base64 膨胀 33%，且与「原生表单上传」的浏览器行为不一致。
+     *
+     * @param fieldName 文件字段名（本项目的文件服务固定为 {@code file}）
+     * @param fileName  原始文件名（服务端据此判扩展名）
+     * @param contentType 声明的 MIME
+     * @param content   文件字节
+     * @param extraFields 额外的表单字段（如 {@code biz_type}）
+     */
+    protected HttpResult postMultipart(String path, String token, String fieldName, String fileName,
+                                       String contentType, byte[] content,
+                                       java.util.Map<String, String> extraFields) {
+        String boundary = "----AAPTestBoundary" + System.nanoTime();
+        var out = new java.io.ByteArrayOutputStream();
+        try {
+            for (var e : extraFields.entrySet()) {
+                out.write(("--" + boundary + "\r\n").getBytes(StandardCharsets.UTF_8));
+                out.write(("Content-Disposition: form-data; name=\"" + e.getKey() + "\"\r\n\r\n")
+                        .getBytes(StandardCharsets.UTF_8));
+                out.write((e.getValue() + "\r\n").getBytes(StandardCharsets.UTF_8));
+            }
+            out.write(("--" + boundary + "\r\n").getBytes(StandardCharsets.UTF_8));
+            out.write(("Content-Disposition: form-data; name=\"" + fieldName + "\"; filename=\"" + fileName + "\"\r\n")
+                    .getBytes(StandardCharsets.UTF_8));
+            out.write(("Content-Type: " + contentType + "\r\n\r\n").getBytes(StandardCharsets.UTF_8));
+            out.write(content);
+            out.write(("\r\n--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            throw new IllegalStateException("构造 multipart 请求失败", e);
+        }
+
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl() + "/api/v1" + path))
+                .timeout(Duration.ofSeconds(30))
+                .header("Content-Type", "multipart/form-data; boundary=" + boundary);
+        if (token != null) {
+            builder.header("Authorization", "Bearer " + token);
+        }
+        builder.method("POST", HttpRequest.BodyPublishers.ofByteArray(out.toByteArray()));
+        try {
+            HttpResponse<String> res = CLIENT.send(builder.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            return new HttpResult(res.statusCode(), res.headers(), res.body());
+        } catch (IOException | InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("HTTP 调用失败: POST(multipart) " + path, e);
+        }
+    }
+
+    /** 下载字节流（文件下载接口返回二进制，不能按字符串读）。 */
+    protected record BinaryResult(int status, java.net.http.HttpHeaders headers, byte[] body) {
+    }
+
+    protected BinaryResult getBinary(String path, String token) {
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl() + "/api/v1" + path))
+                .timeout(Duration.ofSeconds(30))
+                .GET();
+        if (token != null) {
+            builder.header("Authorization", "Bearer " + token);
+        }
+        try {
+            HttpResponse<byte[]> res = CLIENT.send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());
+            return new BinaryResult(res.statusCode(), res.headers(), res.body());
+        } catch (IOException | InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("HTTP 调用失败: GET(binary) " + path, e);
+        }
+    }
+
     protected String json(Object value) {
         return MAPPER.writeValueAsString(value);
     }

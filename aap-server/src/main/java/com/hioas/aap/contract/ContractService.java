@@ -157,7 +157,10 @@ public class ContractService {
      * CON-03 合同文件。
      *
      * <p>未签发（CREATED）或没有文件资产 → 409 E-1701（合同状态非法，尚未产生可下载文件）。
-     * 对象存储签名未接线：{@code url} 回文件资产 {@code file_key}（见 {@link ContractViews.File}）。
+     *
+     * <p><b>补缺陷2 收口</b>：此前注释写「对象存储签名未接线：{@code url} 回文件资产的 {@code file_key}」——
+     * 现在文件服务已接线（{@link com.hioas.aap.file.FileService}），所以这里返回**真实可下载**的地址
+     * {@code /api/v1/files/{file_id}}，而不是把存储键当 URL 回给前端（前端拿 file_key 无从下载）。
      */
     public ContractViews.File file(AuthPrincipal principal, Long contractId) {
         Row row = requireOwned(principal, contractId);
@@ -171,11 +174,11 @@ public class ContractService {
         if (assets.isEmpty()) {
             throw new ApiException(ErrorCode.E_1406, "合同文件不存在：" + row.fileId());
         }
-        String fileKey = (String) assets.get(0).get("file_key");
         String originalName = (String) assets.get(0).get("original_name");
         String fileName = originalName == null || originalName.isBlank()
                 ? "合同-" + row.contractNo() + ".pdf" : originalName;
-        return new ContractViews.File(fileKey, fileKey, fileName,
+        String url = "/api/v1/files/" + row.fileId();
+        return new ContractViews.File(url, url, fileName,
                 RFC3339.format(OffsetDateTime.now(ZoneOffset.UTC).plusHours(1)));
     }
 

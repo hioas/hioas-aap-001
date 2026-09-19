@@ -23,8 +23,14 @@ public record AppProperties(
     public record Credential(String aesKey) {
     }
 
-    /** {@code exposeCode} 仅测试环境开启：把验证码放进响应体，便于端到端验收（生产必须 false）。 */
-    public record Sms(int ttlSeconds, int resendIntervalSeconds, int maxAttempts, int lockMinutes, boolean exposeCode) {
+    /**
+     * {@code exposeCode} 仅测试环境开启：把验证码放进响应体，便于端到端验收（生产必须 false）。
+     *
+     * <p>{@code fixedCode} 非空时所有手机号下发同一个固定验证码（本地联调用，生产必须留空）；
+     * {@code lockMinutes <= 0} 表示不启用「连续错码锁定」（本地联调用，生产必须 > 0）。
+     */
+    public record Sms(int ttlSeconds, int resendIntervalSeconds, int maxAttempts, int lockMinutes,
+                      boolean exposeCode, String fixedCode) {
     }
 
     public record Detection(int dailyQuota, int passScore, int vetoScore) {
