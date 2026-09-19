@@ -1,0 +1,110 @@
+== R76 被测状态核对（两轮全量所编译/执行的源码 = 哪一份） ==
+HEAD = 4e5b357 | chore(evidence): R75 台账收尾 —— R75 行「提交」列回填 6c1b934（不留台账债；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」且 R 行连续 R27 → R75 无缺号，坑 71/80/155/157）
+HEAD 提交时刻 = 4e5b357ad991eb53dfda1284d5f77acda9cb75e1|11:42:02
+run1 起跑 11:49:20 / 结束 11:50:27；run2 起跑 11:51:36 / 结束 11:53:00（串行，规范命令不改参数）
+窗口内（11:49:20 之后）aap-server 下被改写的源码文件数 = 0
+结论：两轮全量测试编译/执行的就是 HEAD = 4e5b357 的源码（工作区在窗口内无 aap-server 源码改动）
+最新 3 个源码 mtime（全部早于窗口）：
+  11:08:04  aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java
+  11:07:12  aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java
+  10:50:04  aap-server/src/main/java/com/hioas/aap/iam/AuthService.java
+
+未纳入本轮提交的他方工作区改动（坑 15）：
+  [M/?? 见 git status --short 留痕]
+   M .agents/state/mp-e2e-state.json
+   M aap-client/evidence/h5-chain/h5-chain-result.json
+   M aap-client/evidence/ide/01-after-login.png
+   M aap-client/evidence/ide/02-last-page.png
+   M aap-client/evidence/ide/thin-pages_quote-form_index.png
+   M aap-client/tools/h5-chain.mjs
+   M aap-client/tools/mp-ide-smoke.mjs
+  ?? .agents/state/evidence/h5-chain-run6.txt
+  ?? .agents/state/evidence/h5-chain-run7.txt
+  ?? .agents/state/evidence/h5-chain-run8.txt
+  ?? .playwright-mcp/
+  ?? aap-client/evidence/dual/
+  ?? aap-client/evidence/h5-chain/20260919031950.-01-login.png
+  ?? aap-client/evidence/h5-chain/20260919032001.-00-logged-in.png
+  ?? aap-client/evidence/h5-chain/20260919032005.-05-credentials.png
+  ?? aap-client/evidence/h5-chain/20260919032006.-06-submit-form.png
+  ?? aap-client/evidence/h5-chain/20260919032007.-07-form-filled.png
+  ?? aap-client/evidence/h5-chain/20260919032010.-08-saved.png
+  ?? aap-client/evidence/h5-chain/20260919032015.-09-precheck.png
+  ?? aap-client/evidence/h5-chain/20260919032015.-10-detecting.png
+  ?? aap-client/evidence/h5-chain/20260919032019.-11-quotes.png
+  ?? aap-client/evidence/h5-chain/20260919032023.-12-report.png
+  ?? aap-client/evidence/h5-chain/20260919032028.-13-quote-models.png
+  ?? aap-client/evidence/h5-chain/20260919032031.-14-subject-name.png
+  ?? aap-client/evidence/h5-chain/20260919032052.-16-quote-saved.png
+  ?? aap-client/evidence/h5-chain/20260919033710.-01-login.png
+  ?? aap-client/evidence/h5-chain/20260919033718.-00-logged-in.png
+  ?? aap-client/evidence/h5-chain/20260919033722.-05-credentials.png
+  ?? aap-client/evidence/h5-chain/20260919033723.-06-submit-form.png
+  ?? aap-client/evidence/h5-chain/20260919033723.-07-form-filled.png
+  ?? aap-client/evidence/h5-chain/20260919033727.-08-saved.png
+  ?? aap-client/evidence/h5-chain/20260919033731.-09-precheck.png
+  ?? aap-client/evidence/h5-chain/20260919033732.-10-detecting.png
+  ?? aap-client/evidence/h5-chain/20260919033735.-11-quotes.png
+  ?? aap-client/evidence/h5-chain/20260919033739.-12-report.png
+  ?? aap-client/evidence/h5-chain/20260919033744.-13-quote-models.png
+  ?? aap-client/evidence/h5-chain/20260919033746.-14-subject-name.png
+  ?? aap-client/evidence/h5-chain/20260919033750.-15-cred-models.png
+  ?? aap-client/evidence/h5-chain/20260919033755.-16-quote-saved.png
+  ?? aap-client/evidence/h5-chain/20260919034150.-01-login.png
+  ?? aap-client/evidence/h5-chain/20260919034158.-00-logged-in.png
+  ?? aap-client/evidence/h5-chain/20260919034202.-05-credentials.png
+  ?? aap-client/evidence/h5-chain/20260919034203.-06-submit-form.png
+  ?? aap-client/evidence/h5-chain/20260919034203.-07-form-filled.png
+  ?? aap-client/evidence/h5-chain/20260919034207.-08-saved.png
+  ?? aap-client/evidence/h5-chain/20260919034211.-09-precheck.png
+  ?? aap-client/evidence/h5-chain/20260919034212.-10-detecting.png
+  ?? aap-client/evidence/h5-chain/20260919034215.-11-quotes.png
+  ?? aap-client/evidence/h5-chain/20260919034219.-12-report.png
+  ?? aap-client/evidence/h5-chain/20260919034224.-13-quote-models.png
+  ?? aap-client/evidence/h5-chain/20260919034226.-14-subject-name.png
+  ?? aap-client/evidence/h5-chain/20260919034230.-15-cred-models.png
+  ?? aap-client/evidence/h5-chain/20260919034235.-16-quote-saved.png
+  ?? aap-client/evidence/h5-chain/20260919034838.-01-login.png
+  ?? aap-client/evidence/h5-chain/20260919034847.-00-logged-in.png
+  ?? aap-client/evidence/h5-chain/20260919034850.-05-credentials.png
+  ?? aap-client/evidence/h5-chain/20260919034851.-06-submit-form.png
+  ?? aap-client/evidence/h5-chain/20260919034852.-07-form-filled.png
+  ?? aap-client/evidence/h5-chain/20260919034856.-08-saved.png
+  ?? aap-client/evidence/h5-chain/20260919034900.-09-precheck.png
+  ?? aap-client/evidence/h5-chain/20260919034900.-10-detecting.png
+  ?? aap-client/evidence/h5-chain/20260919034904.-11-quotes.png
+  ?? aap-client/evidence/h5-chain/20260919034908.-12-report.png
+  ?? aap-client/evidence/h5-chain/20260919034913.-13-quote-models.png
+  ?? aap-client/evidence/h5-chain/20260919034915.-14-subject-name.png
+  ?? aap-client/evidence/h5-chain/20260919034919.-15-cred-models.png
+  ?? aap-client/evidence/h5-chain/20260919034929.-16-quote-saved.png
+  ?? aap-client/evidence/h5-chain/20260919035139.-01-login.png
+  ?? aap-client/evidence/h5-chain/20260919035147.-00-logged-in.png
+  ?? aap-client/evidence/h5-chain/20260919035151.-05-credentials.png
+  ?? aap-client/evidence/h5-chain/20260919035152.-06-submit-form.png
+  ?? aap-client/evidence/h5-chain/20260919035153.-07-form-filled.png
+  ?? aap-client/evidence/h5-chain/20260919035156.-08-saved.png
+  ?? aap-client/evidence/h5-chain/20260919035201.-09-precheck.png
+  ?? aap-client/evidence/h5-chain/20260919035201.-10-detecting.png
+  ?? aap-client/evidence/h5-chain/20260919035205.-11-quotes.png
+  ?? aap-client/evidence/h5-chain/20260919035208.-12-report.png
+  ?? aap-client/evidence/h5-chain/20260919035213.-13-quote-models.png
+  ?? aap-client/evidence/h5-chain/20260919035215.-14-subject-name.png
+  ?? aap-client/evidence/h5-chain/20260919035219.-15-cred-models.png
+  ?? aap-client/evidence/h5-chain/20260919035224.-16-quote-saved.png
+  ?? aap-client/evidence/h5-chain/20260919035230.-17-pricing.png
+  ?? aap-client/evidence/h5-chain/20260919035239.-18-preview.png
+  ?? aap-client/evidence/h5-chain/20260919035249.-19-submitted.png
+  ?? aap-client/evidence/ide/h5-pages_login_index.png
+  ?? aap-client/evidence/ide/h5-pages_usage_index.png
+  ?? aap-client/evidence/ide/h5-pages_workbench_index.png
+  ?? aap-client/pnpm-lock.yaml
+  ?? aap-client/pnpm-workspace.yaml
+
+-- 轮内 HEAD 位移分析 --
+run1 起跑时 HEAD = 4e5b357；当前 HEAD = 4e5b357 | chore(evidence): R75 台账收尾 —— R75 行「提交」列回填 6c1b934（不留台账债；CSV 以真正的 csv 解析复核「每行列数 = 表头列数（8）」且 R 行连续 R27 → R75 无缺号，坑 71/80/155/157）（11:42:02）
+git log 4e5b357..HEAD --format='%h|%cd|%s' → 0 行：(无位移)
+git diff --stat 4e5b357 HEAD -- aap-server/ → 输出行数 = 0（0 = aap-server 树零差异）
+git status --short -- aap-server/ → 输出行数 = 0（0 = 无未提交的 aap-server 改动）
+窗口内 aap-server 源码 mtime 改动数 = 0（> 0 时需逐条解释）
+结论：两轮全量编译/执行的就是 HEAD 的 aap-server 源码。

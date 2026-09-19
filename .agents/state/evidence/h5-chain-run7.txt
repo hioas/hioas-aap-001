@@ -1,0 +1,117 @@
+### H5 链路联调 · 轮7（含定价 + 预览 + 提交）
+### 时间: 2026-09-19 11:48:36
+
+启动有头 Chrome（独立 profile，端口 9646）→ http://localhost:5173
+
+[1] ① 打开登录页
+  [截图] evidence\h5-chain\20260919034838.-01-login.png
+  ✓ title="登录 / 注册"
+
+[2] ② 登录（逐环硬校验：验证码 → dev_code → token 落 storage）
+  [截图] evidence\h5-chain\20260919034847.-00-logged-in.png
+  ✓ 图形验证码=A7K9；dev_code 已捕获；aap_token(303 字符) 已落 storage；POST /auth/sms/login → code=0
+
+[3] ⑤ 凭证列表页可开
+  [截图] evidence\h5-chain\20260919034850.-05-credentials.png
+  ✓ GET /credentials → code=0
+
+[4] ⑥ 进入「接入凭证」页
+  [截图] evidence\h5-chain\20260919034851.-06-submit-form.png
+  ✓ 命中入口=接入凭证
+
+[5] ⑦ 填表并保存草稿 → 断言 POST /credentials（缺陷4 的修复点）
+  [截图] evidence\h5-chain\20260919034852.-07-form-filled.png
+  [截图] evidence\h5-chain\20260919034856.-08-saved.png
+  ✓ POST /credentials → code=0；PUT 保存 → code=0
+
+[6] ⑧ 提交检测 → 断言 precheck
+  [截图] evidence\h5-chain\20260919034900.-09-precheck.png
+  ✓ POST /credentials/{id}/precheck → code=0 ok
+
+[7] ⑨ 检测进行中页可开
+  [截图] evidence\h5-chain\20260919034900.-10-detecting.png
+  ✓ 页面已进入检测相关视图
+
+[8] ⑩ 报价单列表页可开
+  [截图] evidence\h5-chain\20260919034904.-11-quotes.png
+  ✓ GET /quotes → code=0
+
+[9] ⑪ 缺陷1 证据：不干预时检测任务永停 QUEUED（特征化断言）
+  ✓ status=QUEUED · started_at=null · results.total=0 ← 检测执行器缺失（引擎为外部组件，本仓库只留 recordProbeResults 回调口）
+
+[10] ⑫ 管理端 DET-06 人工放行（真实鉴权 + 理由必填 + 审计）
+  ✓ jobId=458764903455047680 已放行 → status=COMPLETED
+
+[11] ⑬ 放行后检测任务真的推进了（业务结果断言）
+  ✓ status=COMPLETED · started_at=null · finished_at=2026-09-19T03:49:04Z
+
+[12] ⑭ 检测报告页在浏览器里渲染出内容
+  [截图] evidence\h5-chain\20260919034908.-12-report.png
+  ✓ 426 字；GET /reports → 本次未发
+
+[13] ⑮ 报告数据真实可取（业务结果断言，非状态码）
+  ✓ 报告数=5 · 首份 id=458764937558933504 · 详情字段=34
+
+[14] ⑯ 报价单列表 →「新建报价」
+  [截图] evidence\h5-chain\20260919034913.-13-quote-models.png
+  ✓ 落点=#/pages/quote-models/index
+
+[15] ⑰ 选报价主体 + 填报价单名称
+  [截图] evidence\h5-chain\20260919034915.-14-subject-name.png
+  ✓ 主体=联调测试科技有限公司（面板选项 1 个）；名称=联调H5-55284
+
+[16] ⑱ 选凭证 → 模型列表带出 → 全选模型
+  [截图] evidence\h5-chain\20260919034919.-15-cred-models.png
+  ✓ 凭证=联调凭证31545（面板选项 13 个）；模型行=10；已选=已选 0 / 10
+
+[17] ⑲ 保存报价单 → 断言 POST /quotes 与明细写入
+  [截图] evidence\h5-chain\20260919034929.-16-quote-saved.png
+  ✗ 点「保存」后未发出 POST /quotes
+
+[18] ⑳ 模型定价 → 保存价格（PUT /quotes/items/{itemId}）
+  ✗ 上一步未拿到报价单 id
+
+[19] ㉑ 报价预览 → 提交报价单（POST /quotes/{id}/submit）
+  ✗ 未拿到报价单 id
+
+[20] ㉒ 提交后状态真的变了（业务结果断言，非状态码）
+  ✗ GET /quotes/{id} → E-1406 接口或资源不存在
+
+[21] ㉓ 报价单出现在列表里且状态已更新（业务结果断言）
+  ✓ 报价单 3 张，其中草稿/已提交 1 张；最新=Q20260919000003 status=DRAFT
+
+──────────────────────────────────────────────────────────────────────────────
+真实 HTTP 调用流水（/api/）：
+  200  POST   /api/v1/auth/sms/send                          code=0 ok
+  200  POST   /api/v1/auth/sms/login                         code=0 ok
+  200  GET    /api/v1/usage/summary                          code=0 ok
+  200  GET    /api/v1/provider/profile                       code=0 ok
+  200  GET    /api/v1/credentials?page=1&pageSize=10         code=0 ok
+  200  GET    /api/v1/credentials?page=1&pageSize=10         code=0 ok
+  200  POST   /api/v1/credentials                            code=0 ok
+  200  PUT    /api/v1/credentials/458764887709630464         code=0 ok
+  200  PUT    /api/v1/credentials/458764887709630464         code=0 ok
+  200  POST   /api/v1/credentials/458764887709630464/precheck code=0 ok
+  200  PUT    /api/v1/credentials/458764887709630464         code=0 ok
+  200  GET    /api/v1/detection-jobs/458764903455047680      code=0 ok
+  200  GET    /api/v1/detection-jobs/458764903455047680/results code=0 ok
+  200  GET    /api/v1/quotes?page=1&pageSize=10              code=0 ok
+  200  GET    /api/v1/quotes?page=1&pageSize=10              code=0 ok
+  200  GET    /api/v1/quotes?page=1&pageSize=10              code=0 ok
+  200  GET    /api/v1/quotes?page=1&pageSize=10              code=0 ok
+  200  GET    /api/v1/credentials?page=1&pageSize=20         code=0 ok
+  200  GET    /api/v1/provider/profile                       code=0 ok
+  200  GET    /api/v1/credentials/458764887709630464         code=0 ok
+──────────────────────────────────────────────────────────────────────────────
+步骤 21：通过 17，失败 4；真实 HTTP 20 次
+失败明细：
+  ✗ ⑲ 保存报价单 → 断言 POST /quotes 与明细写入 — 点「保存」后未发出 POST /quotes
+  ✗ ⑳ 模型定价 → 保存价格（PUT /quotes/items/{itemId}） — 上一步未拿到报价单 id
+  ✗ ㉑ 报价预览 → 提交报价单（POST /quotes/{id}/submit） — 未拿到报价单 id
+  ✗ ㉒ 提交后状态真的变了（业务结果断言，非状态码） — GET /quotes/{id} → E-1406 接口或资源不存在
+控制台 error/exception：无 ✓
+明细已写入 evidence\h5-chain\h5-chain-result.json
+
+浏览器保持打开（人工核对页面）。profile=C:\Users\laitz\AppData\Local\Temp\aap-cdp-profile-9646
+确认完再关：设 AAP_CLOSE=1 重跑，或在浏览器里直接关闭窗口。
+exit=1

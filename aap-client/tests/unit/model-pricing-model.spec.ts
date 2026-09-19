@@ -290,7 +290,17 @@ describe('序号 11 · 提交体（只带启用字段 + 规则组；不臆造未
     expect('audio_output_price' in payload).toBe(false)
   })
 
-  it('buildItemPayload：档位 / 计价方式 / 规则组一并提交', () => {
+  /**
+   * 缺陷 13（2026-09-19 H5 联调发现）
+   *
+   * 后端 **V15：`request_rules` 仅管理端可写**（供应商写 → E-1001，字段级定位到 `request_rules`，
+   * 见 `QuoteService` 类注释）。而定价页**默认就渲染一个规则组**，`buildItemPayload` 只要
+   * `ruleGroups.length` 就带上它 → **供应商在默认状态下永远保存不了价格**（实测
+   * `PUT /quotes/items/{id}` → `E-1001 请求规则仅管理端可设置（V15）`）→ 无法报价。
+   *
+   * 旧用例把「规则组一并提交」当成了期望 —— 那正是缺陷本身，已按 V15 改正。
+   */
+  it('缺陷13 · buildItemPayload：供应商侧**不得**提交 request_rules（V15 仅管理端可写）', () => {
     const payload = buildItemPayload({
       priceFields: buildPriceFields(ITEM_RAW),
       ruleGroups: setRuleValue(buildRuleGroups(ITEM_RAW), 1, 'value', '9'),
@@ -299,8 +309,14 @@ describe('序号 11 · 提交体（只带启用字段 + 规则组；不臆造未
     })
     expect(payload.tier).toBe('base')
     expect(payload.billing_mode).toBe('按 token')
-    expect(Array.isArray(payload.request_rules)).toBe(true)
-    expect((payload.request_rules as RequestRuleGroup[])[0].value).toBe('9')
+    expect('request_rules' in payload).toBe(false)
+  })
+
+  it('缺陷13 · 即使页面上有多组规则，也不得进请求体', () => {
+    const groups = addRuleGroup(buildRuleGroups(ITEM_RAW))
+    expect(groups.length).toBeGreaterThan(1)
+    const payload = buildItemPayload({ priceFields: buildPriceFields(ITEM_RAW), ruleGroups: groups })
+    expect('request_rules' in payload).toBe(false)
   })
 
   it('buildItemPayload：勾选但值为空的可选价按 0 提交（勾选 = 启用）', () => {

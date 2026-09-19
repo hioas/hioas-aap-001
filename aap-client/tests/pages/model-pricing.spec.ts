@@ -207,14 +207,21 @@ describe('序号 11 · 输入与联动（client-only）', () => {
     expect(saveRequests().at(-1)?.data).toMatchObject({ tier: 't0_0_512K' })
   })
 
-  it('改倍率 → 参与提交体', async () => {
+  /**
+   * 缺陷 13：后端 **V15「请求规则仅管理端可设置」**，供应商侧提交 `request_rules` 会被
+   * E-1001 拒（实测 `PUT /quotes/items/{id}` 直接失败 → 供应商无法报价）。
+   * 旧用例把「改倍率 → 参与提交体」当成期望，那正是缺陷本身；现改为断言**不进请求体**，
+   * 但页面上倍率仍可编辑（UI 保留，规则由管理端维护）。
+   */
+  it('改倍率 → 页面可编辑，但**不进提交体**（V15 仅管理端可写）', async () => {
     const wrapper = await mountPage()
     await wrapper.find('[data-testid="rule-multiplier-1"]').setValue('1.5')
     await flushPromises()
+    // UI 仍反映用户输入
+    expect((wrapper.find('[data-testid="rule-multiplier-1"]').element as HTMLInputElement).value).toBe('1.5')
     await tap(wrapper, 'save-top')
     const body = saveRequests().at(-1)?.data as Record<string, unknown>
-    const rules = body.request_rules as Array<Record<string, unknown>>
-    expect(rules[0].multiplier).toBe('1.5')
+    expect('request_rules' in body).toBe(false)
   })
 
   it('「添加计费分支」是 client-only（不发请求，仅登记 missing-prd）', async () => {

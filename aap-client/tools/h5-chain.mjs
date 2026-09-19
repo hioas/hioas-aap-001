@@ -365,19 +365,30 @@ async function main() {
       modelCount = await cdp.eval(`document.querySelectorAll('[data-testid^="model-row-"]').length`);
     }
     assert(modelCount > 0, '选了凭证后模型列表仍为空（带不出模型）');
+    // ⚠️ 本页（quote-models）的行 testid 是 `model-row-{name}`，`@tap` 挂在**行**上；
+    //    `model-check-0-0` 是「接入凭证」页的 testid，点它会命中不存在的元素（实测踩过）。
+    //    判据也必须解析**分子**：`已选 0 / 10` 里的分母 10 会让 /[1-9]/ 误判成已选中。
+    const selectedCountNow = async () => {
+      const t = await cdp.eval(`document.querySelector('[data-testid="chip-model-count"]')?.innerText || ''`);
+      const m = /已选\s*(\d+)/.exec(t);
+      return m ? Number(m[1]) : 0;
+    };
+    // 只勾第 1 个模型：定价页是**逐模型**定价的（一次一个 itemId），
+    // 全选 10 个要点 10 轮，对「验证链路能通」没有额外价值。
     await cdp.clickUntil(
-      '[data-testid="select-all"]',
-      async () => {
-        const t = await cdp.eval(`document.querySelector('[data-testid="chip-model-count"]')?.innerText || ''`);
-        return /[1-9]/.test(t);
-      },
+      '[data-testid^="model-row-"]',
+      async () => (await selectedCountNow()) >= 1,
       { tries: 4, gap: 700 }
     );
+    const selectedNum = await selectedCountNow();
+    assert(selectedNum >= 1, `勾选模型未生效（已选 ${selectedNum}）`);
     const selected = await cdp.eval(`document.querySelector('[data-testid="chip-model-count"]')?.innerText.trim()`);
     const cred = await cdp.eval(`document.querySelector('[data-testid="cred-value"]')?.innerText.trim()`);
     await cdp.shot(outDir, '15-cred-models');
     return `凭证=${cred ?? '?'}（面板选项 ${credCount} 个）；模型行=${modelCount}；已选=${selected ?? '?'}`;
   });
+
+  let savedQuoteId = '';
 
   await step('⑲ 保存报价单 → 断言 POST /quotes 与明细写入', async () => {
     const before = called('POST', '/quotes').length;
@@ -395,11 +406,69 @@ async function main() {
     assert(post[0].code === '0', `POST /quotes → ${post[0].code} ${post[0].message}`);
     assert(itemCalls.length > 0, '报价单已创建但未写入明细行（POST /quotes/{id}/items）');
     assert(itemCalls[0].code === '0', `写明细 → ${itemCalls[0].code} ${itemCalls[0].message}`);
-    const quoteId = post[0].data?.id ?? post[0].url?.match(/\/(\d+)/)?.[1];
-    return `POST /quotes code=0（id=${quoteId ?? '?'}）；明细写入 code=${itemCalls[0].code}`;
+    savedQuoteId = String(post[0].data?.id ?? '');
+    assert(savedQuoteId, '未能从 POST /quotes 响应里取到报价单 id');
+    return `POST /quotes code=0（id=${savedQuoteId}）；明细写入 code=${itemCalls[0].code}`;
   });
 
-  await step('⑳ 报价单出现在列表里（业务结果断言，非状态码）', async () => {
+  await step('⑳ 模型定价 → 保存价格（PUT /quotes/items/{itemId}）', async () => {
+    assert(savedQuoteId, '上一步未拿到报价单 id');
+    await goto(`#/pages/model-pricing/index?quoteId=${savedQuoteId}`, /模型定价/);
+    // 逐项启用并填价（未勾选的项不会进请求体）
+    for (const [field, value] of [['input_price', '2.5'], ['output_price', '10']]) {
+      await cdp.clickUntil(
+        `[data-testid="check-${field}"]`,
+        async () => (await cdp.eval(`!!document.querySelector('[data-testid="price-${field}"]')`)) === true,
+        { tries: 3, gap: 500 }
+      );
+      const w = await cdp.setInput(`[data-testid="price-${field}"]`, value);
+      assert(w === true, `价格 ${field} 写入失败: ${w}`);
+    }
+    await cdp.shot(outDir, '17-pricing');
+    const before = api().filter((c) => c.method === 'PUT' && c.url.includes('/quotes/items/')).length;
+    await cdp.clickUntil(
+      '[data-testid="save-bottom"]',
+      async () => api().filter((c) => c.method === 'PUT' && c.url.includes('/quotes/items/')).length > before,
+      { tries: 6, gap: 900 }
+    );
+    await sleep(3000);
+    await cdp.settle();
+    const puts = api().filter((c) => c.method === 'PUT' && c.url.includes('/quotes/items/'));
+    assert(puts.length > 0, '点「保存价格」后未发出 PUT /quotes/items/{itemId}');
+    assert(puts[0].code === '0', `保存价格 → ${puts[0].code} ${puts[0].message}`);
+    return `PUT /quotes/items/{itemId} → code=${puts[0].code}`;
+  });
+
+  await step('㉑ 报价预览 → 提交报价单（POST /quotes/{id}/submit）', async () => {
+    assert(savedQuoteId, '未拿到报价单 id');
+    await goto(`#/pages/quote-preview/index?quoteId=${savedQuoteId}`, /预览|报价/);
+    await cdp.clickUntil('[data-testid="confirm-check"]', async () => true, { tries: 3, gap: 500 });
+    await cdp.shot(outDir, '18-preview');
+    const before = called('POST', '/submit').length;
+    await cdp.clickUntil(
+      '[data-testid="btn-submit"]',
+      async () => called('POST', '/submit').length > before,
+      { tries: 6, gap: 900 }
+    );
+    await sleep(3500);
+    await cdp.settle();
+    const subs = api().filter((c) => c.method === 'POST' && c.url.includes('/submit'));
+    await cdp.shot(outDir, '19-submitted');
+    assert(subs.length > 0, '点「提交」后未发出 POST /quotes/{id}/submit');
+    assert(subs[0].code === '0', `提交报价单 → ${subs[0].code} ${subs[0].message}`);
+    return `POST /quotes/{id}/submit → code=${subs[0].code}`;
+  });
+
+  await step('㉒ 提交后状态真的变了（业务结果断言，非状态码）', async () => {
+    const supplierToken = await cdp.eval(`localStorage.getItem('aap_token')`);
+    const one = await apiCall('GET', `/quotes/${savedQuoteId}`, supplierToken);
+    assert(one.code === '0', `GET /quotes/{id} → ${one.code} ${one.message}`);
+    const st = one.data?.status;
+    assert(st && st !== 'DRAFT', `提交后状态仍是 ${st}（应离开 DRAFT）`);
+    return `报价单 ${one.data?.quote_no ?? savedQuoteId} status=${st}`;
+  });
+
+  await step('㉓ 报价单出现在列表里且状态已更新（业务结果断言）', async () => {
     const supplierToken = await cdp.eval(`localStorage.getItem('aap_token')`);
     const list = await apiCall('GET', '/quotes?page=1&pageSize=20', supplierToken);
     assert(list.code === '0', `GET /quotes 失败：${list.code} ${list.message}`);

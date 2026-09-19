@@ -279,7 +279,15 @@ export function validateItem(state: PricingState): string[] {
   return []
 }
 
-/** 提交体：只带启用字段（未启用直接省略），附档位/计价方式/规则组 */
+/**
+ * 提交体：只带启用字段（未启用直接省略），附档位/计价方式。
+ *
+ * ⚠️ **不带 `request_rules`**（缺陷 13）：后端 **V15 明确「请求规则仅管理端可设置」**，
+ * 供应商写 → `E-1001`（字段级定位到 `request_rules`，见 `QuoteService` 类注释）。
+ * 而本页**默认就渲染一个规则组**，此前只要 `ruleGroups.length` 就带上它 →
+ * 供应商在默认状态下**永远保存不了价格**（实测 `PUT /quotes/items/{id}` 直接被拒）→ 无法报价。
+ * 规则组 UI 保留（设计稿有），但**不进请求体**；规则由管理端维护。
+ */
 export function buildItemPayload(state: PricingState): Record<string, unknown> {
   const payload: Record<string, unknown> = {}
   for (const f of state.priceFields) {
@@ -289,16 +297,6 @@ export function buildItemPayload(state: PricingState): Record<string, unknown> {
   }
   if (state.tier) payload.tier = state.tier
   if (state.billingMode) payload.billing_mode = state.billingMode
-  if (state.ruleGroups.length) {
-    payload.request_rules = state.ruleGroups.map((g) => ({
-      field: g.field,
-      granularity: g.granularity,
-      tz: g.tz,
-      op: g.op,
-      value: g.value,
-      multiplier: g.multiplier
-    }))
-  }
   return payload
 }
 
