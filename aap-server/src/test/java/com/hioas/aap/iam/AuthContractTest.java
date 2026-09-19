@@ -39,6 +39,60 @@ class AuthContractTest extends ApiTestBase {
                 """.formatted(phone, code));
     }
 
+    /**
+     * 缺陷 8 回归：User-Agent 超过 {@code aap_auth_token.user_agent varchar(255)} 时不得登录失败。
+     *
+     * <p>实测根因（2026-09-19）：微信开发者工具（开着自动化会话）发出的 UA 长 **279 字符**，
+     * {@code INSERT INTO aap_auth_token} 报
+     * {@code value too long for type character varying(255)} → 全局异常处理器按 E-2001 返回
+     * → <b>微信端完全无法登录</b>。H5 的 UA 只有 111 字符，所以这个缺陷在 H5 侧永远暴露不出来
+     * （在真实微信 runtime 里跑页面才发现的）。
+     *
+     * <p>期望：登录照常成功，UA 被<b>截断</b>到列宽以内落库（不因超长而丢记录、更不该 500）。
+     */
+    @Test
+    @DisplayName("缺陷8 · 超长 User-Agent 不得导致登录失败（应截断落库）")
+    void longUserAgentDoesNotBreakLogin() {
+        // 真实抓包值（微信开发者工具 2.02.2608070 + 自动化会话附加的 hash/sid/winId/token 段）
+        String longUa = "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15"
+                + " (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1"
+                + " wechatdevtools/2.02.2608070 MicroMessenger/8.0.5 Language/zh_CN"
+                + " webview/ hash/1882296044 sid/s0 winId/s0 token/1c11591fdea3e2ad1c17d928c1f4ebdd";
+        assertThat(longUa.length()).as("这条 UA 必须真的超过 255 字符，用例才有意义").isGreaterThan(255);
+
+        String phone = "13800009999";
+        String code = sendSmsAndGetCode(phone);
+        HttpResult res = send("POST", "/auth/sms/login", """
+                {"phone":"%s","smsCode":"%s"}
+                """.formatted(phone, code), null, java.util.Map.of("User-Agent", longUa));
+
+        assertThat(res.status()).as("超长 UA 不应导致登录失败: %s", res.body()).isEqualTo(200);
+        assertThat(res.code()).isEqualTo("0");
+        assertThat(res.data().path("token").asText(null)).as("应正常签发 access token").isNotNull();
+        assertThat(res.data().path("refresh_token").asText(null)).as("应正常签发 refresh token").isNotNull();
+
+        Integer uaLen = jdbc.queryForObject(
+                "select length(user_agent) from aap_auth_token order by created_at desc limit 1", Integer.class);
+        assertThat(uaLen).as("UA 应被截断到 varchar(255) 以内落库").isNotNull().isLessThanOrEqualTo(255);
+    }
+
+    /** 边界：UA 恰好 255 字符应原样保留（截断不得误伤正常长度）。 */
+    @Test
+    @DisplayName("缺陷8 · 恰好 255 字符的 User-Agent 应原样保留")
+    void exactLimitUserAgentIsKeptIntact() {
+        String ua = "A".repeat(255);
+        String phone = "13800009998";
+        String code = sendSmsAndGetCode(phone);
+        HttpResult res = send("POST", "/auth/sms/login", """
+                {"phone":"%s","smsCode":"%s"}
+                """.formatted(phone, code), null, java.util.Map.of("User-Agent", ua));
+
+        assertThat(res.code()).isEqualTo("0");
+        String stored = jdbc.queryForObject(
+                "select user_agent from aap_auth_token order by created_at desc limit 1", String.class);
+        assertThat(stored).as("255 字符是列宽上限，应原样保留").isEqualTo(ua);
+    }
+
     @Test
     @DisplayName("AC-01 手机号注册：role=SUPPLIER、手机号密文+mask、返回 JWT、写审计、自动建供应商主体")
     void smsSignUpCreatesAccountWithMaskedPhoneAndAudit() throws Exception {

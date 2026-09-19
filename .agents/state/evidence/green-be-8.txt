@@ -1,0 +1,30 @@
+### GREEN · 缺陷8 修复后
+### 时间: 2026-09-19 10:50:15
+
+2026-09-19 10:51:21.836 INFO  [main] [] com.zaxxer.hikari.pool.HikariPool - aap-pool - Added connection org.postgresql.jdbc.PgConnection@2e7e84f8
+2026-09-19 10:51:21.839 INFO  [main] [] com.zaxxer.hikari.HikariDataSource - aap-pool - Start completed.
+2026-09-19 10:51:21.882 INFO  [main] [] org.flywaydb.core.FlywayExecutor - Database: jdbc:postgresql://localhost:5432/aap_server_test (PostgreSQL 18.6)
+2026-09-19 10:51:22.366 INFO  [main] [] org.flywaydb.core.internal.command.DbValidate - Successfully validated 8 migrations (execution time 00:00.220s)
+2026-09-19 10:51:22.411 INFO  [main] [] org.flywaydb.core.internal.command.DbMigrate - Current version of schema "public": 8
+2026-09-19 10:51:22.420 INFO  [main] [] org.flywaydb.core.internal.command.DbMigrate - Schema "public" is up to date. No migration necessary.
+2026-09-19 10:51:28.360 INFO  [main] [] org.springframework.boot.actuate.endpoint.web.EndpointLinksResolver - Exposing 3 endpoints beneath base path '/actuator'
+2026-09-19 10:51:28.501 INFO  [main] [] org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-auto-1"]
+2026-09-19 10:51:28.535 INFO  [main] [] org.springframework.boot.tomcat.TomcatWebServer - Tomcat started on port 49341 (http) with context path '/'
+2026-09-19 10:51:28.569 INFO  [main] [] com.hioas.aap.iam.AuthContractTest - Started AuthContractTest in 25.128 seconds (process running for 47.144)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (E:\workspaces\maven\repository\net\bytebuddy\byte-buddy-agent\1.18.11\byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-09-19 10:51:32.762 INFO  [http-nio-auto-1-exec-2] [] org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-19 10:51:32.762 INFO  [http-nio-auto-1-exec-2] [] org.springframework.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2026-09-19 10:51:32.770 INFO  [http-nio-auto-1-exec-2] [] org.springframework.web.servlet.DispatcherServlet - Completed initialization in 6 ms
+2026-09-19 10:51:33.278 INFO  [http-nio-auto-1-exec-2] [6896abd96cd14b13ae6867456f4633cd] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****9998 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-19 10:51:34.614 INFO  [http-nio-auto-1-exec-3] [47dbb39d0afa45c7ba523b64016db315] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-024244 account_id=458750467247886336
+2026-09-19 10:51:34.804 INFO  [http-nio-auto-1-exec-3] [47dbb39d0afa45c7ba523b64016db315] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458750467247886336 actor=458750467247886336 summary=账号登录成功（role=SUPPLIER）
+2026-09-19 10:51:35.082 INFO  [http-nio-auto-1-exec-4] [1c71a945c2d1455b9934f7630e1c78fa] com.hioas.aap.iam.SmsService - 短信验证码已下发 phone=138****9999 scene=LOGIN ttl=300s (不记录验证码)
+2026-09-19 10:51:35.137 INFO  [http-nio-auto-1-exec-8] [8f60c3c1fe12409c80a3bf9d437b1f37] com.hioas.aap.iam.AuthService - 注册供应商主体 provider_code=AAP-P-024245 account_id=458750469592502272
+2026-09-19 10:51:35.144 INFO  [http-nio-auto-1-exec-8] [8f60c3c1fe12409c80a3bf9d437b1f37] com.hioas.aap.support.AuditService - 审计 action=AUTH_LOGIN target=provider_account#458750469592502272 actor=458750469592502272 summary=账号登录成功（role=SUPPLIER）
+---
+=== AuthContractTest 全类（确认没打坏别的）===

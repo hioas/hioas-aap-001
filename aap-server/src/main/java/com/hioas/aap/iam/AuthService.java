@@ -37,6 +37,28 @@ public class AuthService {
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     private static final DateTimeFormatter RFC3339 = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+    /**
+     * {@code aap_auth_token} 的列宽（见 {@code V1__baseline.sql}）。
+     *
+     * <p>请求头长度<b>不可控</b>，必须按列宽截断后再落库：实测微信开发者工具
+     * （开着自动化会话）发出的 UA 长 279 字符，超过 {@code user_agent varchar(255)}
+     * → {@code INSERT} 报 {@code value too long for type character varying(255)}
+     * → 全局异常处理器按 E-2001 返回 → <b>微信端完全无法登录</b>。
+     * H5 的 UA 只有 111 字符，所以这个缺陷在 H5 侧永远暴露不出来。
+     */
+    private static final int USER_AGENT_MAX = 255;
+
+    /** {@code aap_auth_token.client_ip varchar(64)}；{@code X-Forwarded-For} 首段同样不可控。 */
+    private static final int CLIENT_IP_MAX = 64;
+
+    /** 截到列宽以内；{@code null} 原样返回（列可空）。 */
+    private static String fitToColumn(String value, int max) {
+        if (value == null || value.length() <= max) {
+            return value;
+        }
+        return value.substring(0, max);
+    }
+
     private final ProviderAccountMapper accountMapper;
     private final ProviderMapper providerMapper;
     private final AuthTokenMapper authTokenMapper;
@@ -221,8 +243,9 @@ public class AuthService {
         token.setRefreshTokenHash(crypto.sha256Hex(refreshToken));
         token.setExpireAt(OffsetDateTime.now(ZoneOffset.UTC)
                 .plusDays(properties.jwt().refreshTtlDays()));
-        token.setUserAgent(userAgent);
-        token.setClientIp(clientIp);
+        // 必须截断到列宽：请求头长度不可控，超长会 INSERT 溢出 → 登录直接 500。
+        token.setUserAgent(fitToColumn(userAgent, USER_AGENT_MAX));
+        token.setClientIp(fitToColumn(clientIp, CLIENT_IP_MAX));
         authTokenMapper.insert(token);
 
         AuditContext.set(new AuditContext.Actor(account.getId(), "PROVIDER", loginName, clientIp));
