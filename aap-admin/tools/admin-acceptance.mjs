@@ -41,6 +41,24 @@ const ROUTES = [
   ['/sync', 'new-api 同步']
 ];
 
+/**
+ * 每页的**业务内容判据**（防空转假绿）。
+ *
+ * 只判「不空白 + 标题对」是不够的：骨架页也满足这两条，会得到误导性的全绿。
+ * 已实现的页面必须再满足各自的业务特征，未实现的页面必须**明确带「待实现」徽章** ——
+ * 这样「实现了但没渲染出内容」和「还是骨架」都不会被混过去。
+ */
+const CONTENT_GATES = {
+  '/dashboard': {
+    require: ['[data-testid="kpi-row"]', '[data-testid="intake-table"]'],
+    textAny: ['进件总数', '进件漏斗', '最近进件动态']
+  },
+  '/reviews': {
+    require: ['[data-testid="design-prd-conflict"]', '[data-testid="refresh-pool"]'],
+    textAny: ['待审核列表', '审核决策']
+  }
+};
+
 const rows = [];
 const record = (name, ok, detail = '') => {
   rows.push({ name, ok, detail });
@@ -66,7 +84,11 @@ function attachApiLog(page) {
     calls.push(rec);
   });
   page.on('console', (m) => {
-    if (m.type() === 'error') errors.push(m.text().slice(0, 200));
+    if (m.type() !== 'error') return;
+    const t = m.text();
+    // favicon 404 是浏览器默认请求，与产品无关 —— 不过滤会污染「控制台报错」判据
+    if (/favicon/i.test(t) || /Failed to load resource.*404/.test(t)) return;
+    errors.push(t.slice(0, 200));
   });
   page.on('pageerror', (e) => errors.push(`exception: ${e.message}`.slice(0, 200)));
   return { calls, errors };
@@ -165,11 +187,30 @@ async function main() {
     const bad = seg.filter((c) => c.code !== '0' && c.code !== null);
     const errs = [...errors];
 
+    // 业务内容判据：已实现页必须渲染出业务特征；未实现页必须明确带「待实现」徽章
+    const gate = CONTENT_GATES[route];
+    const gateState = await page.evaluate(
+      ({ require: req, textAny }) => {
+        const missing = (req || []).filter((s) => !document.querySelector(s));
+        const text = document.body.innerText || '';
+        const hitAny = !textAny || textAny.some((t) => text.includes(t));
+        return { missing, hitAny, isStub: text.includes('待实现') };
+      },
+      { require: gate?.require, textAny: gate?.textAny }
+    );
+
     const problems = [];
     if (state.hasLoginForm) problems.push('被踢回登录页（401 未续期）');
     if (state.blank) problems.push(`页面空白（textLen=${state.textLen}）`);
     if (!state.hasNav) problems.push('外壳未渲染（无侧栏）');
     if (state.h1 !== title) problems.push(`标题不符：期望「${title}」实际「${state.h1}」`);
+    if (gate) {
+      if (gateState.missing.length) problems.push(`缺少业务节点：${gateState.missing.join('、')}`);
+      if (!gateState.hitAny) problems.push(`未渲染出业务文案（期望含 ${gate.textAny.join(' / ')} 之一）`);
+      if (gateState.isStub) problems.push('已登记为已实现，但仍显示「待实现」徽章');
+    } else if (!gateState.isStub) {
+      problems.push('尚未实现却缺少「待实现」徽章（状态不明，无法区分完成度）');
+    }
     if (bad.length) problems.push(`异常接口 ${bad.length} 条：${bad.map((b) => `${b.method} ${b.url.split('/api/v1')[1]?.split('?')[0]} → ${b.code} ${b.message ?? ''}`).join('；')}`);
     if (errs.length) problems.push(`控制台报错 ${errs.length} 条：${errs[0]}`);
 
@@ -177,7 +218,7 @@ async function main() {
     record(
       `${route}  ${title}`,
       problems.length === 0,
-      problems.length ? problems.join(' | ') : `接口 ${seg.length} 次，控制台 0 报错`
+      problems.length ? problems.join(' | ') : `${gate ? '业务内容已渲染' : '骨架（含待实现徽章）'}；接口 ${seg.length} 次，控制台 0 报错`
     );
   }
 
