@@ -4150,3 +4150,4 @@ jsonb 无 typeHandler / 监听器列缺失 / 约定名漂移无注解 / 未映�
 - 环境：本轮两轮全量**串行**跑完、无 fork 死亡（严格遵循坑 158：审计/抽查/自测一律在全量测试**之后**串行跑）；
   起跑前探测无 `mvn`/surefire 在跑（最新 surefire 报告 11:16，早于起跑 11:30:18），未与他方测试争用共享测试库（坑 11/20）。
 - **飞书通知**：见本轮最终响应（本 cron 作业会把最终响应自动投递到同一目标）。
+- **证据落点跨两个提交（他方 git add 扫入）**：本轮 9 个 R75 证据文件中，5 个（`green-verify-R75-{classdiff,full-run1,full-run2,testcount,coverage-fields}.txt`）与他方前端提交 `3fe000f`（11:40:37）一同被扫入（该提交对 `aap-server/` 零差异，见 `git diff --stat` 行数 0）；其余 4 个（`green-verify-R75-tested-state.txt`、`audit-regression-R75{,-rcseq,-faildiff}.txt` 与台账三件套）由本巡检轮提交 `6c1b934` 落地。两者内容一致（抽检 `audit-regression-R75.txt` 的「R75 rc 序列与 R74 逐条对齐核对」段与 `green-verify-R75-classdiff.txt` 的「逐类一致 33 / 33」段均可读且结论一致）。
