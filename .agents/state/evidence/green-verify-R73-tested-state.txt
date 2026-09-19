@@ -1,0 +1,17 @@
+== R73 被测状态核对：两轮全量跑的是否 = HEAD 源码状态 ==
+两轮窗口：run1 结束 2026-09-19 10:44:27 ；run2 结束 2026-09-19 10:47:46（每轮先编译后执行，编译发生在该轮起始处）
+
+工作区相对 HEAD 有改动的 **源码** 文件（aap-server 的 .java），逐条给出 mtime 与判定：
+  aap-server/src/main/java/com/hioas/aap/iam/AuthService.java            状态= M  mtime 2026-09-19 10:50:04 → 晚于两轮窗口 → **未参与任何一轮**
+  aap-server/src/test/java/com/hioas/aap/iam/AuthContractTest.java       状态= M  mtime 2026-09-19 10:47:41 → 晚于 run1 结束、早于 run2 结束 → 需按「该类在 run2 中的执行时刻」判定（见下）
+
+结论：两轮全量所编译 / 执行的源码 = **HEAD 的源码状态**（他方在途改动一律落在窗口之后），
+      故「204 例全绿 + 覆盖门禁 90/90」反映的是**提交态源码**，不依赖同机他人未提交改动。
+      细化：AuthContractTest.java mtime 10:47:41 晚于 run1 结束 10:44:27，而该类在 run2 中
+      执行于 10:46:37（早于 10:47:41）→ 两轮跑的都是**改前版本**；run2 的编译亦早于 10:47:41。
+
+另：工作区还有**非源码产物**被测试 / 他方重写（coverage-report.json、endpoint-test-audit.json、
+mp-*.json、aap-client/* 等）——它们不参与 Java 编译，与本结论无关，且按既往纪律不纳入提交。
+
+关键补充：工作区 @Test 计数（206）与 surefire（204）的差异即由上述 AuthContractTest 的 2 个新增
+@Test 造成（mtime 晚于该类执行时刻）→ 计数口径改为「被测状态」（有改动的文件取 HEAD 内容）后 204 = 204 = 204。

@@ -4098,3 +4098,5 @@ jsonb 无 typeHandler / 监听器列缺失 / 约定名漂移无注解 / 未映�
   坑 56；工作区 CRLF 而 index/HEAD 为 LF）→ 与 R59–R72 一致地不纳入提交。
 - 环境：同机 65 个 node 进程、可用内存 0.4–0.7G；本轮两轮全量**串行**跑完、无 fork 死亡
   （严格遵循坑 158：审计/抽查/自测一律在全量测试**之后**串行跑）。
+- **飞书通知**：`hermes send -t feishu -s 'AAP TDD 进度' …` 返回 **skipped-by-design**（rc=0，提示「本 cron 作业会把最终响应自动投递到同一目标 feishu:oc_45c4…」）→ **不是失败**，无需记入 `feishu-notify-failures.txt`；本轮的进度内容即最终响应正文。
+- **被测状态核对**（证据 `evidence/green-verify-R73-tested-state.txt`）：两轮全量所编译/执行的源码 = HEAD 的源码状态 —— 他方在途改动（`AuthService.java` 10:50:04、`AuthContractTest.java` 10:47:41） 均晚于 run1 结束（10:44:27）；后者更晚于该类在 run2 中的执行时刻（10:46:37）→ 两轮跑的都是改前版本。
