@@ -232,6 +232,21 @@ public class DetectionService {
             providerMapper.update(provider);
         }
 
+        // 报告 1:1 生成（AC-18）——与 recordProbeResults 保持同一口径。
+        //
+        // 缺陷 9（2026-09-19 实测）：人工放行把任务置 COMPLETED 却**不产报告**，而
+        // recordProbeResults 里有这句、且注释明确写着「宁可整体回滚也不留『有任务无报告』」。
+        // 后果比缺一份报告更严重：任务已 COMPLETED 后 recordProbeResults 会以
+        // 「任务已结束，不可回写结果」拒绝 → 这条任务的报告**永远**产不出来。
+        // 两条通往 COMPLETED 的路径必须都满足「有任务必有报告」。
+        Long reportId = reportGenerator.generate(jobId);
+        if ("PASS".equals(job.getResult())) {
+            // AC-21 检测通过通知（与 recordProbeResults 的 PASS 分支同口径；内容脱敏）
+            notificationService.notifyProvider(job.getProviderId(), "DETECTION_PASSED",
+                    "检测通过", "您的接入通道已通过平台检测（人工放行），报告编号见报告中心，有效期 30 天。",
+                    "DETECTION", "REPORT", reportId);
+        }
+
         AuditContext.current().or(() -> {
             AuditContext.set(new AuditContext.Actor(null, "ADMIN", "manual-release", clientIp));
             return AuditContext.current();

@@ -325,6 +325,15 @@ class DetectionContractTest extends ApiTestBase {
                 .isEqualTo("DETECTION_RELEASE");
         assertThat(jdbc.queryForObject("select risk_level from aap_audit_log order by id desc limit 1", String.class))
                 .isEqualTo("SENSITIVE");
+
+        // AC-18「检测完成 → 报告 1:1」对**两条**通往 COMPLETED 的路径都必须成立。
+        // 缺陷 9（2026-09-19 实测）：release() 把任务置 COMPLETED 却不调 reportGenerator，
+        // 而 recordProbeResults 里有这句且注释明确写着「宁可整体回滚也不留『有任务无报告』」。
+        // 更严重的是：任务已 COMPLETED 后 recordProbeResults 会以「任务已结束，不可回写结果」拒绝
+        // → 这条任务的报告**永远**产不出来（H5 联调里 /reports 恒为 total=0）。
+        Integer reportCount = jdbc.queryForObject(
+                "select count(*) from aap_report where job_id = ?::bigint", Integer.class, jobId);
+        assertThat(reportCount).as("人工放行后应产出报告（AC-18 1:1）").isEqualTo(1);
     }
 
     @Test

@@ -1,12 +1,12 @@
 {
-  "at": "2026-09-19T00:59:49.681Z",
+  "at": "2026-09-19T03:12:13.936Z",
   "baseUrl": "http://localhost:5173",
   "phone": "13800138000",
   "steps": [
     {
       "name": "① 打开登录页",
-      "ok": false,
-      "detail": "登录页未渲染出「登录」字样"
+      "ok": true,
+      "detail": "title=\"登录 / 注册\""
     },
     {
       "name": "② 登录（逐环硬校验：验证码 → dev_code → token 落 storage）",
@@ -44,9 +44,29 @@
       "detail": "GET /quotes → code=0"
     },
     {
-      "name": "⑪ 检测任务是否真被执行（断言业务结果，非状态码）",
-      "ok": false,
-      "detail": "检测任务仍停在 QUEUED（started_at=null）→ 检测执行器缺失，结果恒空（total=0）。这是业务结果失败，不是 HTTP 失败"
+      "name": "⑪ 缺陷1 证据：不干预时检测任务永停 QUEUED（特征化断言）",
+      "ok": true,
+      "detail": "status=QUEUED · started_at=null · results.total=0 ← 检测执行器缺失（引擎为外部组件，本仓库只留 recordProbeResults 回调口）"
+    },
+    {
+      "name": "⑫ 管理端 DET-06 人工放行（真实鉴权 + 理由必填 + 审计）",
+      "ok": true,
+      "detail": "jobId=458755610915815424 已放行 → status=COMPLETED"
+    },
+    {
+      "name": "⑬ 放行后检测任务真的推进了（业务结果断言）",
+      "ok": true,
+      "detail": "status=COMPLETED · started_at=null · finished_at=2026-09-19T03:12:09Z"
+    },
+    {
+      "name": "⑭ 检测报告页在浏览器里渲染出内容",
+      "ok": true,
+      "detail": "434 字；GET /reports → 本次未发"
+    },
+    {
+      "name": "⑮ 报告数据真实可取（业务结果断言，非状态码）",
+      "ok": true,
+      "detail": "报告数=1 · 首份 id=458755647162990592 · 详情字段=34"
     }
   ],
   "apiCalls": [
@@ -59,20 +79,20 @@
       "message": "ok",
       "data": {
         "ttl": 300,
-        "expire_at": "2026-09-19T01:04:20Z",
-        "dev_code": "604277"
+        "expire_at": "2026-09-19T03:16:46Z",
+        "dev_code": "686048"
       }
     },
     {
       "method": "POST",
       "url": "http://localhost:5173/api/v1/auth/sms/login",
-      "postData": "{\"phone\":\"13800138000\",\"smsCode\":\"604277\"}",
+      "postData": "{\"phone\":\"13800138000\",\"smsCode\":\"686048\"}",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0NTg1ODk2Mzc5MTUxMjM3MTIiLCJyb2xlIjoiU1VQUExJRVIiLCJzdWJqZWN0VHlwZSI6IlBST1ZJREVSIiwicHJvdmlkZXJJZCI6NDU4NTg5NjM4MTE2NDUwMzA0LCJqdGkiOiI2MzMxOGI0OGMzYTE0YzA2OWE5ZWM5MzUzODI1YWIzNSIsImlhdCI6MTc4OTc3OTU2NCwiZXhwIjoxNzg5Nzg2NzY0fQ.xExGfswTcLzw5_YPsZBJWpOoTCj-1k-ilPSkSWbJtQ8",
-        "refresh_token": "u0nukFEjBWDUf4hwZATj9svzYH4I5LkghCCAJ1stLuk",
+        "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0NTg1ODk2Mzc5MTUxMjM3MTIiLCJyb2xlIjoiU1VQUExJRVIiLCJzdWJqZWN0VHlwZSI6IlBST1ZJREVSIiwicHJvdmlkZXJJZCI6NDU4NTg5NjM4MTE2NDUwMzA0LCJqdGkiOiJmNDRlZjhmZTAxMGU0ZWM2OGIzYjY2ZWM0MjY5ZTg4OCIsImlhdCI6MTc4OTc4NzUwOSwiZXhwIjoxNzg5Nzk0NzA5fQ.8puykjcyTF0oJcMiCHkTx8zmGaEIDfK9a2LfQxwL_nM",
+        "refresh_token": "xLv3i9KxL60pXD_YSvDVQCKkmK16u1pBmz5m7GLiGDs",
         "role": "SUPPLIER",
         "providerId": "458589638116450304",
         "providerCode": "AAP-P-000003",
@@ -80,7 +100,7 @@
         "expires_in": 7200,
         "provider_code": "AAP-P-000003",
         "provider_id": "458589638116450304",
-        "refreshToken": "u0nukFEjBWDUf4hwZATj9svzYH4I5LkghCCAJ1stLuk"
+        "refreshToken": "xLv3i9KxL60pXD_YSvDVQCKkmK16u1pBmz5m7GLiGDs"
       }
     },
     {
@@ -127,7 +147,7 @@
         "daily": [],
         "cost": null,
         "updated_at": null,
-        "refreshed_at": "2026-09-19T00:59:25Z",
+        "refreshed_at": "2026-09-19T03:11:49Z",
         "degraded": false
       }
     },
@@ -150,17 +170,17 @@
     {
       "method": "POST",
       "url": "http://localhost:5173/api/v1/credentials",
-      "postData": "{\"alias\":\"联调凭证70288\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789779571044\"}",
+      "postData": "{\"alias\":\"联调凭证15235\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789787515940\"}",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "id": "458722269881667584",
+        "id": "458755591856898048",
         "provider_id": "458589638116450304",
-        "alias": "联调凭证70288",
+        "alias": "联调凭证15235",
         "base_url": "http://127.0.0.1:9911/v1",
-        "api_key_mask": "sk-c***1044",
-        "api_key_masked": "sk-c***1044",
+        "api_key_mask": "sk-c***5940",
+        "api_key_masked": "sk-c***5940",
         "primary_flag": false,
         "is_primary": false,
         "declared_vendor": null,
@@ -174,25 +194,25 @@
         "latest_report_id": null,
         "precheck_passed": false,
         "precheck_at": null,
-        "created_at": "2026-09-19T00:59:31Z",
-        "updated_at": "2026-09-19T00:59:31Z",
+        "created_at": "2026-09-19T03:11:56Z",
+        "updated_at": "2026-09-19T03:11:56Z",
         "version": 0
       }
     },
     {
       "method": "PUT",
-      "url": "http://localhost:5173/api/v1/credentials/458722269881667584",
-      "postData": "{\"alias\":\"联调凭证70288\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789779571044\"}",
+      "url": "http://localhost:5173/api/v1/credentials/458755591856898048",
+      "postData": "{\"alias\":\"联调凭证15235\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789787515940\"}",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "id": "458722269881667584",
+        "id": "458755591856898048",
         "provider_id": "458589638116450304",
-        "alias": "联调凭证70288",
+        "alias": "联调凭证15235",
         "base_url": "http://127.0.0.1:9911/v1",
-        "api_key_mask": "sk-c***1044",
-        "api_key_masked": "sk-c***1044",
+        "api_key_mask": "sk-c***5940",
+        "api_key_masked": "sk-c***5940",
         "primary_flag": false,
         "is_primary": false,
         "declared_vendor": null,
@@ -206,25 +226,25 @@
         "latest_report_id": null,
         "precheck_passed": false,
         "precheck_at": null,
-        "created_at": "2026-09-19T00:59:31Z",
-        "updated_at": "2026-09-19T00:59:31Z",
+        "created_at": "2026-09-19T03:11:56Z",
+        "updated_at": "2026-09-19T03:11:56Z",
         "version": 0
       }
     },
     {
       "method": "PUT",
-      "url": "http://localhost:5173/api/v1/credentials/458722269881667584",
-      "postData": "{\"alias\":\"联调凭证70288\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789779571044\"}",
+      "url": "http://localhost:5173/api/v1/credentials/458755591856898048",
+      "postData": "{\"alias\":\"联调凭证15235\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789787515940\"}",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "id": "458722269881667584",
+        "id": "458755591856898048",
         "provider_id": "458589638116450304",
-        "alias": "联调凭证70288",
+        "alias": "联调凭证15235",
         "base_url": "http://127.0.0.1:9911/v1",
-        "api_key_mask": "sk-c***1044",
-        "api_key_masked": "sk-c***1044",
+        "api_key_mask": "sk-c***5940",
+        "api_key_masked": "sk-c***5940",
         "primary_flag": false,
         "is_primary": false,
         "declared_vendor": null,
@@ -238,21 +258,21 @@
         "latest_report_id": null,
         "precheck_passed": false,
         "precheck_at": null,
-        "created_at": "2026-09-19T00:59:31Z",
-        "updated_at": "2026-09-19T00:59:36Z",
+        "created_at": "2026-09-19T03:11:56Z",
+        "updated_at": "2026-09-19T03:12:00Z",
         "version": 1
       }
     },
     {
       "method": "POST",
-      "url": "http://localhost:5173/api/v1/credentials/458722269881667584/precheck",
+      "url": "http://localhost:5173/api/v1/credentials/458755591856898048/precheck",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "job_id": "458722290236624896",
-        "detection_job_id": "458722290236624896",
-        "job_no": "DJ202609190006",
+        "job_id": "458755610915815424",
+        "detection_job_id": "458755610915815424",
+        "job_no": "DJ202609190009",
         "precheck_status": "PASSED",
         "status": "ACTIVE",
         "models": [
@@ -271,16 +291,16 @@
     },
     {
       "method": "GET",
-      "url": "http://localhost:5173/api/v1/detection-jobs/458722290236624896",
+      "url": "http://localhost:5173/api/v1/detection-jobs/458755610915815424",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "id": "458722290236624896",
-        "job_id": "458722290236624896",
-        "job_no": "DJ202609190006",
+        "id": "458755610915815424",
+        "job_id": "458755610915815424",
+        "job_no": "DJ202609190009",
         "provider_id": "458589638116450304",
-        "credential_id": "458722269881667584",
+        "credential_id": "458755591856898048",
         "status": "QUEUED",
         "trigger_type": "FIRST",
         "started_at": null,
@@ -301,18 +321,18 @@
           "total": 8,
           "eta_minutes": null
         },
-        "created_at": "2026-09-19T00:59:36Z",
-        "updated_at": "2026-09-19T00:59:36Z"
+        "created_at": "2026-09-19T03:12:00Z",
+        "updated_at": "2026-09-19T03:12:00Z"
       }
     },
     {
       "method": "GET",
-      "url": "http://localhost:5173/api/v1/detection-jobs/458722290236624896/results",
+      "url": "http://localhost:5173/api/v1/detection-jobs/458755610915815424/results",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "job_id": "458722290236624896",
+        "job_id": "458755610915815424",
         "total": 0,
         "items": []
       }

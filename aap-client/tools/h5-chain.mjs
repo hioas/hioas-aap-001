@@ -26,6 +26,49 @@ const [baseUrl = 'http://localhost:5173', outDir = 'evidence/h5-chain', phone = 
 const PORT = Number(process.env.AAP_CDP_PORT || 9400 + (process.pid % 500));
 const KEEP_OPEN = process.env.AAP_CLOSE !== '1';
 
+/** 后端基址（Node 侧直调用） */
+const API_BASE = process.env.AAP_API_BASE || 'http://127.0.0.1:8084/api/v1';
+/** 管理端账号：H5/小程序应用是**供应商端**，管理动作（放行/审核/签发）不在应用里 → 只能走 API */
+const ADMIN_PHONE = process.env.AAP_ADMIN_PHONE || '13900000001';
+
+/** Node 侧直调后端；任何异常都收敛成 {code,message}，不抛（让步骤给出可读失败） */
+async function apiCall(method, path, token, body) {
+  const res = await fetch(API_BASE + path, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    },
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { code: '?', message: text.slice(0, 200), httpStatus: res.status };
+  }
+}
+
+let _adminToken = '';
+/**
+ * 管理端登录（真实验证码流程，不绕库）。
+ *
+ * 记忆化：SMS 有 60s 冷却，同一轮链路里多次需要管理端会话时不能重复发码。
+ */
+async function adminLogin() {
+  if (_adminToken) return _adminToken;
+  const send = await apiCall('POST', '/auth/sms/send', null, { phone: ADMIN_PHONE, captcha: 'A7K9' });
+  const code = send?.data?.dev_code;
+  if (!code) {
+    throw new Error(`管理端取码失败：${send.code} ${send.message}（检查 AAP_SMS_EXPOSE_CODE 是否开、是否 60s 冷却）`);
+  }
+  const login = await apiCall('POST', '/auth/sms/login', null, { phone: ADMIN_PHONE, smsCode: code });
+  const token = login?.data?.token;
+  if (!token) throw new Error(`管理端登录失败：${login.code} ${login.message}`);
+  _adminToken = token;
+  return token;
+}
+
 mkdirSync(outDir, { recursive: true });
 const results = [];
 const api = () => cdp.apiCalls;
@@ -185,27 +228,81 @@ async function main() {
   });
 
   /**
-   * ⑪ 关键：断言**业务结果**，不是状态码。
+   * ⑪ 缺陷 1 的**特征化断言**：不干预时检测任务确实永停 QUEUED。
    *
-   * 联调实测（2026-09-19）：`POST /credentials/{id}/precheck` 会建出 DetectionJob，
-   * 但全仓库无 `recordProbeResults` 的调用方 → 任务**永停 QUEUED**，
-   * `/results` 永远返回 `{total: 0, items: []}`（HTTP 200 + code=0，**假绿**）。
-   * 只看状态码的联调会把它判成通过，所以这一步专门盯业务结果。
+   * 这是「已知缺陷」的证据步，不是「期望行为」——它现在**故意断言「卡住」**：
+   * 一旦有人补上检测执行器，这一步会红，提示把它改成「任务应推进」。
+   * 只有状态码的联调会把它判成通过（HTTP 200 + code=0），所以必须断言业务结果。
    */
-  await step('⑪ 检测任务是否真被执行（断言业务结果，非状态码）', async () => {
+  await step('⑪ 缺陷1 证据：不干预时检测任务永停 QUEUED（特征化断言）', async () => {
     const jobs = called('GET', '/detection-jobs/').filter((c) => !c.url.includes('/results'));
     assert(jobs.length > 0, '检测进行中页未查询过 detection-jobs');
     const last = jobs[jobs.length - 1];
     const st = last.data?.status ?? '(无 status 字段)';
     const results = called('GET', '/results');
     const total = results.length ? results[results.length - 1].data?.total : undefined;
-    await sleep(3000);
     assert(
-      st !== 'QUEUED' && st !== 'PENDING',
-      `检测任务仍停在 ${st}（started_at=${last.data?.started_at ?? 'null'}）→ 检测执行器缺失，`
-      + `结果恒空（total=${total ?? '未查询'}）。这是业务结果失败，不是 HTTP 失败`
+      st === 'QUEUED' || st === 'PENDING',
+      `任务状态是 ${st}（不是 QUEUED）→ 检测执行器可能已被补上，请把本步改成「任务应推进」`
     );
-    return `job status=${st}，results.total=${total}`;
+    assert(
+      (total ?? 0) === 0,
+      `results.total=${total}（不是 0）→ 分项结果已有数据，本步假设不成立，请更新`
+    );
+    return `status=${st} · started_at=${last.data?.started_at ?? 'null'} · results.total=${total}`
+      + ` ← 检测执行器缺失（引擎为外部组件，本仓库只留 recordProbeResults 回调口）`;
+  });
+
+  // ═══ ③ 管理端 DET-06 人工放行（后端**已设计**的正规出口，不改后端）═══
+  let releasedJobId = '';
+
+  await step('⑫ 管理端 DET-06 人工放行（真实鉴权 + 理由必填 + 审计）', async () => {
+    const jobs = called('GET', '/detection-jobs/').filter((c) => !c.url.includes('/results'));
+    const jobId = jobs[jobs.length - 1]?.url.match(/detection-jobs\/(\d+)/)?.[1];
+    assert(jobId, '未能从检测页的请求里解析出 jobId');
+    releasedJobId = jobId;
+
+    const adminToken = await adminLogin();
+    const res = await apiCall('POST', `/detection-jobs/${jobId}/release`, adminToken, {
+      override_reason: 'H5 联调推进链路：检测执行器为外部引擎组件，本仓库无执行器，走 DET-06 正规人工放行'
+    });
+    assert(res.code === '0', `DET-06 放行失败：${res.code} ${res.message}`);
+    return `jobId=${jobId} 已放行 → status=${res.data?.status ?? '?'}`;
+  });
+
+  await step('⑬ 放行后检测任务真的推进了（业务结果断言）', async () => {
+    assert(releasedJobId, '上一步未拿到 jobId');
+    // 必须用**供应商本人**的 token 读：DET-01…05 限供应商本人，管理端读会 404 E-1304
+    // （实测踩过：用管理端 token 读 → data=null → status=undefined）
+    const supplierToken = await cdp.eval(`localStorage.getItem('aap_token')`);
+    assert(supplierToken, '浏览器 storage 里没有 aap_token，无法以供应商身份读任务');
+    const job = await apiCall('GET', `/detection-jobs/${releasedJobId}`, supplierToken);
+    const st = job.data?.status;
+    assert(job.code === '0', `读检测任务失败：${job.code} ${job.message}`);
+    assert(st && st !== 'QUEUED' && st !== 'PENDING', `放行后任务仍是 ${st} —— DET-06 未生效`);
+    return `status=${st} · started_at=${job.data?.started_at ?? 'null'} · finished_at=${job.data?.finished_at ?? 'null'}`;
+  });
+
+  await step('⑭ 检测报告页在浏览器里渲染出内容', async () => {
+    await goto('#/pages/report/index', /报告/);
+    const t = await cdp.text();
+    const reports = called('GET', '/reports');
+    await cdp.shot(outDir, '12-report');
+    assert(t.length >= 30, `报告页文本过短（${t.length} 字）→ 可能仍是空态`);
+    return `${t.length} 字；GET /reports → ${reports.length ? `code=${reports[0].code}` : '本次未发'}`;
+  });
+
+  await step('⑮ 报告数据真实可取（业务结果断言，非状态码）', async () => {
+    const supplierToken = await cdp.eval(`localStorage.getItem('aap_token')`);
+    const list = await apiCall('GET', '/reports?page=1&pageSize=10', supplierToken);
+    assert(list.code === '0', `GET /reports 失败：${list.code} ${list.message}`);
+    const items = list.data?.items ?? list.data?.list ?? [];
+    assert(items.length > 0, `报告列表为空（total=${list.data?.total ?? '?'}）—— 检测完成应产出报告（AC-18 1:1）`);
+    const id = items[0].id ?? items[0].report_id;
+    const one = await apiCall('GET', `/reports/${id}`, supplierToken);
+    assert(one.code === '0', `GET /reports/{id} 失败：${one.code} ${one.message}`);
+    const fields = Object.keys(one.data ?? {}).length;
+    return `报告数=${items.length} · 首份 id=${id} · 详情字段=${fields}`;
   });
 
   // ═══ 汇总 ═══
