@@ -1,0 +1,47 @@
+== R80 跨轮 FAIL 明细差异（R79 → R80） ==
+R79 唯一键 74 ；R80 唯一键 117
+新增 43 行（其中原属 R45–R53 八类旧抽查的既有待拍板项见 coverage-gap 证据）：
+  + [FAIL ] A2 ADM-R05 查询参数 `pageSize`：契约(endpoints.json/openapi)声明，但实现控制器**未接收**（生成物侧多声明；与 audit-query-params 的 A1/A3b 同源）
+  + [FAIL ] A2 ADM-R05 查询参数 `page`：契约(endpoints.json/openapi)声明，但实现控制器**未接收**（生成物侧多声明；与 audit-query-params 的 A1/A3b 同源）
+  + [FAIL ] A2 QT-06 查询参数 `pageSize`：契约(endpoints.json/openapi)声明，但实现控制器**未接收**（生成物侧多声明；与 audit-query-params 的 A1/A3b 同源）
+  + [FAIL ] A2 QT-06 查询参数 `page`：契约(endpoints.json/openapi)声明，但实现控制器**未接收**（生成物侧多声明；与 audit-query-params 的 A1/A3b 同源）
+  + [FAIL ] A2 契约声明的查询参数控制器侧都接收（@RequestParam 集合) | 未接收 4 条
+  + [FAIL ] A6 契约目录的 action 全部有实现调用点 | 孤儿 action 1 个：['SYNC_WRITE_PRICE']
+  + [FAIL ] A7 写入路径覆盖全部非自动列 | 声明但写入路径从不填充的列 1 个：['user_agent']
+  + [FAIL] A1 openapi 每个 page/pageSize 参数都声明 default：缺失 46/46（样例 PROV-03(page)、PROV-03(pageSize)、CRED-01(page)、CRED-01(pageSize)、RPT-01(page)）
+  + [FAIL] A1 uq_challenge_code on aap_provider_challenge：unique index 无 `where deleted = false`（谓词=无）
+  + [FAIL] A1 uq_job_no on aap_detection_job：unique index 无 `where deleted = false`（谓词=无）
+  + [FAIL] A1 uq_quote_no on aap_quote：unique index 无 `where deleted = false`（谓词=无）
+  + [FAIL] A1 uq_sync_idempotency on aap_sync_task：unique index 无 `where deleted = false`（谓词=无）
+  + [FAIL] A1 uq_usage_hourly on aap_usage_hourly：unique index 无 `where deleted = false`（谓词=无）
+  + [FAIL] A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/compile/CompilationService.java aap_compiled_expression.gate_status 写入=['FAILED', 'VERIFIED'] 越界=['FAILED']（ER=['COMPILED', 'CONFIRMED', 'REJECTED', 'VERIFIED']）[ORM]
+  + [FAIL] A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/compile/CompilationService.java aap_compiled_expression.status 写入=['FAILED', 'VERIFIED'] 越界=['FAILED']（ER=['COMPILED', 'CONFIRMED', 'DRAFT', 'PUBLISHED', 'SUPERSEDED', 'VERIFIED', 'VERIFY_FAILED']）[ORM]
+  + [FAIL] A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java aap_detection_job.status 写入=['CANCELLED'] 越界=['CANCELLED']（ER=['COMPLETED', 'FAILED', 'PARTIAL_DONE', 'QUEUED', 'REPORT_GENERATED', 'RUNNING']）[ORM]
+  + [FAIL] A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/review/ReviewService.java aap_quote.status 写入=['REVIEWING'] 越界=['REVIEWING']（ER=['APPROVED', 'CONTRACT_CREATED', 'CONVERTED', 'DRAFT', 'IN_REVIEW', 'REJECTED', 'SUBMITTED', 'VOID']）[ORM]
+  + [FAIL] A1 客户端读取的契约形态键 ⊆ 服务端出口键 契约形态键 11 个，未在服务端出口集合中：['contact_phone_mask']
+  + [FAIL] A1 键 `contact_phone_mask` 客户端读取点：['aap-client/src/utils/profile-model.ts:166']
+  + [FAIL] A1b 实现写入的状态不在生成器声明域内：aap_detection_job.status 写入=['CANCELLED', 'COMPLETED', 'QUEUED'] 越界=['CANCELLED']（最匹配目录 DetectionJobStatus=['COMPLETED', 'FAILED', 'PARTIAL_DONE', 'QUEUED', 'REPORT_GENERATED', 'RUNNING']）
+  + [FAIL] A1b 实现写入的状态不在生成器声明域内：aap_quote.status 写入=['APPROVED', 'DRAFT', 'REJECTED', 'REVIEWING', 'SUBMITTED', 'VOID'] 越界=['REVIEWING']（最匹配目录 QuoteStatus=['APPROVED', 'CONTRACT_CREATED', 'CONVERTED', 'DRAFT', 'IN_REVIEW', 'REJECTED', 'SUBMITTED', 'VOID']）
+  + [FAIL] A1s A1 漂移 5 条 / 白名单 3 条（上限 3）
+  + [FAIL] A2 openapi 每个 pageSize 参数都声明 maximum：缺失 23/23
+  + [FAIL] A2 服务端出口的敏感键 ⊆ 契约声明键 出口 24 键，契约未声明：['mobile']
+  + [FAIL] A2 键 `mobile` 出口文件：['aap-server/src/main/java/com/hioas/aap/iam/dto/MeResult.java']（契约从未声明）
+  + [FAIL] A2c 死字段：QT-02(quote-detail) 契约声明未出口=['credential_id']
+  + [FAIL] A2c 死字段：QT-05(quote-detail) 契约声明未出口=['credential_id']
+  + [FAIL] A2c 死字段：RPT-02(report) 契约声明未出口=['api_key_mask']
+  + [FAIL] A2c 超集字段：AUTH-06(me-result) 实现出口未声明=['mobile']
+  + [FAIL] A2c 逐端点响应 DTO 敏感键 ⇔ response_model schema（已定位的端点全部一致） 已定位 37 个端点（跳过 53：AUTH-01: 无键; AUTH-05: 未定位控制器; PROV-03: 返回 Map（键在 Service 里拼装，静态不可判定）; PROV-04: 返回 Map（键在 Service 里拼装，静态不可判定））；契约声明未出口 3 条、实现出口未声明 1 条
+  + [FAIL] A3 aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java:561 表 aap_price_time_rule 的查询链上无 `deleted = false`：(select id from aap_price_time_rule where item_id = ?) (select id from aap_price_time_rule where item_id = ?)
+  + [FAIL] A3s A3 漂移 1 条 / 未能判定 3 条
+  + [FAIL] A4 aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:69 join aap_provider p 无 `p.deleted = false`（软删行仍被关联）
+  + [FAIL] A4 aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:69 join aap_quote q 无 `q.deleted = false`（软删行仍被关联）
+  + [FAIL] A4 aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:63 join aap_provider p 无 `p.deleted = false`（软删行仍被关联）
+  + [FAIL] A4 aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:63 join aap_quote q 无 `q.deleted = false`（软删行仍被关联）
+  + [FAIL] A4 aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:184 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+  + [FAIL] A4 aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:49 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+  + [FAIL] A4s A4 漂移 12 条
+  + [FAIL] A5 服务端月桶按 UTC 计算（取证点 5 处），而客户端把**本机当前月**当 month 查询参数传给该端点（aap-client/src/pages/usage/index.vue:207 `month.value` ← `currentMonth()`）→ 东八区每月 1 日 00:00–08:00 请求的月份在 UTC 口径下刚起头、桶为空；跨源桶口径不一致（两套门禁都看不见）
+  + [FAIL] A6 真孤儿状态：ER 声明 aap_compiled_expression.status 含 VERIFY_FAILED，全仓库零出现且非 DDL 默认值
+  + [FAIL] P3 分页 SQL 的 ORDER BY 必须含完整唯一键（tie-breaker）：aap-server/src/main/java/com/hioas/aap/usage/UsageService.java:167 表=aap_usage_hourly order by(['stat_hour', 'model_name', 'group_name']) 不含任何完整唯一键；最接近的唯一键=['channel_id', 'group_name', 'model_name', 'stat_hour']（缺 ['channel_id']）
+  + [FAIL] P3 汇总：分页 SQL 排序确定性：PASS 12 / FAIL 1 / 未能静态判定 0
+消失 0 行：
