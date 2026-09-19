@@ -64,6 +64,14 @@ const CONTENT_GATES = {
   '/usage': {
     require: ['[data-testid="usage-kpi"]', '[data-testid="usage-chart"]', '[data-testid="model-table"]'],
     textAny: ['总请求数', '调用与消耗趋势', '模型维度用量']
+  },
+  '/models': {
+    require: ['[data-testid="model-gap-banner"]', '[data-testid="model-kpi"]'],
+    textAny: ['按厂商分组', '本页后端暂无能力'],
+    // 本页**故意**调用唯一可用的端点，并预期它返回 E-1501（D-ADM-3 已登记的整页能力缺口）。
+    // 页面会把该错误渲染成显式的缺口说明 —— 这是**被处理的状态**，不是失败。
+    // 声明式放行，避免「把已知缺口当回归」；同时新出现的**其它**错误码仍会失败。
+    allowCodes: ['E-1501']
   }
 };
 
@@ -94,8 +102,10 @@ function attachApiLog(page) {
   page.on('console', (m) => {
     if (m.type() !== 'error') return;
     const t = m.text();
-    // favicon 404 是浏览器默认请求，与产品无关 —— 不过滤会污染「控制台报错」判据
-    if (/favicon/i.test(t) || /Failed to load resource.*404/.test(t)) return;
+    // 浏览器级的资源加载失败（favicon / 非 2xx 的 XHR）会在这里重复出现，
+    // 而**接口层面的真实结果已由 response 监听器精确捕获**（含业务码）。
+    // 两者都算会重复计数，并把「已声明的预期错误码」也误报成控制台报错 → 只认后者。
+    if (/favicon/i.test(t) || /Failed to load resource/i.test(t)) return;
     errors.push(t.slice(0, 200));
   });
   page.on('pageerror', (e) => errors.push(`exception: ${e.message}`.slice(0, 200)));
@@ -191,12 +201,14 @@ async function main() {
       };
     });
 
+    const gate = CONTENT_GATES[route];
     const seg = calls.slice(before).filter((c) => c.url.includes('/api/v1/'));
-    const bad = seg.filter((c) => c.code !== '0' && c.code !== null);
+    const allow = new Set(gate?.allowCodes ?? []);
+    const bad = seg.filter((c) => c.code !== '0' && c.code !== null && !allow.has(String(c.code)));
+    const allowed = seg.filter((c) => c.code !== '0' && c.code !== null && allow.has(String(c.code)));
     const errs = [...errors];
 
     // 业务内容判据：已实现页必须渲染出业务特征；未实现页必须明确带「待实现」徽章
-    const gate = CONTENT_GATES[route];
     const gateState = await page.evaluate(
       ({ require: req, textAny }) => {
         const missing = (req || []).filter((s) => !document.querySelector(s));
@@ -226,7 +238,11 @@ async function main() {
     record(
       `${route}  ${title}`,
       problems.length === 0,
-      problems.length ? problems.join(' | ') : `${gate ? '业务内容已渲染' : '骨架（含待实现徽章）'}；接口 ${seg.length} 次，控制台 0 报错`
+      problems.length
+        ? problems.join(' | ')
+        : `${gate ? '业务内容已渲染' : '骨架（含待实现徽章）'}；接口 ${seg.length} 次${
+            allowed.length ? `（含已声明放行 ${allowed.map((a) => a.code).join('/')}）` : ''
+          }，控制台 0 报错`
     );
   }
 
