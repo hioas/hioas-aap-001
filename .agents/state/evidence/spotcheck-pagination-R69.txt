@@ -1,0 +1,38 @@
+== R69 抽查：分页「总数」与「列表」谓词一致性（第四十三类可审计不变量） ==
+== R69 抽查：分页「总数」与「列表」谓词一致性（第四十三类可审计不变量） ==
+解析计数：main 源文件 169 · 分页站点 19 · count 语句 18 · limit-offset 语句 13 · 非分页 count 方法 4
+
+[PASS] A0a 解析到 main 源文件 169（须 > 0）
+[PASS] A0b 解析到分页站点 19（须 > 0）
+[PASS] A0c 解析到 count(*) 语句 18（须 > 0）
+[PASS] A0d 解析到 limit ? offset ? 语句 13（须 > 0）
+[INFO] A1 aap-server\src\main\java\com\hioas\aap\adminconfig\DetectionConfigService.java#list 表=aap_detection_config 谓词=[deleted = false and upper(status) = upper(?)]（同一变量 where）（count/list 归一后一致）
+[INFO] A1 aap-server\src\main\java\com\hioas\aap\adminconfig\ReportTemplateService.java#list 表=aap_report_template 谓词=[deleted = false and upper(status) = upper(?)]（同一变量 where）（count/list 归一后一致）
+[INFO] A6b aap-server\src\main\java\com\hioas\aap\compile\CompilationService.java#list ORM 分页（`.paginate(Page.of(...))` + getTotalRow） → 豁免（total 同源由 A6c 判）
+[INFO] A1 aap-server\src\main\java\com\hioas\aap\contract\ContractService.java#page 表=aap_contract 谓词=[and status = ?]（同一变量 where）（count/list 归一后一致）
+[INFO] A6b aap-server\src\main\java\com\hioas\aap\credential\CredentialService.java#list ORM 分页（`.paginate(Page.of(...))` + getTotalRow） → 豁免（total 同源由 A6c 判）
+[INFO] A6b aap-server\src\main\java\com\hioas\aap\provider\ProviderService.java#qualifications ORM 分页（`.paginate(Page.of(...))` + getTotalRow） → 豁免（total 同源由 A6c 判）
+[INFO] A1 aap-server\src\main\java\com\hioas\aap\provider\ProviderService.java#adminList 表=aap_provider 谓词=[deleted = false and upper(status) = ? and (short_name ilike ? or company_name ilike ? or provider_no ilike ?]（同一变量 where）（count/list 归一后一致）
+[INFO] A6b aap-server\src\main\java\com\hioas\aap\quote\QuoteService.java#list ORM 分页（`.paginate(Page.of(...))` + getTotalRow） → 豁免（total 同源由 A6c 判）
+[INFO] A6b aap-server\src\main\java\com\hioas\aap\quote\QuoteService.java#versions ORM 分页（`.paginate(Page.of(...))` + getTotalRow） → 豁免（total 同源由 A6c 判）
+[INFO] A6b aap-server\src\main\java\com\hioas\aap\report\ReportController.java#list 分页由被调方提供（委托调用） → 豁免（total 同源由 A6c 判）
+[INFO] A1 aap-server\src\main\java\com\hioas\aap\review\ReviewService.java#list 表=aap_review_task 谓词=[deleted = false and status = ?]（同一变量 where）（count/list 归一后一致）
+[INFO] A1 aap-server\src\main\java\com\hioas\aap\settlement\SettlementService.java#listForProvider 表=aap_payment_record 谓词=[deleted = false and provider_id = ?]（count/list 归一后一致）
+[INFO] A1 aap-server\src\main\java\com\hioas\aap\settlement\SettlementService.java#listForAdmin 表=aap_payment_record 谓词=[deleted = false and status = ?]（同一变量 where）（count/list 归一后一致）
+[INFO] A1 aap-server\src\main\java\com\hioas\aap\settlement\SettlementService.java#statements 表=aap_settlement_statement 谓词=[deleted = false]（count/list 归一后一致）
+[INFO] A1 aap-server\src\main\java\com\hioas\aap\support\AuditLogQueryService.java#list 表=aap_audit_log 谓词=[deleted = false and upper(actor_type) = upper(?) and action = ? and trace_id = ? and created_at >= ? and created_at < ?]（同一变量 where）（count/list 归一后一致）
+[INFO] A1 aap-server\src\main\java\com\hioas\aap\support\NotificationService.java#list 表=aap_notification 谓词=[deleted = false and recipient_type = ? and recipient_id = ? ? and upper(category) = upper(?)]（同一变量 where）（count/list 归一后一致）
+[INFO] A1 aap-server\src\main\java\com\hioas\aap\sync\SyncAdminService.java#listTasks 表=aap_sync_task 谓词=[deleted = false and upper(status) = upper(?) and binding_id = ?]（同一变量 where）（count/list 归一后一致）
+[INFO] A1 aap-server\src\main\java\com\hioas\aap\sync\SyncAdminService.java#listBindings 表=aap_channel_binding 谓词=[deleted = false]（count/list 归一后一致）
+[INFO] A1 aap-server\src\main\java\com\hioas\aap\usage\UsageService.java#hourly 表=aap_usage_hourly 谓词=[deleted = false and stat_hour >= ? and stat_hour < ? and provider_id = ? and channel_id = ? and model_name = ? and group_name = ?]（同一变量 where）（count/list 归一后一致）
+
+[PASS] A0e 已判定 A1 的分页站点 13 / 13（未解析 0，豁免/跳过 6）—— 定位率不足时不得判「全部通过」（坑 87）
+[PASS] A0f 已判定 A2 的站点 13、A3 的站点 13（均须 > 0）
+[PASS] A0g 解析到「同接收者 list+count 组合」1 处（须 > 0，否则 A6c 空转）
+[FAIL] A6c aap-server\src\main\java\com\hioas\aap\report\ReportController.java#list 的 total 来自 reportService.count(principal)，但 items 来自 reportService.list(principal, result) → count 缺少筛选实参 ['result']（total 与 items 不同源）
+[INFO] A5c 含 limit/offset 但无分页响应的方法 0 个（纯列表查询）：（无）
+[INFO] A5 含 count(*) 但不含 limit/offset 的方法 4 个（存在性/聚合计数，非分页）：aap-server\src\main\java\com\hioas\aap\contract\ContractService.java#issue, aap-server\src\main\java\com\hioas\aap\quote\AdminQuoteCompareService.java#requireQuote, aap-server\src\main\java\com\hioas\aap\usage\UsageService.java#refresh, aap-server\src\main\java\com\hioas\aap\usage\UsageService.java#statSpan
+[INFO] A6 测试源 path("total") 断言点 78 处（正向对照）
+
+== 汇总：FAIL 1 条 ['A6c'] ==
+

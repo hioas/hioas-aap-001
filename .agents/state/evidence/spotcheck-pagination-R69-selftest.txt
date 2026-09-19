@@ -1,0 +1,38 @@
+== R69 上条抽查的负向自测（34 项：每分支反例 + 正向对照 + 空夹具变红 + 8 组注入缺陷 + 2 组回归守卫 + 只读守卫） ==
+[PASS] T1 合规夹具 rc=0 — rc=0
+[PASS] T2 合规夹具 FAIL 明细为空 — FAIL=[]
+[PASS] T3 合规夹具 A0a..A0g 七条正向对照全 PASS — PASS=['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A0f', 'A0g']
+[PASS] T4 合规夹具解析到 2 个分页站点 — 见 A0b 行
+[PASS] T5 合规夹具 A6c 判同源（无 FAIL）
+[PASS] T6 空夹具 rc≠0 — rc=1
+[PASS] T7 空夹具点名全部 A0* — FAIL=['A0a', 'A0b', 'A0c', 'A0d', 'A0e', 'A0f', 'A0g']
+[PASS] T8 空夹具下 A0* 无一条 PASS
+[PASS] 注入 N1-谓词不同源 锚点命中 — 命中 1 次（期望 1）
+[PASS] N1-谓词不同源 恰好新增目标断言 A1 — 新增=['A1'] 消失=[] rc=1
+[PASS] 注入 N2-参数不同源 锚点命中 — 命中 1 次（期望 1）
+[PASS] N2-参数不同源 恰好新增目标断言 A2 — 新增=['A2'] 消失=[] rc=1
+[PASS] 注入 N3-total 取自 items.size() 锚点命中 — 命中 1 次（期望 1）
+[PASS] N3-total 取自 items.size() 恰好新增目标断言 A3 — 新增=['A3'] 消失=[] rc=1
+[PASS] 注入 N4-分页响应无 count 锚点命中 — 命中 1 次（期望 1）
+[PASS] N4-分页响应无 count 恰好新增目标断言 A4 — 新增=['A4'] 消失=[] rc=1
+[PASS] 注入 N5-分页响应无 limit/offset 锚点命中 — 命中 1 次（期望 1）
+[PASS] N5-分页响应无 limit/offset 恰好新增目标断言 A5b — 新增=['A5b'] 消失=[] rc=1
+[PASS] 注入 N6-两次查询之间改写谓词 锚点命中 — 命中 1 次（期望 1）
+[PASS] N6-两次查询之间改写谓词 恰好新增目标断言 A1c — 新增=['A1c'] 消失=[] rc=1
+[PASS] 注入 N7-跨方法 count 缺筛选实参 锚点命中 — 命中 1 次（期望 1）
+[PASS] N7-跨方法 count 缺筛选实参 恰好新增目标断言 A6c — 新增=['A6c'] 消失=[] rc=1
+[PASS] 注入 N8-count 与 list 表不同 锚点命中 — 命中 1 次（期望 1）
+[PASS] N8-count 与 list 表不同 恰好新增目标断言 A1b — 新增=['A1b'] 消失=[] rc=1
+[PASS] 回归守卫 R1-SQL 走常量引用 锚点命中 — 命中 1 次（锚点：private final JdbcTemplate jdbc = null;）
+[PASS] 回归守卫 R1-SQL 走常量引用 锚点命中 — 命中 1 次（锚点：jdbc.queryForObject("select count(*) fro）
+[PASS] 回归守卫 R1-SQL 走常量引用 结果不变（仍 0 FAIL） — 新增=[] rc=0
+[PASS] 回归守卫 R2-谓词内联（别名不同但语义相同） 锚点命中 — 命中 1 次（锚点：Long total = jdbc.queryForObject("select）
+[PASS] 回归守卫 R2-谓词内联（别名不同但语义相同） 结果不变（仍 0 FAIL） — 新增=[] rc=0
+[PASS] T9 夹具目录零写副作用
+[PASS] T10 真实仓库关键文件 md5 不变（只读）
+[PASS] T11 真实仓库两次运行 FAIL 集合一致 — r1=['A6c'] r2=['A6c']
+[PASS] T12 真实仓库 FAIL 集合 = {A6c}（本轮真发现） — FAIL=['A6c']
+[PASS] T13 夹具目录不残留 __pycache__
+
+== 汇总：34/34 PASS，FAIL 0 条 [] ==
+

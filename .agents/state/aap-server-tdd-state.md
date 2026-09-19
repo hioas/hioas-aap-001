@@ -3903,3 +3903,44 @@ A1/A2/A3/A4 且无 A0* PASS + **6 组注入缺陷**（GET 链上加写 / 写端�
 - **飞书通知**：本轮 `hermes send -t feishu` 的结果是 **skipped**（「本 cron 作业会自动把最终回复投递到同一目标」），
   与 R65–R67 的「No home channel set for feishu」失败**不同因**：通知由本作业的最终回复承载，非失败；
   已在该形态变化写入 `evidence/feishu-notify-failures.txt`。
+
+## R69 巡检轮（2026-09-19；missing=0 → 只校验不改代码；第四十三类可审计不变量：分页「总数」与「列表」谓词一致性）
+
+### R69 覆盖与回归基线
+- 全量两轮 **204 例全绿**（33 个测试类，逐类结果**先剥 Time elapsed 再排序**后 diff = 0，坑 59/79）；`@Test\b` 词边界计数 204 与 surefire 合计对账一致（坑 35）；禁用扫描（@Disabled/@Ignore/assumeTrue/Assumptions.）**0 条**。
+- 覆盖门禁：**total=90 / implemented=90 / missing=0**、registered_routes=96、not_registered=[]、by_task 12 族 90/90（逐字段读 JSON，不靠 grep 类名，坑 96）。
+- 既有 14 套只读审计 + 13 套抽查 + 26 个负向自测：rc 序列 51 条与 R68 **逐条一致**，新增 2 条（本轮新抽查 rc=1、其自测 rc=0），消失 0、rc 变化 0；FAIL 明细（剥行首来源前缀、排除 [PASS] 自指行，坑 109/135）R68=66 → R69=67，**新增 1 行 = 本轮新抽查**，消失 0；零写副作用守卫：84 个产物 (size, md5) 全等。
+
+### R69 新增抽查：分页「总数」与「列表」谓词一致性（第四十三类可审计不变量）
+**为什么两套门禁都看不见**：契约测试把**真实响应体**与 JSON Schema 比对 —— `total` 只是一个数字，schema 只约束它的类型，
+**不校验它是否等于「同一谓词下的行数」**（也不校验 total 与 items 长度关系、不校验跨页不重不漏）；覆盖门禁只比「方法 + 路径」；
+openapi 与客户端 TS 不被任何测试读取/执行。→ 分页接口的 count 与 list 若**谓词或参数不同源**，`total` 与 `items` 描述的不是同一集合：
+客户端分页器显示错误页数、翻到「最后一页」却是空的，而 204 例全绿完全看不见。
+
+**真源**：S 分页站点（同方法体内 `count(*)` 与 `limit ? offset ?` 并存）／C count 侧谓词文本／L list 侧谓词文本（跨 `+` 拼接链，**顶层 where** 起、`order by` 止）／
+A 参数来源（count 实参 vs list 实参去掉分页两参数）／R `total` 取值来源／G **跨方法**「同接收者 list+count」组合／T 测试源 total 断言。
+
+**解析计数**：main 源 169 文件 · 分页站点 19（13 个 SQL 站点 + 5 个 ORM 豁免 + 1 个委托）· count 语句 18 · limit-offset 语句 13 · 同接收者 list+count 组合 1。
+
+**结论**：A1 **13/13** 站点 count 谓词 ≡ list 谓词（含 8 个「同一 StringBuilder 变量」站点 —— 已解析变量的**真实内容**并断言两次查询之间无 `append` 改写，
+避免「where == where」**空转假绿**，坑 98）；A1b 表名一致；A2 **13/13** 参数来源同源（含 `new ArrayList<>(count 源)` 派生）；A3 **13/13** `total` 来自 count 结果、无 `items.size()`；
+A4/A5b「分页响应缺 count / 缺 limit」= 0 处；A4b 5 个 ORM 分页（`.paginate(Page.of(...))` + `getTotalRow()`）豁免（谓词与总数由 ORM 同源）。
+
+### R69 真发现 1 条（待拍板）
+- **A6c**：`ReportController#list`（端点 **RPT-01**，`GET /reports`）的 `total` 来自 `reportService.count(principal)`（只按 `provider_id`），
+  而 `items` 来自 `reportService.list(principal, page, pageSize, result)`（**带 `result` 筛选**）→ 客户端带 `result` 筛选时
+  `total` = 该供应商全部报告数、`items` 是过滤后的子集 → **分页器页数错误、翻页出现空页**。
+- **第三方裁判（坑 53）**：既有用例 `ReportContractTest.listFiltersByResult` 只断言 `items.size()`（PASS/FAIL 两个方向），
+  **从不断言 `total`** → 测试断言强度不足，这正是「204 例全绿也查不出」的直接原因。
+- **修法**：服务内 `pageResult.getTotalRow()` 已含**同一谓词**的总数，直接取用即可（属**实现变更** → 列待拍板，本轮只审计不改代码）。
+
+### R69 判据返工 4 处（先怀疑判据，坑 46/81/140）
+1. JOIN 子句文本被当成 WHERE 谓词（`left join … on … and deleted = false`）→ 首版报出 **4 条假 A1**（改为「**顶层** where 起」，括号深度扫描剥离 join/子查询）。
+2. 谓词变量初值写成 `new StringBuilder("…")` 未被解析、且归一规则把**尾部 `)`** 吞掉（`upper(?)` → `upper(?`）→ 证据失真（改为允许 `new StringBuilder(` 前缀 + 去掉过度归一）。
+3. 常量引用 SQL（`COUNT_SQL + where`）未回查 → **假 A4**（由判别力自测的**回归守卫 R1** 抓出；判据加 `resolve_expr()` 常量展开，坑 99-①）。
+4. A2 派生判据过宽（只查「文件里出现过 `new ArrayList<>(count 源)`」）→ 注入「换成 `otherArgs.toArray()`」时**不转红**（改为要求「list 形参**就是**由 count 源派生」，坑 81）。
+
+### R69 判别力自测（负向 34/34 PASS）
+合规夹具 rc=0 且 FAIL 明细空 + A0a…A0g 七条正向对照全 PASS + 空夹具 rc≠0 且点名全部 A0* 且 A0* 无一条 PASS +
+8 组注入缺陷各断言「**锚点命中 + 源码真的被改** + 恰好新增目标断言」（A1/A1b/A1c/A2/A3/A4/A5b/A6c）+
+2 组回归守卫（常量引用 SQL、谓词内联别名不同）结果不变 + 真实仓库两次运行 FAIL 集合一致（={A6c}）且关键文件 md5 不变 + 夹具目录零写副作用（含不残留 __pycache__）。
