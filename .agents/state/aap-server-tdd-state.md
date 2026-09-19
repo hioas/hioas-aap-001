@@ -4101,3 +4101,24 @@ jsonb 无 typeHandler / 监听器列缺失 / 约定名漂移无注解 / 未映�
 - **飞书通知**：`hermes send -t feishu -s 'AAP TDD 进度' …` 返回 **skipped-by-design**（rc=0，提示「本 cron 作业会把最终响应自动投递到同一目标 feishu:oc_45c4…」）→ **不是失败**，无需记入 `feishu-notify-failures.txt`；本轮的进度内容即最终响应正文。
 - **被测状态核对**（证据 `evidence/green-verify-R73-tested-state.txt`）：两轮全量所编译/执行的源码 = HEAD 的源码状态 —— 他方在途改动（`AuthService.java` 10:50:04、`AuthContractTest.java` 10:47:41） 均晚于 run1 结束（10:44:27）；后者更晚于该类在 run2 中的执行时刻（10:46:37）→ 两轮跑的都是改前版本。
 - **他方提交落地后复跑（补充）**：他方提交 `50842ff`（缺陷 8 超长 User-Agent）后，当前 HEAD 复跑 **206 例全绿**（0 失败/0 错误/0 跳过、`BUILD SUCCESS`、`[ERROR]`=0、`AuthContractTest` 9 → 11 全绿）、覆盖门禁仍 **90/90**（`missing=0`、`registered_routes=96`）→ 仓库当前状态亦全绿；证据 `evidence/green-verify-R73-post50842ff.txt`。
+
+
+#### R74 巡检轮（missing=0 → 只校验不改代码；90/90 连续第 56 轮全绿）
+
+- 全量两轮 **206 例全绿**（33 类，逐类 diff=0，已剥 `Time elapsed` 再排序，坑 59/79）；
+  覆盖门禁 **90/90**（`registered_routes=96`、`missing=0`、by_task 12 族 90/90）；
+  `@Test` 词边界计数 206 与 surefire 对账一致（朴素计数 208，差 2 为 `@TestConfiguration`/`@TestPropertySource`
+  子串误计，坑 35）、禁用扫描 0 条。
+- 回归面：**59 条**审计/抽查/自测，rc 与 R73 **逐条一致**（新增 0、消失 0、rc 变化 0）；
+  FAIL 明细 R73=74 / R74=74（新增 0、消失 0）；零写副作用 84 个产物 (size,md5) 全等。
+- 本轮为**纯巡检轮**：不新增不变量类、不改任何实现或测试代码。
+- **被测状态核对**（证据 `evidence/green-verify-R74-tested-state.txt`）：两轮全量编译/执行的就是
+  **HEAD = `cf7a7ed`** 的源码 —— 他方缺陷9 修复（人工放行不产报告 / AC-18 1:1）于 `11:12:32` 提交落地，
+  **早于** run1 起跑 `11:14:14` 约 7 分钟；窗口内 `aap-server` 下被改写的源码文件数 = **0**。
+  用例数 206 与他方改动形态一致（在既有用例方法内**追加断言**，不新增 `@Test`）。
+  他方工作区在途改动（`aap-client/tools/mp-ide-smoke.mjs`、若干 `*.json`/`*.png` 证据）按坑 15 **不纳入本轮提交**。
+- 观察项：工作区 `coverage-report.json` 每轮被 Java 侧重写（`Map.of` 键序随 JVM SALT 随机化、逐字段值全等，
+  坑 56；工作区 CRLF 而 index/HEAD 为 LF）→ 与 R59–R73 一致地不纳入提交。
+- 环境：本轮两轮全量**串行**跑完、无 fork 死亡（严格遵循坑 158：审计/抽查/自测一律在全量测试**之后**串行跑）；
+  起跑前探测 `java.exe`/`node.exe`/`chrome.exe` 进程数均为 0，无并发测试争用共享测试库（坑 11/20）。
+- **飞书通知**：见本轮最终响应（本 cron 作业会把最终响应自动投递到同一目标）。

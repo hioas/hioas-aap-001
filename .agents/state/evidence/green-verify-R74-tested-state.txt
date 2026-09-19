@@ -1,0 +1,56 @@
+== R74 被测状态核对（两轮全量所编译/执行的源码 = 哪一份） ==
+HEAD = cf7a7ed | fix(be)+test(h5): 缺陷9 —— 人工放行不产报告（AC-18 1:1 被破坏）；H5 链路 13/13 全绿
+HEAD 提交时刻 = cf7a7ed7588229d94ee98ba2c72e529592d5dfe0|11:12:32
+run1 起跑 11:14:14 / 结束 11:15:29；run2 起跑 11:15:29 / 结束 11:16:35（串行，规范命令不改参数）
+他方缺陷9 提交时刻 = 11:12:32（reflog）→ **早于** run1 起跑 7 分钟
+窗口内（11:14:14 之后）aap-server 下被改写的源码文件数 = 0
+结论：两轮全量测试编译/执行的就是 HEAD = cf7a7ed 的源码（工作区在窗口内无 aap-server 源码改动）
+用例数核对：R73 补充轮 HEAD(37887d2) = 206 例；本轮 HEAD(cf7a7ed) = 206 例
+  （他方缺陷9 的改动是在既有用例方法内**追加断言**，不新增 @Test → 用例数不变，与观测一致）
+未纳入本轮提交的他方工作区改动（坑 15）：
+  M .agents/state/evidence/coverage-report.json
+   M .agents/state/evidence/endpoint-test-audit.json
+   M .agents/state/evidence/mp-e2e-full.json
+   M .agents/state/evidence/mp-ide-smoke.json
+   M .agents/state/mp-e2e-state.json
+   M aap-client/evidence/h5-chain/h5-chain-result.json
+   M aap-client/evidence/ide/01-after-login.png
+   M aap-client/evidence/ide/02-last-page.png
+   M aap-client/evidence/ide/thin-pages_quote-form_index.png
+   M aap-client/tools/h5-chain.mjs
+   M aap-client/tools/mp-ide-smoke.mjs
+  ?? .agents/state/evidence/audit-regression-R74-faildiff.txt
+  ?? .agents/state/evidence/audit-regression-R74-rcseq.txt
+  ?? .agents/state/evidence/audit-regression-R74.txt
+  ?? .agents/state/evidence/green-be-8-mp.txt
+  ?? .agents/state/evidence/green-verify-R74-classdiff.txt
+  ?? .agents/state/evidence/green-verify-R74-coverage-fields.txt
+  ?? .agents/state/evidence/green-verify-R74-full-run1.txt
+  ?? .agents/state/evidence/green-verify-R74-full-run2.txt
+  ?? .agents/state/evidence/green-verify-R74-testcount.txt
+  ?? .agents/state/evidence/h5-chain-run4.txt
+  ?? .agents/state/evidence/mp-smoke-runtime.txt
+  ?? .playwright-mcp/
+  ?? aap-client/evidence/dual/
+  ?? aap-client/evidence/h5-chain/20260919031950.-01-login.png
+  ?? aap-client/evidence/h5-chain/20260919032001.-00-logged-in.png
+  ?? aap-client/evidence/h5-chain/20260919032005.-05-credentials.png
+  ?? aap-client/evidence/h5-chain/20260919032006.-06-submit-form.png
+  ?? aap-client/evidence/h5-chain/20260919032007.-07-form-filled.png
+  ?? aap-client/evidence/h5-chain/20260919032010.-08-saved.png
+  ?? aap-client/evidence/h5-chain/20260919032015.-09-precheck.png
+  ?? aap-client/evidence/h5-chain/20260919032015.-10-detecting.png
+  ?? aap-client/evidence/h5-chain/20260919032019.-11-quotes.png
+  ?? aap-client/evidence/h5-chain/20260919032023.-12-report.png
+  ?? aap-client/evidence/h5-chain/20260919032028.-13-quote-models.png
+  ?? aap-client/evidence/h5-chain/20260919032031.-14-subject-name.png
+  ?? aap-client/evidence/h5-chain/20260919032052.-16-quote-saved.png
+  ?? aap-client/evidence/ide/h5-pages_login_index.png
+  ?? aap-client/evidence/ide/h5-pages_usage_index.png
+  ?? aap-client/evidence/ide/h5-pages_workbench_index.png
+  ?? aap-client/pnpm-lock.yaml
+  ?? aap-client/pnpm-workspace.yaml
+
+-- 相关文件存在性 --
+aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java 存在=True
+aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java 存在=True
