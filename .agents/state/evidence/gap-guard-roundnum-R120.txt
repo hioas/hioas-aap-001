@@ -1,0 +1,30 @@
+== R120 收尾前核对（只读） ==
+
+-- ① 纯数字派生盲区守卫的判别力实测（坑 201/206/220-③） --
+本轮真值：返工计数 = 1 处、轮次计数 = 连续第 102 轮全绿
+合成非真值（与真值**无包含关系**且不落在真值序列上，坑 220-②）：返工 3 处、连续第 104 轮
+[PASS] 对本轮真值：0 条违规（正向对照）
+[PASS] 把真值返工计数换成合成非真值 → 守卫转红 2 条：['自述标记数 != 1', '出现合成非真值返工计数']（判别力成立）
+[PASS] 把真值轮次计数换成合成非真值 → 守卫转红 2 条：['轮次计数真值缺失', '出现合成非真值轮次计数']（判别力成立）
+       附：判据锚定「本轮返工 N 处（」措辞形态 → 历史引用（如 R119 行里的『本轮返工 4 处（』）不参与判定（坑 202/204）
+
+-- ② R120 证据产物：残留上一轮小写引用守卫（坑 186/190） --
+   audit-regression-R120-coverage-gap.txt       命中 = 0
+   audit-regression-R120-faildiff.txt           命中 = 0
+   audit-regression-R120-rcseq.txt              命中 = 0
+   audit-regression-R120.txt                    命中 = 0
+   gap-guard-roundnum-R120.txt                  命中 = 0
+   gap-tools-scan-R120.txt                      命中 = 0
+   green-verify-R120-classdiff.txt              命中 = 0
+   green-verify-R120-coverage-fields.txt        命中 = 0
+   green-verify-R120-full-run1.txt              命中 = 0
+   green-verify-R120-full-run2.txt              命中 = 0
+   green-verify-R120-testcount.txt              命中 = 0
+   green-verify-R120-tested-state.txt           命中 = 0
+[PASS] 模式正/反向对照：合成上一轮行命中、本轮行不命中
+命中产物数 = 0（显式豁免清单，每条必须真含该引用）[]
+结论：豁免产物 0 个（≤ 上限 6），且每个都**真的**含上一轮引用；其余 12 个产物 0 残留
+
+-- ③ 跨产物事实一致性 --
+[PASS] 台账描述窗口 [05:51:56, 05:56:30] == 证据文件窗口 [05:51:56, 05:56:30]
+[PASS] 回归面脚本清单条数（driver 报告）= 82；R120 证据产物数 = 12
