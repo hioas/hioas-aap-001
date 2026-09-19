@@ -1,0 +1,1161 @@
+== R116 既有只读审计 + 抽查复跑（零回归核对 + 纯巡检轮） ==
+说明：15 套仓库只读审计（含 R109 补入的 tools/evidence-secrets.py（历史引用）：证据文件真实令牌门禁，坑 169/177/182）+ 27 套抽查（R54 配置项契约、R57 必填性、R58 唯一性、R59 成功响应形状、R60 字符串长度、R61 数值取值范围、R62 幂等重放语义、R63 乐观锁/并发控制、R64 频控/配额/退避阈值、R65 审计留痕列填充一致性、R66 状态变更 from→to 守卫一致性、R67 写路径事务边界、R68 HTTP 方法语义〔读端点写副作用〕、R69 分页总数与列表谓词一致性、R70 ORM 实体 ↔ DDL 映射一致性、R72 出站 HTTP 调用的安全与韧性契约；**R80 补入的 R45 分页 ORDER BY 唯一键、R46 分页缺省值/上限、R48 软删除语义、R49 请求参数可达性、R50 审计留痕完整性、R51 状态机取值域、R52 时区/桶口径、R53 敏感字段对外键集合**；**R82 补入的 R55 逻辑外键〔FK*〕跨源一致性、R56 分页取值域·越界行为**；**R85 补入的覆盖缺口复核〔gap-verify v2：driver 引用集 → 候选缺口 → 与上一轮留档逐条比对〕**）+ 40 个负向自测；零写副作用守卫 = 运行前后全部生成物 (size,md5) 全等
+R116 回归面变化（相对 R115）：**新增 0 条、消失 0 条、rc 变化 0 条（82 → 82）**——本轮为**纯巡检轮**（坑 169/177/182）：不新增不变量类、不改仓库代码、不改回归序列；R80/R82 补入的十类覆盖缺口与 R85 补入的覆盖缺口复核链本轮继续在序列内复跑；R109 已补入 `tools/evidence-secrets.py`（`tools/` 侧的安全门禁，历史引用）→ 回归面 **82 → 82**（与 R115 逐条一致：新增 0、消失 0、rc 变化 0）
+FAIL 判据：方括号内允许空格的 FAIL 标记（写法见比对脚本；坑 97/47 —— 报告里不写该模式字面量，否则自指命中）
+Python 3.11.16
+
+== 零写副作用守卫：审计前指纹 ==
+84 files
+
+--- gen-check ---
+check ok: 84/84 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）
+ok: models=55 requests=24 paths=78 operations=90 files=82
+gen-check rc=0（FAIL 断言行 0）
+
+--- openapi-parses ---
+OK: docs\backend\openapi.yaml 可解析；paths=78 operations=90
+openapi-parses rc=0（FAIL 断言行 0）
+
+--- endpoint-tests ---
+端点「真实 HTTP 用例」可追溯性审计（只读）
+清单：docs/backend/endpoints.json（90 条）
+测试源：aap-server/src/test/java（40 个 .java 文件）
+
+exact （路径骨架 + 方法都吻合的真实 HTTP 调用点）：90
+prefix（路径命中但方法不吻合 / 仅静态前缀，弱证据）：0
+none  （无任何调用点 —— 真发现）            ：0
+端点 ID 在测试源里可追溯（含组合引用展开）  ：90/90
+  其中仅裸字面量可追溯                      ：71/90
+  靠组合引用（`A-05/06`、`A-01…05`）才算命中  ：19
+ID 引用与真实 HTTP 调用点同文件（更严一档）  ：90/90
+
+  …（中略 0 行）
+  靠组合引用（`A-05/06`、`A-01…05`）才算命中  ：19
+ID 引用与真实 HTTP 调用点同文件（更严一档）  ：90/90
+
+
+endpoint-tests rc=0（FAIL 断言行 0）
+
+--- contract-keys ---
+== A. OpenAPI 分页集合键名（应为 items）：57/57 PASS ==
+   [OK ] 集合键名 items：57 个端点 → PROV-01 PROV-02 PROV-03 CRED-01 CRED-06 DET-03 DET-04 RPT-01 …
+
+== B. OpenAPI 分页端点必须被 PageMeta 包装：23/23 PASS ==
+   [OK ] 全部 23 个带 pageSize 参数的端点均已 PageMeta 包装
+
+== C. page.schema.json 必须 required/properties 含 items：3/3 PASS ==
+   [OK ] docs/backend/json-schema/common/page.schema.json required：required 含 'items'
+   [OK ] docs/backend/json-schema/common/page.schema.json properties：properties 含 'items'
+   [OK ] docs/backend/json-schema/common/page.schema.json no-rejected-key：未出现被否定的旧键名
+
+== D. 运行时 PageResult 分量名：1/1 PASS ==
+  …（中略 8 行）
+   [OK ] docs/backend/02-API接口模型清单.md §0-分页约定：§0 写明 data:{items:…}
+
+合计 88 条断言：PASS 88，FAIL 0
+结论：分页集合键名在 OpenAPI / JSON Schema / 运行时 / 客户端 / 清单五处一致。
+contract-keys rc=0（FAIL 断言行 0）
+
+--- auth-contract ---
+根目录：E:/workspaces/hioas/hioas-aap-001（仓库外路径也照常显示，skill 坑 34）
+--- 正向对照（解析器真的解析到了）---
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b D 行数 = total：parsed=90 期望=90
+[PASS] A0c O operation 数 = total：parsed=90 期望=90
+[PASS] A0d I 解析到控制器路由：parsed=93 条路由，控制器问题 0 条
+[PASS] A0e S 解析到匿名白名单：parsed=['/actuator/health', '/actuator/health/**', '/actuator/info', '/actuator/metrics/**', '/api/v1/auth/refresh', '/api/v1/auth/sms/login', '/api/v1/auth/sms/send', '/api/v1/auth/wechat/login']
+[PASS] A0f I 解析无异常
+--- 逐端点：清单 ⇔ 实现路由 ⇔ 匿名白名单 ⇔ openapi ⇔ md ---
+[PASS] A1 清单每条端点都能在实现里定位到路由（解析器覆盖性正向对照）：未定位 0 条：[]
+[PASS] A2 openapi `security: []` 集合 = 清单 anon 集合：清单 4 条 / openapi 4 条；差集=[]
+[PASS] A3a 清单 anon 的端点都在 SecurityConfig.PUBLIC_PATHS 里：{}
+  …（中略 19 行）
+--- 零写副作用自检 ---
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+
+断言 17 条：PASS 16，FAIL 1
+auth-contract rc=1（FAIL 断言行 1）
+
+--- routes ---
+根目录：E:/workspaces/hioas/hioas-aap-001（仓库外路径也照常显示，skill 坑 34）
+--- 正向对照（解析器真的解析到了，skill 坑 46）---
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b D 行数 = total（裸 split 会漏行，坑 48）：parsed=90 期望=90
+[PASS] A0c O operation 数 = total：parsed=90 期望=90
+[PASS] A0d I 解析到控制器路由：parsed=93 条路由
+[PASS] A0e C 解析到客户端调用点：parsed=40 个调用点（13 个文件）；未能静态判定 0 处
+[PASS] A0f I 解析无异常
+--- A1 md 清单 ⇔ endpoints.json（逐端点：方法 + 路径）---
+[PASS] A1 md 逐行「方法+路径」= endpoints.json（未归一前缀）：不一致 0 条
+--- A2 openapi ⇔ endpoints.json（逐端点：方法 + 路径）---
+[PASS] A2 openapi 每 operation 的「方法+路径」= endpoints.json：不一致 0 条
+  …（中略 10 行）
+--- 零写副作用自检 ---
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+
+断言 13 条：PASS 13，FAIL 0
+routes rc=0（FAIL 断言行 0）
+
+--- error-codes ---
+根目录：.
+--- 正向对照（解析器真的解析到了）---
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b O operation 数 = total：parsed=90 期望=90
+[PASS] A0c D 行数 = total：parsed=90 期望=90
+[PASS] A0d J 码数 = O.enum 码数：J=28 O.enum=28
+[PASS] A0e S 码数 = J 码数 - 1（S 不含成功码 0）：S=27 J=28
+[PASS] A0f O ResultCode enum 非空：parsed=28
+--- 目录级一致（J ↔ S ↔ O.enum）---
+[PASS] A1 J 与 S 码集合一致：差集=[]
+[PASS] A2 O.ResultCode 与 J 一致：差集=[]
+--- 逐端点一致（M ↔ J / O.4XX / D）---
+  …（中略 17 行）
+--- 零写副作用自检 ---
+[PASS] Z1 五处源文件指纹未变（脚本零写副作用）：被改写=[]
+
+断言 16 条：PASS 14，FAIL 2
+error-codes rc=1（FAIL 断言行 2）
+
+--- query-params ---
+根目录：E:/workspaces/hioas/hioas-aap-001（仓库外路径也照常显示，skill 坑 34）
+--- 正向对照（解析器真的解析到了，skill 坑 46）---
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b D 行数 = total（裸 split 会漏行，坑 48）：parsed=90 期望=90
+[PASS] A0c O operation 数 = total：parsed=90 期望=90
+[PASS] A0d I 解析到控制器方法数 ≥ total：parsed=93 条（含无查询参数的方法）
+[PASS] A0e 非空查询参数端点被真的解析出来（否则本审计空转）：M 非空 25 条；D 非空 24 条；O 非空 25 条；I 非空 26 条
+[PASS] A0f I 解析无异常
+[PASS] A0g O 解析无异常
+[PASS] A0h D 解析无异常
+--- A1 md 清单 ⇔ endpoints.json（逐端点：查询参数名集合）---
+[FAIL] A1 md 逐行 `q：…` = endpoints.json query_params：不一致 3 条
+  …（中略 21 行）
+--- 零写副作用自检 ---
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+
+断言 14 条：PASS 12，FAIL 2
+query-params rc=1（FAIL 断言行 2）
+
+--- time-format ---
+# 时间字段序列化格式一致性审计（只读）root=E:\workspaces\hioas\hioas-aap-001
+--- A0 统一出口定义（格式串 + 辅助方法体）---
+[PASS] A0a 正向对照：解析到出口定义（解析器真的工作了） — 出口格式串声明 17 处、辅助方法 14 处（为 0 即解析器失效，不得判 PASS）
+[PASS] A0b 所有 DateTimeFormatter 格式串只有 1 种 — 实测 1 种：["yyyy-MM-dd'T'HH:mm:ss'Z'"]
+[PASS] A0c 格式串 = 秒精度 UTC（yyyy-MM-dd'T'HH:mm:ss'Z'） — 实测 ["yyyy-MM-dd'T'HH:mm:ss'Z'"]
+[PASS] A0d 所有辅助方法体归一化后只有 1 种 — 副本 14 处 → 形态 1 种
+      · 形态：return V == null ? null : RFC3339.format(V.withOffsetSameInstant(ZoneOffset.UTC));
+      · 观察项：同一出口有 14 份副本（aap-server/src/main/java/com/hioas/aap/adminconfig/DetectionConfigService.java、aap-server/src/main/java/com/hioas/aap/adminconfig/ReportTemplateService.java、aap-server/src/main/java/com/hioas/aap/compile/CompilationService.java、aap-server/src/main/java/com/hioas/aap/contract/ContractService.java、aap-server/src/main/java/com/hioas/aap/credential/CredentialService.java、aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java、aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java、aap-server/src/main/java/com/hioas/aap/report/ReportController.java、aap-server/src/main/java/com/hioas/aap/review/ReviewService.java、aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java、aap-server/src/main/java/com/hioas/aap/support/AuditLogQueryService.java、aap-server/src/main/java/com/hioas/aap/support/NotificationService.java 等）——逐字节相同，但属「同一函数两种写法」的漂移高发地（坑 44）
+      · 信息项：非出口的 DateTimeFormatter（常量名不含 RFC3339/ISO，如键值格式）3 处、2 种：['yyyyMM', 'yyyyMMdd'] —— 不参与 A0b/A0c 断言（否则假漂移，坑 29/46）
+--- A1/A2 时间列的取值路径是否被统一出口包裹 ---
+[PASS] A1a 正向对照：解析到被出口包裹的时间取值点 — 已包裹 29 处（为 0 即解析器失效，不得判 PASS）
+[PASS] A1b 所有进入响应的时间值都被统一出口包裹 — 未包裹 0 处
+  …（中略 17 行）
+--- 零写副作用自检 ---
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用） — 被改写=0 个：[]
+
+断言 15 条：PASS 15，FAIL 0
+time-format rc=0（FAIL 断言行 0）
+
+--- enum-sets ---
+== 解析计数（正向对照，任一为 0 即说明解析器失效，坑 46） ==
+   M(§5 枚举族)=16  M(§4 错误码)=28  O(openapi 内联 enum)=21/102 组件  S(schema enum 属性)=34  C(客户端联合类型)=2  I①(SQL 字面量)=16  I②(显式集合)=11
+   [M-note] §5 行 `TierField` 无大写取值 token（字段名/非枚举项）：`len`（**固定**，禁 `p`）
+
+== A0 解析器正向对照 ==
+[PASS] A0.1 M 解析到 ≥10 个枚举族 | 实际 16
+[PASS] A0.2 M 解析到 ≥10 个错误码 | 实际 28
+[PASS] A0.3 O 解析到 ≥1 个内联枚举 | 实际 21
+[PASS] A0.4 S 解析到 ≥1 个 enum 属性 | 实际 34
+[PASS] A0.5 C 解析到 ≥1 个联合类型 | 实际 2
+[PASS] A0.6 I① 解析到 ≥1 个 SQL 字面量 | 实际 16
+[PASS] A0.7 I② 解析到 ≥2 个显式取值集合 | 实际 11
+  …（中略 118 行）
+  FAIL: A5 requests\quote-create.schema.json:currency 无匹配
+  FAIL: A5 requests\review-reject.schema.json:reason_code 无匹配
+  FAIL: A5 全部 schema enum 均归属到 md §5 枚举族（未归属的已逐条 FAIL）
+  FAIL: A8 实现声明的取值域均在契约中声明
+enum-sets rc=1（FAIL 断言行 17）
+
+--- response-shape ---
+根目录：.（仓库外路径也照常显示，skill 坑 34）
+--- 正向对照（解析器真的解析到了，skill 坑 46 / 72）---
+[PASS] A0a M 端点数 = total：total=90 parsed=90
+[PASS] A0b D 行数 = total（转义竖线按未转义切分，坑 48）：parsed=90 期望=90
+[PASS] A0c O operation 数 = total：parsed=90 期望=90
+[PASS] A0d O 组件表解析到 $ref 组件（否则跨源比对是空转，坑 72）：$ref 组件=81 内联组件=21
+[PASS] A0e I 解析到控制器路由：parsed=93 条路由
+[PASS] A0f I 解析无异常
+[PASS] A0g D 解析无异常（表头/列定位）
+[PASS] A0h O 形状解析无 unknown（unknown 先怀疑解析器）
+[PASS] A0i I 解析到 DTO record 声明（分页形状判据的正向对照）：record 类名=269
+      O 形状分布：{'single': 30, 'none': 3, 'page': 57}
+  …（中略 49 行）
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+
+== 断言：PASS 19 / FAIL 2 ==
+结论：存在响应形状（分页包装）契约漂移 —— openapi 与实现/清单至少一侧不一致，两套门禁都看不见（契约测试只读 JSON Schema；覆盖门禁只比方法+路径）。
+response-shape rc=1（FAIL 断言行 2）
+
+--- id-types ---
+== ID 字段对外类型契约审计（第十三类不变量；只读） ==
+仓库根：E:\workspaces\hioas\hioas-aap-001
+--- A0 正向对照：每个源都真的解析到了条目 ---
+[PASS] A0a S 解析到 ID 类字段 > 0：解析到 118 条
+[PASS] A0b O 解析到组件（$ref 与内联各 > 0）：$ref 81 个 / 内联 21 个 / 合计 102
+[PASS] A0c I 解析到响应视图 ID 分量 > 0：唯一 (文件,字段) 对 46 个
+[PASS] A0d C 解析到客户端 ID 类型声明 > 0：原始出现 68 处 / 唯一 (文件,字段) 对 57 个
+[PASS] A0e 解析器覆盖性：S 侧非空且 I 侧非空（任一为 0 先怀疑解析器）：S=118 I=46
+--- A1 S：JSON Schema 逐属性 ID 类型必须是 string ---
+[PASS] A1 非 string 的 ID 字段都在例外白名单内：越界 0 条：[]
+      · 非 string（1 条，全部为已登记例外）：[('models/channel-binding.schema.json#channel_id', 'integer')]
+--- A2 O：openapi 组件引用可解析、内联组件不得出现 ID 属性 ---
+  …（中略 22 行）
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+
+== 断言：PASS 15 / FAIL 1 ==
+结论：存在 ID 对外类型契约漂移（两套门禁都看不见：契约测试只读 JSON Schema，覆盖门禁只比方法+路径；openapi 与客户端 TS 不被任何测试读取/执行）。
+id-types rc=1（FAIL 断言行 1）
+
+--- request-body ---
+== 请求体字段名集合 / 有无请求体 契约审计（第十四类不变量；只读） ==
+仓库根：E:\workspaces\hioas\hioas-aap-001
+--- A0 正向对照：每个源都真的解析到了条目 ---
+[PASS] A0a M 解析到 md「请求」列的请求体字段 > 0：有请求体的端点 21 个 / 解析到端点 87 个
+[PASS] A0b D 解析到 endpoints.json 的 request_model > 0：带 request_model 的端点 27 个 / 请求模型文件 24 个
+[PASS] A0c O 解析到 openapi 的 requestBody > 0：带 requestBody 的 operation 27 个 / 解析到 x-aap-id 90 个
+[PASS] A0d I 解析到控制器 @RequestBody > 0：带 @RequestBody 的控制器方法 26 个 / 解析到方法 93 个 / record 定义 136 个（同名歧义 14 个）
+[PASS] A0e C 解析到客户端 data 对象字面量 > 0：data 字面量 1 处
+--- A1 D：request_model ↔ 请求模型 schema 文件 ---
+[PASS] A1a 每个 request_model 都有对应的请求模型 schema 文件：缺 0 个：[]
+[FAIL] A1b 孤儿请求模型 schema 文件 = 0（仓库里有、清单无端点引用）：孤儿 1 个：['payment-record']
+--- A2 O：openapi requestBody 存在性 ⇔ endpoints.json request_model ---
+  …（中略 18 行）
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写=0 个：[]
+
+== 断言：PASS 15 / FAIL 3 ==
+结论：存在请求体字段名/有无请求体 契约漂移（两套门禁都看不见：契约测试只读响应 JSON Schema，覆盖门禁只比方法+路径；openapi 与客户端 TS 不被任何测试读取/执行）。
+request-body rc=1（FAIL 断言行 3）
+
+--- secret-leak ---
+仓库：E:\workspaces\hioas\hioas-aap-001
+密钥目录：E:\env（5 个 .env 文件）
+Tier A（变量名含密钥语义、值长 >= 8）：13 个变量 —— 必须 0 命中
+Tier B（其余，非密钥低熵）：15 个变量 —— 仅信息项
+[PASS] 正向对照：读到 28 个变量（扫描器确实有输入）
+[PASS] 暂存差异：Tier A 命中 0
+[PASS] 提交历史 HEAD 树：Tier A 命中 0
+[PASS] 已跟踪工作树：Tier A 命中 0
+[PASS] 未跟踪文件（190 个）：Tier A 命中 0
+--- Tier B（信息项，只报名字/长度/指纹，不回显值）---
+      · DB_HOST（aap-server.env）len=9 sha256:8=49960de5
+      · DB_PORT（aap-server.env）len=4 sha256:8=4aeb7ad6
+  …（中略 17 行）
+[PASS] .gitignore 含 `node_modules/`
+[PASS] 被跟踪的 .env 类文件只有 .env.example：['aap-server/.env.example']
+
+结论：Tier A 泄漏命中 0 处
+secret-leak rc=0（FAIL 断言行 0）
+
+--- evidence-secrets ---
+文件                                                             字段             长度     sha256[:12]
+
+命中 0 条（无：证据文件里没有真实令牌）
+evidence-secrets rc=0（FAIL 断言行 0）
+
+--- spotcheck-required ---
+== 请求体字段「必填性（required vs optional）」跨源一致性抽查（第三十一类不变量，只读） ==
+仓库根：E:\workspaces\hioas\hioas-aap-001
+
+--- A0 正向对照（每个源都必须真的解析到条目；任一为 0 先怀疑解析器，坑 46/75/98）---
+[PASS] A0a M 解析到「有请求体」的端点 > 0：23 个端点（md 解析行 24）
+[PASS] A0b M 解析到「显式可选（?）」token > 0（否则 `?` 解析器失效）：可选 token 11；必填候选 token 60
+[PASS] A0c S 解析到带 required 的请求模型 > 0：请求模型 24 个，带 required 18 个
+[PASS] A0d S 解析到请求模型属性 > 0：属性 107 个
+[PASS] A0e I 解析到控制器 DTO 分量 > 0：DTO 分量 788 个
+[PASS] A0f I 解析到带必填类注解的分量 > 0（v1 的返工点：注解名格式不一致 → 交集恒空）：带必填类注解 10 个
+[PASS] A0g I 解析到 @RequestBody 路由 > 0：26 条路由带 @RequestBody
+[PASS] A0h R 运行时强制证据已取证（必须真的读到 pom 依赖 scope；空输入不得空转判 PASS）：json-schema-validator scope=['test']；main 源码引用点 0 处
+  …（中略 60 行）
+--- Z1 零写副作用自检 ---
+[PASS] Z1 全部被读文件指纹未变（脚本零写副作用）：被改写 0 个：[]
+
+== 断言：PASS 13 / FAIL 2（读文件 427 个）==
+spotcheck-required rc=1（FAIL 断言行 2）
+
+--- spotcheck-unique ---
+== R58 抽查：唯一性约束 ⇔ 冲突语义（第三十二类可审计不变量）==
+真源：U=DDL 唯一键 / I=实现处置 / G=全局兜底 / C=契约可触发表面 / T=测试背书
+
+== 正向对照 ==
+
+== A1 逐唯一索引处置 ==
+  uq_account_phone_hash          aap_provider_account         cols=phone_hash                               pred=deleted = false                                → 仅预查
+      预查证据（1 处，其中强证据 0）：AuthService.java#findByPhoneHash
+  uq_account_wx_openid           aap_provider_account         cols=wx_openid                                pred=deleted = false and wx_openid is not null      → 仅预查
+      预查证据（1 处，其中强证据 0）：AuthService.java#wechatLogin
+  uq_admin_username              aap_admin_user               cols=username                                 pred=deleted = false                                → 零处置
+  uq_role_code                   aap_role                     cols=code                                     pred=deleted = false                                → 零处置
+  …（中略 87 行）
+[INFO] A3b 零处置且列名未命中契约表面 14 条：uq_admin_username,uq_user_role,uq_wechat_openid,uq_provider_no,uq_provider_short_code,uq_challenge_code,uq_detection_config_version,uq_report_template_ver,uq_statement_no,uq_channel_name,uq_sync_task_no,uq_usage_cursor_source,uq_file_key,uq_outbox_event_id
+[INFO] A4b ORM 预查（QueryWrapper/selectCountByQuery）的逻辑删除过滤由全局配置自动追加（mybatis-flex.global-config.logic-delete-column=deleted，application.yml:38）→ 与索引谓词 `deleted = false` 一致；jdbc 裸 SQL 预查需另核
+[INFO] A4c 内联 primary key 53 条（id 由雪花/序列生成，重复即生成器缺陷，非业务冲突场景 → 不参与 A2/A3 判定）
+汇总：PASS=13 FAIL=1 INFO=12
+spotcheck-unique rc=1（FAIL 断言行 1）
+
+--- spotcheck-success-shape ---
+== R59 抽查：成功响应「HTTP 状态码 + 内容类型/包络形状」跨源一致性（第三十三类可审计不变量）==
+真源：M=md（§4 码表/§0 响应包体/逐端点响应列）/ O=openapi / I=实现控制器 / C=客户端 http.ts+调用点 / T=测试断言
+
+== 正向对照 ==
+
+== A1 实现侧：成功路径是否恒 200（md §4「0 | 200 | 成功」）==
+
+== A2 openapi 逐端点成功 media type ⇔ 实现 produces ==
+
+== A3 md 声明的非包络端点 ⇔ 实现 produces 非 JSON ==
+
+== A4 客户端是否消费「非包络端点」（消费即必判 E-2001 响应格式非法）==
+  …（中略 31 行）
+[INFO] A7a2 生成器成功响应装配片段："200": { "description": "成功", "content": {"application/json": {"schema": _enveloped(res)}},
+[INFO] A7b 生成器 PATHS 的 RPT-03 行：("RPT-03", "get", "/reports/{reportId}/html", "Report", "PROVIDER", None, None, [], ["E-1401"], "推断"),
+[INFO] A7c endpoints.json 中 response_model 为 null 的端点 3 条（openapi 对这些端点统一输出通用 Envelope，无法区分「真包络」与「非 JSON 响应」）
+汇总：PASS=18 FAIL=1 INFO=7
+spotcheck-success-shape rc=1（FAIL 断言行 1）
+
+--- spotcheck-string-length ---
+=== R60 抽查：字符串长度约束跨源一致性（第三十四类可审计不变量）===
+-- 解析计数 --
+DDL: 53 表 / 207 varchar 列 / 137 宽度种类
+request schema: 24 模型 / 13 带长度约束字段
+实现: @Size(max) 7 / @Size(min) 2 / @Pattern 量词 4 / @NotBlank 12 / 含长度检查文件 6 / 形参域检查 6
+端点: 90 条（23 条带 request_model）
+测试: 4 处 repeat(N)
+
+[PASS] A0a DDL 解析到 53 张表 / 207 个 varchar 列（宽度种类 137）
+[PASS] A0b request schema 解析到 13 个带长度约束字段（maxLength 11 / minLength 7，11 个模型，含 $ref 跟进）
+[PASS] A0c 实现解析到 @Size(max) 7 / @Size(min) 2 / @Pattern 量词 4 / 含长度检查文件 6
+[PASS] A0f 实现解析到 @NotBlank/@NotEmpty 12 处（minLength>=1 的等价证据源）
+  …（中略 19 行）
+[FAIL] A5b quote-create.name 声明 minLength=1 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+[FAIL] A5b review-reject.reason_text 声明 minLength=2 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+
+汇总：PASS 14 / FAIL 9 / INFO 2
+spotcheck-string-length rc=1（FAIL 断言行 9）
+
+--- spotcheck-numeric-range ---
+=== R61 抽查：数值字段取值范围 + 声明模型可达性（第三十五类可审计不变量）===
+-- 解析计数 --
+schema: 24 模型文件 / 15 个数值约束字段
+endpoints: 90 条 / 23 个被引用 request_model
+生成器注册表: 24 个模型 / 孤儿 1
+DDL: 54 表 / 395 数值列 / CHECK 0 处
+实现: 范围注解 2 / 范围检查行 223 / 主源码文件 176
+逐字段强制: 强证据 5 / 弱证据 9 / 无证据 0
+
+[PASS] A0a request schema 解析到数值/数组约束字段 15 个 / 24 个模型文件（正向对照）
+[PASS] A0b endpoints.json 解析到 90 条端点、23 个被引用的 request_model（正向对照）
+[PASS] A0c 生成器 REQUESTS 注册表解析到 24 个请求模型（正向对照）
+  …（中略 11 行）
+[INFO] A6 md 清单出现范围类措辞 0 处（数值范围真源只在 schema 与实现）
+[FAIL] A4 孤儿请求模型 `payment-record`：生成器注册表有、endpoints.json 零端点引用 → 契约产物不可达（死产物；补端点或删注册项都属契约变更，待拍板）
+
+汇总：PASS 9 / FAIL 1 / INFO 6
+spotcheck-numeric-range rc=1（FAIL 断言行 1）
+
+--- spotcheck-idempotency ---
+== R62 抽查：幂等重放语义契约（第三十六类可审计不变量，只读） ==
+真源：M=md 清单 / O=openapi / D=DDL / I=实现 / C=客户端 / T=测试源 / R=可达性
+
+--- A0 正向对照（每个源都必须真的解析到条目；任一为 0 先怀疑解析器，坑 46/75/98/132）---
+[PASS] A0a  M md §0 幂等约定行解析到：头名='Idempotency-Key' TTL=24 h
+[PASS] A0b  M 逐端点行=90（10 列表头），其中声明 Idempotency-Key 的端点=10 条
+[PASS] A0c  D aap_idempotency_record 列数=15，唯一索引 uq_idempotency_key 命中=1
+[PASS] A0d  I 幂等过滤器解析到：aap-server\src\main\java\com\hioas\aap\support\idempotency\IdempotencyFilter.java 头名='Idempotency-Key' TTL=24 h
+[PASS] A0e  O openapi 解析到 operations=90、`in: query` 参数点=79、`in: header` 参数点=0
+[PASS] A0f  T 测试源 40 文件，幂等重放用例=2（含「只落一次/逐字一致/返回首次」=2）
+
+--- A1 头名一致（M §0 / I 常量 / O 逐 operation / C 发送点）---
+  …（中略 26 行）
+[INFO] A7b  「同键不同请求体」的冲突码 400 E-1001 在 md §0 幂等约定行未出现（§0 只承诺「24h，命中返回首次响应体」）→ 文档一致性项
+
+汇总 PASS 12 / FAIL 5 / INFO 4
+正向对照 A0a…A0f 全部必须为 PASS；任一为 FAIL 时本报告结论无效（先修解析器，坑 46/98）
+spotcheck-idempotency rc=1（FAIL 断言行 5）
+
+--- spotcheck-lock ---
+== R63 抽查：乐观锁 / 并发控制契约（第三十七类可审计不变量，只读） ==
+真源：M md 清单（§0 乐观锁行 + 逐端点「幂等/并发」列 + 逐端点「错误码」列）/ D endpoints.json / O openapi（in: header）/ I 实现（控制器接收面 → Service 守卫码）/ E ErrorCode（码→状态+描述）/ V 版本令牌出口 / C 客户端是否真的发送 / T 测试源
+头名（本类不变量）：`If-Match`
+
+--- 解析计数（正向对照，任一为 0 即说明解析器失效）---
+M md 端点行=90；§0 头名='If-Match' 状态=409 码='E-1601'
+D 端点数=90；声明该头的端点=3（['CRED-04', 'PROV-02', 'QT-08']）
+O operations=90；in:header=0；in:query=79
+I 控制器路由=93；接收该头的站点=3
+E 码条目=27；T 含该头的用例=2；C 客户端文件=69
+
+--- 逐站点：控制器 → 服务 → 守卫码 ---
+  …（中略 27 行）
+
+汇总 PASS 14 / FAIL 7 / INFO 1
+正向对照 A0a…A0i 全部必须为 PASS；任一为 FAIL 时本报告结论无效（先修解析器，坑 46/98）
+
+spotcheck-lock rc=1（FAIL 断言行 7）
+
+--- spotcheck-throttle ---
+== R64 抽查：频控 / 配额 / 退避阈值契约（第三十八类可审计不变量） ==
+root = E:\workspaces\hioas\hioas-aap-001
+解析计数：md 端点行 90（10 列 8 / 7 列 4）· 阈值声明行 4 · §4 码 27 · yml 阈值键 4 · 退避 md=[30, 120, 480, 1800, 7200] 实现=[30, 120, 480, 1800] PRD=[30, 120, 600, 1800, 7200] 测试=[30, 120, 480, 1800]
+
+[PASS] A0a md 端点行解析到 90 行
+[PASS] A0b 双表头各解析到行（10 列 8 / 7 列 4），坑 89
+[PASS] A0c 阈值声明行 4 条（10 列 3：AUTH-01,AUTH-02,DET-01；7 列 1：ADM-S03）
+[PASS] A0d yml 解析到 4 个阈值键：ttl-seconds,resend-interval-seconds,max-attempts,daily-quota
+[PASS] A0e 实现解析到 SmsService 取值点 6 个、检测配额默认值 5、重试上限 5、退避 4 档
+[PASS] A0f §4 码表解析到 27 个码，其中 429 共 2 个
+[PASS] A0g 测试源解析到 429 状态断言 3 处（auth 2 / detection 1）
+[PASS] A0h 客户端解析到状态分支 1 个（401）
+  …（中略 16 行）
+
+== 汇总 ==
+PASS 14 / FAIL 8 / INFO 2
+FAIL token 集合 = ['A1', 'A3a', 'A3b', 'A4a', 'A4b', 'A4c', 'A5', 'A6']
+spotcheck-throttle rc=1（FAIL 断言行 8）
+
+--- spotcheck-audit-cols ---
+root = E:\workspaces\hioas\hioas-aap-001
+解析计数：DDL 表 55（含审计列 55）· 实体 @Table 35（挂 onInsert 35）· 手写写语句 27（insert 6 / update 21）· insert 列清单含 created_by 3 · AuditContext.set 4/clear 1 · md 审计字段行 2 · 测试结构引用 2 / 取值引用 2 · 响应/实现里审计列名 39
+
+[PASS] A0a DDL 解析到含审计列的表 55 张
+[PASS] A0b 实体 @Table 解析到 35 个，其中挂 onInsert 监听器 35 个
+[PASS] A0c 手写 SQL 写语句解析到 27 条（insert 6 / update 21）
+[PASS] A0d insert 列清单解析器正向对照：解析到列清单且含 created_by 的 insert 3 条
+[PASS] A0e AuditContext 链路入口解析到 set 4 处 / clear 1 处
+[PASS] A0f 测试源里出现审计列名字面量 2 处
+[PASS] A0g md 声明「审计字段（业务表通用）」行 2 条
+[FAIL] A1 手写 insert 未填充审计列 3 条：SyncAttemptRecorder.java:42 insert into aap_sync_operation 缺 created_by+updated_by（无 ORM 实体） | UsageService.java:246 insert into aap_usage_hourly 缺 created_by+updated_by（无 ORM 实体） | UsageService.java:287 insert into aap_usage_sync_cursor 缺 created_by+updated_by（无 ORM 实体）
+[PASS] A1b 全部 35 个含审计列的 ORM 实体都挂了 onInsert 监听器
+  …（中略 11 行）
+
+== 汇总 ==
+PASS 11 / FAIL 3 / INFO 6
+FAIL token 集合 = ['A1', 'A2', 'A3']
+spotcheck-audit-cols rc=1（FAIL 断言行 3）
+
+--- spotcheck-state-machine ---
+== R66 抽查（只读）：状态变更（from → to）语义一致性（第四十类可审计不变量） ==
+为什么两套门禁都看不见：契约测试只把**响应体**与 JSON Schema 比对 —— 被静默接受的非法流转照样返回 200 +
+合法 schema，状态列是否被合法推进不在 schema 里；覆盖门禁只比「方法 + 路径」；openapi 与客户端 TS 不被执行。
+真源：M md 逐端点错误码列/响应列 · S 手写 SQL（含常量引用）set status 的 where 守卫 · O ORM setStatus 写点
+      与其守卫分类 · J 实现自述（Javadoc 流转） · E ErrorCode.java 状态类码 · T 测试码级/结构级断言 ·
+      P spec §4 状态枚举 · D 落库状态值可追溯性（spec §4 ∪ md ∪ ER ∪ prd15）。
+root = E:\workspaces\hioas\hioas-aap-001
+解析计数：spec 状态枚举 10 组/47 值 · md 清单 90 行（10 列表 8 + 7 列表 4）· md 码表 27 码（状态类 3）· 实现 SQL 状态变更语句 16（带守卫 13）· ORM setStatus 写点 35（流转 12 / 创建 23 / 未判定 0）· 实现自述流转 26 · md from→to 声明 3 · 测试状态类码断言 28 处 / HTTP 状态断言 200×219、400×53、401×33、403×39、404×24、409×33、429×3、500×1、502×4、503×1
+ORM 流转守卫分类：optimistic=1、related=2、sibling=1、strong=8
+
+[PASS] A0a spec §4 解析到状态枚举 10 组 / 47 个状态值
+[PASS] A0b md §4 码表解析到 27 个码，其中状态类码 3 个：E-1305 E-1601 E-1701
+  …（中略 21 行）
+[INFO] A6c **结构级**（HTTP 状态）背书：409 断言 33 处 / 200 断言 219 处 —— 码级断言不能替代状态码断言（坑 143-①：码断言 + 状态码断言才是完整背书）
+[INFO] A7 宽守卫（status <> X / is null，可能放行未声明来源）1 条；目标状态为参数（to 无法静态判定）3 条：aap-server/src/main/java/com/hioas/aap/sync/SyncAdminService.java:328 表 aap_channel_binding 守卫=无 | aap-server/src/main/java/com/hioas/aap/sync/SyncAttemptRecorder.java:33 表 aap_sync_task 守卫=无 | aap-server/src/main/java/com/hioas/aap/usage/UsageService.java:279 表 aap_usage_sync_cursor 守卫=无
+
+汇总：PASS 13 / FAIL 1 / INFO 11
+spotcheck-state-machine rc=1（FAIL 断言行 1）
+
+--- spotcheck-tx-boundary ---
+== R67 抽查：写路径事务边界（多写原子性 + 事务内外部 I/O） ==
+扫描目录：E:\workspaces\hioas\hioas-aap-001\aap-server\src\main\java（176 个 .java）
+方法 1666 个；事务方法 49 个（类级 0）；写调用点 102 处；多写方法 23 个；控制器映射方法 93 个；外部 I/O 方法 6 个
+
+-- 多写方法分档 --
+  自身/类级事务 18 个；调用链豁免 5 个；零调用点 0 个；**无边界且存在非事务调用点 0 个**
+    [调用链] E:\workspaces\hioas\hioas-aap-001\aap-server\src\main\java\com\hioas\aap\detection\DetectionService.java:120 enqueue（写 2：orm:jobMapper.insert,orm:credentialMapper.update；调用点 2 个，全部在事务方法内）
+    [调用链] E:\workspaces\hioas\hioas-aap-001\aap-server\src\main\java\com\hioas\aap\quote\QuoteService.java:559 saveTimeRule（写 4：orm:segmentMapper.delete,orm:timeRuleMapper.delete,orm:timeRuleMapper.insert,orm:segmentMapper.insert；调用点 1 个，全部在事务方法内）
+    [调用链] E:\workspaces\hioas\hioas-aap-001\aap-server\src\main\java\com\hioas\aap\quote\QuoteService.java:587 saveTierRule（写 4：orm:tierMapper.delete,orm:tierRuleMapper.delete,orm:tierRuleMapper.insert,orm:tierMapper.insert；调用点 1 个，全部在事务方法内）
+    [调用链] E:\workspaces\hioas\hioas-aap-001\aap-server\src\main\java\com\hioas\aap\quote\QuoteService.java:618 saveRequestRules（写 2：orm:requestRuleMapper.delete,orm:requestRuleMapper.insert；调用点 1 个，全部在事务方法内）
+    [调用链] E:\workspaces\hioas\hioas-aap-001\aap-server\src\main\java\com\hioas\aap\usage\UsageService.java:278 touchCursor（写 2：jdbc:update,jdbc:insert；调用点 1 个，全部在事务方法内）
+
+  …（中略 45 行）
+[INFO] A4c 调用链定位率：27/93 个端点链上累计写 ≥2（未定位的多为读路径或未解析的调用）
+[FAIL] A4 端点调用链上累计 2 次写但**链上无任何事务边界**（部分失败会留半截数据）：AdminSyncController.changeBindingStatus:74
+
+PASS 15 / FAIL 1 / INFO 2
+spotcheck-tx-boundary rc=1（FAIL 断言行 1）
+
+--- spotcheck-http-method ---
+== R68 抽查：HTTP 方法语义（读端点写副作用） ==
+扫描目录：E:\workspaces\hioas\hioas-aap-001\aap-server\src\main\java（176 个 .java）
+方法 1666 个；写调用点 107 处；映射方法 93 个；方法分布 {'DELETE': 2, 'GET': 47, 'POST': 39, 'PUT': 5}；调用点解析成功 1031 对
+读端点 47 个（链上写 > 0 者 0）；写端点 46 个（链上写 = 0 者 1，其中未能解析 0）
+
+-- 读端点链上写副作用明细（应全为 0） --
+
+-- 写端点链上零写明细 --
+    QuoteController              compilePreview           POST   L221   节点=13  未能静态判定=0
+
+[PASS] A0a 解析到 main 源码文件 176 个
+[PASS] A0b 解析到方法 1666 个
+  …（中略 13 行）
+[FAIL] A3 实现方法分布与清单不一致（方法语义漂移）：GET 实现 47 / 清单 45
+[FAIL] A3 实现方法分布与清单不一致（方法语义漂移）：POST 实现 39 / 清单 38
+
+PASS 14 / FAIL 2 / INFO 1
+spotcheck-http-method rc=1（FAIL 断言行 2）
+
+--- spotcheck-pagination ---
+== R69 抽查：分页「总数」与「列表」谓词一致性（第四十三类可审计不变量） ==
+解析计数：main 源文件 176 · 分页站点 19 · count 语句 18 · limit-offset 语句 13 · 非分页 count 方法 4
+
+[PASS] A0a 解析到 main 源文件 176（须 > 0）
+[PASS] A0b 解析到分页站点 19（须 > 0）
+[PASS] A0c 解析到 count(*) 语句 18（须 > 0）
+[PASS] A0d 解析到 limit ? offset ? 语句 13（须 > 0）
+[INFO] A1 aap-server\src\main\java\com\hioas\aap\adminconfig\DetectionConfigService.java#list 表=aap_detection_config 谓词=[deleted = false and upper(status) = upper(?)]（同一变量 where）（count/list 归一后一致）
+[INFO] A1 aap-server\src\main\java\com\hioas\aap\adminconfig\ReportTemplateService.java#list 表=aap_report_template 谓词=[deleted = false and upper(status) = upper(?)]（同一变量 where）（count/list 归一后一致）
+[INFO] A6b aap-server\src\main\java\com\hioas\aap\compile\CompilationService.java#list ORM 分页（`.paginate(Page.of(...))` + getTotalRow） → 豁免（total 同源由 A6c 判）
+[INFO] A1 aap-server\src\main\java\com\hioas\aap\contract\ContractService.java#page 表=aap_contract 谓词=[and status = ?]（同一变量 where）（count/list 归一后一致）
+[INFO] A6b aap-server\src\main\java\com\hioas\aap\credential\CredentialService.java#list ORM 分页（`.paginate(Page.of(...))` + getTotalRow） → 豁免（total 同源由 A6c 判）
+  …（中略 20 行）
+[INFO] A5 含 count(*) 但不含 limit/offset 的方法 4 个（存在性/聚合计数，非分页）：aap-server\src\main\java\com\hioas\aap\contract\ContractService.java#issue, aap-server\src\main\java\com\hioas\aap\quote\AdminQuoteCompareService.java#requireQuote, aap-server\src\main\java\com\hioas\aap\usage\UsageService.java#refresh, aap-server\src\main\java\com\hioas\aap\usage\UsageService.java#statSpan
+[INFO] A6 测试源 path("total") 断言点 78 处（正向对照）
+
+== 汇总：FAIL 1 条 ['A6c'] ==
+spotcheck-pagination rc=1（FAIL 断言行 1）
+
+--- spotcheck-entity-ddl ---
+[INFO]  解析计数：DDL 表 55 · DDL 列 918 · 序列 17 · 分区表 2 · 实体 35 · 实体字段 636
+[PASS] A0a 解析到 DDL 表 55（须 > 0）
+[PASS] A0b 解析到 ORM 实体 35（须 > 0）
+[PASS] A0c 解析到实体字段 636（须 > 0，否则 A1/A2 空转）
+[PASS] A0d 解析到 DDL 序列 17（须 > 0，否则 A7 空转）
+[PASS] A0e 实体表定位率 35 / 35（未定位：无）
+[PASS] A0f 已判定 A1 的字段映射 636 条（须 > 0，定位率不足时不得判「全部通过」，坑 87）
+[PASS] A0g 已判定 A2 的类型对 615 条（须 > 0）
+[PASS] A0h 解析到 jsonb 列 34 · 带 typeHandler 字段 19（两者均须 > 0，否则 A3 空转）
+[INFO] A4 挂审计监听器的实体 35 个，审计列齐备性已判定
+[INFO] A5 ProviderAccountEntity.java 表=aap_provider_account 字段=sms2fa 约定名=sms2fa 显式 @Column=sms_2fa（依赖注解，列存在=True）
+[INFO] A5 QuoteItemEntity.java 表=aap_quote_item 字段=cacheWrite1hPrice 约定名=cache_write1h_price 显式 @Column=cache_write_1h_price（依赖注解，列存在=True）
+  …（中略 7 行）
+[PASS] A0k 解析到手写 SQL 引用的表名 24 个（须 > 0，否则 A9 空转）
+[INFO] A9 手写 SQL 引用的表名 24 个，未命中 DDL 的 0 个（已排除 SQL 关键字）
+
+== 汇总：FAIL 0 条 [] ==
+spotcheck-entity-ddl rc=0（FAIL 断言行 0）
+
+--- spotcheck-config ---
+根目录：E:/workspaces/hioas/hioas-aap-001（仓库外路径也照常显示）
+== 配置项契约一致性抽查（第二十八类可审计不变量） ==
+
+[PASS] A9 绑定组 app.credential.* 有 3 处读取点
+[PASS] A9 绑定组 app.jwt.* 有 5 处读取点
+[PASS] A9 绑定组 app.logging.* 由 log4j2 查找（`${spring:app.logging.…}`）消费，非零读取
+[PASS] A9 绑定组 app.sms.* 有 1 处读取点
+[PASS] A0a Y 解析到 app.* 键 = 20
+[PASS] A0b T 解析到 app.* 键 = 9
+[PASS] A0c J 解析到配置读取点 = 10 + L log4j2 查找 = 1 + 绑定键 = 14
+[PASS] A0d 硬编码字面量扫描已启用（参数表 8 条）
+[PASS] A1 所有读取点引用的键都在主/测试配置里声明或有内联默认值
+  …（中略 27 行）
+[FAIL] A5 存在「有配置项但代码另写同值字面量」的参数 = 3 个：通过线(app.detection.pass-score=70)、否决线(app.detection.veto-score=40)、复测间隔(天)(app.detection.recheck-interval-days=30)
+
+断言 28 条：PASS 26，FAIL 2；信息项 9 条
+结论：存在配置项契约漂移/风险点（见 FAIL 与 INFO）
+spotcheck-config rc=1（FAIL 断言行 2）
+
+--- spotcheck-outbound ---
+[PASS] A0a 解析到出站入口方法 = 3（UpstreamProbe.probe, NewApiSyncClient.get, NewApiSyncClient.put）
+[PASS] A0b 解析到出站调用点 = 6
+[PASS] A0c 解析到超时设置点 = 5（请求级 3 / 连接级 2）
+[PASS] A0d PRD 声明行解析到：重定向 2 / 响应体上限 2 / 重试 4 / SSRF 16
+[PASS] A0e 测试背书解析到：HttpServer 桩 24 处、失败码断言 19 处
+[PASS] A1 全部 6 个出站调用点都在发请求之前有 SSRF 守卫证据（同方法内 verify 先于调用，或入口自带）
+[PASS] A2 每个出站入口都有请求级超时（.timeout）+ 其 HttpClient 有连接级超时（connectTimeout）
+[PASS] A3 UpstreamProbe.probe 重试有次数上限（attempts <= MAX_RETRY）
+[PASS] A3b UpstreamProbe.probe 鉴权类（401/403）在重试分支之前 return（不重试）
+[PASS] A4 UpstreamProbe.MAX_BODY_BYTES = 10 MiB ≤ 声明上限 10 MB
+[PASS] A4 NewApiSyncClient.MAX_BODY_BYTES = 1 MiB ≤ 声明上限 10 MB
+[PASS] A6 出站失败码 E-1101 在 ErrorCode.java 声明（HTTP 状态由枚举构造参数给出）
+  …（中略 11 行）
+[FAIL ] A8c PRD 声明「网络失败重试 2 次」，但测试桩只覆盖状态 [200, 401] —— **5xx/网络错误的重试路径零用例背书**（重试分支从未被执行，204 例全绿也看不见；坑 143-① 数值背书缺失）
+
+断言 20 条：PASS 15，FAIL 5；信息项 4 条
+结论：存在出站调用契约漂移/风险点（见 FAIL）
+spotcheck-outbound rc=1（FAIL 断言行 5）
+
+--- gap-pagination-order ---
+[PASS] P0 正向对照：解析到含 limit/offset 的分页 SQL 条数 > 0：实测 13 条
+[PASS] P0b 正向对照：DDL 解析到表定义 > 0：实测 54 张表、唯一键集合 95 组
+[PASS] P1 每条分页 SQL 的 ORDER BY 列集合都解析到：13/13
+[PASS] P2 每条分页 SQL 的 FROM 表名都能在 DDL 里找到（防解析到错表）：13/13；定位档位=['file-nearest', 'same-literal', 'stmt-chain']
+[PASS] P2b 表名映射自校验：ORDER BY 列都存在于所解析到的表定义中：13/13
+[FAIL] P3 分页 SQL 的 ORDER BY 必须含完整唯一键（tie-breaker）：aap-server/src/main/java/com/hioas/aap/usage/UsageService.java:167 表=aap_usage_hourly order by(['stat_hour', 'model_name', 'group_name']) 不含任何完整唯一键；最接近的唯一键=['channel_id', 'group_name', 'model_name', 'stat_hour']（缺 ['channel_id']）
+[FAIL] P3 汇总：分页 SQL 排序确定性：PASS 12 / FAIL 1 / 未能静态判定 0
+      [OK ] aap-server/src/main/java/com/hioas/aap/adminconfig/DetectionConfigService.java:108 表=aap_detection_config order by(['created_at', 'id']) ⊇ 唯一键 ['id']
+      [OK ] aap-server/src/main/java/com/hioas/aap/adminconfig/ReportTemplateService.java:89 表=aap_report_template order by(['created_at', 'id']) ⊇ 唯一键 ['id']
+      [OK ] aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:141 表=aap_contract order by(['created_at', 'id']) ⊇ 唯一键 ['id']
+      [OK ] aap-server/src/main/java/com/hioas/aap/provider/ProviderService.java:229 表=aap_provider order by(['created_at', 'id']) ⊇ 唯一键 ['id']
+      [OK ] aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:186 表=aap_review_task order by(['created_at', 'id']) ⊇ 唯一键 ['id']
+  …（中略 10 行）
+[INFO] I4 测试里翻第 2 页的调用点 11 处；跨页稳定性/重复行断言 6 处
+[PASS] Z1 三个被读文件指纹未变（抽查脚本零写副作用）：3 个文件
+
+合计 12 条：PASS 6，FAIL 2，INFO 4
+gap-pagination-order rc=1（FAIL 断言行 2）
+
+--- gap-pagination-defaults ---
+== 分页参数缺省值与上限（取值域）不变量 ==
+仓库根：E:\workspaces\hioas\hioas-aap-001
+断言 12 条：PASS 10，FAIL 2；观察项 5
+
+  [PASS] A0a M md §0 解析到 缺省=[1, 20] 上限=200
+  [PASS] A0b O openapi 解析到 page/pageSize 参数 46 个（page 23 / pageSize 23）
+  [PASS] A0c I 解析到 PageQuery 常量 default=20 max=200 clamp_min=True clamp_lower=True
+  [PASS] A0d 控制器解析到带 pageSize 的映射方法 21 个（跨 18 个文件）
+  [PASS] A3 openapi 46/46 个参数 minimum = 1
+  [PASS] A4 实现 DEFAULT_PAGE_SIZE=20/MAX_PAGE_SIZE=200 与 md 一致且夹取含 Math.min(pageSize,MAX) 与下界兜底
+  [PASS] A5 21 个分页控制器方法的 pageSize 都在控制器或其所调服务方法内经 PageQuery.of 夹取
+  [PASS] A6 裸 int pageSize 的服务方法 1 个（UsageService.hourly）其调用点全部传入夹取后的值
+  …（中略 9 行）
+  [INFO] I4 本不变量不被任何测试守卫：契约测试只读 JSON Schema（query 参数不在 schema 里）、覆盖门禁只比方法+路径
+  [INFO] I5 endpoints.json 有 23 条端点声明 page/pageSize，但 query_params 只记**参数名**（含 default/maximum 关键字：无）→ 机器可读清单侧同样表达不了缺省值与上限
+
+结论：存在漂移（逐条见上）
+gap-pagination-defaults rc=1（FAIL 断言行 2）
+
+--- gap-softdelete ---
+=== R48 抽查：软删除语义一致性（第二十二类可审计不变量）· root=E:\workspaces\hioas\hioas-aap-001 ===
+[PASS] A0a DDL create table 解析数 = 54（必须 > 0）
+[PASS] A0b DDL unique index 解析数 = 42（必须 > 0）
+[PASS] A0c Java 含 from aap_ 的 SQL 解析数 = 62（必须 > 0）
+[PASS] A0d ER 文档「业务唯一索引」规则行数 = 2（必须 > 0）
+[PASS] A0e DDL 含 deleted 列的表数 = 54（必须 > 0）
+[INFO] A1w uq_auth_jti on aap_auth_token：白名单例外（追加写令牌表 aap_auth_token，吊销走 status，不做软删）
+[FAIL] A1 uq_challenge_code on aap_provider_challenge：unique index 无 `where deleted = false`（谓词=无）
+[FAIL] A1 uq_job_no on aap_detection_job：unique index 无 `where deleted = false`（谓词=无）
+[FAIL] A1 uq_quote_no on aap_quote：unique index 无 `where deleted = false`（谓词=无）
+[FAIL] A1 uq_sync_idempotency on aap_sync_task：unique index 无 `where deleted = false`（谓词=无）
+[FAIL] A1 uq_usage_hourly on aap_usage_hourly：unique index 无 `where deleted = false`（谓词=无）
+  …（中略 44 行）
+[FAIL] A4 aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:49 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+[FAIL] A4 aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:49 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+[FAIL] A4 aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:184 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+[FAIL] A4s A4 漂移 12 条
+gap-softdelete rc=1（FAIL 断言行 42）
+
+--- gap-param-reach ---
+== R49 抽查：请求参数可达性一致性 —— 第二十三类可审计不变量 ==
+不变量：契约声明的每个查询参数，必须在实现调用链上真的被使用（控制器体 → 可达服务方法，≤3 跳下游）
+真源：M=docs/backend/endpoints.json 的 query_params ⇔ I=控制器 @RequestParam 形参及其调用链
+
+解析：控制器文件 23 个、控制器方法 93 条；带查询参数的端点 25 条（查询参数共 79 个）
+定位：已定位端点 25 / 25；未定位 0（无）
+
+  [PASS] A0a 解析到控制器方法数 > 0（正向对照） | 93
+  [PASS] A0b 解析到带查询参数的端点 > 0（正向对照） | 25
+  [PASS] A0c 解析到查询参数总数 > 0（正向对照） | 79
+  [PASS] A0d 端点定位率 ≥ 90% | 已定位 25/25
+  [PASS] A0e 下游解析分支真的走到（downstream > 0；direct 分支由夹具自测覆盖——真实仓库控制器多为纯转发） | direct=0 downstream=75
+  …（中略 89 行）
+
+== 零写副作用守卫 ==
+  比对文件 3 个，md5 全等：True
+
+gap-param-reach rc=1（FAIL 断言行 5）
+
+--- gap-audit-log ---
+== R50 抽查：审计留痕一致性与完整性 —— 第二十四类可审计不变量 ==
+真源：D=DDL 列 ⇔ S=契约 schema 属性 ⇔ I=实体/视图/查询/枚举/写入 setter ⇔ M=md「审计」标注端点
+仓库根：E:\workspaces\hioas\hioas-aap-001
+
+== 解析计数 ==
+   D DDL 列=21  DDL 写语句(update/delete)=0  S schema 属性=16  S enum=18
+   I 实体字段=14  BaseEntity 列=7  视图 Row 分量=16  写入 setter=13  查询 select 列=16
+   I record 调用点=23（未能静态判定 action=0）  M md「审计」端点=3
+
+  [PASS] A0a D 解析到 DDL 列 > 0 | 21
+  [PASS] A0b S 解析到 schema 属性与 enum > 0 | 16 / 18
+  [PASS] A0c I 解析到实体字段/视图分量/枚举/写入 setter 均 > 0 | 14/16/18/13
+  …（中略 19 行）
+  [INFO] A9c ER 文档 C8「审计不可变」约束行存在（信息项）| 是
+
+== 断言汇总 ==
+  断言 18 条：PASS 16，FAIL 2
+gap-audit-log rc=1（FAIL 断言行 2）
+
+--- gap-status-machine ---
+== R51 抽查：状态机「取值域 + 迁移守卫」跨源一致性（第二十五类可审计不变量） ==
+真源：M=md 清单迁移声明/状态码 ⇔ I=实现状态写入点（SQL set + ORM setter，回查 @Table）
+      ⇔ E=ER 文档 status 取值域 ⇔ S=JSON Schema status enum ⇔ G=生成器状态目录
+
+== 解析结果（每个源都必须 > 0，否则判解析器失效） ==
+M  md 显式迁移声明 = 3 条；端点错误码行 = 70 条
+E  ER 取值域 = 20 张表 / 21 个 status 列
+S  schema status enum = 12 处
+G  生成器状态目录 = 10 个（CacheParseStatus, ContractStatus, CredentialDetectionStatus, CredentialStatus, DetectionJobStatus, PaymentStatus, ProbeStatus, ProviderStatus, QuoteStatus, SyncStatus）
+I  SQL 状态写入点 = 16（其中字面量 13 / 参数化 3）
+I  ORM setter 写入点 = 42（涉及 15 张表）
+I  未能静态判定的写入点 = 8
+  …（中略 173 行）
+[INFO]    aap-server/src/main/java/com/hioas/aap/support/idempotency/IdempotencyFilter.java response.setStatus(实参非字面量)
+[PASS] A8g 未能静态判定条数 8 ≤ 上限 30
+
+汇总：PASS 87 / FAIL 7
+gap-status-machine rc=1（FAIL 断言行 7）
+
+--- gap-time-bucket ---
+== R52 时区/桶口径抽查（root=E:\workspaces\hioas\hioas-aap-001） ==
+解析计数：RFC3339 格式串定义 17；出口调用点 24（已归一 20 / now(UTC) 派生 4 / 未判定 0）；裸 date_trunc 0；UTC 桶边界取证点 8；客户端本机日期派生 15；客户端 month 实参 3（回查命中 1）；md 时间行 1；schema date-time 88 / date 1；测试 endsWith Z 0 / parse→toInstant 1
+[PASS] P1 Java 侧解析到 RFC3339 出口调用点 24 处
+[PASS] P2 RFC3339 格式串定义 17 处
+[PASS] P3 md §0 时间约定行解析到 1 行
+[PASS] P4 客户端本机日期派生点解析到 15 处
+[PASS] P5 服务端 UTC 桶边界取证点解析到 8 处
+[PASS] P6 JSON Schema 时间字段 format 解析到 date-time=88 / date=1
+[PASS] P7 客户端 month 实参解析到 3 处（其中回查定义命中本机当前月 1 处）
+[PASS] A0 RFC3339 格式串把 Z 写作**字面量** 17 处（如 `yyyy-MM-dd'T'HH:mm:ss'Z'`）→ 实参必须先归一到 UTC，否则带偏移的墙钟会被当成 UTC 输出
+[PASS] A1 全部 24 处 RFC3339 出口实参均已归一到 UTC（显式 withOffsetSameInstant(UTC) 或 now(ZoneOffset.UTC)）→ 字面量 Z 与真实时刻一致
+[PASS] A2 实现里没有「不指定时区的 date_trunc('day'|'month'|…, timestamptz)」→ 桶边界不随 DB 会话时区漂移
+  …（中略 33 行）
+  aap-server/src/main/java/com/hioas/aap/support/AuditLogQueryService.java:141 显式 UTC 归一 | value.withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/support/NotificationService.java:201 显式 UTC 归一 | value.withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/sync/SyncAdminService.java:551  显式 UTC 归一 | value.withOffsetSameInstant(ZoneOffset.UTC)
+  aap-server/src/main/java/com/hioas/aap/usage/UsageService.java:583     显式 UTC 归一 | value.withOffsetSameInstant(ZoneOffset.UTC)
+gap-time-bucket rc=1（FAIL 断言行 1）
+
+--- gap-sensitive-fields ---
+== R53 抽查：敏感字段对外键集合跨源一致性（只读） ==
+root = E:\workspaces\hioas\hioas-aap-001
+
+[PASS] A0a 服务端出口敏感键 > 0 解析到 24 键（176 个 java 文件；其中无注解 getter 贡献 1 键）
+[PASS] A0b 契约声明敏感键 > 0 解析到 23 键（82 个 schema 文件）
+[PASS] A0c 客户端敏感读取键 > 0 直接 14 键 / 候选 13 键（69 个客户端源文件）
+[PASS] A0d DDL 密文列 > 0 8 个密文/指纹列（8 个迁移文件）
+[PASS] A0e 掩码实现 > 0 解析到 ['maskApiKey', 'maskPhone']
+[PASS] A0f 掩码调用点 > 0 解析到 6 个调用点
+[FAIL] A1 客户端读取的契约形态键 ⊆ 服务端出口键 契约形态键 11 个，未在服务端出口集合中：['contact_phone_mask']
+      [FAIL] A1 键 `contact_phone_mask` 客户端读取点：['aap-client/src/utils/profile-model.ts:166']
+      [PASS] A1 键 `api_key` 客户端 1 处读取点，服务端出口于 aap-server/src/main/java/com/hioas/aap/credential/CredentialViews.java
+  …（中略 26 行）
+
+== 汇总 ==
+断言 FAIL 数 = 3（A1 客户端读取的契约形态键 ⊆ 服务端出口键, A2 服务端出口的敏感键 ⊆ 契约声明键, A2c 逐端点响应 DTO 敏感键 ⇔ response_model schema（已定位的端点全部一致））
+信息项 = 5
+gap-sensitive-fields rc=1（FAIL 断言行 9）
+
+--- gap-logical-fk ---
+[PASS] A0g   控制器路由定位率 90/90（全清单已定位）
+[PASS] A0a   解析到 55 个DDL 表（正向对照）
+[PASS] A0b   解析到 80 个DDL *_id 列（正向对照）
+[PASS] A0c   解析到 23 个ER FK* 声明（正向对照）
+[PASS] A0d   解析到 11 个请求体 *_id 字段（正向对照）
+[PASS] A0e   解析到 93 个控制器路由（正向对照）
+[PASS] A0f   解析到 19 个测试引用不存在断言（正向对照）
+[PASS] A1    ER 的 23 条 FK* 声明在 DDL 对应表里全部存在
+[PASS] A1b   ER 的 FK* 所属表与目标表全部在 DDL 里存在
+[PASS] A2    ER 声明「逻辑外键，不建 DB 级 FK」且 DDL 实测 FK 约束 = 0（双源一致）
+[PASS] A5    测试对「引用不存在」有 19 处断言（覆盖 13 个测试类，正向对照）
+[FAIL] A3    请求体引用了 3 个未在 ER 声明为 FK* 的字段：batch_id, file_id, logo_file_id
+  …（中略 21 行）
+[INFO] A6    DDL 里 ER 未声明为 FK* 的 *_id 列名 22 个：actor_id, aggregate_id, batch_id, binding_id, biz_id, channel_id, endpoint_id, event_id, file_id, last_batch_id, last_compilation_id, last_detection_job_id, latest_report_id, logo_file_id, operator_id, pdf_file_id, recipient_id, sms_code_id, target_id, template_id, trace_id, voucher_file_id
+
+汇总：PASS 11 / FAIL 2 / INFO 21
+关键计数：DDL 表 55 · *_id 列 80 · DB 级 FK 约束 0 · ER FK* 声明 23 · 请求体引用端点 9 · 路由 93 · 测试断言 19
+gap-logical-fk rc=1（FAIL 断言行 2）
+
+--- gap-paging-range ---
+# R56 抽查：分页参数取值域一致性（第三十类可审计不变量） root=E:\workspaces\hioas\hioas-aap-001
+[INFO] M2: md 逐端点声明分页的端点 16 条（openapi pageSize 参数 23 个）
+[PASS] A0a: md §0 分页行解析：page 默认=1 / pageSize 默认=20 / 上限=200
+[PASS] A0b: 实现常量解析：DEFAULT_PAGE_SIZE=20 / MAX_PAGE_SIZE=200
+[PASS] A0c: openapi 解析到 page/pageSize 参数块 46 个
+[PASS] A0d: 控制器 @RequestParam(page/pageSize) 解析到 42 处
+[PASS] A0e: 客户端 pageSize 字面量实参解析到 7 处
+[PASS] A0f: 测试越界行为断言解析到 1 处（page=0 / pageSize>200）
+[PASS] A0g: 契约 page.schema.json 解析到 page/pageSize 属性（required=['items', 'page', 'pageSize', 'total']）
+[PASS] A1: 缺省页大小：实现 20 vs md §0 20
+[PASS] A2: 页大小上限：实现 200 vs md §0 200
+[PASS] A2b: 越界语义：夹取=True / page 下限回 1=True / 不抛错=True
+  …（中略 6 行）
+[PASS] A7: 手写 limit 字面量（>1 或带 offset）的分页写点 0 处（应为 0）；PageQuery/JdbcTemplate 驱动的 `limit ? offset ?` 语句 13 处（正向对照 > 0）
+[PASS] A0h: 分页语句正向对照：解析到 `limit ? offset ?` 13 处
+[PASS] A8: 客户端 pageSize 字面量越界 0 处（取值集合 [1, 20]）；客户端夹取逻辑 0 处（上限由服务端夹取，客户端只传固定页大小）
+汇总：PASS 16 / FAIL 3 / INFO 1
+gap-paging-range rc=1（FAIL 断言行 3）
+
+--- gap-coverage-gap ---
+留档解析器自检通过 2/2（规范写法 + 上一轮的 GAP 写法，均为正向对照）
+R115 留档解析到分类行 18 条（正向对照：> 0）
+== R116 覆盖缺口复核（R80/R82 已补回 R45–R56 十类；R83–R115 复核真缺口 0，本轮再核对无残留缺口，坑 169/177） ==
+**本扫描的范围（须诚实声明）**：只扫 `aap-r*` 临时目录里名字含 spotcheck/audit 的脚本 → **`tools/` 目录不在范围内**；
+本轮另按坑 169/177/182 做了 `tools/` 侧的同族**只读事实量化**（见 evidence/gap-tools-scan-R116.txt）：
+`tools/*.py` 共 27 个、driver 引用 27 个 → **缺口 = 0**（`tools/evidence-secrets.py` 系 R109 补入 driver 那一轮的修复；本轮只复核该事实，不扩面）。
+判据：解析 `VAR = Path(T + "dir")` 映射 + `str(VAR / "name")` 引用（坑 178 的修正版）；
+      两侧（本轮 gap 集合 / R115 留档分类行）走同一个 key `aap-rNN/name.py`（坑 57）
+留档解析器：支持规范写法（行首 ①②③）与上一轮的 `GAP <cls> <key>` 写法，合成夹具正向对照 2/2
+driver 里解析到的目录变量 = 27 个（正向对照：> 20）
+driver 引用脚本数 = 79（正向对照：> 40）
+候选（名字含 spotcheck/audit）= 69 个（正向对照：> 0）
+  …（中略 24 行）
+① aap-r67-spotcheck/spotcheck-tx-boundary-R67-v1.py
+
+结论：无残留缺口、无新增缺口（R80/R82 的十类补入已全部在序列内；本轮缺口集合与 R115 留档逐条一致、③ 真缺口 = 0 → **本扫描的缺口集合无变化**；另按坑 169/177/182 复核 `tools/` 侧 driver 覆盖：`tools/*.py` 27 个、driver 引用 27 个 → 缺口 = 0（该侧由 R109 补齐；本轮只做只读事实量化、不扩面），见 evidence/gap-tools-scan-R116.txt；R109 为纯巡检轮 + 1 处覆盖缺口修复，复核链由 R85 补入 driver），见 evidence/audit-regression-R116.txt 的 rc 对齐段）
+CR = 0
+gap-coverage-gap rc=0（FAIL 断言行 0）
+
+== 负向自测（40 个） ==
+
+gen-selftest rc=0 | 末行：结果：全部通过（14 条断言，自测有判别力）
+endpoint-tests-selftest rc=0 | 末行：夹具目录：C:\Users\laitz\AppData\Local\Temp\aap-audit-selftest-ox2ag20l
+contract-keys-selftest rc=0 | 末行：合计 11 条断言：PASS 11，FAIL 0
+auth-contract-selftest rc=0 | 末行：自测断言 20 条：PASS 20，FAIL 0
+routes-selftest rc=0 | 末行：自测断言 20 条：PASS 20，FAIL 0
+error-codes-selftest rc=0 | 末行：自测断言 12 条：PASS 12，FAIL 0
+query-params-selftest rc=0 | 末行：自测断言 21 条：PASS 21，FAIL 0
+time-format-selftest rc=0 | 末行：自测断言 20 条：PASS 20，FAIL 0
+enum-sets-selftest rc=0 | 末行：== 自测汇总：29/29 PASS ==
+response-shape-selftest rc=0 | 末行：自测 19 条：PASS 19，FAIL 0
+id-types-selftest rc=0 | 末行：== 自测结果：PASS 16 / FAIL 0 ==
+request-body-selftest rc=0 | 末行：== 自测结果：PASS 24 / FAIL 0 ==
+secret-leak-selftest rc=0 | 末行：自测 3 条：PASS 3，FAIL 0
+spotcheck-required-selftest rc=0 | 末行：夹具目录：C:\Users\laitz\AppData\Local\Temp\aap-r57-spotcheck-fixtures
+spotcheck-unique-selftest rc=0 | 末行：自测汇总：18/18 PASS
+spotcheck-success-shape-selftest rc=0 | 末行：自测汇总：16/16 PASS
+spotcheck-string-length-selftest rc=0 | 末行：自测汇总：28/28 PASS
+spotcheck-numeric-range-selftest rc=0 | 末行：汇总：33 条断言，FAIL 0
+spotcheck-idempotency-selftest rc=0 | 末行：自测汇总：OK 76 / BAD 0
+spotcheck-lock-selftest rc=0 | 末行：自测汇总：OK 38 / BAD 0
+spotcheck-throttle-selftest rc=1 | 末行：失败项：['真实仓库 FAIL 集合 = {A3a,A3b,A4a,A4b,A4c,A5,A6}']
+spotcheck-audit-cols-selftest rc=0 | 末行：SELFTEST PASS 36/36
+spotcheck-state-machine-selftest rc=0 | 末行：== 自测汇总：全部通过（FAIL 0） ==
+spotcheck-tx-boundary-selftest rc=0 | 末行：自测 31 项：PASS 31 / FAIL 0
+spotcheck-http-method-selftest rc=0 | 末行：自测：31 条，PASS 31 / FAIL 0
+spotcheck-pagination-selftest rc=0 | 末行：== 汇总：34/34 PASS，FAIL 0 条 [] ==
+spotcheck-entity-ddl-selftest rc=0 | 末行：== 自测汇总：FAIL 0 项 [] ==
+spotcheck-config-selftest rc=0 | 末行：结论：全部通过
+spotcheck-outbound-selftest rc=0 | 末行：自测 36 条：PASS 36，FAIL 0
+gap-pagination-order-selftest rc=0 | 末行：== 自测结果：PASS 9 / FAIL 0 ==
+gap-pagination-defaults-selftest rc=0 | 末行：== 自测结果：PASS 20 / FAIL 0 ==
+gap-softdelete-selftest rc=0 | 末行：--- 判别力自测：33 项，全 PASS ---
+gap-param-reach-selftest rc=0 | 末行：== 汇总：PASS 22 / FAIL 0 ==
+gap-audit-log-selftest rc=0 | 末行：自测 27 条：PASS 27，FAIL 0
+gap-status-machine-selftest rc=0 | 末行：自测汇总：PASS 35 / FAIL 0
+gap-time-bucket-selftest rc=0 | 末行：汇总: PASS 25 / FAIL 0
+gap-sensitive-fields-selftest rc=0 | 末行：用例 36 条，PASS 36，FAIL 0（无）
+gap-logical-fk-selftest rc=0 | 末行：自测汇总：PASS 14 / 14
+gap-paging-range-selftest rc=0 | 末行：自测 23 条：PASS 23，FAIL 0
+gap-coverage-gap-selftest rc=0 | 末行：自测汇总：PASS 5 / 5（前置对照 1 + T0 基线 + 2 条注入 + T3 分支对照）
+
+== 零写副作用守卫：审计后指纹比对 ==
+PASS 全部 84 个产物 (size,md5) 全等 → 只读审计零写副作用
+
+== R116 rc 序列与 R115 逐条对齐核对（坑 132/169） ==
+R115 rc 来源：E:\workspaces\hioas\hioas-aap-001\.agents\state\evidence\audit-regression-R115-rcseq.txt
+R115 解析到 82 条 rc；R116 解析到 82 条 rc
+回归面条数（R115 → R116）：82 → 82（新增 0、消失 0、rc 变化 0）
+逐条一致 82 条
+
+== rc 序列（82 条） ==
+gen-check rc=0
+openapi-parses rc=0
+endpoint-tests rc=0
+contract-keys rc=0
+auth-contract rc=1
+routes rc=0
+error-codes rc=1
+query-params rc=1
+time-format rc=0
+enum-sets rc=1
+response-shape rc=1
+id-types rc=1
+request-body rc=1
+secret-leak rc=0
+evidence-secrets rc=0
+spotcheck-required rc=1
+spotcheck-unique rc=1
+spotcheck-success-shape rc=1
+spotcheck-string-length rc=1
+spotcheck-numeric-range rc=1
+spotcheck-idempotency rc=1
+spotcheck-lock rc=1
+spotcheck-throttle rc=1
+spotcheck-audit-cols rc=1
+spotcheck-state-machine rc=1
+spotcheck-tx-boundary rc=1
+spotcheck-http-method rc=1
+spotcheck-pagination rc=1
+spotcheck-entity-ddl rc=0
+spotcheck-config rc=1
+spotcheck-outbound rc=1
+gap-pagination-order rc=1
+gap-pagination-defaults rc=1
+gap-softdelete rc=1
+gap-param-reach rc=1
+gap-audit-log rc=1
+gap-status-machine rc=1
+gap-time-bucket rc=1
+gap-sensitive-fields rc=1
+gap-logical-fk rc=1
+gap-paging-range rc=1
+gap-coverage-gap rc=0
+gen-selftest rc=0
+endpoint-tests-selftest rc=0
+contract-keys-selftest rc=0
+auth-contract-selftest rc=0
+routes-selftest rc=0
+error-codes-selftest rc=0
+query-params-selftest rc=0
+time-format-selftest rc=0
+enum-sets-selftest rc=0
+response-shape-selftest rc=0
+id-types-selftest rc=0
+request-body-selftest rc=0
+secret-leak-selftest rc=0
+spotcheck-required-selftest rc=0
+spotcheck-unique-selftest rc=0
+spotcheck-success-shape-selftest rc=0
+spotcheck-string-length-selftest rc=0
+spotcheck-numeric-range-selftest rc=0
+spotcheck-idempotency-selftest rc=0
+spotcheck-lock-selftest rc=0
+spotcheck-throttle-selftest rc=1
+spotcheck-audit-cols-selftest rc=0
+spotcheck-state-machine-selftest rc=0
+spotcheck-tx-boundary-selftest rc=0
+spotcheck-http-method-selftest rc=0
+spotcheck-pagination-selftest rc=0
+spotcheck-entity-ddl-selftest rc=0
+spotcheck-config-selftest rc=0
+spotcheck-outbound-selftest rc=0
+gap-pagination-order-selftest rc=0
+gap-pagination-defaults-selftest rc=0
+gap-softdelete-selftest rc=0
+gap-param-reach-selftest rc=0
+gap-audit-log-selftest rc=0
+gap-status-machine-selftest rc=0
+gap-time-bucket-selftest rc=0
+gap-sensitive-fields-selftest rc=0
+gap-logical-fk-selftest rc=0
+gap-paging-range-selftest rc=0
+gap-coverage-gap-selftest rc=0
+
+== 回归面脚本清单（绝对路径 + 存在性；坑 169） ==
+gen-check                          EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/gen-backend-models.py
+openapi-parses                     EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/check-openapi-parses.py
+endpoint-tests                     EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-endpoint-tests.py
+contract-keys                      EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-contract-keys.py
+auth-contract                      EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-auth-contract.py
+routes                             EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-routes.py
+error-codes                        EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-error-codes.py
+query-params                       EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-query-params.py
+time-format                        EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-time-format.py
+enum-sets                          EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-enum-sets.py
+response-shape                     EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-response-shape.py
+id-types                           EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-id-types.py
+request-body                       EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-request-body.py
+secret-leak                        EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-secret-leak.py
+evidence-secrets                   EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/evidence-secrets.py
+spotcheck-required                 EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r57-spotcheck/spotcheck-required-R57.py
+spotcheck-unique                   EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r58-spotcheck/spotcheck-unique-R58.py
+spotcheck-success-shape            EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r59-spotcheck/spotcheck-success-shape-R59.py
+spotcheck-string-length            EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r60-spotcheck/spotcheck-string-length-R60-v6.py
+spotcheck-numeric-range            EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r61-spotcheck/spotcheck-numeric-range-R61.py
+spotcheck-idempotency              EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r62-spotcheck/spotcheck-idempotency-R62.py
+spotcheck-lock                     EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r63-work/spotcheck-lock-R63.py
+spotcheck-throttle                 EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r64-spotcheck/spotcheck-throttle-R64.py
+spotcheck-audit-cols               EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r65-spotcheck/spotcheck-audit-cols-R65.py
+spotcheck-state-machine            EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r66-spotcheck/spotcheck-state-machine-R66-v2.py
+spotcheck-tx-boundary              EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r67-spotcheck/spotcheck-tx-boundary-R67.py
+spotcheck-http-method              EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r68-spotcheck/spotcheck-http-method-R68.py
+spotcheck-pagination               EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r69-spotcheck/spotcheck-pagination-R69.py
+spotcheck-entity-ddl               EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r70-spotcheck/spotcheck-entity-ddl-R70.py
+spotcheck-config                   EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r54-spotcheck/spotcheck-config.py
+spotcheck-outbound                 EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r72-spotcheck/spotcheck-outbound-R72.py
+gap-pagination-order               EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r45-spotcheck/spotcheck-pagination-order-v2.py
+gap-pagination-defaults            EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r46-spotcheck/audit-pagination-defaults.py
+gap-softdelete                     EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r48-spotcheck/spotcheck-softdelete-R48.py
+gap-param-reach                    EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r49-spotcheck/aap-r49-param-reach.py
+gap-audit-log                      EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r50-spotcheck/aap-r50-audit-log.py
+gap-status-machine                 EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r51-spotcheck/aap-r51-status-machine.py
+gap-time-bucket                    EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r52-spotcheck/spotcheck-time-bucket-v2.py
+gap-sensitive-fields               EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r53-spotcheck/spotcheck-sensitive-fields-v2.py
+gap-logical-fk                     EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r55-spotcheck/spotcheck-logical-fk-R55.py
+gap-paging-range                   EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r56-spotcheck/spotcheck-paging.py
+gap-coverage-gap                   EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r116-work/gap-verify-R116-v2.py
+gen-selftest                       EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/gen-backend-models-selftest.py
+endpoint-tests-selftest            EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-endpoint-tests-selftest.py
+contract-keys-selftest             EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-contract-keys-selftest.py
+auth-contract-selftest             EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-auth-contract-selftest.py
+routes-selftest                    EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-routes-selftest.py
+error-codes-selftest               EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-error-codes-selftest.py
+query-params-selftest              EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-query-params-selftest.py
+time-format-selftest               EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-time-format-selftest.py
+enum-sets-selftest                 EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-enum-sets-selftest.py
+response-shape-selftest            EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-response-shape-selftest.py
+id-types-selftest                  EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-id-types-selftest.py
+request-body-selftest              EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-request-body-selftest.py
+secret-leak-selftest               EXISTS  E:/workspaces/hioas/hioas-aap-001/tools/audit-secret-leak.py
+spotcheck-required-selftest        EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r57-spotcheck/spotcheck-required-R57-selftest.py
+spotcheck-unique-selftest          EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r58-spotcheck/spotcheck-unique-R58-selftest.py
+spotcheck-success-shape-selftest   EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r59-spotcheck/spotcheck-success-shape-R59-selftest.py
+spotcheck-string-length-selftest   EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r60-spotcheck/spotcheck-string-length-R60-selftest.py
+spotcheck-numeric-range-selftest   EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r61-spotcheck/spotcheck-numeric-range-R61-selftest.py
+spotcheck-idempotency-selftest     EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r62-spotcheck/spotcheck-idempotency-R62-selftest.py
+spotcheck-lock-selftest            EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r63-work/spotcheck-lock-R63-selftest.py
+spotcheck-throttle-selftest        EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r64-spotcheck/spotcheck-throttle-R64-selftest.py
+spotcheck-audit-cols-selftest      EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r65-spotcheck/spotcheck-audit-cols-R65-selftest.py
+spotcheck-state-machine-selftest   EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r66-spotcheck/spotcheck-state-machine-R66-selftest.py
+spotcheck-tx-boundary-selftest     EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r67-spotcheck/spotcheck-tx-boundary-R67-selftest.py
+spotcheck-http-method-selftest     EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r68-spotcheck/spotcheck-http-method-R68-selftest.py
+spotcheck-pagination-selftest      EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r69-spotcheck/spotcheck-pagination-R69-selftest.py
+spotcheck-entity-ddl-selftest      EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r70-spotcheck/spotcheck-entity-ddl-R70-selftest.py
+spotcheck-config-selftest          EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r54-spotcheck/spotcheck-config-selftest.py
+spotcheck-outbound-selftest        EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r72-spotcheck/spotcheck-outbound-R72-selftest.py
+gap-pagination-order-selftest      EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r45-spotcheck/spotcheck-pagination-order-selftest.py
+gap-pagination-defaults-selftest   EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r46-spotcheck/audit-pagination-defaults-selftest.py
+gap-softdelete-selftest            EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r48-spotcheck/spotcheck-softdelete-R48.py
+gap-param-reach-selftest           EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r49-spotcheck/aap-r49-param-reach-selftest.py
+gap-audit-log-selftest             EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r50-spotcheck/aap-r50-audit-log-selftest.py
+gap-status-machine-selftest        EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r51-spotcheck/aap-r51-status-machine-selftest.py
+gap-time-bucket-selftest           EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r52-spotcheck/spotcheck-time-bucket-selftest.py
+gap-sensitive-fields-selftest      EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r53-spotcheck/spotcheck-sensitive-fields-selftest.py
+gap-logical-fk-selftest            EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r55-spotcheck/spotcheck-logical-fk-R55.py
+gap-paging-range-selftest          EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r56-spotcheck/spotcheck-paging-selftest.py
+gap-coverage-gap-selftest          EXISTS  C:/Users/laitz/AppData/Local/Temp/aap-r116-work/gap-verify-R116-selftest-v2.py
+清单条数 = 82（正向对照：应为 82 = 42 审计/抽查 + 40 自测）；MISSING = 0
+
+== 正向对照 ==
+解析到的 FAIL 断言行数 = 125（期望 > 0，否则收集器失效 → 不得据此判零回归）
+零写副作用守卫 = PASS
+
+== 跨轮 FAIL 明细比对（R115 → R116；键 = 剥行首来源前缀，排除 [PASS] 行） ==
+R115 解析到 125 行（唯一键 125）
+R116 解析到 125 行（唯一键 125）
+新增 0 行：**（纯巡检轮，期望 0；非 0 需逐条解释）**
+消失 0 行：
+
+== 唯一 FAIL 断言行集合（逐行，供跨轮比对） ==
+[FAIL ] A2 ADM-R05 查询参数 `pageSize`：契约(endpoints.json/openapi)声明，但实现控制器**未接收**（生成物侧多声明；与 audit-query-params 的 A1/A3b 同源）
+[FAIL ] A2 ADM-R05 查询参数 `page`：契约(endpoints.json/openapi)声明，但实现控制器**未接收**（生成物侧多声明；与 audit-query-params 的 A1/A3b 同源）
+[FAIL ] A2 QT-06 查询参数 `pageSize`：契约(endpoints.json/openapi)声明，但实现控制器**未接收**（生成物侧多声明；与 audit-query-params 的 A1/A3b 同源）
+[FAIL ] A2 QT-06 查询参数 `page`：契约(endpoints.json/openapi)声明，但实现控制器**未接收**（生成物侧多声明；与 audit-query-params 的 A1/A3b 同源）
+[FAIL ] A2 契约声明的查询参数控制器侧都接收（@RequestParam 集合) | 未接收 4 条
+[FAIL ] A4b 响应体上限**在读入之后**才生效：NewApiSyncClient, UpstreamProbe 用 BodyHandlers.ofByteArray() 先全量读入内存再截断 → PRD 声明「响应体≤10MB」的防护在超大响应下不成立（应先按 Content-Length/限流流式读取）
+[FAIL ] A5 重定向次数无显式上限：UpstreamProbe.Redirect.NORMAL, NewApiSyncClient.Redirect.NORMAL，PRD 声明「重定向≤3」未落地（依赖 JDK 内部默认上限，且不可配置为 3）
+[FAIL ] A5b 重定向目标不过 SSRF 守卫：UpstreamProbe, NewApiSyncClient 跟随重定向（NORMAL），而 OutboundUrlGuard 只校验初始 base_url，重定向由 JDK 客户端内部完成 → 上游可用 302 把请求引向内网/环回/元数据地址，PRD 声明「禁内网/环回/元数据」在重定向路径上不成立
+[FAIL ] A6 契约目录的 action 全部有实现调用点 | 孤儿 action 1 个：['SYNC_WRITE_PRICE']
+[FAIL ] A7 UpstreamProbe.probe 用 catch(Exception) 兜底且其中含 httpClient.send（可抛 InterruptedException），但全类无 Thread.currentThread().interrupt() → 中断/优雅停机信号被吞（同类 NewApiSyncClient 已正确处理）
+[FAIL ] A7 写入路径覆盖全部非自动列 | 声明但写入路径从不填充的列 1 个：['user_agent']
+[FAIL ] A8c PRD 声明「网络失败重试 2 次」，但测试桩只覆盖状态 [200, 401] —— **5xx/网络错误的重试路径零用例背书**（重试分支从未被执行，204 例全绿也看不见；坑 143-① 数值背书缺失）
+[FAIL ] ReviewService.java:57 ['CLAIMED', 'PENDING']：契约(schema/openapi)未声明该取值域，但 ER 文档有据（列 ['status']）→ 契约完备性项
+[FAIL ] SyncAdminService.java:73 ['FAILED', 'MANUAL']：契约(schema/openapi)未声明该取值域，但 ER 文档有据（列 ['status']）→ 契约完备性项
+[FAIL ] common\envelope.schema.json:code 取值 ['0', 'E-1001', 'E-1101', 'E-1102', 'E-1104', 'E-1201', 'E-1301', 'E-1302', 'E-1303', 'E-1304', 'E-1305', 'E-1401', 'E-1402', 'E-1403', 'E-1404', 'E-1405', 'E-1406', 'E-1407', 'E-1501', 'E-1505', 'E-1601', 'E-1602', 'E-1701', 'E-1801', 'E-1901', 'E-1902', 'E-1903', 'E-2001'] 不匹配任何 md §5 族（与 openapi 族 ResultCode 相同 → 疑似 §5 漏登记）
+[FAIL ] common\error.schema.json:code 取值 ['E-1001', 'E-1101', 'E-1102', 'E-1104', 'E-1201', 'E-1301', 'E-1302', 'E-1303', 'E-1304', 'E-1305', 'E-1401', 'E-1402', 'E-1403', 'E-1404', 'E-1405', 'E-1406', 'E-1407', 'E-1501', 'E-1505', 'E-1601', 'E-1602', 'E-1701', 'E-1801', 'E-1901', 'E-1902', 'E-1903', 'E-2001'] 不匹配任何 md §5 族（是 openapi 族 ResultCode 的子集 → 疑似 §5 漏登记）
+[FAIL ] models\audit-log.schema.json:action 取值 ['AUTH_LOGIN', 'CONFIG_PUBLISH', 'CONTRACT_SIGN', 'CREDENTIAL_REVEAL', 'DETECTION_RELEASE', 'PAYMENT_CONFIRM', 'PROFILE_UPDATE', 'PROVIDER_RESUME', 'PROVIDER_SUSPEND', 'QUOTE_APPROVE', 'QUOTE_CREATE', 'QUOTE_REJECT', 'QUOTE_SAVE', 'QUOTE_SUBMIT', 'QUOTE_VOID', 'QUOTE_WITHDRAW', 'SYNC_EXECUTE', 'SYNC_WRITE_PRICE'] 不匹配任何 md §5 族（与 openapi 族 AuditAction 相同 → 疑似 §5 漏登记）
+[FAIL ] models\credential-detail.schema.json:detection_status 取值 ['FAIL', 'PASS', 'PENDING', 'RUNNING'] 不匹配任何 md §5 族（与 openapi 族 CredentialDetectionStatus 相同 → 疑似 §5 漏登记）
+[FAIL ] models\credential-row.schema.json:detection_status 取值 ['FAIL', 'PASS', 'PENDING', 'RUNNING'] 不匹配任何 md §5 族（与 openapi 族 CredentialDetectionStatus 相同 → 疑似 §5 漏登记）
+[FAIL ] models\review-task.schema.json:reject_reason_code 取值 ['CACHE_PRICE_MISSING', 'MISSING_INFO', 'OTHER', 'PRICE_STRUCTURE_INVALID', 'PRICE_TOO_HIGH', 'TECH_RISK', 'VALIDITY_ISSUE'] 不匹配任何 md §5 族（与 openapi 族 QuoteRejectReason 相同 → 疑似 §5 漏登记）
+[FAIL ] requests\contract-sign.schema.json:sign_method 取值 ['SEAL', 'SMS'] 不匹配任何 md §5 族
+[FAIL ] requests\payment-record.schema.json:currency 取值 ['USD'] 不匹配任何 md §5 族
+[FAIL ] requests\provider-profile-update.schema.json:industry_category 取值 ['AGGREGATOR', 'ORIGINAL', 'RESELLER'] 不匹配任何 md §5 族（与 openapi 族 IndustryCategory 相同 → 疑似 §5 漏登记）
+[FAIL ] requests\qualification-create.schema.json:category 取值 ['AUTHORIZATION', 'BUSINESS_LICENSE', 'OTHER'] 不匹配任何 md §5 族
+[FAIL ] requests\quote-create.schema.json:currency 取值 ['USD'] 不匹配任何 md §5 族
+[FAIL ] requests\review-reject.schema.json:reason_code 取值 ['CACHE_PRICE_MISSING', 'MISSING_INFO', 'OTHER', 'PRICE_STRUCTURE_INVALID', 'PRICE_TOO_HIGH', 'TECH_RISK', 'VALIDITY_ISSUE'] 不匹配任何 md §5 族（与 openapi 族 QuoteRejectReason 相同 → 疑似 §5 漏登记）
+[FAIL] A1 md 逐行 `q：…` = endpoints.json query_params：不一致 3 条
+[FAIL] A1 openapi 每个 page/pageSize 参数都声明 default：缺失 46/46（样例 PROV-03(page)、PROV-03(pageSize)、CRED-01(page)、CRED-01(pageSize)、RPT-01(page)）
+[FAIL] A1 uq_challenge_code on aap_provider_challenge：unique index 无 `where deleted = false`（谓词=无）
+[FAIL] A1 uq_job_no on aap_detection_job：unique index 无 `where deleted = false`（谓词=无）
+[FAIL] A1 uq_quote_no on aap_quote：unique index 无 `where deleted = false`（谓词=无）
+[FAIL] A1 uq_sync_idempotency on aap_sync_task：unique index 无 `where deleted = false`（谓词=无）
+[FAIL] A1 uq_usage_hourly on aap_usage_hourly：unique index 无 `where deleted = false`（谓词=无）
+[FAIL] A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/compile/CompilationService.java aap_compiled_expression.gate_status 写入=['FAILED', 'VERIFIED'] 越界=['FAILED']（ER=['COMPILED', 'CONFIRMED', 'REJECTED', 'VERIFIED']）[ORM]
+[FAIL] A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/compile/CompilationService.java aap_compiled_expression.status 写入=['FAILED', 'VERIFIED'] 越界=['FAILED']（ER=['COMPILED', 'CONFIRMED', 'DRAFT', 'PUBLISHED', 'SUPERSEDED', 'VERIFIED', 'VERIFY_FAILED']）[ORM]
+[FAIL] A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java aap_detection_job.status 写入=['CANCELLED'] 越界=['CANCELLED']（ER=['COMPLETED', 'FAILED', 'PARTIAL_DONE', 'QUEUED', 'REPORT_GENERATED', 'RUNNING']）[ORM]
+[FAIL] A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/review/ReviewService.java aap_quote.status 写入=['REVIEWING'] 越界=['REVIEWING']（ER=['APPROVED', 'CONTRACT_CREATED', 'CONVERTED', 'DRAFT', 'IN_REVIEW', 'REJECTED', 'SUBMITTED', 'VOID']）[ORM]
+[FAIL] A1 客户端读取的契约形态键 ⊆ 服务端出口键 契约形态键 11 个，未在服务端出口集合中：['contact_phone_mask']
+[FAIL] A1 手写 SQL 状态变更**缺 from 守卫** 3 条（非法流转会被静默接受）：aap-server/src/main/java/com/hioas/aap/sync/SyncAdminService.java:328 update aap_channel_binding set status = ?, last_synced_a（表 aap_channel_binding，to=?，参数化目标状态） | aap-server/src/main/java/com/hioas/aap/sync/SyncAttemptRecorder.java:33 update aap_sync_task set status = ?, attempt_count = ?, （表 aap_sync_task，to=?，参数化目标状态） | aap-server/src/main/java/com/hioas/aap/usage/UsageService.java:279 update aap_usage_sync_cursor set cursor_hour = ?, last_r（表 aap_usage_sync_cursor，to=?，参数化目标状态）
+[FAIL] A1 手写 insert 未填充审计列 3 条：SyncAttemptRecorder.java:42 insert into aap_sync_operation 缺 created_by+updated_by（无 ORM 实体） | UsageService.java:246 insert into aap_usage_hourly 缺 created_by+updated_by（无 ORM 实体） | UsageService.java:287 insert into aap_usage_sync_cursor 缺 created_by+updated_by（无 ORM 实体）
+[FAIL] A1 短信阈值不一致：md=[('ttl(秒)', 300, 300), ('频控窗口(秒)', 60, 60), ('锁定次数', 5, 5), ('锁定时长(分钟)', 15, None)] yml={'ttl-seconds': 300, 'resend-interval-seconds': 60, 'max-attempts': 5, 'lock-minutes': None, 'daily-quota': 5} 偏差=[('锁定时长(分钟)', 15, None)]
+[FAIL] A1 键 `contact_phone_mask` 客户端读取点：['aap-client/src/utils/profile-model.ts:166']
+[FAIL] A10 O openapi 逐 operation 声明该头：声明端点数=3 / openapi 声明数=0（in:header 总点数=0）→ 生成物侧漏声明（契约测试只读 JSON Schema，头不在 schema 里，204 例全绿也看不见）
+[FAIL] A1b  O openapi 逐 operation 声明 `in: header`（Idempotency-Key）的条数=0，而 M 声明该头的端点数=10 → 生成物侧漏声明（第三处真源缺失；契约测试只读 JSON Schema，头不在 schema 里，204 例全绿也看不见）
+[FAIL] A1b 孤儿请求模型 schema 文件 = 0（仓库里有、清单无端点引用）：孤儿 1 个：['payment-record']
+[FAIL] A1b 实现写入的状态不在生成器声明域内：aap_detection_job.status 写入=['CANCELLED', 'COMPLETED', 'QUEUED'] 越界=['CANCELLED']（最匹配目录 DetectionJobStatus=['COMPLETED', 'FAILED', 'PARTIAL_DONE', 'QUEUED', 'REPORT_GENERATED', 'RUNNING']）
+[FAIL] A1b 实现写入的状态不在生成器声明域内：aap_quote.status 写入=['APPROVED', 'DRAFT', 'REJECTED', 'REVIEWING', 'SUBMITTED', 'VOID'] 越界=['REVIEWING']（最匹配目录 QuoteStatus=['APPROVED', 'CONTRACT_CREATED', 'CONVERTED', 'DRAFT', 'IN_REVIEW', 'REJECTED', 'SUBMITTED', 'VOID']）
+[FAIL] A1b 读取点键未在任一 yml 声明、仅靠内联默认 = 1 条（运维在 yml 里找不到锚点，与其它键处理不一致）：app.detection.probe-timeout-seconds (aap-server/src/main/java/com/hioas/aap/credential/CredentialService.java:71，内联默认 '10')
+[FAIL] A1s A1 漂移 5 条 / 白名单 3 条（上限 3）
+[FAIL] A2 openapi 内联枚举名全部在 md §5 登记 | 孤儿 5: AuditAction(18), CredentialDetectionStatus(4), IndustryCategory(3), QuoteRejectReason(7), ResultCode(28)
+[FAIL] A2 openapi 声明分页 ⇔ 实现返回分页形状 DTO（items+page+pageSize+total）：不一致 36 条（openapi 与实现至少一侧错）
+[FAIL] A2 openapi 每个 pageSize 参数都声明 maximum：缺失 23/23
+[FAIL] A2 「仅靠强预查（查重后插入）、无捕获、无 upsert」且唯一列名命中契约表面 5 条 —— 预查与写入之间无锁，并发重复提交撞唯一索引 → 500 E-2001，而契约承诺 409 业务码：uq_provider_uscc,uq_credential_primary,uq_credential_fingerprint,uq_job_active,uq_quote_item_model
+[FAIL] A2 失配语义在实现内部即分叉：['E-1104', 'E-1601']（同一「乐观锁失配」语义用了两种码；逐站点 [('CredentialService.java#update', 'E-1601'), ('ProviderService.java#updateProfile', 'E-1601'), ('QuoteService.java#saveItem', 'E-1104')]）
+[FAIL] A2 手写 update / upsert 分支未刷新 updated_by 6 处：DetectionConfigService.java:207 update aap_detection_config 的 set 缺 updated_by（无 ORM 实体） | ReportTemplateService.java:173 update aap_report_template 的 set 缺 updated_by（无 ORM 实体） | NotificationService.java:131 update aap_notification 的 set 缺 updated_by（有 ORM 实体（手写路径绕过监听器）） | SyncAttemptRecorder.java:34 update aap_sync_task 的 set 缺 updated_by（无 ORM 实体） | UsageService.java:246 upsert aap_usage_hourly 的 do-update 分支缺 updated_by（已刷 updated_at 却不刷 updated_by） | UsageService.java:280 update aap_usage_sync_cursor 的 set 缺 updated_by（无 ORM 实体）
+[FAIL] A2 无「必填同时可空」的自相矛盾属性：矛盾模型 4 个：{'contract-issue': ['file_id'], 'detection-job-create': ['credential_id'], 'payment-record': ['contract_id', 'provider_id'], 'quote-create': ['credential_id']}
+[FAIL] A2 服务端出口的敏感键 ⊆ 契约声明键 出口 24 键，契约未声明：['mobile']
+[FAIL] A2 键 `mobile` 出口文件：['aap-server/src/main/java/com/hioas/aap/iam/dto/MeResult.java']（契约从未声明）
+[FAIL] A2b  I 重放查询 find() 只按 `idempotency_key` 过滤、**不按 `expire_at`** → M/实体 javadoc 声明的 「24h 有效」在**重放路径上失效**：过期记录仍会被重放（首次响应体无限期返回）
+[FAIL] A2b M 逐端点「错误码」列声明 §0 的失配码 'E-1601'：未声明 3 条 [('CRED-04', ['E-1001', 'E-1104']), ('PROV-02', ['E-1001', 'E-1104']), ('QT-08', ['E-1001', 'E-1104', 'E-1401', 'E-1402', 'E-1403', 'E-1404'])]（§0 与逐端点行冲突 → 调用方按码分支会分叉）
+[FAIL] A2b openapi 成功响应 media type 与实现不一致 1 条（生成物侧漂移，两套门禁都看不见）：GET /reports/{}/html：openapi 声明 application/json，实现 produces=text/html
+[FAIL] A2c  I 零清理路径（含 DDL 表名或 IdempotencyRecordMapper 且带 @Scheduled + 删除的文件数=0） + 表无 TTL 清理 → 过期记录**永久留存**并被永久重放（与 A2b 同源，A2b/A2c 任一为真即构成语义缺口）
+[FAIL] A2c md 说「无请求体」而清单声明 request_model = 0：不一致 3 条：['ADM-CFG04', 'ADM-CFG09', 'QT-09']
+[FAIL] A2c 死字段：QT-02(quote-detail) 契约声明未出口=['credential_id']
+[FAIL] A2c 死字段：QT-05(quote-detail) 契约声明未出口=['credential_id']
+[FAIL] A2c 死字段：RPT-02(report) 契约声明未出口=['api_key_mask']
+[FAIL] A2c 超集字段：AUTH-06(me-result) 实现出口未声明=['mobile']
+[FAIL] A2c 逐端点响应 DTO 敏感键 ⇔ response_model schema（已定位的端点全部一致） 已定位 37 个端点（跳过 53：AUTH-01: 无键; AUTH-05: 未定位控制器; PROV-03: 返回 Map（键在 Service 里拼装，静态不可判定）; PROV-04: 返回 Map（键在 Service 里拼装，静态不可判定））；契约声明未出口 3 条、实现出口未声明 1 条
+[FAIL] A3    请求体引用了 3 个未在 ER 声明为 FK* 的字段：batch_id, file_id, logo_file_id
+[FAIL] A3 AuditListeners.Update 的 updated_by 赋值被 `actorId != null` 守卫：SYSTEM 触发的更新会**保留上一次操作者**（留痕误导，非 NULL）
+[FAIL] A3 aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java:561 表 aap_price_time_rule 的查询链上无 `deleted = false`：(select id from aap_price_time_rule where item_id = ?) (select id from aap_price_time_rule where item_id = ?)
+[FAIL] A3 openapi 分页响应 ⇒ 该端点声明 page+pageSize 查询参数：自相矛盾 34 条
+[FAIL] A3 实现方法分布与清单不一致（方法语义漂移）：GET 实现 47 / 清单 45
+[FAIL] A3 实现方法分布与清单不一致（方法语义漂移）：POST 实现 39 / 清单 38
+[FAIL] A3 每个 schema.required 字段都能找到实现侧强制证据（注解 / 守卫 / 别名守卫）：无强制证据 3 个：[('CRED-02', 'api_key', []), ('CRED-04', 'api_key', []), ('PROV-04', 'category', ['aap_notification', 'aap_provider_qualification'])]
+[FAIL] A3a 退避档序列 md ⇔ 实现不一致：md=[30, 120, 480, 1800, 7200]（5 档）实现=[30, 120, 480, 1800]（4 档，MAX_ATTEMPTS=5，语义=1 次立即 + 4 次退避）→ 声明的最长退避在实现中不存在
+[FAIL] A3b qualification-create.file_name 声明 maxLength=255 但实现侧零强制，且 DDL 同名列是 varchar(255) → 超长(>255) 撞库为 **500 E-2001**，而契约承诺 400 E-1001（端点 PROV-04）
+[FAIL] A3b 实现 @RequestParam 集合 = 清单 query_params：不一致 5 条
+[FAIL] A3b 退避档序列 md ⇔ PRD R-40 不一致：md=[30, 120, 480, 1800, 7200] PRD=[30, 120, 600, 1800, 7200]（第三方裁判：PRD）
+[FAIL] A3c detection-release.override_reason 声明 maxLength=500 但实现侧零强制，DDL 侧为 text（无长度上限）→ 超长输入被**静默接受**，契约声明的上限无效（端点 DET-06）
+[FAIL] A3c review-approve.comment 声明 maxLength=500 但实现侧零强制，DDL 侧为 text（无长度上限）→ 超长输入被**静默接受**，契约声明的上限无效（端点 ADM-R03）
+[FAIL] A3c review-reject.reason_text 声明 maxLength=500 但实现侧零强制，DDL 侧为 无同名列（无长度上限）→ 超长输入被**静默接受**，契约声明的上限无效（端点 ADM-R04）
+[FAIL] A3s A3 漂移 1 条 / 未能判定 3 条
+[FAIL] A4    3/9 处请求体引用字段**已消费但无同域存在性校验**（可写入指向不存在父行的引用）：PROV-04(file_id), ADM-CFG07(logo_file_id), ADM-CFG09(logo_file_id)
+[FAIL] A4 M「错误码」列声明实现真会抛的失配码：漏声明 2 条 [('CRED-04', 'E-1601', ['E-1001', 'E-1104']), ('PROV-02', 'E-1601', ['E-1001', 'E-1104'])]
+[FAIL] A4 aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:69 join aap_provider p 无 `p.deleted = false`（软删行仍被关联）
+[FAIL] A4 aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:69 join aap_quote q 无 `q.deleted = false`（软删行仍被关联）
+[FAIL] A4 aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:63 join aap_provider p 无 `p.deleted = false`（软删行仍被关联）
+[FAIL] A4 aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:63 join aap_quote q 无 `q.deleted = false`（软删行仍被关联）
+[FAIL] A4 aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:184 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+[FAIL] A4 aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:49 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+[FAIL] A4 孤儿请求模型 `payment-record`：生成器注册表有、endpoints.json 零端点引用 → 契约产物不可达（死产物；补端点或删注册项都属契约变更，待拍板）
+[FAIL] A4 目录里的码都被至少一个端点声明（无孤儿码）：孤儿=['E-1102', 'E-1404']
+[FAIL] A4 端点调用链上累计 2 次写但**链上无任何事务边界**（部分失败会留半截数据）：AdminSyncController.changeBindingStatus:74
+[FAIL] A4: openapi 声明 pageSize 上限 200 的 operation：0/23
+[FAIL] A4a ttl=300 只有结构背书（schema 校验 ttl 存在），数值零断言 → 阈值可被改成任意值而全量用例仍绿
+[FAIL] A4b 60s 频控窗口只有「重复发码 → 429」的码断言，窗口时长数值零断言（测试无法证明是 60s）
+[FAIL] A4c 15 分钟锁定时长只有「locked_until 非空」的断言，时长数值零断言（无法证明是 15 分钟）
+[FAIL] A4s A4 漂移 12 条
+[FAIL] A5 全部 schema enum 均归属到 md §5 枚举族（未归属的已逐条 FAIL） | 已归属 21 / 34，未归属 12
+[FAIL] A5 失配码的语义描述覆盖「乐观锁/并发」：不覆盖 [('E-1601', '状态非法流转')]（§0 声明='E-1601'）
+[FAIL] A5 存在「有配置项但代码另写同值字面量」的参数 = 3 个：通过线(app.detection.pass-score=70)、否决线(app.detection.veto-score=40)、复测间隔(天)(app.detection.recheck-interval-days=30)
+[FAIL] A5 服务端月桶按 UTC 计算（取证点 5 处），而客户端把**本机当前月**当 month 查询参数传给该端点（aap-client/src/pages/usage/index.vue:207 `month.value` ← `currentMonth()`）→ 东八区每月 1 日 00:00–08:00 请求的月份在 UTC 口径下刚起头、桶为空；跨源桶口径不一致（两套门禁都看不见）
+[FAIL] A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）：不一致 9 条：{'ADM-CFG07': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-CFG09': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-U02': "usage-refresh schema-not-in-dto=['batch_id'] dto-not-in-schema=[]", 'CRED-02': "credential-create schema-not-in-dto=['is_primary'] dto-not-in-schema=[]", 'CRED-04': "credential-create schema-not-in-dto=['is_primary'] dto-not-in-schema=[]", 'PROV-02': "provider-profile-update schema-not-in-dto=[] dto-not-in-schema=['manual_override', 'override_reason']", 'PROV-04': "qualification-create schema-not-in-dto=['company_name', 'contact_name', 'contact_phone', 'remark', 'uscc'] dto-not-in-schema=[]", 'QT-08': "quote-item-save schema-not-in-dto=['tier_rule', 'time_rule'] dto-not-in-schema=['price_tier_rule', 'price_time_rule']"}
+[FAIL] A5 用户可见文案硬编码时长 2 处（15 分钟），与 config.lockMinutes() 脱钩 → 配置改值后提示失真（同值硬编码副本，坑 122 的阈值版）
+[FAIL] A5: openapi 声明 pageSize 默认值 20 的 operation：0/23
+[FAIL] A5b  M 声明的 10 条端点中仅 2 条有幂等重放用例背书（['CON-04', 'PROV-02']），8 条零背书：['CRED-02', 'CRED-05', 'DET-01', 'PROV-04', 'QT-02', 'QT-05', 'QT-09', 'QT-12'] → 「幂等重放」语义在其余端点**只靠全局过滤器实现，无任何真实 HTTP 用例**（门禁只要求「有真实 HTTP 用例」，不要求覆盖幂等语义）
+[FAIL] A5b credential-create.alias 声明 minLength=2 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+[FAIL] A5b credential-create.api_key 声明 minLength=8 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+[FAIL] A5b detection-release.override_reason 声明 minLength=2 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+[FAIL] A5b quote-create.name 声明 minLength=1 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+[FAIL] A5b review-reject.reason_text 声明 minLength=2 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+[FAIL] A5b: openapi 声明 page 默认值 1 的 operation：0/23
+[FAIL] A6 同名 ID 字段在所有模型里对外类型一致：不一致 1 个字段名：{'channel_id': ['integer', 'string']}
+[FAIL] A6 客户端对 429 / 频控码零专门处置（仅 401 分支）→ 频控提示只能靠服务端 message 透传（风险项，待拍板）
+[FAIL] A6 真孤儿状态：ER 声明 aap_compiled_expression.status 含 VERIFY_FAILED，全仓库零出现且非 DDL 默认值
+[FAIL] A6a  M「错误码」列漏声明 E-1001 的声明端点=4 条：['CON-04', 'CRED-05', 'DET-01', 'QT-12']（实现为全局过滤器，这些端点同键不同体同样抛 400 E-1001 → md 少声明了实现真会抛的码；门禁与契约测试都看不见）
+[FAIL] A6c aap-server\src\main\java\com\hioas\aap\report\ReportController.java#list 的 total 来自 reportService.count(principal)，但 items 来自 reportService.list(principal, result) → count 缺少筛选实参 ['result']（total 与 items 不同源）
+[FAIL] A7 C 客户端真的发送该头的调用点 = 0 处 [] → 措辞为「支持」（`required = false` + 「若提供则校验」），客户端不带该头 = 并发保护**静默失效**（风险项，待拍板；坑 88）
+[FAIL] A8 md「角色」列 = 清单角色集合（仅逐条列角色的 7 列表头行）：不一致 32 条
+[FAIL] A8 实现声明的取值域均在契约中声明 | 未声明 2: ReviewService.java:57=['CLAIMED', 'PENDING']; SyncAdminService.java:73=['FAILED', 'MANUAL']
+[FAIL] A9 md 每行错误码列 = 清单：不一致 10 条
+[FAIL] A9 测试背书：M 声明的 3 条端点中 2 条有失配用例（['PROV-02', 'QT-08']），零背书 1 条 ['CRED-04']
+[FAIL] P3 分页 SQL 的 ORDER BY 必须含完整唯一键（tie-breaker）：aap-server/src/main/java/com/hioas/aap/usage/UsageService.java:167 表=aap_usage_hourly order by(['stat_hour', 'model_name', 'group_name']) 不含任何完整唯一键；最接近的唯一键=['channel_id', 'group_name', 'model_name', 'stat_hour']（缺 ['channel_id']）
+[FAIL] P3 汇总：分页 SQL 排序确定性：PASS 12 / FAIL 1 / 未能静态判定 0
