@@ -60,6 +60,10 @@ const CONTENT_GATES = {
   '/contracts': {
     require: ['[data-testid="contract-kpi"]', '[data-testid="contract-table"]'],
     textAny: ['合同与结算台账', '待打款批次', '结算台账明细']
+  },
+  '/usage': {
+    require: ['[data-testid="usage-kpi"]', '[data-testid="usage-chart"]', '[data-testid="model-table"]'],
+    textAny: ['总请求数', '调用与消耗趋势', '模型维度用量']
   }
 };
 
