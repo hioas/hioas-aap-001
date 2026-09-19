@@ -4166,3 +4166,4 @@ jsonb 无 typeHandler / 监听器列缺失 / 约定名漂移无注解 / 未映�
   `git diff --stat 4e5b357 HEAD -- aap-server/` 输出行数 = 0（0 = 被测树零差异）；工作区 `git status --short -- aap-server/` 输出行数 = 0。
   → 两轮全量编译/执行的就是 HEAD = `4e5b357` 的 aap-server 源码。
 - **飞书通知**：见本轮最终响应（本 cron 作业会把最终响应自动投递到同一目标）。
+- **本轮提交**：`8b6983a`（巡检轮证据 + 台账三件套）。回归面与上一轮逐条一致，见 `evidence/audit-regression-R76.txt`。
