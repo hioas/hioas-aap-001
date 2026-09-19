@@ -56,6 +56,10 @@ const CONTENT_GATES = {
   '/reviews': {
     require: ['[data-testid="design-prd-conflict"]', '[data-testid="refresh-pool"]'],
     textAny: ['待审核列表', '审核决策']
+  },
+  '/contracts': {
+    require: ['[data-testid="contract-kpi"]', '[data-testid="contract-table"]'],
+    textAny: ['合同与结算台账', '待打款批次', '结算台账明细']
   }
 };
 

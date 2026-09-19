@@ -1,39 +1,348 @@
 <template>
-  <div class="stub">
-    <div class="aap-card stub__card">
-      <div class="stub__head">
-        <span class="stub__title">合同与结算</span>
-        <span class="aap-badge aap-badge--warn">待实现</span>
+  <div class="ct">
+    <!-- KPI 3 张（设计稿：待签署合同 / 本月采购金额 / 待打款 / 本月已结算） -->
+    <div class="kpi-row" data-testid="contract-kpi">
+      <div class="aap-card kpi">
+        <span class="kpi__label">待签署合同</span>
+        <span class="kpi__value">{{ kpi.pendingSign === null ? '—' : kpi.pendingSign }}</span>
       </div>
-      <p class="stub__sub">合同管理 · 打款记录 · 结算台账</p>
-      <el-descriptions :column="1" border size="small" class="stub__src">
-        <el-descriptions-item label="设计真源（Calicat）">
-          页码 <code>page-7-pc</code> · layer_id <code>bb133713-f2ba-45bb-a543-76d52bc75f06</code>
-        </el-descriptions-item>
-        <el-descriptions-item label="业务真源（PRD）">PRD 13 §6 M9（<code>.calicat/prd/13-管理端PRD.md</code>）</el-descriptions-item>
-        <el-descriptions-item label="本地设计数据">
-          <code>.calicat-admin/raw/pages/page-7-pc/design.json</code>
-        </el-descriptions-item>
-      </el-descriptions>
-      <p class="stub__note">
-        本页尚未按设计真源实现。骨架先保证路由/外壳可验证；实现时逐元素对照
-        <code>tools/calicat-outline.mjs page-7-pc --all --depth 9</code> 的输出。
-      </p>
+      <div class="aap-card kpi">
+        <span class="kpi__label">本月采购金额</span>
+        <span class="kpi__value">{{ money(kpi.monthAmount) }}</span>
+        <span class="kpi__note">按结算台账 total_amount 汇总</span>
+      </div>
+      <div class="aap-card kpi">
+        <span class="kpi__label">待打款</span>
+        <span class="kpi__value kpi__value--warn">{{ money(kpi.pendingPay) }}</span>
+      </div>
+      <div class="aap-card kpi">
+        <span class="kpi__label">本月已结算</span>
+        <span class="kpi__value kpi__value--ok">{{ money(kpi.settled) }}</span>
+      </div>
     </div>
+
+    <!-- 筛选区（PRD 13 §3：条件写 URL query） -->
+    <div class="aap-card ct__filter">
+      <el-input v-model="filters.keyword" placeholder="搜索合同编号 / 供应商" clearable style="width: 240px" data-testid="filter-keyword" />
+      <el-select v-model="filters.status" placeholder="全部状态" clearable style="width: 150px" data-testid="filter-status">
+        <el-option v-for="(v, k) in CONTRACT_STATUS" :key="k" :label="v.label" :value="k" />
+      </el-select>
+      <el-button type="primary" data-testid="btn-query" @click="loadAll">查询</el-button>
+      <el-button :loading="loading" data-testid="btn-refresh" @click="loadAll">刷新</el-button>
+      <span class="ct__spacer" />
+      <el-button data-testid="btn-export" @click="onExport">导出对账</el-button>
+    </div>
+
+    <!-- 台账表（设计稿列：合同编号/供应商/合作模式/状态/签约日期/本期结算额/操作） -->
+    <div class="aap-card">
+      <div class="aap-card__head">
+        <span class="aap-card__title">合同与结算台账</span>
+        <span v-if="pendingPayCount" class="aap-badge aap-badge--warn">{{ pendingPayCount }} 笔待打款</span>
+      </div>
+      <div class="aap-card__body">
+        <el-table :data="rows" size="small" data-testid="contract-table" empty-text="暂无合同">
+          <el-table-column prop="contract_no" label="合同编号" min-width="170" />
+          <el-table-column label="供应商" min-width="160">
+            <template #default="{ row }">{{ row.supplier_name || '—' }}</template>
+          </el-table-column>
+          <el-table-column label="合作模式" width="110">
+            <template #default="{ row }">{{ row.cooperation_mode || '—' }}</template>
+          </el-table-column>
+          <el-table-column label="状态" width="100">
+            <template #default="{ row }">
+              <span class="aap-badge" :class="`aap-badge--${ctTone(row.status)}`">{{ ctLabel(row.status) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="签约日期" width="130">
+            <template #default="{ row }">{{ fmt(row.signed_at) }}</template>
+          </el-table-column>
+          <el-table-column label="本期结算额" width="130">
+            <template #default="{ row }">
+              <!-- 后端 Contract 视图没有「本期结算额」字段（它在 Statement 上）→ 显式标注，不编造 -->
+              <span class="ct__todo" :title="`合同 ${row.contract_no} 的结算额需查结算台账`">
+                {{ amountOf(row.id) ?? '见结算台账' }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="190" fixed="right">
+            <template #default="{ row }">
+              <el-link type="primary" :underline="false" data-testid="act-view" @click="openDetail(row)">查看</el-link>
+              <el-link
+                v-if="canWrite"
+                type="primary"
+                :underline="false"
+                class="ct__act"
+                data-testid="act-issue"
+                @click="onIssue(row)"
+              >
+                发起
+              </el-link>
+              <el-link
+                v-if="canWrite && isSignedPending(row)"
+                type="warning"
+                :underline="false"
+                class="ct__act"
+                data-testid="act-confirm-sign"
+                @click="onConfirmSign(row)"
+              >
+                签署确认
+              </el-link>
+            </template>
+          </el-table-column>
+        </el-table>
+        <p v-if="error" class="ct__err" data-testid="page-error">{{ error }}</p>
+      </div>
+    </div>
+
+    <!-- 本月结算明细 + 待打款批次（设计稿右栏两块） -->
+    <div class="row-2">
+      <div class="aap-card">
+        <div class="aap-card__head"><span class="aap-card__title">结算台账明细</span></div>
+        <div class="aap-card__body">
+          <el-table :data="statements" size="small" data-testid="statement-table" empty-text="暂无结算台账">
+            <el-table-column prop="statement_no" label="结算单号" min-width="150" />
+            <el-table-column label="周期" min-width="170">
+              <template #default="{ row }">{{ fmt(row.period_from) }} ~ {{ fmt(row.period_to) }}</template>
+            </el-table-column>
+            <el-table-column label="调用费用合计" width="130">
+              <template #default="{ row }">{{ money(row.total_amount) }}</template>
+            </el-table-column>
+            <el-table-column label="平台服务费" width="120">
+              <template #default="{ row }">{{ money(row.platform_fee) }}</template>
+            </el-table-column>
+            <el-table-column label="状态" width="100">
+              <template #default="{ row }">
+                <span class="aap-badge" :class="`aap-badge--${payTone(row.status)}`">{{ payLabel(row.status) }}</span>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </div>
+
+      <div class="aap-card">
+        <div class="aap-card__head">
+          <span class="aap-card__title">待打款批次</span>
+          <span class="ct__spacer" />
+          <el-button size="small" :disabled="!canWrite || !pendingPayments.length" data-testid="btn-batch-pay" @click="onBatchPay">
+            发起批量打款
+          </el-button>
+        </div>
+        <div class="aap-card__body">
+          <div v-if="!pendingPayments.length" class="ct__empty" data-testid="pay-empty">暂无待打款记录</div>
+          <div v-for="p in pendingPayments" :key="p.id" class="pay-item" :data-testid="`pay-item-${p.id}`">
+            <div class="pay-item__left">
+              <div class="pay-item__no">{{ p.contract_no || p.id }}</div>
+              <div class="pay-item__sub">{{ p.remark || '待补充信息' }}</div>
+            </div>
+            <div class="pay-item__amt">{{ money(p.amount) }}</div>
+            <el-button v-if="canWrite" size="small" data-testid="act-confirm-pay" @click="onConfirmPay(p)">确认打款</el-button>
+          </div>
+          <p class="ct__note">
+            PRD 13 §6：「**不做资金流转，仅记录**」—— 此处只更新记录状态，不触发任何转账。
+            批量打款按 PRD 允许（与「批量通过」「批量确认写入」不同，后两者被 PRD 明确禁止）。
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 合同详情抽屉 -->
+    <el-drawer v-model="detailOpen" :title="detail?.contract_no || '合同详情'" size="620px">
+      <template v-if="detail">
+        <el-descriptions :column="2" border size="small" data-testid="contract-detail">
+          <el-descriptions-item label="合同编号">{{ detail.contract_no || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="关联报价单">{{ detail.quote_no || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="供应商">{{ detail.supplier_name || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="合作模式">{{ detail.cooperation_mode || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="状态">
+            <span class="aap-badge" :class="`aap-badge--${ctTone(detail.status)}`">{{ ctLabel(detail.status) }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="签署渠道">{{ detail.sign_channel || 'OFFLINE（预留 ONLINE）' }}</el-descriptions-item>
+          <el-descriptions-item label="有效期">
+            {{ fmt(detail.valid_from) }} ~ {{ fmt(detail.valid_to) }}
+          </el-descriptions-item>
+          <el-descriptions-item label="平台服务费率">
+            {{ detail.platform_fee_rate != null ? `${detail.platform_fee_rate}` : '—' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="签署人">{{ detail.signer_name || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="签署人手机">{{ detail.signer_phone_masked || '—' }}</el-descriptions-item>
+        </el-descriptions>
+        <div v-if="detail.terms?.length" class="ct__terms">
+          <div class="ct__sub">合同条款</div>
+          <ol><li v-for="(t, i) in detail.terms" :key="i">{{ t }}</li></ol>
+        </div>
+        <p class="ct__note">
+          合同文本 PDF / 盖章件：需文件服务（`aap_file_asset` 主代码零 INSERT、无上传端点）→
+          当前 `file_id` 为 <code>{{ detail.file_id || '空' }}</code>。已登记为缺陷2，待补齐后此处接下载与预览。
+        </p>
+      </template>
+    </el-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
-// 骨架：无逻辑。实现时替换为真实的取数与交互。
+import { computed, onMounted, reactive, ref } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import {
+  contractApi, CONTRACT_STATUS, PAYMENT_STATUS,
+  type ContractRow, type PaymentRow, type StatementRow
+} from '@/api/admin/contracts';
+import { useSession } from '@/composables/useSession';
+import { can, type AdminRole } from '@/config/nav';
+
+const { role } = useSession();
+/** 合同写操作仅运营商务+超管（PRD 13 §1）；后端另有二次校验 */
+const canWrite = computed(() => can(role.value as AdminRole, 'contract.write'));
+
+const rows = ref<ContractRow[]>([]);
+const payments = ref<PaymentRow[]>([]);
+const statements = ref<StatementRow[]>([]);
+const loading = ref(false);
+const error = ref('');
+const detailOpen = ref(false);
+const detail = ref<ContractRow | null>(null);
+const filters = reactive({ keyword: '', status: '' });
+
+const ctLabel = (s: string) => CONTRACT_STATUS[s]?.label ?? s;
+const ctTone = (s: string) => CONTRACT_STATUS[s]?.tone ?? 'muted';
+const payLabel = (s: string) => PAYMENT_STATUS[s]?.label ?? s;
+const payTone = (s: string) => PAYMENT_STATUS[s]?.tone ?? 'muted';
+const fmt = (s: string | null | undefined) => (s ? String(s).replace('T', ' ').slice(0, 10) : '—');
+const money = (v: number | null | undefined) =>
+  v == null ? '—' : `¥${Number(v).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+const pendingPayments = computed(() => payments.value.filter((p) => p.status === 'PENDING' || p.status === 'PAID'));
+const pendingPayCount = computed(() => payments.value.filter((p) => p.status === 'PENDING').length);
+
+/** 合同 ↔ 结算额映射：后端 Contract 视图无「本期结算额」，从 Statement 按 contract_id 找（找不到就显式留白） */
+function amountOf(contractId: string): string | null {
+  const s = statements.value.find((x) => (x as unknown as { contract_id?: string }).contract_id === contractId);
+  return s ? money(s.total_amount) : null;
+}
+
+const isSignedPending = (r: ContractRow) => ['PENDING', 'PENDING_SIGN'].includes(r.status);
+
+const kpi = reactive<{ pendingSign: number | null; monthAmount: number | null; pendingPay: number | null; settled: number | null }>({
+  pendingSign: null,
+  monthAmount: null,
+  pendingPay: null,
+  settled: null
+});
+
+async function loadAll() {
+  loading.value = true;
+  error.value = '';
+  try {
+    const [c, p, s] = await Promise.all([
+      contractApi.list(filters.status || undefined, 1, 50),
+      contractApi.payments(undefined, 1, 50),
+      contractApi.statements(1, 50)
+    ]);
+    rows.value = (c?.items ?? []).filter((r) => {
+      if (!filters.keyword) return true;
+      const k = filters.keyword.toLowerCase();
+      return (r.contract_no ?? '').toLowerCase().includes(k) || (r.supplier_name ?? '').toLowerCase().includes(k);
+    });
+    payments.value = p?.items ?? [];
+    statements.value = s?.items ?? [];
+
+    // KPI 由真实数据如实统计（后端无聚合接口）
+    kpi.pendingSign = (c?.items ?? []).filter(isSignedPending).length;
+    kpi.monthAmount = statements.value.reduce((a, x) => a + Number(x.total_amount ?? 0), 0);
+    kpi.pendingPay = payments.value.filter((x) => x.status === 'PENDING').reduce((a, x) => a + Number(x.amount ?? 0), 0);
+    kpi.settled = payments.value.filter((x) => x.status === 'CONFIRMED').reduce((a, x) => a + Number(x.amount ?? 0), 0);
+  } catch (e) {
+    error.value = (e as Error).message;
+  } finally {
+    loading.value = false;
+  }
+}
+
+function openDetail(r: ContractRow) {
+  detail.value = r;
+  detailOpen.value = true;
+}
+
+async function onIssue(r: ContractRow) {
+  try {
+    await ElMessageBox.confirm(`确认为合同 ${r.contract_no} 发起（生成合同文件）？`, '确认发起', { type: 'warning' });
+  } catch {
+    return;
+  }
+  try {
+    const t = await contractApi.issue(r.id);
+    ElMessage.success(`已发起：${t.contract_no ?? r.id}`);
+    await loadAll();
+  } catch (e) {
+    ElMessage.error((e as Error).message);
+  }
+}
+
+async function onConfirmSign(r: ContractRow) {
+  try {
+    const t = await contractApi.confirmSign(r.id);
+    ElMessage.success(`签署确认：${t.contract_no ?? r.id}（status=${t.status}）`);
+    await loadAll();
+  } catch (e) {
+    ElMessage.error((e as Error).message);
+  }
+}
+
+async function onConfirmPay(p: PaymentRow) {
+  try {
+    const t = await contractApi.confirmPayment(p.id);
+    ElMessage.success(`已确认打款记录：${t.contract_no ?? p.id}`);
+    await loadAll();
+  } catch (e) {
+    ElMessage.error((e as Error).message);
+  }
+}
+
+function onBatchPay() {
+  // PRD 13 §6 允许批量打款（仅记录）。后端无批量接口 → 逐条确认，不假装有批量端点。
+  ElMessage.info(`后端无批量打款接口，请逐条确认（当前 ${pendingPayCount.value} 笔待打款）`);
+}
+
+function onExport() {
+  ElMessage.info('导出为异步任务，后端暂未提供导出接口（已登记 missing-api）');
+}
+
+onMounted(loadAll);
+defineExpose({ loadAll });
 </script>
 
 <style scoped>
-.stub { display: flex; }
-.stub__card { flex: 1; padding: 22px 24px; }
-.stub__head { display: flex; align-items: center; gap: 10px; }
-.stub__title { font-size: var(--fs-2xl); font-weight: 600; }
-.stub__sub { font-size: var(--fs-base); color: var(--c-text-muted); margin: 6px 0 18px; }
-.stub__src { margin-bottom: 16px; }
-.stub__note { font-size: var(--fs-base); color: var(--c-text-sub); line-height: 1.7; }
+.ct { display: flex; flex-direction: column; gap: 16px; }
+.kpi-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.kpi { padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
+.kpi__label { font-size: var(--fs-base); color: var(--c-text-muted); }
+.kpi__value { font-size: var(--fs-kpi); font-weight: 600; line-height: 1.1; }
+.kpi__value--warn { color: var(--c-warn); }
+.kpi__value--ok { color: var(--c-success); }
+.kpi__note { font-size: var(--fs-sm); color: var(--c-text-muted); }
+
+.ct__filter { display: flex; align-items: center; gap: 10px; padding: 14px 16px; flex-wrap: wrap; }
+.ct__spacer { flex: 1; }
+.aap-card__head { display: flex; align-items: center; gap: 10px; padding: 16px 18px 0; }
+.aap-card__title { font-size: var(--fs-lg); font-weight: 600; }
+.aap-card__body { padding: 14px 18px 18px; }
+.ct__act { margin-left: 10px; }
+.ct__todo { font-size: var(--fs-sm); color: var(--c-text-muted); }
+.ct__err { color: var(--c-danger); font-size: var(--fs-base); margin: 10px 0 0; }
+.ct__empty { padding: 20px; text-align: center; color: var(--c-text-muted); font-size: var(--fs-base); }
+.ct__note { font-size: var(--fs-sm); color: var(--c-text-muted); margin: 12px 0 0; line-height: 1.6; }
+
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 1280px) { .row-2 { grid-template-columns: 1fr; } }
+
+.pay-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px dashed var(--c-border); }
+.pay-item:last-of-type { border-bottom: 0; }
+.pay-item__left { flex: 1; min-width: 0; }
+.pay-item__no { font-size: var(--fs-base); color: var(--c-text); }
+.pay-item__sub { font-size: var(--fs-sm); color: var(--c-text-muted); margin-top: 3px; }
+.pay-item__amt { font-size: var(--fs-md); font-weight: 600; color: var(--c-text); }
+
+.ct__terms { margin-top: 16px; }
+.ct__sub { font-size: var(--fs-md); font-weight: 600; margin-bottom: 8px; }
+.ct__terms ol { margin: 0; padding-left: 20px; font-size: var(--fs-base); color: var(--c-text-body); line-height: 1.8; }
 code { background: var(--c-surface-alt); padding: 1px 5px; border-radius: var(--r-sm); font-size: var(--fs-sm); }
 </style>
