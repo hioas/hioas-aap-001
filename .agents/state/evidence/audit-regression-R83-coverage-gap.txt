@@ -1,0 +1,75 @@
+== R83 覆盖缺口分类 v2（坑 178：①旧版本 / ②语义重复 / ③真缺口） ==
+判据：driver 引用集按 `str(VAR / "name")` + `"tools/*.py"` 解析（与 gap-scan 同一 key，坑 57）
+正向对照：目录变量 26 个（>20）；driver 引用脚本 76 个（>40）；候选 69 个；已在 driver 内 46 个；缺口 18 个
+
+--- aap-r41/spotcheck-pagination-selftest.py ---
+  候选  ：C:\Users\laitz\AppData\Local\Temp\aap-r41\spotcheck-pagination-selftest.py → rc=0，断言标签 13 个
+  替身  ：C:\Users\laitz\AppData\Local\Temp\aap-r46-spotcheck\audit-pagination-defaults-selftest.py → rc=0，断言标签 9 个
+  正向对照：候选标签数 13 > 0 且替身标签数 9 > 0（否则判解析器失效，坑 46/75）
+  映射核对：候选标签 13 个，其中**未列入映射表**的 = 2 ['S4.pq_default', 'S5.pq_default']
+  映射核对：未映射且**不在残留白名单**的 = 0 []（0 才判「被取代」）
+  映射核对：映射目标在替身输出中缺失的 = 0 []（0 才说明映射可核对）
+    S0                 -> T1     （候选侧存在=True 替身侧存在=True）
+    S1                 -> T1     （候选侧存在=True 替身侧存在=True）
+    S2                 -> T8     （候选侧存在=True 替身侧存在=True）
+    S3                 -> T0     （候选侧存在=True 替身侧存在=True）
+    S4.md_default      -> T2     （候选侧存在=True 替身侧存在=True）
+    S4.pq_max          -> T2     （候选侧存在=True 替身侧存在=True）
+    S4.pq_noclamp      -> T4     （候选侧存在=True 替身侧存在=True）
+    S5.md_default      -> T2     （候选侧存在=True 替身侧存在=True）
+    S5.pq_max          -> T2     （候选侧存在=True 替身侧存在=True）
+    S5.pq_noclamp      -> T4     （候选侧存在=True 替身侧存在=True）
+    S6                 -> T7     （候选侧存在=True 替身侧存在=True）
+  替身独有标签（= 替身覆盖更广）：['T3', 'T5', 'T6']
+  候选残留（映射表外的候选独有断言）：['S4.pq_default', 'S5.pq_default']
+
+--- aap-r41/spotcheck-pagination.py ---
+  候选  ：C:\Users\laitz\AppData\Local\Temp\aap-r41\spotcheck-pagination.py --root E:\workspaces\hioas\hioas-aap-001 → rc=0，断言标签 16 个
+  替身  ：C:\Users\laitz\AppData\Local\Temp\aap-r46-spotcheck\audit-pagination-defaults.py --root E:\workspaces\hioas\hioas-aap-001 → rc=1，断言标签 17 个
+  正向对照：候选标签数 16 > 0 且替身标签数 17 > 0（否则判解析器失效，坑 46/75）
+  映射核对：候选标签 16 个，其中**未列入映射表**的 = 0 []
+  映射核对：未映射且**不在残留白名单**的 = 0 []（0 才判「被取代」）
+  映射核对：映射目标在替身输出中缺失的 = 0 []（0 才说明映射可核对）
+    A1                 -> A4     （候选侧存在=True 替身侧存在=True）
+    A2                 -> A4     （候选侧存在=True 替身侧存在=True）
+    A3                 -> A4     （候选侧存在=True 替身侧存在=True）
+    A4                 -> A4     （候选侧存在=True 替身侧存在=True）
+    C1                 -> A7     （候选侧存在=True 替身侧存在=True）
+    E0                 -> A0d    （候选侧存在=True 替身侧存在=True）
+    E1                 -> A0d    （候选侧存在=True 替身侧存在=True）
+    E2                 -> A0d    （候选侧存在=True 替身侧存在=True）
+    E2b                -> A5     （候选侧存在=True 替身侧存在=True）
+    E3                 -> A5     （候选侧存在=True 替身侧存在=True）
+    E4                 -> A5     （候选侧存在=True 替身侧存在=True）
+    I0                 -> A0c    （候选侧存在=True 替身侧存在=True）
+    M0                 -> A0a    （候选侧存在=True 替身侧存在=True）
+    O0                 -> A0b    （候选侧存在=True 替身侧存在=True）
+    O1                 -> A1     （候选侧存在=True 替身侧存在=True）
+    O2                 -> A2     （候选侧存在=True 替身侧存在=True）
+  替身独有标签（= 替身覆盖更广）：['A3', 'A6', 'A8', 'I1', 'I2', 'I3', 'I4', 'I5']
+  候选残留（映射表外的候选独有断言）：[]
+
+== 分类结果 ==
+② aap-r41/spotcheck-pagination-selftest.py                   与 driver 内 audit-pagination-defaults-selftest.py 同不变量、**断言映射逐条可核对**（替身更严/更广）→ 被取代
+② aap-r41/spotcheck-pagination.py                            与 driver 内 audit-pagination-defaults.py 同不变量、**断言映射逐条可核对**（替身更严/更广）→ 被取代
+① aap-r45-spotcheck/spotcheck-pagination-order.py            归一化同名 = driver 内 C:/Users/laitz/AppData/Local/Temp/aap-r45-spotcheck/spotcheck-pagination-order-v2.py（旧版本，已被取代）
+① aap-r52-spotcheck/spotcheck-time-bucket.py                 归一化同名 = driver 内 C:/Users/laitz/AppData/Local/Temp/aap-r52-spotcheck/spotcheck-time-bucket-v2.py（旧版本，已被取代）
+① aap-r53-spotcheck/spotcheck-sensitive-fields.py            归一化同名 = driver 内 C:/Users/laitz/AppData/Local/Temp/aap-r53-spotcheck/spotcheck-sensitive-fields-v2.py（旧版本，已被取代）
+② aap-r60-spotcheck/spotcheck-required-R57-selftest.py       与 driver 内 C:/Users/laitz/AppData/Local/Temp/aap-r57-spotcheck/spotcheck-required-R57-selftest.py **字节相同**（md5 76b60963ffa7）
+② aap-r60-spotcheck/spotcheck-required-R57.py                与 driver 内 C:/Users/laitz/AppData/Local/Temp/aap-r57-spotcheck/spotcheck-required-R57.py **字节相同**（md5 d22682aa7a28）
+① aap-r60-spotcheck/spotcheck-string-length-R60-v2.py        归一化同名 = driver 内 C:/Users/laitz/AppData/Local/Temp/aap-r60-spotcheck/spotcheck-string-length-R60-v6.py（旧版本，已被取代）
+① aap-r60-spotcheck/spotcheck-string-length-R60-v3.py        归一化同名 = driver 内 C:/Users/laitz/AppData/Local/Temp/aap-r60-spotcheck/spotcheck-string-length-R60-v6.py（旧版本，已被取代）
+① aap-r60-spotcheck/spotcheck-string-length-R60-v4.py        归一化同名 = driver 内 C:/Users/laitz/AppData/Local/Temp/aap-r60-spotcheck/spotcheck-string-length-R60-v6.py（旧版本，已被取代）
+① aap-r60-spotcheck/spotcheck-string-length-R60-v5.py        归一化同名 = driver 内 C:/Users/laitz/AppData/Local/Temp/aap-r60-spotcheck/spotcheck-string-length-R60-v6.py（旧版本，已被取代）
+① aap-r60-spotcheck/spotcheck-string-length-R60.py           归一化同名 = driver 内 C:/Users/laitz/AppData/Local/Temp/aap-r60-spotcheck/spotcheck-string-length-R60-v6.py（旧版本，已被取代）
+② aap-r60-spotcheck/spotcheck-success-shape-R59-selftest.py  与 driver 内 C:/Users/laitz/AppData/Local/Temp/aap-r59-spotcheck/spotcheck-success-shape-R59-selftest.py **字节相同**（md5 fd69502f3b16）
+② aap-r60-spotcheck/spotcheck-success-shape-R59.py           与 driver 内 C:/Users/laitz/AppData/Local/Temp/aap-r59-spotcheck/spotcheck-success-shape-R59.py **字节相同**（md5 0c3d39cde21d）
+② aap-r60-spotcheck/spotcheck-unique-R58-selftest.py         与 driver 内 C:/Users/laitz/AppData/Local/Temp/aap-r58-spotcheck/spotcheck-unique-R58-selftest.py **同基名**（跨轮复制件）
+② aap-r60-spotcheck/spotcheck-unique-R58.py                  与 driver 内 C:/Users/laitz/AppData/Local/Temp/aap-r58-spotcheck/spotcheck-unique-R58.py **字节相同**（md5 83cd1a99d662）
+① aap-r66-spotcheck/spotcheck-state-machine-R66.py           归一化同名 = driver 内 C:/Users/laitz/AppData/Local/Temp/aap-r66-spotcheck/spotcheck-state-machine-R66-v2.py（旧版本，已被取代）
+① aap-r67-spotcheck/spotcheck-tx-boundary-R67-v1.py          归一化同名 = driver 内 C:/Users/laitz/AppData/Local/Temp/aap-r67-spotcheck/spotcheck-tx-boundary-R67.py（旧版本，已被取代）
+
+① 旧版本 = 10；② 语义重复 = 8；③ 真缺口 = 0（仅 ③ 需补入 driver）
+正向对照：候选 69 > 0、已在 driver 内 46 > 0、分类总数 18 == 缺口数 18
+观察项（待拍板，不补入 driver）：["aap-r41/spotcheck-pagination-selftest.py：残留断言 ['S4.pq_default', 'S5.pq_default']（同一断言的注入点少一处，非不变量缺口）"]
+结论：无真缺口（18 条候选全部为旧版本或语义重复）→ 回归面 79 条无需扩面（坑 178：只补 ③，避免灌水）
