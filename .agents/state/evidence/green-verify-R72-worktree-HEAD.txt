@@ -1,0 +1,26 @@
+== R72 提交态复跑（干净 worktree：git worktree add --detach <tmp> HEAD） ==
+目的：验证「提交本身自洽、不依赖他人未提交改动」（坑 27/28：目录带时间戳取唯一名、收尾用 git worktree remove --force）
+判据：worktree 内 mvn test rc=0 + 204 例全绿 + [ERROR]=0 + BUILD SUCCESS + 门禁自身 1/1 + worktree 内 coverage-report.json 逐字段 90/90/0/96 + 收尾后 worktree 列表干净
+
+== R72 提交态复跑（干净 worktree，HEAD 提交自洽性验证） ==
+worktree_path=C:\Users\laitz\AppData\Local/Temp/aap-verify-r72-101555
+main_HEAD=cb7109912df71bf7ae03fbf5e89036fb3b3b7ccf
+worktree_add_rc=0
+worktree_HEAD=cb7109912df71bf7ae03fbf5e89036fb3b3b7ccf
+worktree_status_lines=0
+mvn_test_rc=0
+--- surefire 合计 ---
+[INFO] Tests run: 204, Failures: 0, Errors: 0, Skipped: 0
+--- [ERROR] 行数 ---
+0
+--- 构建 ---
+[INFO] BUILD SUCCESS
+--- 门禁自身 ---
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.508 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+--- worktree 内 coverage-report.json 逐字段 ---
+path=C:\Users\laitz\AppData\Local\Temp\aap-verify-r72-101555\.agents\state\evidence\coverage-report.json CR_bytes=56
+total=90 implemented=90 missing=0 registered_routes=96 not_registered=[]
+by_task 族数=12 全 100%=True
+worktree_remove_rc=0
+--- 收尾后 worktree 列表 ---
+E:/workspaces/hioas/hioas-aap-001 cb71099 [main]

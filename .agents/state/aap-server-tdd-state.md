@@ -4066,3 +4066,11 @@ jsonb 无 typeHandler / 监听器列缺失 / 约定名漂移无注解 / 未映�
   真实仓库关键文件 md5 不变；真实仓库 FAIL 集合非空（正向对照）。
 - 观察项：`coverage-report.json` 每轮被测试重写（键序随 JVM SALT 随机化、逐字段值全等，坑 56）→ 不纳入提交；
   补入的第四十类配置抽查 2 条 FAIL（读取点键仅内联默认未在 yml 声明、3 个参数存在同值硬编码副本）为 **R54 已登记项**。
+
+#### R72 提交态复跑（干净 worktree）
+
+- `git worktree add --detach <tmp> HEAD`（HEAD = 台账收尾提交 `cb71099`）→ worktree 内 `mvn -B -ntp test`：
+  **204 例全绿（0 失败 / 0 错误 / 0 跳过）**、`[ERROR]` 行数 0、`BUILD SUCCESS`、门禁自身 1/1、
+  worktree 内 `coverage-report.json` 逐字段 `total/implemented/missing/registered_routes = 90/90/0/96`；
+  `worktree_status_lines=0`（干净工作树）→ **提交自洽，不依赖同机他人未提交改动**。
+- 收尾：`git worktree remove --force`（rc=0，全程不做递归删除，坑 28）；证据 `evidence/green-verify-R72-worktree-HEAD.txt`。
