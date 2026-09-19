@@ -1,0 +1,28 @@
+== R124 提交后落地核对（主提交 e536cfd；提交之后才跑，坑 219） ==
+
+① 台账行：HEAD 树列数 = 8、工作区列数 = 8；逐列相等 = True
+   「提交」列（HEAD / 工作区）= '' / ''（收尾前应为空 → 收尾阶段回填，坑 200-②）
+   逐列差异下标 = []（收尾回填前应为 [7]）
+   → 提交携带的描述与证据列 = 写入时经内容级校验的那一份（坑 89/200）
+
+② 证据文件在 HEAD 树内：核对 12 条；缺失 = 0 []
+   IN_HEAD  .agents/state/evidence/green-verify-R124-full-run1.txt
+   IN_HEAD  .agents/state/evidence/green-verify-R124-full-run2.txt
+   IN_HEAD  .agents/state/evidence/green-verify-R124-classdiff.txt
+   IN_HEAD  .agents/state/evidence/green-verify-R124-testcount.txt
+   IN_HEAD  .agents/state/evidence/green-verify-R124-coverage-fields.txt
+   IN_HEAD  .agents/state/evidence/green-verify-R124-tested-state.txt
+   IN_HEAD  .agents/state/evidence/audit-regression-R124.txt
+   IN_HEAD  .agents/state/evidence/audit-regression-R124-rcseq.txt
+   IN_HEAD  .agents/state/evidence/audit-regression-R124-faildiff.txt
+   IN_HEAD  .agents/state/evidence/audit-regression-R124-coverage-gap.txt
+   IN_HEAD  .agents/state/evidence/gap-tools-scan-R124.txt
+   IN_HEAD  .agents/state/evidence/gap-guard-roundnum-R124.txt
+
+③ 主提交 e536cfd 改动：文件数 = 15（期望 15 = 3 状态 + 12 证据）；aap-server/ 侧 = 0（期望 0）；aap-client/ 侧 = 0；非 `.agents/` 文件 = 0 []
+
+④ 本轮两轮全绿证据关键字段：
+   run1 合计 Tests run/Failures/Errors/Skipped = (211, 0, 0, 0)
+   对账：词边界计数 211 vs surefire 211 → 一致
+
+结论：主提交 e536cfd 携带的台账行与工作区**逐列相等**（收尾回填前仅第 8 列有差异）、12 个证据文件**全部在 HEAD 树内**、改动范围 = 3 状态 + 12 证据且 **aap-server 侧 0 条**（纯巡检轮的机器证据）。
