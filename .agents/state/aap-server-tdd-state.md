@@ -3998,3 +3998,25 @@ jsonb 无 typeHandler / 监听器列缺失 / 约定名漂移无注解 / 未映�
 `evidence/green-verify-R70-full-run1.txt`、`green-verify-R70-full-run2.txt`、`green-verify-R70-classdiff.txt`、
 `audit-regression-R70.txt`、`audit-regression-R70-rcseq.txt`、`audit-regression-R70-faildiff.txt`、
 `spotcheck-entity-ddl-R70.txt`、`spotcheck-entity-ddl-R70-selftest.txt`、`red-R70-jvm-native-oom.txt`
+
+### R71 巡检轮（纯校验，不改代码）
+
+- 全量两轮 `mvn -B -ntp test` 均 `Tests run: 204, Failures: 0, Errors: 0, Skipped: 0` + `[INFO] BUILD SUCCESS`；33 个测试类逐类一致（已剥 `Time elapsed` 再排序）。
+- 覆盖门禁逐字段：`total=90 implemented=90 missing=0 registered_routes=96 not_registered=[]`，12 个任务族全部 100%。
+- 55 条既有审计/抽查/自测 rc 与 R70 逐条一致；FAIL 明细 67 → 67（新增 0、消失 0）；零写副作用 84 产物 `size+md5` 全等。
+- 用例计数：`@Test\b` 204 与 surefire 204 对账一致；禁用扫描 0 条（未削弱测试）。
+
+**本轮踩坑（证据侧）**
+1. 逐类比对证据首版由 `subprocess` 调 MSYS bash 采集 → stdout 为空，被写成「3 行空证据」。
+   指纹：**证据文件行数远小于预期、且不含任何结论行**。规则：证据采集不依赖外部 shell，
+   一律用 Python 直接解析日志，并对「解析到 0 个类」判解析器失效（坑 46/12）。
+2. 构建结果按行首 `BUILD SUCCESS` 匹配 → 真实写法是 `[INFO] BUILD SUCCESS`，报「未解析到」。
+   规则：日志行解析必须先用真实行首前缀对齐（坑 29 族：0 命中先怀疑解析器）。
+
+**观察项**：工作区 `coverage-report.json` 每轮被 Java 侧重写（`Map.of` 键序随 JVM SALT 随机化，
+逐字段值全等；工作区 CRLF 而 index/HEAD 为 LF）→ 与 R59–R70 一致地不纳入提交（坑 56/69）。
+
+### R71 证据
+`evidence/green-verify-R71-full-run1.txt`、`green-verify-R71-full-run2.txt`、`green-verify-R71-classdiff.txt`、
+`green-verify-R71-testcount.txt`、`green-verify-R71-coverage-fields.txt`、`audit-regression-R71.txt`、
+`audit-regression-R71-rcseq.txt`、`audit-regression-R71-faildiff.txt`
