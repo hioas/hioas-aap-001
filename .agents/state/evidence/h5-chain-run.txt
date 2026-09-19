@@ -1,0 +1,125 @@
+### H5 有头浏览器链路联调（含业务结果断言）
+### 时间: 2026-09-19 08:37:57
+
+启动有头 Chrome（独立 profile，端口 9578）→ http://localhost:5173
+
+[1] ① 打开登录页
+  [截图] evidence\h5-chain\20260919003804.-01-login.png
+  ✓ title="登录 / 注册"
+
+[2] ② 填写手机号与图形验证码
+  [截图] evidence\h5-chain\20260919003804.-02-filled.png
+  ✓ 手机号=13800138000，页面验证码=A7K9，写入=true
+
+[3] ③ 获取短信验证码（捕获后端回显 dev_code）
+  [截图] evidence\h5-chain\20260919003808.-03-code-sent.png
+  ✓ POST /auth/sms/send → code=0
+
+[4] ④ 提交登录
+  [截图] evidence\h5-chain\20260919003811.-04-after-login.png
+  ✓ 离开登录页 ✓；POST /auth/sms/login → code=0
+
+[5] ⑤ 凭证列表页可开
+  [截图] evidence\h5-chain\20260919003814.-05-credentials.png
+  ✓ GET /credentials → code=0
+
+[6] ⑥ 进入「接入凭证」页
+  [截图] evidence\h5-chain\20260919003815.-06-submit-form.png
+  ✓ 命中入口=接入凭证
+
+[7] ⑦ 填表并保存草稿 → 断言 POST /credentials（缺陷4 的修复点）
+  [截图] evidence\h5-chain\20260919003816.-07-form-filled.png
+  [截图] evidence\h5-chain\20260919003819.-08-saved.png
+  ✓ POST /credentials → code=0；PUT 保存 → code=0
+
+[8] ⑧ 提交检测 → 断言 precheck
+  [截图] evidence\h5-chain\20260919003824.-09-precheck.png
+  ✓ POST /credentials/{id}/precheck → code=0 ok
+
+[9] ⑨ 检测进行中页可开
+  [截图] evidence\h5-chain\20260919003824.-10-detecting.png
+  ✓ 页面已进入检测相关视图
+
+[10] ⑩ 报价单列表页可开
+  [截图] evidence\h5-chain\20260919003828.-11-quotes.png
+  ✓ GET /quotes → code=0
+
+[11] ⑪ 检测任务是否真被执行（断言业务结果，非状态码）
+  ✗ 检测任务仍停在 QUEUED（started_at=null）→ 检测执行器缺失，结果恒空（total=0）。这是业务结果失败，不是 HTTP 失败
+
+──────────────────────────────────────────────────────────────────────────────
+真实 HTTP 调用流水（/api/）：
+  200  GET    /node_modules/@dcloudio/uni-h5/style/api/modal.css code=null
+  200  GET    /node_modules/@dcloudio/uni-h5/style/api/action-sheet.css code=null
+  200  GET    /node_modules/@dcloudio/uni-h5/style/api/toast.css code=null
+  200  GET    /node_modules/@dcloudio/uni-h5/style/api/location-picker.css code=null
+  200  GET    /node_modules/@dcloudio/uni-h5/style/api/location-view.css code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/index.js?v=8f06ce67 code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/api.js?v=8f06ce67 code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/app.js?v=8f06ce67 code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/component.js?v=8f06ce67 code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/hooks.js?v=8f06ce67 code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/util.js?v=8f06ce67 code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/context.js?v=8f06ce67 code=null
+  200  GET    /src/api/auth.ts                               code=null
+  200  GET    /src/api/http.ts                               code=null
+  200  GET    /src/api/base-url.ts                           code=null
+  200  POST   /api/v1/auth/sms/send                          code=0 ok
+  200  POST   /api/v1/auth/sms/login                         code=0 ok
+  200  GET    /src/api/usage.ts                              code=null
+  200  GET    /src/api/provider.ts                           code=null
+  200  GET    /api/v1/provider/profile                       code=0 ok
+  200  GET    /api/v1/usage/summary                          code=0 ok
+  200  GET    /src/api/credential.ts?t=1789777162619         code=null
+  200  GET    /api/v1/credentials?page=1&pageSize=10         code=0 ok
+  304  GET    /node_modules/@dcloudio/uni-h5/style/api/modal.css code=null
+  304  GET    /node_modules/@dcloudio/uni-h5/style/api/toast.css code=null
+  304  GET    /node_modules/@dcloudio/uni-h5/style/api/action-sheet.css code=null
+  304  GET    /node_modules/@dcloudio/uni-h5/style/api/location-view.css code=null
+  304  GET    /node_modules/@dcloudio/uni-h5/style/api/location-picker.css code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/index.js?v=8f06ce67 code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/api.js?v=8f06ce67 code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/app.js?v=8f06ce67 code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/component.js?v=8f06ce67 code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/context.js?v=8f06ce67 code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/hooks.js?v=8f06ce67 code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/util.js?v=8f06ce67 code=null
+  304  GET    /src/api/credential.ts?t=1789777162619         code=null
+  304  GET    /src/api/http.ts                               code=null
+  304  GET    /src/api/base-url.ts                           code=null
+  200  GET    /api/v1/credentials?page=1&pageSize=10         code=0 ok
+  200  POST   /api/v1/credentials                            code=0 ok
+  200  PUT    /api/v1/credentials/458716921321984000         code=0 ok
+  200  PUT    /api/v1/credentials/458716921321984000         code=0 ok
+  200  POST   /api/v1/credentials/458716921321984000/precheck code=0 ok
+  200  GET    /src/api/detection.ts                          code=null
+  200  GET    /api/v1/detection-jobs/458716937126121472      code=0 ok
+  200  GET    /api/v1/detection-jobs/458716937126121472/results code=0 ok
+  200  GET    /src/api/quote.ts                              code=null
+  200  GET    /api/v1/quotes?page=1&pageSize=10              code=0 ok
+  304  GET    /node_modules/@dcloudio/uni-h5/style/api/modal.css code=null
+  304  GET    /node_modules/@dcloudio/uni-h5/style/api/toast.css code=null
+  304  GET    /node_modules/@dcloudio/uni-h5/style/api/action-sheet.css code=null
+  304  GET    /node_modules/@dcloudio/uni-h5/style/api/location-view.css code=null
+  304  GET    /node_modules/@dcloudio/uni-h5/style/api/location-picker.css code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/index.js?v=8f06ce67 code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/api.js?v=8f06ce67 code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/app.js?v=8f06ce67 code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/component.js?v=8f06ce67 code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/context.js?v=8f06ce67 code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/hooks.js?v=8f06ce67 code=null
+  200  GET    /node_modules/@vue/devtools-api/lib/esm/api/util.js?v=8f06ce67 code=null
+  304  GET    /src/api/quote.ts                              code=null
+  304  GET    /src/api/http.ts                               code=null
+  304  GET    /src/api/base-url.ts                           code=null
+  200  GET    /api/v1/quotes?page=1&pageSize=10              code=0 ok
+──────────────────────────────────────────────────────────────────────────────
+步骤 11：通过 10，失败 1；真实 HTTP 64 次
+失败明细：
+  ✗ ⑪ 检测任务是否真被执行（断言业务结果，非状态码） — 检测任务仍停在 QUEUED（started_at=null）→ 检测执行器缺失，结果恒空（total=0）。这是业务结果失败，不是 HTTP 失败
+控制台 error/exception：无 ✓
+明细已写入 evidence\h5-chain\h5-chain-result.json
+
+浏览器保持打开（人工核对页面）。profile=C:\Users\laitz\AppData\Local\Temp\aap-cdp-profile-9578
+确认完再关：设 AAP_CLOSE=1 重跑，或在浏览器里直接关闭窗口。
+exit=1

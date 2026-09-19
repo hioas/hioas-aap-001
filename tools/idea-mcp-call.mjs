@@ -66,6 +66,13 @@ async function main() {
     const r = await call('tools/list');
     const names = (r.result?.tools || []).map((t) => t.name);
     console.log(JSON.stringify({ count: names.length, tools: names }, null, 2));
+  } else if (tool === 'tools/schema' || tool === 'tools.schema') {
+    // 用法: node tools/idea-mcp-call.mjs tools/schema '{"name":"execute_terminal_command"}'
+    const want = JSON.parse(argsRaw).name;
+    const r = await call('tools/list');
+    const t = (r.result?.tools || []).find((x) => x.name === want);
+    if (!t) { console.error(`未找到工具 ${want}`); process.exit(3); }
+    console.log(JSON.stringify(t, null, 2));
   } else {
     const args = JSON.parse(argsRaw);
     const r = await call('tools/call', { name: tool, arguments: args });

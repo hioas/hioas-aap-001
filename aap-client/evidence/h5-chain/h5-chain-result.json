@@ -1,0 +1,821 @@
+{
+  "at": "2026-09-19T00:38:31.289Z",
+  "baseUrl": "http://localhost:5173",
+  "phone": "13800138000",
+  "steps": [
+    {
+      "name": "① 打开登录页",
+      "ok": true,
+      "detail": "title=\"登录 / 注册\""
+    },
+    {
+      "name": "② 填写手机号与图形验证码",
+      "ok": true,
+      "detail": "手机号=13800138000，页面验证码=A7K9，写入=true"
+    },
+    {
+      "name": "③ 获取短信验证码（捕获后端回显 dev_code）",
+      "ok": true,
+      "detail": "POST /auth/sms/send → code=0"
+    },
+    {
+      "name": "④ 提交登录",
+      "ok": true,
+      "detail": "离开登录页 ✓；POST /auth/sms/login → code=0"
+    },
+    {
+      "name": "⑤ 凭证列表页可开",
+      "ok": true,
+      "detail": "GET /credentials → code=0"
+    },
+    {
+      "name": "⑥ 进入「接入凭证」页",
+      "ok": true,
+      "detail": "命中入口=接入凭证"
+    },
+    {
+      "name": "⑦ 填表并保存草稿 → 断言 POST /credentials（缺陷4 的修复点）",
+      "ok": true,
+      "detail": "POST /credentials → code=0；PUT 保存 → code=0"
+    },
+    {
+      "name": "⑧ 提交检测 → 断言 precheck",
+      "ok": true,
+      "detail": "POST /credentials/{id}/precheck → code=0 ok"
+    },
+    {
+      "name": "⑨ 检测进行中页可开",
+      "ok": true,
+      "detail": "页面已进入检测相关视图"
+    },
+    {
+      "name": "⑩ 报价单列表页可开",
+      "ok": true,
+      "detail": "GET /quotes → code=0"
+    },
+    {
+      "name": "⑪ 检测任务是否真被执行（断言业务结果，非状态码）",
+      "ok": false,
+      "detail": "检测任务仍停在 QUEUED（started_at=null）→ 检测执行器缺失，结果恒空（total=0）。这是业务结果失败，不是 HTTP 失败"
+    }
+  ],
+  "apiCalls": [
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@dcloudio/uni-h5/style/api/modal.css",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@dcloudio/uni-h5/style/api/action-sheet.css",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@dcloudio/uni-h5/style/api/toast.css",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@dcloudio/uni-h5/style/api/location-picker.css",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@dcloudio/uni-h5/style/api/location-view.css",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/index.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/api.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/app.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/component.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/hooks.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/util.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/context.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/src/api/auth.ts",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/src/api/http.ts",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/src/api/base-url.ts",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5173/api/v1/auth/sms/send",
+      "postData": "{\"phone\":\"13800138000\",\"captcha\":\"A7K9\"}",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": {
+        "ttl": 300,
+        "expire_at": "2026-09-19T00:43:05Z",
+        "dev_code": "401595"
+      }
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5173/api/v1/auth/sms/login",
+      "postData": "{\"phone\":\"13800138000\",\"smsCode\":\"401595\"}",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": {
+        "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0NTg1ODk2Mzc5MTUxMjM3MTIiLCJyb2xlIjoiU1VQUExJRVIiLCJzdWJqZWN0VHlwZSI6IlBST1ZJREVSIiwicHJvdmlkZXJJZCI6NDU4NTg5NjM4MTE2NDUwMzA0LCJqdGkiOiI4ZTE2YzU1MmIzNzE0MGNiYWVkNWEwZmM0ODM2YTBhNCIsImlhdCI6MTc4OTc3ODI4OSwiZXhwIjoxNzg5Nzg1NDg5fQ.1-8PiUp0Nw0xxaRv7BIsJsKCEfe3GeINw9B_etFHgG4",
+        "refresh_token": "KO8IP6fJB1q9f_2g97LajvvNgFueFgbRSxkD-t_w5pY",
+        "role": "SUPPLIER",
+        "providerId": "458589638116450304",
+        "providerCode": "AAP-P-000003",
+        "status": "PENDING_CREDENTIAL",
+        "expires_in": 7200,
+        "provider_code": "AAP-P-000003",
+        "provider_id": "458589638116450304",
+        "refreshToken": "KO8IP6fJB1q9f_2g97LajvvNgFueFgbRSxkD-t_w5pY"
+      }
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/src/api/usage.ts",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/src/api/provider.ts",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/provider/profile",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": "(不可序列化)"
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/usage/summary",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": {
+        "provider_id": "458589638116450304",
+        "stat_from": "2026-09-01T00:00:00Z",
+        "stat_to": "2026-10-01T00:00:00Z",
+        "month": "2026-09",
+        "request_count": null,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "total_tokens": null,
+        "cache_read_tokens": null,
+        "cache_write_tokens": null,
+        "cache_write_1h_tokens": null,
+        "image_input_tokens": null,
+        "audio_input_tokens": null,
+        "video_input_tokens": null,
+        "cache_hit_rate": null,
+        "cache_parse_rate": null,
+        "quota_raw": null,
+        "cost_usd": null,
+        "amount_total": null,
+        "amount": null,
+        "mom_rate": null,
+        "mom_saved_amount": null,
+        "actual_unit_price": null,
+        "deviation_rate": null,
+        "tier_distribution": {},
+        "models": [],
+        "daily": [],
+        "cost": null,
+        "updated_at": null,
+        "refreshed_at": "2026-09-19T00:38:10Z",
+        "degraded": false
+      }
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/src/api/credential.ts?t=1789777162619",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/credentials?page=1&pageSize=10",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": {
+        "items": [
+          {
+            "id": "458716160076779520",
+            "alias": "联调凭证13860",
+            "base_url": "http://127.0.0.1:9911/v1",
+            "api_key_mask": "sk-c***4585",
+            "model_list": [],
+            "created_at": "2026-09-19T00:35:15Z",
+            "detection_status": "RUNNING",
+            "latest_report_id": null,
+            "status": "ACTIVE",
+            "primary_flag": false
+          },
+          {
+            "id": "458688754783821824",
+            "alias": "联调凭证-主(已改)",
+            "base_url": "http://127.0.0.1:9911/v1",
+            "api_key_mask": "sk-e***cdef",
+            "model_list": [
+              {
+                "model_name": "gpt-4o"
+              },
+              {
+                "model_name": "gpt-4o-mini"
+              }
+            ],
+            "created_at": "2026-09-18T22:46:21Z",
+            "detection_status": "PASS",
+            "latest_report_id": null,
+            "status": "ACTIVE",
+            "primary_flag": true
+          }
+        ],
+        "page": 1,
+        "pageSize": 10,
+        "total": 2
+      }
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@dcloudio/uni-h5/style/api/modal.css",
+      "status": 304,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@dcloudio/uni-h5/style/api/toast.css",
+      "status": 304,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@dcloudio/uni-h5/style/api/action-sheet.css",
+      "status": 304,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@dcloudio/uni-h5/style/api/location-view.css",
+      "status": 304,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@dcloudio/uni-h5/style/api/location-picker.css",
+      "status": 304,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/index.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/api.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/app.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/component.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/context.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/hooks.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/util.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/src/api/credential.ts?t=1789777162619",
+      "status": 304,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/src/api/http.ts",
+      "status": 304,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/src/api/base-url.ts",
+      "status": 304,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/credentials?page=1&pageSize=10",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": {
+        "items": [
+          {
+            "id": "458716160076779520",
+            "alias": "联调凭证13860",
+            "base_url": "http://127.0.0.1:9911/v1",
+            "api_key_mask": "sk-c***4585",
+            "model_list": [],
+            "created_at": "2026-09-19T00:35:15Z",
+            "detection_status": "RUNNING",
+            "latest_report_id": null,
+            "status": "ACTIVE",
+            "primary_flag": false
+          },
+          {
+            "id": "458688754783821824",
+            "alias": "联调凭证-主(已改)",
+            "base_url": "http://127.0.0.1:9911/v1",
+            "api_key_mask": "sk-e***cdef",
+            "model_list": [
+              {
+                "model_name": "gpt-4o"
+              },
+              {
+                "model_name": "gpt-4o-mini"
+              }
+            ],
+            "created_at": "2026-09-18T22:46:21Z",
+            "detection_status": "PASS",
+            "latest_report_id": null,
+            "status": "ACTIVE",
+            "primary_flag": true
+          }
+        ],
+        "page": 1,
+        "pageSize": 10,
+        "total": 2
+      }
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5173/api/v1/credentials",
+      "postData": "{\"alias\":\"联调凭证95485\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789778296185\"}",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": {
+        "id": "458716921321984000",
+        "provider_id": "458589638116450304",
+        "alias": "联调凭证95485",
+        "base_url": "http://127.0.0.1:9911/v1",
+        "api_key_mask": "sk-c***6185",
+        "api_key_masked": "sk-c***6185",
+        "primary_flag": false,
+        "is_primary": false,
+        "declared_vendor": null,
+        "declared_rpm": null,
+        "declared_tpm": null,
+        "declared_context_window": null,
+        "model_list": [],
+        "env_tag": null,
+        "status": "PENDING_PRECHECK",
+        "detection_status": "PENDING",
+        "latest_report_id": null,
+        "precheck_passed": false,
+        "precheck_at": null,
+        "created_at": "2026-09-19T00:38:16Z",
+        "updated_at": "2026-09-19T00:38:16Z",
+        "version": 0
+      }
+    },
+    {
+      "method": "PUT",
+      "url": "http://localhost:5173/api/v1/credentials/458716921321984000",
+      "postData": "{\"alias\":\"联调凭证95485\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789778296185\"}",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": {
+        "id": "458716921321984000",
+        "provider_id": "458589638116450304",
+        "alias": "联调凭证95485",
+        "base_url": "http://127.0.0.1:9911/v1",
+        "api_key_mask": "sk-c***6185",
+        "api_key_masked": "sk-c***6185",
+        "primary_flag": false,
+        "is_primary": false,
+        "declared_vendor": null,
+        "declared_rpm": null,
+        "declared_tpm": null,
+        "declared_context_window": null,
+        "model_list": [],
+        "env_tag": null,
+        "status": "PENDING_PRECHECK",
+        "detection_status": "PENDING",
+        "latest_report_id": null,
+        "precheck_passed": false,
+        "precheck_at": null,
+        "created_at": "2026-09-19T00:38:16Z",
+        "updated_at": "2026-09-19T00:38:16Z",
+        "version": 0
+      }
+    },
+    {
+      "method": "PUT",
+      "url": "http://localhost:5173/api/v1/credentials/458716921321984000",
+      "postData": "{\"alias\":\"联调凭证95485\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789778296185\"}",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": {
+        "id": "458716921321984000",
+        "provider_id": "458589638116450304",
+        "alias": "联调凭证95485",
+        "base_url": "http://127.0.0.1:9911/v1",
+        "api_key_mask": "sk-c***6185",
+        "api_key_masked": "sk-c***6185",
+        "primary_flag": false,
+        "is_primary": false,
+        "declared_vendor": null,
+        "declared_rpm": null,
+        "declared_tpm": null,
+        "declared_context_window": null,
+        "model_list": [],
+        "env_tag": null,
+        "status": "PENDING_PRECHECK",
+        "detection_status": "PENDING",
+        "latest_report_id": null,
+        "precheck_passed": false,
+        "precheck_at": null,
+        "created_at": "2026-09-19T00:38:16Z",
+        "updated_at": "2026-09-19T00:38:20Z",
+        "version": 1
+      }
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5173/api/v1/credentials/458716921321984000/precheck",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": {
+        "job_id": "458716937126121472",
+        "detection_job_id": "458716937126121472",
+        "job_no": "DJ202609190005",
+        "precheck_status": "PASSED",
+        "status": "ACTIVE",
+        "models": [
+          "gpt-4o",
+          "gpt-4o-mini",
+          "gpt-4-turbo",
+          "claude-3-opus",
+          "claude-3-sonnet",
+          "claude-3-haiku",
+          "gemini-1.5-pro",
+          "deepseek-chat",
+          "qwen-max",
+          "glm-4"
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/src/api/detection.ts",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/detection-jobs/458716937126121472",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": {
+        "id": "458716937126121472",
+        "job_id": "458716937126121472",
+        "job_no": "DJ202609190005",
+        "provider_id": "458589638116450304",
+        "credential_id": "458716921321984000",
+        "status": "QUEUED",
+        "trigger_type": "FIRST",
+        "started_at": null,
+        "finished_at": null,
+        "total_score": null,
+        "result": null,
+        "confidence": null,
+        "cost_estimate_usd": null,
+        "cost_actual_usd": null,
+        "challenge_verified": false,
+        "error_code": null,
+        "error_msg": null,
+        "report_id": null,
+        "attempt_count": 0,
+        "progress": {
+          "percent": 0,
+          "finished": 0,
+          "total": 8,
+          "eta_minutes": null
+        },
+        "created_at": "2026-09-19T00:38:20Z",
+        "updated_at": "2026-09-19T00:38:20Z"
+      }
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/detection-jobs/458716937126121472/results",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": {
+        "job_id": "458716937126121472",
+        "total": 0,
+        "items": []
+      }
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/src/api/quote.ts",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/quotes?page=1&pageSize=10",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": "(不可序列化)"
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@dcloudio/uni-h5/style/api/modal.css",
+      "status": 304,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@dcloudio/uni-h5/style/api/toast.css",
+      "status": 304,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@dcloudio/uni-h5/style/api/action-sheet.css",
+      "status": 304,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@dcloudio/uni-h5/style/api/location-view.css",
+      "status": 304,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@dcloudio/uni-h5/style/api/location-picker.css",
+      "status": 304,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/index.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/api.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/app.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/component.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/context.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/hooks.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/node_modules/@vue/devtools-api/lib/esm/api/util.js?v=8f06ce67",
+      "status": 200,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/src/api/quote.ts",
+      "status": 304,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/src/api/http.ts",
+      "status": 304,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/src/api/base-url.ts",
+      "status": 304,
+      "code": null,
+      "message": null,
+      "data": null
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/quotes?page=1&pageSize=10",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": "(不可序列化)"
+    }
+  ]
+}
