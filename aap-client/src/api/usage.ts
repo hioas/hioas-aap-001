@@ -3,7 +3,7 @@
  * GET /usage/hourly、/usage/summary（前缀 /api/v1）
  * 响应字段见 src/utils/workbench-model.ts 顶部说明（字段级 schema 未在 18-API 定义，已记台账 missing-prd）。
  */
-import { http } from './http'
+import { ApiError, http } from './http'
 import type { UsageSummaryRaw } from '@/utils/workbench-model'
 import type { UsageOverviewRaw } from '@/utils/usage-model'
 
@@ -25,8 +25,19 @@ export const usageApi = {
     return http<UsageOverviewRaw>('/usage/summary', { method: 'GET', data: params })
   },
 
-  /** 小时用量（「查看逐日 / 逐模型明细」的数据源；画布无明细页 → 本页不调用） */
-  hourly(params?: Record<string, unknown>) {
+  /**
+   * 小时用量（「查看逐日 / 逐模型明细」的数据源；画布无明细页 → 本页不调用）。
+   *
+   * ⚠️ 后端 `from`/`to` **必填**（RFC3339 UTC），实测不传直接 E-1001「from 缺失」。
+   *   故这里把两者设为必填并在运行时兜底校验，避免再次出现「类型层可选、调用必失败」的接口。
+   */
+  hourly(params: { from: string; to: string } & Record<string, unknown>) {
+    if (!params?.from) {
+      throw new ApiError('E-1001', '缺少查询参数 from（RFC3339 UTC）')
+    }
+    if (!params?.to) {
+      throw new ApiError('E-1001', '缺少查询参数 to（RFC3339 UTC）')
+    }
     return http<unknown>('/usage/hourly', { method: 'GET', data: params })
   }
 }

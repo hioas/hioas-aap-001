@@ -2,8 +2,12 @@
  * HTTP 客户端 — 依据 18-API设计OpenAPI「通用约定」+ 17-spec §9 错误码表
  * - 路径前缀 /api/v1
  * - 统一响应 {"code":"0|E-xxxx","message":"...","data":{}}
- * - 401 → E-1902（未认证），清除本地 token
+ * - 401 → 先用 refresh token **自动续期一次**再重试；续期不可用/失败 → 清本地 token + E-1902
  * - 网络层失败 → E-2001
+ *
+ * ⚠️ refresh 是**轮换式**（后端会撤销旧 token 记录，见 AuthService.refresh 注释）：
+ *   续期成功后**必须把新的 access + refresh 双 token 一起落盘**，否则旧 token 立刻失效。
+ *   实测教训：把 refresh 放在链路中间而不落盘新 token，会让后续请求全部 E-1902。
  */
 
 import { currentUniPlatform, resolveApiBase } from './base-url'
@@ -16,6 +20,7 @@ import { currentUniPlatform, resolveApiBase } from './base-url'
  */
 export const API_BASE = resolveApiBase(import.meta.env.VITE_API_BASE, currentUniPlatform())
 export const TOKEN_KEY = 'aap_token'
+export const REFRESH_TOKEN_KEY = 'aap_refresh_token'
 
 export class ApiError extends Error {
   code: string
@@ -71,7 +76,45 @@ export function clearToken(): void {
   }
 }
 
-export function http<T = unknown>(path: string, options: RequestOptions = {}): Promise<T> {
+export function getRefreshToken(): string {
+  try {
+    return (uni.getStorageSync(REFRESH_TOKEN_KEY) as string) || ''
+  } catch {
+    return ''
+  }
+}
+
+export function setRefreshToken(token: string): void {
+  uni.setStorageSync(REFRESH_TOKEN_KEY, token)
+}
+
+export function clearRefreshToken(): void {
+  try {
+    uni.removeStorageSync(REFRESH_TOKEN_KEY)
+  } catch {
+    /* 忽略 */
+  }
+}
+
+/** 登录响应的 token 载荷（refresh_token/refreshToken 两种写法后端都返回，容错读取） */
+export interface TokenPair {
+  token: string
+  refresh_token?: string
+  refreshToken?: string
+}
+
+/**
+ * 登录/续期成功后统一落盘。
+ * 后端同时返回 snake_case 与 camelCase，两者取其一即可（缺失时保留原 refresh token）。
+ */
+export function persistTokenPair(pair: TokenPair): void {
+  setToken(pair.token)
+  const rt = pair.refresh_token || pair.refreshToken
+  if (rt) setRefreshToken(rt)
+}
+
+/** 底层单次请求（不含续期逻辑） */
+function requestOnce<T>(path: string, options: RequestOptions): Promise<T> {
   const { method = 'GET', data, header = {}, auth = true } = options
   const token = auth ? getToken() : ''
   const finalHeader: Record<string, string> = {
@@ -93,7 +136,6 @@ export function http<T = unknown>(path: string, options: RequestOptions = {}): P
         const body = res.data as unknown as ApiEnvelope<T> | undefined
 
         if (status === 401) {
-          clearToken()
           reject(new ApiError('E-1902', body?.message || '登录已过期，请重新登录'))
           return
         }
@@ -116,4 +158,60 @@ export function http<T = unknown>(path: string, options: RequestOptions = {}): P
       }
     })
   })
+}
+
+/** 续期中的并发去重：多个请求同时 401 时只发一次 /auth/refresh */
+let renewing: Promise<string> | null = null
+
+/** 用 refresh token 换发新 token；成功返回新 access token，失败返回空串 */
+function renewToken(): Promise<string> {
+  if (renewing) return renewing
+  const rt = getRefreshToken()
+  if (!rt) return Promise.resolve('')
+
+  renewing = requestOnce<TokenPair>('/auth/refresh', {
+    method: 'POST',
+    data: { refreshToken: rt },
+    auth: false
+  })
+    .then((pair) => {
+      if (!pair?.token) return ''
+      persistTokenPair(pair)
+      return pair.token
+    })
+    .catch(() => '')
+    .finally(() => {
+      renewing = null
+    })
+
+  return renewing
+}
+
+/**
+ * 发起请求。401 时（且该请求带鉴权）自动续期一次并重试；再失败则清 token 抛 E-1902。
+ * 只重试一次（`retried` 标志），避免死循环。
+ */
+export async function http<T = unknown>(path: string, options: RequestOptions = {}): Promise<T> {
+  try {
+    return await requestOnce<T>(path, options)
+  } catch (e) {
+    const isUnauth = e instanceof ApiError && e.code === 'E-1902'
+    if (!isUnauth || options.auth === false) throw e
+
+    const fresh = await renewToken()
+    if (!fresh) {
+      clearToken()
+      clearRefreshToken()
+      throw e
+    }
+    try {
+      return await requestOnce<T>(path, options)
+    } catch (e2) {
+      if (e2 instanceof ApiError && e2.code === 'E-1902') {
+        clearToken()
+        clearRefreshToken()
+      }
+      throw e2
+    }
+  }
 }

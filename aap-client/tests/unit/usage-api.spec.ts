@@ -223,7 +223,9 @@ describe('序号 22 · usageApi.overview · 月份维度（GET /api/v1/usage/sum
     expect(req(0).data).toMatchObject({ startHour: '2024-06-01T00:00:00Z' })
 
     pushResponse(ok({ items: [] }))
-    await usageApi.hourly({ page: 1 })
+    // ⚠️ 契约修正（2026-09-19 联调）：后端 from/to 必填，不传必 E-1001；
+    //    原用例的 hourly({ page: 1 }) 正是那个「类型层可选、调用必失败」的写法，已随之修正。
+    await usageApi.hourly({ from: '2024-06-01T00:00:00Z', to: '2024-06-30T00:00:00Z', page: 1 })
     expect(req(1).url).toBe('/api/v1/usage/hourly')
     expect(req(1).method).toBe('GET')
   })

@@ -1,0 +1,143 @@
+### RED · 缺陷5/6 红基线
+### 命令: npx vitest run tests/unit/auth-renew-and-hourly.spec.ts
+### 时间: 2026-09-19 07:34:11
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/workspaces/hioas/hioas-aap-001/aap-client[39m
+
+ [31m❯[39m tests/unit/auth-renew-and-hourly.spec.ts [2m([22m[2m11 tests[22m[2m | [22m[31m8 failed[39m[2m)[22m[90m 39[2mms[22m[39m
+[31m   [31m×[31m 缺陷5 · usageApi.hourly 必须带 from/to[2m > [22m不传 from/to 时**客户端就拦下**（不再打到后端拿 E-1001）[90m 29[2mms[22m[31m[39m
+[31m     → expected [Function] to throw an error[39m
+[31m   [31m×[31m 缺陷5 · usageApi.hourly 必须带 from/to[2m > [22m只传 from 也拦下（两个都要）[90m 1[2mms[22m[31m[39m
+[31m     → expected [Function] to throw an error[39m
+[31m   [31m×[31m 缺陷6 · 401 时用 refresh token 自动续期一次[2m > [22m登录后 refresh_token 应能落盘/回读[90m 1[2mms[22m[31m[39m
+[31m     → setRefreshToken is not a function[39m
+[31m   [31m×[31m 缺陷6 · 401 时用 refresh token 自动续期一次[2m > [22m401 → 续期成功 → 落盘新 token → 重试原请求并返回结果[90m 1[2mms[22m[31m[39m
+[31m     → setRefreshToken is not a function[39m
+[31m   [31m×[31m 缺陷6 · 401 时用 refresh token 自动续期一次[2m > [22m续期失败（refresh 也 401）→ 清 token + E-1902，不无限重试[90m 0[2mms[22m[31m[39m
+[31m     → setRefreshToken is not a function[39m
+[31m   [31m×[31m 缺陷6 · 401 时用 refresh token 自动续期一次[2m > [22m续期后重试仍 401 → 直接抛，不再续期（防死循环）[90m 0[2mms[22m[31m[39m
+[31m     → setRefreshToken is not a function[39m
+[31m   [31m×[31m 缺陷6 · 401 时用 refresh token 自动续期一次[2m > [22m登录类请求（auth:false）401 不触发续期[90m 0[2mms[22m[31m[39m
+[31m     → setRefreshToken is not a function[39m
+[31m   [31m×[31m 缺陷6 · 401 时用 refresh token 自动续期一次[2m > [22m业务错误码（如 E-1001）不触发续期[90m 0[2mms[22m[31m[39m
+[31m     → setRefreshToken is not a function[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 8 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/auth-renew-and-hourly.spec.ts[2m > [22m缺陷5 · usageApi.hourly 必须带 from/to[2m > [22m不传 from/to 时**客户端就拦下**（不再打到后端拿 E-1001）
+[31m[1mAssertionError[22m: expected [Function] to throw an error[39m
+
+[32m- Expected:[39m 
+null
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/unit/auth-renew-and-hourly.spec.ts:[2m39:48[22m[39m
+    [90m 37| [39m  [34mit[39m([32m'不传 from/to 时**客户端就拦下**（不再打到后端拿 E-1001）'[39m[33m,[39m () [33m=>[39m…
+    [90m 38| [39m    [90m// 用 as never 绕过 TS 必填约束，模拟「有人按旧签名调用」的运行时[39m…
+    [90m 39| [39m    [34mexpect[39m(() [33m=>[39m usageApi[33m.[39m[34mhourly[39m({} [35mas[39m never))[33m.[39m[34mtoThrowError[39m([36m/from/[39m)
+    [90m   | [39m                                               [31m^[39m
+    [90m 40| [39m  })
+    [90m 41| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/auth-renew-and-hourly.spec.ts[2m > [22m缺陷5 · usageApi.hourly 必须带 from/to[2m > [22m只传 from 也拦下（两个都要）
+[31m[1mAssertionError[22m: expected [Function] to throw an error[39m
+
+[32m- Expected:[39m 
+null
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/unit/auth-renew-and-hourly.spec.ts:[2m43:78[22m[39m
+    [90m 41| [39m
+    [90m 42| [39m  [34mit[39m([32m'只传 from 也拦下（两个都要）'[39m[33m,[39m () [33m=>[39m {
+    [90m 43| [39m    [34mexpect[39m(() [33m=>[39m usageApi[33m.[39m[34mhourly[39m({ [35mfrom[39m[33m:[39m [32m'2026-08-01T00:00:00Z'[39m } [35mas[39m n…
+    [90m   | [39m                                                                             [31m^[39m
+    [90m 44| [39m  })
+    [90m 45| [39m})
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/auth-renew-and-hourly.spec.ts[2m > [22m缺陷6 · 401 时用 refresh token 自动续期一次[2m > [22m登录后 refresh_token 应能落盘/回读
+[31m[1mTypeError[22m: setRefreshToken is not a function[39m
+[36m [2m❯[22m tests/unit/auth-renew-and-hourly.spec.ts:[2m54:5[22m[39m
+    [90m 52| [39m
+    [90m 53| [39m  [34mit[39m([32m'登录后 refresh_token 应能落盘/回读'[39m[33m,[39m () [33m=>[39m {
+    [90m 54| [39m    [34msetRefreshToken[39m([32m'rt-abc'[39m)
+    [90m   | [39m    [31m^[39m
+    [90m 55| [39m    [34mexpect[39m([34mgetRefreshToken[39m())[33m.[39m[34mtoBe[39m([32m'rt-abc'[39m)
+    [90m 56| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/auth-renew-and-hourly.spec.ts[2m > [22m缺陷6 · 401 时用 refresh token 自动续期一次[2m > [22m401 → 续期成功 → 落盘新 token → 重试原请求并返回结果
+[31m[1mTypeError[22m: setRefreshToken is not a function[39m
+[36m [2m❯[22m tests/unit/auth-renew-and-hourly.spec.ts:[2m60:5[22m[39m
+    [90m 58| [39m  [34mit[39m([32m'401 → 续期成功 → 落盘新 token → 重试原请求并返回结果'[39m[33m,[39m [35masync[39m () …
+    [90m 59| [39m    [34msetToken[39m([32m'old-token'[39m)
+    [90m 60| [39m    [34msetRefreshToken[39m([32m'rt-1'[39m)
+    [90m   | [39m    [31m^[39m
+    [90m 61| [39m    [34mpushResponse[39m([34munauth[39m()) [90m// 原请求 401[39m
+    [90m 62| [39m    [34mpushResponse[39m([34mok[39m({ token[33m:[39m [32m'new-token'[39m[33m,[39m refresh_token[33m:[39m [32m'rt-2'[39m })) [90m//[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/auth-renew-and-hourly.spec.ts[2m > [22m缺陷6 · 401 时用 refresh token 自动续期一次[2m > [22m续期失败（refresh 也 401）→ 清 token + E-1902，不无限重试
+[31m[1mTypeError[22m: setRefreshToken is not a function[39m
+[36m [2m❯[22m tests/unit/auth-renew-and-hourly.spec.ts:[2m88:5[22m[39m
+    [90m 86| [39m  [34mit[39m([32m'续期失败（refresh 也 401）→ 清 token + E-1902，不无限重试'[39m[33m,[39m [35masyn[39m…
+    [90m 87| [39m    [34msetToken[39m([32m'old-token'[39m)
+    [90m 88| [39m    [34msetRefreshToken[39m([32m'rt-bad'[39m)
+    [90m   | [39m    [31m^[39m
+    [90m 89| [39m    [34mpushResponse[39m([34munauth[39m()) [90m// 原请求[39m
+    [90m 90| [39m    [34mpushResponse[39m([34munauth[39m()) [90m// refresh 也失败[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/auth-renew-and-hourly.spec.ts[2m > [22m缺陷6 · 401 时用 refresh token 自动续期一次[2m > [22m续期后重试仍 401 → 直接抛，不再续期（防死循环）
+[31m[1mTypeError[22m: setRefreshToken is not a function[39m
+[36m [2m❯[22m tests/unit/auth-renew-and-hourly.spec.ts:[2m99:5[22m[39m
+    [90m 97| [39m  [34mit[39m([32m'续期后重试仍 401 → 直接抛，不再续期（防死循环）'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m 98| [39m    [34msetToken[39m([32m'old-token'[39m)
+    [90m 99| [39m    [34msetRefreshToken[39m([32m'rt-1'[39m)
+    [90m   | [39m    [31m^[39m
+    [90m100| [39m    [34mpushResponse[39m([34munauth[39m()) [90m// 原请求[39m
+    [90m101| [39m    [34mpushResponse[39m([34mok[39m({ token[33m:[39m [32m'new-token'[39m[33m,[39m refresh_token[33m:[39m [32m'rt-2'[39m })) [90m//[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/auth-renew-and-hourly.spec.ts[2m > [22m缺陷6 · 401 时用 refresh token 自动续期一次[2m > [22m登录类请求（auth:false）401 不触发续期
+[31m[1mTypeError[22m: setRefreshToken is not a function[39m
+[36m [2m❯[22m tests/unit/auth-renew-and-hourly.spec.ts:[2m109:5[22m[39m
+    [90m107| [39m  [34mit[39m([32m'登录类请求（auth:false）401 不触发续期'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m108| [39m    [34msetToken[39m([32m'old-token'[39m)
+    [90m109| [39m    [34msetRefreshToken[39m([32m'rt-1'[39m)
+    [90m   | [39m    [31m^[39m
+    [90m110| [39m    [34mpushResponse[39m([34munauth[39m())
+    [90m111| [39m    [35mawait[39m [34mexpect[39m([34mhttp[39m([32m'/auth/sms/login'[39m[33m,[39m { method[33m:[39m [32m'POST'[39m[33m,[39m auth[33m:[39m [35mfalse[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/auth-renew-and-hourly.spec.ts[2m > [22m缺陷6 · 401 时用 refresh token 自动续期一次[2m > [22m业务错误码（如 E-1001）不触发续期
+[31m[1mTypeError[22m: setRefreshToken is not a function[39m
+[36m [2m❯[22m tests/unit/auth-renew-and-hourly.spec.ts:[2m119:5[22m[39m
+    [90m117| [39m  [34mit[39m([32m'业务错误码（如 E-1001）不触发续期'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m118| [39m    [34msetToken[39m([32m't'[39m)
+    [90m119| [39m    [34msetRefreshToken[39m([32m'rt-1'[39m)
+    [90m   | [39m    [31m^[39m
+    [90m120| [39m    [34mpushResponse[39m({ statusCode[33m:[39m [34m200[39m[33m,[39m data[33m:[39m { code[33m:[39m [32m'E-1001'[39m[33m,[39m message[33m:[39m [32m'[39m…
+    [90m121| [39m    [35mawait[39m [34mexpect[39m([34mhttp[39m([32m'/auth/me'[39m))[33m.[39mrejects[33m.[39m[34mtoMatchObject[39m({ code[33m:[39m [32m'E-10[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m8 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (11)[39m
+[2m   Start at [22m 07:34:52
+[2m   Duration [22m 18.74s[2m (transform 1.15s, setup 905ms, collect 297ms, tests 39ms, environment 15.54s, prepare 1.12s)[22m
+
