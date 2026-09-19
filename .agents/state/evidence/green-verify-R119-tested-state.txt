@@ -1,0 +1,26 @@
+== R119 被测状态核对（两轮全量所编译/执行的源码 = 哪一份） ==
+HEAD = 5d8bdc7 | chore(evidence): R118 台账收尾 —— R118 行「提交」列回填 0f4f4dd + 飞书通知留痕（cron 自动投递、Skipped 属预期，非失败）+ 守卫真值由 fix-guards-r118.py 以「先枚举全部形态、处理项数 == 命中项数」核对（返工 0 → 0 与上一轮同值 → 空操作，保留目标形态命中数 > 0 的机器核对；回归面 82 → 82 亦为空操作）；CSV 以真正的 csv 解析复核每行列数 = 8、描述列 2276 字符（正文 1934 + 收尾后缀 342）且逐字符等于单一事实源、描述为空的行 = 0、R 行连续 R27 → R118 无缺号（坑 12/80/81/155/157/200/202）
+HEAD 提交时刻 = 5d8bdc75a7994756ec33b3c01de5e20d908e9195|05:19:44
+run1 起跑 05:28:04 / 结束 05:29:13；run2 起跑 05:29:14 / 结束 05:30:02（串行，规范命令不改参数）
+窗口内（05:28:04–05:30:02，即两轮跑测期间）aap-server 下被改写的源码文件数 = 0；窗口后（> 05:30:02）被改写 = 0
+结论：两轮全量在 **HEAD 的临时 detached worktree** 中编译/执行，被测状态 = worktree 实际检出的提交 5d8bdc7 的源码；
+      窗口内 aap-server 源码 mtime 改动 = 0（下方逐条 mtime 全部早于本窗口起点、窗口后亦无新增改动）→ 被测状态一律取 HEAD 的 worktree（与工作区并发编辑彻底解耦；下方「本轮执行方式」段逐条列出工作区相对 HEAD 的未提交改动 —— **0 条即主仓库工作区亦为提交态**，非 0 即他方在途工作，本轮一律不碰，坑 15/27）
+最新 3 个源码 mtime（★ = 窗口内，△ = 窗口后，无标记 = 早于窗口起点）：
+    00:17:59  aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java
+    00:14:00  aap-server/src/test/java/com/hioas/aap/file/FileContractTest.java
+    00:12:15  aap-server/src/main/java/com/hioas/aap/contract/ContractService.java
+
+-- 轮内 HEAD 位移分析 --
+会话起点 HEAD = 5d8bdc7；证据写入时 HEAD = 5d8bdc7 | chore(evidence): R118 台账收尾 —— R118 行「提交」列回填 0f4f4dd + 飞书通知留痕（cron 自动投递、Skipped 属预期，非失败）+ 守卫真值由 fix-guards-r118.py 以「先枚举全部形态、处理项数 == 命中项数」核对（返工 0 → 0 与上一轮同值 → 空操作，保留目标形态命中数 > 0 的机器核对；回归面 82 → 82 亦为空操作）；CSV 以真正的 csv 解析复核每行列数 = 8、描述列 2276 字符（正文 1934 + 收尾后缀 342）且逐字符等于单一事实源、描述为空的行 = 0、R 行连续 R27 → R118 无缺号（坑 12/80/81/155/157/200/202）（05:19:44）
+git log 5d8bdc7..HEAD --format='%h|%cd|%s' → 0 行：(无位移)
+git diff --stat 5d8bdc7 HEAD -- aap-server/ → 输出行数 = 0（0 = aap-server 树零差异）
+git status --short -- aap-server/ → 输出行数 = 0（> 0 = 他方未提交改动；本轮被测状态取 HEAD，故不影响）
+窗口内（[s1, e2]）aap-server 源码 mtime 改动数 = 0；窗口后（> e2）改动数 = 0（> 0 时需逐条解释，见上）
+结论：两轮全量编译/执行的就是 aap-server 侧 worktree 提交 5d8bdc7 的源码；证据写入时 HEAD = 5d8bdc7，两者 aap-server 树差异行数 = 0（0 = 不触碰被测对象）。
+
+-- 本轮执行方式（沿用历史轮次引入的做法；坑 15/27/28） --
+工作区 aap-server 相对 HEAD 的未提交改动（git status --short -- aap-server/）逐条（**0 条 = 主仓库工作区亦为提交态**；非 0 即他方在途工作，本轮一律不碰）：
+他方 aap-server 源码改动 mtime（★ = 窗口内 [s1,e2]，△ = 窗口后 > e2，无标记 = 早于窗口起点）：
+两轮全量因此改在 HEAD 的临时 detached worktree 中执行（全程不触碰他方正在编辑的文件）：C:/Users/laitz/AppData/Local/Temp/aap-r119-wt
+  创建：git worktree add --detach <path> HEAD；收尾：git worktree remove --force <path>（git 自带，不触发递归删除拦截，坑 28）
+被测状态 = worktree 提交 5d8bdc7 的 aap-server 源码（工作区脏改动不参与编译；与证据写入时 HEAD 5d8bdc7 的 aap-server 树差异行数 = 0）。
