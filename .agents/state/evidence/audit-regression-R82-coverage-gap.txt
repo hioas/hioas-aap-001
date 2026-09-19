@@ -1,0 +1,59 @@
+== R82 覆盖缺口核对：R55 逻辑外键 / R56 分页越界行为（补入 driver 前先与留档证据比对） ==
+判据：FAIL 标记（方括号内允许空格，坑 97）；排除 [PASS] 行；比对键剥行首来源名前缀（坑 135）
+
+--- gap-logical-fk ---
+命令：C:\Users\laitz\AppData\Local\Temp\aap-r55-spotcheck\spotcheck-logical-fk-R55.py --root E:\workspaces\hioas\hioas-aap-001
+rc = 1
+本轮解析到 FAIL 行 2 条（唯一 2）
+留档（spotcheck-logical-fk-R55.txt）FAIL 行 2 条（唯一 2）
+新增（本轮有、留档无）= 1：
+  + [FAIL] A4    3/9 处请求体引用字段**已消费但无同域存在性校验**（可写入指向不存在父行的引用）：PROV-04(file_id), ADM-CFG07(logo_file_id), ADM-CFG09(logo_file_id)
+消失（留档有、本轮无）= 1：
+  - [FAIL] A4    2/9 处请求体引用字段的写入路径无父行存在性校验证据：ADM-CFG07(logo_file_id), ADM-CFG09(logo_file_id)
+
+--- gap-logical-fk-selftest ---
+命令：C:\Users\laitz\AppData\Local\Temp\aap-r55-spotcheck\spotcheck-logical-fk-R55.py --root C:\Users\laitz\AppData\Local\Temp\aap-r55-spotcheck-fixtures --selftest
+rc = 0
+本轮解析到 FAIL 行 0 条（唯一 0）
+留档（spotcheck-logical-fk-selftest-R55.txt）FAIL 行 0 条（唯一 0）
+新增（本轮有、留档无）= 0：
+消失（留档有、本轮无）= 0：
+
+--- gap-paging-range ---
+命令：C:\Users\laitz\AppData\Local\Temp\aap-r56-spotcheck\spotcheck-paging.py --root E:\workspaces\hioas\hioas-aap-001
+rc = 1
+本轮解析到 FAIL 行 3 条（唯一 3）
+留档（spotcheck-paging-R56.txt）FAIL 行 3 条（唯一 3）
+新增（本轮有、留档无）= 0：
+消失（留档有、本轮无）= 0：
+
+--- gap-paging-range-selftest ---
+命令：C:\Users\laitz\AppData\Local\Temp\aap-r56-spotcheck\spotcheck-paging-selftest.py
+rc = 0
+本轮解析到 FAIL 行 0 条（唯一 0）
+留档（spotcheck-paging-selftest-R56.txt）FAIL 行 0 条（唯一 0）
+新增（本轮有、留档无）= 0：
+消失（留档有、本轮无）= 0：
+
+== 汇总 ==
+gap-logical-fk：唯一 FAIL 2 条
+gap-logical-fk-selftest：唯一 FAIL 0 条
+gap-paging-range：唯一 FAIL 3 条
+gap-paging-range-selftest：唯一 FAIL 0 条
+四者并集 = 5 条（这些将作为「覆盖缺口修复」的新增 FAIL 出现在 R82 的跨轮比对里）
+（说明：其中 R56 的 3 条 = 已登记待拍板项「openapi 未声明 default/maximum」，与 driver 内 R46 同根因；R55 的 2 条见上逐条）
+
+== 结论（补入 driver 前必须写清：0 新漂移 or 逐条解释差异） ==
+1) R56 分页取值域·越界行为：本轮 FAIL 集合与留档**逐行完全相同**（3/3：A4/A5/A5b = openapi 未声明 default / pageSize 未声明 maximum，
+   与 driver 内 R46 同根因，已登记待拍板项）→ 判「无新漂移」，补入 driver。
+2) R55 逻辑外键：留档 2 条 vs 本轮 2 条，但 A4 那一行**文本不同**（留档 2/9 → 本轮 3/9，新增 PROV-04(file_id)）。
+   差异全部落在 A4 判据，且**磁盘上的脚本已是修正版**：脚本内注释明写「只认与被引用实体同域的存在性校验证据
+   （否则 requireProvider() 这类会假判 validated）」（坑 81/125 的判据修正），留档证据则由修正前版本产生。
+   第三方裁判（实现侧独立取证）：ProviderService.addQualification 仅 `entity.setFileId(command.fileId())`，
+   全仓库只有 ContractService 查 `aap_file_asset` → PROV-04 的 file_id 确为「已消费但无同域存在性校验」。
+   → 判「**判据修正后的正确结论**」，非仓库漂移；同时是**留档欠报**的真发现（与 A3「file_id 未在 ER 声明为 FK*」同根因），
+     列为**待拍板**（是否给 PROV-04 的 file_id 补存在性校验 / 或把该引用登记为 FK*）。
+3) 调用参数返工 1 处（坑 171 同族）：R55 自测首版漏 `--root <夹具目录>`，脚本以仓库根当夹具根 →
+   夹具解析到 0 个引用 → `IndexError: list index out of range`（**响亮崩溃，非静默误报**）。
+   补上 `--root $LOCALAPPDATA/Temp/aap-r55-spotcheck-fixtures` 后 14/14 PASS，与留档逐条一致。
+4) 未补入的第三类：R41 `spotcheck-pagination.py`（分页参数默认值与上限）与 driver 内 R46 语义相同 → **被判为被取代**，不重复补入。

@@ -1,0 +1,9 @@
+== R82 跨轮 FAIL 明细差异（R81 → R82） ==
+R81 唯一键 117 ；R82 唯一键 122
+新增 5 行（纯巡检轮期望 0；非 0 需逐条解释）：
+  + [FAIL] A3    请求体引用了 3 个未在 ER 声明为 FK* 的字段：batch_id, file_id, logo_file_id
+  + [FAIL] A4    3/9 处请求体引用字段**已消费但无同域存在性校验**（可写入指向不存在父行的引用）：PROV-04(file_id), ADM-CFG07(logo_file_id), ADM-CFG09(logo_file_id)
+  + [FAIL] A4: openapi 声明 pageSize 上限 200 的 operation：0/23
+  + [FAIL] A5: openapi 声明 pageSize 默认值 20 的 operation：0/23
+  + [FAIL] A5b: openapi 声明 page 默认值 1 的 operation：0/23
+消失 0 行：
