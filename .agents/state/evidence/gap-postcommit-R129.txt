@@ -1,0 +1,43 @@
+== R129 提交后落地核对（主提交 49f5886） ==
+
+A) 主提交携带的 R129 行 vs 工作区行：逐列相等 8/8 列
+   c0 相等（提交侧 4 字符 / 工作区 4 字符）
+   c1 相等（提交侧 0 字符 / 工作区 0 字符）
+   c2 相等（提交侧 0 字符 / 工作区 0 字符）
+   c3 相等（提交侧 0 字符 / 工作区 0 字符）
+   c4 相等（提交侧 3585 字符 / 工作区 3585 字符）
+   c5 相等（提交侧 0 字符 / 工作区 0 字符）
+   c6 相等（提交侧 492 字符 / 工作区 492 字符）
+   c7 相等（提交侧 0 字符 / 工作区 0 字符）
+   负向对照（把描述列加一个后缀）→ 比对器报出差异列 = [4]（期望 [4]）
+   → 比对器非空转（单列差异必被报出）
+
+B) 证据归属（坑 198：他方 `git add -A` 可能带走；判据 = 是否在 HEAD 树内 + 首个加入提交）
+   green-verify-R129-full-run1.txt            HEAD树=Y 首个加入提交=49f5886
+   green-verify-R129-full-run2.txt            HEAD树=Y 首个加入提交=49f5886
+   green-verify-R129-classdiff.txt            HEAD树=Y 首个加入提交=49f5886
+   green-verify-R129-testcount.txt            HEAD树=Y 首个加入提交=49f5886
+   green-verify-R129-coverage-fields.txt      HEAD树=Y 首个加入提交=49f5886
+   green-verify-R129-tested-state.txt         HEAD树=Y 首个加入提交=49f5886
+   audit-regression-R129.txt                  HEAD树=Y 首个加入提交=49f5886
+   audit-regression-R129-rcseq.txt            HEAD树=Y 首个加入提交=49f5886
+   audit-regression-R129-faildiff.txt         HEAD树=Y 首个加入提交=49f5886
+   audit-regression-R129-coverage-gap.txt     HEAD树=Y 首个加入提交=49f5886
+   gap-tools-scan-R129.txt                    HEAD树=Y 首个加入提交=49f5886
+   gap-guard-roundnum-R129.txt                HEAD树=Y 首个加入提交=49f5886
+   gap-preflight-judge-R129.txt               HEAD树=Y 首个加入提交=49f5886
+   → 在 HEAD 树内 13/13；缺失 = 无
+   非主提交携带者：无
+
+C) 改动范围：共 16 个文件 = 状态/台账 2 + 证据 14（其中与本轮**单一事实源清单求交集** = 13）
+   非证据的状态文件：['.agents/state/aap-server-feature-status.csv', '.agents/state/aap-server-tdd-state.md']
+   aap-server 侧改动 = 0 条（0 = 不改交付代码）
+   证据目录里**非本轮清单**的文件（按语义单列，坑 236）：['.agents/state/evidence/coverage-history.txt']
+   → 自洽核对：证据交集 13 + 非证据状态 2 + 证据目录非清单 1 = 提交文件总数 16 ✓
+
+D) 台账结构：行数 197（含表头）、列数 8；列数不符 = 0
+   R 行连续 R27 → R129 共 103 条无缺号
+
+E) 本文件（SELF，落盘时产生）：gap-postcommit-R129.txt → 既有证据 13 条 + 本文件 = 合计 14 条
+
+结论：主提交 49f5886 携带的台账行与工作区逐列相等（8/8，且比对器负向对照已证明单列差异必被报出）；13 条证据全部在 HEAD 树内（首个加入提交 = 49f5886）；改动范围 = 状态 2 + 证据 13、aap-server 侧 0 条。
