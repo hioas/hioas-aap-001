@@ -1,0 +1,49 @@
+== R151 全量两轮证据（串行，规范命令 ../tools/with-env.sh aap-server mvn -B -ntp test） ==
+run1 合计 Tests run/Failures/Errors/Skipped = (211, 0, 0, 0)
+run2 合计 Tests run/Failures/Errors/Skipped = (211, 0, 0, 0)
+run1 逐类解析到 34 个类；run2 逐类解析到 34 个类（正向对照：必须 > 0，否则判解析器失效，坑 46）
+
+
+-- 逐类（剥 Time elapsed 后，按类名排序比对）（坑 59/79） --
+OK   com.hioas.aap.ToolchainSmokeTest                               run1=('1', '0', '0', '0') run2=('1', '0', '0', '0')
+OK   com.hioas.aap.adminconfig.DetectionConfigContractTest          run1=('7', '0', '0', '0') run2=('7', '0', '0', '0')
+OK   com.hioas.aap.adminconfig.ReportTemplateContractTest           run1=('6', '0', '0', '0') run2=('6', '0', '0', '0')
+OK   com.hioas.aap.adminconfig.ReportTemplateWordingTest            run1=('3', '0', '0', '0') run2=('3', '0', '0', '0')
+OK   com.hioas.aap.common.ApiContractTest                           run1=('8', '0', '0', '0') run2=('8', '0', '0', '0')
+OK   com.hioas.aap.common.ApiEnvelopeTest                           run1=('5', '0', '0', '0') run2=('5', '0', '0', '0')
+OK   com.hioas.aap.common.LoggingAndHealthTest                      run1=('2', '0', '0', '0') run2=('2', '0', '0', '0')
+OK   com.hioas.aap.common.MigrationTest                             run1=('5', '0', '0', '0') run2=('5', '0', '0', '0')
+OK   com.hioas.aap.common.OutboundUrlGuardTest                      run1=('5', '0', '0', '0') run2=('5', '0', '0', '0')
+OK   com.hioas.aap.common.PersistenceBaseTest                       run1=('5', '0', '0', '0') run2=('5', '0', '0', '0')
+OK   com.hioas.aap.compile.BillingCompilerTest                      run1=('8', '0', '0', '0') run2=('8', '0', '0', '0')
+OK   com.hioas.aap.compile.CompilationContractTest                  run1=('7', '0', '0', '0') run2=('7', '0', '0', '0')
+OK   com.hioas.aap.contract.ContractContractTest                    run1=('9', '0', '0', '0') run2=('9', '0', '0', '0')
+OK   com.hioas.aap.coverage.EndpointCoverageTest                    run1=('1', '0', '0', '0') run2=('1', '0', '0', '0')
+OK   com.hioas.aap.credential.AdminCredentialContractTest           run1=('2', '0', '0', '0') run2=('2', '0', '0', '0')
+OK   com.hioas.aap.credential.CredentialContractTest                run1=('12', '0', '0', '0') run2=('12', '0', '0', '0')
+OK   com.hioas.aap.detection.DetectionContractTest                  run1=('9', '0', '0', '0') run2=('9', '0', '0', '0')
+OK   com.hioas.aap.detection.ProbeScoringTest                       run1=('13', '0', '0', '0') run2=('13', '0', '0', '0')
+OK   com.hioas.aap.detection.RecheckServiceTest                     run1=('2', '0', '0', '0') run2=('2', '0', '0', '0')
+OK   com.hioas.aap.file.FileContractTest                            run1=('5', '0', '0', '0') run2=('5', '0', '0', '0')
+OK   com.hioas.aap.iam.AuthContractTest                             run1=('11', '0', '0', '0') run2=('11', '0', '0', '0')
+OK   com.hioas.aap.provider.AdminProviderContractTest               run1=('3', '0', '0', '0') run2=('3', '0', '0', '0')
+OK   com.hioas.aap.provider.ProviderContractTest                    run1=('9', '0', '0', '0') run2=('9', '0', '0', '0')
+OK   com.hioas.aap.quote.AdminQuoteCompareContractTest              run1=('3', '0', '0', '0') run2=('3', '0', '0', '0')
+OK   com.hioas.aap.quote.QuoteContractTest                          run1=('7', '0', '0', '0') run2=('7', '0', '0', '0')
+OK   com.hioas.aap.quote.QuoteValidationTest                        run1=('8', '0', '0', '0') run2=('8', '0', '0', '0')
+OK   com.hioas.aap.report.ReportContractTest                        run1=('5', '0', '0', '0') run2=('5', '0', '0', '0')
+OK   com.hioas.aap.review.ReviewContractTest                        run1=('12', '0', '0', '0') run2=('12', '0', '0', '0')
+OK   com.hioas.aap.settlement.PaymentContractTest                   run1=('4', '0', '0', '0') run2=('4', '0', '0', '0')
+OK   com.hioas.aap.support.NotificationContractTest                 run1=('8', '0', '0', '0') run2=('8', '0', '0', '0')
+OK   com.hioas.aap.sync.SyncAdminContractTest                       run1=('8', '0', '0', '0') run2=('8', '0', '0', '0')
+OK   com.hioas.aap.usage.UsageContractTest                          run1=('11', '0', '0', '0') run2=('11', '0', '0', '0')
+OK   com.hioas.aap.usage.UsageMetricsTest                           run1=('6', '0', '0', '0') run2=('6', '0', '0', '0')
+OK   com.hioas.aap.usage.UsageRefreshDegradedTest                   run1=('1', '0', '0', '0') run2=('1', '0', '0', '0')
+
+逐类一致 34 / 34；差异 0（0 才判「两轮一致」，坑 59/79）
+
+-- 构建结果（行首 '[INFO] BUILD' 锚定，坑 168） --
+run1: ['[INFO] BUILD SUCCESS']
+run1: [ERROR] 行数 = 0
+run2: ['[INFO] BUILD SUCCESS']
+run2: [ERROR] 行数 = 0
