@@ -1,0 +1,18 @@
+==============================================================================
+R161 真发现取证（只读；轮次号由调用方上下文给出）
+==============================================================================
+R161 真发现 1 取证：回归面「覆盖缺口」检查项钉死在历史轮次（源 = 过期快照）
+取证脚本 = C:/Users/laitz/AppData/Local/Temp/aap-r161-aux/forensics-r161.py（只读）
+切分来源 = aap-r161-aux/forensics.stdout（原 27 行 → 本文件 12 行 + 另一条证据 12 行 + 原文件头 3 行）
+
+-- 发现 1：回归面「覆盖缺口」检查项的源路径 --
+[PASS] A0a 源取证脚本存在且非空（正向对照） C:\Users\laitz\AppData\Local\Temp\aap-r158-work\gap-verify-R158-v2.py（5855 字符）
+[PASS] A1 钉死的 driver 路径命中 > 0（正向对照） aap-r158-work/r158-regression.py 命中 1 次
+[PASS] A2 钉死的留档路径命中 > 0（正向对照） audit-regression-R157-coverage-gap.txt 命中 1 次
+[PASS] A3 该脚本内不含本轮 driver 名（反向对照） r161-regression.py 命中 0 次
+[PASS] A4 该脚本内不含本轮/上一轮的覆盖缺口留档名（反向对照） 命中 R161=0 / R160=0
+[PASS] A5 本轮并未产出 coverage-gap 留档（该检查项的输出只落进 driver 日志） 存在=False（路径 E:\workspaces\hioas\hioas-aap-001\.agents\state\evidence\audit-regression-R161-coverage-gap.txt）
+[PASS] A6 该陈旧检查项确实在本轮 driver 的执行表内 driver 命中 gap-coverage-gap=True / gap-verify-R158-v2.py=True
+[PASS] B0a 两侧引用集解析非空（正向对照） R158=79 条 / R161=79 条
+  逐条比对（轮次号已归一）：一致 79 / 仅 R158 有 0 / 仅 R161 有 0
+  结论：陈旧判据的输入集与本轮 driver 引用集**逐条一致** → 本轮结论「恰好」仍正确，但判据本身不随轮次相对化（潜在静默失效）

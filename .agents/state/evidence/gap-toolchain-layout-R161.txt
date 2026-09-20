@@ -1,0 +1,15 @@
+R161 真发现 2 取证：上一轮产物目录把一次性探针与产物混放、且派生逻辑未以独立脚本留档
+取证脚本 = C:/Users/laitz/AppData/Local/Temp/aap-r161-aux/forensics-r161.py（只读）
+切分来源 = aap-r161-aux/forensics.stdout（原 27 行 → 本文件 12 行）
+
+-- 发现 2：上一轮（aap-r160-work）产物目录的一次性探针与派生留档 --
+[PASS] C0a 上一轮产物目录存在（正向对照） C:\Users\laitz\AppData\Local\Temp\aap-r160-work 存在=True
+[PASS] C1 产物角色脚本解析到 5 个（正向对照 > 0） ['analyze-r160.py', 'append-r160.py', 'compare-faildiff-r160.py', 'postcommit-r160.py', 'r160-regression.py']
+[PASS] C1b 产物角色分类正确（不得把 regression/analyze 等误判为探针） prod=['analyze-r160.py', 'append-r160.py', 'compare-faildiff-r160.py', 'postcommit-r160.py', 'r160-regression.py']
+[PASS] C2 一次性探针脚本与产物混放于同一目录（> 0 即命中） 探针 6 个：['bscheck.py', 'eol.py', 'histprobe.py', 'histprobe2.py', 'pctprobe.py', 'probe-bs.py']
+[PASS] C3a 检索范围（仅上一轮目录，排除本轮自身以免自指命中，坑 222） 范围 = 11 个文件
+[FAIL] C3 上一轮的派生脚本以独立脚本留档（判据 = 内含轮次映射字典） R160 相关目录内含轮次映射的脚本 = 0 个 []
+[PASS] C4 同一判据对本轮派生脚本命中（判别力正向对照，坑 75/98） 本轮命中 = ['aap-r161-aux\\roll-r161.py']
+
+汇总：FAIL 断言 = 1 条 ['C3 上一轮的派生脚本以独立脚本留档（判据 = 内含轮次映射字典）']
+FORENSICS_END=1
