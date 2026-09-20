@@ -1,0 +1,44 @@
+[PASS] 0a round-meta.json 可解析（正向对照） path=C:\Users\laitz\AppData\Local\Temp\aap-r174-aux\round-meta.json
+[PASS] 0b round-meta 的 evidence_list 非空（正向对照） 条数=13
+==============================================================================
+R174 提交后落地核对（HEAD = 65fbb72）
+==============================================================================
+-- A 主提交携带文件（16 个）--
+      .agents/state/aap-server-feature-status.csv
+      .agents/state/aap-server-tdd-state.md
+      .agents/state/evidence/audit-regression-R174-faildiff.txt
+      .agents/state/evidence/audit-regression-R174-failraw.txt
+      .agents/state/evidence/audit-regression-R174-rcseq.txt
+      .agents/state/evidence/audit-regression-R174.txt
+      .agents/state/evidence/coverage-history.txt
+      .agents/state/evidence/gap-countscope-R174.txt
+      .agents/state/evidence/gap-ledger-audit-R174.txt
+      .agents/state/evidence/gap-regtime-R174.txt
+      .agents/state/evidence/green-verify-R174-analysis.txt
+      .agents/state/evidence/green-verify-R174-coverage-fields.txt
+      .agents/state/evidence/green-verify-R174-full-run1.txt
+      .agents/state/evidence/green-verify-R174-full-run2.txt
+      .agents/state/evidence/green-verify-R174-testcount.txt
+      .agents/state/evidence/green-verify-R174-tested-state.txt
+[PASS] A0 正向对照：清单（证据 13 + 状态 3）= 16 > 0 want=16
+[PASS] A1 清单内每一项都在 HEAD 树内（git ls-files） 缺失 = 无
+[PASS] A2 清单 ⊆ 主提交携带（弱式：不要求「全部由主提交携带」，他方 git add -A 可能带走，坑 236/198） 清单未由主提交携带 = 无
+  主提交携带 16 个；清单 16 个；主提交里清单之外的项 = 无
+[PASS] A3 主提交不夹带清单之外的文件 夹带 = 无
+[PASS] A4 主提交交付代码 0 改动（巡检轮） 命中 = 无
+[PASS] B0a 正向对照：HEAD 与工作区各解析到本轮行恰好 1 条 head=1 work=1
+[PASS] B0b 表头列数一致且本轮行列数 = 表头 head 表头 8 列 / 本轮行 8 列
+[PASS] B1 HEAD 内本轮行 ⇔ 工作区本轮行 **逐列相等**（坑 231/243-①） 不同列 = 无
+[PASS] B2 提交列此时为空（收尾阶段才回填，坑 250 的分工） 提交列 = ''
+[PASS] B3 描述列非空且长度 > 200（内容级，坑 200） 长度=3091
+[PASS] B4 证据列条数 = 清单条数 证据列 13 / 清单 13
+-- C HEAD 内本轮段落 --
+  覆盖历史本轮行 = 1 条；状态文件本轮段标题 = 1 条
+[PASS] C1 HEAD 内覆盖历史含本轮行恰好 1 条 条数=1
+[PASS] C2 HEAD 内状态文件含本轮段标题恰好 1 条 条数=1
+[PASS] C3 覆盖历史本轮行含**该产物自身实际承载**的真值锚点（返工 ⑤：锚点必须回产物原文核对，坑 205/225） 锚点 = [total=90 implemented=90 missing=0] ∧ [覆盖门禁 90/90] ∧ [R174 巡检轮]
+[PASS] C3b 连续轮次计数锚点应断言在**状态文件**（该措辞按设计只出现在状态文件与台账描述里） 锚点=[90/90 连续第 156 轮全绿]
+[PASS] C3c 台账描述列含连续轮次计数锚点（同一真值在两处各自承载，坑 219 的机器核对） 描述列长度=3091
+------------------------------------------------------------------------------
+汇总：FAIL = 0 条 （全 PASS）
+POSTCOMMIT_END=1
