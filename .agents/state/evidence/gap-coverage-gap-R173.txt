@@ -1,0 +1,39 @@
+==============================================================================
+R173 真发现取证：新增覆盖缺口候选 = R172 新增的常驻只读对账脚本未进回归面
+==============================================================================
+[PASS] A0a 本轮复核器日志可读且含「缺口集合与留档不一致」断言（正向对照） 命中 = 仅本轮 ['aap-r172-work/audit-ledger-r172.py', 'aap-r173-work/audit-ledger-r173.py'] / 仅留档 []
+
+A 缺陷现象（修正前）：本轮覆盖缺口复核器 rc=0 → 1
+  only_cur  = ['aap-r172-work/audit-ledger-r172.py', 'aap-r173-work/audit-ledger-r173.py']
+  only_prev = []
+[PASS] A1 新增候选恰为「两轮的对账脚本实例」（判据 = 集合逐元素相等） only_cur=['aap-r172-work/audit-ledger-r172.py', 'aap-r173-work/audit-ledger-r173.py']
+[PASS] A2 留档侧 0 条（说明这是**新增**缺口，不是集合重排） only_prev=[]
+[PASS] A3 复核器的正向对照仍在（留档解析到 18 条分类行 → 不是解析失效） （坑 46/98：0 命中先怀疑判据；此处判据有牙齿）
+[PASS] A4 本轮复核器 rc = 1（响亮失败，非静默） rc=1
+
+B 缺口诞生的时点（机器证据 —— 解释「为什么上一轮看不见」）
+  aap-r172-work/audit-ledger-r172.py 落盘时刻 = 2026-09-21 06:04:09
+  R172 缺口复核（回归面）运行时刻      = 2026-09-21 05:57:27
+[PASS] B0a 两个时刻均可取（正向对照） script=2026-09-21 06:04:09 scan=2026-09-21 05:57:27
+[PASS] B1 该脚本落盘**晚于** R172 的回归面运行 → 那一轮结构上不可能发现该缺口 晚 402.0 秒
+
+C 缺口确实存在：本轮 driver 源文本里对 audit-ledger 的引用数
+[PASS] C0a driver 源文本可读（正向对照） 字节=13534
+[PASS] C0b 正向对照：driver 里确实能找到其它命令名（gap-coverage-gap 命中 > 0） gap-coverage-gap 命中 = 2
+[PASS] C1 driver 里 audit-ledger 引用 = 0（缺口 = 该不变量零回归覆盖） 命中 = 0
+[PASS] D1 判别力实测：合成 driver（含该引用）→ 判「无缺口」；不含 → 判「有缺口」 含引用 → 无缺口=True；不含 → 有缺口=True
+[PASS] D2 判别力实测：对本轮真实 driver 与合成「不含」样本给出同一结论（有缺口） real=True synth=True
+
+E 「不能顺手补入 driver」的结构性原因（本脚本在 append 之后跑 → 两相证据齐备）
+  pre-append 相位：rc=1，含 [FAIL] B0b 的行数 = 1
+  post-append 相位：PHASE 行 = ['  相位判定（本轮起显式建模）：本轮台账行证据条目 = 12 -> PHASE=post-append', '[PASS] B0c 相位判定取值域合法 PHASE=post-append']
+[PASS] E0a 两相证据均可读（正向对照） pre=1421 字节 / post=1452 字节
+[PASS] E1 pre-append 相位 rc=1 且唯一 FAIL = B0b（结构性不可用，非缺陷形态） 行 = ['[FAIL] B0b 本轮行证据列条目 > 0（正向对照；其落地由提交后核对覆盖，坑 243-①） 本轮条目=0']
+[PASS] E2 post-append 相位 PHASE=post-append 且 B0b PASS（append 脚本内强制断言） PASS 行 = 1 / N-A 行 = 0
+
+结论：① 这是**真缺口（③ 类）**，不是解析失效（正向对照 A3/ C0b 均在）；② 它诞生于 R172 的回归面
+      跑完之后（B1 的时点证据），故那一轮「零回归」结论对它是**盲区**（坑 169/177 的时点新面）；
+      ③ 直接补入会引入永久 rc≠0（E1 的 pre-append 相位天然红）→ 属**待拍板**（坑 213-③：扩面需人拍板），
+      本轮只登记 + 给出两条可选修法，不擅改回归序列。
+汇总：FAIL 断言 = 0 条 （全 PASS）
+GAP_COVGAP_END=1
