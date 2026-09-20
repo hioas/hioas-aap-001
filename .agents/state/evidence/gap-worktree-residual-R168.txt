@@ -1,0 +1,28 @@
+==============================================================================
+R168 真发现取证（A：worktree 残留；B：纯值口径）
+==============================================================================
+-- A worktree 残留从未被任何机器核对 --
+A1 worktree 注册项 = 4 个；非主仓库项 = 2 个
+     C:/Users/laitz/AppData/Local/Temp/aap-r155-wt  未提交改动 1 条
+     C:/Users/laitz/AppData/Local/Temp/aap-r156-wt  未提交改动 1 条
+A1' 残留项 = ['C:/Users/laitz/AppData/Local/Temp/aap-r155-wt', 'C:/Users/laitz/AppData/Local/Temp/aap-r156-wt']
+[PASS] A0 正向对照：worktree 注册项解析到 > 0 条 解析 4 条
+[PASS] A0b 修正前真实残留 ≥ 1（否则后面的判别力实测是退化的） 残留 2 个
+A2 扫描「修正前」产物 = 22 个（R167 work + aux 脚本）
+[PASS] A2 正向对照：扫描集非空（否则「0 命中」是空转） 22 个
+A2 命中「worktree list / worktree 残留」的行 = 0 条
+[PASS] A2 机制证据：修正前**没有任何**产物核对该不变量（命中 0 条） 命中 0 条（>0 表示该不变量此前已被核对，则本条真发现不成立）
+A3 判别力实测（合成注入）：
+     真实状态（清理前）= 2 条 ['C:/Users/laitz/AppData/Local/Temp/aap-r155-wt', 'C:/Users/laitz/AppData/Local/Temp/aap-r156-wt']
+     合成注入 +1 项     = 3 条 ['C:/Users/laitz/AppData/Local/Temp/aap-r155-wt', 'C:/Users/laitz/AppData/Local/Temp/aap-r156-wt', 'C:\\Users\\laitz\\AppData\\Local\\Temp/aap-r155-wt']
+[PASS] A3 判别力：注入一个合成残留项 → 守卫必须多报 1 条 真实 2 → 合成 3
+A4 清理（git worktree remove --force，逐项）：
+     C:/Users/laitz/AppData/Local/Temp/aap-r155-wt rc=0 
+     C:/Users/laitz/AppData/Local/Temp/aap-r156-wt rc=0 
+A4' 清理后非本轮 worktree = 0 条 []
+[PASS] A4 清理后残留 = 0（守卫可常驻为「必须为空」型判据） 残留 []
+
+说明：本文件与 `evidence/gap-purevalue-rounds-R168.txt` 来自**同一次联合取证运行**（该轮一次运行里取证了两处彼此独立的真发现）；下面汇总行为该次运行的联合结论。
+------------------------------------------------------------------------------
+汇总：FAIL = 0 条 （全 PASS）
+GAP_R168_END=1
