@@ -184,6 +184,16 @@
           共 {{ groupTotal }} 家厂商 · 当前第 {{ page }} / {{ pageCount }} 页
         </span>
         <div class="pager__ctrl">
+          <!-- 每页条数（用户口径 2026-09-20：默认 **4** 条，可选 2/5/10/15/20） -->
+          <span class="pager__size-label">每页</span>
+          <el-select
+            v-model="pageSize"
+            size="small"
+            style="width: 92px"
+            data-testid="pager-size"
+          >
+            <el-option v-for="n in PAGE_SIZE_OPTIONS" :key="n" :label="`${n} 条`" :value="n" />
+          </el-select>
           <button
             class="pager__btn"
             :disabled="page <= 1"
@@ -578,17 +588,20 @@ const groups = computed(() => {
 });
 
 /* ────────────── 厂商分组分页（设计稿 page-3 的分页栏） ──────────────
- * 设计稿文案「共 12 家厂商 · 当前第 1 / 2 页」→ 12 家 / 2 页 = **每页 6 家**，
- * 故 PAGE_SIZE 取 6（由设计稿反推，不是随手定的）。
  * ⚠️ 上一轮我把用户的「模型厂商分组没有分页」误读成「不要分页」并加了反向断言，
- * 实际是**缺陷报告**（页面缺分页）→ 本轮补上，反向断言同时删除。
+ * 实际是**缺陷报告**（页面缺分页）→ 已补上，反向断言同时删除。
+ *
+ * 每页条数：**用户口径（2026-09-20）** —— 默认 **4** 条，可选 2/5/10/15/20。
+ * （早前按设计稿「12 家 / 2 页」反推出 6 条/页，现按用户要求改为可配置 + 默认 4。
+ *  默认值 4 不在选项列表里，这是用户明确要求的，不是笔误。）
  */
-const PAGE_SIZE = 6;
+const PAGE_SIZE_OPTIONS = [2, 5, 10, 15, 20];
 const page = ref(1);
+const pageSize = ref(4); // 默认每页 4 条（用户口径）
 const groupTotal = computed(() => groups.value.length);
-const pageCount = computed(() => Math.max(1, Math.ceil(groupTotal.value / PAGE_SIZE)));
+const pageCount = computed(() => Math.max(1, Math.ceil(groupTotal.value / pageSize.value)));
 const pagedGroups = computed(() =>
-  groups.value.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE)
+  groups.value.slice((page.value - 1) * pageSize.value, page.value * pageSize.value)
 );
 /** 页码窗口：设计稿显示 3 个页码，这里同样最多 3 个并跟随当前页 */
 const pageNumbers = computed(() => {
@@ -598,8 +611,8 @@ const pageNumbers = computed(() => {
   return [start, start + 1, start + 2];
 });
 
-// 筛选/切 tab 后页码可能越界（例如从第 3 页筛到只剩 1 页仍停在第 3 页 → 空列表）
-watch([() => ({ ...filters }), tab], () => {
+// 筛选/切 tab/改每页条数后页码可能越界（例如从第 3 页筛到只剩 1 页仍停在第 3 页 → 空列表）
+watch([() => ({ ...filters }), tab, pageSize], () => {
   page.value = 1;
 });
 watch(pageCount, (n) => {
@@ -881,6 +894,7 @@ defineExpose({ load, vendors, allModels, groups });
 }
 .pager__info { font-size: var(--fs-base); color: var(--c-text-muted); }
 .pager__ctrl { display: flex; align-items: center; gap: 6px; }
+.pager__size-label { font-size: var(--fs-base); color: var(--c-text-muted); margin-right: 2px; }
 .pager__btn {
   width: 32px;
   height: 32px;

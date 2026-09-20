@@ -30,9 +30,15 @@ const main = async () => {
   await page.locator('[data-testid="submit"]').click()
   await page.waitForFunction(() => !!localStorage.getItem('aap_admin_token'), null, { timeout: 15000 })
 
-  await page.goto(`${BASE}/#/models`, { waitUntil: 'domcontentloaded' })
+  // ⚠️ 导航顺序有坑：设置 token 后 `reload()` 会把路由**重置回 #/dashboard**，
+  //    于是脚本一直在看看板页（分页栏当然找不到）。
+  //    正确顺序：先 reload 让 App 带上 token 起来（落到默认路由），
+  //    **之后**再切 hash 到 #/models，并等目标节点出现（而不是写死 sleep）。
   await page.reload({ waitUntil: 'domcontentloaded' })
-  await page.waitForTimeout(3000)
+  await page.waitForTimeout(2500)
+  await page.goto(`${BASE}/#/models`, { waitUntil: 'domcontentloaded' })
+  await page.waitForSelector('[data-testid="model-kpi"]', { timeout: 15000 })
+  await page.waitForTimeout(1500)
 
   const m = await page.evaluate(() => {
     const box = (sel) => {
@@ -49,7 +55,11 @@ const main = async () => {
         radius: cs.borderRadius
       }
     }
+    // 每页条数选择器：确认默认值是否为 4（用户口径），以及选项是否为 2/5/10/15/20
+    const sizeSel = document.querySelector('[data-testid="pager-size"]')
+    const sizeInput = sizeSel?.querySelector('input')
     return {
+      pagerSizeDefault: sizeInput ? sizeInput.value : null,
       vendorCount: document.querySelectorAll('.vendor').length,
       vendor: box('.vendor'),
       pager: box('.pager'),
@@ -62,6 +72,7 @@ const main = async () => {
   console.log('分页栏      (.pager) :', JSON.stringify(m.pager))
   console.log('内容区      (__body) :', JSON.stringify(m.body))
   console.log('分页文案:', m.info)
+  console.log(`每页条数选择器默认值: ${m.pagerSizeDefault}（期望 4）`)
   console.log(`页面上 .vendor 数量: ${m.vendorCount}`)
 
   if (!m.vendor || !m.pager) {
