@@ -1,0 +1,15 @@
+== R158 被测状态核对（两轮全量所编译/执行的源码 = 哪一份） ==
+会话起点 HEAD = 18a3aa2；证据写入时 HEAD = 18a3aa2 | chore(evidence): R157 台账收尾 —— R157 行「提交」列回填主提交 becc413（提交号由 git 事实推得：HEAD subjec
+run1 起跑 00:21:59 / 结束 00:23:12；run2 起跑 00:23:13 / 结束 00:24:18（串行，规范命令不改参数）
+窗口 = [2026-09-21 00:21:59, 2026-09-21 00:24:18]
+窗口内（[2026-09-21 00:21:59, 2026-09-21 00:24:18]）aap-server 下被改写的源码文件数 = 0；窗口后（> 00:24:18）被改写 = 0
+结论：两轮全量在 **HEAD 的临时 detached worktree**（C:\Users\laitz\AppData\Local\Temp\aap-r158-wt）中编译/执行，被测状态 = worktree 实际检出的提交 18a3aa2 的源码
+      （不写「HEAD」——同机他方可能在窗口内推进 HEAD，坑 198）
+轮内 HEAD 位移：git log 18a3aa2..HEAD → 0 行
+git diff --stat 18a3aa2 HEAD -- aap-server/ → 输出行数 = 0（0 = aap-server 树零差异）
+git status --short -- aap-server/ → 输出行数 = 0（> 0 = 他方未提交改动；本轮被测状态取 worktree 检出的提交，不受影响）
+
+最新 3 个源码 mtime（★ = 窗口内，△ = 窗口后，无标记 = 早于窗口起点）：
+      00:11:02    aap-server/src/test/java/com/hioas/aap/usage/UsageRefreshDegradedTest.java
+      00:11:02    aap-server/src/test/java/com/hioas/aap/usage/UsageMetricsTest.java
+      00:11:02    aap-server/src/test/java/com/hioas/aap/usage/UsageContractTest.java
