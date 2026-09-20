@@ -1,0 +1,26 @@
+== R150 被测状态核对（两轮全量所编译/执行的源码 = 哪一份） ==
+HEAD = f1b1088 | fix(admin): 补厂商分组分页 + 恢复「新增模型」按钮；纠正上一轮的误读（20:11:21）
+run1 起跑 20:15:21 / 结束 20:18:25；run2 起跑 20:18:26 / 结束 20:19:54（串行，规范命令不改参数）
+窗口 = [20:15:21, 20:19:54]
+窗口内（20:15:21–20:19:54）aap-server 下被改写的源码文件数 = 0；窗口后（> 20:19:54）被改写 = 0
+结论：两轮全量在 **HEAD 的临时 detached worktree** 中编译/执行，被测状态 = worktree 实际检出的提交 f1b1088 的源码；
+      窗口内 aap-server 源码 mtime 改动 = 0（0 → 与工作区并发编辑彻底解耦）
+窗口事实的机器核对：两份 raw 日志 mtime 与上方窗口结束时刻偏差 ≤ 120s（核对通过）
+最新 3 个源码 mtime（★ = 窗口内，△ = 窗口后，无标记 = 早于窗口起点）：
+    08:22:32    aap-server/src/main/java/com/hioas/aap/catalog/CatalogViews.java
+    08:14:00    aap-server/src/test/java/com/hioas/aap/common/MigrationTest.java
+    08:09:17    aap-server/src/main/java/com/hioas/aap/catalog/CatalogService.java
+
+-- 轮内 HEAD 位移分析 --
+会话起点 HEAD = f1b1088；证据写入时 HEAD = f1b1088 | fix(admin): 补厂商分组分页 + 恢复「新增模型」按钮；纠正上一轮的误读（20:11:21）
+git log f1b1088..HEAD → 0 行：(无位移)
+git diff --stat f1b1088 HEAD -- aap-server/ → 输出行数 = 0（0 = aap-server 树零差异）
+git status --short -- aap-server/ → 输出行数 = 0（> 0 = 他方未提交改动；本轮被测状态取 HEAD，故不影响）
+窗口内 aap-server 源码 mtime 改动数 = 0；窗口后 = 0（> 0 时需逐条解释）
+结论：两轮全量编译/执行的就是 aap-server 侧 worktree 提交 f1b1088 的源码；证据写入时 HEAD = f1b1088，两者 aap-server 树差异行数 = 0（0 = 不触碰被测对象）。
+
+-- 本轮执行方式（沿用历史轮次引入的做法；坑 15/27/28） --
+工作区 aap-server 相对 HEAD 的未提交改动（git status --short -- aap-server/）逐条（**0 条 = 主仓库工作区亦为提交态**；非 0 即他方在途工作，本轮一律不碰）：
+两轮全量因此改在 HEAD 的临时 detached worktree 中执行（全程不触碰他方正在编辑的文件）：C:\Users\laitz\AppData\Local\Temp\aap-r150-wt
+  创建：git worktree add --detach <path> HEAD；收尾：git worktree remove --force <path>（git 自带，不触发递归删除拦截，坑 28）
+被测状态 = worktree 提交 f1b1088 的 aap-server 源码。
