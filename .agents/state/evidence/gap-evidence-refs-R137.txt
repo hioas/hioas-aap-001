@@ -1,0 +1,35 @@
+== R137 证据文件之间引用的可达性守卫（本轮证据引用的证据必须存在） ==
+口径：本轮（名字含 R137）证据文件 12 个（本文件 SELF 单列、不纳入核对，坑 222）
+解析到「evidence/<name>」与「gap-*-R137*.txt」形式的引用 = 10 条（正向对照：必须 > 0，坑 46/75）
+
+-- 逐文件引用计数 --
+  audit-regression-R137-coverage-gap.txt       引用  5 条
+  audit-regression-R137-faildiff.txt           引用  0 条
+  audit-regression-R137-rcseq.txt              引用  0 条
+  audit-regression-R137.txt                    引用  5 条
+  gap-derived-files-R137.txt                   引用  0 条
+  gap-tools-scan-R137.txt                      引用  0 条
+  green-verify-R137-classdiff.txt              引用  0 条
+  green-verify-R137-coverage-fields.txt        引用  0 条
+  green-verify-R137-full-run1.txt              引用  0 条
+  green-verify-R137-full-run2.txt              引用  0 条
+  green-verify-R137-testcount.txt              引用  0 条
+  green-verify-R137-tested-state.txt           引用  0 条
+
+缺失 = 0 条（0 才判「本轮全部证据引用均可解析」）
+
+-- 判别力实测（证明本守卫有牙齿，坑 46/66/75/94） --
+注入：在 audit-regression-R137-coverage-gap.txt 的文本副本末尾追加一行 `见 evidence/synthetic-missing-r137.txt`；
+      注入前已断言该串不在原文内（注入真的改变了被测文本）。
+结果：缺失 0 -> 1（恰好 +1），点名项 = synthetic-missing-r137.txt → 守卫对「引用不存在的证据」确实会报出（非空转）。
+
+-- 本轮真发现取证 --
+事实 ①：本脚本首次运行前，`gap-tools-scan-R137.txt` **不存在于磁盘**（本轮覆盖缺口报告已写好并引用它），
+        即：报告引用了未被任何 driver 项产出的证据文件；
+        既有全部守卫（driver 文件引用存在性 / rc 序列 / FAIL 明细 / 覆盖缺口分类 18/18）均**不会**发现它
+        （R136 真发现「driver 引用未派生文件」的同族，只是发生在「证据 → 证据」侧）。
+事实 ②：`gap-tools-scan-R137.py` 被派生但**不在 driver 的 AUDITS 序列内**，需人工手动执行；
+        漏跑即留下悬空引用，而报告文字照旧自述「现状已被量化」。
+修正落地：手动运行该脚本产出证据文件（2255 字节），本守卫随后给出缺失 = 0 条。
+守卫化：本脚本把「本轮证据引用的证据必须存在」提升为可复跑的机器判据 + 判别力实测。
+（本文件自身落盘于检查之后，故单列 SELF：gap-evidence-refs-R137.txt）
