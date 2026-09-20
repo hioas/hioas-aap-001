@@ -6556,3 +6556,25 @@ R106 的 `fix-guards-r106.py` 把 `verify-final.py` / `final-check.py` 的返工
 - **观察项 / 待拍板**（延续）：① `sms.lock-minutes` 占位符默认值 0 ≠ md 声明 15（已计入基线，本轮 rc 变化 0）；
   ② 是否把「`tools/*.py` ⊆ driver 引用集」提升为常驻 driver 断言（属扩面）；③ R27–R32 台账行依据不足，不猜测性回填；
   ④ 抽查 `spotcheck-entity-ddl-R70.py` 的类型族表是否还有其它 PG 同义写法未收（本轮只补了 `integer`，未做全表普查）。
+
+
+### R126 收尾补充（提交后落地核对 + 证据归属 + 通知留痕 + 返工真值更正）
+
+- **主提交** = 7ca0f66（16 个文件：3 个状态文件 + 13 个证据文件；**aap-server 侧 0 条**）。
+- **提交后核对取证**：`evidence/gap-postcommit-R126.txt` —— 主提交携带的台账行与工作区**逐列相等**（8/8 列）、
+  13 个证据文件全部在 HEAD 树内且**首个加入提交均为主提交**（坑 198：无被他人 `git add -A` 带走的条目）、
+  改动范围 = 状态 3 + 证据 13、台账全文件列数不符 0 行（194 行含表头 / R 行 100 条）。
+- **证据**：正文 12 条 + 判据修正取证 `gap-judge-fix-R126.txt` 1 条 + 收尾取证 1 条 = **14 条**。
+- **本轮真发现 1 处（判据侧，已修）**：`spotcheck-entity-ddl-R70.py` 的类型族表中 `Integer` 允许集缺 PostgreSQL 同义词
+  `integer`（`integer` ≡ `int`）→ 对已提交的 catalog 实体报出 5 条假 FAIL；修法 = 允许集补 `integer`
+  （**判据修正、不改期望值**；A2 注入夹具仍被捕获、自测 rc=0 / FAIL 0 项）；
+  取证 `gap-judge-fix-R126.txt`（同仓库同时刻两种判据对照 5 → 0、差异仅 1 行、第三方裁判 = 该 4 列在 V9 里确为 `integer`）。
+- **返工真值更正**：正文所记「本轮返工 5 处」= 写行时刻的真值（亦为 `gap-guard-roundnum-R126.txt` 的真值，不篡改）；
+  收尾阶段另暴露 3 项（判据修正取证脚本缩进锚点 1、捕获组号越界 1；提交后核对脚本路径 key 归一 1）→
+  **权威数字 = 8 处**，按坑 209 以独立收尾提交更正，台账行 / 状态文件 / 收尾提交 message 三处一致。
+- **飞书通知**：`hermes send -t feishu -s 'AAP TDD 进度' …` rc=0，输出「Skipped send_message … 本 cron 作业的最终响应
+  会自动投递到同一目标」= **预期形态、非失败**，故不写 `feishu-notify-failures.txt`。
+- **他方在途观察（只记录、不干预）**：轮间他方已提交 catalog 能力（`ModelCatalogEntity` / `VendorEntity` /
+  `V9__model_catalog.sql` 均在 HEAD 树内），A3 方法分布计数随其路由增长（GET 47→51 / POST 39→41 / PUT 5→6）；
+  本轮不触碰其代码与工作区改动（` D aap-admn/README.md`、`?? .playwright-mcp/`、`?? aap-admin/tools/open-admin.mjs`
+  均非本轮产物）。

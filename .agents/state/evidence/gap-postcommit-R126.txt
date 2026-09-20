@@ -1,0 +1,64 @@
+== R126 提交后落地核对（主提交 = 7ca0f66） ==
+
+① 主提交携带的台账行 vs 工作区那一行（真正的 csv 解析逐列比对）：
+   列数（表头/主提交行/工作区行）= 8/8/8
+   逐列相等 = 是（8/8 列；差异列 []）→ 主提交携带的就是写入时已被内容级验收过的那行
+
+② 本轮证据文件（13 条 = 正文 12 + 判据修正取证 1）是否都在 HEAD 树内（git ls-files）： 13/13，缺失 无
+   IN_HEAD  evidence/green-verify-R126-full-run1.txt
+   IN_HEAD  evidence/green-verify-R126-full-run2.txt
+   IN_HEAD  evidence/green-verify-R126-classdiff.txt
+   IN_HEAD  evidence/green-verify-R126-testcount.txt
+   IN_HEAD  evidence/green-verify-R126-coverage-fields.txt
+   IN_HEAD  evidence/green-verify-R126-tested-state.txt
+   IN_HEAD  evidence/audit-regression-R126.txt
+   IN_HEAD  evidence/audit-regression-R126-rcseq.txt
+   IN_HEAD  evidence/audit-regression-R126-faildiff.txt
+   IN_HEAD  evidence/audit-regression-R126-coverage-gap.txt
+   IN_HEAD  evidence/gap-tools-scan-R126.txt
+   IN_HEAD  evidence/gap-guard-roundnum-R126.txt
+   IN_HEAD  evidence/gap-judge-fix-R126.txt
+   SELF（本文件，落盘时产生，不参与上面的「既有证据」计数，坑 222）evidence/gap-postcommit-R126.txt
+
+③ 主提交改动范围：16 个文件
+   .agents/state/aap-server-feature-status.csv
+   .agents/state/aap-server-tdd-state.md
+   .agents/state/evidence/audit-regression-R126-coverage-gap.txt
+   .agents/state/evidence/audit-regression-R126-faildiff.txt
+   .agents/state/evidence/audit-regression-R126-rcseq.txt
+   .agents/state/evidence/audit-regression-R126.txt
+   .agents/state/evidence/coverage-history.txt
+   .agents/state/evidence/gap-guard-roundnum-R126.txt
+   .agents/state/evidence/gap-judge-fix-R126.txt
+   .agents/state/evidence/gap-tools-scan-R126.txt
+   .agents/state/evidence/green-verify-R126-classdiff.txt
+   .agents/state/evidence/green-verify-R126-coverage-fields.txt
+   .agents/state/evidence/green-verify-R126-full-run1.txt
+   .agents/state/evidence/green-verify-R126-full-run2.txt
+   .agents/state/evidence/green-verify-R126-testcount.txt
+   .agents/state/evidence/green-verify-R126-tested-state.txt
+   aap-server/ 侧文件数 = 0（0 = 不触碰被测对象）
+   = 状态文件 3（台账 / 状态 md / 历史）+ 证据文件 13 = 16
+
+④ 逐文件「首个加入提交」回查（坑 198：防被他人 git add -A 带走而归属错记）：
+   green-verify-R126-full-run1.txt ← 7ca0f66
+   green-verify-R126-full-run2.txt ← 7ca0f66
+   green-verify-R126-classdiff.txt ← 7ca0f66
+   green-verify-R126-testcount.txt ← 7ca0f66
+   green-verify-R126-coverage-fields.txt ← 7ca0f66
+   green-verify-R126-tested-state.txt ← 7ca0f66
+   audit-regression-R126.txt ← 7ca0f66
+   audit-regression-R126-rcseq.txt ← 7ca0f66
+   audit-regression-R126-faildiff.txt ← 7ca0f66
+   audit-regression-R126-coverage-gap.txt ← 7ca0f66
+   gap-tools-scan-R126.txt ← 7ca0f66
+   gap-guard-roundnum-R126.txt ← 7ca0f66
+   gap-judge-fix-R126.txt ← 7ca0f66
+   非主提交的条目 = 0（0 = 归属清晰）
+
+⑤ 台账全文件 csv 复核：行数 194（含表头）、列数不符 = 0 无
+   R 行数 = 100
+
+结论：主提交 7ca0f66 携带的台账行与工作区逐列相等（8/8 列）、本轮 13 个证据文件全部在 HEAD 树内且首个加入提交均为主提交、改动范围 = 状态 3 + 证据 13 且 aap-server 侧 0 条 → 交付内容与提交内容一致。
+      本文件（evidence/gap-postcommit-R126.txt）为收尾阶段落盘的第 14 条证据，不计入上面的 13 条。
+
