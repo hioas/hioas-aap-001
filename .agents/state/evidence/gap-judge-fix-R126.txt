@@ -1,0 +1,39 @@
+== R126 真发现取证：抽查 spotcheck-entity-ddl-R70.py 的类型族判据缺 PG 同义词 integer（判据侧，已修） ==
+
+背景：本轮 rc 序列首次出现变化（spotcheck-entity-ddl rc=0 → 1），按坑 23/194 先读红基线的**成因**再动手：
+      红基线全部落在 A2 类型族断言上，且形态统一为「Java=Integer 与 DDL=integer 类型族不符（允许 int/smallint）」。
+
+① 判据缺陷定位（机器可判）：
+   现行判据 TYPE_FAMILY[Integer] 允许集 = "Integer": {"int", "integer", "smallint"},
+   旧判据副本逐行比对：两种判据**唯一**差异 = 1 行 → "Integer": {"int", "smallint"},
+   即：改动面 = 允许集多一个词，**被测对象（仓库代码/实体/迁移）零改动**。
+
+② 同仓库、同一时刻、两种判据对照（唯一变量 = 允许集）：
+   旧判据：rc=1，A2 FAIL 5 条，全部 FAIL 5 条
+     [FAIL] A2 ModelCatalogEntity.java 表=aap_model 列 context_window：Java=Integer 与 DDL=integer 类型族不符（允许 int/smallint）
+     [FAIL] A2 ModelCatalogEntity.java 表=aap_model 列 max_output：Java=Integer 与 DDL=integer 类型族不符（允许 int/smallint）
+     [FAIL] A2 ModelCatalogEntity.java 表=aap_model 列 version：Java=Integer 与 DDL=integer 类型族不符（允许 int/smallint）
+     [FAIL] A2 VendorEntity.java 表=aap_vendor 列 default_qps：Java=Integer 与 DDL=integer 类型族不符（允许 int/smallint）
+     [FAIL] A2 VendorEntity.java 表=aap_vendor 列 version：Java=Integer 与 DDL=integer 类型族不符（允许 int/smallint）
+   现行判据：rc=0，A2 FAIL 0 条，全部 FAIL 0 条
+   → 5 条假 FAIL 全部消除；rc 1 → 0（与 R125 的 rc 序列重新逐条一致）。
+
+③ 反向对照（放宽不得把规则架空）：该抽查的负向自测（含 A2 注入夹具 BigDecimal↔bigint）在**现行**判据下
+   rc=0，== 自测汇总：FAIL 0 项 [] ==
+   → 真实的类型族不符仍被捕获；本次只补同义词，不改变「不符即报」的语义。
+
+④ 第三方裁判（为什么是判据错、不是实现错）：
+   PostgreSQL 中 `integer` 与 `int` 是**同一类型**（int4）的两种写法；Java 包装类型 Integer 的规范映射即该类型。
+   被报列在 DDL 中确为 integer 的列名：context_window, default_qps, max_output, version
+   V9 迁移里 integer 列（解析到 4 个）：context_window, default_qps, max_output, version
+   实体侧：ModelCatalogEntity / VendorEntity（均已在本轮 HEAD 树内，属同机他方已提交的 catalog 能力）。
+
+⑤ 纪律说明（为什么这不是「改断言迁就实现」）：
+   错的是**判据**（允许集不完整、把同一类型的另一种合法写法判为不符），不是被测实现；
+   修法与硬规则一致：「断言写错就修正断言并在 tdd-state.md 说明理由」。
+   若相反地把实现里 Integer 改成 int 去迁就旧判据，才是迁就——本轮**未**触碰任何仓库交付代码。
+
+结论：本轮真发现 1 处（判据侧）：类型族允许集缺 `integer`；修法 = 补 `integer`（1 行）；
+      修后 5 条假 FAIL 归零、rc 序列与上一轮逐条一致、A2 注入夹具仍被捕获；
+      观察项：是否还有其它 PG 同义写法未收（本轮只补确定的一个，未做全表普查，留待人工拍板）。
+
