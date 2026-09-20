@@ -62,11 +62,11 @@
       <el-button data-testid="btn-batch" disabled>批量管理</el-button>
       <el-button data-testid="btn-export" @click="exportList">导出清单</el-button>
       <el-button data-testid="btn-add-vendor" @click="openVendor">新增厂商</el-button>
-      <!-- ⚠️ 用户口径（2026-09-20）：「新增模型」不放在一级工具栏 —— 已移除。
-           模型改为在**厂商分组行内**「添加模型」进入（设计稿本就有该入口），
-           因为模型必属于某个厂商，一级入口会把「所属厂商」这个必填项悬空。
-           注意：设计稿 page-3 的一级工具栏里**确有**「新增模型」且为蓝色主按钮，
-           此为**用户指示覆盖设计稿**，已登记；若需还原设计稿可从此处恢复。 -->
+      <!-- ⚠️ 用户口径（2026-09-20）：「新增模型」**不要做成一级按钮** → 恢复该按钮，
+           但**去掉 type="primary"**（设计稿里它是蓝色主按钮 rgba(37,99,235,1)）。
+           上一轮我误读成「移除按钮」并整条删掉了，本轮纠正。
+           仍保留厂商行内「添加模型」入口（设计稿本就有）。 -->
+      <el-button data-testid="btn-add-model" @click="openModel()">新增模型</el-button>
     </div>
 
     <!-- 数据主体 -->
@@ -78,8 +78,8 @@
         <el-button size="small" :loading="loading" data-testid="btn-refresh" @click="load">刷新</el-button>
       </div>
       <div class="aap-card__body">
-        <template v-if="groups.length">
-          <div v-for="g in groups" :key="g.vendor.id" class="vendor" :data-testid="`vendor-${g.vendor.vendorKey}`">
+        <template v-if="pagedGroups.length">
+          <div v-for="g in pagedGroups" :key="g.vendor.id" class="vendor" :data-testid="`vendor-${g.vendor.vendorKey}`">
             <div class="vendor__head">
               <span class="vendor__badge">{{ g.vendor.name.slice(0, 1).toUpperCase() }}</span>
               <span class="vendor__name">{{ g.vendor.name }}</span>
@@ -166,6 +166,36 @@
               供应商端「接入凭证」页的模型下拉就会读到这里。</p>
             <el-button type="primary" data-testid="btn-add-vendor-empty" @click="openVendor">新增厂商</el-button>
           </div>
+        </div>
+      </div>
+
+      <!-- 分页栏（设计稿 page-3：独立白条 h=56 · padding[0,20] · r=12；
+           文案「共 12 家厂商 · 当前第 1 / 2 页」；控件 上一页 / 页码×3 / 下一页，选中页蓝底白字） -->
+      <div v-if="groupTotal > 0" class="pager" data-testid="model-pager">
+        <span class="pager__info" data-testid="pager-info">
+          共 {{ groupTotal }} 家厂商 · 当前第 {{ page }} / {{ pageCount }} 页
+        </span>
+        <div class="pager__ctrl">
+          <button
+            class="pager__btn"
+            :disabled="page <= 1"
+            data-testid="pager-prev"
+            @click="page--"
+          >‹</button>
+          <button
+            v-for="p in pageNumbers"
+            :key="p"
+            class="pager__btn"
+            :class="{ 'pager__btn--active': p === page }"
+            :data-testid="`pager-${p}`"
+            @click="page = p"
+          >{{ p }}</button>
+          <button
+            class="pager__btn"
+            :disabled="page >= pageCount"
+            data-testid="pager-next"
+            @click="page++"
+          >›</button>
         </div>
       </div>
     </div>
@@ -362,7 +392,7 @@
  *   · 「保存草稿」按「创建但 `enabled=false`」落地（语义即设计稿
  *     「启用后可在新增模型时选择该厂商」的反面），已在按钮处注明。
  */
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import { request } from '@/api/http';
 import {
@@ -536,6 +566,35 @@ const groups = computed(() => {
   return groupsRaw.value
     .map(withFilter)
     .filter((g) => g.models.length > 0 || !filters.keyword.trim());
+});
+
+/* ────────────── 厂商分组分页（设计稿 page-3 的分页栏） ──────────────
+ * 设计稿文案「共 12 家厂商 · 当前第 1 / 2 页」→ 12 家 / 2 页 = **每页 6 家**，
+ * 故 PAGE_SIZE 取 6（由设计稿反推，不是随手定的）。
+ * ⚠️ 上一轮我把用户的「模型厂商分组没有分页」误读成「不要分页」并加了反向断言，
+ * 实际是**缺陷报告**（页面缺分页）→ 本轮补上，反向断言同时删除。
+ */
+const PAGE_SIZE = 6;
+const page = ref(1);
+const groupTotal = computed(() => groups.value.length);
+const pageCount = computed(() => Math.max(1, Math.ceil(groupTotal.value / PAGE_SIZE)));
+const pagedGroups = computed(() =>
+  groups.value.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE)
+);
+/** 页码窗口：设计稿显示 3 个页码，这里同样最多 3 个并跟随当前页 */
+const pageNumbers = computed(() => {
+  const total = pageCount.value;
+  if (total <= 3) return Array.from({ length: total }, (_, i) => i + 1);
+  const start = Math.min(Math.max(1, page.value - 1), total - 2);
+  return [start, start + 1, start + 2];
+});
+
+// 筛选/切 tab 后页码可能越界（例如从第 3 页筛到只剩 1 页仍停在第 3 页 → 空列表）
+watch([() => ({ ...filters }), tab], () => {
+  page.value = 1;
+});
+watch(pageCount, (n) => {
+  if (page.value > n) page.value = n;
 });
 
 async function load() {
@@ -793,6 +852,43 @@ defineExpose({ load, vendors, allModels, groups });
 .md__empty { padding: 28px 8px; }
 .md__empty-title { font-size: var(--fs-md); font-weight: 600; margin-bottom: 10px; }
 .md__empty-body { font-size: var(--fs-base); color: var(--c-text-body); line-height: 1.8; }
+
+/* 分页栏（设计稿：h=56 · padding[0,20] · r=12 · 白底；文案 fs=13；
+   页码 32×32 r=8，选中页蓝底白字，其余白底灰字） */
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 20px;
+  border-radius: var(--r-card);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  margin-top: 12px;
+}
+.pager__info { font-size: var(--fs-base); color: var(--c-text-muted); }
+.pager__ctrl { display: flex; align-items: center; gap: 6px; }
+.pager__btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  color: var(--c-text-body);
+  font-size: var(--fs-base);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.pager__btn:disabled { color: var(--c-muted); cursor: not-allowed; }
+.pager__btn--active {
+  background: var(--c-primary);
+  border-color: var(--c-primary);
+  color: #fff;
+  font-weight: 600;
+}
 
 /* 抽屉（版面参照设计稿 3.1/3.2：头部标题+副标题、内容区、底部操作条） */
 .drw__head { display: flex; flex-direction: column; gap: 2px; }
