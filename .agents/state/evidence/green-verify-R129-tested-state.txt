@@ -1,0 +1,26 @@
+== R129 被测状态核对（两轮全量所编译/执行的源码 = 哪一份） ==
+HEAD = 56ebad0 | chore(evidence): R128 台账收尾 —— R128 行「提交」列回填主提交 f2da01d + 描述追加收尾后缀（正文 3105 + 后缀 994 = 4099 字符）+ 飞书通知留痕（cron 自动投递、`hermes send` 返回 Skipped 属预期，非失败）+ 证据归属核对（13 条证据全部在 HEAD 树内、首个加入提交均为主提交 f2da01d，坑 198：无被他人 git add -A 带走的条目）+ 提交后落地核对取证 gap-postcommit-R128.txt（主提交携带的台账行与工作区逐列相等 8/8 列、改动范围 = 状态 3 + 证据 13 且 aap-server 侧 0 条、台账 196 行 8 列且 R 行连续 R27 → R128 共 102 行、含「单列差异必须被报出」的负向对照）+ **收尾阶段据实更正返工真值**：主提交正文所记「返工 5 处」为写行时刻的真值（亦为守卫取证 gap-guard-roundnum-R128.txt 的真值，不篡改该取证），但该数字**少计了 2 项**（真发现取证脚本的两处：① `bash <path>` 不能吃 MSYS/反斜杠路径形态，实测 rc=127 空输出；② Python 起的 bash 是**另一个发行版**、不是执行器所用的 MINGW64 bash → 结论不可移植，故结构性改为 emit / run / consume 三步、由执行器同一个 bash 跑探针），收尾阶段又新增 1 项（提交后核对脚本的 roll 判据写死「小写轮次形态必须命中」，而该源脚本本就不含小写形态 → 断言当场拦下，判据改为「大写必须 > 0 + 断言源里确无小写形态」，坑 188）→ 本轮返工**权威数字 = 8 处**（口径 = 主提交所记 5 + 主提交少计 2 + 收尾阶段 1）；按坑 209 **不 amend 已发布提交**，以本独立收尾提交更正，台账行 / 状态文件 / 收尾提交 message 三处一致 —— 这不是「先写错再补正」的修正史，而是「计数口径遗漏 + 收尾阶段新增事实」的据实登记 + 本轮证据合计 14 条（主提交 13 + 收尾取证 1）+ 台账以真正的 csv 解析复核「每行列数 = 8」（196 行含表头）、R 行连续 R27 → R128 共 102 条无缺号 + 被测状态：worktree 实际检出 = 会话起点 HEAD = 0ba4412、两轮窗口 [09:28:59, 09:31:18]、窗口内源码 mtime 改动 0、工作区 aap-server 侧 0 条 + 他方在途产物（aap-admn/README.md 的 D、aap-client/evidence/h5-chain/*、.playwright-mcp/、aap-admin/tools/open-admin.mjs）一律不碰（坑 12/80/155/157/192/198/200/209/231/236）
+HEAD 提交时刻 = 56ebad00a7ccc11427b4d1cd8c4403e139966b50|09:54:56
+run1 起跑 10:09:19 / 结束 10:10:43；run2 起跑 10:10:46 / 结束 10:11:58（串行，规范命令不改参数）
+窗口内（10:09:19–10:11:58，即两轮跑测期间）aap-server 下被改写的源码文件数 = 0；窗口后（> 10:11:58）被改写 = 0
+结论：两轮全量在 **HEAD 的临时 detached worktree** 中编译/执行，被测状态 = worktree 实际检出的提交 56ebad0 的源码；
+      窗口内 aap-server 源码 mtime 改动 = 0（下方逐条 mtime 全部早于本窗口起点、窗口后亦无新增改动）→ 被测状态一律取 HEAD 的 worktree（与工作区并发编辑彻底解耦；下方「本轮执行方式」段逐条列出工作区相对 HEAD 的未提交改动 —— **0 条即主仓库工作区亦为提交态**，非 0 即他方在途工作，本轮一律不碰，坑 15/27）
+最新 3 个源码 mtime（★ = 窗口内，△ = 窗口后，无标记 = 早于窗口起点）：
+    08:22:32  aap-server/src/main/java/com/hioas/aap/catalog/CatalogViews.java
+    08:14:00  aap-server/src/test/java/com/hioas/aap/common/MigrationTest.java
+    08:09:17  aap-server/src/main/java/com/hioas/aap/catalog/CatalogService.java
+
+-- 轮内 HEAD 位移分析 --
+会话起点 HEAD = 56ebad0；证据写入时 HEAD = 56ebad0 | chore(evidence): R128 台账收尾 —— R128 行「提交」列回填主提交 f2da01d + 描述追加收尾后缀（正文 3105 + 后缀 994 = 4099 字符）+ 飞书通知留痕（cron 自动投递、`hermes send` 返回 Skipped 属预期，非失败）+ 证据归属核对（13 条证据全部在 HEAD 树内、首个加入提交均为主提交 f2da01d，坑 198：无被他人 git add -A 带走的条目）+ 提交后落地核对取证 gap-postcommit-R128.txt（主提交携带的台账行与工作区逐列相等 8/8 列、改动范围 = 状态 3 + 证据 13 且 aap-server 侧 0 条、台账 196 行 8 列且 R 行连续 R27 → R128 共 102 行、含「单列差异必须被报出」的负向对照）+ **收尾阶段据实更正返工真值**：主提交正文所记「返工 5 处」为写行时刻的真值（亦为守卫取证 gap-guard-roundnum-R128.txt 的真值，不篡改该取证），但该数字**少计了 2 项**（真发现取证脚本的两处：① `bash <path>` 不能吃 MSYS/反斜杠路径形态，实测 rc=127 空输出；② Python 起的 bash 是**另一个发行版**、不是执行器所用的 MINGW64 bash → 结论不可移植，故结构性改为 emit / run / consume 三步、由执行器同一个 bash 跑探针），收尾阶段又新增 1 项（提交后核对脚本的 roll 判据写死「小写轮次形态必须命中」，而该源脚本本就不含小写形态 → 断言当场拦下，判据改为「大写必须 > 0 + 断言源里确无小写形态」，坑 188）→ 本轮返工**权威数字 = 8 处**（口径 = 主提交所记 5 + 主提交少计 2 + 收尾阶段 1）；按坑 209 **不 amend 已发布提交**，以本独立收尾提交更正，台账行 / 状态文件 / 收尾提交 message 三处一致 —— 这不是「先写错再补正」的修正史，而是「计数口径遗漏 + 收尾阶段新增事实」的据实登记 + 本轮证据合计 14 条（主提交 13 + 收尾取证 1）+ 台账以真正的 csv 解析复核「每行列数 = 8」（196 行含表头）、R 行连续 R27 → R128 共 102 条无缺号 + 被测状态：worktree 实际检出 = 会话起点 HEAD = 0ba4412、两轮窗口 [09:28:59, 09:31:18]、窗口内源码 mtime 改动 0、工作区 aap-server 侧 0 条 + 他方在途产物（aap-admn/README.md 的 D、aap-client/evidence/h5-chain/*、.playwright-mcp/、aap-admin/tools/open-admin.mjs）一律不碰（坑 12/80/155/157/192/198/200/209/231/236）（09:54:56）
+git log 56ebad0..HEAD --format='%h|%cd|%s' → 0 行：(无位移)
+git diff --stat 56ebad0 HEAD -- aap-server/ → 输出行数 = 0（0 = aap-server 树零差异）
+git status --short -- aap-server/ → 输出行数 = 0（> 0 = 他方未提交改动；本轮被测状态取 HEAD，故不影响）
+窗口内（[s1, e2]）aap-server 源码 mtime 改动数 = 0；窗口后（> e2）改动数 = 0（> 0 时需逐条解释，见上）
+结论：两轮全量编译/执行的就是 aap-server 侧 worktree 提交 56ebad0 的源码；证据写入时 HEAD = 56ebad0，两者 aap-server 树差异行数 = 0（0 = 不触碰被测对象）。
+
+-- 本轮执行方式（沿用历史轮次引入的做法；坑 15/27/28） --
+工作区 aap-server 相对 HEAD 的未提交改动（git status --short -- aap-server/）逐条（**0 条 = 主仓库工作区亦为提交态**；非 0 即他方在途工作，本轮一律不碰）：
+他方 aap-server 源码改动 mtime（★ = 窗口内 [s1,e2]，△ = 窗口后 > e2，无标记 = 早于窗口起点）：
+两轮全量因此改在 HEAD 的临时 detached worktree 中执行（全程不触碰他方正在编辑的文件）：C:/Users/laitz/AppData/Local/Temp/aap-r129-wt
+  创建：git worktree add --detach <path> HEAD；收尾：git worktree remove --force <path>（git 自带，不触发递归删除拦截，坑 28）
+被测状态 = worktree 提交 56ebad0 的 aap-server 源码（工作区脏改动不参与编译；与证据写入时 HEAD 56ebad0 的 aap-server 树差异行数 = 0）。

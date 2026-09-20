@@ -1,0 +1,44 @@
+== R129 真发现取证：并发前置检查的**判据**判别力实测（PID 差集法，坑 238/240） ==
+
+背景（R128 历史修正，非本轮动作）：两轮执行器的并发前置检查用
+  `jps -l | grep -iE "surefire|classworlds"` 判断「是否已有 maven/surefire 测试进程」；
+  R128 只证明了它的 **JPS 路径存在**（体检），**从未证明判据能真的检出** —— 「无并发」与「判据失效」
+  在输出上不可区分（坑 46/75/98：没有判别力对照的 0 命中不可信）。
+
+探针设计（v7；v1–v5 是探针自身的三次返工，见下方「探针侧返工」段）：
+  A0 启动前存 `jps -lv` 作基线 → B 起一个**真实 maven JVM**（同一 PATH、同一包装器 ?）→
+  每秒存一份 `jps -lv` → **PID 差集**里的 PID 即本次 maven JVM，逐个给出它的真实渲染行。
+
+A) 启动前基线：解析到 13 个 JVM；判据命中 0 个（期望 0）
+   基线内 IDE 常驻助手（不属测试进程，判据设计上应排除）：['org.jetbrains.idea.maven.server.RemoteMavenServer36', 'org.jetbrains.idea.maven.server.RemoteMavenServer36']
+
+B) 真实 maven JVM（PID 差集）：观测到 10 个新 PID（其中 8 个是**观测者自身** jps 的瞬时 JVM —— 每 tick 一次 jps = 一个新 PID，按语义**不计入被测对象**，坑 81：判据范围必须与语义一致）
+   → 非观测者的新 PID（= 本次 maven 及其分叉）= 2 个
+   PID 29352：tick 观测 6 次；渲染 = 'org.codehaus.plexus.classworlds.launcher.Launcher -Dclassworlds.conf=E:/workspaces/maven/apache-maven-3.8.6/bin/m2.conf -Dmaven.home=E:/workspaces/maven/apache-maven-3.8.6 -Dmaven.multiModuleProjectDirectory=C:/Users/laitz/AppData/Local/Temp/aap-r129-wt/aap-server -Dfile.encoding=UTF-8'
+   PID 38240：tick 观测 5 次；渲染 = 'C:\\Users\\laitz\\AppData\\Local\\Temp\\surefire9223320909874778250\\surefirebooter-20260920103305325_3.jar'
+   判据在这些**真实被测进程**上命中数 = 2 / 2
+
+C) 合成对照（判据模式本身；非空转的唯一证据，坑 75）：
+   surefire 主类 → 1（期望 1）；classworlds 主类 → 1（期望 1）；
+   IDE 常驻助手 → 0（期望 0）；jps 自身 → 0（期望 0）
+
+结论：
+  ① 判据在**合成阳性**（surefire / classworlds 主类）上均命中、在**合成阴性**（IDE 助手 / jps 自身）上均不命中 → 模式非空转；
+  ② 真实态（无测试进程）命中 0，且基线里确实存在 IDE 的 maven 助手进程 → 「0 命中」不是因 jps 无输出；
+  ③ 真实阳性（maven 运行期）捕获到 2 个**非观测者**新进程（PID 29352, 38240），判据命中 2 个
+     → 实测渲染：maven 本体 = `org.codehaus.plexus.classworlds.launcher.Launcher`（判据的 classworlds 分支命中）、
+       其 surefire 分叉 = `…\Temp\surefire<bignum>\surefirebooter-<ts>_<n>.jar`（判据的 surefire 分支命中）
+     → 判据在**真实并发测试进程**上确实命中（前置检查有效），两条分支各有真实阳性证据。
+
+探针侧返工 3 处（全部由前置核对/断言当场拦下，未产出错误证据）：
+  ① v1 的 `sleep 0.2 × 300` 轮询在 MSYS 下每 tick ≈「jps JVM 启动 ~1.2s + sleep」→ 单轮 > 400s，
+     **工具超时后后台子进程仍在跑**，与随后启动的 v2 **并发写同一个 RAW** → 同一份证据里两轮输出交错、证据被污染
+     （修法：RAW 路径带唯一后缀 + 探针锁 + 收尾核验归属）；
+  ② v2 的 `SNAP=$(jps -l)` 与 `HIT=$(jps -l | grep -c)` 是**两次 jps 调用** → 相互竞态，
+     出现「hit=1 而同一 tick 的快照里没有该行」的自相矛盾（修法：每 tick 只调一次 jps）；
+  ③ v3/v5 探针**未沿用执行器的 PATH**（`export PATH="$HOME/bin:$PATH"` 只在 run-round.sh 里），
+     mvn 因此解析到**另一份发行版** → 探针结论不可移植（修法：显式导出同一 PATH，并把 `type -p mvn` 写进证据）。
+
+观测口径说明（坑 176）：`mvn -q validate` 在本机 2–4s 即退出、`mvn -q test-compile`（target 已最新）4s 即退出，
+  与单次 `jps` 调用（~1.5s）同量级 → 故改用**有真实 surefire 分叉的**单类测试运行作为阳性对照窗口（本轮实测共约 20s，
+  覆盖 maven 本体与其 surefire 分叉两类进程）；对**更短寿命**的 maven 进程本探针不作覆盖性宣称。
