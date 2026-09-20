@@ -1,0 +1,36 @@
+== R146 证据文件之间引用的可达性守卫（本轮证据引用的证据必须存在） ==
+口径：本轮（名字含 R146）证据文件 13 个（本文件 SELF 单列、不纳入核对，坑 222）
+解析到「evidence/<name>」与「gap-*-R146*.txt」形式的引用 = 10 条（正向对照：必须 > 0，坑 46/75）
+
+-- 逐文件引用计数 --
+  audit-regression-R146-coverage-gap.txt       引用  5 条
+  audit-regression-R146-faildiff.txt           引用  0 条
+  audit-regression-R146-rcseq.txt              引用  0 条
+  audit-regression-R146.txt                    引用  5 条
+  gap-derived-files-R146.txt                   引用  0 条
+  gap-tools-scan-R146.txt                      引用  0 条
+  gap-truth-consistency-R146.txt               引用  0 条
+  green-verify-R146-classdiff.txt              引用  0 条
+  green-verify-R146-coverage-fields.txt        引用  0 条
+  green-verify-R146-full-run1.txt              引用  0 条
+  green-verify-R146-full-run2.txt              引用  0 条
+  green-verify-R146-testcount.txt              引用  0 条
+  green-verify-R146-tested-state.txt           引用  0 条
+
+缺失 = 0 条（0 才判「本轮全部证据引用均可解析」）
+
+-- 判别力实测（证明本守卫有牙齿，坑 46/66/75/94） --
+注入：在 audit-regression-R146-coverage-gap.txt 的文本副本末尾追加一行 `见 evidence/synthetic-missing-r146.txt`；
+      注入前已断言该串不在原文内（注入真的改变了被测文本）。
+结果：缺失 0 -> 1（恰好 +1），点名项 = synthetic-missing-r146.txt → 守卫对「引用不存在的证据」确实会报出（非空转）。
+
+-- 真发现取证（**历史，引入于更早一轮**；本轮为复跑，坑 214/217-①） --
+事实 ①（历史）：该守卫首次运行前，被覆盖缺口报告引用的 `gap-tools-scan-<该轮>.txt` **不存在于磁盘**，
+        即：报告引用了未被任何 driver 项产出的证据文件；
+        既有全部守卫（driver 文件引用存在性 / rc 序列 / FAIL 明细 / 覆盖缺口分类 18/18）均**不会**发现它
+        （与「driver 引用未派生文件」真发现（引入于更早一轮）属同族，只是发生在「证据 → 证据」侧）。
+事实 ②（本轮复跑）：`gap-tools-scan-R146.py` 仍**不在 driver 的 AUDITS 序列内**，需人工手动执行；
+        故本守卫的核对顺序 = 先手动运行该脚本产出 `gap-tools-scan-R146.txt`、再运行本守卫。
+本轮核对：`gap-tools-scan-R146.txt` 已在磁盘（2255 字节），本守卫给出缺失 = 0 条。
+守卫化：本脚本把「本轮证据引用的证据必须存在」提升为可复跑的机器判据 + 判别力实测。
+（本文件自身落盘于检查之后，故单列 SELF：gap-evidence-refs-R146.txt）

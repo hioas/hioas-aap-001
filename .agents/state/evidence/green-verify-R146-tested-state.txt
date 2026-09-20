@@ -1,0 +1,26 @@
+== R146 被测状态核对（两轮全量所编译/执行的源码 = 哪一份） ==
+HEAD = bbbba8d | chore(evidence): R145 收尾阶段真发现项据实更正（真发现 1 -> 2 处 / 改进 2 -> 3 处）+ 更正段留痕 —— **真发现②**（巡检工具链侧，交付代码/契约/生成器 0 改动）：`verify-*-final` 的「本轮 worktree 已清理」守卫**判据错拼**为 `"aap-r%s-wt" % RND.lower()` = `aap-rr145-wt`（**双重 r** —— 目录标签本身已含 r）→ 对真实路径「…/aap-r145-wt」**恒 0 命中** ⇒ 该断言**恒真**、紧随其后的 `print("本轮 worktree 已清理 = True")` 又是**字面量** ⇒ **空转假绿**（坑 98）+ 结论句从未被任何判据支持（坑 12/95）；机器证据（回**修正前**产物，坑 214）= R144 同类脚本 `verify-r144-final.py` 第 112–113 行含**同一错拼**与**同一硬编码结论**（该缺陷随每轮「照抄上一轮 verify-final」复发，本轮沿用 R144 稿时原样带入）；判别力实测（本轮实跑）= 修正后判据对**真实路径形态**命中 True（正向对照，坑 46/75）、历史错拼命中 False（证明空转）、且修正后的守卫在 worktree **尚未清理**时**当场拦下**（AssertionError 原文点名实际路径 `C:/Users/laitz/AppData/Local/Temp/aap-r145-wt 2aa29ed (detached HEAD)`）、`git worktree remove --force` 清理后复跑通过（列表 1 条、命中 0 次，结论由判据**计算**得出而非硬编码）+ **改进③** = 该守卫判据修正（+ 结论由计算值输出 + 正向对照）；**未新增证据文件**（以免打乱本轮已提交的证据条数口径 14 条，坑 211），本项取证以**可复跑判据 + 实跑原文**留痕于台账行与状态文件 + **不 amend** 已发布提交 1474d6c / 88c7124（同机他方可能已基于它们提交，按坑 209 以**独立提交**据实更正）；本轮**不存在**「先写错再补正」的修正史 —— ①/② 均为**收尾阶段才成为事实**的真发现 + 台账行 / 状态文件 / 本提交 message **三处一致** + **权威数字 = 真发现 2 处 / 返工 3 处 / 改进 3 处；证据合计仍 14 条**（主提交 13 + 收尾取证 1）（17:56:17）
+run1 起跑 18:14:09 / 结束 18:15:31；run2 起跑 18:15:31 / 结束 18:16:34（串行，规范命令不改参数）
+窗口 = [18:14:09, 18:16:34]
+窗口内（18:14:09–18:16:34）aap-server 下被改写的源码文件数 = 0；窗口后（> 18:16:34）被改写 = 0
+结论：两轮全量在 **HEAD 的临时 detached worktree** 中编译/执行，被测状态 = worktree 实际检出的提交 bbbba8d 的源码；
+      窗口内 aap-server 源码 mtime 改动 = 0（0 → 与工作区并发编辑彻底解耦）
+窗口事实的机器核对：两份 raw 日志 mtime 与上方窗口结束时刻偏差 ≤ 120s（核对通过）
+最新 3 个源码 mtime（★ = 窗口内，△ = 窗口后，无标记 = 早于窗口起点）：
+    08:22:32    aap-server/src/main/java/com/hioas/aap/catalog/CatalogViews.java
+    08:14:00    aap-server/src/test/java/com/hioas/aap/common/MigrationTest.java
+    08:09:17    aap-server/src/main/java/com/hioas/aap/catalog/CatalogService.java
+
+-- 轮内 HEAD 位移分析 --
+会话起点 HEAD = bbbba8d；证据写入时 HEAD = bbbba8d | chore(evidence): R145 收尾阶段真发现项据实更正（真发现 1 -> 2 处 / 改进 2 -> 3 处）+ 更正段留痕 —— **真发现②**（巡检工具链侧，交付代码/契约/生成器 0 改动）：`verify-*-final` 的「本轮 worktree 已清理」守卫**判据错拼**为 `"aap-r%s-wt" % RND.lower()` = `aap-rr145-wt`（**双重 r** —— 目录标签本身已含 r）→ 对真实路径「…/aap-r145-wt」**恒 0 命中** ⇒ 该断言**恒真**、紧随其后的 `print("本轮 worktree 已清理 = True")` 又是**字面量** ⇒ **空转假绿**（坑 98）+ 结论句从未被任何判据支持（坑 12/95）；机器证据（回**修正前**产物，坑 214）= R144 同类脚本 `verify-r144-final.py` 第 112–113 行含**同一错拼**与**同一硬编码结论**（该缺陷随每轮「照抄上一轮 verify-final」复发，本轮沿用 R144 稿时原样带入）；判别力实测（本轮实跑）= 修正后判据对**真实路径形态**命中 True（正向对照，坑 46/75）、历史错拼命中 False（证明空转）、且修正后的守卫在 worktree **尚未清理**时**当场拦下**（AssertionError 原文点名实际路径 `C:/Users/laitz/AppData/Local/Temp/aap-r145-wt 2aa29ed (detached HEAD)`）、`git worktree remove --force` 清理后复跑通过（列表 1 条、命中 0 次，结论由判据**计算**得出而非硬编码）+ **改进③** = 该守卫判据修正（+ 结论由计算值输出 + 正向对照）；**未新增证据文件**（以免打乱本轮已提交的证据条数口径 14 条，坑 211），本项取证以**可复跑判据 + 实跑原文**留痕于台账行与状态文件 + **不 amend** 已发布提交 1474d6c / 88c7124（同机他方可能已基于它们提交，按坑 209 以**独立提交**据实更正）；本轮**不存在**「先写错再补正」的修正史 —— ①/② 均为**收尾阶段才成为事实**的真发现 + 台账行 / 状态文件 / 本提交 message **三处一致** + **权威数字 = 真发现 2 处 / 返工 3 处 / 改进 3 处；证据合计仍 14 条**（主提交 13 + 收尾取证 1）（17:56:17）
+git log bbbba8d..HEAD → 0 行：(无位移)
+git diff --stat bbbba8d HEAD -- aap-server/ → 输出行数 = 0（0 = aap-server 树零差异）
+git status --short -- aap-server/ → 输出行数 = 0（> 0 = 他方未提交改动；本轮被测状态取 HEAD，故不影响）
+窗口内 aap-server 源码 mtime 改动数 = 0；窗口后 = 0（> 0 时需逐条解释）
+结论：两轮全量编译/执行的就是 aap-server 侧 worktree 提交 bbbba8d 的源码；证据写入时 HEAD = bbbba8d，两者 aap-server 树差异行数 = 0（0 = 不触碰被测对象）。
+
+-- 本轮执行方式（沿用历史轮次引入的做法；坑 15/27/28） --
+工作区 aap-server 相对 HEAD 的未提交改动（git status --short -- aap-server/）逐条（**0 条 = 主仓库工作区亦为提交态**；非 0 即他方在途工作，本轮一律不碰）：
+两轮全量因此改在 HEAD 的临时 detached worktree 中执行（全程不触碰他方正在编辑的文件）：C:\Users\laitz\AppData\Local\Temp\aap-r146-wt
+  创建：git worktree add --detach <path> HEAD；收尾：git worktree remove --force <path>（git 自带，不触发递归删除拦截，坑 28）
+被测状态 = worktree 提交 bbbba8d 的 aap-server 源码。
