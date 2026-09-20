@@ -1,0 +1,44 @@
+== R134 `tools/` 侧 driver 覆盖：只读事实量化（R109 待拍板项的复核；不扩面，坑 213） ==
+
+① 磁盘 `tools/*.py` = 27 个（正向对照：必须 > 0）
+     audit-auth-contract-selftest.py
+     audit-auth-contract.py
+     audit-contract-keys-selftest.py
+     audit-contract-keys.py
+     audit-endpoint-tests-selftest.py
+     audit-endpoint-tests.py
+     audit-enum-sets-selftest.py
+     audit-enum-sets.py
+     audit-error-codes-selftest.py
+     audit-error-codes.py
+     audit-id-types-selftest.py
+     audit-id-types.py
+     audit-query-params-selftest.py
+     audit-query-params.py
+     audit-request-body-selftest.py
+     audit-request-body.py
+     audit-response-shape-selftest.py
+     audit-response-shape.py
+     audit-routes-selftest.py
+     audit-routes.py
+     audit-secret-leak.py
+     audit-time-format-selftest.py
+     audit-time-format.py
+     check-openapi-parses.py
+     evidence-secrets.py
+     gen-backend-models-selftest.py
+     gen-backend-models.py
+② driver（r134-regression.py）字面量引用 `tools/*.py` = 27 个（正向对照：必须 > 0）
+   另有 `str(VAR / "name")` 形式引用（抽查/自测脚本，非 tools/ 侧）= 52 个
+   正向/反向对照：合成字面量行解析到 1 条；`str(VAR / "name")` 行解析到 0 条 → 解析器非空转
+
+③ 差集：`tools/` 有而 driver 无 = 0 []
+        driver 有而 `tools/` 无（悬空引用）= 0 []
+   → 结论：缺口 = 0（R109 补齐 `tools/evidence-secrets.py` 后的现状；本轮**只复核事实、不扩面**）
+
+④ 覆盖缺口复核链的扫描范围（取自 gap-verify-R134-v2.py 原文）：候选目录 glob = ['aap-r*']；名字过滤 = [('spotcheck', 'audit')]
+   合成对照：`aap-r134-work/spotcheck-x.py` → 属候选；`tools/evidence-secrets.py` → 恒不在候选集合
+
+⑤ 落地核对：`tools/evidence-secrets.py` 仍在 driver 的 AUDITS 序列内（R109 修复保持有效）
+
+结论：`tools/*.py` ⊆ 本轮 driver 引用集**当前成立**（27/27，缺口 0、悬空引用 0）；该结论由本脚本的只读量化给出，**尚未**成为常驻 driver 断言 —— 是否提升为断言属**扩面**，按坑 213-③ 留待人工拍板（本文件即该待拍板项的事实依据）。

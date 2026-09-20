@@ -1,0 +1,26 @@
+== R134 被测状态核对（两轮全量所编译/执行的源码 = 哪一份） ==
+HEAD = ded6449 | chore(evidence): R133 台账收尾 —— R133 行「提交」列回填主提交 79b670a（**读 facts-commit.sh 事实**、源码内零硬编码提交号）+ 描述追加收尾后缀（正文 3162 + 后缀 574 = 3736 字符；自述标记「本轮返工 2 处」在整行恰 1 次，收尾段用「主提交所记」形态引用、不复用自述标记，坑 217-④）+ 飞书通知留痕（`hermes send` 返回 `Skipped`，系 cron 自动投递同目标所致、属预期非失败，故不写 feishu-notify-failures.txt）+ 证据归属核对（主提交携带的 15 个文件全部在 HEAD 树内、12 条本轮专属证据逐条命中，坑 198：无被他人 `git add -A` 带走的条目）+ 提交后落地核对取证 gap-postcommit-R133.txt（HEAD 内台账行与工作区**逐列相等 8/8 列**、分类自洽「本轮证据 12 + 非证据状态 3 = 15 == 提交携带 15」、aap-server 侧改动 0 条、两条负向对照「改一列必须被报出」「用上一轮的提交号当事实必须被报出」均通过；台账 201 行 8 列且 R 行连续 R27 → R133 共 107 条、两列皆空的描述行 0；本文件自身单列 SELF 并交由 len() 推出结论条数，坑 222/231；执行顺序 = 先 postcommit-check 再 closeout，坑 243-①）+ **收尾阶段未新增返工项**，返工真值仍为 2 处（口径 = 写作时刻即最终值；本轮不存在「主提交所记与最终真值不一致」的情形，故无坑 209 的据实更正；台账行 / 状态文件 / 收尾提交 message 三处一致）+ 本轮证据合计 13 条（主提交 12 + 收尾取证 1）+ 他方在途产物（aap-admn/README.md 的 D、aap-client/evidence/h5-chain/*、.playwright-mcp/、aap-admin/tools/open-admin.mjs）一律不碰（坑 12/80/155/157/192/198/209/222/231/236）（12:27:57）
+run1 起跑 12:38:43 / 结束 12:40:10；run2 起跑 12:40:10 / 结束 12:41:11（串行，规范命令不改参数）
+窗口 = [12:38:43, 12:41:11]
+窗口内（12:38:43–12:41:11）aap-server 下被改写的源码文件数 = 0；窗口后（> 12:41:11）被改写 = 0
+结论：两轮全量在 **HEAD 的临时 detached worktree** 中编译/执行，被测状态 = worktree 实际检出的提交 ded6449 的源码；
+      窗口内 aap-server 源码 mtime 改动 = 0（0 → 与工作区并发编辑彻底解耦）
+窗口事实的机器核对：两份 raw 日志 mtime 与上方窗口结束时刻偏差 ≤ 120s（核对通过）
+最新 3 个源码 mtime（★ = 窗口内，△ = 窗口后，无标记 = 早于窗口起点）：
+    08:22:32    aap-server/src/main/java/com/hioas/aap/catalog/CatalogViews.java
+    08:14:00    aap-server/src/test/java/com/hioas/aap/common/MigrationTest.java
+    08:09:17    aap-server/src/main/java/com/hioas/aap/catalog/CatalogService.java
+
+-- 轮内 HEAD 位移分析 --
+会话起点 HEAD = ded6449；证据写入时 HEAD = ded6449 | chore(evidence): R133 台账收尾 —— R133 行「提交」列回填主提交 79b670a（**读 facts-commit.sh 事实**、源码内零硬编码提交号）+ 描述追加收尾后缀（正文 3162 + 后缀 574 = 3736 字符；自述标记「本轮返工 2 处」在整行恰 1 次，收尾段用「主提交所记」形态引用、不复用自述标记，坑 217-④）+ 飞书通知留痕（`hermes send` 返回 `Skipped`，系 cron 自动投递同目标所致、属预期非失败，故不写 feishu-notify-failures.txt）+ 证据归属核对（主提交携带的 15 个文件全部在 HEAD 树内、12 条本轮专属证据逐条命中，坑 198：无被他人 `git add -A` 带走的条目）+ 提交后落地核对取证 gap-postcommit-R133.txt（HEAD 内台账行与工作区**逐列相等 8/8 列**、分类自洽「本轮证据 12 + 非证据状态 3 = 15 == 提交携带 15」、aap-server 侧改动 0 条、两条负向对照「改一列必须被报出」「用上一轮的提交号当事实必须被报出」均通过；台账 201 行 8 列且 R 行连续 R27 → R133 共 107 条、两列皆空的描述行 0；本文件自身单列 SELF 并交由 len() 推出结论条数，坑 222/231；执行顺序 = 先 postcommit-check 再 closeout，坑 243-①）+ **收尾阶段未新增返工项**，返工真值仍为 2 处（口径 = 写作时刻即最终值；本轮不存在「主提交所记与最终真值不一致」的情形，故无坑 209 的据实更正；台账行 / 状态文件 / 收尾提交 message 三处一致）+ 本轮证据合计 13 条（主提交 12 + 收尾取证 1）+ 他方在途产物（aap-admn/README.md 的 D、aap-client/evidence/h5-chain/*、.playwright-mcp/、aap-admin/tools/open-admin.mjs）一律不碰（坑 12/80/155/157/192/198/209/222/231/236）（12:27:57）
+git log ded6449..HEAD → 0 行：(无位移)
+git diff --stat ded6449 HEAD -- aap-server/ → 输出行数 = 0（0 = aap-server 树零差异）
+git status --short -- aap-server/ → 输出行数 = 0（> 0 = 他方未提交改动；本轮被测状态取 HEAD，故不影响）
+窗口内 aap-server 源码 mtime 改动数 = 0；窗口后 = 0（> 0 时需逐条解释）
+结论：两轮全量编译/执行的就是 aap-server 侧 worktree 提交 ded6449 的源码；证据写入时 HEAD = ded6449，两者 aap-server 树差异行数 = 0（0 = 不触碰被测对象）。
+
+-- 本轮执行方式（沿用历史轮次引入的做法；坑 15/27/28） --
+工作区 aap-server 相对 HEAD 的未提交改动（git status --short -- aap-server/）逐条（**0 条 = 主仓库工作区亦为提交态**；非 0 即他方在途工作，本轮一律不碰）：
+两轮全量因此改在 HEAD 的临时 detached worktree 中执行（全程不触碰他方正在编辑的文件）：C:\Users\laitz\AppData\Local\Temp\aap-r134-wt
+  创建：git worktree add --detach <path> HEAD；收尾：git worktree remove --force <path>（git 自带，不触发递归删除拦截，坑 28）
+被测状态 = worktree 提交 ded6449 的 aap-server 源码。
