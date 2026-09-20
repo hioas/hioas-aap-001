@@ -1,0 +1,7 @@
+== R145 用例数对账（口径 = 被测状态：相对 HEAD 有改动的测试源取 HEAD 内容，坑 172） ==
+被测状态 = worktree 提交 2aa29ed 的源码（git -C <wt> rev-parse --short HEAD）
+aap-server 测试源 @Test 词边界计数 = 211（词边界计数，坑 35：grep -c "@Test" 会被 @TestConfiguration 子串误计）
+surefire run1 合计 Tests run = 211 ；run2 合计 = 211
+对账：计数 == surefire → True（211 == 211）
+禁用扫描（@Disabled|@Ignore|@DisabledIf|assumeTrue|Assumptions.）= 0 条（0 才判「无用例被削弱」，坑 35）
+相对 HEAD 有改动的测试源文件 = 0 个
