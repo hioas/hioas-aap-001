@@ -1,0 +1,51 @@
+==============================================================================
+R171 真发现 ① 取证：被 git 跟踪的覆盖门禁产物**字节不稳定**（键序随 JVM 随机化）
+==============================================================================
+机制 = 历史坑 56（Map.of 的 ImmutableCollections 迭代顺序按 JVM SALT 随机化）。
+
+-- A 段：机制证据（写点位 + 同一方法内两种写法，坑 44）--
+[PASS] A0a 正向对照：覆盖门禁测试源可读且含产物相对路径 源码 6554 字节；含产物路径
+[PASS] A1 写点位使用 Map.of(...)（键序随机源） `Map.of("implemented"` 命中 1 处
+[PASS] A2 同一测试类内其余 map 均为有序实现（LinkedHashMap/TreeMap） LinkedHashMap=3 / TreeMap=3 → 同一文件内两种写法（坑 44）
+      L10   import java.util.LinkedHashMap;
+      L14   import java.util.TreeMap;
+      L97   Map<String, int[]> byTask = new TreeMap<>();
+      L108  Map<String, Object> row = new LinkedHashMap<>();
+      L117  Map<String, Object> report = new LinkedHashMap<>();
+      L121  Map<String, Object> byTaskOut = new TreeMap<>();
+      L123  Map.of("implemented", counter[0], "total", counter[1])));
+
+-- B 段：本轮产物 vs 已提交副本（worktree 内产物 = 本轮测试真的写过的那份）--
+[PASS] B0a 正向对照：两侧文件均存在且可解析 by_task 条目 = 12 / 字节长度 wt=962 repo=962
+[PASS] B1 逐字段值全等（值域判据：无任何数值/字段漂移） 相等 = True
+[PASS] B2 原始字节**不全等**（字节不稳定，机制成立） 字节全等 = False
+[PASS] B3 差异行数 > 0（> 0 正向对照） 差异行 = 24 行
+      L7    wt='      "total" : 6,'               repo='      "implemented" : 6,'
+      L8    wt='      "implemented" : 6'          repo='      "total" : 6'
+      L11   wt='      "total" : 5,'               repo='      "implemented" : 5,'
+      L12   wt='      "implemented" : 5'          repo='      "total" : 5'
+[PASS] B4 差异**全部**为「键序互换 + 随之互换的尾随逗号位置」（归一尾随逗号后行多重集相等） 归一后行多重集全等 = True（裸行多重集相等 = False —— 键序互换会同时互换尾随逗号，故裸比必然不等）
+[PASS] B5 该产物**被 git 跟踪**（字节漂移会直接进提交/影响按 git 判漂移的复核） ls-files rc=0；历史提交次数 = 17
+
+-- C 段：判别力实测（判据「差异全部为同行重排」必须既不瞎也不空转）--
+[PASS] C1 合成『字节相同』→ 判据判「同一」 同一（无差异）
+[PASS] C2 合成『仅键序不同』→ 判据判「纯键序/重排」（不误报） 纯键序/重排
+[PASS] C3 合成『值漂移』（missing 0→1）→ 判据**转红**（判据有牙齿） 存在内容漂移
+[PASS] C3b 注入确实改到了合成副本（坑 66/94） 注入后字节与产物不同 = True
+
+结论：① 产物字节不稳定**已机器证实**：值域全等（B1）、字节不等（B2）、差异 24 行 = 12 个 by_task 条目 × 2 行
+      —— 每个条目内两个键（implemented/total）因顺序互换而**互换「尾随逗号」的角色**（带逗号 ↔ 不带逗号）；
+      归一尾随逗号后行多重集全等（B4）→ 差异属**纯键序**，无任何内容变化；
+      ② 该产物**被 git 跟踪**且历史提交 17 次 → 任何按 `git diff` 判「产物是否漂移」的复核每轮都会看到它被改写；
+      ③ 本轮 B 段判据（逐字段全等）**只覆盖值域**，对字节侧变化不作结论，也没有「差异仅为键序」的判据 →
+         一旦同机他方 `git add -A`（坑 198 已实测的并发行为）把它带走，提交里就是一整片**纯键序 churn**，
+         之后每轮「产物是否漂移」的核对都会永久误报。
+修法（坑 56 的处方）：`EndpointCoverageTest.java` 第 123 行的 `Map.of("implemented", …, "total", …)`
+      改为 `LinkedHashMap`（或 `Map.ofEntries`）固定键序 —— 与该方法内其余 map 的写法一致。
+      **本轮为巡检轮，不改交付代码**（作业约定），故登记为待拍板项。
+
+本轮在巡检链侧落地的**配套判据**（不碰交付代码）：analyze 的 B 段新增 B4c ——
+      「与已提交副本的差异必须归一尾随逗号后行多重集全等」，值/格式漂移即转红。
+      返工记录：该判据首版写成「裸行多重集相等」→ 对**真实**产物报假 FAIL（键序互换必然同时换掉尾随逗号）；
+      按坑 81/144 先取真实文本再定判据后修正。
+GAP1_END=1

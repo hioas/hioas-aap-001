@@ -1,0 +1,39 @@
+==============================================================================
+R171 真发现 ③ 取证：driver 的「零写副作用」快照**范围**不含证据目录，而 driver 内确有写点
+==============================================================================
+机制（坑 39 的范围侧）：快照判据只覆盖生成物（docs/backend/** + openapi.yaml + endpoints.json）。
+
+-- A 段：机制证据（快照范围的源码 + writer 的写点源码）--
+[PASS] A0a 正向对照：driver 源码可读 13534 字节
+[PASS] A1 driver 快照范围写作 docs/backend 侧（1 处 rglob glob + 2 个显式文件字面量 = 3 处） ART 定义段内 `docs/backend` 命中 3 处
+[PASS] A2 快照范围**不含**证据目录字面量 ART 定义段内 `.agents/state/evidence` 命中 = 0 处
+[PASS] A3 driver 命令表含 audit-endpoint-tests（该命令真的在回归面里） 命中 = True
+[PASS] A4 该命令有写点位（就地重写证据目录下 2 个文件） 写点 = 2 处
+      L19   `.agents/state/evidence/endpoint-test-audit.json`  —— 机器可读逐条结果
+      L20   `.agents/state/evidence/endpoint-test-audit.txt`   —— 人类可读摘要
+      L229  (EVIDENCE_DIR / "endpoint-test-audit.json").write_text(
+      L268  (EVIDENCE_DIR / "endpoint-test-audit.txt").write_text(text, encoding="utf-8")
+
+-- B 段：范围与写点的集合关系（机器判定，不靠肉眼）--
+[PASS] B0a 正向对照：快照集合非空 快照 = 84 个产物
+[PASS] B1 endpoint-test-audit.json 不在快照集合内 在范围内 = False
+[PASS] B1 endpoint-test-audit.txt 不在快照集合内 在范围内 = False
+[PASS] B2 两个写点目标**都被 git 跟踪** 跟踪 = ['.agents/state/evidence/endpoint-test-audit.json', '.agents/state/evidence/endpoint-test-audit.txt']
+[PASS] B3 本轮 driver 运行后该目录**无内容漂移**（幂等；仅 mtime 被重写） numstat = ''
+      endpoint-test-audit.json mtime = 2026-09-21 05:33:00
+      endpoint-test-audit.txt mtime = 2026-09-21 05:33:00
+
+-- C 段：判别力实测（合成「证据目录内被跟踪文件内容漂移」）--
+[PASS] C0a 注入确实改到了合成副本（坑 66/94） 注入后字节不同 = True
+[PASS] C1 现有快照判据对注入**判绿**（范围缺口成立：看不见证据目录漂移） 现有判据变化 = 0 个
+[PASS] C2 扩范围后同一注入**转红**（修法有牙齿） 扩范围后变化 = ['.agents/state/evidence/endpoint-test-audit.json']
+
+结论：① 快照范围 = 生成物（84 个），证据目录**不在其中**；
+      ② 但 driver 命令表里的 audit-endpoint-tests **每轮就地重写**证据目录下 2 个被跟踪文件；
+      ③ 本轮实测内容幂等（numstat 为空），所以当前**没有**实际漂移 —— 属**判据范围缺口**，不是既有缺陷；
+      ④ 缺口后果：未来这两个文件（或该目录下任何被 writer 重写的文件）发生内容漂移时，
+         「零写副作用 PASS」这一结论**不会**转红；同机他方 `git add -A`（坑 198）带走它们时，
+         提交里就会出现无人核对的内容变化。
+修法（登记待拍板，不擅改回归序列）：把快照范围扩到 `.agents/state/evidence/**` 并**显式排除**
+      driver 自身写出的 `audit-regression-<RND>-*` 四件套（否则 driver 自己的写会误报为漂移）。
+GAP3_END=1
