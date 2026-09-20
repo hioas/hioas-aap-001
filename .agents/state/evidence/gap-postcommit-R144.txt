@@ -1,0 +1,20 @@
+== R144 提交后落地核对（HEAD 行 ⇔ 工作区行逐列相等；执行顺序 = 先本核对、后收尾，坑 243-①） ==
+主提交 = 2cb6708（读 facts-commit.sh 事实，源码内零硬编码提交号）
+主提交携带文件 = 16 条 = 本轮专属证据 13（名字含本轮轮次号）+ 非证据状态 3（.agents/state/aap-server-feature-status.csv、.agents/state/aap-server-tdd-state.md、.agents/state/evidence/coverage-history.txt）；coverage-history.txt 位于 evidence/ 目录但承载**历史**而非本轮专属证据 → 分类按**语义**而非目录（坑 236）
+分类自洽核对：13 + 3 == 16（提交携带数）
+本轮证据逐条在 HEAD 树内：全部命中（13/13）
+非证据状态文件：.agents/state/aap-server-feature-status.csv、.agents/state/aap-server-tdd-state.md、.agents/state/evidence/coverage-history.txt
+提交内 aap-server/ 改动 = 0 条（纯巡检轮不改交付代码）
+
+-- 逐列核对（HEAD vs 工作区） --
+列数 = 8；不一致的列 = 无（空 = 逐列相等）
+描述列长度 = 3103（内容级：非空、与单一事实源一致）
+证据列条数 = 13（与单一事实源一致）
+「提交」列 = ''（收尾阶段回填；本核对在收尾前执行）
+
+-- 负向对照（证明判据有牙齿，坑 46/75/98） --
+① 把工作区行描述列篡改一个字符 → 判据点名列 [4]（单列、非多列）→ 非空转；
+② 用上一轮提交号 6a8ef24 当「主提交事实」→ 其携带的本轮证据 = 0 条（≠ 13）→ 可被辨别；
+
+结论：主提交携带的台账行与工作区行**逐列相等 8/8**；提交文件分类自洽；aap-server 侧零改动；两条负向对照均通过。
+（本文件自身落盘于核对之后，故单列 SELF：gap-postcommit-R144.txt，不纳入核对集合）
