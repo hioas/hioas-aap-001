@@ -66,12 +66,27 @@ const CONTENT_GATES = {
     textAny: ['总请求数', '调用与消耗趋势', '模型维度用量']
   },
   '/models': {
-    require: ['[data-testid="model-gap-banner"]', '[data-testid="model-kpi"]'],
-    textAny: ['按厂商分组', '本页后端暂无能力'],
-    // 本页**故意**调用唯一可用的端点，并预期它返回 E-1501（D-ADM-3 已登记的整页能力缺口）。
-    // 页面会把该错误渲染成显式的缺口说明 —— 这是**被处理的状态**，不是失败。
-    // 声明式放行，避免「把已知缺口当回归」；同时新出现的**其它**错误码仍会失败。
-    allowCodes: ['E-1501']
+    // ⚠️ 本页判据已随 D-ADM-3 修复而更新（原先要求「缺口横幅 + 放行 E-1501」）。
+    //    D-ADM-3 已由 V9 迁移 + /admin/catalog/* 解开（后端运行态 24/24 验证），
+    //    本页改为真实读模型目录，**不再有 E-1501 放行** —— 出现任何错误码都算回归。
+    require: [
+      '[data-testid="model-kpi"]',
+      '[data-testid="btn-add-vendor"]',
+      '[data-testid="btn-add-model"]'
+    ],
+    textAny: ['按厂商分组', '接入厂商', '已接入模型', '启用中模型'],
+    mustMatch: [/接入厂商/, /已接入模型/, /启用中模型/],
+    // 新增模型抽屉必须能打开，且渲染出设计稿 page-3-2 的必填字段
+    drawer: {
+      open: '[data-testid="btn-add-model"]',
+      expect: [
+        '[data-testid="drawer-model"]',
+        '[data-testid="m-vendor"]',
+        '[data-testid="m-name"]',
+        '[data-testid="m-uid"]',
+        '[data-testid="m-save"]'
+      ]
+    }
   },
   // 页 4：供应商管理（page-4-pc）。判据必须能区分「真取到数」与「只有壳」：
   // 表头「接入线路 / 档案完整度」是设计稿独有列，骨架页没有。
@@ -363,6 +378,29 @@ async function main() {
     if (bad.length) problems.push(`异常接口 ${bad.length} 条：${bad.map((b) => `${b.method} ${b.url.split('/api/v1')[1]?.split('?')[0]} → ${b.code} ${b.message ?? ''}`).join('；')}`);
     if (errs.length) problems.push(`控制台报错 ${errs.length} 条：${errs[0]}`);
 
+    // 抽屉校验（可选，声明在 gate.drawer）：点开抽屉，确认设计稿要求的字段真的渲染出来。
+    // 有这一条才能区分「按钮存在」与「按钮真能打开表单」—— 只查按钮存在会漏掉一大类假完成。
+    let drawerNote = '';
+    if (gate?.drawer) {
+      try {
+        await page.click(gate.drawer.open, { timeout: 8000 });
+        // 抽屉有开合动画，等选择器出现而不是写死 sleep
+        await page.waitForFunction(
+          (sels) => sels.every((s) => document.querySelector(s)),
+          gate.drawer.expect,
+          { timeout: 8000 }
+        );
+        const miss = await page.evaluate(
+          (sels) => sels.filter((s) => !document.querySelector(s)),
+          gate.drawer.expect
+        );
+        if (miss.length) problems.push(`抽屉缺少字段：${miss.join('、')}`);
+        else drawerNote = `；抽屉字段齐全（${gate.drawer.expect.length} 项）`;
+      } catch (e) {
+        problems.push(`抽屉未打开或字段未渲染：${String(e.message).split('\n')[0]}`);
+      }
+    }
+
     await page.screenshot({ path: join(OUT, `page${route.replace(/\//g, '-')}.png`), fullPage: true });
     record(
       `${route}  ${title}`,
@@ -371,7 +409,7 @@ async function main() {
         ? problems.join(' | ')
         : `${gate ? '业务内容已渲染' : '骨架（含待实现徽章）'}；接口 ${seg.length} 次${
             allowed.length ? `（含已声明放行 ${allowed.map((a) => a.code).join('/')}）` : ''
-          }，控制台 0 报错`
+          }${drawerNote}，控制台 0 报错`
     );
   }
 
