@@ -1,0 +1,11 @@
+R165 真发现 ②：证据清单的三份副本此前无一致性判据（SELF 文件，落盘于本脚本最后一段）
+==============================================================================
+
+[PASS] G1 正向对照：三侧证据清单解析条数均 > 0 append=19 / check-final=19 / 台账=19
+[PASS] G2 **真发现 ②**：三份副本逐条相等（此前无判据） append-check_final 差 = []；台账-append 差 = []
+[PASS] G3 判别力实测：任一侧注入合成证据名必须被判不等 注入侧 → append 侧：True
+[PASS] G4 本轮证据文件齐备（19 条 = 既有 18 + 本文件） MISSING = 无（SELF = gap-ledger-copies-R165.txt，落盘时产生）
+[PASS] G5 SELF 单列且不参与存在性断言（坑 222） SELF = gap-ledger-copies-R165.txt；既有断言条数 = 18
+
+落盘顺序：非 SELF 证据（refs / ledger-structure / continuous-obs / stale-coverage-check /
+          regression-cmdtable / narrative-roll / aux-derive-coverage）先落盘 → 再校验 → 本文件（SELF）最后落盘。

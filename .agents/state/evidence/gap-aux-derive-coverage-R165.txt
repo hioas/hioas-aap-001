@@ -1,0 +1,10 @@
+R165 真发现 ①：派生覆盖面的判据范围只覆盖 work 目录（aux 侧产物角色脚本 = 0 覆盖）
+==============================================================================
+
+[PASS] F1 正向对照：派生脚本的 FILES 清单解析条数 > 0 FILES = 6 条 ['round-r164.sh', 'r164-regression.py', 'analyze-r164.py', 'compare-faildiff-r164.py', 'append-r164.py', 'postcommit-r164.py']
+[PASS] F2 判据范围自证：派生的完整性判据只比较 work 目录（源目录 = aap-r164-work） 源目录脚本 6 == FILES 6
+[PASS] F3 **真发现 ①**：aux 侧产物角色脚本未被任何机器枚举覆盖（4 个 / 覆盖 0 个） aux 产物角色脚本 = ['check-final-r165.py', 'forensics-r165.py', 'gap-truth-consistency-R165.py', 'rewrite-narr-r165.py']；被 FILES 覆盖 = []
+[PASS] F4 判别力实测：把 aux 脚本名注入 FILES 后必须被判为「已覆盖」 注入后覆盖 = 1（期望 1）
+
+结论：属**待拍板**项（扩面 = 改派生链，按坑 213-③「扩面要人拍板」的既有纪律，本轮只登记不擅改）；
+     下一步可选修法 = 把「脚本存放位置集合」显式枚举为 work ∪ aux，断言每个位置的产物角色脚本 ⊆ 派生/核对清单。

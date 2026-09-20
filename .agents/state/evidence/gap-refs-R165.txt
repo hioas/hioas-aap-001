@@ -1,0 +1,21 @@
+R165 常驻守卫：证据引用可达性（台账 / 状态文件 / 覆盖历史 三处；按形态分层）
+==============================================================================
+
+A0 解析：引用 1619 条（去重后 1466）＝ 本轮 19 + 历史 1446 + 命名约定模板占位 1
+    模板占位（**不是引用**，是命名约定说明）：['red-Txx.txt']
+[PASS] A0a 正向对照：解析到 evidence 引用条数 > 0 总引用 1619 条（去重 1466）
+[PASS] A1 形态分层判据判别力：合成模板占位必须被判为占位、真实文件必须不被判为占位 合成 evidence/SYN-xx.txt → 占位=True；真实 gap-refs-R165.txt → 占位=False
+[PASS] A2 本轮引用（由既有阶段产物落盘者 12 条）逐条磁盘可达 缺失 = 无
+    本轮另 7 条由本取证脚本落盘（写入前必然不在磁盘）→ 由 F 段齐备性断言兜底：['gap-aux-derive-coverage-R165.txt', 'gap-continuous-obs-R165.txt', 'gap-ledger-structure-R165.txt', 'gap-narrative-roll-R165.txt', 'gap-refs-R165.txt', 'gap-regression-cmdtable-R165.txt', 'gap-stale-coverage-check-R165.txt']
+A3 历史引用 1446 条 → 磁盘缺失 4 条
+    · gap-stale-coverage-check-R163.txt  从未落盘（git 全历史无新增记录）
+    · green-T12-full-run1.txt            曾落盘（db98c6a）后被移除
+    · red-T02.txt                        从未落盘（git 全历史无新增记录）
+    · red-T04.txt                        从未落盘（git 全历史无新增记录）
+[PASS] A4 **真发现 ③**：历史引用存在悬空（此前判据只扫近两轮，历史侧从未核对） 悬空 4 条 = ['gap-stale-coverage-check-R163.txt', 'green-T12-full-run1.txt', 'red-T02.txt', 'red-T04.txt']
+[PASS] A5 上限守卫：历史悬空引用条数 ≤ 4（超限即为新增退化，须中断取证） 实测 4 条
+[PASS] A6 已登记项（R164 真发现 ① 的滚动悬空引用，钉在原轮 R163）逐条可辨认且同族上一轮文件存在 已登记项 = gap-stale-coverage-check-R163.txt → 同族文件 gap-stale-coverage-check-R164.txt 在磁盘 = True
+[PASS] A7 判别力实测：合成悬空引用必须被判不可达（判据有牙齿） 合成引用 gap-synth-refs-R165.txt → 可达 = False（期望 False）
+[PASS] A8 反向对照：真实存在的引用必须被判可达 coverage-history.txt 可达 = True（期望 True）
+
+首版判据的两处缺陷（已修正，据实登记）：① 把「本脚本正在落盘的 7 条本轮证据」当成磁盘缺失（顺序错）；② 把命名约定模板占位当成引用（形态错，坑 117/81）。修正后判据按「形态 + 来源 + 是否已登记」分层。
