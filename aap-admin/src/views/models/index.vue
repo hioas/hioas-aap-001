@@ -33,40 +33,46 @@
       </div>
     </div>
 
-    <!-- 分组 tabs + 筛选 + 操作 -->
+    <!-- 搜索查询面板：**分两行**（用户口径 2026-09-20）。
+         原型里「工具栏」本是一行（筛选组 | spacer | 工具操作组），
+         但用户要求两行 → 已按指示改为两行。 -->
     <div class="aap-card md__bar">
-      <el-radio-group v-model="tab" data-testid="model-tabs">
-        <el-radio-button value="vendor">按厂商分组</el-radio-button>
-        <el-radio-button value="all">全部模型</el-radio-button>
-        <el-radio-button value="disabled">停用模型</el-radio-button>
-      </el-radio-group>
-      <el-input v-model="filters.keyword" placeholder="搜索厂商 / 模型名称" clearable style="width: 220px" data-testid="model-search" />
-      <el-select v-model="filters.type" placeholder="全部类型" clearable style="width: 130px" data-testid="model-type">
-        <el-option v-for="t in MODEL_TYPES" :key="t.value" :label="t.label" :value="t.value" />
-      </el-select>
-      <el-select v-model="filters.status" placeholder="全部状态" clearable style="width: 130px" data-testid="model-status">
-        <el-option label="启用" value="ENABLED" />
-        <el-option label="停用" value="DISABLED" />
-      </el-select>
-      <!-- 设计稿还有第 4 个筛选「全部地区」（厂商 region 有真值，可筛） -->
-      <el-select v-model="filters.region" placeholder="全部地区" clearable style="width: 130px" data-testid="model-region">
-        <el-option v-for="r in VENDOR_REGIONS" :key="r" :label="r" :value="r" />
-      </el-select>
-      <!-- 设计稿第 5 个筛选「按调用量排序」：调用量按模型维度可算，故做**真排序** -->
-      <el-select v-model="filters.sort" placeholder="按调用量排序" clearable style="width: 150px" data-testid="model-sort">
-        <el-option label="调用量从高到低" value="usage_desc" />
-        <el-option label="调用量从低到高" value="usage_asc" />
-      </el-select>
-      <span class="md__spacer" />
-      <!-- 设计稿此按钮存在，但后端**无批量端点** → 置灰并注明，不假装可用 -->
-      <el-button data-testid="btn-batch" disabled>批量管理</el-button>
-      <el-button data-testid="btn-export" @click="exportList">导出清单</el-button>
-      <el-button data-testid="btn-add-vendor" @click="openVendor">新增厂商</el-button>
-      <!-- ⚠️ 用户口径（2026-09-20）：「新增模型」**不要做成一级按钮** → 恢复该按钮，
-           但**去掉 type="primary"**（设计稿里它是蓝色主按钮 rgba(37,99,235,1)）。
-           上一轮我误读成「移除按钮」并整条删掉了，本轮纠正。
-           仍保留厂商行内「添加模型」入口（设计稿本就有）。 -->
-      <el-button data-testid="btn-add-model" @click="openModel()">新增模型</el-button>
+      <!-- 第一行：分组 tabs + 搜索框 -->
+      <div class="md__row">
+        <el-radio-group v-model="tab" data-testid="model-tabs">
+          <el-radio-button value="vendor">按厂商分组</el-radio-button>
+          <el-radio-button value="all">全部模型</el-radio-button>
+          <el-radio-button value="disabled">停用模型</el-radio-button>
+        </el-radio-group>
+        <span class="md__spacer" />
+        <el-input v-model="filters.keyword" placeholder="搜索厂商 / 模型名称" clearable style="width: 260px" data-testid="model-search" />
+      </div>
+      <!-- 第二行：四个筛选器 + 操作 -->
+      <div class="md__row">
+        <el-select v-model="filters.type" placeholder="全部类型" clearable style="width: 130px" data-testid="model-type">
+          <el-option v-for="t in MODEL_TYPES" :key="t.value" :label="t.label" :value="t.value" />
+        </el-select>
+        <el-select v-model="filters.status" placeholder="全部状态" clearable style="width: 130px" data-testid="model-status">
+          <el-option label="启用" value="ENABLED" />
+          <el-option label="停用" value="DISABLED" />
+        </el-select>
+        <!-- 设计稿第 4 个筛选「全部地区」（厂商 region 有真值，可筛） -->
+        <el-select v-model="filters.region" placeholder="全部地区" clearable style="width: 130px" data-testid="model-region">
+          <el-option v-for="r in VENDOR_REGIONS" :key="r" :label="r" :value="r" />
+        </el-select>
+        <!-- 设计稿第 5 个筛选「按调用量排序」：调用量按模型维度可算，故做**真排序** -->
+        <el-select v-model="filters.sort" placeholder="按调用量排序" clearable style="width: 150px" data-testid="model-sort">
+          <el-option label="调用量从高到低" value="usage_desc" />
+          <el-option label="调用量从低到高" value="usage_asc" />
+        </el-select>
+        <span class="md__spacer" />
+        <el-button data-testid="btn-export" @click="exportList">导出清单</el-button>
+        <el-button data-testid="btn-add-vendor" @click="openVendor">新增厂商</el-button>
+        <!-- ⚠️ 按用户口径（2026-09-20）**已移除**两个按钮（与设计稿 page-3 不同）：
+             · 「批量管理」—— 后端无批量端点，且用户要求去掉
+             · 「新增模型」—— 用户要求去掉；模型改由**厂商分组行内「添加模型」**进入
+               （设计稿本就有该入口，模型必属于某厂商，一级入口会让「所属厂商」悬空） -->
+      </div>
     </div>
 
     <!-- 数据主体 -->
@@ -167,11 +173,13 @@
             <el-button type="primary" data-testid="btn-add-vendor-empty" @click="openVendor">新增厂商</el-button>
           </div>
         </div>
-      </div>
 
-      <!-- 分页栏（设计稿 page-3：独立白条 h=56 · padding[0,20] · r=12；
-           文案「共 12 家厂商 · 当前第 1 / 2 页」；控件 上一页 / 页码×3 / 下一页，选中页蓝底白字） -->
-      <div v-if="groupTotal > 0" class="pager" data-testid="model-pager">
+        <!-- 分页栏（设计稿 page-3 的分页栏）。
+             ⚠️ 位置与宽度必须**与厂商分组模块一致**：同为 aap-card__body 的子元素，
+             因此与 .vendor 同宽；并**去掉自身框体**（无边框/无背景/无圆角），
+             避免在大卡片里再套一个小卡片（用户口径 2026-09-20）。
+             文案「共 N 家厂商 · 当前第 x / y 页」；控件 上一页 / 页码×3 / 下一页。 -->
+        <div v-if="groupTotal > 0" class="pager" data-testid="model-pager">
         <span class="pager__info" data-testid="pager-info">
           共 {{ groupTotal }} 家厂商 · 当前第 {{ page }} / {{ pageCount }} 页
         </span>
@@ -196,6 +204,7 @@
             data-testid="pager-next"
             @click="page++"
           >›</button>
+        </div>
         </div>
       </div>
     </div>
@@ -824,7 +833,9 @@ defineExpose({ load, vendors, allModels, groups });
 .kpi__value--todo { font-size: var(--fs-lg); color: var(--c-text-muted); }
 .kpi__note { font-size: var(--fs-sm); color: var(--c-text-muted); }
 
-.md__bar { display: flex; align-items: center; gap: 10px; padding: 14px 16px; flex-wrap: wrap; }
+/* 搜索查询面板：**两行**（第一行 tabs+搜索，第二行四个筛选器+操作） */
+.md__bar { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; }
+.md__row { display: flex; align-items: center; gap: 10px; width: 100%; flex-wrap: wrap; }
 .md__spacer { flex: 1; }
 .aap-card__head { display: flex; align-items: center; gap: 10px; padding: 16px 18px 0; }
 .aap-card__title { font-size: var(--fs-lg); font-weight: 600; }
@@ -853,18 +864,20 @@ defineExpose({ load, vendors, allModels, groups });
 .md__empty-title { font-size: var(--fs-md); font-weight: 600; margin-bottom: 10px; }
 .md__empty-body { font-size: var(--fs-base); color: var(--c-text-body); line-height: 1.8; }
 
-/* 分页栏（设计稿：h=56 · padding[0,20] · r=12 · 白底；文案 fs=13；
-   页码 32×32 r=8，选中页蓝底白字，其余白底灰字） */
+/* 分页栏 —— ⚠️ 与「厂商分组模块」(.vendor) **同宽**：
+   两者同为 .aap-card__body 的直接子元素，所以只要**不自带内边距/边框**就自然对齐。
+   并按用户口径**去掉框体**（无边框、无背景、无圆角）——
+   大卡片里再套一个小卡片视觉上是错的。
+   尺寸仍取设计稿的 56 高与 32×32 页码按钮。 */
 .pager {
   display: flex;
   align-items: center;
   justify-content: space-between;
   height: 56px;
-  padding: 0 20px;
-  border-radius: var(--r-card);
-  background: var(--c-surface);
-  border: 1px solid var(--c-border);
-  margin-top: 12px;
+  padding: 0;
+  margin-top: 4px;
+  background: transparent;
+  border: none;
 }
 .pager__info { font-size: var(--fs-base); color: var(--c-text-muted); }
 .pager__ctrl { display: flex; align-items: center; gap: 6px; }

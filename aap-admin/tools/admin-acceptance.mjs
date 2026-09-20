@@ -69,7 +69,10 @@ const CONTENT_GATES = {
     // ⚠️ 本页判据已随 D-ADM-3 修复而更新（原先要求「缺口横幅 + 放行 E-1501」）。
     //    D-ADM-3 已由 V9 迁移 + /admin/catalog/* 解开（后端运行态 24/24 验证），
     //    本页改为真实读模型目录，**不再有 E-1501 放行** —— 出现任何错误码都算回归。
-    require: ['[data-testid="model-kpi"]', '[data-testid="btn-add-vendor"]', '[data-testid="btn-add-model"]'],
+    // ⚠️ 按用户口径移除了「批量管理」与「新增模型」两个按钮（与设计稿 page-3 不同），
+    //    故这里**不再断言**它们存在；同时反向断言它们**不该出现**，
+    //    以免以后有人「照设计稿还原」又把它们加回来。
+    require: ['[data-testid="model-kpi"]', '[data-testid="btn-add-vendor"]'],
     textAny: ['按厂商分组', '接入厂商', '已接入模型', '启用中模型'],
     mustMatch: [
       /接入厂商/,
@@ -79,7 +82,10 @@ const CONTENT_GATES = {
       // 反向断言 —— 已删除；用户原话实为**缺陷报告**（缺分页功能），故这里改成正向断言。
       /共 \d+ 家厂商 · 当前第 \d+ \/ \d+ 页/
     ],
+    mustNotMatch: [/批量管理/, /^新增模型$/m],
     // 抽屉必须真能打开并渲染设计稿字段。
+    // 「新增模型」已按用户口径移除一级入口 → 模型抽屉改为**可选**：
+    //   页面上存在厂商行内「添加模型」时才校验（空目录时不可达，不算失败）。
     drawers: [
       {
         open: '[data-testid="btn-add-vendor"]',
