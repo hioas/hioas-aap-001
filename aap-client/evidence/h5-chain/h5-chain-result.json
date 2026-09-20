@@ -1,5 +1,5 @@
 {
-  "at": "2026-09-19T03:12:13.936Z",
+  "at": "2026-09-20T00:49:35.842Z",
   "baseUrl": "http://localhost:5173",
   "phone": "13800138000",
   "steps": [
@@ -51,22 +51,62 @@
     {
       "name": "⑫ 管理端 DET-06 人工放行（真实鉴权 + 理由必填 + 审计）",
       "ok": true,
-      "detail": "jobId=458755610915815424 已放行 → status=COMPLETED"
+      "detail": "jobId=459081987636523008 已放行 → status=COMPLETED"
     },
     {
       "name": "⑬ 放行后检测任务真的推进了（业务结果断言）",
       "ok": true,
-      "detail": "status=COMPLETED · started_at=null · finished_at=2026-09-19T03:12:09Z"
+      "detail": "status=COMPLETED · started_at=null · finished_at=2026-09-20T00:49:03Z"
     },
     {
       "name": "⑭ 检测报告页在浏览器里渲染出内容",
       "ok": true,
-      "detail": "434 字；GET /reports → 本次未发"
+      "detail": "426 字；GET /reports → 本次未发"
     },
     {
       "name": "⑮ 报告数据真实可取（业务结果断言，非状态码）",
       "ok": true,
-      "detail": "报告数=1 · 首份 id=458755647162990592 · 详情字段=34"
+      "detail": "报告数=10 · 首份 id=459082022101118976 · 详情字段=34"
+    },
+    {
+      "name": "⑯ 报价单列表 →「新建报价」",
+      "ok": true,
+      "detail": "落点=#/pages/quote-models/index"
+    },
+    {
+      "name": "⑰ 选报价主体 + 填报价单名称",
+      "ok": true,
+      "detail": "主体=联调测试科技有限公司（面板选项 1 个）；名称=联调H5-54266"
+    },
+    {
+      "name": "⑱ 选凭证 → 模型列表带出 → 全选模型",
+      "ok": false,
+      "detail": "选了凭证后模型列表仍为空（带不出模型）"
+    },
+    {
+      "name": "⑲ 保存报价单 → 断言 POST /quotes 与明细写入",
+      "ok": false,
+      "detail": "点「保存」后未发出 POST /quotes"
+    },
+    {
+      "name": "⑳ 模型定价 → 保存价格（PUT /quotes/items/{itemId}）",
+      "ok": false,
+      "detail": "上一步未拿到报价单 id"
+    },
+    {
+      "name": "㉑ 报价预览 → 提交报价单（POST /quotes/{id}/submit）",
+      "ok": false,
+      "detail": "未拿到报价单 id"
+    },
+    {
+      "name": "㉒ 提交后状态真的变了（业务结果断言，非状态码）",
+      "ok": false,
+      "detail": "GET /quotes/{id} → E-1406 接口或资源不存在"
+    },
+    {
+      "name": "㉓ 报价单出现在列表里且状态已更新（业务结果断言）",
+      "ok": true,
+      "detail": "报价单 9 张，其中草稿/已提交 6 张；最新=Q20260919000009 status=SUBMITTED"
     }
   ],
   "apiCalls": [
@@ -79,19 +119,19 @@
       "message": "ok",
       "data": {
         "ttl": 300,
-        "expire_at": "2026-09-19T03:16:46Z",
-        "dev_code": "686048"
+        "expire_at": "2026-09-20T00:53:41Z",
+        "dev_code": "123456"
       }
     },
     {
       "method": "POST",
       "url": "http://localhost:5173/api/v1/auth/sms/login",
-      "postData": "{\"phone\":\"13800138000\",\"smsCode\":\"686048\"}",
+      "postData": "{\"phone\":\"13800138000\",\"smsCode\":\"123456\"}",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "token": "<redacted len=18>",
+        "token": "<redacted len=303>",
         "refresh_token": "<redacted len=43>",
         "role": "SUPPLIER",
         "providerId": "458589638116450304",
@@ -147,7 +187,7 @@
         "daily": [],
         "cost": null,
         "updated_at": null,
-        "refreshed_at": "2026-09-19T03:11:49Z",
+        "refreshed_at": "2026-09-20T00:48:44Z",
         "degraded": false
       }
     },
@@ -170,17 +210,17 @@
     {
       "method": "POST",
       "url": "http://localhost:5173/api/v1/credentials",
-      "postData": "{\"alias\":\"联调凭证15235\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789787515940\"}",
+      "postData": "{\"alias\":\"联调凭证29258\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789865329945\"}",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "id": "458755591856898048",
+        "id": "459081968002985984",
         "provider_id": "458589638116450304",
-        "alias": "联调凭证15235",
+        "alias": "联调凭证29258",
         "base_url": "http://127.0.0.1:9911/v1",
-        "api_key_mask": "sk-c***5940",
-        "api_key_masked": "sk-c***5940",
+        "api_key_mask": "sk-c***9945",
+        "api_key_masked": "sk-c***9945",
         "primary_flag": false,
         "is_primary": false,
         "declared_vendor": null,
@@ -194,25 +234,25 @@
         "latest_report_id": null,
         "precheck_passed": false,
         "precheck_at": null,
-        "created_at": "2026-09-19T03:11:56Z",
-        "updated_at": "2026-09-19T03:11:56Z",
+        "created_at": "2026-09-20T00:48:50Z",
+        "updated_at": "2026-09-20T00:48:50Z",
         "version": 0
       }
     },
     {
       "method": "PUT",
-      "url": "http://localhost:5173/api/v1/credentials/458755591856898048",
-      "postData": "{\"alias\":\"联调凭证15235\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789787515940\"}",
+      "url": "http://localhost:5173/api/v1/credentials/459081968002985984",
+      "postData": "{\"alias\":\"联调凭证29258\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789865329945\"}",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "id": "458755591856898048",
+        "id": "459081968002985984",
         "provider_id": "458589638116450304",
-        "alias": "联调凭证15235",
+        "alias": "联调凭证29258",
         "base_url": "http://127.0.0.1:9911/v1",
-        "api_key_mask": "sk-c***5940",
-        "api_key_masked": "sk-c***5940",
+        "api_key_mask": "sk-c***9945",
+        "api_key_masked": "sk-c***9945",
         "primary_flag": false,
         "is_primary": false,
         "declared_vendor": null,
@@ -226,25 +266,25 @@
         "latest_report_id": null,
         "precheck_passed": false,
         "precheck_at": null,
-        "created_at": "2026-09-19T03:11:56Z",
-        "updated_at": "2026-09-19T03:11:56Z",
+        "created_at": "2026-09-20T00:48:50Z",
+        "updated_at": "2026-09-20T00:48:50Z",
         "version": 0
       }
     },
     {
       "method": "PUT",
-      "url": "http://localhost:5173/api/v1/credentials/458755591856898048",
-      "postData": "{\"alias\":\"联调凭证15235\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789787515940\"}",
+      "url": "http://localhost:5173/api/v1/credentials/459081968002985984",
+      "postData": "{\"alias\":\"联调凭证29258\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789865329945\"}",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "id": "458755591856898048",
+        "id": "459081968002985984",
         "provider_id": "458589638116450304",
-        "alias": "联调凭证15235",
+        "alias": "联调凭证29258",
         "base_url": "http://127.0.0.1:9911/v1",
-        "api_key_mask": "sk-c***5940",
-        "api_key_masked": "sk-c***5940",
+        "api_key_mask": "sk-c***9945",
+        "api_key_masked": "sk-c***9945",
         "primary_flag": false,
         "is_primary": false,
         "declared_vendor": null,
@@ -258,21 +298,21 @@
         "latest_report_id": null,
         "precheck_passed": false,
         "precheck_at": null,
-        "created_at": "2026-09-19T03:11:56Z",
-        "updated_at": "2026-09-19T03:12:00Z",
+        "created_at": "2026-09-20T00:48:50Z",
+        "updated_at": "2026-09-20T00:48:54Z",
         "version": 1
       }
     },
     {
       "method": "POST",
-      "url": "http://localhost:5173/api/v1/credentials/458755591856898048/precheck",
+      "url": "http://localhost:5173/api/v1/credentials/459081968002985984/precheck",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "job_id": "458755610915815424",
-        "detection_job_id": "458755610915815424",
-        "job_no": "DJ202609190009",
+        "job_id": "459081987636523008",
+        "detection_job_id": "459081987636523008",
+        "job_no": "DJ202609200021",
         "precheck_status": "PASSED",
         "status": "ACTIVE",
         "models": [
@@ -290,17 +330,66 @@
       }
     },
     {
-      "method": "GET",
-      "url": "http://localhost:5173/api/v1/detection-jobs/458755610915815424",
+      "method": "PUT",
+      "url": "http://localhost:5173/api/v1/credentials/459081968002985984",
+      "postData": "{\"alias\":\"联调凭证29258\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789865329945\"}",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "id": "458755610915815424",
-        "job_id": "458755610915815424",
-        "job_no": "DJ202609190009",
+        "id": "459081968002985984",
         "provider_id": "458589638116450304",
-        "credential_id": "458755591856898048",
+        "alias": "联调凭证29258",
+        "base_url": "http://127.0.0.1:9911/v1",
+        "api_key_mask": "sk-c***9945",
+        "api_key_masked": "sk-c***9945",
+        "primary_flag": false,
+        "is_primary": false,
+        "declared_vendor": null,
+        "declared_rpm": null,
+        "declared_tpm": null,
+        "declared_context_window": null,
+        "model_list": [],
+        "env_tag": null,
+        "status": "PENDING_PRECHECK",
+        "detection_status": "RUNNING",
+        "latest_report_id": null,
+        "precheck_passed": false,
+        "precheck_at": "2026-09-20T00:48:55Z",
+        "created_at": "2026-09-20T00:48:50Z",
+        "updated_at": "2026-09-20T00:48:55Z",
+        "version": 3
+      }
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5173/api/v1/credentials/459081968002985984/precheck",
+      "status": 409,
+      "code": "E-1301",
+      "message": "该凭证已有进行中的检测任务，请等待完成或取消后再提交",
+      "data": null
+    },
+    {
+      "method": "PUT",
+      "url": "http://localhost:5173/api/v1/credentials/459081968002985984",
+      "postData": "{\"alias\":\"联调凭证29258\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[{\"model_name\":\"gpt-4o\"},{\"model_name\":\"gpt-4o-mini\"},{\"model_name\":\"gpt-4-turbo\"},{\"model_name\":\"claude-3-opus\"},{\"model_name\":\"claude-3-sonnet\"},{\"model_name\":\"claude-3-haiku\"},{\"model_name\":\"gemini-1.5-pro\"},{\"model_name\":\"deepseek-chat\"},{\"model_name\":\"qwen-max\"},{\"model_name\":\"glm-4\"}]}",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": "(不可序列化)"
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/detection-jobs/459081987636523008",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": {
+        "id": "459081987636523008",
+        "job_id": "459081987636523008",
+        "job_no": "DJ202609200021",
+        "provider_id": "458589638116450304",
+        "credential_id": "<redacted len=18>",
         "status": "QUEUED",
         "trigger_type": "FIRST",
         "started_at": null,
@@ -321,18 +410,18 @@
           "total": 8,
           "eta_minutes": null
         },
-        "created_at": "2026-09-19T03:12:00Z",
-        "updated_at": "2026-09-19T03:12:00Z"
+        "created_at": "2026-09-20T00:48:55Z",
+        "updated_at": "2026-09-20T00:48:55Z"
       }
     },
     {
       "method": "GET",
-      "url": "http://localhost:5173/api/v1/detection-jobs/458755610915815424/results",
+      "url": "http://localhost:5173/api/v1/detection-jobs/459081987636523008/results",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "job_id": "458755610915815424",
+        "job_id": "459081987636523008",
         "total": 0,
         "items": []
       }
@@ -352,6 +441,69 @@
       "code": "0",
       "message": "ok",
       "data": "(不可序列化)"
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/quotes?page=1&pageSize=10",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": "(不可序列化)"
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/quotes?page=1&pageSize=10",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": "(不可序列化)"
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/credentials?page=1&pageSize=20",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": "(不可序列化)"
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/provider/profile",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": "(不可序列化)"
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/credentials/459081968002985984",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": {
+        "id": "459081968002985984",
+        "provider_id": "458589638116450304",
+        "alias": "联调凭证29258",
+        "base_url": "http://127.0.0.1:9911/v1",
+        "api_key_mask": "sk-c***9945",
+        "api_key_masked": "sk-c***9945",
+        "primary_flag": false,
+        "is_primary": false,
+        "declared_vendor": null,
+        "declared_rpm": null,
+        "declared_tpm": null,
+        "declared_context_window": null,
+        "model_list": [],
+        "env_tag": null,
+        "status": "PENDING_PRECHECK",
+        "detection_status": "PASS",
+        "latest_report_id": null,
+        "precheck_passed": false,
+        "precheck_at": "2026-09-20T00:48:55Z",
+        "created_at": "2026-09-20T00:48:50Z",
+        "updated_at": "2026-09-20T00:49:03Z",
+        "version": 5
+      }
     }
   ]
 }

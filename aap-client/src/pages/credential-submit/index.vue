@@ -169,6 +169,7 @@
  */
 import { computed, onMounted, ref } from 'vue'
 import { ApiError } from '@/api/http'
+import { catalogApi } from '@/api/catalog'
 import { credentialApi } from '@/api/credential'
 import {
   ALIAS_HINT,
@@ -178,6 +179,7 @@ import {
   MODEL_SECTION_NOTE,
   buildCredentialForm,
   buildSavePayload,
+  buildVendorsFromCatalog,
   toggleModel,
   validateBaseUrl,
   type VendorGroup
@@ -240,14 +242,63 @@ function applyDetail(raw: Parameters<typeof buildCredentialForm>[0]) {
   hasCatalog.value = model.hasCatalog
 }
 
+/**
+ * 加载：**候选模型来自管理端维护的目录**（`GET /catalog/models`），
+ * 已选状态来自凭证详情（`model_list`）。
+ *
+ * ⚠️ 这里修的是一个真实断链：此前候选模型只取凭证详情的 `model_catalog`，
+ * 而新建凭证该字段为空 → 供应商看到**空列表**、无法勾选 → 报价带不出模型。
+ * 管理端建的厂商/模型本来就该由 `/catalog/models` 提供给本页
+ * （这正是当初补模型目录接口的目的），但前端一直没接。
+ */
 async function load() {
   credentialId.value = resolveCredentialId()
-  if (!credentialId.value) return
-  try {
-    applyDetail(await credentialApi.detail(credentialId.value))
-  } catch (err) {
-    toast(err instanceof ApiError ? err.message : '数据加载失败，请稍后重试')
+  // 两者并行取（目录是必需的，详情在没有凭证 id 时可缺）
+  const [detailRes, catalogRes] = await Promise.allSettled([
+    credentialId.value ? credentialApi.detail(credentialId.value) : Promise.resolve(null),
+    catalogApi.availableModels()
+  ])
+  const detail = detailRes.status === 'fulfilled' ? detailRes.value : null
+  const catalog = catalogRes.status === 'fulfilled' ? catalogRes.value : []
+
+  if (detail) {
+    applyDetail(detail)
+  } else if (credentialId.value) {
+    // ⚠️ **必须透传服务端消息**（原实现是 `err instanceof ApiError ? err.message : ...`）。
+    //    改成 Promise.allSettled 时我一度写成通用文案「数据加载失败」，把 E-2001 的具体
+    //    原因丢了 —— 被既有用例「详情加载失败 → 提示含『内部错误』」抓到，已修回。
+    const reason = (detailRes as PromiseRejectedResult).reason
+    toast(reason instanceof ApiError ? reason.message : '数据加载失败，请稍后重试')
+  } else {
+    // 无凭证 id（新建）：仍要展示目录，否则用户看不到任何可选模型
+    alias.value = ''
+    vendors.value = []
+    hasCatalog.value = false
   }
+
+  // 已选集合以凭证详情为准（新建凭证时为空）
+  const checked = new Set(
+    (detail?.model_list ?? [])
+      .map((m) => String((m as { model_name?: string })?.model_name ?? '').trim())
+      .filter(Boolean)
+  )
+  const fromCatalog = buildVendorsFromCatalog(catalog, checked)
+
+  if (fromCatalog.length) {
+    // 目录可用 → 用它作为候选；再把「已勾选但不在目录里」的模型补进来，
+    // 避免覆盖用户历史上已选的模型（静默丢数据比多显示一行更糟）
+    const inCatalog = new Set(fromCatalog.flatMap((g) => g.models.map((m) => m.name)))
+    const orphans = [...checked].filter((n) => !inCatalog.has(n))
+    if (orphans.length) {
+      fromCatalog.push({
+        vendor: detail?.declared_vendor ? String(detail.declared_vendor) : '其他',
+        models: orphans.map((name) => ({ key: `其他::${name}`, name, specText: '', checked: true }))
+      })
+    }
+    vendors.value = fromCatalog
+    hasCatalog.value = true
+  }
+  // fromCatalog 为空时保留 applyDetail 的结果（凭证详情里自带的目录 / 已选模型）
 }
 
 function goBack() {

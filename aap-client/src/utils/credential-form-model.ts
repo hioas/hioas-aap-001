@@ -124,6 +124,45 @@ export function countSelected(vendors: VendorGroup[]): number {
   return vendors.reduce((sum, g) => sum + g.models.filter((m) => m.checked).length, 0)
 }
 
+/**
+ * 用**管理端维护的模型目录**构造候选清单（供应商侧 `/catalog/models`）。
+ *
+ * <p>为什么需要它：本页的候选模型此前只来自**凭证详情**（`raw.model_catalog`），
+ * 而凭证刚建时该字段为空 → 供应商看到空列表 → 无法勾选 → 报价带不出模型。
+ * 管理端建的厂商/模型必须经此函数进入本页。
+ *
+ * <p>映射规则（关键）：进 `model_list` 的是**模型标识 modelUid**
+ * （后端 `CatalogViews.Model.modelUid` 的注释原文：「进 model_list 的就是它」），
+ * 故映射为 {@code model_name = modelUid}；{@code modelName} 是给人看的名称。
+ */
+export function buildVendorsFromCatalog(
+  catalog: Array<{
+    vendorName?: string | null
+    vendorKey?: string | null
+    modelUid?: string | null
+    contextWindow?: number | null
+    maxOutput?: number | null
+  }>,
+  checkedNames: Set<string> = new Set()
+): VendorGroup[] {
+  const byVendor = new Map<string, ModelOption[]>()
+  for (const m of catalog) {
+    const uid = text(m?.modelUid)
+    if (!uid) continue
+    const vendor = text(m?.vendorName) || text(m?.vendorKey) || ''
+    const opt = optionOf(
+      { model_name: uid, context_window: m?.contextWindow ?? undefined },
+      vendor,
+      checkedNames
+    )
+    if (!opt) continue
+    const list = byVendor.get(vendor) ?? []
+    list.push(opt)
+    byVendor.set(vendor, list)
+  }
+  return [...byVendor.entries()].map(([vendor, models]) => ({ vendor, models }))
+}
+
 function buildVendors(raw: CredentialDetailRaw | null | undefined): VendorGroup[] {
   const list = Array.isArray(raw?.model_list) ? raw!.model_list! : []
   const checkedNames = new Set(list.map((m) => text(m?.model_name) || text(m?.model_id)).filter(Boolean))
