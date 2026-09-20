@@ -123,7 +123,21 @@ async function grabCredentials(ctx, page) {
       }
     }
   }
-  return { storage, cookies, jwt, jwtKey }
+
+  // ★ 登录凭据不是 JWT！实测登录后 localStorage 里是：
+  //     qdwpa_saas_d2_<userId> = <base64 串>   ← 这才是登录凭据（无「.」分隔，非三段式 JWT）
+  //   而 `GET /api/mm_web/token?file_key=` 无论登录与否都只签发 user_id=0 的**访客票**
+  //   （它只服务「公开文件访问」），所以导出要用的不是它。
+  //   这里把所有 d2_ 凭据收成候选，逐个当 Bearer 试。
+  const candidates = []
+  if (explicitToken) candidates.push({ token: explicitToken, from: '--token' })
+  if (jwt) candidates.push({ token: jwt, from: jwtKey })
+  for (const [k, v] of Object.entries(storage)) {
+    if (/d2_/.test(k) && typeof v === 'string' && v.length > 10) {
+      candidates.push({ token: v, from: `storage["${k}"]` })
+    }
+  }
+  return { storage, cookies, jwt, jwtKey, candidates }
 }
 
 /** --login：弹出有头浏览器，等人登录；用持久化 profile 保存 */
@@ -182,17 +196,21 @@ const main = async () => {
   await page.waitForTimeout(8000)
 
   const cred = await grabCredentials(ctx, page)
-  console.log(`凭据：cookie ${cred.cookies.length} 个；JWT ${cred.jwt ? '有' : '无'}`)
-  if (cred.jwt) console.log(`  payload = ${JSON.stringify(payloadOf(cred.jwt))}`)
+  console.log(`凭据：cookie ${cred.cookies.length} 个；JWT ${cred.jwt ? '有' : '无'}；候选 ${cred.candidates.length} 个`)
+  cred.candidates.forEach((c) => console.log(`  · ${c.from}（长度 ${c.token.length}）`))
 
-  const token = explicitToken || cred.jwt
-  if (token && String(payloadOf(token).user_id ?? '') === '0') {
-    console.log('⚠️ 这是**匿名** token（user_id=0），导出接口不认。请先 --login 用登录账号。')
+  // 已知匿名访客票一定不行（user_id=0），早剔除，不浪费请求
+  const usable = cred.candidates.filter((c) => {
+    const pl = c.token.includes('.') ? payloadOf(c.token) : {}
+    return String(pl.user_id ?? '1') !== '0'
+  })
+  if (!usable.length) {
+    console.log('⚠️ 没有可用的登录凭据（只有匿名票或空）。请先 --login 用登录账号。')
     await ctx.close()
     process.exit(3)
   }
 
-  // ★ 关键：在页面里发请求 → 自动带 Cookie，与 App 行为一致
+  // ★ 在页面上下文中发请求 → Cookie 自动带上（登录后 App 走 Cookie）
   const shapes = [
     { file_key: appId, page: pageId, type: 'md' },
     { file_key: appId, page: pageId, format: 'md' },
@@ -200,37 +218,39 @@ const main = async () => {
     { file_key: appId, type: 'md' },
     { file_key: appId }
   ]
-  const hdrs = { 'Content-Type': 'application/json' }
-  if (token) hdrs.Authorization = `Bearer ${token}`
 
   let downloadUrl = null
   let hit = null
-  for (const body of shapes) {
-    const r = await page.evaluate(
-      async ([api, h, b]) => {
-        const res = await fetch(api, {
-          method: 'POST',
-          headers: h,
-          body: JSON.stringify(b),
-          credentials: 'include'
-        })
-        let j = null
-        try {
-          j = await res.json()
-        } catch {
-          /* 非 JSON */
-        }
-        return { status: res.status, j }
-      },
-      [`${API}/convert/coop2exprot`, hdrs, body]
-    )
-    const j = r.j
-    if (j?.data?.download_url) {
-      downloadUrl = j.data.download_url
-      hit = JSON.stringify(body)
-      break
+  for (const c of usable) {
+    const hdrs = { 'Content-Type': 'application/json', Authorization: `Bearer ${c.token}` }
+    for (const body of shapes) {
+      const r = await page.evaluate(
+        async ([api, h, b]) => {
+          const res = await fetch(api, {
+            method: 'POST',
+            headers: h,
+            body: JSON.stringify(b),
+            credentials: 'include'
+          })
+          let j = null
+          try {
+            j = await res.json()
+          } catch {
+            /* 非 JSON */
+          }
+          return { status: res.status, j }
+        },
+        [`${API}/convert/coop2exprot`, hdrs, body]
+      )
+      const j = r.j
+      if (j?.data?.download_url) {
+        downloadUrl = j.data.download_url
+        hit = `${c.from} + ${JSON.stringify(body)}`
+        break
+      }
+      console.log(`   · ${c.from} + ${JSON.stringify(body)} → ${j ? `code=${j.code} ${j.msg}` : `http=${r.status}`}`)
     }
-    console.log(`   · ${JSON.stringify(body)} → ${j ? `code=${j.code} ${j.msg}` : `http=${r.status}`}`)
+    if (downloadUrl) break
   }
 
   if (!downloadUrl) {
