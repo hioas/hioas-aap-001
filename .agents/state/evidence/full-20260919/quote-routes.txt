@@ -1,0 +1,37 @@
+116:    @GetMapping
+117-    public ApiEnvelope<PageResult<QuoteViews.Row>> list(@AuthenticationPrincipal AuthPrincipal principal,
+125:    @PostMapping
+126-    public ApiEnvelope<QuoteViews.Created> create(@AuthenticationPrincipal AuthPrincipal principal,
+135:    @GetMapping("/{quoteId}")
+136-    public ApiEnvelope<QuoteViews.Detail> detail(@AuthenticationPrincipal AuthPrincipal principal,
+142:    @DeleteMapping("/{quoteId}")
+143-    public ApiEnvelope<Void> delete(@AuthenticationPrincipal AuthPrincipal principal,
+153:    @PostMapping("/{quoteId}/items")
+154-    public ApiEnvelope<QuoteViews.Items> setItems(@AuthenticationPrincipal AuthPrincipal principal,
+165:    @GetMapping("/{quoteId}/items")
+166-    public ApiEnvelope<QuoteViews.Items> listItems(@AuthenticationPrincipal AuthPrincipal principal,
+174:    @GetMapping("/items/{itemId}")
+175-    public ApiEnvelope<QuoteViews.Item> getItem(@AuthenticationPrincipal AuthPrincipal principal,
+181:    @PutMapping("/items/{itemId}")
+182-    public ApiEnvelope<QuoteViews.Item> saveItem(@AuthenticationPrincipal AuthPrincipal principal,
+193:    @PostMapping("/{quoteId}/submit")
+194-    public ApiEnvelope<QuoteViews.Detail> submit(@AuthenticationPrincipal AuthPrincipal principal,
+200:    @PostMapping("/{quoteId}/withdraw")
+201-    public ApiEnvelope<QuoteViews.Detail> withdraw(@AuthenticationPrincipal AuthPrincipal principal,
+207:    @GetMapping("/{quoteId}/versions")
+208-    public ApiEnvelope<PageResult<QuoteViews.Version>> versions(@AuthenticationPrincipal AuthPrincipal principal,
+218:    @PostMapping("/{quoteId}/compile-preview")
+220-    public ApiEnvelope<com.hioas.aap.compile.CompilationViews.Result> compilePreview(
+@RequestMapping("/api/v1/quotes")
+    @GetMapping
+    @PostMapping
+    @GetMapping("/{quoteId}")
+    @DeleteMapping("/{quoteId}")
+    @PostMapping("/{quoteId}/items")
+    @GetMapping("/{quoteId}/items")
+    @GetMapping("/items/{itemId}")
+    @PutMapping("/items/{itemId}")
+    @PostMapping("/{quoteId}/submit")
+    @PostMapping("/{quoteId}/withdraw")
+    @GetMapping("/{quoteId}/versions")
+    @PostMapping("/{quoteId}/compile-preview")
