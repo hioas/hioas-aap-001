@@ -1,0 +1,30 @@
+== R125 提交后落地核对（主提交 c56fd63；提交之后才跑，坑 219） ==
+
+① 台账行：HEAD 树列数 = 8、工作区列数 = 8；逐列差异下标 = []
+   「提交」列（HEAD / 工作区）= '' / ''
+   描述列（HEAD / 工作区）字符数 = 2405 / 2405；工作区描述以 HEAD 描述为前缀 = True
+   → 主提交携带的描述 = 写入时经内容级校验的那一份（收尾只**追加后缀**与回填提交列）
+
+② 证据文件在 HEAD 树内：核对 12 条；缺失 = 0 []
+   IN_HEAD  .agents/state/evidence/green-verify-R125-full-run1.txt
+   IN_HEAD  .agents/state/evidence/green-verify-R125-full-run2.txt
+   IN_HEAD  .agents/state/evidence/green-verify-R125-classdiff.txt
+   IN_HEAD  .agents/state/evidence/green-verify-R125-testcount.txt
+   IN_HEAD  .agents/state/evidence/green-verify-R125-coverage-fields.txt
+   IN_HEAD  .agents/state/evidence/green-verify-R125-tested-state.txt
+   IN_HEAD  .agents/state/evidence/audit-regression-R125.txt
+   IN_HEAD  .agents/state/evidence/audit-regression-R125-rcseq.txt
+   IN_HEAD  .agents/state/evidence/audit-regression-R125-faildiff.txt
+   IN_HEAD  .agents/state/evidence/audit-regression-R125-coverage-gap.txt
+   IN_HEAD  .agents/state/evidence/gap-tools-scan-R125.txt
+   IN_HEAD  .agents/state/evidence/gap-guard-roundnum-R125.txt
+
+③ 主提交 c56fd63 改动：文件数 = 9（本轮证据 6 + 状态 2 + 历史/台账 1）；aap-server/ 侧 = 0（期望 0）；非 `.agents/` 文件 = 0 []
+   主提交缺失的证据文件 = 6 ['evidence/green-verify-R125-full-run1.txt', 'evidence/green-verify-R125-full-run2.txt', 'evidence/green-verify-R125-classdiff.txt', 'evidence/green-verify-R125-testcount.txt', 'evidence/green-verify-R125-coverage-fields.txt', 'evidence/green-verify-R125-tested-state.txt']
+   被同机他方提交带走（git add -A，坑 198）= 6 条：{'evidence/green-verify-R125-full-run1.txt': '5187745', 'evidence/green-verify-R125-full-run2.txt': '5187745', 'evidence/green-verify-R125-classdiff.txt': '5187745', 'evidence/green-verify-R125-testcount.txt': '5187745', 'evidence/green-verify-R125-coverage-fields.txt': '5187745', 'evidence/green-verify-R125-tested-state.txt': '5187745'}
+
+④ 本轮两轮全绿证据关键字段：
+   run1 合计 Tests run/Failures/Errors/Skipped = (211, 0, 0, 0)
+   对账：词边界计数 211 vs surefire 211 → 一致
+
+结论：主提交 c56fd63 携带的台账行与工作区行**逐列相等**（差异仅限收尾后缀与「提交」列回填）、本轮 12 个证据文件**全部在 HEAD 树内**（主提交 6 + 他方提交 6）、改动范围不含 **aap-server/**（纯巡检轮的机器证据，坑 198 的证据归属已逐条登记）。

@@ -6510,3 +6510,16 @@ R106 的 `fix-guards-r106.py` 把 `verify-final.py` / `final-check.py` 的返工
 - **R78 双写法解析器**：本轮 run1 mm:ss 写法（04:41 min）、run2 mm:ss 写法（02:41 min） —— 只检验了其中一种写法 → 另一种写法本轮未复现，不能声称本轮验证了它（坑 176）。
 - **观察项 / 待拍板**（延续）：① `sms.lock-minutes` 占位符默认值 0 ≠ md 声明 15（已计入基线，本轮 rc 变化 0）；
   ② 是否把「`tools/*.py` ⊆ driver 引用集」提升为常驻 driver 断言（属扩面）；③ R27–R32 台账行依据不足，不猜测性回填。
+
+
+### R125 收尾补充（提交后落地核对 + 证据归属 + 通知留痕）
+
+- **主提交** = c56fd63（9 个文件：2 个状态文件 + 6 个证据文件；**aap-server 侧 0 条**）。
+- **证据归属（坑 198）**：本轮 12 个证据文件中 6 条（`green-verify-R125-*`）在产出后被同机他方提交 **5187745**（fix(h5) 前端改动）以 `git add -A` 带入 HEAD；按坑 198 只留痕、**不改写他人提交**，其余 6 条由主提交携带；`git ls-files` 核对 12 条**全在 HEAD 树内**。
+- **陈述更正 1 项（非返工）**：正文「轮内 HEAD 位移 0 个提交」只对**证据写入时刻（08:03）**成立；该时刻之后同机他方提交 5187745 推进 HEAD（08:05:29）→ 已更正为「证据写入时轮内 HEAD 位移 0 个提交（收尾核实时为 1：他方提交 5187745）」。
+- **他方在途观察（只记录、不干预）**：`aap-server/src/main/java/com/hioas/aap/catalog/` 与 `V9__model_catalog.sql` 未跟踪、`MigrationTest.java` 与主配置旁文件在工作区被持续编辑 —— 属他方在途工作，本轮一律不碰；主仓库 `.agents/state/evidence/coverage-report.json` 于 08:11:29 被他方跑测改写（`registered_routes` 98 → 105 = 其新增控制器路由数），**冻结清单 90 条未变、门禁 90/90 不受影响**，本轮不提交该文件。
+- **两轮全绿**：run1/run2 合计 `(211, 0, 0, 0)`；`@Test` 词边界计数与 surefire 对账**一致**；
+  两轮窗口 [07:55:34, 08:02:59]、窗口内 aap-server 源码 mtime 改动 0、工作区 aap-server 未提交改动 0 条。
+- **收尾取证**：`evidence/gap-postcommit-R125.txt`（收尾阶段落盘）→ 本轮证据合计 **13 条**。
+- **飞书通知**：飞书通知 `hermes send -t feishu -s 'AAP TDD 进度' …` 输出留痕 feishu-notify.out：(未解析到 rc 行)，输出含「Skipped send_message … This cron job will already auto-deliver its final response to that same target」= 是 —— 属**预期形态**（本 cron 作业的最终响应会自动投递到同一目标）、**非失败**，故不写 feishu-notify-failures.txt。
+- **收尾阶段无新增返工项**：权威返工真值 = **5 处**（与主提交 message 一致）。
