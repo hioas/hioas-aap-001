@@ -1,0 +1,46 @@
+== R128 纯数字派生盲区守卫（判别力实测）+ 证据产物「残留上一轮」守卫 ==
+
+A) 本轮真值形态判据（真值必须在 ∧ 合成非真值必须不在；两者由不同常量推出，坑 220-①）
+   真值：返工计数 = 5、轮次计数 = 110（轮次计数由上一行真值 109 + 1 推出，无魔法数字）
+   合成非真值（与真值无包含关系、且不落在真值序列上，坑 220-②）：返工 = 8、轮次计数 = 112
+   PASS A1 → 无违规
+   PASS A2 → 无违规
+   PASS A3 → 无违规
+   PASS A4 → 无违规
+   本轮 DESC 违规条数 = 0（期望 0）
+
+B) 判别力实测（守卫必须真有牙齿；注入的合成非真值必须真的改变了语义，坑 66/90/94/203）
+   注入「本轮返工 8 处」→ 判据报出 1 条：['A2']
+   注入「90/90 连续第 112 轮全绿」→ 判据报出 1 条：['A4']
+   → 两项合成非真值各**恰好**触发 1 条点名断言（A2 / A4）→ 守卫非空转
+   说明（坑 203）：本轮返工真值（5 处）与上一轮真值（3 处）**不同** → 若拿「上一轮原始产物」当注入态，它不含本轮真值形态、也不含合成非真值 → 断言必假；故一律用**合成非真值**作注入态，不为迁就断言去改真值。
+
+C) 历史引用不误报实测（坑 202/204-①：判据锚定「本轮返工 N 处」的措辞形态，历史引用无「本轮」前缀）
+   合成历史引用样本：判别力实测：对上一轮真值与合成非真值「返工 8 处」各报 1 条；历史改进引入。
+   该样本是否触发 A2：否（期望 否）
+   → 历史引用（无「本轮」前缀）天然豁免；本轮 DESC 的引用处亦不带该前缀
+
+D) 证据产物「残留上一轮（小写 aap-r127-）」守卫（坑 186/212/216）
+   产物目录 = C:/Users/laitz/AppData/Local/Temp/aap-r128-work；扫描文件 10 个
+   豁免 make-r128.py（7 处）：派生脚本按设计读上一轮工作目录（aap-r127-work/…）
+   豁免 r128-guards.py（5 处）：守卫脚本自身按设计含合成对照串（守卫非空转的唯一证据，坑 75/190）
+   违规（非豁免文件含上一轮小写引用）= 0 []
+   合成行正向对照：含上一轮引用的合成行命中 1（期望 1）；含本轮引用的合成行命中 0（期望 0）
+   → 守卫非空转：能命中真残留、不误伤本轮引用；豁免条数 = 2 且逐条非架空（坑 190/212）
+
+E) 证据文件条数核对（本文件自身在落盘时才产生 → 单独标注，不计入「既有证据」条数，坑 12/95）
+   本轮证据文件清单条数 = 12（期望 12）
+   EXISTS  evidence/green-verify-R128-full-run1.txt
+   EXISTS  evidence/green-verify-R128-full-run2.txt
+   EXISTS  evidence/green-verify-R128-classdiff.txt
+   EXISTS  evidence/green-verify-R128-testcount.txt
+   EXISTS  evidence/green-verify-R128-coverage-fields.txt
+   EXISTS  evidence/green-verify-R128-tested-state.txt
+   EXISTS  evidence/audit-regression-R128.txt
+   EXISTS  evidence/audit-regression-R128-rcseq.txt
+   EXISTS  evidence/audit-regression-R128-faildiff.txt
+   EXISTS  evidence/audit-regression-R128-coverage-gap.txt
+   EXISTS  evidence/gap-tools-scan-R128.txt
+   SELF（本文件，落盘时产生）evidence/gap-guard-roundnum-R128.txt
+
+结论：纯数字派生盲区守卫对本轮真值 0 违规、对合成非真值各 1 条点名违规（有牙齿）；证据产物无「残留上一轮」引用（豁免 2 条，逐条已断言非架空）；既有证据文件 11 条全部 EXISTS + 本文件（SELF）落盘 → 本轮证据合计 12 条。

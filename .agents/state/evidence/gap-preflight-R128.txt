@@ -1,0 +1,37 @@
+== R128 真发现①取证：两轮执行器的并发前置检查长期静默空操作（坑 12 族） ==
+
+背景：执行器（坑 11/20/158）在跑测前确认没有并发的 maven/surefire 测试进程；
+      该检查以 `[ -x "$JPS" ]` 为前提，$JPS 为 jps 可执行文件路径。
+探针由**执行器所用的同一个 bash** 执行（不在 Python 里起 bash：本机 Python 起的是另一个 bash，坑 167/41）：
+  PROBE_BASH = /usr/bin/bash；PROBE_UNAME = MINGW64_NT-10.0-26100
+
+-- 判据 1：修前路径不可用（= 该检查从未真正执行） --
+修前：体检目标路径 = $HOME/../workspaces/jdk/temurin-25.0.4/bin/jps
+修前行原文 = JPS="$HOME/../workspaces/jdk/temurin-25.0.4/bin/jps"
+修前：路径展开结果 = /c/Users/laitz/../workspaces/jdk/temurin-25.0.4/bin/jps
+修前：该路径是否存在 = 否（N = 不存在 → `[ -x ]` 恒假）
+修前：父目录 $HOME/../workspaces 是否存在 = N（不存在）
+说明：本机 $HOME = /c/Users/laitz（MSYS 形态，坑 41）→ $HOME/../workspaces 展开为 **/c/workspaces**，
+      而真实工作区在 E:/workspaces（不同盘区）→ 前者不存在。
+结论：`[ -x "$JPS" ]` 恒假 → **整个并发前置检查块被跳过**，执行器自建立以来从未真正做过该检查
+      （产物自称「跑测前确认无并发测试进程」，事实是空操作 —— 坑 12：产物自述与事实不符）。
+
+-- 判据 2：修后路径可用（本轮跑测前的 PREFLIGHT_OK 由它产出） --
+修后：体检目标路径 = E:/workspaces/jdk/temurin-25.0.4/bin/jps
+修后行原文 = JPS="E:/workspaces/jdk/temurin-25.0.4/bin/jps"
+修后：该路径是否存在（可执行）= 是（Y = 存在且可执行）
+本轮事实：两轮跑测前执行器输出 `PREFLIGHT_OK`（由该块产出），且 jps 列表中无
+          surefire/classworlds → 未触发 PREFLIGHT_ABORT ⇒ 检查从「空操作」变为「真检查」。
+
+-- 判据 3：判据未削弱（修的是路径，不是判据） --
+判据未削弱：执行器里仍含并发判据文本 = 是
+  `surefire|classworlds` 匹配、`PREFLIGHT_ABORT`（退出码 9）、（注释）RemoteMavenServer 不算 —— 全部保留。
+
+-- 分级 --
+真发现（巡检工具链侧）：不影响仓库交付代码、契约与测试；但它让「跑测前置的并发保护」
+  在所有历史轮次里形同虚设（坑 11/20/158 要防的正是并发跑测相互清表）。已修，判据保留。
+
+正向对照（判据非空转，坑 46/75/98）：
+  ① 修前路径体检返回 N（否定结论是**算出来的**，不是常量）；
+  ② 修后路径体检返回 Y（同一条探针给出相反结论 → 探针有判别力）；
+  ③ 探针跑完并带 PROBE_END 标记（输出 7 行，完整）→ 不是解析器失效。
