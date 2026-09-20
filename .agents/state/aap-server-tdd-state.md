@@ -6956,3 +6956,5 @@ R106 的 `fix-guards-r106.py` 把 `verify-final.py` / `final-check.py` 的返工
 - **被测状态**：worktree 检出 = 会话起点 HEAD = 56e6850，轮内 HEAD 位移 0，`aap-server/` 树差异行数 0，工作区未提交改动 0 条，窗口内源码 mtime 改动 0。
 - **观察项（延续）**：① `sms.lock-minutes` 占位符默认值与 md 声明不一致（已计入基线）；② `tools/*.py ⊆ driver 引用集` 是否升为常驻断言（扩面，待拍板）；③ R27–R32 台账行依据不足，不猜测性回填。
 
+
+**收尾段（R136）**：「提交」列回填主提交 872246e（读 `facts-commit.sh` 事实，并断言该号真的携带本轮证据文件）；提交后落地核对取证 `evidence/gap-postcommit-R136.txt`（HEAD 行 ⇔ 工作区行**逐列相等 8/8**、分类自洽 15 == 15、aap-server 侧 0 条、两条负向对照均通过；执行顺序 = 先 postcommit-check 再收尾）；**主提交所记返工真值 = 4 处，无据实更正**（台账行 / 状态文件 / 收尾提交 message 三处一致）。
