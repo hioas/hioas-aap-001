@@ -137,6 +137,13 @@ export interface QuoteDetailLike {
   id?: string
   quote_no?: string
   status?: string
+  /**
+   * 表头字段。真源：后端 `QuoteViews.Detail` 实际返回 name / title / credential_id；
+   * 此前本类型只声明了标识与 items，导致编辑态回填时读不到（type-check 报 TS2339）。
+   */
+  name?: string
+  title?: string
+  credential_id?: string
   items?: QuoteItemLike[]
 }
 

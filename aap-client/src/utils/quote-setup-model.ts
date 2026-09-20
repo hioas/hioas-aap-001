@@ -45,6 +45,12 @@
 
 /** 设计稿原文（逐字取自 design.tree.json，禁止改写） */
 export const PAGE_TITLE = '新增报价单'
+/**
+ * ⚠️ **派生文案（非设计稿原文）**：设计稿只有「新增报价单」一帧，
+ * 没有编辑态。但用户口径明确要求卡片「报价」= 编辑同一张报价单（复用本页），
+ * 因此需要区分标题。若设计后续补了编辑帧，**以设计稿为准替换本常量**。
+ */
+export const EDIT_PAGE_TITLE = '编辑报价单'
 export const PAGE_SUBTITLE = '填写基本信息并设置模型报价'
 export const CARD_SUBJECT = '报价主体'
 export const CHIP_GO_ADD = '去新增'

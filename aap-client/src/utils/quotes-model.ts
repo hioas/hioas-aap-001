@@ -59,7 +59,14 @@ export function metaParts(metaText: string): string[] {
 }
 
 /** 页面路由（目标来自台账 aap-feature-status.csv 的目标路由列 = 画布页码） */
-export const QUOTE_FORM_PAGE = '/pages/quote-form/index'
+/**
+ * 「新增报价单」页（= 卡片「报价」的编辑目标）。
+ *
+ * ⚠️ 这里**只有一个常量**是有意的：「新建报价」与卡片「报价」走同一个页面，
+ * 靠 `?quoteId=` 区分新建/编辑。此前两者是两个不同页面（quote-form 旧设计 vs quote-models），
+ * 导致同一个业务动作有两套界面 —— 已按用户口径统一。
+ */
+export const QUOTE_SETUP_PAGE = '/pages/quote-models/index'
 export const QUOTE_PREVIEW_PAGE = '/pages/quote-preview/index'
 export const CONTRACT_PAGE = '/pages/contract/index'
 
@@ -219,7 +226,11 @@ function modelCount(raw: QuoteRowRaw): number {
 /** 逐卡操作由状态派生（设计稿：草稿/已提交/已驳回 = 报价·预览·删除；待签署多「签署」；已完成多「合同」） */
 function actionsOf(id: string, key: QuoteStatusKey | undefined, contractId?: string | null): QuoteAction[] {
   const actions: QuoteAction[] = [
-    { key: 'quote', label: ACTION_LABELS.quote, kind: 'navigation', url: `${QUOTE_FORM_PAGE}?quoteId=${id}` },
+    // ⚠️ 「报价」与「新建报价」必须是**同一个页面**（用户口径 2026-09-19）：
+    //    以「新建报价」为准，点卡片上的「报价」= 对那张报价单**做编辑**。
+    //    此前这里指向 /pages/quote-form/index（旧设计 page-26 的另一套实现），
+    //    于是「新建」与「编辑」成了两个长得不一样的页面 —— 已统一到 quote-models。
+    { key: 'quote', label: ACTION_LABELS.quote, kind: 'navigation', url: `${QUOTE_SETUP_PAGE}?quoteId=${id}` },
     { key: 'preview', label: ACTION_LABELS.preview, kind: 'navigation', url: `${QUOTE_PREVIEW_PAGE}?quoteId=${id}` }
   ]
   if (key === 'pending_sign') {

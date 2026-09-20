@@ -1,5 +1,5 @@
 {
-  "at": "2026-09-19T02:21:54.592Z",
+  "at": "2026-09-19T04:19:38.971Z",
   "baseUrl": "http://localhost:5173",
   "phone": "13800138000",
   "rows": [
@@ -11,20 +11,21 @@
       "chars": 191,
       "head": "数据台 · 2026-09-19 / 联调测试科技有限公司 / 本月词元用量 / ↑",
       "api": [
-        "GET /api/v1/usage/summary → 0",
-        "GET /api/v1/provider/profile → 0"
+        "GET /api/v1/provider/profile → 0",
+        "GET /api/v1/provider/profile → 0",
+        "GET /api/v1/usage/summary → 0"
       ],
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919021937.-pages_workbench_index.png"
+      "shot": "evidence\\h5-smoke\\20260919041757.-pages_workbench_index.png"
     },
     {
       "path": "pages/credentials/index",
       "label": "凭证列表",
       "routeBad": false,
       "renderOk": true,
-      "chars": 231,
+      "chars": 427,
       "head": "凭证列表 / 统一管理客户检测凭证 / ? / 接入凭证",
       "api": [
         "GET /api/v1/credentials → 0",
@@ -33,7 +34,7 @@
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919021949.-pages_credentials_index.png"
+      "shot": "evidence\\h5-smoke\\20260919041809.-pages_credentials_index.png"
     },
     {
       "path": "pages/credential-submit/index",
@@ -46,7 +47,7 @@
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919021953.-pages_credential-submit_index.png"
+      "shot": "evidence\\h5-smoke\\20260919041812.-pages_credential-submit_index.png"
     },
     {
       "path": "pages/credential-submit/form",
@@ -59,7 +60,7 @@
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919021957.-pages_credential-submit_form.png"
+      "shot": "evidence\\h5-smoke\\20260919041817.-pages_credential-submit_form.png"
     },
     {
       "path": "pages/detecting/index",
@@ -72,7 +73,7 @@
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919022001.-pages_detecting_index.png"
+      "shot": "evidence\\h5-smoke\\20260919041821.-pages_detecting_index.png"
     },
     {
       "path": "pages/report/index",
@@ -85,7 +86,7 @@
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919022004.-pages_report_index.png"
+      "shot": "evidence\\h5-smoke\\20260919041826.-pages_report_index.png"
     },
     {
       "path": "pages/report-failed/index",
@@ -98,23 +99,25 @@
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919022008.-pages_report-failed_index.png"
+      "shot": "evidence\\h5-smoke\\20260919041830.-pages_report-failed_index.png"
     },
     {
       "path": "pages/quotes/index",
       "label": "报价单",
       "routeBad": false,
       "renderOk": true,
-      "chars": 223,
+      "chars": 668,
       "head": "报价单 / 新建报价 / 全部 / 草稿",
       "api": [
-        "GET /api/v1/quotes → 0",
+        "GET /api/v1/quotes → (被打断)",
         "GET /api/v1/quotes → 0"
       ],
       "badApi": [],
-      "abortedApi": [],
+      "abortedApi": [
+        "GET /api/v1/quotes"
+      ],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919022012.-pages_quotes_index.png"
+      "shot": "evidence\\h5-smoke\\20260919041834.-pages_quotes_index.png"
     },
     {
       "path": "pages/quote-models/index",
@@ -132,20 +135,20 @@
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919022015.-pages_quote-models_index.png"
+      "shot": "evidence\\h5-smoke\\20260919041838.-pages_quote-models_index.png"
     },
     {
       "path": "pages/model-pricing/index",
       "label": "模型定价",
       "routeBad": false,
       "renderOk": true,
-      "chars": 300,
+      "chars": 315,
       "head": "模型定价 / 保存 / 1 / 始终匹配（默认档位）· 输入 $0.00 输出 $0.00 / 1M token",
       "api": [],
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919022019.-pages_model-pricing_index.png"
+      "shot": "evidence\\h5-smoke\\20260919041841.-pages_model-pricing_index.png"
     },
     {
       "path": "pages/profile-edit/index",
@@ -156,12 +159,14 @@
       "head": "编辑主体档案 / 82% / 主体信息 / 企业名称 *",
       "api": [
         "GET /api/v1/provider/qualifications → 0",
+        "GET /api/v1/provider/profile → 0",
+        "GET /api/v1/provider/qualifications → 0",
         "GET /api/v1/provider/profile → 0"
       ],
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919022023.-pages_profile-edit_index.png"
+      "shot": "evidence\\h5-smoke\\20260919041845.-pages_profile-edit_index.png"
     },
     {
       "path": "pages/profile/index",
@@ -171,15 +176,15 @@
       "chars": 307,
       "head": "主体档案 / 完整度 82% / 档案完整度 / 82%",
       "api": [
+        "GET /api/v1/provider/qualifications → 0",
         "GET /api/v1/provider/profile → 0",
-        "GET /api/v1/provider/qualifications → 0",
-        "GET /api/v1/provider/qualifications → 0",
-        "GET /api/v1/provider/profile → 0"
+        "GET /api/v1/provider/profile → 0",
+        "GET /api/v1/provider/qualifications → 0"
       ],
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919022027.-pages_profile_index.png"
+      "shot": "evidence\\h5-smoke\\20260919041849.-pages_profile_index.png"
     },
     {
       "path": "pages/quote-preview/index",
@@ -192,7 +197,7 @@
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919022051.-pages_quote-preview_index.png"
+      "shot": "evidence\\h5-smoke\\20260919041852.-pages_quote-preview_index.png"
     },
     {
       "path": "pages/quote-form/index",
@@ -205,14 +210,14 @@
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919022055.-pages_quote-form_index.png"
+      "shot": "evidence\\h5-smoke\\20260919041856.-pages_quote-form_index.png"
     },
     {
       "path": "pages/quote-form/apikey",
       "label": "新增报价单",
       "routeBad": false,
       "renderOk": true,
-      "chars": 330,
+      "chars": 752,
       "head": "新增报价单 / 填写基本信息并设置模型报价 / 基本信息 / 报价单名称",
       "api": [
         "GET /api/v1/credentials → 0",
@@ -221,7 +226,7 @@
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919022059.-pages_quote-form_apikey.png"
+      "shot": "evidence\\h5-smoke\\20260919041900.-pages_quote-form_apikey.png"
     },
     {
       "path": "pages/quote-form/success",
@@ -234,7 +239,7 @@
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919022103.-pages_quote-form_success.png"
+      "shot": "evidence\\h5-smoke\\20260919041903.-pages_quote-form_success.png"
     },
     {
       "path": "pages/contract/index",
@@ -247,15 +252,15 @@
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919022107.-pages_contract_index.png"
+      "shot": "evidence\\h5-smoke\\20260919041907.-pages_contract_index.png"
     },
     {
       "path": "pages/messages/index",
       "label": "消息",
       "routeBad": false,
       "renderOk": true,
-      "chars": 38,
-      "head": "消息 / 全部已读 / 全部 / 未读",
+      "chars": 556,
+      "head": "消息 / 10 条未读 / 全部已读 / 全部",
       "api": [
         "GET /api/v1/notifications → 0",
         "GET /api/v1/notifications → 0"
@@ -263,35 +268,35 @@
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919022121.-pages_messages_index.png"
+      "shot": "evidence\\h5-smoke\\20260919041911.-pages_messages_index.png"
     },
     {
       "path": "pages/mine/index",
       "label": "我的",
       "routeBad": false,
       "renderOk": true,
-      "chars": 141,
+      "chars": 144,
       "head": "联调测试科技有限公司 / 原厂 / 我的钱包 / 可提现余额",
       "api": [
-        "GET /api/v1/quotes → 0",
         "GET /api/v1/provider/profile → 0",
         "GET /api/v1/reports → 0",
-        "GET /api/v1/notifications → 0",
+        "GET /api/v1/quotes → 0",
         "GET /api/v1/payments → 0",
         "GET /api/v1/credentials → 0",
         "GET /api/v1/contracts → 0",
-        "GET /api/v1/provider/profile → 0",
-        "GET /api/v1/payments → 0",
-        "GET /api/v1/reports → 0",
         "GET /api/v1/notifications → 0",
+        "GET /api/v1/provider/profile → 0",
         "GET /api/v1/quotes → 0",
+        "GET /api/v1/reports → 0",
         "GET /api/v1/credentials → 0",
-        "GET /api/v1/contracts → 0"
+        "GET /api/v1/notifications → 0",
+        "GET /api/v1/contracts → 0",
+        "GET /api/v1/payments → 0"
       ],
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919022134.-pages_mine_index.png"
+      "shot": "evidence\\h5-smoke\\20260919041923.-pages_mine_index.png"
     },
     {
       "path": "pages/usage/index",
@@ -301,12 +306,13 @@
       "chars": 181,
       "head": "用量概览 / 2026-09 / 本月汇总 / —",
       "api": [
+        "GET /api/v1/usage/summary → 0",
         "GET /api/v1/usage/summary → 0"
       ],
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919022142.-pages_usage_index.png"
+      "shot": "evidence\\h5-smoke\\20260919041926.-pages_usage_index.png"
     },
     {
       "path": "pages/settings/index",
@@ -322,7 +328,7 @@
       "badApi": [],
       "abortedApi": [],
       "consoleErrors": [],
-      "shot": "evidence\\h5-smoke\\20260919022154.-pages_settings_index.png"
+      "shot": "evidence\\h5-smoke\\20260919041938.-pages_settings_index.png"
     }
   ]
 }

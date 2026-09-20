@@ -193,11 +193,12 @@ describe('序号 8 · 卡片视图模型', () => {
     expect(m.rows.map((r) => r.actions.map((a) => a.label))).toEqual(DESIGN_CARD_ACTIONS)
   })
 
-  it('「报价」→ 新增报价单页；「预览」→ 报价预览页（画布序号 12-v1 / 12）', () => {
+  it('「报价」→ 新增报价单页（编辑态）；「预览」→ 报价预览页（画布序号 12-v1 / 12）', () => {
     const m = buildQuotesModel({ total: 1, items: [quote({ id: 'q7', status: 'DRAFT' })] })
     const quoteAction = m.rows[0].actions.find((a) => a.label === '报价')
     const previewAction = m.rows[0].actions.find((a) => a.label === '预览')
-    expect(quoteAction).toMatchObject({ kind: 'navigation', url: '/pages/quote-form/index?quoteId=q7' })
+    // 「报价」与「新建报价」同一页面，靠 ?quoteId= 区分新建/编辑（用户口径 2026-09-19）
+    expect(quoteAction).toMatchObject({ kind: 'navigation', url: '/pages/quote-models/index?quoteId=q7' })
     expect(previewAction).toMatchObject({ kind: 'navigation', url: '/pages/quote-preview/index?quoteId=q7' })
   })
 

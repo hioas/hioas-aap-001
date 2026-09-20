@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import QuotesPage from '@/pages/quotes/index.vue'
 import { getCalls, pushResponse, setModalAnswer, setNextResponse } from '../setup'
+import { QUOTE_SETUP_PAGE } from '@/utils/quotes-model'
 import {
   DESIGN_ACTIONS,
   DESIGN_CARD_ACTIONS,
@@ -172,10 +173,17 @@ describe('序号 8 · 交互（分类见台账）', () => {
     expect((nav?.args[0] as Record<string, unknown>).url).toBe('/pages/quote-models/index')
   })
 
-  it('「报价」→ /pages/quote-form/index?quoteId=…', async () => {
+  it('「报价」→ /pages/quote-models/index?quoteId=…（与「新建报价」同一页面，编辑态）', async () => {
     const wrapper = await mountPage()
     await tap(wrapper, 'action-quote-q1')
-    expect((getCalls('navigateTo').at(-1)?.args[0] as Record<string, unknown>).url).toBe('/pages/quote-form/index?quoteId=q1')
+    expect((getCalls('navigateTo').at(-1)?.args[0] as Record<string, unknown>).url).toBe(
+      '/pages/quote-models/index?quoteId=q1'
+    )
+  })
+
+  it('「报价」与「新建报价」必须指向同一个页面（只有一个常量），防止再分叉成两套界面', () => {
+    // 用户口径：以「新建报价」为准，卡片「报价」= 对那张报价单做编辑
+    expect(QUOTE_SETUP_PAGE).toBe('/pages/quote-models/index')
   })
 
   it('「预览」→ /pages/quote-preview/index?quoteId=…（画布 12）', async () => {

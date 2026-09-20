@@ -1,0 +1,26 @@
+== R125 被测状态核对（两轮全量所编译/执行的源码 = 哪一份） ==
+HEAD = 848d8db | chore(evidence): R124 台账收尾 —— R124 行「提交」列回填主提交 e536cfd + 飞书通知留痕（cron 自动投递、Skipped 属预期，非失败）+ 收尾阶段新增返工 2 项（第 ⑥ 项：收尾脚本硬编码理想行数 193 而实际 192；第 ⑦ 项：写入期模块的位置型前置判据「台账末行 = 上一轮」在本轮行已追加后必然失效）→ 权威数字据实更正为 7 处（主提交 message 记 5 处；按坑 209 不 amend 已发布提交，以本独立收尾提交更正，台账行 / 状态文件 / 收尾提交 message 三处一致；这不是「先写错再补正」的修正史）+ 提交后落地核对取证 gap-postcommit-R124.txt（证明：主提交携带的台账行与工作区逐列相等（回填前仅「提交」列有差异）、12 个证据文件全在 HEAD 树内、主提交改动范围 = 3 状态 + 12 证据且 aap-server 侧 0 条）+ 守卫证据 gap-guard-roundnum-R124.txt 随更正后的真值重生成（返工计数 7 处、轮次计数 106 轮、本轮 DESC 违规 0 条）+ CSV 以真正的 csv 解析复核「每行列数 = 8」（192 行）、R124 行描述 3714 字符（正文 3087 + 收尾后缀 627）且非空、描述与证据都为空的行 = 0、R 行连续 R27 → R124 无缺号 + 本轮证据合计 13 条（正文 12 + 收尾取证）（坑 12/80/155/157/192/200/202/209/231）
+HEAD 提交时刻 = 848d8db447d0f4e7b2545a9953d61e178cadc2f5|07:46:33
+run1 起跑 07:55:34 / 结束 08:00:15；run2 起跑 08:00:18 / 结束 08:02:59（串行，规范命令不改参数）
+窗口内（07:55:34–08:02:59，即两轮跑测期间）aap-server 下被改写的源码文件数 = 0；窗口后（> 08:02:59）被改写 = 0
+结论：两轮全量在 **HEAD 的临时 detached worktree** 中编译/执行，被测状态 = worktree 实际检出的提交 848d8db 的源码；
+      窗口内 aap-server 源码 mtime 改动 = 0（下方逐条 mtime 全部早于本窗口起点、窗口后亦无新增改动）→ 被测状态一律取 HEAD 的 worktree（与工作区并发编辑彻底解耦；下方「本轮执行方式」段逐条列出工作区相对 HEAD 的未提交改动 —— **0 条即主仓库工作区亦为提交态**，非 0 即他方在途工作，本轮一律不碰，坑 15/27）
+最新 3 个源码 mtime（★ = 窗口内，△ = 窗口后，无标记 = 早于窗口起点）：
+    07:06:32  aap-server/src/test/java/com/hioas/aap/iam/AuthContractTest.java
+    00:17:59  aap-server/src/test/java/com/hioas/aap/contract/ContractContractTest.java
+    00:14:00  aap-server/src/test/java/com/hioas/aap/file/FileContractTest.java
+
+-- 轮内 HEAD 位移分析 --
+会话起点 HEAD = 848d8db；证据写入时 HEAD = 848d8db | chore(evidence): R124 台账收尾 —— R124 行「提交」列回填主提交 e536cfd + 飞书通知留痕（cron 自动投递、Skipped 属预期，非失败）+ 收尾阶段新增返工 2 项（第 ⑥ 项：收尾脚本硬编码理想行数 193 而实际 192；第 ⑦ 项：写入期模块的位置型前置判据「台账末行 = 上一轮」在本轮行已追加后必然失效）→ 权威数字据实更正为 7 处（主提交 message 记 5 处；按坑 209 不 amend 已发布提交，以本独立收尾提交更正，台账行 / 状态文件 / 收尾提交 message 三处一致；这不是「先写错再补正」的修正史）+ 提交后落地核对取证 gap-postcommit-R124.txt（证明：主提交携带的台账行与工作区逐列相等（回填前仅「提交」列有差异）、12 个证据文件全在 HEAD 树内、主提交改动范围 = 3 状态 + 12 证据且 aap-server 侧 0 条）+ 守卫证据 gap-guard-roundnum-R124.txt 随更正后的真值重生成（返工计数 7 处、轮次计数 106 轮、本轮 DESC 违规 0 条）+ CSV 以真正的 csv 解析复核「每行列数 = 8」（192 行）、R124 行描述 3714 字符（正文 3087 + 收尾后缀 627）且非空、描述与证据都为空的行 = 0、R 行连续 R27 → R124 无缺号 + 本轮证据合计 13 条（正文 12 + 收尾取证）（坑 12/80/155/157/192/200/202/209/231）（07:46:33）
+git log 848d8db..HEAD --format='%h|%cd|%s' → 0 行：(无位移)
+git diff --stat 848d8db HEAD -- aap-server/ → 输出行数 = 0（0 = aap-server 树零差异）
+git status --short -- aap-server/ → 输出行数 = 0（> 0 = 他方未提交改动；本轮被测状态取 HEAD，故不影响）
+窗口内（[s1, e2]）aap-server 源码 mtime 改动数 = 0；窗口后（> e2）改动数 = 0（> 0 时需逐条解释，见上）
+结论：两轮全量编译/执行的就是 aap-server 侧 worktree 提交 848d8db 的源码；证据写入时 HEAD = 848d8db，两者 aap-server 树差异行数 = 0（0 = 不触碰被测对象）。
+
+-- 本轮执行方式（沿用历史轮次引入的做法；坑 15/27/28） --
+工作区 aap-server 相对 HEAD 的未提交改动（git status --short -- aap-server/）逐条（**0 条 = 主仓库工作区亦为提交态**；非 0 即他方在途工作，本轮一律不碰）：
+他方 aap-server 源码改动 mtime（★ = 窗口内 [s1,e2]，△ = 窗口后 > e2，无标记 = 早于窗口起点）：
+两轮全量因此改在 HEAD 的临时 detached worktree 中执行（全程不触碰他方正在编辑的文件）：C:/Users/laitz/AppData/Local/Temp/aap-r125-wt
+  创建：git worktree add --detach <path> HEAD；收尾：git worktree remove --force <path>（git 自带，不触发递归删除拦截，坑 28）
+被测状态 = worktree 提交 848d8db 的 aap-server 源码（工作区脏改动不参与编译；与证据写入时 HEAD 848d8db 的 aap-server 树差异行数 = 0）。

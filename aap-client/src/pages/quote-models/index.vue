@@ -6,7 +6,7 @@
         <view class="ic ic-back" />
       </view>
       <view class="nav__titles">
-        <text class="setup__title">{{ PAGE_TITLE }}</text>
+        <text class="setup__title">{{ isEdit ? EDIT_PAGE_TITLE : PAGE_TITLE }}</text>
         <text class="setup__subtitle">{{ PAGE_SUBTITLE }}</text>
       </view>
       <view class="nav__help">
@@ -226,6 +226,7 @@ import { credentialApi } from '@/api/credential'
 import { providerApi } from '@/api/provider'
 import { quoteApi } from '@/api/quote'
 import { ApiError } from '@/api/http'
+import { QUOTE_ID_KEY } from '@/utils/quote-preview-model'
 import {
   BTN_DRAFT,
   BTN_SAVE,
@@ -236,6 +237,7 @@ import {
   CHIP_GO_ADD,
   CRED_LABEL,
   CRED_PLACEHOLDER,
+  EDIT_PAGE_TITLE,
   MODEL_LIST_NOTE,
   MODEL_PRICING_PAGE,
   MODEL_STATUS_OPTIONAL,
@@ -321,13 +323,78 @@ const countLabel = computed(() => countText(rows.value))
 const credHint = computed(() => credentialHintText(rows.value.length))
 const allChecked = computed(() => allSelected(rows.value))
 
+/**
+ * 编辑态（卡片「报价」进入）：`?quoteId=xxx` 存在即为编辑既有报价单。
+ * 与「新建报价」共用本页 —— 同一个业务动作只有一套界面。
+ *
+ * ⚠️ **只认页面栈 query，不做 storage 兜底**（与 quote-preview 的 resolveQueryId 不同）：
+ * 新建态进来时没有 query，若用 storage 兜底会读到上一次浏览的报价单 id，
+ * 把「新建」误判成「编辑」并覆盖到别的单子上。storage 只**写**不**读**：
+ * 写进去是为了让下游 model-pricing / quote-preview 在同一会话里拿到同一个 id。
+ */
+const editQuoteId = ref('')
+const isEdit = computed(() => !!editQuoteId.value)
+
+function readQuoteIdFromQuery(): string {
+  try {
+    const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
+    const current = pages[pages.length - 1] as
+      | { options?: Record<string, string>; $page?: { options?: Record<string, string> } }
+      | undefined
+    const query = current?.options ?? current?.$page?.options ?? {}
+    return query.quoteId ? String(query.quoteId) : ''
+  } catch {
+    return ''
+  }
+}
+
 onMounted(async () => {
+  // 编辑态判定必须在取数之前：query 里有 quoteId 才是编辑既有报价单
+  const fromQuery = readQuoteIdFromQuery()
+  if (fromQuery) {
+    editQuoteId.value = fromQuery
+    // 只写不读：供下游 model-pricing / quote-preview 在同一会话里拿到同一个 id
+    try {
+      uni.setStorageSync(QUOTE_ID_KEY, fromQuery)
+    } catch {
+      /* storage 不可用时不影响本次编辑 */
+    }
+  }
+
   const [p, list] = await Promise.all([loadProfile(), loadCredentials()])
   profile.value = p
   credentials.value = list
   // 设计稿是「已选主体」态；主体唯一来源是档案（18-API 无公司列表接口）→ 有档案即视为已选
   if (!providerId.value && subjectOptions.value.length === 1) providerId.value = subjectOptions.value[0].id
+
+  // 编辑态：把该报价单的既有内容回填（名称 / 凭证 / 已选模型）
+  if (isEdit.value) await loadExistingQuote()
 })
+
+/**
+ * 回填既有报价单。
+ *
+ * ⚠️ 后端**没有** `PUT /quotes/{id}`（路由实测只有 GET/POST/DELETE + /items + /submit 等），
+ * 所以报价单**表头字段（名称/主体/凭证）在当前接口能力下无法修改**；
+ * 编辑能真正改动的是**明细行**（POST /quotes/{id}/items 整体替换）。
+ * 这里如实回填并让用户看到现状，保存时只提交明细 —— 不假装表头也改了。
+ */
+async function loadExistingQuote() {
+  try {
+    const d = await quoteApi.detail(editQuoteId.value)
+    name.value = String(d?.name ?? d?.title ?? name.value)
+    const credId = String(d?.credential_id ?? '')
+    if (credId) await pickCredential(credId) // 顺带把该凭证的模型清单拉出来
+    const saved = new Set(
+      (d?.items ?? []).map((it) => String(it.model_name ?? '')).filter(Boolean)
+    )
+    if (saved.size) {
+      rows.value = rows.value.map((r) => ({ ...r, selected: saved.has(r.name) }))
+    }
+  } catch (e) {
+    uni.showToast({ title: toastMessage(e), icon: 'none' })
+  }
+}
 
 async function loadProfile(): Promise<Record<string, unknown> | null> {
   try {
@@ -431,9 +498,23 @@ function onSave() {
 async function submit(advance: boolean) {
   saving.value = true
   try {
+    const items = buildItemsPayload(rows.value).items
+
+    // ── 编辑态：**不新建**，只整体替换该报价单的明细行（表头字段后端无更新接口，见 loadExistingQuote 注释）
+    if (isEdit.value) {
+      if (items.length) await quoteApi.setItems(editQuoteId.value, { items })
+      uni.showToast({ title: advance ? TOAST_SAVED : TOAST_DRAFT, icon: 'none' })
+      if (advance) {
+        uni.navigateTo({ url: `${MODEL_PRICING_PAGE}?quoteId=${editQuoteId.value}` })
+      } else {
+        uni.navigateBack({ delta: 1 })
+      }
+      return
+    }
+
+    // ── 新建态：创建报价单 + 写入明细
     const created = await quoteApi.create(buildQuotePayload(currentState()))
     const quoteId = String(created?.quote_id ?? created?.quoteId ?? created?.id ?? '')
-    const items = buildItemsPayload(rows.value).items
     if (quoteId && items.length) await quoteApi.setItems(quoteId, { items })
     uni.showToast({ title: advance ? TOAST_SAVED : TOAST_DRAFT, icon: 'none' })
     if (advance) {
