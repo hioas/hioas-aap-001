@@ -1,0 +1,37 @@
+==============================================================================
+R159 巡检轮分析（90/90 已在册；本轮 = 只校验不改交付代码）
+==============================================================================
+[facts] ROUND=R159 SESSION_HEAD=44ef395 WT_SHA=44ef395 SERVER_DIRTY=0
+-- 事实（读执行器落盘）--
+  run1 rc=0 window=[2026-09-21 00:35:42, 2026-09-21 00:37:00] time=[01:16 min] classes=34
+  run1 total=Tests run: 211, Failures: 0, Errors: 0, Skipped: 0
+  run2 rc=0 window=[2026-09-21 00:37:01, 2026-09-21 00:38:02] time=[59.584 s] classes=34
+  run2 total=Tests run: 211, Failures: 0, Errors: 0, Skipped: 0
+  耗时写法：run1=mm:ss / run2=s -> 两种写法同时出现（坑 176 正例：双写法解析器有效）
+[PASS] A0a 逐类解析非空 run1=34 类 / run2=34 类（坑 46/75 正向对照）
+[PASS] A1 逐类结果 diff=0 仅run1=0 仅run2=0 值不同=0
+[PASS] B0a worktree 内覆盖报告可解析 path=C:\Users\laitz\AppData\Local\Temp\aap-r159-wt\.agents\state\evidence\coverage-report.json
+  覆盖门禁：total=90 implemented=90 missing=0 registered_routes=105 not_registered=[]
+[PASS] B1 90/90 且 missing=0 total=90 implemented=90 missing=0
+[PASS] B2 not_registered 为空 not_registered=[]
+  按族：T03=6/6 T04=5/5 T05=7/7 T06=6/6 T07=4/4 T08=11/11 T09=6/6 T10=5/5 T11=11/11 T12=4/4 T13=3/3 T14=22/22
+[PASS] B3 族合计 = 90 族合计=90
+[PASS] B4 worktree 报告 ⇔ 已提交副本 逐字段全等 （坑 12/96）
+[PASS] C0a @Test 词边界计数 > 0 @Test=211（坑 35：必须词边界）
+[PASS] C1 @Test 计数 == surefire 合计 @Test=211 surefire=211
+[PASS] C2 禁用扫描 0 条（不得削弱测试） 命中=0 []
+-- 被测状态 --
+  worktree 检出提交 = 44ef395
+  证据写入时 HEAD  = 44ef395
+  主仓库 aap-server 在途改动 = 0 条
+[PASS] D1 被测提交 = 证据写入时 HEAD wt=44ef395 head=44ef395
+[PASS] D2 主仓库 aap-server 无在途改动（不触碰被测对象） 改动=0
+[PASS] E0a 生成物快照非空 产物=84 个（坑 46/75 正向对照）
+[PASS] E1 零写副作用（size+md5 全等） 变化=0 []
+  生成器 --check rc=0
+      | check ok: 84/84 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）
+      | ok: models=55 requests=24 paths=78 operations=90 files=82
+==============================================================================
+汇总：FAIL 断言 = 0 条 （全 PASS）
+90/90 连续第 141 轮全绿（本轮为只校验轮）
+FACTS_END_MARK=1

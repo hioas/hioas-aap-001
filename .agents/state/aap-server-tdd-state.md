@@ -7403,3 +7403,15 @@ R106 的 `fix-guards-r106.py` 把 `verify-final.py` / `final-check.py` 的返工
 - 本轮产物脚本：`aap-r158-work/`（`r158-regression.py`、`gap-verify-R158-v2.py`、`gap-verify-R158-selftest-v2.py`、`gap-tools-scan-R158.py`、`gap-derived-files-R158.py`）与 `aap-r158-aux/`（`r158-evidence.py`、`gap-evidence-refs-R158.py`、`gap-truth-consistency-R158.py`、`write-round.py`、`author-r158.py`、`postcommit-check-r158.py`、`backfill.py`、`fix-truth-r158.py`、`final-check.py`）
 - 关键事实：巡检链**分散在两个目录**（work = driver 与缺口复核；aux = 证据生成 / 台账 / 收尾）→ 派生集的覆盖面必须由**源目录实际脚本清单机器枚举**驱动（本轮真发现 ① 的修法），只滚一个目录会留下**悬空证据引用**
 - 主提交 `d71c702`（14 条证据）/ 收尾提交 `9e7dad4`（第 15 条 `gap-postcommit-R158.txt` + 台账回填 + 据实更正）
+
+
+### R159 巡检轮（只校验，不改交付代码）
+
+- **90/90 连续第 141 轮全绿**：两轮全量 211 例 × 2、rc=0、34 类逐类 diff=0（剥 `Time elapsed` 再排序，坑 59/79）。
+- 窗口：run1 00:35:42–00:37:00（`Total time: 01:16 min`）、run2 00:37:01–00:38:02（`Total time: 59.584 s`）；**两种耗时写法同时出现** → 按坑 176 正例判「双写法解析器有效」。
+- 覆盖门禁 90/90（registered_routes=105、missing=0、not_registered=[]）；与已提交副本逐字段全等。
+- 回归面 82/82 rc 逐条一致（命令与参数对齐 R158 driver 的显式命令表）；FAIL 明细两侧同法重建：R158=128 / R159=128，消失 0 / 新增 0。
+- 零写副作用 PASS（生成物 size+md5 运行前后全等）；生成器 `--check` = 84/84 一致、孤儿 0。
+- 被测状态：HEAD 的临时 detached worktree 检出 `44ef395`；主仓库 `aap-server` 在途改动 0 条。
+- 本轮真发现 2 处、返工 1 处、改进 1 处（均为巡检工具链侧，详见台账 R159 行）。
+- **待拍板**：交付已 90/90 全绿；此作业持续每 5 分钟一轮，近十余轮均为**工具链自省**（仓库存量代码/契约/生成器 0 改动）。是否收口或降频，需人拍板。
