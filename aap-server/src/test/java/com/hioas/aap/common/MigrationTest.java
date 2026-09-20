@@ -42,6 +42,8 @@ class MigrationTest extends DbTestBase {
             "aap_compiled_expression", "aap_model_expression", "aap_verify_run", "aap_verify_case",
             // sync
             "aap_newapi_endpoint", "aap_channel_binding", "aap_sync_task", "aap_sync_operation", "aap_sync_log",
+            // catalog（V9：模型目录 —— 管理端 page-3/3.1/3.2；H5 凭证页模型下拉的数据源）
+            "aap_vendor", "aap_model",
             // usage
             "aap_usage_hourly", "aap_usage_sync_cursor",
             // support
@@ -64,7 +66,7 @@ class MigrationTest extends DbTestBase {
         assertThat(actual)
                 .as("ER 文档表清单与迁移结果必须一致（缺表或多余表都要红）")
                 .containsExactlyInAnyOrderElementsOf(EXPECTED_TABLES);
-        assertThat(EXPECTED_TABLES).hasSize(54);
+        assertThat(EXPECTED_TABLES).hasSize(56);
     }
 
     @Test
