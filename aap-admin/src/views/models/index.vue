@@ -62,7 +62,11 @@
       <el-button data-testid="btn-batch" disabled>批量管理</el-button>
       <el-button data-testid="btn-export" @click="exportList">导出清单</el-button>
       <el-button data-testid="btn-add-vendor" @click="openVendor">新增厂商</el-button>
-      <el-button type="primary" data-testid="btn-add-model" @click="openModel()">新增模型</el-button>
+      <!-- ⚠️ 用户口径（2026-09-20）：「新增模型」不放在一级工具栏 —— 已移除。
+           模型改为在**厂商分组行内**「添加模型」进入（设计稿本就有该入口），
+           因为模型必属于某个厂商，一级入口会把「所属厂商」这个必填项悬空。
+           注意：设计稿 page-3 的一级工具栏里**确有**「新增模型」且为蓝色主按钮，
+           此为**用户指示覆盖设计稿**，已登记；若需还原设计稿可从此处恢复。 -->
     </div>
 
     <!-- 数据主体 -->
@@ -158,8 +162,9 @@
         <div v-else class="md__empty" data-testid="model-empty">
           <div class="md__empty-title">还没有厂商或模型</div>
           <div class="md__empty-body">
-            <p>模型目录接口已接通。先「新增厂商」，再在厂商下「添加模型」，
+            <p>模型目录接口已接通。先建厂商，再在厂商下「添加模型」，
               供应商端「接入凭证」页的模型下拉就会读到这里。</p>
+            <el-button type="primary" data-testid="btn-add-vendor-empty" @click="openVendor">新增厂商</el-button>
           </div>
         </div>
       </div>

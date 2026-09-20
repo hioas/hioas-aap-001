@@ -69,24 +69,38 @@ const CONTENT_GATES = {
     // ⚠️ 本页判据已随 D-ADM-3 修复而更新（原先要求「缺口横幅 + 放行 E-1501」）。
     //    D-ADM-3 已由 V9 迁移 + /admin/catalog/* 解开（后端运行态 24/24 验证），
     //    本页改为真实读模型目录，**不再有 E-1501 放行** —— 出现任何错误码都算回归。
-    require: [
-      '[data-testid="model-kpi"]',
-      '[data-testid="btn-add-vendor"]',
-      '[data-testid="btn-add-model"]'
-    ],
+    require: ['[data-testid="model-kpi"]', '[data-testid="btn-add-vendor"]'],
     textAny: ['按厂商分组', '接入厂商', '已接入模型', '启用中模型'],
     mustMatch: [/接入厂商/, /已接入模型/, /启用中模型/],
-    // 新增模型抽屉必须能打开，且渲染出设计稿 page-3-2 的必填字段
-    drawer: {
-      open: '[data-testid="btn-add-model"]',
-      expect: [
-        '[data-testid="drawer-model"]',
-        '[data-testid="m-vendor"]',
-        '[data-testid="m-name"]',
-        '[data-testid="m-uid"]',
-        '[data-testid="m-save"]'
-      ]
-    }
+    // 用户口径：厂商分组**不分页**（设计稿有分页栏，此为指示覆盖设计稿）→ 反向断言
+    mustNotMatch: [/共 \d+ 家厂商 · 当前第/, /每页 \d+ 条/],
+    // 抽屉必须真能打开并渲染设计稿字段。
+    // 「新增模型」已按用户口径移出一级工具栏 → 模型抽屉改为**可选**：
+    //   页面上存在厂商行内「添加模型」时才校验（空目录时不可达，不算失败）。
+    drawers: [
+      {
+        open: '[data-testid="btn-add-vendor"]',
+        expect: [
+          '[data-testid="drawer-vendor"]',
+          '[data-testid="v-name"]',
+          '[data-testid="v-key"]',
+          '[data-testid="v-type"]',
+          '[data-testid="v-baseurl"]',
+          '[data-testid="v-save"]'
+        ]
+      },
+      {
+        open: '[data-testid="btn-add-model-inline"]',
+        optional: true,
+        expect: [
+          '[data-testid="drawer-model"]',
+          '[data-testid="m-vendor"]',
+          '[data-testid="m-name"]',
+          '[data-testid="m-uid"]',
+          '[data-testid="m-save"]'
+        ]
+      }
+    ]
   },
   // 页 4：供应商管理（page-4-pc）。判据必须能区分「真取到数」与「只有壳」：
   // 表头「接入线路 / 档案完整度」是设计稿独有列，骨架页没有。
@@ -329,7 +343,7 @@ async function main() {
 
     // 业务内容判据：已实现页必须渲染出业务特征；未实现页必须明确带「待实现」徽章
     const gateState = await page.evaluate(
-      ({ require: req, textAny, must }) => {
+      ({ require: req, textAny, must, mustNot }) => {
         const missing = (req || []).filter((s) => !document.querySelector(s));
         const text = document.body.innerText || '';
         const hitAny = !textAny || textAny.some((t) => text.includes(t));
@@ -337,6 +351,9 @@ async function main() {
         // 比固定字符串更抗数据变化，同时能抓住「渲染了但没取到数」（共 0 家 也会命中，
         // 所以它只用来判「渲染形态」，取数真假由接口流水与下面的 allowCodes 判）。
         const mustMiss = (must || []).filter((src) => !new RegExp(src).test(text));
+        // mustNotMatch：**反向**判据 —— 文案不该出现（例如用户口径要求厂商分组不分页，
+        // 就断言页面里没有「共 N 家厂商 · 当前第 x / y 页」这类分页文案）
+        const mustNotHit = (mustNot || []).filter((src) => new RegExp(src).test(text));
         const root = getComputedStyle(document.documentElement);
         const cs = (sel, prop) => {
           const e = document.querySelector(sel);
@@ -345,6 +362,7 @@ async function main() {
         return {
           missing,
           mustMiss,
+          mustNotHit,
           hitAny,
           isStub: text.includes('待实现'),
           styles: {
@@ -357,7 +375,7 @@ async function main() {
           }
         };
       },
-      { require: gate?.require, textAny: gate?.textAny, must: gate?.mustMatch?.map((r) => r.source) }
+      { require: gate?.require, textAny: gate?.textAny, must: gate?.mustMatch?.map((r) => r.source), mustNot: gate?.mustNotMatch?.map((r) => r.source) }
     );
 
     const problems = [];
@@ -371,6 +389,7 @@ async function main() {
       if (gateState.missing.length) problems.push(`缺少业务节点：${gateState.missing.join('、')}`);
       if (!gateState.hitAny) problems.push(`未渲染出业务文案（期望含 ${gate.textAny.join(' / ')} 之一）`);
       if (gateState.mustMiss?.length) problems.push(`文案形态不符：${gateState.mustMiss.join('、')}`);
+      if (gateState.mustNotHit?.length) problems.push(`出现了不该有的文案：${gateState.mustNotHit.join('、')}`);
       if (gateState.isStub) problems.push('已登记为已实现，但仍显示「待实现」徽章');
     } else if (!gateState.isStub) {
       problems.push('尚未实现却缺少「待实现」徽章（状态不明，无法区分完成度）');
@@ -378,26 +397,39 @@ async function main() {
     if (bad.length) problems.push(`异常接口 ${bad.length} 条：${bad.map((b) => `${b.method} ${b.url.split('/api/v1')[1]?.split('?')[0]} → ${b.code} ${b.message ?? ''}`).join('；')}`);
     if (errs.length) problems.push(`控制台报错 ${errs.length} 条：${errs[0]}`);
 
-    // 抽屉校验（可选，声明在 gate.drawer）：点开抽屉，确认设计稿要求的字段真的渲染出来。
+    // 抽屉校验（可选，声明在 gate.drawers）：点开抽屉，确认设计稿要求的字段真的渲染出来。
     // 有这一条才能区分「按钮存在」与「按钮真能打开表单」—— 只查按钮存在会漏掉一大类假完成。
+    // optional: true 表示入口在空数据下不可达（如无厂商时没有行内「添加模型」），跳过不算失败。
     let drawerNote = '';
-    if (gate?.drawer) {
+    for (const d of gate?.drawers ?? []) {
+      const has = await page.evaluate((sel) => !!document.querySelector(sel), d.open);
+      if (!has) {
+        if (d.optional) {
+          console.log(`     · 抽屉入口 ${d.open} 不存在（optional，跳过）`);
+          continue;
+        }
+        problems.push(`抽屉入口不存在：${d.open}`);
+        continue;
+      }
       try {
-        await page.click(gate.drawer.open, { timeout: 8000 });
+        await page.click(d.open, { timeout: 8000 });
         // 抽屉有开合动画，等选择器出现而不是写死 sleep
         await page.waitForFunction(
           (sels) => sels.every((s) => document.querySelector(s)),
-          gate.drawer.expect,
+          d.expect,
           { timeout: 8000 }
         );
         const miss = await page.evaluate(
           (sels) => sels.filter((s) => !document.querySelector(s)),
-          gate.drawer.expect
+          d.expect
         );
-        if (miss.length) problems.push(`抽屉缺少字段：${miss.join('、')}`);
-        else drawerNote = `；抽屉字段齐全（${gate.drawer.expect.length} 项）`;
+        if (miss.length) problems.push(`抽屉 ${d.open} 缺少字段：${miss.join('、')}`);
+        else drawerNote += `；抽屉 ${d.open} 字段齐全（${d.expect.length} 项）`;
+        // 关掉抽屉，避免影响后续页面截图
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(400);
       } catch (e) {
-        problems.push(`抽屉未打开或字段未渲染：${String(e.message).split('\n')[0]}`);
+        problems.push(`抽屉 ${d.open} 未打开或字段未渲染：${String(e.message).split('\n')[0]}`);
       }
     }
 
