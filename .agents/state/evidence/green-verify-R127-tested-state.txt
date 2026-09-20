@@ -1,0 +1,26 @@
+== R127 被测状态核对（两轮全量所编译/执行的源码 = 哪一份） ==
+HEAD = 07fba4f | chore(evidence): R126 台账收尾 —— R126 行「提交」列回填主提交 7ca0f66 + 描述追加收尾后缀（正文 2764 + 后缀 998 = 3762 字符）+ 飞书通知留痕（cron 自动投递、Skipped 属预期，非失败）+ **收尾阶段据实更正返工真值**：正文所记「本轮返工 5 处」为写行时刻的真值（亦为守卫取证 gap-guard-roundnum-R126.txt 的真值，不篡改该取证），收尾阶段另暴露 3 项（判据修正取证脚本的缩进比对锚点 1 处、捕获组号越界 1 处；提交后核对脚本的路径 key 归一 1 处）→ 本轮返工**权威数字 = 8 处**（口径 = 主提交时刻 5 + 收尾阶段 3）；按坑 209 **不 amend 已发布提交**，以本独立收尾提交更正，台账行 / 状态文件 / 收尾提交 message 三处一致 —— 这不是「先写错再补正」的修正史，而是收尾阶段新增事实的据实登记 + 提交后落地核对取证 gap-postcommit-R126.txt（证明：主提交携带的台账行与工作区逐列相等 8/8 列、13 个证据文件全部在 HEAD 树内且首个加入提交均为主提交（坑 198：无被他人 git add -A 带走的条目）、改动范围 = 状态 3 + 证据 13 且 aap-server 侧 0 条） + 本轮证据合计 14 条（正文 12 + 判据修正取证 gap-judge-fix-R126.txt 1 + 收尾取证 1） + 台账以真正的 csv 解析复核「每行列数 = 8」（194 行含表头）、R 行连续 R27 → R126 共 100 条无缺号 + 他方在途观察（只记录不干预）：轮间他方已提交 catalog 能力（ModelCatalogEntity / VendorEntity / V9__model_catalog.sql 均在 HEAD 树内），A3 方法分布计数随其路由增长（GET 47→51 / POST 39→41 / PUT 5→6）；工作区非本轮产物（ D aap-admn/README.md、?? .playwright-mcp/、?? aap-admin/tools/open-admin.mjs）一律不碰（坑 12/80/155/157/192/198/200/209/231）
+HEAD 提交时刻 = 07fba4f5cf87cf67ac127fc59e1d8a39eb26018e|08:50:17
+run1 起跑 09:00:10 / 结束 09:01:30；run2 起跑 09:01:31 / 结束 09:02:28（串行，规范命令不改参数）
+窗口内（09:00:10–09:02:28，即两轮跑测期间）aap-server 下被改写的源码文件数 = 0；窗口后（> 09:02:28）被改写 = 0
+结论：两轮全量在 **HEAD 的临时 detached worktree** 中编译/执行，被测状态 = worktree 实际检出的提交 07fba4f 的源码；
+      窗口内 aap-server 源码 mtime 改动 = 0（下方逐条 mtime 全部早于本窗口起点、窗口后亦无新增改动）→ 被测状态一律取 HEAD 的 worktree（与工作区并发编辑彻底解耦；下方「本轮执行方式」段逐条列出工作区相对 HEAD 的未提交改动 —— **0 条即主仓库工作区亦为提交态**，非 0 即他方在途工作，本轮一律不碰，坑 15/27）
+最新 3 个源码 mtime（★ = 窗口内，△ = 窗口后，无标记 = 早于窗口起点）：
+    08:22:32  aap-server/src/main/java/com/hioas/aap/catalog/CatalogViews.java
+    08:14:00  aap-server/src/test/java/com/hioas/aap/common/MigrationTest.java
+    08:09:17  aap-server/src/main/java/com/hioas/aap/catalog/CatalogService.java
+
+-- 轮内 HEAD 位移分析 --
+会话起点 HEAD = 07fba4f；证据写入时 HEAD = 07fba4f | chore(evidence): R126 台账收尾 —— R126 行「提交」列回填主提交 7ca0f66 + 描述追加收尾后缀（正文 2764 + 后缀 998 = 3762 字符）+ 飞书通知留痕（cron 自动投递、Skipped 属预期，非失败）+ **收尾阶段据实更正返工真值**：正文所记「本轮返工 5 处」为写行时刻的真值（亦为守卫取证 gap-guard-roundnum-R126.txt 的真值，不篡改该取证），收尾阶段另暴露 3 项（判据修正取证脚本的缩进比对锚点 1 处、捕获组号越界 1 处；提交后核对脚本的路径 key 归一 1 处）→ 本轮返工**权威数字 = 8 处**（口径 = 主提交时刻 5 + 收尾阶段 3）；按坑 209 **不 amend 已发布提交**，以本独立收尾提交更正，台账行 / 状态文件 / 收尾提交 message 三处一致 —— 这不是「先写错再补正」的修正史，而是收尾阶段新增事实的据实登记 + 提交后落地核对取证 gap-postcommit-R126.txt（证明：主提交携带的台账行与工作区逐列相等 8/8 列、13 个证据文件全部在 HEAD 树内且首个加入提交均为主提交（坑 198：无被他人 git add -A 带走的条目）、改动范围 = 状态 3 + 证据 13 且 aap-server 侧 0 条） + 本轮证据合计 14 条（正文 12 + 判据修正取证 gap-judge-fix-R126.txt 1 + 收尾取证 1） + 台账以真正的 csv 解析复核「每行列数 = 8」（194 行含表头）、R 行连续 R27 → R126 共 100 条无缺号 + 他方在途观察（只记录不干预）：轮间他方已提交 catalog 能力（ModelCatalogEntity / VendorEntity / V9__model_catalog.sql 均在 HEAD 树内），A3 方法分布计数随其路由增长（GET 47→51 / POST 39→41 / PUT 5→6）；工作区非本轮产物（ D aap-admn/README.md、?? .playwright-mcp/、?? aap-admin/tools/open-admin.mjs）一律不碰（坑 12/80/155/157/192/198/200/209/231）（08:50:17）
+git log 07fba4f..HEAD --format='%h|%cd|%s' → 0 行：(无位移)
+git diff --stat 07fba4f HEAD -- aap-server/ → 输出行数 = 0（0 = aap-server 树零差异）
+git status --short -- aap-server/ → 输出行数 = 0（> 0 = 他方未提交改动；本轮被测状态取 HEAD，故不影响）
+窗口内（[s1, e2]）aap-server 源码 mtime 改动数 = 0；窗口后（> e2）改动数 = 0（> 0 时需逐条解释，见上）
+结论：两轮全量编译/执行的就是 aap-server 侧 worktree 提交 07fba4f 的源码；证据写入时 HEAD = 07fba4f，两者 aap-server 树差异行数 = 0（0 = 不触碰被测对象）。
+
+-- 本轮执行方式（沿用历史轮次引入的做法；坑 15/27/28） --
+工作区 aap-server 相对 HEAD 的未提交改动（git status --short -- aap-server/）逐条（**0 条 = 主仓库工作区亦为提交态**；非 0 即他方在途工作，本轮一律不碰）：
+他方 aap-server 源码改动 mtime（★ = 窗口内 [s1,e2]，△ = 窗口后 > e2，无标记 = 早于窗口起点）：
+两轮全量因此改在 HEAD 的临时 detached worktree 中执行（全程不触碰他方正在编辑的文件）：C:/Users/laitz/AppData/Local/Temp/aap-r127-wt
+  创建：git worktree add --detach <path> HEAD；收尾：git worktree remove --force <path>（git 自带，不触发递归删除拦截，坑 28）
+被测状态 = worktree 提交 07fba4f 的 aap-server 源码（工作区脏改动不参与编译；与证据写入时 HEAD 07fba4f 的 aap-server 树差异行数 = 0）。
