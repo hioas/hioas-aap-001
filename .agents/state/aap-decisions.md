@@ -399,3 +399,28 @@
   3. 编辑态只允许改明细，表头要改就删单重建（当前实际效果，但需 UI 明示）
 - **若选 1 需一并确定**：改表头是否触发版本快照（`aap_quote_version` 已有）、
   以及「已提交（SUBMITTED）的单子能否再改表头」的状态机规则。
+
+## 严重发现 —— 雪花 ID 按 JSON number 下发，JS 客户端必然精度丢失（契约违背）
+
+- **契约原文**（`docs/backend/json-schema/models/audit-log.schema.json`）：
+  ```json
+  "id": { "type": ["string","null"],
+          "description": "雪花 ID（对外 string，避免 JS 精度丢失；可空）" }
+  ```
+  契约明确要求**对外 string**。实测却被下成**裸 JSON number**。
+- **实测证据**：`GET /admin/catalog/vendors` 原始响应 `"id":459074703791419392`（18 位）。
+  JS `Number` 安全整数上限 2^53 ≈ 9.0e15（16 位）→ 解析后**必然被舍入**，
+  回传即打到**错的 ID**（404 / E-1406 / 误更新他行）。
+- **发现路径（重要）**：**编译通过、单测全绿、既有 211 用例全绿**都发现不了 ——
+  Java 侧 `Long` 没有精度问题。是**运行态验收**里「建完厂商紧接着用它的 id 建模型」
+  这一步报 `E-1406 所属厂商不存在` 才暴露。
+  → 教训：新增 HTTP 接口只过编译/单测是不够的，**必须真打一次往返**（建→用其 id 再操作）。
+- **已修范围**：本轮新增的 `catalog` 模块（`CatalogViews` 的 `id` / `vendorId`
+  加 `@JsonFormat(shape = JsonFormat.Shape.STRING)`）。修后验收 **24/24 全绿**，
+  原始响应对账 `"id":"459075797691068416"` 精确无舍入。
+- **⚠️ 未修范围（需你拍板，涉及面广）**：此问题**很可能不止 catalog**——项目里没有全局
+  Long→String 的 Jackson 配置，也没有任何视图用过 `@JsonFormat`/`ToStringSerializer`
+  （全仓 grep 为空）。既有视图若同样按 number 下发 ID，则**管理端与 H5 端所有
+  「拿到 id 再回传」的操作都可能已经在打错行**，只是多数流程恰好没走这条路径而未暴露。
+  建议：①全局注册 Long→String 的 Jackson 模块（一处修全，但要回归所有前端），
+  或 ②逐视图补注解（安全但易漏）。**这与 D-ADM-4 一样属于需要你定的口径，我不擅自扩大改动面。**

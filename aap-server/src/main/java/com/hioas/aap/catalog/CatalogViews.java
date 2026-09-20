@@ -1,11 +1,20 @@
 package com.hioas.aap.catalog;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.math.BigDecimal;
 import java.util.List;
 
 /**
  * 模型目录对外视图（Calicat page-3 / 3.1 / 3.2 的字段一一对应）。
+ *
+ * <p>⚠️ <b>雪花 ID 必须序列化为字符串</b>（{@code @JsonFormat(shape = STRING)}）——
+ * 契约原文见 {@code docs/backend/json-schema/models/audit-log.schema.json}：
+ * 「雪花 ID（对外 string，避免 JS 精度丢失）」。本项目 ID 是 18 位雪花
+ * （实测 459074703791419392），超过 JS 安全整数上限 2^53，
+ * 若按 JSON number 下发，任何 JS 客户端（浏览器 / 小程序）解析后再回传都会打到**错的 ID**上。
+ * 这个缺陷 Java 侧测试完全发现不了（Java 的 Long 没有精度问题），
+ * 是运行态验收里「建完厂商紧接着用它的 id 建模型」才暴露出来的。
  *
  * <p><b>两条边界，写在这里而不是散在控制器里：</b>
  * <ol>
@@ -21,7 +30,7 @@ public final class CatalogViews {
     }
 
     /** 厂商（管理端列表 / 新增模型抽屉的厂商下拉）。 */
-    public record Vendor(Long id,
+    public record Vendor(@JsonFormat(shape = JsonFormat.Shape.STRING) Long id,
                          String name,
                          String vendorKey,
                          String vendorType,
@@ -37,8 +46,8 @@ public final class CatalogViews {
     }
 
     /** 模型（管理端列表 / H5 凭证页下拉）。 */
-    public record Model(Long id,
-                        Long vendorId,
+    public record Model(@JsonFormat(shape = JsonFormat.Shape.STRING) Long id,
+                        @JsonFormat(shape = JsonFormat.Shape.STRING) Long vendorId,
                         String vendorName,
                         String vendorKey,
                         String modelName,
