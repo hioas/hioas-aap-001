@@ -37,7 +37,12 @@
         </view>
       </view>
 
-      <!-- BaseURL 卡片：design id=6fafaef4 -->
+      <!-- BaseURL + APIKey 卡片：design id=6fafaef4
+           ⚠️ 设计稿（calicat 2100004969199824896 / node ed742274）中 **BaseURL 与 APIKey
+           同属一张卡片**（原实现拆成两张）。且该卡片**没有**安全说明文案 ——
+           `ANCHOR_NOTE` 是我此前加的、设计稿内不存在，已按设计稿移除（常量保留，便于回溯）。
+           「API类型」下拉（OpenAI）也在这张卡片内，**待裁定**：后端无 api_type/protocol 字段，
+           按「设计有而后端无不编」的规矩暂不实现（见 .agents/state/aap-decisions.md）。 -->
       <view class="card card--gap">
         <text class="card__label">BaseURL</text>
         <view class="card__field">
@@ -52,19 +57,12 @@
             />
           </view>
         </view>
-        <!-- 安全提示：design id=7014d7f1（#FFFBEB · r12 · padding 10） -->
-        <view class="note note--gap">
-          <view class="glyph glyph--shield" aria-hidden="true" />
-          <text class="note__text" data-testid="security-note">{{ ANCHOR_NOTE }}</text>
-        </view>
-      </view>
 
-      <!-- APIKey 卡片：design id=59efdac0 -->
-      <view class="card card--gap">
-        <view class="card__title-row">
+        <!-- APIKey 行（与原 BaseURL 卡片合并为一张）：design id=59efdac0 -->
+        <view class="card__title-row card__title-row--sub">
           <text class="card__label">APIKey</text>
           <view class="card__spacer" />
-          <!-- 已配置标签：design id=15e5aeea -->
+          <!-- 已配置标签：design id=15e5aeea（⚠️ 设计稿该行未见此标签，暂留待裁定） -->
           <view class="chip chip--success" data-testid="configured-chip">
             <view class="glyph glyph--check" aria-hidden="true" />
             <text class="chip__text chip__text--success">{{ CONFIGURED_LABEL }}</text>
@@ -173,7 +171,6 @@ import { catalogApi } from '@/api/catalog'
 import { credentialApi } from '@/api/credential'
 import {
   ALIAS_HINT,
-  ANCHOR_NOTE,
   APIKEY_HINT,
   CONFIGURED_LABEL,
   MODEL_SECTION_NOTE,
@@ -525,6 +522,11 @@ onMounted(load)
   /* 设计「凭证名称/BaseURL/APIKey/模型清单」文本层声明 height=18（13px 字，行框 18）→ 行高必须给 18px，
      否则卡片比设计矮 2.4px，下面所有元素整体上移 */
   line-height: 18px;
+}
+
+/* 同卡片内的第二个字段行（设计稿：BaseURL 与 APIKey 同卡） */
+.card__title-row--sub {
+  margin-top: 16px;
 }
 
 .card__title-row {

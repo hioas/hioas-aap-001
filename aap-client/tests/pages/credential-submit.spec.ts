@@ -71,15 +71,15 @@ describe('页面 4 · 渲染：文案与 page-4-2 设计稿逐条一致', () => 
     expect(wrapper.text()).toContain('建议 6–24 字')
   })
 
-  it('BaseURL 卡片：标签 + 值 + 加密安全提示原文', async () => {
+  it('BaseURL 卡片：标签 + 值；按设计稿**不含**安全说明', async () => {
     const wrapper = await mountPage()
     expect(wrapper.text()).toContain('BaseURL')
     expect((wrapper.find('[data-testid="baseurl-input"]').element as HTMLInputElement).value).toBe(
       'https://api.example-llm.com/v1'
     )
-    expect(wrapper.find('[data-testid="security-note"]').text()).toBe(
-      '凭证仅用于平台检测与转发调用，全程加密存储，不会对外泄露。'
-    )
+    // 设计稿（calicat 2100004969199824896 / node ed742274）**没有**安全说明文案；
+    // 该 note 是原实现的额外添加。用户要求「按设计稿调整」→ 断言改为「不存在」。
+    expect(wrapper.find('[data-testid="security-note"]').exists()).toBe(false)
   })
 
   it('APIKey 卡片：标签 + 「已配置」标签 + 脱敏值 + 轮换提示', async () => {
