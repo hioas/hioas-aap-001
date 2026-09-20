@@ -1,0 +1,26 @@
+== R139 被测状态核对（两轮全量所编译/执行的源码 = 哪一份） ==
+HEAD = c5f2f25 | chore(evidence): R138 台账收尾 —— R138 行「提交」列回填主提交 c3ca642（**读 facts-commit.sh 事实**、源码内零硬编码提交号，并断言该号真的携带本轮 13 条专属证据文件）+ 描述追加收尾后缀（正文 3391 + 后缀 = 全文更长；真值自述标记「本轮返工 6 处（」在整行**恰 1 次**、且正文不含其它自述形态）+ 飞书通知留痕（`hermes send` 返回 `Skipped`，系 cron 自动投递同目标所致、属预期非失败，故不写 feishu-notify-failures.txt）+ 证据归属核对（主提交携带的 16 个文件全部在 HEAD 树内、13 条本轮专属证据逐条命中；无被他人 `git add -A` 带走的条目）+ 提交后落地核对取证 gap-postcommit-R138.txt（HEAD 内台账行与工作区**逐列相等 8/8 列**、分类自洽「本轮专属证据 13 + 非证据状态 3 == 16」、提交内 aap-server 侧改动 0 条、两条负向对照「改一列必须被点名」「用上一轮提交号当事实必须可被辨别」均通过；执行顺序 = **先 postcommit-check 再收尾**）+ **返工真值据实更正 5 → 6 处**（坑 209：**不 amend 已发布提交**，以独立小提交留溯源说明；台账行 / 状态文件 / 收尾提交 message 三处一致）：收尾阶段新增 ⑥ = 本收尾脚本把「主提交返工真值 → 最终真值」的替换写成**无条件替换 + 断言已生效**，而本轮两者**相同**（均 5 处，与 R137 的 2→4 不同）→ 替换恒为 no-op、`AssertionError` 当场响亮拦下（坑 227：真值相同是成对判据的假失败边界，必须按 `N != M` 分支）；修法 = 判据改为**按事实分支**（相同则只校验形态存在），属**判据侧**修正，未改动任何产物、期望值或被测对象。另：真值自述标记的唯一性判据同步锚定为**真值自述形态**（`本轮返工 N 处（`）而非裸子串 —— 正文内含判别力实测引用的合成非真值形态，裸子串会假命中（坑 202/226）。本轮证据合计 14 条（主提交 13 + 收尾取证 1）+ 他方在途产物（aap-admn/README.md 的 D、aap-client/evidence/h5-chain/*、.playwright-mcp/、aap-admin/tools/open-admin.mjs）一律不碰（14:49:27）
+run1 起跑 14:56:58 / 结束 14:58:28；run2 起跑 14:58:28 / 结束 14:59:30（串行，规范命令不改参数）
+窗口 = [14:56:58, 14:59:30]
+窗口内（14:56:58–14:59:30）aap-server 下被改写的源码文件数 = 0；窗口后（> 14:59:30）被改写 = 0
+结论：两轮全量在 **HEAD 的临时 detached worktree** 中编译/执行，被测状态 = worktree 实际检出的提交 c5f2f25 的源码；
+      窗口内 aap-server 源码 mtime 改动 = 0（0 → 与工作区并发编辑彻底解耦）
+窗口事实的机器核对：两份 raw 日志 mtime 与上方窗口结束时刻偏差 ≤ 120s（核对通过）
+最新 3 个源码 mtime（★ = 窗口内，△ = 窗口后，无标记 = 早于窗口起点）：
+    08:22:32    aap-server/src/main/java/com/hioas/aap/catalog/CatalogViews.java
+    08:14:00    aap-server/src/test/java/com/hioas/aap/common/MigrationTest.java
+    08:09:17    aap-server/src/main/java/com/hioas/aap/catalog/CatalogService.java
+
+-- 轮内 HEAD 位移分析 --
+会话起点 HEAD = c5f2f25；证据写入时 HEAD = c5f2f25 | chore(evidence): R138 台账收尾 —— R138 行「提交」列回填主提交 c3ca642（**读 facts-commit.sh 事实**、源码内零硬编码提交号，并断言该号真的携带本轮 13 条专属证据文件）+ 描述追加收尾后缀（正文 3391 + 后缀 = 全文更长；真值自述标记「本轮返工 6 处（」在整行**恰 1 次**、且正文不含其它自述形态）+ 飞书通知留痕（`hermes send` 返回 `Skipped`，系 cron 自动投递同目标所致、属预期非失败，故不写 feishu-notify-failures.txt）+ 证据归属核对（主提交携带的 16 个文件全部在 HEAD 树内、13 条本轮专属证据逐条命中；无被他人 `git add -A` 带走的条目）+ 提交后落地核对取证 gap-postcommit-R138.txt（HEAD 内台账行与工作区**逐列相等 8/8 列**、分类自洽「本轮专属证据 13 + 非证据状态 3 == 16」、提交内 aap-server 侧改动 0 条、两条负向对照「改一列必须被点名」「用上一轮提交号当事实必须可被辨别」均通过；执行顺序 = **先 postcommit-check 再收尾**）+ **返工真值据实更正 5 → 6 处**（坑 209：**不 amend 已发布提交**，以独立小提交留溯源说明；台账行 / 状态文件 / 收尾提交 message 三处一致）：收尾阶段新增 ⑥ = 本收尾脚本把「主提交返工真值 → 最终真值」的替换写成**无条件替换 + 断言已生效**，而本轮两者**相同**（均 5 处，与 R137 的 2→4 不同）→ 替换恒为 no-op、`AssertionError` 当场响亮拦下（坑 227：真值相同是成对判据的假失败边界，必须按 `N != M` 分支）；修法 = 判据改为**按事实分支**（相同则只校验形态存在），属**判据侧**修正，未改动任何产物、期望值或被测对象。另：真值自述标记的唯一性判据同步锚定为**真值自述形态**（`本轮返工 N 处（`）而非裸子串 —— 正文内含判别力实测引用的合成非真值形态，裸子串会假命中（坑 202/226）。本轮证据合计 14 条（主提交 13 + 收尾取证 1）+ 他方在途产物（aap-admn/README.md 的 D、aap-client/evidence/h5-chain/*、.playwright-mcp/、aap-admin/tools/open-admin.mjs）一律不碰（14:49:27）
+git log c5f2f25..HEAD → 0 行：(无位移)
+git diff --stat c5f2f25 HEAD -- aap-server/ → 输出行数 = 0（0 = aap-server 树零差异）
+git status --short -- aap-server/ → 输出行数 = 0（> 0 = 他方未提交改动；本轮被测状态取 HEAD，故不影响）
+窗口内 aap-server 源码 mtime 改动数 = 0；窗口后 = 0（> 0 时需逐条解释）
+结论：两轮全量编译/执行的就是 aap-server 侧 worktree 提交 c5f2f25 的源码；证据写入时 HEAD = c5f2f25，两者 aap-server 树差异行数 = 0（0 = 不触碰被测对象）。
+
+-- 本轮执行方式（沿用历史轮次引入的做法；坑 15/27/28） --
+工作区 aap-server 相对 HEAD 的未提交改动（git status --short -- aap-server/）逐条（**0 条 = 主仓库工作区亦为提交态**；非 0 即他方在途工作，本轮一律不碰）：
+两轮全量因此改在 HEAD 的临时 detached worktree 中执行（全程不触碰他方正在编辑的文件）：C:\Users\laitz\AppData\Local\Temp\aap-r139-wt
+  创建：git worktree add --detach <path> HEAD；收尾：git worktree remove --force <path>（git 自带，不触发递归删除拦截，坑 28）
+被测状态 = worktree 提交 c5f2f25 的 aap-server 源码。
