@@ -1,11 +1,11 @@
 R165 常驻守卫：证据引用可达性（台账 / 状态文件 / 覆盖历史 三处；按形态分层）
 ==============================================================================
 
-A0 解析：引用 1619 条（去重后 1466）＝ 本轮 19 + 历史 1446 + 命名约定模板占位 1
+A0 解析：引用 1620 条（去重后 1467）＝ 本轮 20 + 历史 1446 + 命名约定模板占位 1
     模板占位（**不是引用**，是命名约定说明）：['red-Txx.txt']
-[PASS] A0a 正向对照：解析到 evidence 引用条数 > 0 总引用 1619 条（去重 1466）
+[PASS] A0a 正向对照：解析到 evidence 引用条数 > 0 总引用 1620 条（去重 1467）
 [PASS] A1 形态分层判据判别力：合成模板占位必须被判为占位、真实文件必须不被判为占位 合成 evidence/SYN-xx.txt → 占位=True；真实 gap-refs-R165.txt → 占位=False
-[PASS] A2 本轮引用（由既有阶段产物落盘者 12 条）逐条磁盘可达 缺失 = 无
+[PASS] A2 本轮引用（由既有阶段产物落盘者 13 条）逐条磁盘可达 缺失 = 无
     本轮另 7 条由本取证脚本落盘（写入前必然不在磁盘）→ 由 F 段齐备性断言兜底：['gap-aux-derive-coverage-R165.txt', 'gap-continuous-obs-R165.txt', 'gap-ledger-structure-R165.txt', 'gap-narrative-roll-R165.txt', 'gap-refs-R165.txt', 'gap-regression-cmdtable-R165.txt', 'gap-stale-coverage-check-R165.txt']
 A3 历史引用 1446 条 → 磁盘缺失 4 条
     · gap-stale-coverage-check-R163.txt  从未落盘（git 全历史无新增记录）
