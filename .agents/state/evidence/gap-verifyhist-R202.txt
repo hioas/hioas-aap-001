@@ -1,0 +1,30 @@
+==============================================================================
+R202 历史真发现复跑复核（复验正例；不计入当轮真发现）
+==============================================================================
+[A] precheck [E] 段：行数 = 4（正向对照 > 0）/ 其中 derive 相关 = 1
+      [E] scan-roundnum 结构性推出（CURN 由 RND 推出 + 域由 CURN 推出）= True
+      [E] crosscheck 结构性推出 = True
+      [E] derive PIN_LOW_MAX 由 CURN 结构性推出 = True
+      [E] 门槛可达性：未可达的检查 = []（须为空）
+    判定：门槛检查真的执行 ∧ 门槛目标全部可达 = True
+[B] 崩溃通道段行数 = 2（正向对照 > 0）；G1/G2/G6 各 1/1/1 行
+      -- 崩溃通道：rc!=0 的条目 36 条，其中**FAIL 通道不可见**（rc!=0 ∧ FAIL 明细 0 行）= 2 条 ['gap-coverage-gap', 'gap-coverage-gap-selftest']
+      判定：零回归（含 2 条「FAIL 通道不可见」的常驻红：['gap-coverage-gap', 'gap-coverage-gap-selftest'] —— 逐条理由见崩溃通道段；其最长连续非零 rc = 30 轮）
+      G1 FAIL 通道不可见的条目必须各有**红的理由**（崩溃行或 FAIL 明细，两样皆无 = 0 条）：缺失 = 0 []
+      G2 常驻红条目必须**逐条点名**（禁止只在计数里出现）：未点名 = 无
+      G6 结论句诚实性自检：verdict_ok(判定, 不可见条目) = True（须 True）
+      常驻红逐条点名行 = 37 条（G2 要求每条都被点名，禁止只出现在计数里）
+    判定：崩溃通道/逐条点名/结论句诚实性 三项均如期生效 = True
+[C] crosscheck F2a 行 = 1 条；「前向待核」行 = 2 条
+      F2a round-meta 尚未产出（本相位 = pre-append）-> 本条**前向待核**，本脚本**不作出**一致性主张
+      F2a round-meta 尚未产出（本相位 = pre-append）-> 本条**前向待核**，本脚本**不作出**一致性主张
+    判定：本轮台账行落盘之前「未作出一致性主张」而显式「前向待核」= True（历史修正 ② 的实测）
+------------------------------------------------------------------------------
+SUMMARY_GATE_EXECUTED=1
+SUMMARY_GATE_ROWS=4
+SUMMARY_GATE_DERIVE_ROWS=1
+SUMMARY_CRASH_ROWS=2
+SUMMARY_NAMED=37
+SUMMARY_FWD_PENDING=2
+判定：PASS
+VERIFYHIST_END=1

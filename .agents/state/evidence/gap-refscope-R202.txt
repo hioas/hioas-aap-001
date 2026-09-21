@@ -1,0 +1,22 @@
+==============================================================================
+R202 真发现取证（引用可达性判据的范围缺口 —— I 组只认一种扩展名）
+==============================================================================
+[A] 修正前现状：I 组的引用正则只覆盖扩展名 = ['txt']
+[B] 三载体里的**范围外**引用（各扩展名的出现次数 / 去重文件名数）
+    aap-server-tdd-state.md        .txt 引用 379 处 / .json 引用 17 处
+    aap-server-feature-status.csv  .txt 引用 2057 处 / .json 引用 1 处
+    coverage-history.txt           .txt 引用 11 处 / .json 引用 4 处
+    合计：.txt = 2447 处（**在范围内**）/ .json = 22 处（**在范围外**，去重 2 个文件名）
+    范围外的去重文件名 = ['evidence/coverage-report.json', 'evidence/endpoint-test-audit.json']
+    可达性（范围外引用当前是否存在）：{'evidence/coverage-report.json': True, 'evidence/endpoint-test-audit.json': True}
+[C] 判别力实测（受控对照：同一条引用、只改扩展名一个变量）
+    C1 合成**悬空 .txt** 引用 gap-synthscope-R202.txt -> 现有判据范畴可命中（不可达）= True
+    C2 合成**悬空 .json** 引用 gap-synthscope-R202.json -> 现有正则（只认 .txt）能否发现 = False（须 False = 失明）
+       说明：C2 的「不被发现」是**结构性**的（正则不含该扩展名），非运行期偶然。
+------------------------------------------------------------------------------
+SUMMARY_SCOPE_EXT=txt
+SUMMARY_OUT_OF_SCOPE_TOTAL=22
+SUMMARY_OUT_OF_SCOPE_UNIQ=2
+SUMMARY_IN_SCOPE_TOTAL=2447
+判定：PASS
+REFSCOPE_END=1

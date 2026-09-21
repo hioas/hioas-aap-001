@@ -1,0 +1,27 @@
+==============================================================================
+R202 真发现取证（跨轮轨迹漏计本轮 —— G 组口径的时序缺口）
+==============================================================================
+[A] 修正前快照（= 修正前那一次实际的报告文本）：
+    gap-coverage-gap               报告值 = 29 轮
+    gap-coverage-gap-selftest      报告值 = 29 轮
+[B] 机器复算（两条通道）：
+    gap-coverage-gap               含本轮留档 = 30 轮 / 剔除本轮留档 = 29 轮（差 1）
+    gap-coverage-gap-selftest      含本轮留档 = 30 轮 / 剔除本轮留档 = 29 轮（差 1）
+    「报告值 == 剔除本轮留档后的复算值」= True（成立即证明：报告的口径**不含本轮**）
+[C] 修法落地核对（重跑后的当轮产物）：
+    gap-coverage-gap               修正后报告值 = 30 轮（期望 = 含本轮复算值 30）
+    gap-coverage-gap-selftest      修正后报告值 = 30 轮（期望 = 含本轮复算值 30）
+[D] 判别力实测（合成轨迹，判定式与生产侧共用）：
+    D1 合成轨迹 [0,1,1,1] -> 尾部连续非零 = 3（须 3）
+    D2 合成轨迹 [1,1,0] -> 尾部连续非零 = 0（须 0）
+------------------------------------------------------------------------------
+SUMMARY_GAP_COVERAGE_GAP_REPORTED=29
+SUMMARY_GAP_COVERAGE_GAP_WITH_CUR=30
+SUMMARY_GAP_COVERAGE_GAP_WITHOUT_CUR=29
+SUMMARY_GAP_COVERAGE_GAP_AFTER_FIX=30
+SUMMARY_GAP_COVERAGE_GAP_SELFTEST_REPORTED=29
+SUMMARY_GAP_COVERAGE_GAP_SELFTEST_WITH_CUR=30
+SUMMARY_GAP_COVERAGE_GAP_SELFTEST_WITHOUT_CUR=29
+SUMMARY_GAP_COVERAGE_GAP_SELFTEST_AFTER_FIX=30
+判定：PASS
+TRAILLAG_END=1
