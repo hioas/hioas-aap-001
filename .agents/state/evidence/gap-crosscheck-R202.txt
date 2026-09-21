@@ -1,7 +1,7 @@
 ==============================================================================
 R202 独立交叉核对（只读；核对生产者/消费者契约，不复述各审计自身判据）
 ==============================================================================
-[PASS] 0a HEAD 树文件清单非空（正向对照） files=5060
+[PASS] 0a HEAD 树文件清单非空（正向对照） files=5076
 [PASS] A0a endpoints.json 解析到端点条数 > 0（正向对照） 条数=90
 [PASS] A0b coverage-report.json 可解析（正向对照） keys=['by_task', 'implemented', 'missing', 'not_registered', 'registered_routes', 'total']
 [PASS] A1 报告 total == 清单条数 report=90 清单=90
@@ -18,16 +18,15 @@ R202 独立交叉核对（只读；核对生产者/消费者契约，不复述�
 [PASS] D1 每行列数 = 表头列数 表头=8 不符=[]
 [PASS] D2 轮次行号连续无缺号 缺号=[]
 [PASS] D3 台账行尾 LF（CR=0） CR=0
-[PASS] E0a HEAD 可达提交集解析 > 0 且提交列含提交号形态条目 > 0（正向对照） 可达=612 提交号形态=169 条 / 主题形态条目=45 条（去重 8 个）
+[PASS] E0a HEAD 可达提交集解析 > 0 且提交列含提交号形态条目 > 0（正向对照） 可达=614 提交号形态=170 条 / 主题形态条目=45 条（去重 8 个）
 [PASS] E1 提交列的**提交号形态**条目全部是 HEAD 可达的真实提交（坑 16/198） 非提交/非祖先=无
 [PASS] E2 轮次行的提交列一律为提交号形态（历史约定：任务行记提交主题、轮次行记提交号） 轮次行里的主题形态=无
      判据范围说明（坑 81）：提交列历史上有两种写法 —— 任务行（T03…T14）记**提交主题**、轮次行（Rxx）记**提交号**；实测主题形态条目 45 条（去重 8 个）全在任务行、轮次行 0 条 → 两种写法各自自洽，主题形态不作提交号断言，只登记为信息项。
 [PASS] E3 判别力实测：合成不存在的 SHA 必须被判为非可达、真实 HEAD 必须判为可达 
-  证据清单 16 条：已在 HEAD 树内 0 条 / 缺 16 条；台账本轮行 = 1 条 -> PHASE=post-append
-[PASS] F0c 相位取值域合法 PHASE=post-append
-[N/A ] F1 逐条在 HEAD 树内（post-append 相位：本轮行尚未追加/尚未提交，证据文件按设计还未进 HEAD）
-       纪律：本脚本的证据文件必须取 **append + 提交之后**的复跑
-  F2a round-meta 尚未产出（本相位 = post-append）-> 本条**前向待核**，本脚本**不作出**一致性主张
+  证据清单 16 条：已在 HEAD 树内 16 条 / 缺 0 条；台账本轮行 = 1 条 -> PHASE=post-commit
+[PASS] F0c 相位取值域合法 PHASE=post-commit
+[PASS] F1 本轮证据清单逐条在 HEAD 树内 缺失=无
+[PASS] F2a 声明清单 ⇔ round-meta 逐字段一致（round / evidence_count / evidence_list） round=R202 count=16/16 清单差集=[]
 [PASS] F2b 判别力实测：合成「计数不符」的 round-meta 必须被同一判定式判否 
 [PASS] F2c 判别力实测（反向）：本轮形态的合法 round-meta 必须判真 
 [PASS] G0a 覆盖历史行数 > 0（正向对照） 行数=521
@@ -36,7 +35,7 @@ R202 独立交叉核对（只读；核对生产者/消费者契约，不复述�
      既有待拍板项②（R184 登记）：**行首字段**为未替换格式化占位符的行 = 1 行 ['%s R113 补充 | 台账如实补充：返工由「2 处」**']
        信息项（非缺陷，按判据范围区分，坑 81）：行内**提及**格式化占位符的行 = 5 行（叙述里引用格式串，不是真占位符）
      既有待拍板项③（R185 登记）：三载体里上一轮**更正说明**与权威计数是否并存 —— 逐载体解析如下
-       权威计数（末次出现）= 真发现 3 处 / 返工 3 处 / 改进 3 处
+       权威计数（末次出现）= 真发现 3 处 / 返工 4 处 / 改进 3 处
        与权威返工计数**并存而不同值**的更正说明 = 7 处：
          · aap-server-feature-status.csv：更正返工真值 11 → 12
          · aap-server-feature-status.csv：更正返工真值 6 → 9
@@ -72,10 +71,10 @@ R202 独立交叉核对（只读；核对生产者/消费者契约，不复述�
          · gap-narrative-roll                 轮数= 3 末次=R165（已缺席 36 轮）
          · gap-regression-cmdtable            轮数= 3 末次=R165（已缺席 36 轮）
 [PASS] I0a 叙述型产物的 evidence 引用解析条数 > 0（正向对照） 三载体去重引用合计=2213（另排除模板占位 1 个）
-[FAIL] I1 近两轮（本轮/上一轮）引用逐条磁盘可达 ∧ 在 HEAD 树内 近两轮引用=36 条，不可达=[('aap-server-tdd-state.md', 'gap-refscope-R202.txt'), ('aap-server-tdd-state.md', 'gap-staleneedle-R202.txt'), ('aap-server-tdd-state.md', 'gap-traillag-R202.txt'), ('aap-server-tdd-state.md', 'gap-verifyhist-R202.txt'), ('aap-server-feature-status.csv', 'audit-regression-R202-faildiff.txt'), ('aap-server-feature-status.csv', 'audit-regression-R202-failraw.txt'), ('aap-server-feature-status.csv', 'audit-regression-R202-rcseq.txt'), ('aap-server-feature-status.csv', 'audit-regression-R202.txt'), ('aap-server-feature-status.csv', 'gap-crosscheck-R202.txt'), ('aap-server-feature-status.csv', 'gap-ledger-audit-R202.txt'), ('aap-server-feature-status.csv', 'gap-refscope-R202.txt'), ('aap-server-feature-status.csv', 'gap-staleneedle-R202.txt'), ('aap-server-feature-status.csv', 'gap-traillag-R202.txt'), ('aap-server-feature-status.csv', 'gap-verifyhist-R202.txt'), ('aap-server-feature-status.csv', 'green-verify-R202-analysis.txt'), ('aap-server-feature-status.csv', 'green-verify-R202-coverage-fields.txt'), ('aap-server-feature-status.csv', 'green-verify-R202-full-run1.txt'), ('aap-server-feature-status.csv', 'green-verify-R202-full-run2.txt'), ('aap-server-feature-status.csv', 'green-verify-R202-testcount.txt'), ('aap-server-feature-status.csv', 'green-verify-R202-tested-state.txt')]
+[PASS] I1 近两轮（本轮/上一轮）引用逐条磁盘可达 ∧ 在 HEAD 树内 近两轮引用=36 条，不可达=无
 [PASS] I1b 判别力实测：合成不存在的引用必须被判不可达 
 [PASS] I2 历史侧悬空引用条数 ≤ 4（R165 上限守卫；超限即为新增退化）—— 实测 4 条 ['gap-stale-coverage-check-R163.txt', 'green-T12-full-run1.txt', 'red-T02.txt', 'red-T04.txt']
-[PASS] J0a 通知记录行数 > 0 且解析到**提交语义标签紧邻**的提交号 > 0（正向对照） 行数=144 提交号形态=36 个
+[PASS] J0a 通知记录行数 > 0 且解析到**提交语义标签紧邻**的提交号 > 0（正向对照） 行数=145 提交号形态=37 个
 [PASS] J0b 判别力实测：非提交十六进制值（`oc_` 前缀的 chat_id）必须**不**被解析为提交号 
 [PASS] J1 通知记录里不可达提交号条数 ≤ 1（**历史**首次登记；超限即新增退化）—— 实测 1 条 不可达 = ['df97908']
 [PASS] J1b 判别力实测：合成游离提交号必须被判不可达 
@@ -97,12 +96,12 @@ R202 独立交叉核对（只读；核对生产者/消费者契约，不复述�
 [PASS] L1c 判别力实测（反向）：修复后的措辞「（**历史**引入）」必须**不**命中 
   M0a 被检产物数 = 28 / 声明条数 = 16（正向对照，均须 > 0）
 [PASS] M0a 被检产物数与声明条数均 > 0（正向对照） 
-[PASS] M1 声明的证据文件名全部能由本轮产物产出（白名单外）= 0 条；PHASE=post-append 未被产出的声明 0 条 []
+[PASS] M1 声明的证据文件名全部能由本轮产物产出（白名单外）= 0 条；PHASE=post-commit 未被产出的声明 0 条 []
 [PASS] M1b 豁免条数 ≤ 1（机械滚动带过来的名字不得用豁免掩盖） 条数=0
 [PASS] M1c 判别力实测：合成不存在的声明名必须被判「未被产出」 
 [PASS] M1f 未被产出的声明 ⊆ 相位允许的时序例外（清单 1 条 / 上限 1；清单外 0 条） 清单外 = 无
 [PASS] M1f0 判别力实测：清单外的名字必须被同一判定式点名（例外不得把整条规则架空） 合成清单外条目 = gap-nonexistent-R202.txt
-[PASS] M1f1 相位声明随判据可见（读者可区分「时序红」与「漂移红」） PHASE=post-append 未被产出=0 条
+[PASS] M1f1 相位声明随判据可见（读者可区分「时序红」与「漂移红」） PHASE=post-commit 未被产出=0 条
 [PASS] M1d 判别力实测（受控合成对照）：声明的名字可产出 ∧ 上一轮滚过来的名字不可产出 
 [PASS] M1e 判别力实测（判据收窄）：仅在**非写点**行被提及的名字必须判「未被产出」 
 [PASS] M2 本轮实际产出的证据文件全部被声明（产出 ⊆ 声明）= 0 条 未声明 0 条 []
@@ -119,6 +118,6 @@ R202 独立交叉核对（只读；核对生产者/消费者契约，不复述�
 [PASS] N1f 白名单键必须各自对应一条声明的证据文件（两面同源，未经声明不得豁免） 缺 = 无
 [PASS] N1g 判别力实测：合成「未经声明的白名单键」必须被判缺 
 ------------------------------------------------------------------------------
-汇总：FAIL = 1 条 ['I1 近两轮（本轮/上一轮）引用逐条磁盘可达 ∧ 在 HEAD 树内']
-信息项 = 11 条 ['台账提交列：提交号形态 169 条（全部可达）/ 主题形态 45 条条目（去重 8 个，全在任务行）', '证据清单条数 = 16（前向待核：本相位尚无 round-meta，未作一致性主张 —— 历史修正）', '既有待拍板项复验：时间戳占位 59 行 / 行首未替换占位符 1 行 / 行内提及占位符 5 行 / 陈旧更正说明 7 处', '常驻守卫族扫描：候选 18 族（末次产证最早 = R135）', '叙述型产物引用可达性：近两轮引用 36 条全可达；历史侧悬空 4 条（R165 已登记，上限 4）', '证据文件里的提交号引用：通知记录 36 个形态、不可达 1 个', '派生产物裸轮次号字面量扫描：被检 28 文件、白名单内 0 处、白名单外 0 处', '归属型假自述扫描：被检 28 文件、命中 0 处（白名单外 0 处）', '声明的证据文件名产出核对：声明 16 条、未被产出 0 条', '证据产出⇔声明双向核对：声明 16 条、未被产出 0 条、产出写点 15 条、未声明 0 条', '文档串自述型时序主张扫描：被检 28 文件、命中 0 处（白名单外 0 处）']
+汇总：FAIL = 0 条 （全 PASS）
+信息项 = 11 条 ['台账提交列：提交号形态 170 条（全部可达）/ 主题形态 45 条条目（去重 8 个，全在任务行）', '证据清单条数 = 16（与 round-meta.evidence_count **逐字段核验一致**，判据 F2a）', '既有待拍板项复验：时间戳占位 59 行 / 行首未替换占位符 1 行 / 行内提及占位符 5 行 / 陈旧更正说明 7 处', '常驻守卫族扫描：候选 18 族（末次产证最早 = R135）', '叙述型产物引用可达性：近两轮引用 36 条全可达；历史侧悬空 4 条（R165 已登记，上限 4）', '证据文件里的提交号引用：通知记录 37 个形态、不可达 1 个', '派生产物裸轮次号字面量扫描：被检 28 文件、白名单内 0 处、白名单外 0 处', '归属型假自述扫描：被检 28 文件、命中 0 处（白名单外 0 处）', '声明的证据文件名产出核对：声明 16 条、未被产出 0 条', '证据产出⇔声明双向核对：声明 16 条、未被产出 0 条、产出写点 15 条、未声明 0 条', '文档串自述型时序主张扫描：被检 28 文件、命中 0 处（白名单外 0 处）']
 CROSSCHECK_END=1
