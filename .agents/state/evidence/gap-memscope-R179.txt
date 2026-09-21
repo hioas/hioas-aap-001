@@ -1,0 +1,24 @@
+==============================================================================
+R179 取证②：内存口径的跨运行时 / 跨格式陷阱
+锚点：MSYS bash 侧探针输出（probe-preflight-r179.out）+ 原生 Python 对照
+==============================================================================
+环境指纹：bash=/usr/bin/bash / uname=MINGW64_NT-10.0-26100
+[PASS] M0a 判据由 MSYS bash 侧求值（且输出带结束标记） bash = /usr/bin/bash
+[PASS] M0b 正向对照：/proc/meminfo 在 MSYS 侧可读 READABLE = Y
+[PASS] M0c 正向对照：键清单解析到 > 0 个 键数 = 8 / 声明 = 8
+  MSYS /proc/meminfo 实际键清单（8 个）：MemTotal MemFree HighTotal HighFree LowTotal LowFree SwapTotal SwapFree
+[PASS] M1a 真发现：**无 MemAvailable** 键、但有 MemFree（legacy 格式）—— 只认单一键的判据会读 0 MemAvailable 在 = False / MemFree 在 = True
+[PASS] M2a 真发现（跨运行时）：原生 Python 读 /proc/meminfo 的可用性不等于 MSYS 侧 原生 Python 结果 = N / FileNotFoundError: [Errno 2] No such file or directory: '\\proc\\meminfo'
+  原生 Python 侧异常原文：FileNotFoundError: [Errno 2] No such file or directory: '\\proc\\meminfo'
+[PASS] M3a 正向对照：Windows 原生口径可用（GlobalMemoryStatusEx） AvailPhys = 1672 MB / MemoryLoad = 94%
+  跨口径对照（**不同口径**，故不作等值断言 —— 口径必须声明，坑 95/215）：
+      Win32 AvailPhys    = 1672 MB
+      MSYS /proc MemFree = 1645 MB
+[PASS] M3b 两口径同量级（差 ≤ 两者较大值的 50%） 差 = 27 MB
+[PASS] M4a 修法落地：修正后产物含内存下限 + 键回退链 + 实际键名落盘 命中 = ['MEM_FLOOR_MB=900', 'for K in MemAvailable MemFree', 'PREFLIGHT_MEM_KEY=']
+[PASS] M4b 下限依据可追溯（900 MB 取自坑 158 实测失败区间 0.16–0.9 GB，写在源码注释里） 注释命中 = True
+
+小结：内存判据必须（a）在 MSYS bash 侧求值（原生 Python 读不到该虚拟文件）、（b）键回退链、
+      （c）把实际使用的键写进证据 —— 三者缺一即可能假阳性中止整轮；
+      取证文件 = evidence/gap-memscope-R179.txt
+FORENSICS_MEMSCOPE_END=1

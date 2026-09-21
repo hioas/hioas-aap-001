@@ -1,0 +1,53 @@
+==============================================================================
+R179 巡检轮分析（90/90 已在册；本轮 = 只校验不改交付代码）
+==============================================================================
+[facts] ROUND=R179 SESSION_HEAD=213509d WT_SHA=213509d SERVER_DIRTY=0
+[facts] 并发前置检查：执行=1 JPS可达=Y JPS行数=17 并发测试JVM=0 bash=/usr/bin/bash mvn=/c/Users/laitz/bin/mvn
+[facts] 事实键齐备：是
+-- 事实（读执行器落盘）--
+  run1 rc=0 window=[2026-09-21 09:43:55, 2026-09-21 09:46:48] classes=34
+  run1 timeline=[[INFO] Total time:  02:50 min] 解析=170 秒 / 写法=mm:ss
+  run1 sum=[INFO] Tests run: 211, Failures: 0, Errors: 0, Skipped: 0
+  run2 rc=0 window=[2026-09-21 09:46:48, 2026-09-21 09:48:07] classes=34
+  run2 timeline=[[INFO] Total time:  01:16 min] 解析=76 秒 / 写法=mm:ss
+  run2 sum=[INFO] Tests run: 211, Failures: 0, Errors: 0, Skipped: 0
+[PASS] F0a 两轮耗时写法解析成功（双写法解析器正向对照） run1=mm:ss run2=mm:ss
+  耗时写法结论：两轮同一种写法（mm:ss）→ 按坑 176 据实写「本轮未复现另一种写法」
+[PASS] A_r1 本轮 rc=0 rc=0
+[PASS] A_r2 本轮 rc=0 rc=0
+[PASS] A0a 逐类解析非空 run1=34 类 / run2=34 类（坑 46/75 正向对照）
+[PASS] A1 逐类结果 diff=0（已剥 Time elapsed 再排序，坑 59/79） 仅run1=0 仅run2=0 值不同=0
+  surefire 合计：run1=(211, 0, 0, 0) run2=(211, 0, 0, 0)
+[PASS] A2 两轮合计全绿（Failures=0 Errors=0 Skipped=0）且两轮一致 run1=(211, 0, 0, 0) run2=(211, 0, 0, 0)
+[PASS] B0a worktree 内覆盖报告可解析 path=C:\Users\laitz\AppData\Local\Temp\aap-r179-wt\.agents\state\evidence\coverage-report.json
+  覆盖门禁：total=90 implemented=90 missing=0 registered_routes=105 not_registered=[]
+[PASS] B1 90/90 且 missing=0 total=90 implemented=90 missing=0
+[PASS] B2 not_registered 为空 not_registered=[]
+  按族：T03=6/6 T04=5/5 T05=7/7 T06=6/6 T07=4/4 T08=11/11 T09=6/6 T10=5/5 T11=11/11 T12=4/4 T13=3/3 T14=22/22
+[PASS] B3 族合计 = 90 族合计=90
+[PASS] B4 worktree 报告 ⇔ 已提交副本 逐字段全等 （坑 12/96）
+[PASS] B4b 本轮覆盖报告 mtime ∈ 跑测窗口（新鲜度：报告确实被本轮重写） mtime=2026-09-21 09:47:31 窗口=[2026-09-21 09:43:55, 2026-09-21 09:48:07]
+[PASS] B4c 与已提交副本的差异仅为**键序**（值/格式漂移必须转红） 行数 wt=57 repo=57；字节差异行=0；归一尾随逗号后行多重集相等=True
+[PASS] C0a @Test 词边界计数 > 0 @Test=211（坑 35：必须词边界）
+[PASS] C1 @Test 计数 == surefire 合计 @Test=211 surefire=211
+[PASS] C2 禁用扫描 0 条（不得削弱测试） 命中=0 []
+-- 被测状态 --
+  worktree 检出提交 = 213509d
+  证据写入时 HEAD  = 213509d
+  主仓库 aap-server 在途改动 = 0 条
+[PASS] D1 被测提交 = 证据写入时 HEAD wt=213509d head=213509d
+[PASS] D2 主仓库 aap-server 无在途改动（不触碰被测对象） 改动=0
+[PASS] E0a 生成物快照非空 产物=84 个（坑 46/75 正向对照）
+[PASS] E1 零写副作用（size+md5 全等） 变化=0 []
+[PASS] E2 生成器 --check rc=0 rc=0（84 个产物逐一致 + 孤儿 0）
+  生成器 --check 末尾输出：
+      | check ok: 84/84 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）
+      | ok: models=55 requests=24 paths=78 operations=90 files=82
+-- 轮次计数（口径：含 missing=0 的行的不同轮次号个数）--
+  历史轮次号 = 160 个，区间 [R19, R178]（正向对照 > 0）
+[PASS] F1 历史轮次号连续（无缺号） 缺号 = []
+[PASS] F2 轮次计数可推导且 > 1 本轮 = 90/90 连续第 161 轮
+==============================================================================
+汇总：FAIL 断言 = 0 条 （全 PASS）
+90/90 连续第 161 轮全绿（本轮为只校验轮）
+FACTS_END_MARK=1
