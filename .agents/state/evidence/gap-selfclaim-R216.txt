@@ -1,0 +1,28 @@
+==============================================================================
+R216 派生期伪自述守卫（独立复跑，只读取证）
+==============================================================================
+  取证脚本 = C:\Users\laitz\AppData\Local\Temp\aap-r216-aux\gap-selfclaim-r216.py（存在 = True，7476 字节）
+  域 = C:\Users\laitz\AppData\Local\Temp\aap-r216-work ∪ C:\Users\laitz\AppData\Local\Temp\aap-r216-aux ∪ C:\Users\laitz\AppData\Local\Temp\aap-r216-regression
+[PASS] A0a 扫描域非空（正向对照，坑 46/75） 面 = 19
+  被测产物 = 19：analyze-r216.py, audit-ledger-r216.py, closeout-r216.py, compare-faildiff-r216.py, derive-r216.py, derive2-r216.py, final-read-r216.py, finalize-r216.py, mkexec-r216.py, mkmeta-r216.py, pipeline-r216.sh, r216-regression.py, round-r216.sh, row_data_r216.py, verify-final-r216.py, gap-prodcheck-r216.py, gap-selfclaim-r216.py, scan-selfclaim-r216.py, verify-row-r216.py
+-- 豁免（按设计携带判别力夹具的派生脚本）--
+  豁免 = ['derive-r216.py', 'derive2-r216.py']（上限 2）
+[PASS] A0b 豁免条数 ≤ 2（坑 57/68/190） 条数 = 2
+[PASS] A0c 豁免条目必须**真的**命中该形态（否则豁免被架空，坑 57/190） 未命中 = 无
+      derive-r216.py 命中 2 条（夹具）
+      derive2-r216.py 命中 2 条（夹具）
+[PASS] B1 非豁免产物不得含「R216 + 自述型动词」的假自述（0 违规） 违规 0 条 （无）
+[PASS] C0 本文件（SELF）不得含该形态（0 条；判据与夹具均由 RND 拼接，避免自指命中，坑 47/190） 实测 = 0 条 []
+-- D 判别力实测（两向）--
+[PASS] D0 构造式夹具确实含该形态（拼接没有把判据架空；与 C0 的「源码无字面量」并存即两向证明） 夹具 = （R216 实测：报告 29 轮，而含当轮的内存复算 = 30 轮）
+[PASS] D1 正向：合成假自述必须被同一判据命中（牙齿） 夹具 = （R216 实测：报告 29 轮，而含当轮的内存复算 = 30 轮）
+[PASS] D2 反向：干净历史措辞必须不被命中（不滥报） 对照 = （历史实测〔引入该修法的那一轮〕：报告 29 轮）
+[PASS] D3 派生阶段 stdout 可取（正向对照，坑 240/251） 字节 = 837
+[PASS] D4 派生阶段判别力实测记录存在：**合成注入态**被点名恰好 1 条（本轮真值与上一轮同为 0 条，故用合成非真值，历史纪律 203） 
+[PASS] D4b 反向对照：未注入的滚动文本必须 0 条（不滥报） 
+[PASS] D5 派生阶段结束标记齐备（完整结论 vs 半截输出，坑 240） 
+[PASS] D6 派生阶段对伪自述的最终计数 = 0 条（与 B1 同源，两处口径一致） 
+-- E 结论 --
+  域 19 个产物：豁免 2、SELF 1、判红违规 0 条
+汇总：FAIL 断言 = 0 条 （全 PASS）
+SELFCLAIM_END=1
