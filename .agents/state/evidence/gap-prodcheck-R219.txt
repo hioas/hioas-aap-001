@@ -1,0 +1,36 @@
+==============================================================================
+R219 产物自检（域 = C:\Users\laitz\AppData\Local\Temp\aap-r219-work 的 .py/.sh + aux 的 .py/.sh；三相：emit/run/consume）
+==============================================================================
+  SELF（落盘时产生，单列不对自己断言）= C:\Users\laitz\AppData\Local\Temp\aap-r219-work\gap-prodcheck-r219.py
+    域内产物 analyze-r219.py                    19401 字节
+    域内产物 append-row-r219.py                 9140 字节
+    域内产物 audit-ledger-r219.py               17142 字节
+    域内产物 check-rowdata.py                   851 字节
+    域内产物 closeout-r219.py                   10494 字节
+    域内产物 compare-faildiff-r219.py           2704 字节
+    域内产物 derive-r219.py                     14930 字节
+    域内产物 final-summary.py                   1821 字节
+    域内产物 gap-prodcheck-r219.py              8469 字节
+    域内产物 inspect-csv.py                     589 字节
+    域内产物 inspect-docs.py                    1096 字节
+    域内产物 mkmeta-r219.py                     2794 字节
+    域内产物 pipeline-r219.sh                   1070 字节
+    域内产物 r219-regression.py                 21460 字节
+    域内产物 round-r219.sh                      4750 字节
+    域内产物 verify-committed-r219.py           4369 字节
+[PASS] A0a 正向对照：域内 .py 数量 > 0 py=14 sh=2
+[PASS] A1 域内全部 .py 可编译（compile()） 不可编译 = 无
+[PASS] A0b 探针输出带结束标记（区分「完整结论」与「半截输出」；缺失即判据不可用 -> FAIL，坑 240/141） bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 输出字节=125
+[PASS] A0c 探针对每个 .sh 各给一行结论（解析量 = 域内 .sh 数，正向对照） 结论 2 行 / 域内 .sh 2 个
+[PASS] A2 域内全部 .sh 由同一个 bash 判绿（探针 rc=0） SH_OK=['pipeline-r219.sh', 'round-r219.sh'] SH_BAD=无
+[B] 扫描面 = 15 个产物（SELF 单列，判据范围须与语义一致，坑 81/222）
+[PASS] B0a 正向对照：扫描面 > 0 扫描 15 个
+[PASS] B1 残留上一轮小写引用的产物 ⊆ 豁免集（新增必须转红） 违规 = 无
+[PASS] B1b 豁免条数 ≤ 1（豁免不得被扩张掩盖，坑 57/68/190） 条数=1
+[PASS] B1c 豁免条目必须**真的**含该引用（否则豁免被架空，坑 57/190） 未含该引用的豁免 = 无
+[PASS] B2 判别力实测：合成注入的引用必须被同一判据点名恰好 1 条 注入态=1 条 / 未注入态=0 条（产物 = analyze-r219.py）
+[PASS] C1 产物不含「本轮轮次号 + 自述型动词」的伪自述行（坑 199/249；合成对照一律构造式，避免自指） 违规 = 无
+[PASS] C2 判别力实测：合成注入态必须被点名恰好 1 条、真实产物 0 条 注入态=1 条
+------------------------------------------------------------------------------
+汇总：FAIL = 0 条 （全 PASS）
+PRODCHECK_END=1
