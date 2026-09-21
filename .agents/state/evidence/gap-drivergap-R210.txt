@@ -1,0 +1,43 @@
+==============================================================================
+R210 复验取证：派生覆盖性缺口（历史真发现，本轮复跑）
+==============================================================================
+[PASS] A0a 正向对照：派生 FILES 清单解析到 21 条（源侧 5+16 -> 目标名 21） WORK 5 + AUX 16 -> 目标名 21 条
+      FILES 清单（源侧）= ['round-r209.sh', 'analyze-r209.py', 'r209-regression.py', 'audit-ledger-r209.py', 'compare-faildiff-r209.py', 'run-when-ready-r209.sh', 'probe-reach-r209.sh', 'pipeline-r209.sh', 'crosscheck-r209.py', 'check-format-r209.py', 'check-format-selftest-r209.py', 'closeout-r209.py', 'closeout-record-r209.py', 'finalize-r209.py', 'mkcommit-r209.py', 'append-row-r209.py', 'verify-final-r209.py', 'fixture-badformat.py', 'fixture-goodformat.py', 'scan-roundnum-r209.py', 'syntax-check-r209.py']
+      FILES 清单（目标名）= ['round-r210.sh', 'analyze-r210.py', 'r210-regression.py', 'audit-ledger-r210.py', 'compare-faildiff-r210.py', 'run-when-ready-r210.sh', 'probe-reach-r210.sh', 'pipeline-r210.sh', 'crosscheck-r210.py', 'check-format-r210.py', 'check-format-selftest-r210.py', 'closeout-r210.py', 'closeout-record-r210.py', 'finalize-r210.py', 'mkcommit-r210.py', 'append-row-r210.py', 'verify-final-r210.py', 'fixture-badformat.py', 'fixture-goodformat.py', 'scan-roundnum-r210.py', 'syntax-check-r210.py']
+------------------------------------------------------------------------------
+[A] 事实 ①：派生脚本的 FILES 清单里没有入口脚本
+      judge(FILES, drive-round-r210.sh) = ['drive-round-r210.sh']
+[PASS] A1 入口脚本不在派生清单内（缺口成立） 缺口 = ['drive-round-r210.sh']
+[B] 事实 ②：派生 stdout 的**实际转移清单**里也没有它
+      实际转移条数 = 21
+[PASS] B0 正向对照：实际转移清单解析到 21 条（> 0 且与清单等长） 转移 = 21 条 / 清单 = 21 条
+[PASS] B1 转移清单里没有入口脚本 缺口 = ['drive-round-r210.sh']
+[C] 事实 ③：上一轮（R209）的清单同样零处
+      上一轮 FILES 清单条数（目标名）= 21
+      上一轮 judge(..., drive-round-r209.sh) = ['drive-round-r209.sh']
+[PASS] C1 上一轮清单里同样没有入口脚本（结构性而非偶发） 缺口 = ['drive-round-r209.sh']
+------------------------------------------------------------------------------
+[D] 调用面：缺口**只**落在入口脚本本身（其下游被调脚本都在清单内）
+      下游被调脚本命中 = 2 / 2（['run-when-ready-r210.sh', 'pipeline-r210.sh']）
+[PASS] D1 下游被调脚本 2/2 都在派生清单内 2/2
+------------------------------------------------------------------------------
+[E] 判别力实测（3 条：正向 / 反向 / 非空转）
+      E1 合成「清单含入口脚本」-> []（须为空）
+      E2 合成「清单缺下游脚本」-> ['drive-round-r210.sh']（须非空）
+[PASS] E1 合成正向：清单含入口脚本时判定式必须不报缺口 缺口 = []
+[PASS] E2 合成反向：缺下游脚本时必须被报出（证明判定式对**任意**条目有效） 缺口 = ['drive-round-r210.sh']
+[PASS] E3 非空转：真实清单条数 > 0 且真实缺口恰好 1 条 清单 21 / 缺口 1
+------------------------------------------------------------------------------
+[F] 本轮落地事实：入口脚本由**可复跑、带断言**的产物显式产出
+      mkdrive 存在 = True；入口脚本存在 = True
+      mkdrive 输出行（写出 / 判定）= ['写出 C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r210-auxonce\\drive-round-r210.sh（20 行）', '判定：PASS']
+[PASS] F1 入口脚本真的落盘（人手维护这一步有产物可指认） path=C:\Users\laitz\AppData\Local\Temp\aap-r210-auxonce\drive-round-r210.sh
+[PASS] F2 显式维护脚本存在且带断言输出（判定 PASS） mkdrive=True / 判定行=True
+------------------------------------------------------------------------------
+SUMMARY_GAP_N=1
+SUMMARY_FILES_N=21
+SUMMARY_MOVED_N=21
+SUMMARY_CALL_FACE=2/2
+SUMMARY_ENTRY_EXISTS=1
+汇总：FAIL = 0 条 （全 PASS）
+DRIVERGAP_END=1
