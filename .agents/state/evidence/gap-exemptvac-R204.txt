@@ -1,0 +1,44 @@
+==============================================================================
+R204 真发现取证 ①：M 组豁免白名单的第三件未实现（只读）
+==============================================================================
+[A] 修正前状态（锚：本轮 pre-fix 快照 + 本轮流水线 stdout）
+      正向对照：pre-fix 快照 = 38212 字节；本轮流水线 stdout = 8331 字节
+[PASS] A0a 两侧产物均可读（正向对照） 
+      修正前：声明清单 = 16 条；相位豁免白名单 = ['gap-exemptvac-R204.txt', 'gap-rounddomain-R204.txt', 'gap-verifyhist-R204.txt', 'gap-writescope-R204.txt']（4 条）
+[PASS] A0b 修正前两侧清单均可解析（正向对照） 
+[PASS] A0c 修正前白名单条目**全部**落在声明清单里（两面同源已成立 —— 第三件缺失不是在说这条） 交集 = 4
+      M1_ALLOW_PRE 在修正前源码里的出现：
+        M1_ALLOW_PRE = {"gap-rounddomain-" + RND + ".txt", "gap-exemptvac-" + RND + ".txt",
+        _m1f_bad = [nm for nm in m_miss if nm not in M1_ALLOW_PRE]
+        % (len(M1_ALLOW_PRE), M1_ALLOW_CAP, len(_m1f_bad)),
+        not _m1f_bad and len(M1_ALLOW_PRE) <= M1_ALLOW_CAP, "清单外 = %s" % (_m1f_bad or "无"))
+        _m1f2_bad = sorted(set(M1_ALLOW_PRE) - set(EVID))
+        bool(set(M1_ALLOW_PRE) | {"gap-undeclared-" + RND + ".txt"} - set(EVID)),
+        bool([nm for nm in (m_miss + ["gap-nonexistent-" + RND + ".txt"]) if nm not in M1_ALLOW_PRE]),
+[PASS] A1 修正前：「白名单条目必须真的出现在 m_miss 里」的核对**不存在** 
+      同族对照：N 组有 N1b 做等价核对 = 存在
+[PASS] A2 同族对照成立：N 组有 N1b、M 组无对等物 → 两面不对等 
+[PASS] A3 本轮流水线里 M1f 实测值可解析（正向对照） 清单 5 条 / 上限 5 / 清单外 0 条
+      受控对照（只改「m_miss 是否含白名单条目」这一个变量，合成态 = m_miss 为空）：
+         · M 组既有两条判定式的结果 = 清单外 0 条（不报红）
+         · 同族写法（N 组 N1b 的形态 `[k for k in 白名单 if k not in m_miss]`）= 4 条 → ['gap-exemptvac-R204.txt', 'gap-rounddomain-R204.txt', 'gap-verifyhist-R204.txt', 'gap-writescope-R204.txt']
+[PASS] A4 受控对照：白名单条目**不出现**在 m_miss 里时 M 组无任何判定式报红（豁免惰性） 
+[PASS] A5 反向对照（判别力）：同一合成态下**同族写法**必须点名全部 4 条白名单条目（证明该核对有牙齿） 同族写法点名 4 / 白名单 4
+------------------------------------------------------------------------------
+[B] 修法落地核对（本轮 crosscheck 源码）
+[PASS] B0 本轮 crosscheck 源码可读（正向对照） 40266 字节
+[PASS] B1 M1f3 相位化的第三件已落地（判定式对 m_miss 做**并列相等**核对：无缺失 ∧ 无多余） 
+[PASS] B2 M1h / M1h2 双向判别力实测已落地（正向点名全部 + 反向 0 命中） 
+[PASS] B3 相位出口：例外**不被使用**的相位记 N/A 而不作通过主张 
+[PASS] B4 白名单条目**全部**落在声明清单里（修正后交集 = 白名单条数） 白名单 5 条 / 声明 17 条 / 交集 5 条
+[PASS] B5 上限仍由结构推出（未被改回魔法常数） len([n for n in EVID if n.startswith("gap-") and n not in _M_PIPE])
+      既有判据未被放宽（判定式一字未改）：M1 含「未被产出的声明 1 条」分支 = 是；M1f 含「清单外」分支 = 是
+[PASS] B6 既有 M1/M1b/M1f/M1f2 判定式仍完整存在（修法是**新增**约束，不是替换） 
+==============================================================================
+汇总：FAIL 断言 = 0 条 （全 PASS）
+SUMMARY_ALLOW_N=4
+SUMMARY_THIRD_CHECK_IMPL=0
+SUMMARY_PEER_N1B=1
+SUMMARY_MISS_OUT=0
+SUMMARY_FIXED_COVERED=5
+GAP_EXEMPTVAC_END=1
