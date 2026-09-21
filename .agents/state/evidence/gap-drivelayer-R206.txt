@@ -1,0 +1,33 @@
+[PASS] A0 正向对照：派生器源码可读（> 0 字符） 8666 字符
+[PASS] A1 正向对照：解析到 WORK_FILES / AUX_FILES（两处都非空） WORK=['round-r205.sh', 'analyze-r205.py', 'r205-regression.py', 'audit-ledger-r205.py', 'compare-faildiff-r205.py'] AUX=16 个
+[A] 转移集 = 21 个（WORK 5 + AUX 16）；源侧名字带 r205，**输出侧名字已滚动为 r206**
+[A] 转移集（归一为输出侧名字）= 21 个
+[PASS] A2 正向对照：目录实况非空 23 个脚本
+[B] 目录实况 = 23 个
+[B] 实况 − 转移集（归一后）= 7 个：['drive-round-r206.sh', 'gap-drivelayer-r206.py', 'gap-obsdup-r206.py', 'gap-reverify2-r206.py', 'gap-verify-r206.py', 'probe-ledger-r206.py', 'probe-obsdup2-r206.py']
+[PASS] B1 归一后的差集**不含**任意在册脚本（证明归一有效、无假缺口） 在册命中 16 个
+[PASS] C0 正向对照：目录里有驱动脚本 drive = ['drive-round-r206.sh']
+[PASS] C1 **驱动脚本不在转移集内**（派生链不覆盖驱动层） transfer∩drive = []
+[C] 全部 precheck + 本轮派生器源码里提到 `drive-round` 的行数 = 0
+[PASS] C2 派生链的**任何**守卫都未提及驱动层（零机器覆盖 => 漏做不可被发现） 提及行数=0
+[PASS] D0 正向对照：驱动脚本可读 542 字符
+[D] 驱动脚本：r206 命中 4 处 / r205 残留 0 处
+[PASS] D1 驱动脚本含本轮标记 
+[PASS] D2 驱动脚本零上一轮残留（人手 sed 本次做对了 —— 但无机器守卫保证下次） 
+[PASS] D3 驱动脚本调用的执行器名 = 本轮（run-when-ready-r206.sh / pipeline-r206.sh） 
+[PASS] E1 判别力实测：合成「驱动脚本已进转移集」的输入 -> C1 判定式必须翻转（非空） 
+[PASS] E2 判别力实测（反向）：真实输入下同一判定式结果为空 
+[F] 派生链之外的**手工维护层**（同一缺口的完整面）
+      驱动层 -> ['drive-round-r206.sh']（在转移集内 = False）
+      复验套件层 -> ['gap-reverify2-r206.py', 'gap-verify-r206.py']（在转移集内 = False）
+      单一事实源层 -> ['row-data-r206.py']（在转移集内 = False）
+[PASS] F1 三层均不在转移集内（同一结构性缺口的三个成员） 
+[F] 复验套件的产出者 aap-r206-mkverify.py 是否在转移集 = False；其特征行命中 = 1
+[PASS] F2 复验套件的产出者自身也不在转移集（缺口的第二层：产出者也在链外） 
+------------------------------------------------------------------------------
+SUMMARY_TRANSFER_N=21
+SUMMARY_ACTUAL_N=23
+SUMMARY_DRIVE_IN_TRANSFER=False
+SUMMARY_GUARD_MENTIONS=0
+判定：PASS
+GAP_END=1
