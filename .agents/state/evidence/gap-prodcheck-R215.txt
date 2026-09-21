@@ -1,0 +1,32 @@
+==============================================================================
+R215 产物自检（只读取证；语法 + 残留上一轮引用）
+==============================================================================
+[PASS] P0 域非空（正向对照，坑 46/75） 面 = 19
+[PASS] P1 域两相位稳定（观测者自落产物不得进入被测域，坑 216-③） 快照 19 / 现况 19；差异 = 无
+[PASS] P1b 域内容未变（md5 逐条一致） 不一致 = 无
+[PASS] P1c 判别力实测：合成「emit 后新增一个产物」的快照必须被判红、真实快照必须判绿（两分支都可达） 
+-- 域 --
+  被测产物 = 19（analyze-r215.py, audit-ledger-r215.py, closeout-r215.py, compare-faildiff-r215.py, derive-r215.py, derive2-r215.py, final-read-r215.py, finalize-r215.py, gap-prodcheck-r215.py, gap-selfclaim-r215.py, mkexec-r215.py, mkmeta-r215.py, pipeline-r215.sh, r215-regression.py, round-r215.sh, row_data_r215.py, scan-selfclaim-r215.py, verify-final-r215.py, verify-row-r215.py）
+  观测者目录（按设计排除在域外）= C:\Users\laitz\AppData\Local\Temp\aap-r215-probe
+-- A 语法 --
+[PASS] A0a .py 解析面非空（正向对照） 面 = 17
+[PASS] A1 .py 无语法错误 异常 = 无
+  shell 探针：probe-shsyntax-r215.sh（由执行器所用的 bash 运行）
+[PASS] A0b 探针完整结束（结束标记，坑 240） 标记 = 有
+[PASS] A0c .sh 解析面与域一致（正向对照） 解析 2 / 面 2
+[PASS] A2 .sh 无语法错误 坏 = 无
+-- B 残留上一轮引用（小写形态）--
+[PASS] B0b 豁免必须真的含该形态（否则豁免被架空，坑 57/190） 缺 = 无
+[PASS] B0a 豁免条数上限（坑 68） 豁免 = 3 ['derive-r215.py', 'mkexec-r215.py', 'derive2-r215.py']
+[PASS] B1 非豁免产物不得残留上一轮（小写）引用 违规 = 无
+-- C 判别力实测 --
+[PASS] C1 正向：合成含上一轮形态的夹具必须被 B1 判据命中 命中 = 是
+[PASS] C2 正向：合成语法错误的 .sh 必须被 shell 判红 shell 判定 = 红
+[PASS] C3 反向：干净夹具不得被 B1 判红 命中 = 否
+[PASS] C4 反向：干净夹具必须被 shell 判绿 shell 判定 = 绿
+[PASS] C5 观测者目录内的夹具不含于被测域（观测者与观测对象分离） 域内观测者文件 = 无
+-- D 结论 --
+  A 面：.py 17 个（坏 0）/ .sh 2 个（坏 0）
+  B 面：扫描 19 个产物、豁免 3 个、违规 0 处
+汇总：FAIL 断言 = 0 条（全 PASS）
+PRODCHECK_END=1
