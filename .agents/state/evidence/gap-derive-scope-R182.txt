@@ -1,0 +1,53 @@
+R182 取证：本轮派生面逐条核对（本轮**新建**，不滚动上一轮取证脚本）
+
+范围（结构性收敛，坑 249 的正面消除）：只滚动「判据由运行时事实推出」的脚本；
+含历史事实陈述的取证/叙事脚本**不再机械滚动**，改为按当前轮实测事实重新生成。
+
+-- 滚动产物（5 个，来自 R181 单趟映射）--
+  round-r182.sh                exists=True size=6000
+  analyze-r182.py              exists=True size=15855
+  r182-regression.py           exists=True size=15174
+  audit-ledger-r182.py         exists=True size=9827
+  compare-faildiff-r182.py     exists=True size=2641
+  run-when-ready-r182.sh       exists=True size=2667
+
+-- 本轮新撰产物（5 个，按当前轮事实生成，零历史自述）--
+  rd182-checks.py              exists=True
+  report-r182.py               exists=True
+  mkcommit-r182.py             exists=True
+  syntax-check-r182.py         exists=True
+  derive-r182.py               exists=True
+
+[PASS] D1 派生面逐条存在（正向对照：条数 > 0） 11/11 存在
+[PASS] D2 全部 python 产物可编译（坑 235：显式语法核对，不靠肉眼） 失败=无
+
+-- 关键锚点核对（逐产物断言其**真的**被写出，坑 66/94）--
+  OK     round-r182.sh            PREFLIGHT_EXECUTED=1                   (前置检查执行标记)
+  OK     round-r182.sh            FACTS_END=1                            (事实文件收尾标记)
+  OK     analyze-r182.py          green-verify-%s-analysis.txt           (分析证据文件名)
+  OK     analyze-r182.py          FACTS_END_MARK=1                       (分析收尾标记)
+  OK     r182-regression.py       audit-regression-R182-rcseq.txt        (回归 rc 序列文件名)
+  OK     r182-regression.py       REGRESSION_END=1                       (回归收尾标记)
+  OK     audit-ledger-r182.py     aap-server-feature-status.csv          (台账路径)
+  OK     compare-faildiff-r182.py audit-regression-R182-faildiff.txt     (FAIL 差异文件名)
+[PASS] D3 关键锚点全部命中（8 条，正向对照） 命中 8/8
+
+-- 自述事实源：本轮**不滚动**上一轮叙事，故无「历史事实被改写成本轮自述」的载体 --
+  机器证据 A：本轮无 append 叙事产物；报告正文由 report-R182.py 按 facts 现场生成。
+  机器证据 B：本轮**不存在**滚动来的取证脚本（下面逐条断言）。
+[PASS] D4 本轮未派生任何「含历史事实陈述」的取证/叙事脚本（结构性消除的落地核对） 命中=无
+
+-- 缺陷态机器证据：机械滚动会把**历史事实**改写成对当前轮的假自述（坑 12/95/199/249）--
+  被测对象 = C:\Users\laitz\AppData\Local\Temp\aap-r181-auxonce\gap-scope-r181.py（exists=True）
+  ① 该脚本第 7 行声称：`evidence/gap-derive-scope-R180.txt` —— 该文件**既不在 HEAD 树内、也不在磁盘上**
+     实测：磁盘存在 = True；在 HEAD 树内 = True
+     R180 的 round-meta 登记该路径 = True
+[PASS] D5 缺陷态坐实：该「不存在」陈述被当下事实反驳（文件确实存在且在 HEAD 树内） 磁盘=True HEAD=True
+  ② 该脚本第 3 行含「引入于 R180」；按 derive 的**同一个**三级映射滚动到 R182 后，同一句变成：
+     """R182 取证③（复跑）：派生脚本「小写上一轮残留」判据的**范围**与语义不符（历史返工，**引入于 R181**）。
+     （历史事实「引入于 R180」被改写成「引入于 R181」= 对**上一轮**的断言；节标题也已变为对当前轮的陈述）
+[PASS] D6 缺陷态坐实：机械滚动确实改写了该历史陈述（可复现的字符串变换，非自造简化版） 滚动后：含「引入于 R181」=True / 原「引入于 R180」仍存 = False
+  ⇒ 结论：这两类陈述（历史引用 + 对**上一轮**状态的断言）在滚动后都变成**对当前轮的假自述**；
+     本轮的结构性收敛（不滚动这类脚本、改为按当前轮事实重新生成）即针对该缺陷类。
+
+判定：PASS

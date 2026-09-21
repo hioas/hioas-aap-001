@@ -1,0 +1,37 @@
+R182 取证：上一轮（R181）round-meta 的 evidence_list ⇔ 磁盘 + HEAD 树逐条对账（坑 210/211/236）
+
+  meta 文件 = C:\Users\laitz\AppData\Local\Temp\aap-r181-aux\round-meta.json（exists=True）
+[PASS] F1 上一轮 round-meta 可解析（正向对照） ok=True
+  evidence_list 条数 = 16（meta 自记 evidence_main = 16）
+
+  OK     evidence/audit-regression-R181.txt               disk=True head=True
+  OK     evidence/audit-regression-R181-rcseq.txt         disk=True head=True
+  OK     evidence/audit-regression-R181-failraw.txt       disk=True head=True
+  OK     evidence/audit-regression-R181-faildiff.txt      disk=True head=True
+  OK     evidence/green-verify-R181-analysis.txt          disk=True head=True
+  OK     evidence/green-verify-R181-full-run1.txt         disk=True head=True
+  OK     evidence/green-verify-R181-full-run2.txt         disk=True head=True
+  OK     evidence/green-verify-R181-testcount.txt         disk=True head=True
+  OK     evidence/green-verify-R181-coverage-fields.txt   disk=True head=True
+  OK     evidence/green-verify-R181-tested-state.txt      disk=True head=True
+  OK     evidence/gap-ledger-audit-R181.txt               disk=True head=True
+  OK     evidence/gap-preflight-R181.txt                  disk=True head=True
+  OK     evidence/gap-memscope-R181.txt                   disk=True head=True
+  OK     evidence/gap-derive-scope-R181.txt               disk=True head=True
+  OK     evidence/gap-auxguard-R181.txt                   disk=True head=True
+  OK     evidence/gap-meta-desync-R181.txt                disk=True head=True
+[PASS] F2 evidence_list 条数 > 0（正向对照） 16 条
+[PASS] F3 逐条在磁盘上存在 缺失 0 []
+[PASS] F4 逐条在 HEAD 树内 在树内 16/16
+
+  HEAD 树内含 `R181` 的证据文件 = 16 个；其中未被 meta 登记的 = 0 []
+[PASS] F5 无漏列（树上上一轮证据 ⊆ 清单） 漏列 0 []
+
+-- 判别力实测：合成 1 条幻影条目必须被恰好点名 1 条（坑 75/98/141）--
+  合成注入 1 条幻影 evidence/gap-phantom-r183.txt -> 判据点名 1 条（期望恰好 1）
+[PASS] F6 判别力：合成幻影被恰好点名 1 条 点名 1 条 ['evidence/gap-phantom-r183.txt']
+
+  据实分级（坑 176/214）：本项是对**上一轮修法**的复跑核对 —— 若 0 漂移，只能写
+  「上一轮修法在本轮复跑下**未复现**该缺陷态」，**不得**写成「本轮修复有效」。
+
+判定：PASS
