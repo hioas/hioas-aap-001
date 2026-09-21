@@ -31,11 +31,11 @@ R203 复验取证：零写副作用判据的**范围缺口**（历史引入于�
 [PASS] A2 范围外存在**非本轮证据**的仓库写入（即回归面自身造成的写点） ['endpoint-test-audit.json', 'endpoint-test-audit.txt']
 ------------------------------------------------------------------------------
 [B] 受控重跑（只跑 tools/audit-endpoint-tests.py 一次）
-      运行前 endpoint-test-audit.json   mtime=1789998537 size=132913 md5=2c2e7943
-      运行前 endpoint-test-audit.txt    mtime=1789998537 size=671 md5=d4f45fa3
+      运行前 endpoint-test-audit.json   mtime=1789998638 size=132913 md5=2c2e7943
+      运行前 endpoint-test-audit.txt    mtime=1789998638 size=671 md5=d4f45fa3
       重跑 rc=0（stdout 13 行）
-      运行后 endpoint-test-audit.json   mtime=1789998638 size=132913 md5=2c2e7943  mtime 变了=True 内容变了=False
-      运行后 endpoint-test-audit.txt    mtime=1789998638 size=671 md5=d4f45fa3  mtime 变了=True 内容变了=False
+      运行后 endpoint-test-audit.json   mtime=1789998720 size=132913 md5=2c2e7943  mtime 变了=True 内容变了=False
+      运行后 endpoint-test-audit.txt    mtime=1789998720 size=671 md5=d4f45fa3  mtime 变了=True 内容变了=False
 [PASS] B1 受控重跑**确实改写了** mtime（= 该审计是真实写点，写点位位于 range 之外） 2/2 个文件 mtime 变化
 [PASS] B2 内容幂等（当前无实际漂移，属**判据范围缺口**而非既有内容缺陷） 0 个内容变化
       被 git 跟踪 = True（跟踪 → 内容变化会进提交）
