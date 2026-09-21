@@ -1,0 +1,51 @@
+==============================================================================
+R203 复验取证：零写副作用判据的**范围缺口**（历史引入于更早轮次；只读 + 一次受控重跑）
+==============================================================================
+回归面运行窗口起点（执行器落盘的事实）= 2026-09-21 21:21:30
+零写副作用判据范围（生成物）= 84 个
+[PASS] A0 判据范围非空（正向对照） 
+窗口内被改写/新建的仓库文件 = 104 个（范围内 83 / **范围外 21**）
+      [范围外] .agents/state/aap-server-feature-status.csv
+      [范围外] .agents/state/aap-server-tdd-state.md
+      [范围外] .agents/state/evidence/audit-regression-R203-faildiff.txt
+      [范围外] .agents/state/evidence/audit-regression-R203-failraw.txt
+      [范围外] .agents/state/evidence/audit-regression-R203-rcseq.txt
+      [范围外] .agents/state/evidence/audit-regression-R203.txt
+      [范围外] .agents/state/evidence/coverage-history.txt
+      [范围外] .agents/state/evidence/endpoint-test-audit.json
+      [范围外] .agents/state/evidence/endpoint-test-audit.txt
+      [范围外] .agents/state/evidence/gap-crosscheck-R203.txt
+      [范围外] .agents/state/evidence/gap-exemptvac-R203.txt
+      [范围外] .agents/state/evidence/gap-ledger-audit-R203.txt
+      [范围外] .agents/state/evidence/gap-rounddomain-R203.txt
+      [范围外] .agents/state/evidence/gap-verifyhist-R203.txt
+      [范围外] .agents/state/evidence/gap-writescope-R203.txt
+      [范围外] .agents/state/evidence/green-verify-R203-analysis.txt
+      [范围外] .agents/state/evidence/green-verify-R203-coverage-fields.txt
+      [范围外] .agents/state/evidence/green-verify-R203-full-run1.txt
+      [范围外] .agents/state/evidence/green-verify-R203-full-run2.txt
+      [范围外] .agents/state/evidence/green-verify-R203-testcount.txt
+      [范围外] .agents/state/evidence/green-verify-R203-tested-state.txt
+[PASS] A1 窗口内确有**判据范围之外**的仓库文件被改写（复验成立） 21 个
+其中**非本轮证据产物**的 = ['endpoint-test-audit.json', 'endpoint-test-audit.txt']
+[PASS] A2 范围外存在**非本轮证据**的仓库写入（即回归面自身造成的写点） ['endpoint-test-audit.json', 'endpoint-test-audit.txt']
+------------------------------------------------------------------------------
+[B] 受控重跑（只跑 tools/audit-endpoint-tests.py 一次）
+      运行前 endpoint-test-audit.json   mtime=1789998537 size=132913 md5=2c2e7943
+      运行前 endpoint-test-audit.txt    mtime=1789998537 size=671 md5=d4f45fa3
+      重跑 rc=0（stdout 13 行）
+      运行后 endpoint-test-audit.json   mtime=1789998638 size=132913 md5=2c2e7943  mtime 变了=True 内容变了=False
+      运行后 endpoint-test-audit.txt    mtime=1789998638 size=671 md5=d4f45fa3  mtime 变了=True 内容变了=False
+[PASS] B1 受控重跑**确实改写了** mtime（= 该审计是真实写点，写点位位于 range 之外） 2/2 个文件 mtime 变化
+[PASS] B2 内容幂等（当前无实际漂移，属**判据范围缺口**而非既有内容缺陷） 0 个内容变化
+      被 git 跟踪 = True（跟踪 → 内容变化会进提交）
+[PASS] B3 写点文件被 git 跟踪（范围缺口的后果可传导到提交） 
+      既有处置（沿用登记）：范围扩到 `.agents/state/evidence/**` 并**显式排除** driver 自身写出的 `audit-regression-<RND>-*` 四件套 —— 属**判据取向变更**，需**人拍板**；本轮只复验、不擅改。
+==============================================================================
+汇总：FAIL 断言 = 0 条 （全 PASS）
+SUMMARY_OUT_OF_SCOPE_TOTAL=21
+SUMMARY_OUT_OF_SCOPE_NONOWN=2
+SUMMARY_SCOPE_SIZE=84
+SUMMARY_WRITE_MTIME_CHANGED=2
+SUMMARY_WRITE_CONTENT_CHANGED=0
+GAP_WRITESCOPE_END=1
