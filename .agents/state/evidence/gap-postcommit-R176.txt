@@ -1,0 +1,42 @@
+[PASS] 0a round-meta.json 可解析（正向对照） path=C:\Users\laitz\AppData\Local\Temp\aap-r176-aux\round-meta.json
+[PASS] 0b round-meta 的 evidence_list 非空（正向对照） 条数=13
+==============================================================================
+R176 提交后落地核对（HEAD = 663dea9）
+==============================================================================
+-- A 主提交携带文件（16 个）--
+      .agents/state/aap-server-feature-status.csv
+      .agents/state/aap-server-tdd-state.md
+      .agents/state/evidence/audit-regression-R176-faildiff.txt
+      .agents/state/evidence/audit-regression-R176-failraw.txt
+      .agents/state/evidence/audit-regression-R176-rcseq.txt
+      .agents/state/evidence/audit-regression-R176.txt
+      .agents/state/evidence/coverage-history.txt
+      .agents/state/evidence/gap-ledger-audit-R176.txt
+      .agents/state/evidence/gap-memscope-R176.txt
+      .agents/state/evidence/gap-preflight-R176.txt
+      .agents/state/evidence/green-verify-R176-analysis.txt
+      .agents/state/evidence/green-verify-R176-coverage-fields.txt
+      .agents/state/evidence/green-verify-R176-full-run1.txt
+      .agents/state/evidence/green-verify-R176-full-run2.txt
+      .agents/state/evidence/green-verify-R176-testcount.txt
+      .agents/state/evidence/green-verify-R176-tested-state.txt
+[PASS] A0 正向对照：清单（证据 13 + 状态 3）= 16 > 0 want=16
+[PASS] A1 清单内每一项都在 HEAD 树内（git ls-files） 缺失 = 无
+[PASS] A2 清单 ⊆ 主提交携带（弱式：不要求「全部由主提交携带」，他方 git add -A 可能带走，坑 236/198） 清单未由主提交携带 = 无
+  主提交携带 16 个；清单 16 个；主提交里清单之外的项 = 无
+[PASS] A3 主提交不夹带清单之外的文件 夹带 = 无
+[PASS] A4 主提交无交付代码/契约/生成器改动（巡检轮） 命中 = 无
+[PASS] B0a 正向对照：HEAD 内本轮台账行恰好 1 条 命中=1
+[PASS] B0b 正向对照：工作区本轮台账行恰好 1 条 命中=1
+[PASS] B1 HEAD 内本轮行 ⇔ 工作区本轮行 **逐列相等**（坑 231/243-①） 列数 8/8；差异列 = []
+[PASS] B2 本轮行 8 列且描述列非空（内容级，坑 200） 表头=8 行=8 描述长度=2537
+[PASS] B3 描述列含权威数字与关键锚点（独立重述；**锚点已回本轮 DESC 实际文本逐条核对**，坑 245-①） 长度=2537 / 锚点 = ['90/90 连续第 158 轮全绿', '本轮真发现 2 处', '本轮返工 5 处', '本轮改进 2 处'] / 反向对照（合成非真值「本轮真发现 9 处」不得出现）= 未出现
+[PASS] B4 证据列条数 = round-meta.evidence_list 条数 证据列 13 / meta 13
+[PASS] B5 提交列此刻为空（收尾之前，预期态；坑 243-①） 值=''
+[PASS] C1 覆盖历史本轮行恰好 1 条 命中=1
+[PASS] C1b 覆盖历史本轮行含 missing=0 / 回归面 / 两轮窗口（**按该产物自身承载**断言，坑 243-①） 长度=736
+[PASS] C2 状态文件含本轮段落标题恰好 1 条 命中=1
+[PASS] C2b 状态文件本轮段落含「连续第 N 轮全绿」（该措辞的承载处） N=158
+------------------------------------------------------------------------------
+汇总：FAIL = 0 条 （全 PASS）
+POSTCOMMIT_END=1
