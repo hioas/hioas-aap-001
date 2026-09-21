@@ -1,0 +1,43 @@
+==============================================================================
+R180 取证：aux 派生链此前不在任何守卫面内（真发现 ①）
+锚侧 = **修正前/外侧**：上一轮的派生脚本 C:\Users\laitz\AppData\Local\Temp\aap-r179-auxonce 与其 auxonce 目录（坑 214）
+==============================================================================
+[PASS] A0a 正向对照：能从上一轮 derive 解析出 WORK_FILES（解析器可用，坑 46/75） 命中 = True
+[PASS] A0b 正向对照：WORK_FILES 条数 > 0 条数 = 6
+      WORK_FILES = round-r178.sh r178-regression.py analyze-r178.py compare-faildiff-r178.py audit-ledger-r178.py append-r178.py
+[PASS] A0c 正向对照：上一轮 auxonce 目录解析到机器重写脚本类 > 0 类数 = 9
+      append-feishu-log      append-feishu-log-r179.py（通知留痕）
+      derive-aux             derive-aux-r179.py（aux 派生）
+      finalize               finalize-r179-v13.py（台账回填/收尾）
+      forensics              forensics-r179.py（取证（consume 侧））
+      gap-scope              gap-scope-r179.py（残留范围取证）
+      postcommit-readonly    postcommit-readonly-r179.py（提交后只读核对）
+      probe-preflight        probe-preflight-r179.sh（前置检查探针（emit 侧））
+      run-when-ready         run-when-ready-r179.sh（启动器（有界等待 + 执行器））
+      verify-final           verify-final-r179.py（收尾核对）
+[PASS] A1 **aux 脚本类与 WORK_FILES 的交集 = 0**（即 aux 派生链完全在上一轮派生/守卫面之外） 交集 = 空（WORK_FILES 基名 = ['analyze', 'append', 'audit-ledger', 'compare-faildiff', 'r178', 'round']）
+      结论：上一轮 derive 只派生 6 个 work 脚本；auxonce 目录里另有 9 类脚本由人工/逐轮手工改写，从未被「形态覆盖完整性」「小写上一轮残留」两条守卫覆盖（坑 182/213 的又一实例：判定/辅助工具自身不在守卫面里）。
+      可观察后果：本轮**首次**为 aux 面立守卫，**当场**报出判据范围缺陷（见 B 段）—— 若 aux 面早有守卫，该缺陷不会潜伏至今。
+------------------------------------------------------------------------------
+返工 ① 取证：首版残留判据「一刀切套到 aux 脚本」→ 对按设计引用上一轮的脚本报假 FAIL
+------------------------------------------------------------------------------
+[PASS] B0a 正向对照：能被报「残留」的按设计引用确实存在于该脚本里 行数 = 5
+      L24   W = pathlib.Path("C:/Users/laitz/AppData/Local/Temp/aap-r180-work")
+      L26   LOW_PREV = PREV.lower()          # r179
+      L27   LOW_PREV2 = "R178".lower()       # r178（更早一轮，第二种合成非真值）
+      L62   out.append("锚点：本轮产出的派生脚本 %s（缺陷态与修法态在同一产物上复算，判据自身即被测对象）" % (W / "append-r180.py"))
+      L65   target = W / "append-r180.py"
+[PASS] B1 其中至少 1 行为**上一轮（r179）**形态（即上一轮判据会把它判成残留） 含 r179 的行 = 1
+      说明：该脚本的语义就是「算上一轮的残留」——`LOW_PREV = PREV.lower()` 的注释展示的正是 PREV 的小写形态，`re.search(r"r179[^\n]{0,60}", tail)` 是它的残留扫描模式本身（坑 81/212/216：判据范围必须与语义一致）。
+------------------------------------------------------------------------------
+修法落地核对（锚**修正后**产物）：豁免名单 + 豁免非空断言 + 判别力实测
+------------------------------------------------------------------------------
+[PASS] C0a EXEMPT 集合存在（修法真的落地） 
+[PASS] C0b 包含「豁免非空核对」断言（防止加豁免把规则架空，坑 57/68） 
+[PASS] C0c 包含判别力实测（收窄范围后必须证明守卫仍有牙齿，坑 75/98） 
+[PASS] C1 派生实跑输出存在且含结束标记（区分完整结论与半截输出） 存在 = True
+[PASS] C2 实跑判定 PASS（非豁免文件 0 处残留、豁免非空） 
+[PASS] C3 实跑判别力实测：合成非豁免引用被判红 ∧ 合成豁免引用被豁免 
+------------------------------------------------------------------------------
+判定：PASS（12 条断言全通过）
+ZERO_WRITE=1（本脚本只读仓库与临时目录；唯一写出 = 本证据文件）
