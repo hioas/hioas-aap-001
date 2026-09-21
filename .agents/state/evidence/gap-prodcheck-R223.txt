@@ -3,6 +3,7 @@ R223 产物自检（域 = C:\Users\laitz\AppData\Local\Temp\aap-r223-work 的 .p
 ==============================================================================
   SELF（落盘时产生，单列不对自己断言）= C:\Users\laitz\AppData\Local\Temp\aap-r223-work\gap-prodcheck-r223.py
     域内产物 analyze-r223.py                    19401 字节
+    域内产物 append-notify-note.py              4844 字节
     域内产物 append-row-r223.py                 9140 字节
     域内产物 audit-ledger-r223.py               17142 字节
     域内产物 check-rowdata.py                   851 字节
@@ -20,16 +21,16 @@ R223 产物自检（域 = C:\Users\laitz\AppData\Local\Temp\aap-r223-work 的 .p
     域内产物 pipeline-r223.sh                   1070 字节
     域内产物 r223-regression.py                 21460 字节
     域内产物 round-r223.sh                      4750 字节
-    域内产物 row_data_r223.py                   25026 字节
+    域内产物 row_data_r223.py                   27644 字节
     域内产物 verify-committed-r223.py           4369 字节
 [PASS] D3 正向对照：本轮单一事实源必须在域内（否则域静默缩水，坑 141/169/177/216-③） 域内 = row_data_r223.py（在）
-[PASS] A0a 正向对照：域内 .py 数量 > 0 py=18 sh=2
+[PASS] A0a 正向对照：域内 .py 数量 > 0 py=19 sh=2
 [PASS] A1 域内全部 .py 可编译（compile()） 不可编译 = 无
 [PASS] A0b 探针输出带结束标记（区分「完整结论」与「半截输出」；缺失即判据不可用 -> FAIL，坑 240/141） bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 输出字节=125
 [PASS] A0c 探针对每个 .sh 各给一行结论（解析量 = 域内 .sh 数，正向对照） 结论 2 行 / 域内 .sh 2 个
 [PASS] A2 域内全部 .sh 由同一个 bash 判绿（探针 rc=0） SH_OK=['pipeline-r223.sh', 'round-r223.sh'] SH_BAD=无
-[B] 扫描面 = 19 个产物（SELF 单列，判据范围须与语义一致，坑 81/222）
-[PASS] B0a 正向对照：扫描面 > 0 扫描 19 个
+[B] 扫描面 = 20 个产物（SELF 单列，判据范围须与语义一致，坑 81/222）
+[PASS] B0a 正向对照：扫描面 > 0 扫描 20 个
 [PASS] B1 残留上一轮小写引用的产物 ⊆ 豁免集（新增必须转红） 违规 = 无
 [PASS] B1b 豁免条数 ≤ 1（豁免不得被扩张掩盖，坑 57/68/190） 条数=1
 [PASS] B1c 豁免条目必须**真的**含该引用（否则豁免被架空，坑 57/190） 未含该引用的豁免 = 无
@@ -39,3 +40,13 @@ R223 产物自检（域 = C:\Users\laitz\AppData\Local\Temp\aap-r223-work 的 .p
 ------------------------------------------------------------------------------
 汇总：FAIL = 0 条 （全 PASS）
 PRODCHECK_END=1
+
+------------------------------------------------------------------------------
+两相位对比（终态自检协调器 final-prodcheck-r223.py 追加；口径 = 工作目录 + aux 的 .py/.sh 实测集合）
+  mid   相位域条目数 = 20
+  final 相位域条目数 = 21
+  按设计**最后落盘**的产物 = append-notify-note.py
+    在 mid 域内 = False（应为 False —— 这正是真发现 ① 的机器指纹）
+    在 final 域内 = True（应为 True —— 终态复跑使其首次被 A/B/C 三条判据覆盖）
+  域 ⇔ 实测条目 逐名对账 = 相等
+  mid 相位证据另存 = C:\Users\laitz\AppData\Local\Temp\aap-r223-aux\prodcheck-mid.txt
