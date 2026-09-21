@@ -1,0 +1,67 @@
+R183 取证：上一轮（R182）round-meta ⇔ 磁盘 + HEAD 树逐条对账（清单级）
+        **+ 本轮新增：字段级对账**（计数字段 vs 权威真值 / main_commit 填充）
+
+  meta 文件 = C:\Users\laitz\AppData\Local\Temp\aap-r182-aux\round-meta.json（exists=True）
+[PASS] F1 上一轮 round-meta 可解析（正向对照） ok=True
+  evidence_list 条数 = 16（meta 自记 evidence_main = 16）
+
+  OK     evidence/audit-regression-R182.txt               disk=True head=True
+  OK     evidence/audit-regression-R182-rcseq.txt         disk=True head=True
+  OK     evidence/audit-regression-R182-failraw.txt       disk=True head=True
+  OK     evidence/audit-regression-R182-faildiff.txt      disk=True head=True
+  OK     evidence/green-verify-R182-analysis.txt          disk=True head=True
+  OK     evidence/green-verify-R182-full-run1.txt         disk=True head=True
+  OK     evidence/green-verify-R182-full-run2.txt         disk=True head=True
+  OK     evidence/green-verify-R182-testcount.txt         disk=True head=True
+  OK     evidence/green-verify-R182-coverage-fields.txt   disk=True head=True
+  OK     evidence/green-verify-R182-tested-state.txt      disk=True head=True
+  OK     evidence/gap-ledger-audit-R182.txt               disk=True head=True
+  OK     evidence/gap-preflight-R182.txt                  disk=True head=True
+  OK     evidence/gap-memscope-R182.txt                   disk=True head=True
+  OK     evidence/gap-derive-scope-R182.txt               disk=True head=True
+  OK     evidence/gap-auxguard-R182.txt                   disk=True head=True
+  OK     evidence/gap-meta-desync-R182.txt                disk=True head=True
+[PASS] F2 evidence_list 条数 > 0（正向对照） 16 条
+[PASS] F3 逐条在磁盘上存在 缺失 0 []
+[PASS] F4 逐条在 HEAD 树内 在树内 16/16
+
+  HEAD 树内含 `R182` 的证据文件 = 16 个；其中未被 meta 登记的 = 0 []
+[PASS] F5 无漏列（树上上一轮证据 ⊆ 清单） 漏列 0 []
+
+-- 判别力实测（清单级）：合成 1 条幻影条目必须被恰好点名 1 条（坑 75/98/141）--
+  合成注入 1 条幻影 evidence/gap-phantom-r184.txt -> 判据点名 1 条（期望恰好 1）
+[PASS] F6 判别力：合成幻影被恰好点名 1 条 点名 1 条 ['evidence/gap-phantom-r184.txt']
+
+-- 字段级对账（**本轮新增判据**）：meta 的计数字段 ⇔ 权威真值 --
+  状态文件里「权威数字 = …」形态解析到 35 条（正向对照 > 0，坑 46/75）
+[PASS] F7a 权威数字可解析（正向对照） 解析到 35 条
+  最后一条权威数字（R182 收尾更正段）= 真发现 3 / 返工 6 / 改进 3
+  R182 round-meta 的对应字段        = 真发现 3 / 返工 5 / 改进 3
+  ⇒ **不一致**：收尾更正未同步到 round-meta 的计数字段（坑 210/215 的字段级实例）
+[FAIL] F7b 上一轮 meta 的计数字段与权威真值一致（收尾更正必须逐字段同步） meta=(3,5,3) 权威=(3,6,3)
+
+-- 字段级对账（**本轮新增判据**）：`main_commit` 的填充 ⇔ 台账「提交」列 --
+  台账 R182 行「提交」列 = '43ce0eb'
+  meta.main_commit     = ''（键存在 = True）
+[PASS] F8a 该槽位被声明（判据适用范围的前提，正向对照） main_commit=''
+  ⇒ **不一致**：槽位被声明为字符串却为空/与台账不符 —— 声明却从未被填充的槽位（坑 238 同族）
+[FAIL] F8b 声明了的 main_commit 必须等于台账「提交」列的值（非空） meta='' 台账='43ce0eb'
+  扫描范围 = R182 的产物（声明该槽位那一轮；本轮产物只是**读**它，按语义不入范围，坑 81）
+  含 main_commit 字样的产物 = 2 个；其中**非空初始化**的写入点 = 0 个 []
+  逐个命中行（供复核）：
+    report-r182.py:359: "evidence_dir": "evidence/", "main_commit": ""}
+    round-meta.json:45: "main_commit": ""
+  ⇒ 影响面：round-meta **未被 git 跟踪**、且当下无消费方读该字段 ⇒ 分级为**低风险契约一致性项**；
+     但若后续把它当「上一轮主提交号」的期望值使用，会立刻产生假 FAIL（与历史 phantom-entry 缺陷同源）。
+
+  据实分级（坑 176/214）：清单级 F1–F6 是对**上一轮修法**的复跑核对 —— 若 0 漂移，只能写
+  「上一轮修法在本轮复跑下**未复现**该缺陷态」，**不得**写成「本轮修复有效」。
+
+-- 字段级对账（**本轮新增判据**）：同一轮状态段落内「权威数字」自述标记唯一 --
+  段落 = 从 `### R182 巡检轮` 起，5531 字符（正向对照 > 0）
+[PASS] F9a 上一轮段落可定位且非空（正向对照） 5531 字符
+  「权威数字」出现次数 = 3；解析到带取值的形态 = 3 条，取值 = [('3', '5', '3'), ('3', '5', '3'), ('3', '6', '3')]
+[FAIL] F9 同一轮段落内「权威数字」字样恰好 1 次（多处自称「权威」且取值冲突即自相矛盾，坑 12/95/226） 出现 3 次（取值 [('3', '5', '3'), ('3', '5', '3'), ('3', '6', '3')]）
+[PASS] F9b 判别力：合成再追加一条自称权威的行 → 判据转红（守卫有牙齿） 合成后 = 4 次（期望 > 1）
+
+判定：见上方 3 条 FAIL 行

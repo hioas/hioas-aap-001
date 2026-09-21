@@ -1,0 +1,49 @@
+R183 取证：并发前置检查实况 + 可达性（坑 11/20/158/238/240/251）
+
+-- 判据由「执行被测对象的同一个 shell」给出（坑 251）--
+  探针执行方式 = **由执行器所用的同一个 bash 跑**（emit/run/consume 三段分离，坑 240）：
+    emit    = C:\Users\laitz\AppData\Local\Temp\aap-r183-auxonce\probe-reach-R183.sh（静态脚本，本轮产物）
+    run     = bash <probe> > C:\Users\laitz\AppData\Local\Temp\aap-r183-aux\probe-reach-R183.out（由 pipeline-r183.sh 在同一个 bash 下执行）
+    consume = 本脚本只读输出文件并断言结束标记
+  探针输出文件 = C:\Users\laitz\AppData\Local\Temp\aap-r183-aux\probe-reach-R183.out（exists=True，145 字节）
+    | PROBE_BASH=/usr/bin/bash
+    | PROBE_UNAME=MINGW64_NT-10.0-26100
+    | PROBE_MVN=/c/Users/laitz/bin/mvn
+    | JPS_OK=1
+    | JPS_LINES=16
+    | MEMFREE_KB=1364236
+    | PROBE_END=1
+[PASS] P1a 可达性探针输出带结束标记（区分完整结论与半截输出，坑 240） 含 PROBE_END=True
+[PASS] P1b jps 在当前 PATH/该 shell 下可达（[ -x ] 语义；Python 侧不做等价判定，坑 251） JPS_OK=1
+[PASS] P1c 探针报告的 bash 与执行器一致（都来自同一个 MSYS 安装） 探针 bash=['/usr/bin/bash'] / 执行器 bash=/usr/bin/bash
+
+-- 跨运行时判「同一事实」的分歧（坑 251 的现场实测）--
+  shell 侧（执行器所用同一个 bash）：`[ -x E:/.../bin/jps ]` = Y
+  Python 侧 Path('.../bin/jps').exists()      = False
+  Python 侧 Path('.../bin/jps.exe').exists()  = True
+  => MSYS 的 `[ -x ]` **透明解析扩展名**（磁盘上是 jps.exe），Python 的 exists() 不做该解析。
+     若把「门槛目标是否可达」的体检写在 Python 侧，必然产出「门槛不可达」的**假发现**（坑 251）。
+[PASS] P1d 探针（shell 侧）判可达 = Y，且证据同时记录 Python 侧判据（跨运行时口径必须声明） shell=Y / python(.exe)=True / python(无后缀)=False
+
+-- 执行器自采样（facts-run.log）--
+  ROUND                            = R183
+  SESSION_HEAD                     = 3210296
+  WT_SHA                           = 3210296
+  PREFLIGHT_JPS_REACHABLE          = Y
+  PREFLIGHT_JPS_LINES              = 17
+  PREFLIGHT_CONCURRENT_TEST_JVMS   = 0
+  PREFLIGHT_SAME_REPO_MAVEN        = 0
+  PREFLIGHT_FOREIGN_MAVEN          = 1
+  PREFLIGHT_MEM_AVAIL_MB           = 1315
+  PREFLIGHT_MEM_KEY                = MemFree
+  PREFLIGHT_MEM_FLOOR_MB           = 900
+  PREFLIGHT_OK                     = 1
+  PREFLIGHT_SERVER_DIRTY           = 0
+[PASS] P2 前置检查真的执行过（PREFLIGHT_OK 键存在且 = 1，坑 238） PREFLIGHT_OK=1、PREFLIGHT_EXECUTED 标记见执行器输出
+[PASS] P3 无并发测试 JVM 且无同仓库 maven（两档中止判据均为 0） 测试JVM=0 同仓maven=0
+[PASS] P4 内存档达标（自采样 >= 下限） 1315 MB / 下限 900 MB（键 MemFree）
+
+-- 邻仓 maven（观察项，按判据不中止）--
+  FOREIGN_MAVEN = 1（项目目录见执行器输出的观察项段）
+
+判定：PASS

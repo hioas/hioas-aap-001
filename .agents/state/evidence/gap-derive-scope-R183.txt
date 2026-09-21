@@ -1,0 +1,63 @@
+R183 取证：本轮派生面逐条核对（本轮**新建**，不滚动上一轮取证脚本）
+
+范围（结构性收敛，历史决定、本轮沿用）：只滚动「判据由运行时事实推出」的脚本；
+含历史事实陈述的取证/叙事脚本**不机械滚动**，改为按当前轮实测事实重新生成。
+
+-- 滚动产物（5 个，来自 R182 单趟映射）--
+  round-r183.sh                  exists=True size=6000
+  analyze-r183.py                exists=True size=15855
+  r183-regression.py             exists=True size=15174
+  audit-ledger-r183.py           exists=True size=9827
+  compare-faildiff-r183.py       exists=True size=2641
+  run-when-ready-r183.sh         exists=True size=2667
+
+-- 本轮新撰产物（8 个，按当前轮事实生成，零历史自述）--
+  rd183-checks.py                exists=True
+  report-r183.py                 exists=True
+  finalize-r183.py               exists=True
+  notify-log-r183.py             exists=True
+  syntax-check-r183.py           exists=True
+  derive-r183.py                 exists=True
+  commit-col-r183.py             exists=True
+  probe-reach-r183.sh            exists=True
+
+[PASS] D1 派生面逐条存在（正向对照：条数 > 0） 14/14 存在
+[PASS] D2 全部 python 产物可编译（坑 235：显式语法核对，不靠肉眼） 失败=无
+
+-- 关键锚点核对（逐产物断言其**真的**被写出，锚点取该产物源码真实字面量，坑 66/94/218/225）--
+  OK     round-r183.sh              PREFLIGHT_EXECUTED=1                     (前置检查执行标记)
+  OK     round-r183.sh              FACTS_END=1                              (事实文件收尾标记)
+  OK     analyze-r183.py            green-verify-%s-analysis.txt             (分析证据文件名 format 串)
+  OK     analyze-r183.py            FACTS_END_MARK=1                         (分析收尾标记)
+  OK     r183-regression.py         audit-regression-R183-rcseq.txt          (回归 rc 序列文件名)
+  OK     r183-regression.py         REGRESSION_END=1                         (回归收尾标记)
+  OK     audit-ledger-r183.py       aap-server-feature-status.csv            (台账路径)
+  OK     compare-faildiff-r183.py   audit-regression-R183-faildiff.txt       (FAIL 差异文件名)
+[PASS] D3 关键锚点全部命中（8 条，正向对照） 命中 8/8，未命中=无
+
+-- 自述事实源：本轮**不滚动**上一轮叙事，故无「历史事实被改写成本轮自述」的载体 --
+  机器证据 A：本轮无 append 叙事产物；报告三处正文由 report-r183.py 按 facts + narr json 现场生成。
+  机器证据 B：判据取自**派生脚本的真实输入清单**（而不是按名字猜一个黑名单 —— 坑 81/213：判据范围必须与语义一致）。
+  派生脚本 = C:\Users\laitz\AppData\Local\Temp\aap-r183-auxonce\derive-r183.py（exists=True）
+  解析到 WORK_FILES = 5 条 ['round-r182.sh', 'analyze-r182.py', 'r182-regression.py', 'audit-ledger-r182.py', 'compare-faildiff-r182.py']
+  解析到 AUX_FILES  = 1 条 ['run-when-ready-r182.sh']
+[PASS] D4a 滚动清单可解析且条数 > 0（正向对照） WORK=5 AUX=1
+[PASS] D4 滚动清单里**不存在**任何「含历史事实陈述」的取证/叙事脚本（结构性消除的落地核对） 滚动 6 条；命中取证/叙事模式 = 无
+[PASS] D4b 判别力：合成混入 1 条取证脚本名 → 判据点名 1 条（守卫有牙齿） 点名 1 条 ['gap-scope-r182.py']
+
+-- 机制演示（**历史载体**，坑 176/214：这是可复现的机制演示，不是本轮的修复对象）--
+  为什么用历史载体：D4 已断言本轮滚动清单里没有取证/叙事脚本 —— 该缺陷类在**载体层面**已不存在；
+  故这里只能在一份仍然在磁盘上的历史载体上演示机制（据实分级：不得写成「本轮修复有效」）。
+  被测载体 = C:\Users\laitz\AppData\Local\Temp\aap-r181-auxonce\gap-scope-r181.py（exists=True；由 round 号拼出，**必须带回 r 前缀**）
+[PASS] D5a 历史载体存在于磁盘上（正向对照：载体不可缺，否则演示空转） exists=True
+  ① 该载体声称：`evidence/gap-derive-scope-R180.txt`该文件**既不在 HEAD 树内、也不在磁盘上**
+     当下实测：磁盘存在 = True；在 HEAD 树内 = True
+[PASS] D5 机制演示：该「不存在」陈述被当下事实反驳（历史陈述与事实不符） 磁盘=True HEAD=True
+  ② 载体第 3 行含 `引入于 R180`（正向对照：锚点真的在载体原文里 = True）
+     按同一个三级映射 {'179': '180', '180': '181', '181': '182'} 滚动后，同一句变成：
+     """R182 取证③（复跑）：派生脚本「小写上一轮残留」判据的**范围**与语义不符（历史返工，**引入于 R181**）。
+[PASS] D6 机制演示：机械滚动确实改写了该历史陈述（可复现的字符串变换） 原含 引入于 R180=True / 滚动后含 引入于 R181=True / 原标签仍存=False
+  ⇒ 结论：历史引用在被滚动后会变成**对后一轮的断言**；本轮滚动清单里不存在这类载体 ——
+     按坑 176/214 记「本轮未复现该缺陷态」。
+
+判定：PASS

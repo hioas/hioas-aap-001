@@ -1,0 +1,38 @@
+R183 取证：内存门槛的两个**独立采样点**（等待器 vs 执行器）
+
+背景（历史返工，见 round 脚本注释）：两者是两个独立采样点 —— 等待器达标不蕴含执行器也达标。
+
+-- 等待器采样（C:\Users\laitz\AppData\Local\Temp\aap-r183-aux\wait-mem.log）--
+  LAUNCH_START=2026-09-21 11:52:11
+  11:52:11 attempt 1 MemFree=759MB floor=900MB
+  11:52:31 attempt 2 MemFree=812MB floor=900MB
+  11:52:51 attempt 3 MemFree=757MB floor=900MB
+  11:53:11 attempt 4 MemFree=499MB floor=900MB
+  11:53:32 attempt 5 MemFree=776MB floor=900MB
+  11:53:52 attempt 6 MemFree=798MB floor=900MB
+  11:54:12 attempt 7 MemFree=694MB floor=900MB
+  11:54:32 attempt 8 MemFree=631MB floor=900MB
+  11:54:52 attempt 9 MemFree=779MB floor=900MB
+  11:55:13 attempt 10 MemFree=813MB floor=900MB
+  11:55:33 attempt 11 MemFree=1409MB floor=900MB
+  11:55:33 门槛通过 -> 启动执行器
+  11:59:01 执行器结束 rc=0
+  11:59:01 执行器正常收尾 rc=0
+  EXECUTOR_RC9_COUNT=0
+  LAUNCH_END=2026-09-21 11:59:01
+  LAUNCH_END=1
+[PASS] M1 等待器采样序列非空（正向对照，坑 46/75） 采样 11 次
+[PASS] M2 等待器记录的起止时刻齐备 LAUNCH_START=True / LAUNCH_END=1=True
+  等待器 min=499 MB / max=1409 MB / 尝试 11 次（下限 900 MB）
+
+-- 执行器自采样（facts-run.log）--
+  执行器自采样 = 1315 MB（键 MemFree、下限 900 MB）
+  executor.rc 记录 = 'EXECUTOR_RC=0（第 11 次尝试）'
+[PASS] M3 执行器真的跑完了（executor.rc 含 EXECUTOR_RC=0，不是 rc=9 自中止，坑 238/243-③） executor.rc='EXECUTOR_RC=0（第 11 次尝试）'
+
+  两采样点差 = 94 MB（等待器最后一次采样 - 执行器自采样）
+  据实结论：两采样点分歧已出现（本轮实测）
+
+门槛取向说明：MemFloor 取自历史实测失败区间，**本轮未降低门槛**（属待拍板项）。
+
+判定：PASS
