@@ -1,0 +1,19 @@
+==============================================================================
+R205 复验 ②：零写副作用判据的**范围缺口**是否仍存在（历史；待拍板）
+==============================================================================
+[PASS] S0 analyze 的 E0a 快照条数可解析（正向对照） 产物 = 84 个
+      生成器 --check rc = 0（只读，仓库未被改写）
+[PASS] S1 生成器 --check rc=0（范围**内**的产物逐一致） 
+[PASS] S2 范围（生成物）非空且与 analyze 口径一致（正向对照） scope=84
+[PASS] S3 回合窗口起点可解析（正向对照） RUN1_START=2026-09-21 22:32:15
+      回合窗口（自 2026-09-21 22:32:15 起）：范围**外**命中文件 = 2 个
+        .agents/state/evidence/endpoint-test-audit.json（mtime 22:36:54，git 跟踪 = 是）
+        .agents/state/evidence/endpoint-test-audit.txt（mtime 22:36:54，git 跟踪 = 是）
+      当轮证据（.agents/state/evidence/*R205*）命中 = 13 个（按设计属范围内）
+[PASS] S4 当轮证据目录命中 > 0（正向对照：说明扫描真的工作） 13 个
+      结论（诚实分级）：范围**外**的仓库写入 = 2 个；判据只快照**范围**（生成物）→ 这些写入对 E1 不可见（历史引入的范围缺口仍在；扩面 = 判据取向变更 → 待拍板）。
+[PASS] S5 复验：范围外的仓库写入集**非空**（缺口仍存在 —— 与历史登记一致） ['.agents/state/evidence/endpoint-test-audit.json', '.agents/state/evidence/endpoint-test-audit.txt']
+汇总：FAIL = 0 条 （全 PASS）
+SUMMARY_SCOPE_SIZE=84
+SUMMARY_OUT_OF_SCOPE_NONOWN=2
+GAP_WRITESCOPE_END=1
