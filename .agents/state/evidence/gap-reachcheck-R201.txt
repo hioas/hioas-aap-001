@@ -1,0 +1,33 @@
+==============================================================================
+真发现取证（历史，引入于 R200）—— 门槛可达性缺口（判定不可用冒充通过）；本文件按当轮复跑产出
+==============================================================================
+[A] 修正前（历史事实：R199 及其更早轮次的**实际产物**）
+  A aap-r197-precheck.stdout 的 [E] 行数 = 3（其中 derive 行 = 1）
+  A aap-r198-precheck.stdout 的 [E] 行数 = 3（其中 derive 行 = 1）
+  A aap-r199-precheck.stdout 的 [E] 行数 = 2（其中 derive 行 = 0）
+  A4 磁盘现状（该文件是否真的在**它当时被指向的那个目录**里）：
+       exists=False aap-r199-auxonce/derive-r199.py
+       exists=True  aap-r199-derive.py（临时根，实际位置）
+  A5 修正前源码：R199 的 dg 行 = ['dg = A197 / "derive-r198.py"']
+  A6 受控对照（只改目标目录这一个变量）：取 auxonce -> 未可达 ['derive'] ；取临时根 -> 未可达 []
+[B] 当轮 R201 现状与**真重跑输出**（证明该守卫每轮都真的执行）
+  B1 aap-r201-precheck.stdout 的 [E] 行数 = 4（其中 derive 行 = 1）
+  B2 门槛可达性判定 = ['[E] 门槛可达性：未可达的检查 = []（须为空）']
+  B3 源码：dg 指向临时根的 derive = True
+  B4 源码：门槛可达性守卫存在 = True
+  B5 当轮三项门槛的真实可达性判定 = []（须为空）
+[C] 判别力实测（守卫必须**有牙齿**，历史纪律 75/98）
+  C1 合成缺陷形态（历史写法：取 auxonce）= ['derive']（须非空 = 守卫有牙齿）
+  C2 真实形态（取临时根）= []（须为空）
+  C3 合成不存在目标 = ['derive']（须非空）
+[S] 零字面反斜杠自检：本文件含反斜杠 = 0（须为 0）
+------------------------------------------------------------------------------
+SUMMARY_EPRE_HIST=2
+SUMMARY_EPRE_HIST_DERIVE=0
+SUMMARY_EPRE_CUR=4
+SUMMARY_EPRE_CUR_DERIVE=1
+SUMMARY_CTRL_AUX=['derive']
+SUMMARY_CTRL_ROOT=[]
+SUMMARY_GUARD_PRESENT=True
+FAIL = 0 []
+REACHCHECK_END=1

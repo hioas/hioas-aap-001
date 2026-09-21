@@ -1,0 +1,37 @@
+==============================================================================
+R201 真发现取证 —— 回归面「崩溃型红」通道缺口（gap-coverage-gap）
+==============================================================================
+[A] 留档证据里的逐轮 rc 轨迹（从 audit-regression-R*.txt 解析，非人工记忆）
+  解析到 43 轮留档（>0 正向对照）；区间 R159–R201
+  最近 6 轮：['R196 rc=1', 'R197 rc=1', 'R198 rc=1', 'R199 rc=1', 'R200 rc=1', 'R201 rc=1']
+  A1 首次非零 rc 的轮次 = R173（该轮报告把它标为 `!!` = rc **变化**被捕捉到）
+  A2 连续非零 rc 的轮次 = 29 轮（R173–R201）
+  A3 转折点前一轮（rc=0 的正向对照）= R172
+[B] 「rc 变化」通道 ⇔ 「FAIL 明细」通道 —— 双双对「稳定非零 rc」失明
+  B1 本轮回归报告里该条目 = rc=1 (上一轮=1) FAIL行=0
+  B2 本轮结论句（从留档实际措辞解析）：
+      | 本轮复跑 = 82 条 / R200 = 82 条；rc 变化 0 条、新增 0、未复跑 0
+      | 判定：零回归
+  B3 全表：rc=0 条数 = 46 / 总条数 = 82 / rc!=0 条数 = 36
+  B4 rc!=0 且 FAIL 明细 = 0 行的条目（两通道皆不可见）= 2 条 ['gap-coverage-gap', 'gap-coverage-gap-selftest']
+  B5 正向对照：FAIL 明细行非零的条目数 = 34 > 0（判据真的在读这张表）
+  B6 该判据本轮崩溃信息里挂着的缺口条目数 = 30（逐轮增长：这是「稳定非零 rc」掩盖的内容）
+     首/末 = aap-r172-work/audit-ledger-r172.py … aap-r201-work/audit-ledger-r201.py
+[C] 缺口分类（历史纪律 178 三分类；判「红属已知类」而非新缺陷）
+  C1 缺口文件名唯一集合 = ['audit-ledger-r172.py', 'audit-ledger-r173.py', 'audit-ledger-r174.py', 'audit-ledger-r175.py', 'audit-ledger-r176.py', 'audit-ledger-r177.py', 'audit-ledger-r178.py', 'audit-ledger-r179.py', 'audit-ledger-r180.py', 'audit-ledger-r181.py', 'audit-ledger-r182.py', 'audit-ledger-r183.py', 'audit-ledger-r184.py', 'audit-ledger-r185.py', 'audit-ledger-r186.py', 'audit-ledger-r187.py', 'audit-ledger-r188.py', 'audit-ledger-r189.py', 'audit-ledger-r190.py', 'audit-ledger-r191.py', 'audit-ledger-r192.py', 'audit-ledger-r193.py', 'audit-ledger-r194.py', 'audit-ledger-r195.py', 'audit-ledger-r196.py', 'audit-ledger-r197.py', 'audit-ledger-r198.py', 'audit-ledger-r199.py', 'audit-ledger-r200.py', 'audit-ledger-r201.py']
+  C2 其中「轮次号变体」条目 = 30 / 30（语义与在册的同名脚本相同，仅轮次号不同 -> R178 第 ② 类）
+  C3 非轮次号变体（= 真缺口候选，R178 第 ③ 类）= 无
+  C3b 正向对照：判据对合成「非变体」文件名必须点名 = ['aap-r5-work/plain-script.py', 'aap-r6-work/audit-x.py', 'aap-r7-work/f.py']（须非空）
+[D] 判别力实测（守卫必须有牙齿，历史纪律 75/98/244）
+  D1 合成输入（rc 非零 + FAIL 明细 0 行）-> 判据点名 = ['synth-perma-red']（须含 synth-perma-red）
+  D2 合成输入里的绿条目 = []（须为空，证明判据不滥报）
+  D3 本轮真实表 -> 判据点名 = ['gap-coverage-gap', 'gap-coverage-gap-selftest']（须含 gap-coverage-gap）
+------------------------------------------------------------------------------
+SUMMARY_FIRST_RED=173
+SUMMARY_RED_ROUNDS=29
+SUMMARY_LAST_GREEN=172
+SUMMARY_BLIND_COUNT=2
+SUMMARY_GAP_ENTRIES=30
+SUMMARY_RC_SEQ=[1, 1, 1, 1, 1, 1]
+FAIL = 0 []
+SILENTRED_END=1
