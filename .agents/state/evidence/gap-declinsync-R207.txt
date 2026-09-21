@@ -1,0 +1,35 @@
+==============================================================================
+R207 真发现 ①：声明清单对齐被滚动撤销 -> 后果扩散到复验套件 X8
+==============================================================================
+[PASS] A0a 正向对照：crosscheck 源码可读且 EVID 区块解析到条目 40581 字符 / 声明 19 条
+[PASS] A0b 正向对照：上一轮 row-data 的 EVID 区块解析到条目 19 条
+      本轮声明清单 = 19 条；上一轮 = 19 条
+[PASS] A1a 正面对照：修正前 crosscheck 输出的「未被产出」可解析 （0 命中先怀疑判据，历史纪律 46）
+[PASS] A1b 修正前「未被产出的声明」条数 = 2 且可点名 实测 2 条 ['gap-obsdup-R207.txt', 'gap-drivelayer-R207.txt']
+      上一轮清单滚动到本轮 = 19 个名字
+[PASS] B1 未被产出的 2 条**全部**是上一轮清单的滚动形态（机制 = 滚动带入） 命中 2 条
+[PASS] B2 这 2 条在上一轮清单里**确实存在**（证明是带入、而非新造） 命中 2 条
+[PASS] B3 本轮产物里 gap-obsdup-R207.txt 的写点数 = 0（确无产出人） 写点 0 处
+[PASS] B3 本轮产物里 gap-drivelayer-R207.txt 的写点数 = 0（确无产出人） 写点 0 处
+[PASS] C0a 正向对照：R206 / R207 的复验 ④ 输出都可读 R206=3205 字符 / R207=3290 字符
+[PASS] C0b 正向对照：两侧都解析到 X8 行（> 0 才可判定） R206=1 行 / R207=3 行
+[PASS] C1 R206 的 X8 = N/A（未被产出 = 0 -> 性质结构性不可判定） [N/A ] X8 相位例外必要性核对：本相位未被产出的声明 = 0 条 -> 例外**不被需要**、性质结构性不可判定（判定不可用，不作通过主张）；事实：声明 19 条 / 未被产出 0 条 / 白名单 5 条
+[PASS] C2 R207 的 X8 = FAIL（相位分支翻转为实际判定） [FAIL] X8 第三件实测：白名单**恰好等于**当时未被产出的声明（无缺失 ∧ 无多余） 实测未被产出 2 条 ['gap-drivelayer-R207.txt', 'gap-obsdup-R207.txt'] 
+[PASS] C3 R207 复验 ④ 汇总 FAIL = 1（该红不在 regression 的 rc / FAIL 两条通道里，见真发现 ②） 
+      白名单源码 token = ['gap-rounddomain-', '.txt', 'gap-exemptvac-', '.txt', 'gap-writescope-', '.txt', 'gap-verifyhist-', '.txt', 'gap-narrscope-', '.txt']
+      白名单展开（拼接形态还原）= ['gap-rounddomain-R207.txt', 'gap-exemptvac-R207.txt', 'gap-writescope-R207.txt', 'gap-verifyhist-R207.txt', 'gap-narrscope-R207.txt']
+[PASS] D0 正向对照：白名单解析到 5 条（> 0） 条数=5
+[PASS] D1 白名单展开 ∩ 未被产出的声明 = 0（豁免对通过条件贡献 0） 交集 = 空
+[PASS] E1 判别力实测：合成「未被产出 = 0」的同一判定式取 N/A 分支 合成行 = '未被产出的声明 = 0 条 -> 例外**不被需要**'
+[PASS] E2 判别力实测（反向）：合成「未被产出 = 2」不得被判 N/A 
+[PASS] E3 判别力实测：B3 的写点扫描对**含写点**的合成文本必须命中（非空转） 
+------------------------------------------------------------------------------
+SUMMARY_MISS_N=2
+SUMMARY_MISS_NAMES=gap-obsdup-R207.txt,gap-drivelayer-R207.txt
+SUMMARY_B3_WRITEPOINTS=0
+SUMMARY_WHITELIST_N=5
+SUMMARY_INTERSECTION_N=0
+SUMMARY_X8_PREV_N_A=1
+SUMMARY_X8_NOW_FAIL=1
+判定：PASS
+GAP_DECLINSYNC_END=1
