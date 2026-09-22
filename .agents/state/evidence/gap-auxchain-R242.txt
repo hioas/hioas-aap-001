@@ -1,0 +1,60 @@
+==============================================================================
+真发现取证（历史，引入于更早一轮；本轮为复跑并更新事实）：aux 滚动脚本是否在主派生链里（只读）
+==============================================================================
+-- A. 主派生器 FILES 清单 --
+  解析到产物条数 = 14（正向对照须 > 0，历史纪律 46/75/98）
+    r241-regression.py             -> r242-regression.py
+    compare-faildiff-r241.py       -> compare-faildiff-r242.py
+    analyze-r241.py                -> analyze-r242.py
+    append-r241.py                 -> append-r242.py
+    closeout-r241.py               -> closeout-r242.py
+    mkcommit-r241.py               -> mkcommit-r242.py
+    notify-r241.py                 -> notify-r242.py
+    probe-r241.py                  -> probe-r242.py
+    fix-row-r241.py                -> fix-row-r242.py
+    round-r241.sh                  -> round-r242.sh
+    fix-state-r241.py              -> fix-state-r242.py
+    syntax-check-r241.py           -> syntax-check-r242.py
+    mknotifymsg-r241.py            -> mknotifymsg-r242.py
+    probe-bash-n.sh                -> probe-bash-n.sh
+[PASS] A0a 解析到主派生产物条数 > 0 14 条
+[PASS] A1 主派生链里不含 aux-roll（该链接由人工另行处理） 含 aux-roll 的产物 = []
+[PASS] A2 主派生链产物数 = 14 14 条
+-- B. 逐轮 work-derive 目录清单 --
+  work-derive 目录数 = 10（正向对照须 > 0）
+    aap-r233-work-derive     ['derive-r233.py']
+    aap-r234-work-derive     ['derive-r234.py']
+    aap-r235-work-derive     ['aux-roll-r235.py', 'derive-r235.py']
+    aap-r236-work-derive     ['append-ref-r236.py', 'aux-roll-r236.py', 'derive-r236.py', 'gap-auxchain-r236.py', 'syntax-check-r236.py']
+    aap-r237-work-derive     ['aux-roll-r237.py', 'derive-r237.py', 'gap-auxchain-r237.py']
+    aap-r238-work-derive     ['aux-roll-r238.py', 'derive-r238.py', 'gap-auxchain-r238.py']
+    aap-r239-work-derive     ['aux-roll-r239.py', 'derive-r239.py', 'gap-auxchain-r239.py']
+    aap-r240-work-derive     ['aux-roll-r240.py', 'derive-r240.py', 'gap-auxchain-r240.py']
+    aap-r241-work-derive     ['aux-roll-r241.py', 'derive-r241.py', 'gap-auxchain-r241.py']
+    aap-r242-work-derive     ['aux-roll-r242.py', 'derive-r242.py', 'gap-auxchain-r242.py']
+[PASS] B0a work-derive 目录数 > 0 10 个
+[PASS] B1「含 aux-roll 的轮次目录」严格少于「全部轮次目录」（说明它是后加入的、非固定链成员） 含 aux-roll 的目录 = ['aap-r235-work-derive', 'aap-r236-work-derive', 'aap-r237-work-derive', 'aap-r238-work-derive', 'aap-r239-work-derive', 'aap-r240-work-derive', 'aap-r241-work-derive', 'aap-r242-work-derive']
+-- C. 目标轮次号是人工输入 --
+  本轮 aux-roll 的 DST = aap-r242-aux
+  上一轮 aux-roll 的 DST = aap-r241-aux
+[PASS] C1 本轮与上一轮的 aux 滚动目标**不同**（照抄上一轮会把 aux 工具滚到上一轮轮次号） aap-r242-aux vs aap-r241-aux
+-- D. aux 覆盖面（本轮与上一轮相等；扩面引入于更早一轮，去化轮次号）--
+  本轮 aux-roll FILES = 3 个：['selfnarr-scan-r242.py', 'verify-R242.py', 'gap-coverage-scan-r242.py']
+  上一轮 aux-roll FILES = 3 个：['selfnarr-scan-r241.py', 'verify-R241.py', 'gap-coverage-scan-r241.py']
+  对照：全文裸正则解析本轮条数 = 3（与块内条数相同 = 当前源码里没有块外二元素配对，故收窄的必要性必须用**合成注入**证明，见 D0b）
+[PASS] D0a aux-roll FILES 解析到条数 > 0（两轮各一） 3 / 3
+[PASS] D0b 块内解析确为**收窄**判据（合成注入块外配对后：全文 4 > 块内 3） 块内保持 3 条
+[PASS] D1 本轮 aux 覆盖面与上一轮**相等**（扩面已在更早一轮落地，本轮未新增） 3 vs 3
+[PASS] D2 三项**全部原样保留**（逐项映射回上一轮后与上一轮 DST 逐项相等，非替换） 本轮映射到上一轮 = ['gap-coverage-scan-r241.py', 'selfnarr-scan-r241.py', 'verify-R241.py'] / 上一轮 DST = ['gap-coverage-scan-r241.py', 'selfnarr-scan-r241.py', 'verify-R241.py']
+-- E. aux 滚动窗口宽度是数据依赖的（历史纪律 239 的守卫正确工作）--
+  源侧并集：R240 = 0 处 / R241 = 33 处（候选窗口 = {240, 241}，宽度 2）
+  实际有命中的窗口形态 = ['241']（窗口宽度 = 1）
+[PASS] E0a 源侧解析到当前轮形态 R241 > 0 33 处
+[PASS] E1 候选两键里恰有一个是**空转键**（照抄两键窗口会让空转键守卫响亮失败） 空转键 = ['240']
+[PASS] E2 aux-roll-r242.py 已按**实测宽度**构造窗口（源码里含宽度自适应代码） 含自适应赋值
+==============================================================================
+结论：主派生链 = 14 个产物（不含 aux-roll）；aux 滚动脚本由人工每轮另行处理 —— 
+      属流程层结构性缺口（不造成假绿：目标轮次号写错会被「产物须含本轮形态」断言响亮拦下，历史纪律 175 正例）。
+      aux 覆盖面 = 3 个（扩面引入于更早一轮，本轮未改）；窗口宽度 = 1（数据依赖，非常量）。
+FAIL = 0 条 （全 PASS）
+AUXCHAIN_END=1
