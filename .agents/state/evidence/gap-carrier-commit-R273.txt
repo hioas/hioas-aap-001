@@ -1,0 +1,42 @@
+==============================================================================
+R273 载体提交态自洽探针（第 ① 处：现状 + 现行复跑覆盖范围；只读）
+==============================================================================
+-- A 段：三交付载体的 HEAD 树 ⇔ 工作区（逐字节）--
+  aap-server-feature-status.csv                HEAD=1700711 字节 / 工作区=1700711 字节 / 相等=True
+  coverage-history.txt                         HEAD= 547870 字节 / 工作区= 547870 字节 / 相等=True
+  aap-server-tdd-state.md                      HEAD=1667237 字节 / 工作区=1667237 字节 / 相等=True
+[PASS] A0 正向对照：三载体均成功读取且字节数 > 0 读取失败 = []
+[PASS] A1 三载体提交态 ⇔ 工作区 逐字节相等（收尾提交未漏 add） 不等 = []
+-- A2 判别力实测（历史纪律 66/75/98/141）--
+  合成态与真实态不同 = True（须 True；否则合成反例退化为真实态）
+[PASS] A2 合成「工作区比 HEAD 多一行」被判不等 载体 = coverage-history.txt
+-- B 段：提交态读取点暴露面扫描（扫描根显式枚举，历史纪律 213-①）--
+  扫描根集合 = ['E:\\workspaces\\hioas\\hioas-aap-001\\tools/*.py', 'C:\\Users\\laitz\\AppData\\Local\\Temp/aap-r*-work/*.py', 'C:\\Users\\laitz\\AppData\\Local\\Temp/aap-r*-aux/*.py', 'C:\\Users\\laitz\\AppData\\Local\\Temp/aap-r*-spotcheck/*.py']
+  自指排除（历史纪律 222）：probe-carrier-commit-r273.py 与 preexplore-* 共排除 4 个（扫描集 2972 -> 2968）
+  扫描脚本数 = 2968（正向对照 > 0）；HEAD 读取点：代码形 = 206 / 散文形 = 59 / 动态形（未能静态判定）= 156
+[PASS] B0 正向对照：扫描脚本数 > 0 且代码形读取点 > 0 脚本=2968 代码形=206
+  代码形读取点（全量 206 条，按载体归并后逐条列在下方 B1）
+  散文形（**不计入覆盖**，历史纪律 81）：59 条 ['final-verify.py', 'final-verify.py', 'final-verify.py', 'final-verify.py', 'final-verify.py', 'final-verify.py']
+  动态形（未能静态判定）：156 条
+  现行面：driver 引用脚本 = 79 个 / 本轮工艺产物 = 8 个（均 > 0 正向对照）
+[PASS] B0b 正向对照：driver 与本轮工艺产物集合均非空 driver=79 live=8
+-- B1 逐载体：提交态覆盖（全部历史读取点 / 其中属于现行每轮复跑面）--
+  aap-server-feature-status.csv              历史读取点 122 个；现行每轮复跑面内 = ['final-check-r273.py', 'postcommit-check-r273.py']
+      仅历史一次性产品读过（不在 driver、非本轮产物）：['dump-rowtail-r256.py', 'final-check-r253.py', 'final-check-r262.py', 'final-check-r263.py', 'final-check-r264.py', 'final-check-r265.py', 'final-check-r266.py', 'final-check-r267.py'] …（共 120 个）
+  coverage-history.txt                       历史读取点  29 个；现行每轮复跑面内 = **无**（仅历史一次性产品读过）
+      仅历史一次性产品读过（不在 driver、非本轮产物）：['gap-truth-consistency-R146.py', 'gap-truth-consistency-R147.py', 'gap-truth-consistency-R148.py', 'gap-truth-consistency-R149.py', 'gap-truth-consistency-R150.py', 'gap-truth-consistency-R151.py', 'gap-truth-consistency-R152.py', 'gap-truth-consistency-R153.py'] …（共 29 个）
+  aap-server-tdd-state.md                    历史读取点  15 个；现行每轮复跑面内 = **无**（仅历史一次性产品读过）
+      仅历史一次性产品读过（不在 driver、非本轮产物）：['fix-row3-r165.py', 'verify-committed-r218.py', 'verify-committed-r219.py', 'verify-committed-r220.py', 'verify-committed-r221.py', 'verify-committed-r222.py', 'verify-committed-r223.py', 'verify-committed-r224.py'] …（共 15 个）
+  未被**任何**判据读过 = 0 个 []（宽测量结论；窄测量曾报 2 个，扩面后证伪 → 见返工记录）
+  **不在现行每轮复跑面内**的载体 = 2 个 ['coverage-history.txt', 'aap-server-tdd-state.md']
+  判别力实测：合成真实代码形行被抓获 = True；路径 = .agents/state/aap-server-tdd-state.md；判为代码形 = True
+[PASS] B2 合成真实代码形读取行被抓获且判为代码形 合成命中 = .agents/state/aap-server-tdd-state.md
+  反向对照：合成**散文形**行路径 = .agents/state/aap-server-tdd-state.md / 判为代码 = False（须 False）
+[PASS] B3 散文形不得计入覆盖（判据范围与语义一致） 
+[PASS] B4 反向对照：非 HEAD 读取行不命中 
+  判别力实测（历史纪律 213-①）：窄扫描根（tools/ + 本轮产物，35 个脚本）复现的「未覆盖」= 2 个 ['coverage-history.txt', 'aap-server-tdd-state.md']
+[PASS] B5 扩面必要性获证：窄扫描根确实会报出更多「未覆盖」（否则扩大扫描根无收益） 2 >= 0
+==============================================================================
+汇总：FAIL 断言 = 0 条 （全 PASS）
+结论（两层，据实）：① 三载体**今日**均自洽（HEAD ⇔ 工作区逐字节相等）；② 未被任何判据读过 = 0 个；**不在现行每轮复跑面内**的载体 = 2 个（['coverage-history.txt', 'aap-server-tdd-state.md']）—— 即这两个载体的提交态自洽只在历史轮次被一次性产品读过，现行流水线上每轮复跑的只有台账 CSV。 据实分档为**潜在风险**（历史纪律 54/88），非已发生的漂移；本探针只读、未写任何仓库文件（除本证据）。
+PROBE_END=1 fails=0
