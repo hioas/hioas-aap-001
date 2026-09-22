@@ -29,6 +29,16 @@ public class DetectionJobEntity extends BaseEntity {
     @Column(typeHandler = JsonbTypeHandler.class)
     private String configSnapshot;
 
+    /**
+     * 本次检测覆盖的**具体模型清单**快照（渠道拉取结果，jsonb）。
+     *
+     * <p>用户口径 2026-09-23：「每次提交…之前的检测记录一个版本记录，重新提交的也是一条新纪录，
+     * 都执行检测的具体模型」。每条检测记录都留痕，供版本比对；
+     * 也是「重复检测去重」的匹配键（同一凭证 + 同一模型集合）。
+     */
+    @Column(typeHandler = JsonbTypeHandler.class)
+    private String modelList;
+
     private OffsetDateTime startedAt;
     private OffsetDateTime finishedAt;
     private BigDecimal totalScore;
@@ -99,6 +109,14 @@ public class DetectionJobEntity extends BaseEntity {
 
     public void setConfigId(Long v) {
         this.configId = v;
+    }
+
+    public String getModelList() {
+        return modelList;
+    }
+
+    public void setModelList(String v) {
+        this.modelList = v;
     }
 
     public String getConfigSnapshot() {
