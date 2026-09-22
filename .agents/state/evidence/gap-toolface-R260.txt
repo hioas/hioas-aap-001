@@ -13,8 +13,8 @@ R260 派生面探针：含轮次号引用的产物集合 ⇔ 本轮派生面（�
 [PASS] A1c 派生面三类计数之和 == 声明集合大小 15 + 2 + 1 = 18 vs 18
 [A1d] 相位 = final；本轮派生面成员在产物目录里**实际存在** = True；本相位未落盘 = []
 [PASS] A1d 本轮派生面成员在产物目录里**实际存在** 缺失 = []
-[A1e] 相位留痕：记录 1 条 = pre 0 + final 1（含本次）；逐行 = ['final missing=-']
-[PASS] A1e0 相位留痕正向对照（相位记录 ≥ 1 条） 1 条
+[A1e] 相位留痕：记录 2 条 = pre 0 + final 2（含本次）；逐行 = ['final missing=-', 'final missing=-']
+[PASS] A1e0 相位留痕正向对照（相位记录 ≥ 1 条） 2 条
 [A1e-x] 本轮的生成顺序事实：pre 相位调用 = 0（0 条 = 现场产物先于探针全部落盘）→ 相位判据走 无 pre 记录（记 INFO，并显式声明） 分支
 [PASS] A1e 相位判据：final 缺口已闭合 ∧ 若 pre 缺口为空则「当前」必须零缺失 pre missing= / final missing=- / has_pre=False
 [PASS] A1e2 判别力实测①：合成「pre 缺口为空 ∧ **当前**声明集合有缺失」必须判不合格（新分支非空转） 合成（pre=-, final=-, has_pre=True, missing_now=[SYNTH]）
@@ -51,9 +51,9 @@ SELF=gap-toolface-R260.txt
 ------------------------------------------------------------------------------
 [F0a] 源目录里的 row_data 产物 = 1 个 ['row_data_r259.py']（> 0 正向对照）
 [PASS] F0a 解析到源侧 row_data 产物 1 个
-[F1] 前一轮（row_data_r259.py）row_data 自检复跑 rc=0；末 3 行 = ['  分段守卫：DESC 按竖线切分 19 段；除首段外非「竖线 + 空格」形态的段 = []（须为空）', "  分段守卫判别力实测：注入合成裸竖线后违规段 = ['范围收窄」中间插入一个裸竖线），修后违规段为空、']（须非空）", 'DESC 长度 = 4402；列数 = 8']
-[F1-x] 相位事实：coverage-history 含**本轮**（R260）missing=0 的行 = 0 条 → F1 走 未追加 分支；上一轮 DESC 与自身 HEAD 快照的差异**仅**落在轮次计数 = False（快照 241 → 复算 241）
-[PASS] F1 相位判据（未追加 → rc=0；已追加 → 必红且原因仅轮次计数前移） rc=0 / has_cur=False / count_only_diff=False
+[F1] 前一轮（row_data_r259.py）row_data 自检复跑 rc=1；末 3 行 = ['    assert DESC == _prev, ("DESC 与 HEAD 内本轮描述列不一致", len(DESC), len(_prev))', '           ^^^^^^^^^^^^^', "AssertionError: ('DESC 与 HEAD 内本轮描述列不一致', 4402, 4402)"]
+[F1-x] 相位事实：coverage-history 含**本轮**（R260）missing=0 的行 = 1 条 → F1 走 已追加 分支；上一轮 DESC 与自身 HEAD 快照的差异**仅**落在轮次计数 = True（快照 241 → 复算 242）
+[PASS] F1 相位判据（未追加 → rc=0；已追加 → 必红且原因仅轮次计数前移） rc=1 / has_cur=True / count_only_diff=True
 [PASS] F1b 判别力实测①：未追加相位下 rc=1 必须判不合格 
 [PASS] F1c 判别力实测②：已追加相位下 rc=0 必须判不合格（证明该分支非空转） 
 [PASS] F1d 判别力实测③：已追加相位下「红但差异含**非计数**内容」必须判不合格 
