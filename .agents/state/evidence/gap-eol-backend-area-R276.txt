@@ -1,0 +1,50 @@
+==============================================================================
+R276 改进①②取证：后端交付区行尾归一（内容零改动）+ 常驻守卫判据
+==============================================================================
+扫描域 = aap-server/src/ ∪ docs/backend/（文本文件 325 条）
+[PASS] A0 正向对照：后端区文本文件 > 0 且 worktree 侧可读 条数 = 325
+
+-- SEG A（PRE-FIX，锚在修正前落盘的快照 prefix-backend-area.tsv）--
+[PASS] A1 PRE-FIX 快照命中 > 0（正向对照：否则取证空转） 命中 = 5 条
+[PASS] A2 PRE-FIX 每条 CR > 0（修正必须真的改到，历史纪律 66/90/94） CR 列表 = [317, 102, 122, 186, 376]
+   [PRE] aap-server/src/main/java/com/hioas/aap/catalog/CatalogService.java     HEAD 13575 B / 工作区 13892 B（CR 317）
+   [PRE] aap-server/src/main/java/com/hioas/aap/catalog/CatalogViews.java       HEAD 4663 B / 工作区 4765 B（CR 102）
+   [PRE] aap-server/src/test/java/com/hioas/aap/common/MigrationTest.java       HEAD 5950 B / 工作区 6072 B（CR 122）
+   [PRE] aap-server/src/test/java/com/hioas/aap/file/FileContractTest.java      HEAD 9676 B / 工作区 9862 B（CR 186）
+   [PRE] docs/backend/01-ER数据模型.md                                              HEAD 28308 B / 工作区 28684 B（CR 376）
+
+-- 归一（字节级 \r\n -> \n；内容零改动；三态：本次修正 / 已归一）--
+   [KEEP] aap-server/src/main/java/com/hioas/aap/catalog/CatalogService.java     已是 LF（可重跑）
+   [KEEP] aap-server/src/main/java/com/hioas/aap/catalog/CatalogViews.java       已是 LF（可重跑）
+   [KEEP] aap-server/src/test/java/com/hioas/aap/common/MigrationTest.java       已是 LF（可重跑）
+   [KEEP] aap-server/src/test/java/com/hioas/aap/file/FileContractTest.java      已是 LF（可重跑）
+   [KEEP] docs/backend/01-ER数据模型.md                                              已是 LF（可重跑）
+[PASS] A3 归一动作覆盖面（本次修正 0 + 已归一 5 = 快照 5） （幂等：重跑不得重复「修正」，也不得漏项）
+
+-- SEG B（POST-FIX：复核磁盘 + 内容型 git 判据）--
+[PASS] B1 POST-FIX 后端区仅 CR 差异 = 0 条 残留 = 无
+[PASS] B2 全域条数下降量 = 本次修正数（866 - 866 = 0，期望 0） （重跑时本次修正数 = 0，下降亦须为 0）
+   （先执行 `git update-index --refresh <5 条>`：rc=1 —— stat 缓存刷新，内容型判据不受影响）
+[PASS] B3 逐文件：工作区字节 ⇔ HEAD 字节相等（5 条） 相等 = 5
+[PASS] B4 逐文件：`git diff --quiet` rc=0（**内容零改动** —— 归一不进任何提交） rc=0 = 5
+[PASS] B5 逐文件：`ls-files --eol` = w/lf（形态已合规） w/lf = 5
+[PASS] B6 逐文件：stat 缓存刷新后 `git status --porcelain` 无条目（归一无可见痕迹） 干净 = 5 / 5
+[PASS] B7 PRE→POST 机器串联：PRE（工作区字节 − CR == HEAD 字节）∧ POST（实测字节 == HEAD 字节） → 净变化恰为 CR 移除（5 条） 成立 = 5 / 5
+   （本证据为**幂等复跑**版本：修正动作由同一脚本的首次运行执行（该次输出显示 5 条 [FIX]），复跑显示 [KEEP]；PRE 段始终锚在**修正前落盘**的快照上，故两段证据不受复跑影响）
+
+-- 常驻守卫（P9）判据与判别力 --
+[PASS] C1 P9 对真实态判绿（后端区 0 违规） 违规 = 无
+[PASS] C2 判别力实测：合成 CRLF 字节对必须判红 
+[PASS] C3 判别力实测（反向）：同字节对必须判绿 
+[PASS] C4 前置对照：合成态与真实态**不同形**（真正的反例，历史纪律 141） 
+
+-- 边界：归一未触碰他方在途改动（内容型判据）--
+   内容型改动集合（`git diff --name-only`）= 2 条
+      .calicat-admin/raw/pages/page-3/screenshot.json（他方在途改动，未触碰）
+      aap-admn/README.md（他方在途改动，未触碰）
+[PASS] D1 本轮归一集合与本探针的内容型改动**无交集**（归一只改行尾、不改内容） 交集 = 无
+[PASS] D2 他方在途改动条目数 = 1 且均为**未触碰**路径（正向对照：确有他方在途改动存在） 他方条目 = ['.calicat-admin/raw/pages/page-3/screenshot.json', 'aap-admn/README.md']
+
+结论（据实）：后端交付区 5 条 CRLF 漂移已归一到 LF —— **内容零改动**（B4 逐文件 `git diff --quiet` rc=0，提交面零改动）、字节与 HEAD 相等（B3）、形态合规（B5）；常驻守卫 P9 对真实态判绿（C1）且对合成 CRLF 判红（C2）。**历史/证据区与前端区不在本轮处置范围**（触及他方区域与历史产物 → 待拍板）。
+FAIL 断言 = 0 条 （全 PASS）
+FACTS_END_MARK=1
