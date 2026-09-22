@@ -1,0 +1,146 @@
+==============================================================================
+R247 回归面全量复跑（命令/参数逐条对齐 R246 driver，坑 132/179）
+==============================================================================
+前置：CWD = C:\Users\laitz\AppData\Local\Temp\aap-r247-work / ROOT = E:\workspaces\hioas\hioas-aap-001（**历史修正**：命令表里的相对路径一律按 ROOT 解析 —— 此前按 CWD 解析，从非仓库根运行时 28 条 tools/ 侧命令被静默标为「磁盘缺失（跳过）」、rc 序列缩到 54/82，而结论句仍写「零回归」；见该轮的历史缺陷取证（CWD 解析口径修正））
+命令表存在性预检：82 条命令 → 按 ROOT 解析后磁盘存在 82 条 / 缺失 0 条（缺失=无）
+预检正向对照：命令表条数 = 82 > 0 且存在条数 = 82 > 0（PASS）
+R246 rcseq 解析到 82 条（> 0 正向对照，坑 46/98；判据可用 = True）
+运行前生成物快照 = 84 个（> 0 正向对照）
+  OK gen-check                          rc=0 (R246=0) FAIL行=0
+  OK openapi-parses                     rc=0 (R246=0) FAIL行=0
+  OK endpoint-tests                     rc=0 (R246=0) FAIL行=0
+  OK contract-keys                      rc=0 (R246=0) FAIL行=0
+  OK auth-contract                      rc=1 (R246=1) FAIL行=1
+  OK routes                             rc=1 (R246=1) FAIL行=1
+  OK error-codes                        rc=1 (R246=1) FAIL行=2
+  OK query-params                       rc=1 (R246=1) FAIL行=2
+  OK time-format                        rc=0 (R246=0) FAIL行=0
+  OK enum-sets                          rc=1 (R246=1) FAIL行=17
+  OK response-shape                     rc=1 (R246=1) FAIL行=2
+  OK id-types                           rc=1 (R246=1) FAIL行=1
+  OK request-body                       rc=1 (R246=1) FAIL行=3
+  OK secret-leak                        rc=0 (R246=0) FAIL行=0
+  OK evidence-secrets                   rc=0 (R246=0) FAIL行=0
+  OK spotcheck-required                 rc=1 (R246=1) FAIL行=2
+  OK spotcheck-unique                   rc=1 (R246=1) FAIL行=1
+  OK spotcheck-success-shape            rc=1 (R246=1) FAIL行=1
+  OK spotcheck-string-length            rc=1 (R246=1) FAIL行=9
+  OK spotcheck-numeric-range            rc=1 (R246=1) FAIL行=1
+  OK spotcheck-idempotency              rc=1 (R246=1) FAIL行=5
+  OK spotcheck-lock                     rc=1 (R246=1) FAIL行=7
+  OK spotcheck-throttle                 rc=1 (R246=1) FAIL行=8
+  OK spotcheck-audit-cols               rc=1 (R246=1) FAIL行=3
+  OK spotcheck-state-machine            rc=1 (R246=1) FAIL行=1
+  OK spotcheck-tx-boundary              rc=1 (R246=1) FAIL行=1
+  OK spotcheck-http-method              rc=1 (R246=1) FAIL行=3
+  OK spotcheck-pagination               rc=1 (R246=1) FAIL行=1
+  OK spotcheck-entity-ddl               rc=0 (R246=0) FAIL行=0
+  OK spotcheck-config                   rc=1 (R246=1) FAIL行=2
+  OK spotcheck-outbound                 rc=1 (R246=1) FAIL行=5
+  OK gap-pagination-order               rc=1 (R246=1) FAIL行=2
+  OK gap-pagination-defaults            rc=1 (R246=1) FAIL行=2
+  OK gap-softdelete                     rc=1 (R246=1) FAIL行=15
+  OK gap-param-reach                    rc=1 (R246=1) FAIL行=5
+  OK gap-audit-log                      rc=1 (R246=1) FAIL行=2
+  OK gap-status-machine                 rc=1 (R246=1) FAIL行=7
+  OK gap-time-bucket                    rc=1 (R246=1) FAIL行=1
+  OK gap-sensitive-fields               rc=1 (R246=1) FAIL行=9
+  OK gap-logical-fk                     rc=1 (R246=1) FAIL行=2
+  OK gap-paging-range                   rc=1 (R246=1) FAIL行=3
+  OK gap-coverage-gap                   rc=1 (R246=1) FAIL行=0
+  OK gen-selftest                       rc=0 (R246=0) FAIL行=0
+  OK endpoint-tests-selftest            rc=0 (R246=0) FAIL行=0
+  OK contract-keys-selftest             rc=0 (R246=0) FAIL行=0
+  OK auth-contract-selftest             rc=0 (R246=0) FAIL行=0
+  OK routes-selftest                    rc=0 (R246=0) FAIL行=0
+  OK error-codes-selftest               rc=0 (R246=0) FAIL行=0
+  OK query-params-selftest              rc=0 (R246=0) FAIL行=0
+  OK time-format-selftest               rc=0 (R246=0) FAIL行=0
+  OK enum-sets-selftest                 rc=0 (R246=0) FAIL行=0
+  OK response-shape-selftest            rc=0 (R246=0) FAIL行=0
+  OK id-types-selftest                  rc=0 (R246=0) FAIL行=0
+  OK request-body-selftest              rc=0 (R246=0) FAIL行=0
+  OK secret-leak-selftest               rc=0 (R246=0) FAIL行=0
+  OK spotcheck-required-selftest        rc=0 (R246=0) FAIL行=0
+  OK spotcheck-unique-selftest          rc=0 (R246=0) FAIL行=0
+  OK spotcheck-success-shape-selftest   rc=0 (R246=0) FAIL行=0
+  OK spotcheck-string-length-selftest   rc=0 (R246=0) FAIL行=0
+  OK spotcheck-numeric-range-selftest   rc=0 (R246=0) FAIL行=0
+  OK spotcheck-idempotency-selftest     rc=0 (R246=0) FAIL行=0
+  OK spotcheck-lock-selftest            rc=0 (R246=0) FAIL行=0
+  OK spotcheck-throttle-selftest        rc=1 (R246=1) FAIL行=1
+  OK spotcheck-audit-cols-selftest      rc=0 (R246=0) FAIL行=0
+  OK spotcheck-state-machine-selftest   rc=0 (R246=0) FAIL行=0
+  OK spotcheck-tx-boundary-selftest     rc=0 (R246=0) FAIL行=0
+  OK spotcheck-http-method-selftest     rc=0 (R246=0) FAIL行=0
+  OK spotcheck-pagination-selftest      rc=0 (R246=0) FAIL行=0
+  OK spotcheck-entity-ddl-selftest      rc=0 (R246=0) FAIL行=0
+  OK spotcheck-config-selftest          rc=0 (R246=0) FAIL行=0
+  OK spotcheck-outbound-selftest        rc=0 (R246=0) FAIL行=0
+  OK gap-pagination-order-selftest      rc=0 (R246=0) FAIL行=0
+  OK gap-pagination-defaults-selftest   rc=0 (R246=0) FAIL行=0
+  OK gap-softdelete-selftest            rc=0 (R246=0) FAIL行=0
+  OK gap-param-reach-selftest           rc=0 (R246=0) FAIL行=0
+  OK gap-audit-log-selftest             rc=0 (R246=0) FAIL行=0
+  OK gap-status-machine-selftest        rc=0 (R246=0) FAIL行=0
+  OK gap-time-bucket-selftest           rc=0 (R246=0) FAIL行=0
+  OK gap-sensitive-fields-selftest      rc=0 (R246=0) FAIL行=0
+  OK gap-logical-fk-selftest            rc=0 (R246=0) FAIL行=0
+  OK gap-paging-range-selftest          rc=0 (R246=0) FAIL行=0
+  OK gap-coverage-gap-selftest          rc=1 (R246=1) FAIL行=0
+-- 零写副作用：生成物 size+md5 运行前后 全等（变化 0 个）--
+-- 崩溃通道：rc!=0 的条目 36 条，其中**FAIL 通道不可见**（rc!=0 ∧ FAIL 明细 0 行）= 2 条 ['gap-coverage-gap', 'gap-coverage-gap-selftest']
+      gap-coverage-gap               rc=1 理由 = AssertionError: 缺口集合与 R157 留档不一致：仅本轮 ['aap-r172-work/audit-ledger-r172.py', 'aap-r173-work/audit-ledger-r173.py', 'aap-r174-work/audit-ledger-r174.py', 'aap-r17
+      gap-coverage-gap-selftest      rc=1 理由 = AssertionError: T0 基线应当 rc=0，实际 rc=1
+-- 跨轮轨迹：解析到 82 个条目的逐轮 rc（> 0 正向对照）；**常驻红**（尾部连续非零 rc ≥ 2 轮）= 36 个
+-- 常驻红条目（R178 分类：轮次号变体属「语义被取代」类，非新缺口；本轮只登记为待拍板，不擅自扩面）--
+      spotcheck-unique               连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      spotcheck-tx-boundary          连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      spotcheck-throttle-selftest    连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      spotcheck-throttle             连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      spotcheck-success-shape        连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      spotcheck-string-length        连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      spotcheck-state-machine        连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      spotcheck-required             连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      spotcheck-pagination           连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      spotcheck-outbound             连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      spotcheck-numeric-range        连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      spotcheck-lock                 连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      spotcheck-idempotency          连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      spotcheck-http-method          连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      spotcheck-config               连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      spotcheck-audit-cols           连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      routes                         连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      response-shape                 连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      request-body                   连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      query-params                   连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      id-types                       连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      gap-time-bucket                连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      gap-status-machine             连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      gap-softdelete                 连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      gap-sensitive-fields           连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      gap-param-reach                连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      gap-paging-range               连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      gap-pagination-order           连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      gap-pagination-defaults        连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      gap-logical-fk                 连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      gap-audit-log                  连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      error-codes                    连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      enum-sets                      连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      auth-contract                  连续非零 rc = 89 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      gap-coverage-gap-selftest      连续非零 rc = 75 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+      gap-coverage-gap               连续非零 rc = 75 轮（最近 6 轮 rc = [1, 1, 1, 1, 1, 1]）
+G1 FAIL 通道不可见的条目必须各有**红的理由**（崩溃行或 FAIL 明细，两样皆无 = 0 条）：缺失 = 0 []
+G2 常驻红条目必须**逐条点名**（禁止只在计数里出现）：未点名 = 无
+G3 判别力实测：合成「零回归」结论句（无限定语）必须被判不合格 = True（须 True）
+G4 判别力实测（反向）：无常驻红时同一结论句必须合格 = True（须 True）
+G5 判别力实测：合成轨迹 [0,1,1,1] 的尾部连续非零 = 3（须 3）
+G 组判定：全部 PASS（含 3 条判别力实测）
+==============================================================================
+本轮复跑 = 82 条 / R246 = 82 条；rc 变化 0 条、新增 0、未复跑 0
+  rc=0 条数 = 46 / 82；rc!=0 条数 = 36 ['auth-contract', 'routes', 'error-codes', 'query-params', 'enum-sets', 'response-shape', 'id-types', 'request-body', 'spotcheck-required', 'spotcheck-unique', 'spotcheck-success-shape', 'spotcheck-string-length', 'spotcheck-numeric-range', 'spotcheck-idempotency', 'spotcheck-lock', 'spotcheck-throttle', 'spotcheck-audit-cols', 'spotcheck-state-machine', 'spotcheck-tx-boundary', 'spotcheck-http-method', 'spotcheck-pagination', 'spotcheck-config', 'spotcheck-outbound', 'gap-pagination-order', 'gap-pagination-defaults', 'gap-softdelete', 'gap-param-reach', 'gap-audit-log', 'gap-status-machine', 'gap-time-bucket', 'gap-sensitive-fields', 'gap-logical-fk', 'gap-paging-range', 'gap-coverage-gap', 'spotcheck-throttle-selftest', 'gap-coverage-gap-selftest']
+FAIL 明细：34 个脚本含 FAIL 行、合计 128 行（> 0 正向对照，坑 97/98）
+判定：零回归（含 2 条「FAIL 通道不可见」的常驻红：['gap-coverage-gap', 'gap-coverage-gap-selftest'] —— 逐条理由见崩溃通道段；其最长连续非零 rc = 75 轮）
+G6 结论句诚实性自检：verdict_ok(判定, 不可见条目) = True（须 True）
+G 组最终：FAIL = 0 条 （全 PASS）
+REGRESSION_END=1

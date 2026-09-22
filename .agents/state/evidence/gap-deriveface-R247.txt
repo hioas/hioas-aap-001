@@ -1,0 +1,43 @@
+==============================================================================
+R247 取证 A：派生面 ⇔ 含轮次号引用集合
+==============================================================================
+[A0a] 源侧候选扫描非空：解析到 19 个含轮次号引用的产物（> 0 正向对照）
+[A0b] 上一轮**登记**的派生面 = 8 个
+[A1] 登记面之外仍含轮次号引用的产物 = 11 个
+       - commit-msg-R246-closeout.txt（一次性/收尾专用，按语义不计入常设派生面）
+       - commit-msg-R246-correction.txt（一次性/收尾专用，按语义不计入常设派生面）
+       - commit-msg-R246.txt（一次性/收尾专用，按语义不计入常设派生面）
+       - fix-triple-r246.py（一次性/收尾专用，按语义不计入常设派生面）
+       - mkcloseout-r246.sh  <== 常设产物，未登记
+       - mkcommit-r246.sh  <== 常设产物，未登记
+       - mkcorrection-r246.sh（一次性/收尾专用，按语义不计入常设派生面）
+       - notify-record-r246-v2.py（一次性/收尾专用，按语义不计入常设派生面）
+       - notify-record-r246.py（一次性/收尾专用，按语义不计入常设派生面）
+       - precheck-fix-triple-r246.py（一次性/收尾专用，按语义不计入常设派生面）
+       - syntax-check-r246.py  <== 常设产物，未登记
+[A2] 其中**常设**产物（每轮必用）却未进登记派生面 = 3 个：['mkcloseout-r246.sh', 'mkcommit-r246.sh', 'syntax-check-r246.py']
+     判定：A2 FAIL —— 这些产物每轮靠人工滚动/人工核对，落在任何机器核对之外（坑 169/177/201/206）
+[A3] 修法落地核对：上述 3 个未登记常设产物，本轮已派生 = 3 个：['mkcloseout-r246.sh', 'mkcommit-r246.sh', 'syntax-check-r246.py']
+     判定：A3 PASS（派生面 8 → 15）
+[B1] 本轮派生产物 = 15 个：['analyze-r247.py', 'append-r247.py', 'closeout-r247.py', 'compare-faildiff-r247.py', 'fixrow-r247.py', 'gap-deriveface-r247.py', 'mkcloseout-r247.sh', 'mkcommit-r247.sh', 'mkcommitmsg-r247.py', 'notify-record-r247.py', 'r247-regression.py', 'recheck-post-commit-r247.py', 'round-r247.sh', 'row_data_r247.py', 'syntax-check-r247.py']
+[B2] 上一轮候选中有 12 / 19 个已被本轮派生覆盖
+------------------------------------------------------------------------------
+R247 取证 C：轮次映射链的**连续性**（历史纪律 234：多级滚动会连环改写）
+  row_data_r247.py             链 = {r245→r246, r246→r247} 连续=True
+  row_data_r247.py             链 = {r244→r245, r245→r246} 连续=True
+[C0a] 解析到的映射链条数 = 2（> 0 正向对照）
+[C1] 非连续（被连环改写）的映射链 = 0 条：[]
+[C2] 判别力实测：合成注入 → 被识别 = True（须 True；拼接构造，本文件源码内不含该字面量）
+[C2b] 自指守卫：本文件源码内不含该合成字面量 = True
+[C2c] 判别力实测（正向）：**连续**链合成夹具必须判合格 = True（须 True；否则该判据恒 FAIL，属坑 81 族）
+------------------------------------------------------------------------------
+[D1] 反向对照：产物中含当前轮形态的文件数 = 12（> 0，证明 C 段扫描面非空）
+------------------------------------------------------------------------------
+R247 取证 E：派生来的「提交文件清单」⇔ 本轮实际证据文件集合
+[E0a] 本轮证据文件（磁盘，按轮次号命名）= 13 个：['audit-regression-R247-faildiff.txt', 'audit-regression-R247-failraw.txt', 'audit-regression-R247-rcseq.txt', 'audit-regression-R247.txt', 'gap-deriveface-R247.txt', 'gap-ledger-audit-R247.txt', 'gap-rowthfix-R247.txt', 'green-verify-R247-analysis.txt', 'green-verify-R247-coverage-fields.txt', 'green-verify-R247-full-run1.txt', 'green-verify-R247-full-run2.txt', 'green-verify-R247-testcount.txt', 'green-verify-R247-tested-state.txt']
+[E0b] 提交清单（mkcommit-r247.sh）里列出的本轮证据 = 13 个：['audit-regression-R247-faildiff.txt', 'audit-regression-R247-failraw.txt', 'audit-regression-R247-rcseq.txt', 'audit-regression-R247.txt', 'gap-deriveface-R247.txt', 'gap-ledger-audit-R247.txt', 'gap-rowthfix-R247.txt', 'green-verify-R247-analysis.txt', 'green-verify-R247-coverage-fields.txt', 'green-verify-R247-full-run1.txt', 'green-verify-R247-full-run2.txt', 'green-verify-R247-testcount.txt', 'green-verify-R247-tested-state.txt']
+[E1] 磁盘有、提交清单**未列**（= 会漏进提交）= 0 个：[]
+[E2] 清单列了、磁盘**没有**（= 悬空条目）= 0 个：[]
+     判定：E PASS
+==============================================================================
+汇总：A2 未登记常设产物 = 3 / C1 非连续映射链 = 0 / E1 漏列证据 = 0
