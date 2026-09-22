@@ -1,0 +1,66 @@
+R279 只读取证：并发前置检查的「探测器可达性/可见性」判据覆盖（真发现，由上一轮引入；本轮为复跑核对）
+==============================================================================
+事实键 A = PREFLIGHT_JPS_REACHABLE / B = PREFLIGHT_JPS_LINES
+修法载体（按语义单列）= postcommit-check-r279.py, fix-rowdata-r279.py
+
+扫描根（显式枚举，3 个）：
+  · E:\workspaces\hioas\hioas-aap-001\tools
+  · C:\Users\laitz\AppData\Local\Temp\aap-r279-work
+  · C:\Users\laitz\AppData\Local\Temp\aap-r279-aux
+
+受判脚本 = 45 个（> 0 正向对照）
+[PASS] A0a 正向对照：受判脚本数 > 0 受判脚本 = 45
+  · PRE 段（修正前产物集合，排除修法载体）= 43 个
+  · POST 段（修法载体）= 2 个 → ['postcommit-check-r279.py', 'fix-rowdata-r279.py']
+[PASS] A0b 前置对照：修法载体**确实在盘**且被单列（否则 POST 段退化为空转，历史 57/190） 命中 = ['postcommit-check-r279.py', 'fix-rowdata-r279.py']
+
+------------------------------------------------------------------------------
+PRE 段：锚**修正前**产物集合（执行器 + 分析脚本 + tools 面 + 取证脚本），断言判据点 = 0
+------------------------------------------------------------------------------
+PRE 段：直接判据点 = 0 / 间接判据点 = 0 / 信息项 = 7
+[PASS] P0a 正向对照：PRE 段信息项 > 0（事实名确实在产物里出现，只是不被断言引用；否则判定不可用） 信息项 = 7
+PRE 段信息项逐条（事实名出现但不在任何断言跨度/绑定链里）：
+  · analyze-r279.py                    L48   fact("PREFLIGHT_OK"), fact("PREFLIGHT_JPS_REACHABLE"), fact("PREFLIGHT_JPS_LINES"),
+  · analyze-r279.py                    L348  fact("PREFLIGHT_OK"), fact("PREFLIGHT_JPS_REACHABLE"), fact("PREFLIGHT_CONCURRENT_TEST_JVMS")),
+  · round-r279.sh                      L90   echo "PREFLIGHT_JPS_REACHABLE=$JPS_REACHABLE"
+  · round-r279.sh                      L116  echo "PREFLIGHT_JPS_LINES=$JPS_LINES"
+  · round-r279.sh                      L186  echo "PREFLIGHT_JPS_REACHABLE=$JPS_REACHABLE"
+  · round-r279.sh                      L187  echo "PREFLIGHT_JPS_LINES=$JPS_LINES"
+  · derive-r279.py                     L127  "    # PREFLIGHT_JPS_REACHABLE / JPS_LINES 此前只被打印、无任何判据断言，此前无任何判据）。",
+
+[PASS] P1 PRE 段判据点 = 0（直接 0 ∧ 间接 0）→ 探测器不可达/不可见时无法区分，门禁可空转 直接 = 0 / 间接 = 0
+门槛判据块（round-r279.sh）：
+  | PREFLIGHT_OK=0
+  | if [ "$PREFLIGHT_OK" -ne 1 ]; then
+[PASS] P2a 正向对照：门槛判据块非空（否则判定不可用） 块行数 = 2
+[PASS] P2 门槛判据块**不含**探测器可达性/可见性 → 黑洞探测器与真无并发不可区分 块内含探测器事实 = False
+
+------------------------------------------------------------------------------
+POST 段：只针对**修法载体**，断言常驻判据已落地且可被机器识别（间接判据点 ≥ 1）
+------------------------------------------------------------------------------
+  · postcommit-check-r279.py           直接 = 2 / 间接 = 5 / 绑定 = ['_pf_ln', '_pf_re', 'n']
+  · fix-rowdata-r279.py                直接 = 0 / 间接 = 0 / 绑定 = []
+POST 段绑定变量（事实键 -> 变量名）：['_pf_ln', '_pf_re', 'n']
+[PASS] P3a 正向对照：POST 段解析到绑定变量 > 0（否则判定不可用） 绑定 = 3
+[PASS] P3 POST 段间接判据点 ≥ 1（事实键的取值经绑定变量进入断言跨度 = 常驻判据真的建立） 间接 = 5
+
+------------------------------------------------------------------------------
+判别力实测（合成样本）
+------------------------------------------------------------------------------
+  · 合成直接引用 : 直接 = 1 / 间接 = 0
+  · 合成间接引用 : 直接 = 0 / 间接 = 1
+  · 合成仅打印   : 直接 = 0 / 间接 = 0
+[PASS] D1 判别力实测：合成「字面名进断言」必须判 直接 ≥ 1 直接 = 1
+[PASS] D2 判别力实测：合成「绑定变量进断言」必须判 间接 ≥ 1 间接 = 1
+[PASS] D3 判别力实测（反向）：合成「仅打印」必须判 0/0 直接 = 0 / 间接 = 0
+[PASS] D4 前置对照：两类夹具的判定**不同形**（否则判别力退化为恒真） 
+[PASS] D5 判别力实测（POSIX 门槛语境）：合成 `if [ "$X" != "Y" ]` 的行必须被判据口径**覆盖到** 
+
+本轮 facts 落盘：PREFLIGHT_JPS_REACHABLE='Y' / PREFLIGHT_JPS_LINES='17' / PREFLIGHT_OK='1'
+[PASS] A4a 正向对照：两个事实键在本轮 facts 里**真的存在**（故本发现是「判据缺失」而非「事实缺失」） 键数 = 31
+[PASS] A4b 本轮实态：探测器可达 = 'Y' ∧ 可见 JVM 行数 = '17' ∧ OK = '1'（本轮未发生黑洞，属潜在风险） REACHABLE = 'Y'
+
+结论：PRE 段判据点 = 0（直接 0 / 间接 0）→ 真发现：探测器可达性/可见性零判据覆盖；POST 段间接判据点 = 5 → 修法（常驻判据 P11）已落地且可被机器识别
+处置：收尾守卫 postcommit-check 新增常驻判据 P11（PREFLIGHT_OK=1 ∧ JPS_REACHABLE=Y ∧ JPS_LINES>0），见改进①
+FAIL 断言 = 0 条 （全 PASS）
+FACTS_END_MARK=1
