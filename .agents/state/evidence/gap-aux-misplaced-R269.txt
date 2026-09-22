@@ -1,0 +1,21 @@
+==============================================================================
+R269 真发现 ① 取证：一次性辅助脚本是否误落在产物目录（aux 只读探针）
+==============================================================================
+源目录（上一轮产物目录） = C:\Users\laitz\AppData\Local\Temp\aap-r268-work
+豁免/布局目标目录         = C:\Users\laitz\AppData\Local\Temp\aap-r268-aux
+判据谓词 = 含 'r268' 且后缀 ∈ {.py,.sh}（宽松谓词；形态枚举见下行实测）
+phase=pre：源目录轮次产物 13 个 = ['analyze-r268.py', 'append-r268.py', 'closeout-r268.py', 'compare-faildiff-r268.py', 'correct-r268.py', 'derive-r268.py', 'final-check-r268.py', 'gap-ledger-audit-r268.py', 'postcommit-check-r268.py', 'r268-regression.py', 'round-r268.sh', 'row_data_r268.py', 'settle-r268.py']
+FILES ∪ HANDWRITTEN = 12 个 = ['analyze-r268.py', 'append-r268.py', 'closeout-r268.py', 'compare-faildiff-r268.py', 'derive-r268.py', 'final-check-r268.py', 'gap-ledger-audit-r268.py', 'postcommit-check-r268.py', 'r268-regression.py', 'round-r268.sh', 'row_data_r268.py', 'settle-r268.py']
+正向对照：两侧均 > 0 = True（13 / 12）
+phase=pre：差集 = 实际-清单 ['correct-r268.py'] / 清单-实际 []
+phase=pre 判别力实测：合成「多一个」被判出 = True；「少一个」被判出 = True（均须 True）
+phase=pre 判定：缺陷存在 = True（期望 True）；越界项恰好 1 条且为 correct-r268.py = True
+布局修正：correct-r268.py → aap-r268-aux/correct-r268.py（已移动）
+phase=post：源目录轮次产物 12 个；差集 = 实际-清单 [] / 清单-实际 []（须均为空）
+phase=post 判定：集合相等 = True（A0 覆盖完整性判据在修正后可通过）
+一次性脚本语义取证：文件 = correct-r268.py / 行数 = 159 / 自述含「收尾阶段」= True / 含「更正」= True
+
+结论：真发现 ① = 一次性辅助脚本（收尾阶段的据实更正脚本）误落在**产物目录**，使派生器 A0 的「产物集合 ≡ FILES ∪ 手写」判据不成立；
+      修法 = 布局修正（移入上一轮 aux 目录），**不收窄判据、不加豁免**（历史纪律 216）；
+      修正前后两次测量均在本文件内留证（phase=pre / phase=post）。
+FACTS_END_MARK=1
