@@ -1,0 +1,40 @@
+==============================================================================
+R227 环境性假红取证（**子进程创建失败** 型红 vs 串行重跑后的零回归）
+==============================================================================
+
+-- 观测环境指纹（读执行器 facts）--
+  PREFLIGHT_MEM_AVAIL_MB             = 2289
+  PREFLIGHT_MEM_KEY                  = MemFree
+  PREFLIGHT_MEM_FLOOR_MB             = 900
+  PREFLIGHT_CONCURRENT_TEST_JVMS     = 0
+  PREFLIGHT_SAME_REPO_MAVEN          = 0
+  PREFLIGHT_FOREIGN_MAVEN            = 1
+  同机他方 node 进程数（只读观测） = 69
+  首跑上下文 = 本工具会话超时之后的**孤儿进程**链（见返工 ②）
+
+-- 首跑（regression-run1.stdout）--
+  rc 变化 = 11 条 / rc=0 条数 = 36 / FAIL 明细 = 35 个脚本合计 135 行
+  其中 0xC0000142〔= 3221225794，Windows 子进程 DLL 初始化失败〕形态 = 10 条：
+    rc 变化：gap-pagination-defaults-selftest R226=0 -> R227=3221225794
+    rc 变化：gap-softdelete-selftest R226=0 -> R227=3221225794
+    rc 变化：gap-param-reach-selftest R226=0 -> R227=3221225794
+    rc 变化：gap-audit-log-selftest R226=0 -> R227=3221225794
+    rc 变化：gap-status-machine-selftest R226=0 -> R227=3221225794
+    rc 变化：gap-time-bucket-selftest R226=0 -> R227=3221225794
+    rc 变化：gap-sensitive-fields-selftest R226=0 -> R227=3221225794
+    rc 变化：gap-logical-fk-selftest R226=0 -> R227=3221225794
+    rc 变化：gap-paging-range-selftest R226=0 -> R227=3221225794
+    rc 变化：gap-coverage-gap-selftest R226=1 -> R227=3221225794
+
+-- 串行重跑（regression.stdout，**同一规范命令、参数不改**，历史纪律 158/241）--
+  rc 变化 = 0 条 / rc=0 条数 = 46 / FAIL 明细 = 34 个脚本合计 128 行
+
+-- 判定 --
+  [PASS] 正向对照：首跑 rc 变化明细条数 == 汇总条数（11 == 11）
+  [PASS] 判别力实测：首跑 rc 变化 > 0（11）∧ 重跑 == 0 -> 同一判据对两种状态给出相反结论
+  [PASS] 首跑存在 0xC0000142 形态（10 条），重跑 0 条
+  [PASS] 重跑 FAIL 明细 128 行 vs 上一轮留档 128 行（跨轮比对脚本判「新增 0 消失 0」）
+  结论：该批红**不是仓库漂移**，而是观测环境的**子进程创建失败**；按历史纪律 158/241 的指纹规则（先查内存与进程数、再串行重跑规范命令）处置，**不得**把它当漂移写进结论。
+  存疑/未决：首跑与重跑仅差「进程上下文 + 内存余量」，未做受控复现（超本轮范围）。
+
+ENVRED_END=1
