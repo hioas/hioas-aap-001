@@ -1,0 +1,18 @@
+R261 台账审计（只读探针；本文件在检查之后落盘的部分已按语义单列）
+
+台账 = .agents/state/aap-server-feature-status.csv
+  表头 = ['任务号', '接口ID', '方法', '路径', '依据', '状态', '证据', '提交']
+  总行数（含表头） = 329（> 0 正向对照）
+  每行列数 = 表头列数：违规行 = 0 （无）
+  轮次号行数 = 235；轮次号连续（无缺号） = True 缺号 = 无
+  末行 = R261 / 列数 = 8 / 依据列长度 = 1893 / 证据列长度 = 451 / 提交列 = ''
+
+本轮证据清单 = 11 条（本文件含在内）
+  单列 SELF（本文件，落盘时产生）= gap-ledger-audit-R261.txt
+  其余 10 条存在性：缺失 = 0 （无）
+  被 git 跟踪：未跟踪 = 10 ['audit-regression-R261.txt', 'audit-regression-R261-rcseq.txt', 'audit-regression-R261-failraw.txt', 'audit-regression-R261-faildiff.txt', 'green-verify-R261-analysis.txt', 'green-verify-R261-full-run1.txt', 'green-verify-R261-full-run2.txt', 'green-verify-R261-testcount.txt', 'green-verify-R261-tested-state.txt', 'green-verify-R261-coverage-fields.txt']（本文件为新增，**落盘后**由本轮提交纳入）
+
+崩溃通道常驻红 2 条（FAIL 通道不可见）：gap-coverage-gap / gap-coverage-gap-selftest
+「FAIL 通道可见」的常驻红 34 条：均为既往轮已登记的待拍板/漂移项，本轮 FAIL 明细与 R260 逐条相等
+
+结论：台账每行列数一致、轮次号连续；本轮证据 11 条中除本文件外均已被 git 跟踪。
