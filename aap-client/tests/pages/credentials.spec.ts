@@ -274,3 +274,47 @@ describe('凭证删除（用户口径 2026-09-23：「每个用户的凭证列�
     expect(titles.join()).toContain('报价单')
   })
 })
+
+
+describe('状态标签筛选（用户口径 2026-09-23：「状态标签可以点击筛选凭证」）', () => {
+  const reqOpts = () => getCalls('request').map((c) => c.args[0] as Record<string, unknown>)
+  /** 断言请求里带了某状态（URL 或 data 任一携带都算，避免绑死 http 层的拼参方式） */
+  const hasStatus = (opts: Record<string, unknown>[], value: string) =>
+    opts.some((o) => JSON.stringify({ url: o.url, data: o.data }).includes(value))
+
+  it('点「通过」标签 → 以 status=PASS 重新拉取（走服务端筛选，不是只筛当前页）', async () => {
+    const wrapper = await mountPage()
+    const before = reqOpts().length
+    pushResponse(ok({ total: 1, items: [{ id: 'c9', alias: 'x', model_list: [], detection_status: 'PASS' }] }))
+
+    await wrapper.find('[data-testid="chip-passed"]').trigger('tap')
+    await flushPromises()
+
+    expect(hasStatus(reqOpts().slice(before), 'PASS')).toBe(true)
+  })
+
+  it('各状态映射到对应的服务端取值（pending→PENDING / detecting→RUNNING / rejected→FAIL）', async () => {
+    for (const [chip, server] of [['chip-pending', 'PENDING'], ['chip-detecting', 'RUNNING'], ['chip-rejected', 'FAIL']]) {
+      const wrapper = await mountPage()
+      const before = reqOpts().length
+      pushResponse(ok({ total: 0, items: [] }))
+      await wrapper.find(`[data-testid="${chip}"]`).trigger('tap')
+      await flushPromises()
+      expect(hasStatus(reqOpts().slice(before), server)).toBe(true)
+    }
+  })
+
+  it('再点同一个标签 → 取消筛选（回到全部，不再带 status）', async () => {
+    const wrapper = await mountPage()
+    pushResponse(ok({ total: 1, items: [{ id: 'c9', alias: 'x', model_list: [], detection_status: 'PASS' }] }))
+    await wrapper.find('[data-testid="chip-passed"]').trigger('tap')
+    await flushPromises()
+
+    const before = reqOpts().length
+    pushResponse(ok(LIST))
+    await wrapper.find('[data-testid="chip-passed"]').trigger('tap')
+    await flushPromises()
+
+    expect(hasStatus(reqOpts().slice(before), 'PASS')).toBe(false)
+  })
+})

@@ -34,7 +34,15 @@
 
       <!-- 状态统计行：design id=9da021fa（gap 8；chip r10 padding 6/10 描边 #EEF2F7） -->
       <view class="cred__stats">
-        <view v-for="chip in model.chips" :key="chip.key" class="chip" :data-testid="`chip-${chip.key}`">
+        <!-- 状态标签可点击筛选：**用户口径 2026-09-23**「凭证列表页的状态标签可以点击筛选凭证」 -->
+        <view
+          v-for="chip in model.chips"
+          :key="chip.key"
+          class="chip"
+          :class="{ 'chip--active': activeStatus === chip.key }"
+          :data-testid="`chip-${chip.key}`"
+          @tap="onStatusChip(chip.key)"
+        >
           <view class="chip__dot" :style="{ background: chip.color }" />
           <text class="chip__label">{{ chip.label }}</text>
           <text class="chip__count">{{ chip.count }}</text>
@@ -125,7 +133,14 @@
 import { computed, onMounted, ref } from 'vue'
 import { ApiError } from '@/api/http'
 import { credentialApi } from '@/api/credential'
-import { PAGE_SIZE, buildCredentialsModel, type CredentialListRaw, type CredentialRow } from '@/utils/credentials-model'
+import {
+  PAGE_SIZE,
+  buildCredentialsModel,
+  statusFilterOf,
+  type CredentialListRaw,
+  type CredentialRow,
+  type CredentialStatusKey
+} from '@/utils/credentials-model'
 
 const CREDENTIAL_SUBMIT_PAGE = '/pages/credential-submit/index'
 const REPORT_PAGE = '/pages/report/index'
@@ -221,9 +236,31 @@ function onTab(tab: { label: string; url: string }) {
   goto(tab.url)
 }
 
+/**
+ * 当前状态筛选（`null` = 全部）。
+ *
+ * 用户口径 2026-09-23：「凭证列表页的状态标签可以点击筛选凭证」。
+ */
+const activeStatus = ref<CredentialStatusKey | null>(null)
+
+/**
+ * 点状态标签 → 按该状态筛选；**再点一次取消**回到全部。
+ *
+ * 筛选走**服务端**（`GET /credentials?status=`，按 `detection_status` 过滤）——
+ * 只在当前页里过滤会在第 2 页起给出错误结果（漏掉其它页里同状态的凭证）。
+ */
+async function onStatusChip(key: CredentialStatusKey) {
+  activeStatus.value = activeStatus.value === key ? null : key
+  await load()
+}
+
 async function load() {
   try {
-    raw.value = (await credentialApi.list({ page: 1, pageSize: PAGE_SIZE })) ?? null
+    raw.value = (await credentialApi.list({
+      page: 1,
+      pageSize: PAGE_SIZE,
+      ...(activeStatus.value ? { status: statusFilterOf(activeStatus.value) } : {})
+    })) ?? null
   } catch {
     raw.value = null
     uni.showToast({ title: '数据加载失败，请稍后重试', icon: 'none' })
@@ -505,6 +542,11 @@ onMounted(load)
   align-items: flex-start;
   gap: 2px;
   min-width: 0;
+}
+
+.chip--active {
+  border-color: #2563eb;
+  background: #eff6ff;
 }
 
 .cred-row__delete {

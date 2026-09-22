@@ -55,7 +55,7 @@ export const credentialApi = {
   },
 
   /** 凭证列表（最近接入优先） */
-  list(params?: { page?: number; pageSize?: number }) {
+  list(params?: { page?: number; pageSize?: number; status?: string }) {
     return http<CredentialListRaw>('/credentials', { method: 'GET', data: params })
   },
 

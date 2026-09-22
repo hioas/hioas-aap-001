@@ -91,6 +91,22 @@ const STATUS_ALIAS: Record<string, CredentialStatusKey> = {
   FAIL: 'rejected'
 }
 
+/**
+ * 设计稿 4 态 chip → **服务端 `detection_status` 筛选值**（CRED-01 的 `status` 入参）。
+ *
+ * 用户口径 2026-09-23：「凭证列表页的状态标签可以点击筛选凭证」。
+ * 服务端按 `detection_status = ?`（大写）过滤，取值与 STATUS_ALIAS 互为反向映射。
+ */
+export function statusFilterOf(key: CredentialStatusKey): string {
+  const reverse: Record<CredentialStatusKey, string> = {
+    pending: 'PENDING',
+    detecting: 'RUNNING',
+    passed: 'PASS',
+    rejected: 'FAIL'
+  }
+  return reverse[key]
+}
+
 /** 服务端检测态 → 设计稿 4 态；未知/缺失落 pending（不臆造更严重的结论） */
 export function statusKeyOf(raw?: string | null): CredentialStatusKey {
   if (!raw) return 'pending'
