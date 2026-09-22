@@ -1,0 +1,37 @@
+==============================================================================
+R283 取证：台账覆盖事实的来源一致性（本轮真发现①）
+==============================================================================
+PRE 段受判脚本数 = 1（row_data_r282.py）
+  PRE 判据分类 = PRE（读取点绑定主仓副本：(EV / "coverage-report.json").read_text(encoding="utf-8"))）
+  PRE 自述「读自归档」= 1 处 / 读取点绑定主仓副本 = 1 处 / 归档路径引用 = 0 处 / 新鲜度断言 = 0 处
+[PASS] A1 正向对照：PRE 载体可读 ∧ COVJ 读取点可定位（否则判定不可用） PRE
+[PASS] A2 PRE 段：读取点绑定主仓副本 ∧ 自述却写「读自归档」→ 自述与实现不符（历史 12/95） decl=1 repo=1 archref=0 fresh=0
+[PASS] B1 正向对照：两份报告均存在（否则事实段不可用） repo=True arch=True
+  两份报告：字节全等 = False / 逐字段全等 = True（键序随机化见历史纪律 56）
+  观察项（**非缺陷**）：两份报告**逐字段全等** → 本轮**无事实性错误**，风险为**潜在**（历史纪律 54/88：潜在风险而非已发生错误）
+  repo_mtime = 2026-09-23 04:10:39
+  arch_mtime = 2026-09-23 07:17:39
+  repo_sha256_8 = df1c4f0d
+  arch_sha256_8 = 95b3d7ba
+  repo_gitlog = b03f3c5 2026-09-20 08:16 feat(server): 补模型目录能力（缺陷 D-ADM-3）—— 为 H5 凭证页提供模型下拉数据源
+  repo_worktree_status = (clean)
+[PASS] B2 正向对照：facts 窗口四项可转秒（否则新鲜度判据不可用） window=[2026-09-23 07:10:31, 2026-09-23 07:19:03]
+[PASS] B3 本轮归档报告 mtime ∈ 跑测窗口（真源在本轮归档，非冻结快照） mtime=2026-09-23 07:17:39 ∈ [2026-09-23 07:10:31, 2026-09-23 07:19:03]
+POST 段受判脚本数 = 1（row_data_r283.py）
+  POST 判据分类 = POST（读取点绑定归档：REP_ARCH.read_text(encoding="utf-8"))）
+  POST 自述「读自归档」= 1 处 / 归档路径引用 = 1 处 / 新鲜度断言 = 1 处
+[PASS] A3 修法落地：POST 读取点绑定归档 ∧ 含新鲜度断言 ∧ 自述与实现同源 kind=POST decl=1 archref=1 fresh=1
+[PASS] C1 判别力实测：合成 PRE 形态判 PRE ∧ 合成 POST 形态判 POST（2/2） k1=PRE k2=POST
+[PASS] C2 解析失效反面：合成「来源不可判定」与空文本必须判 UNAVAILABLE（不得判绿） k3=UNAVAILABLE k4=UNAVAILABLE
+[PASS] C3 本探针零写副作用（除自身证据文件）：受判载体只读 ∧ 未调用任何写命令 read-only
+
+汇总：PASS = 9 / FAIL = 0
+COVSRC_PRE_DECL=1
+COVSRC_PRE_READ_MAINREPO=1
+COVSRC_PRE_ARCH_REF=0
+COVSRC_POST_ARCH=1
+COVSRC_POST_FRESH_ASSERT=1
+COVSRC_SELFTEST=2/2
+COVSRC_MAIN_GITLOG=b03f3c5 2026-09-20 08:16 feat(server): 补模型目录能力（缺陷 D-ADM-3）—— 为 H5 凭证页提供模型下拉数据源
+COVSRC_VALUES_EQUAL=0
+COVSRC_FIELDS_EQUAL=1
