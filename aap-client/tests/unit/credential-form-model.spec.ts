@@ -17,6 +17,7 @@ import {
   CATALOG_MORE_TEXT,
   MODEL_SECTION_NOTE,
   buildCredentialForm,
+  buildVendorsFromChannel,
   buildSavePayload,
   countSelected,
   formatModelSpec,
@@ -270,5 +271,35 @@ describe('buildSavePayload · 请求体（不臆造未填字段）', () => {
     expect(MODEL_SECTION_NOTE).toBe('按厂商勾选，自动生成本次接入检测清单')
     expect(CATALOG_MORE_TEXT).toBe('仅展示 2 个厂商，查看更多厂商 ›')
     expect(ANCHOR_NOTE).toBe('凭证仅用于平台检测与转发调用，全程加密存储，不会对外泄露。')
+  })
+})
+
+
+describe('buildVendorsFromChannel —— 加载渠道清单时保留已选状态', () => {
+  // 用户口径（2026-09-23）：「点击加载模型时，还是需要能够看到已经选择的模型，
+  //   可以再次增加和减少勾选模型（可再次更新的）然后再次提交」
+  const CHANNEL = ['gpt-4o', 'gpt-4o-mini', 'claude-3-opus']
+
+  it('已选的模型在加载后**仍然勾选**（不是被强制全选/全清）', () => {
+    const vendors = buildVendorsFromChannel(CHANNEL, new Set(['gpt-4o-mini']))
+    const checked = vendors[0].models.filter((m) => m.checked).map((m) => m.name)
+    expect(checked).toEqual(['gpt-4o-mini'])
+  })
+
+  it('渠道新返回、此前未选的模型默认**不勾** → 用户可「增加」', () => {
+    const vendors = buildVendorsFromChannel(CHANNEL, new Set(['gpt-4o']))
+    const notChecked = vendors[0].models.filter((m) => !m.checked).map((m) => m.name)
+    expect(notChecked).toEqual(['gpt-4o-mini', 'claude-3-opus'])
+  })
+
+  it('已选但渠道本次**未返回**的模型仍保留且勾选 → 不静默丢用户选择', () => {
+    const vendors = buildVendorsFromChannel(CHANNEL, new Set(['gpt-4o', 'legacy-model-x']))
+    const names = vendors[0].models.map((m) => m.name)
+    expect(names).toContain('legacy-model-x')
+    expect(vendors[0].models.find((m) => m.name === 'legacy-model-x')?.checked).toBe(true)
+  })
+
+  it('空输入 → 空清单（不伪造候选）', () => {
+    expect(buildVendorsFromChannel([], new Set())).toEqual([])
   })
 })

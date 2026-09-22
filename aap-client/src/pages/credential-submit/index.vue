@@ -350,8 +350,14 @@ async function onLoadModels() {
       return
     }
 
-    // 渠道拉回的清单 → 可勾选候选（默认全选）
-    vendors.value = buildVendorsFromChannel(models)
+    // 渠道拉回的清单 → 可勾选候选。
+    // ★ 必须带上**当前已选集合**：用户口径「还是需要能够看到已经选择的模型，
+    //   可以再次增加和减少勾选模型（可再次更新的）然后再次提交」——
+    //   不带就等于每次加载都把已有勾选重置，用户看不到自己选过什么。
+    const currentChecked = new Set(
+      vendors.value.flatMap((g) => g.models.filter((m) => m.checked).map((m) => m.name))
+    )
+    vendors.value = buildVendorsFromChannel(models, currentChecked)
     hasCatalog.value = true
     modelListReady.value = true
 

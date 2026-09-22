@@ -186,24 +186,33 @@ export function countSelected(vendors: VendorGroup[]): number {
  * 拉回来的模型默认**全部勾选**（与 new-api 一致：拉到的即可用）。
  * 渠道清单是扁平的名字列表、不含厂商分组信息，故按单分组展示（不臆造厂商）。
  */
-export function buildVendorsFromChannel(models: string[], vendorLabel = '渠道模型'): VendorGroup[] {
+export function buildVendorsFromChannel(
+  models: string[],
+  checkedNames: Set<string> = new Set(),
+  vendorLabel = '渠道模型'
+): VendorGroup[] {
+  // 候选 = 渠道本次返回的清单 ∪ 已选但渠道本次未返回的历史模型
+  //   ⚠️ 后者必须保留：否则「加载」会把用户上次选过、而本次渠道没返回的模型
+  //      **静默丢掉勾选** —— 那正是用户报的「看不到已经选择的模型」。
   const seen = new Set<string>()
-  const list: string[] = []
-  for (const raw of models ?? []) {
+  const ordered: string[] = []
+  for (const raw of [...(models ?? []), ...checkedNames]) {
     const name = String(raw ?? '').trim()
     if (!name || seen.has(name)) continue
     seen.add(name)
-    list.push(name)
+    ordered.push(name)
   }
-  if (list.length === 0) return []
+  if (ordered.length === 0) return []
   return [
     {
       vendor: vendorLabel,
-      models: list.map((name) => ({
+      models: ordered.map((name) => ({
         key: `${vendorLabel}::${name}`,
         name,
         specText: '',
-        checked: true
+        // ★ 勾选状态取**已有清单**：已选的保持勾上，渠道新拉回的默认不勾
+        //   → 用户能「再次增加和减少勾选」，而不是被强制全选
+        checked: checkedNames.has(name)
       }))
     }
   ]
