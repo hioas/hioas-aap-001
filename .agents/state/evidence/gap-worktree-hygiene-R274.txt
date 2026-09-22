@@ -1,0 +1,48 @@
+==============================================================================
+R274 临时 worktree 收尾一致性探针（只读；注册表卫生）
+==============================================================================
+-- 解析（正向对照）--
+  git worktree list --porcelain rc = 0
+  解析到注册条目 = 4 条（> 0 正向对照）
+    E:/workspaces/hioas/hioas-aap-001                    round=None   60abb2ea
+    <tmp>/aap-r267-wt                                    round=267    c159593b
+    <tmp>/aap-r268-wt                                    round=268    f07b7f56
+    <tmp>/aap-r274-wt                                    round=274    60abb2ea
+[PASS] A0 正向对照：注册条目解析数 > 0 且含非主仓条目 注册=4
+  台账轮次行 = 247 个 / git log 提及的轮次 = 174 个（正向对照 > 0）
+[PASS] A0b 正向对照：台账轮次号集合与 git 轮次集合均非空 ledger=247 log=174
+-- 孤儿判定（轮次 < R274 ∧ 台账该轮行存在 ∧ git log 已有该轮提交）--
+  完成的轮次集合大小 = 174；判定为**孤儿**的注册 = 2 条
+    R267  <tmp>/aap-r267-wt  head=c159593  在途改动 = 1 条 ['M .agents/state/evidence/coverage-report.json']  残留轮数 = 7
+    R268  <tmp>/aap-r268-wt  head=f07b7f5  在途改动 = 1 条 ['M .agents/state/evidence/coverage-report.json']  残留轮数 = 6
+[FAIL] A1 **孤儿 worktree 注册 = 0**（每轮收尾都应 `git worktree remove --force` 掉自己的取证 worktree） 实际 = 2 条 ['R267', 'R268']
+-- A2 孤儿「轮次确已结束」的三方机器证据（本探针判定前提的正确性取证）--
+    R267：台账行 = True / git log 提交 = True / 该轮执行器在磁盘 = True
+    R268：台账行 = True / git log 提交 = True / 该轮执行器在磁盘 = True
+[PASS] A2 每个孤儿的轮次均已结束（台账 + 提交双证据） 证据齐全 = True
+-- A3 根因：执行器自述 ⇔ 实现 --
+    执行器 round-r274.sh：声明串命中 = 1 处（**全部在注释行**）/ 真实调用行 = 0 处
+[PASS] A3a 正向对照：执行器确有「收尾用…remove」的**自述**（> 0） 命中 = 1
+[PASS] A3b 执行器**从未真正调用** worktree remove（自述与实现不符，历史纪律 95/238 族） 真实调用行 = 0
+    全轮次执行器（aap-r2*-work，75 个脚本）里 worktree remove 真实调用总数 = 0
+[PASS] A3c 全轮次执行器的真实调用总数 = 0（该步骤**自建立以来从未执行**） 总数 = 0
+-- A4 机制：孤儿 worktree 的在途改动构成 --
+    R267：在途改动 = 1 条 ['M .agents/state/evidence/coverage-report.json'] → 仅覆盖报告 = True
+[PASS] A4 R267 的在途改动仅由 worktree 内重写的覆盖报告构成（非他人真实工作 → 清理风险低） ['M .agents/state/evidence/coverage-report.json']
+    R268：在途改动 = 1 条 ['M .agents/state/evidence/coverage-report.json'] → 仅覆盖报告 = True
+[PASS] A4 R268 的在途改动仅由 worktree 内重写的覆盖报告构成（非他人真实工作 → 清理风险低） ['M .agents/state/evidence/coverage-report.json']
+-- A5 `git worktree prune --dry-run -v` 输出 = ''（rc=0）
+[PASS] A5 prune 干跑无输出（目录尚在 → prune 回收不了该形态） 输出 = ''
+-- 判别力实测 --
+    合成「R200 孤儿」被判出 = True（须 True）→ [(200, 'C:/Users/laitz/AppData/Local/Temp/aap-r200-wt'), (267, 'C:/Users/laitz/AppData/Local/Temp/aap-r267-wt'), (268, 'C:/Users/laitz/AppData/Local/Temp/aap-r268-wt')]
+[PASS] B1 合成孤儿被同一判定式判出 [(200, 'C:/Users/laitz/AppData/Local/Temp/aap-r200-wt'), (267, 'C:/Users/laitz/AppData/Local/Temp/aap-r267-wt'), (268, 'C:/Users/laitz/AppData/Local/Temp/aap-r268-wt')]
+    只含主仓 + 本轮 worktree 的合成注册表 → 孤儿 = []（须空）
+[PASS] B2 只含主仓/本轮 worktree 时判定式给出 0 条孤儿（无误报） []
+    合成「未结束轮次 R1（经事实核验不在 finished 集合里）」→ 孤儿 = []（须空：防止把在跑的轮次误判）
+[PASS] B3 「轮次已结束」是孤儿判定的必要条件（未结束不判孤儿） []
+[PASS] B4 前置对照：合成条目与真实注册表不同形（否则合成反例退化为真实态，历史 220） 
+[PASS] B5 前置对照：本轮自己的 worktree 不被判为孤儿（CUR=274 不在结果里） r274-wt 在注册表里 = True
+==============================================================================
+汇总：FAIL 断言 = 1 条 ['A1 **孤儿 worktree 注册 = 0**（每轮收尾都应 `git worktree remove --force` 掉自己的取证 worktree）']
+结论（据实）：临时取证 worktree 的收尾步骤**只存在于执行器注释里、实现零调用**（全轮次执行器真实调用总数 0）→ 现存**孤儿注册 2 条**（['R267', 'R268']，各残留 7/6 轮），且 `git worktree prune` 回收不了（目录尚在）；该形态此前从未被任何判据覆盖（执行器只把行数当信息项打印）→ 本轮首次机器化取证。清理动作**不在本轮执行**（涉及删除他人可能仍在用的目录树 → 按历史纪律 213-③ 列为待拍板/下一轮决定）。
+PROBE_END=1 fails=1

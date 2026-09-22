@@ -1,0 +1,25 @@
+R274 台账审计（只读探针；本文件在检查之后落盘的部分已按语义单列）
+
+台账 = .agents/state/aap-server-feature-status.csv
+  表头 = ['任务号', '接口ID', '方法', '路径', '依据', '状态', '证据', '提交']
+  总行数（含表头） = 341（> 0 正向对照）
+[PASS] L1 表头列数 = 8 列数=8
+[PASS] L2 每行列数 = 表头列数 违规行 = 无
+[PASS] L3 描述列非空（依据列或状态列承载，历史 200-①） 描述为空的行 = 无
+[PASS] L4 轮次号行数 > 0（正向对照） 轮次号行数 = 247
+[PASS] L5 轮次号连续（无缺号） 缺号 = 无
+[FAIL] L6 本轮行存在且唯一 命中 = 0 条
+  末行 = R273 / 列数 = 8 / 依据列长度 = 5913 / 证据列长度 = 528 / 提交列 = 'da09b9a'
+
+本轮证据清单 = 13 条（本文件含在内）
+  单列 SELF（本文件，落盘时产生）= gap-ledger-audit-R274.txt
+[PASS] E1 其余 12 条存在性 缺失 = 无
+[FAIL] E2 其余 12 条已被 git 跟踪（历史 16/198） 未跟踪 = ['audit-regression-R274.txt', 'audit-regression-R274-rcseq.txt', 'audit-regression-R274-failraw.txt', 'audit-regression-R274-faildiff.txt', 'green-verify-R274-analysis.txt', 'green-verify-R274-full-run1.txt', 'green-verify-R274-full-run2.txt', 'green-verify-R274-testcount.txt', 'green-verify-R274-tested-state.txt', 'green-verify-R274-coverage-fields.txt', 'gap-worktree-hygiene-R274.txt', 'gap-ledger-evcoverage-R274.txt']
+  证据清单条数（单一事实源 EV_LIST）= 13；SELF + 其余 = 13（等式）
+[PASS] E3 条数等式（SELF + 其余 = 清单） 
+
+崩溃通道常驻红 2 条（FAIL 通道不可见）：gap-coverage-gap / gap-coverage-gap-selftest
+「FAIL 通道可见」的常驻红：均为既往轮已登记的待拍板/漂移项，由 audit-regression-R274.txt 逐条留痕
+
+结论：FAIL 断言 = 2 条 ['L6 本轮行存在且唯一', 'E2 其余 12 条已被 git 跟踪（历史 16/198）']
+FACTS_END_MARK=1
