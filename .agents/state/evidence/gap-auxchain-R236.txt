@@ -1,0 +1,35 @@
+==============================================================================
+R236 真发现取证：aux 滚动脚本是否在派生链里（只读）
+==============================================================================
+-- A. 主派生器 FILES 清单 --
+  解析到产物条数 = 10（正向对照须 > 0，历史纪律 46/75/98）
+    r235-regression.py             -> r236-regression.py
+    compare-faildiff-r235.py       -> compare-faildiff-r236.py
+    analyze-r235.py                -> analyze-r236.py
+    append-r235.py                 -> append-r236.py
+    closeout-r235.py               -> closeout-r236.py
+    mkcommit-r235.py               -> mkcommit-r236.py
+    notify-r235.py                 -> notify-r236.py
+    probe-r235.py                  -> probe-r236.py
+    fix-row-r235.py                -> fix-row-r236.py
+    round-r235.sh                  -> round-r236.sh
+[PASS] A0a 解析到主派生产物条数 > 0 10 条
+[PASS] A1 主派生链里不含 aux-roll（该链接由人工另行处理） 含 aux-roll 的产物 = []
+[PASS] A2 主派生链产物数 = 10 10 条
+-- B. 逐轮 work-derive 目录清单 --
+  work-derive 目录数 = 4（正向对照须 > 0）
+    aap-r233-work-derive     ['derive-r233.py']
+    aap-r234-work-derive     ['derive-r234.py']
+    aap-r235-work-derive     ['aux-roll-r235.py', 'derive-r235.py']
+    aap-r236-work-derive     ['aux-roll-r236.py', 'derive-r236.py', 'gap-auxchain-r236.py', 'syntax-check-r236.py']
+[PASS] B0a work-derive 目录数 > 0 4 个
+[PASS] B1「含 aux-roll 的轮次目录」严格少于「全部轮次目录」（说明它是后加入的、非固定链成员） 含 aux-roll 的目录 = ['aap-r235-work-derive', 'aap-r236-work-derive']
+-- C. 目标轮次号是人工输入 --
+  本轮 aux-roll 的 DST = aap-r236-aux
+  上一轮 aux-roll 的 DST = aap-r235-aux
+[PASS] C1 本轮与上一轮的 aux 滚动目标**不同**（照抄上一轮会把 aux 工具滚到上一轮轮次号） aap-r236-aux vs aap-r235-aux
+==============================================================================
+结论：主派生链 = 10 个产物（不含 aux-roll）；aux 滚动脚本由人工每轮另行处理 —— 
+      属流程层结构性缺口（不造成假绿：目标轮次号写错会被「产物须含本轮形态」断言响亮拦下，历史纪律 175 正例）。
+FAIL = 0 条 （全 PASS）
+AUXCHAIN_END=1
