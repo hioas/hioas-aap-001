@@ -1,0 +1,55 @@
+==============================================================================
+R251 前置探针：候选事实机器核对（只读）
+==============================================================================
+[①-A] 源侧（R250 产物目录）含轮次号引用的 .py/.sh 产物 = 23 个（>0 正向对照）
+        - analyze-r250.py
+        - append-r250.py
+        - closeout-r250.py
+        - compare-faildiff-r250.py
+        - derive-r250.py
+        - fix-closeout-r250.py
+        - gap-deriveface-r250.py
+        - gap-precheck-r250.py
+        - mkcloseout-r250.sh
+        - mkcloseoutmsg-r250.py
+        - mkcommit-r250.sh
+        - mkcommitmsg-r250.py
+        - notify-record-r250.py
+        - probe-row-r249.py
+        - probe-syntax.py
+        - probe-syntax2.py
+        - probe-syntax3.py
+        - r250-regression.py
+        - recheck-main-r250.py
+        - recheck-post-commit-r250.py
+        - round-r250.sh
+        - row_data_r250.py
+        - syntax-check-r250.py
+[①-B] 本轮派生报告（aap-r251-work）解析到带分类的条目 = 23 条（>0 正向对照）
+[①-B2] 分类直方图 = {'常设（滚动）': 13, '整体重写': 2, '一次性（不滚动）': 8, '**未登记**': 0}
+[①-C] 常设 = 15（滚动 13 + 整体重写 2）/ 一次性 = 8；未登记 = 0；源侧候选**未**被覆盖 = 0 []；报告里**源侧不存在**的条目（幽灵）= 0 []
+源侧实测候选集合 = 23 个；分类条目 = 23 个；未覆盖 = 0 个
+[PASS] ① 派生面等式（候选 = 分类条目全集 ∧ 常设 + 一次性 = 候选 ∧ 未登记 0 ∧ 未覆盖 0 ∧ 幽灵 0） 候选 23 / 分类 23 / 常设 15 / 一次性 8 / 未登记 0 / 未覆盖 0 / 幽灵 0
+[①-D] 判别力实测：把合成名（synth-r999-ghost.py）注入候选集合后，未覆盖 = 1 条 ['synth-r999-ghost.py'] -> 判据转红 = True（须 True）
+[①-E] 判别力实测（反向）：未注入时未覆盖 = 0 条（须 0），且与注入态**不相等** = True
+[②-A] row_data_r251.py 常量三元组 = (1 / 2 / 3)（>0 正向对照）
+[②-B] docstring 区（ROUND 常量前的头部）含裸真值三元组 = False（须 False）
+[PASS] ② 单一事实源 
+[②-C] 派生面等式常量：滚动 13 + 整体重写 2 = 常设 15（与实际直方图 13 + 2 = 15 一致）
+[PASS] ②-C 派生面常量 ⇔ 派生报告实测（纯数字盲区的机器判据） 
+[③-A] R250 台账行：「派生面 = 14 个常设产物」∧「执行器 + 13 件由派生器…滚动」；R250 派生报告直方图 = 滚动 12 + 整体重写 2 = 常设 14
+[PASS] ③ 历史缺陷有取证对象（台账措辞声称的滚动件数 ≠ 派生报告实测的滚动件数） 措辞声称 13 件滚动 / 实测 12 件滚动
+[PASS] ③b 本轮台账常量与实测**一致**（修法落地核对；历史纪律 214 的第二段） 本轮 13 + 2 = 15
+上一轮台账登记的派生面 = 14 个
+上一轮派生器 FILES 实际条数 = 12
+未被派生器 FILES 覆盖的 = 1 个：[mkcloseoutmsg-r250.py]
+      [③-C] 归一说明：上一轮派生报告列出的是源侧（R249 形态）名，本轮源目录为 R250 形态 → 两侧过同一 norm 后相减（历史纪律 57/92）
+[④-A] 历史缺陷留档（gap-precheck-R250.txt）：登记 = 13 个 / FILES = 11 条 / 未覆盖 = 3 个 ['gap-deriveface-r247.py', 'mkcommitmsg-r247.py', 'notify-record-r247.py']
+[PASS] ④ 历史缺陷有取证对象（留档链路可解析 ∧ 两值不相等） 登记 13 / FILES 11
+[④-B] 本轮三行形态自洽（供下一轮解析）= True（登记 14 / FILES 12 / 未覆盖 1）
+[PASS] ④b 本轮产出的三行可被同一判据解析（写入/读取格式双向一致，历史纪律 181） 
+[⑤-A] 上一轮（R250）证据文件在仓库 evidence/ 下 = 13 个（>0 正向对照）
+[⑤-B] 本轮证据文件（截至本探针）= 11 个：['audit-regression-R251-faildiff.txt', 'audit-regression-R251-failraw.txt', 'audit-regression-R251-rcseq.txt', 'audit-regression-R251.txt', 'gap-precheck-R251.txt', 'green-verify-R251-analysis.txt', 'green-verify-R251-coverage-fields.txt', 'green-verify-R251-full-run1.txt', 'green-verify-R251-full-run2.txt', 'green-verify-R251-testcount.txt', 'green-verify-R251-tested-state.txt']（本文件 gap-precheck-R251.txt 为**自产**，落盘时产生，历史纪律 222）
+==============================================================================
+探针结论：FAIL = 0 条 （全 PASS）
+PRECHECK_END=1
