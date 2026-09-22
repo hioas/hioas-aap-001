@@ -69,6 +69,20 @@ export const credentialApi = {
     return http<CredentialDetailRaw>(path(id), { method: 'PUT', data: payload as unknown as Record<string, unknown> })
   },
 
+  /**
+   * 删除凭证（CRED-08，**软删**）。
+   *
+   * 用户口径 2026-09-23：「每个用户的凭证列表页的凭证可删除」。
+   *
+   * 服务端语义与两道守卫：
+   *   · **软删** —— `deleted=true`，物理行保留（历史可追溯，不物理删）
+   *   · 归属 —— 非本人凭证 → 403 `E-1901`（不区分是否存在，避免泄露资源存在性）
+   *   · 引用 —— 被未删除的报价单引用 → 400 `E-1102`，须先处理相关报价单
+   */
+  remove(id: string) {
+    return http<void>(path(id), { method: 'DELETE' })
+  },
+
   /** 提交检测（预检 → 服务端按 09-PRD §5 创建 DetectionJob 入队） */
   precheck(id: string) {
     return http<PrecheckResultRaw>(`${path(id)}/precheck`, { method: 'POST' })

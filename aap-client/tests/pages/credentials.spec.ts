@@ -9,7 +9,7 @@
 import { describe, expect, it } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import CredentialsPage from '@/pages/credentials/index.vue'
-import { getCalls, pushResponse, setNextResponse } from '../setup'
+import { getCalls, pushResponse, setModalAnswer, setNextResponse } from '../setup'
 
 const ok = (data: unknown) => ({ statusCode: 200, data: { code: '0', message: 'ok', data } })
 
@@ -225,5 +225,52 @@ describe('页面 3 · 失败与非 happy-path', () => {
     expect(text).toContain('凭证名称')
     expect(text).toContain('仅展示最近接入的 10 条凭证记录')
     expect(wrapper.findAll('[data-testid="cred-row"]')).toHaveLength(0)
+  })
+})
+
+
+describe('凭证删除（用户口径 2026-09-23：「每个用户的凭证列表页的凭证可删除」）', () => {
+  const reqs = () =>
+    getCalls('request').map((c) => ({
+      url: String((c.args[0] as Record<string, unknown>).url ?? ''),
+      method: String((c.args[0] as Record<string, unknown>).method ?? '')
+    }))
+
+  it('点删除 → 二次确认 → DELETE /credentials/{id} → 重新拉列表', async () => {
+    setModalAnswer(true)
+    const wrapper = await mountPage()
+    const before = reqs().length
+
+    pushResponse(ok({}))                        // DELETE 响应
+    pushResponse(ok({ total: 0, items: [] }))   // 删除后重新 load
+    await wrapper.find('[data-testid="row-delete-0"]').trigger('tap')
+    await flushPromises()
+
+    const after = reqs().slice(before)
+    expect(after.some((r) => r.method === 'DELETE' && r.url.includes('/credentials/c1'))).toBe(true)
+    // 删除后必须重新拉列表（否则界面还显示已删的行）
+    expect(after.filter((r) => r.method === 'GET').length).toBeGreaterThan(0)
+  })
+
+  it('取消确认 → 不发任何 DELETE 请求', async () => {
+    setModalAnswer(false)
+    const wrapper = await mountPage()
+    await wrapper.find('[data-testid="row-delete-0"]').trigger('tap')
+    await flushPromises()
+    expect(reqs().some((r) => r.method === 'DELETE')).toBe(false)
+  })
+
+  it('删除失败 → 透传服务端消息（E-1102 被报价单引用是可执行指引，不能被通用文案盖掉）', async () => {
+    setModalAnswer(true)
+    const wrapper = await mountPage()
+    pushResponse({
+      statusCode: 400,
+      data: { code: 'E-1102', message: '该凭证已被 1 张报价单引用，请先处理相关报价单', data: null }
+    })
+    await wrapper.find('[data-testid="row-delete-0"]').trigger('tap')
+    await flushPromises()
+
+    const titles = getCalls('showToast').map((c) => String((c.args[0] as { title?: string }).title ?? ''))
+    expect(titles.join()).toContain('报价单')
   })
 })

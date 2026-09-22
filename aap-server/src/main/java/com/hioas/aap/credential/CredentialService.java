@@ -57,6 +57,7 @@ public class CredentialService {
     private final UpstreamProbe upstreamProbe;
     private final DocNoGenerator docNoGenerator;
     private final AuditService auditService;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
     private final com.hioas.aap.iam.SmsService smsService;
     private final com.hioas.aap.iam.AdminUserMapper adminUserMapper;
     private final int probeTimeoutSeconds;
@@ -69,7 +70,9 @@ public class CredentialService {
                              com.hioas.aap.iam.SmsService smsService,
                              com.hioas.aap.iam.AdminUserMapper adminUserMapper,
                              @org.springframework.beans.factory.annotation.Value("${app.detection.probe-timeout-seconds:10}")
-                             int probeTimeoutSeconds) {
+                             int probeTimeoutSeconds,
+                             org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
         this.credentialMapper = credentialMapper;
         this.precheckMapper = precheckMapper;
         this.precheckRecorder = precheckRecorder;
@@ -129,6 +132,30 @@ public class CredentialService {
 
         log.info("凭证创建 credential_id={} provider_id={} mask={}", entity.getId(), providerId, entity.getApiKeyMask());
         return toDetail(entity);
+    }
+
+    /**
+     * CRED-08 删除凭证（**软删**，保留历史可追溯）。
+     *
+     * <p>用户口径 2026-09-23：「每个用户的凭证列表页的凭证可删除」。
+     *
+     * <p>守卫：被**未删除的报价单**引用的凭证**不允许删除** —— 报价单的 {@code credential_id}
+     * 会指向一张不存在的凭证，报价明细的模型来源就断了。要删须先处理相关报价单。
+     * 归属校验走 {@link #requireOwned}（只能删自己的凭证）。
+     */
+    @Transactional
+    public void delete(AuthPrincipal principal, Long credentialId) {
+        CredentialEntity entity = requireOwned(principal, credentialId);
+        Long refs = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM aap_quote WHERE credential_id = ? AND deleted = false",
+                Long.class, credentialId);
+        if (refs != null && refs > 0) {
+            throw new ApiException(ErrorCode.E_1102,
+                    "该凭证已被 " + refs + " 张报价单引用，请先处理相关报价单");
+        }
+        entity.setDeleted(true);
+        credentialMapper.update(entity);
+        log.info("凭证软删 credential_id={} provider_id={}", credentialId, entity.getProviderId());
     }
 
     /** CRED-03 详情。 */

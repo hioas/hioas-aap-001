@@ -70,6 +70,12 @@
             >
               {{ row.reportText }}
             </text>
+            <!-- 删除入口：**用户口径 2026-09-23**「凭证列表页的凭证可删除」；设计稿无此入口 -->
+            <text
+              class="cred-row__delete"
+              :data-testid="`row-delete-${i}`"
+              @tap="confirmDelete(row)"
+            >删除</text>
           </view>
         </view>
 
@@ -117,6 +123,7 @@
  *   状态统计 chip = client-only（设计稿无选中态、列表已含全部 4 态，不做筛选） · TabBar = navigation
  */
 import { computed, onMounted, ref } from 'vue'
+import { ApiError } from '@/api/http'
 import { credentialApi } from '@/api/credential'
 import { PAGE_SIZE, buildCredentialsModel, type CredentialListRaw, type CredentialRow } from '@/utils/credentials-model'
 
@@ -176,19 +183,54 @@ function openEdit(row: CredentialRow) {
   uni.navigateTo({ url: `${CREDENTIAL_SUBMIT_PAGE}?id=${row.id}` })
 }
 
+/** 删除二次确认文案：设计稿无弹窗稿 → 占位（与报价单删除同口径，已记台账待确认） */
+const DELETE_MODAL_TITLE = '删除凭证'
+const DELETE_MODAL_CONTENT = '确认删除该凭证？删除后不可恢复。'
+
+/**
+ * 删除凭证（**用户口径 2026-09-23**：「每个用户的凭证列表页的凭证可删除」）。
+ *
+ * 二次确认 → `DELETE /credentials/{id}` → 重新拉列表。
+ * 失败时**透传服务端消息** —— `E-1102`（被报价单引用）的提示本身就是可执行的指引，
+ * 用通用文案盖掉它，用户会不知道下一步该做什么。
+ */
+function confirmDelete(row: CredentialRow) {
+  uni.showModal({
+    title: DELETE_MODAL_TITLE,
+    content: DELETE_MODAL_CONTENT,
+    confirmText: '删除',
+    cancelText: '取消',
+    success: async (res) => {
+      if (!res.confirm) return
+      try {
+        await credentialApi.remove(row.id)
+        uni.showToast({ title: '已删除', icon: 'none' })
+        await load()
+      } catch (err) {
+        uni.showToast({
+          title: err instanceof ApiError ? err.message : '删除失败，请稍后重试',
+          icon: 'none'
+        })
+      }
+    }
+  })
+}
+
 function onTab(tab: { label: string; url: string }) {
   if (tab.label === ACTIVE_TAB) return
   goto(tab.url)
 }
 
-onMounted(async () => {
+async function load() {
   try {
     raw.value = (await credentialApi.list({ page: 1, pageSize: PAGE_SIZE })) ?? null
   } catch {
     raw.value = null
     uni.showToast({ title: '数据加载失败，请稍后重试', icon: 'none' })
   }
-})
+}
+
+onMounted(load)
 </script>
 
 <style lang="scss" scoped>
@@ -463,6 +505,12 @@ onMounted(async () => {
   align-items: flex-start;
   gap: 2px;
   min-width: 0;
+}
+
+.cred-row__delete {
+  margin-left: 10px;
+  font-size: 12px;
+  color: #dc2626;
 }
 
 .cred-row__alias {

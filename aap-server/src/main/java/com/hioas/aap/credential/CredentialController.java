@@ -14,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -61,6 +62,19 @@ public class CredentialController {
                                                              @RequestParam(required = false) Integer pageSize,
                                                              @RequestParam(required = false) String status) {
         return ApiEnvelope.ok(credentialService.list(principal, page, pageSize, status));
+    }
+
+    /**
+     * CRED-08 删除凭证（**软删**）。
+     *
+     * <p>用户口径 2026-09-23：「每个用户的凭证列表页的凭证可删除」。
+     */
+    @DeleteMapping("/{credentialId}")
+    @PreAuthorize("hasAnyRole('SUPPLIER','PROVIDER')")
+    public ApiEnvelope<Void> delete(@AuthenticationPrincipal AuthPrincipal principal,
+                                    @PathVariable Long credentialId) {
+        credentialService.delete(principal, credentialId);
+        return ApiEnvelope.ok(null);
     }
 
     /** CRED-02 创建凭证。 */
