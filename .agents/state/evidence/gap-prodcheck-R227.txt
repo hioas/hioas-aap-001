@@ -43,3 +43,15 @@ R227 产物自检（域 = C:\Users\laitz\AppData\Local\Temp\aap-r227-work 的 .p
 [PASS] C4 判别力实测：C3 判据对合成注入态必须点名恰好 1 条、对真实产物 0 条 注入态=1 条
 汇总：FAIL = 0 条 （全 PASS）
 PRODCHECK_END=1
+
+------------------------------------------------------------------------------
+两相位对比（终态自检协调器 final-prodcheck-r227.py 追加；口径 = 工作目录 + aux 的 .py/.sh 实测集合）
+  mid   相位域条目数 = 22
+  final 相位域条目数 = 22
+  按设计由**本协调器**在终态复跑覆盖的产物（通知记录脚本 = append-notify-note.py）
+    在 mid 域内 = True（**允许**：该脚本本轮为派生产物，mid 相位即已存在 —— 故本段不再以它作为「域少 1」的指纹，历史纪律 205/81）
+    在 final 域内 = True（应为 True —— 终态复跑使其被 A/B/C 三条判据覆盖）
+  mid 之后落盘的产物（由 final 域 − mid 域**推出**，非硬编码）= []
+    均为产物目录里的真实文件（幽灵条目 = 0）= True（机器证据）
+  域 ⇔ 实测条目 逐名对账 = 相等
+  mid 相位证据另存 = C:\Users\laitz\AppData\Local\Temp\aap-r227-aux\prodcheck-mid.txt
