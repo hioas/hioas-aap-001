@@ -1,0 +1,20 @@
+R230 取证：执行器「工具链冻结 + 单实例 + 原始日志完整性」（只读取证，零写副作用）
+
+事实：RUN1_START = 2026-09-22 09:59:52
+A 组（工具链冻结）：执行器脚本 mtime = 2026-09-22 09:59:30（epoch 1790042370）；run1 起跑 = 2026-09-22 09:59:52（epoch 1790042392）
+  -> mtime < 起跑时刻 = PASS（判据：执行期间脚本未被改写）
+B 组（单实例）：启动留痕 LOCK_ACQUIRED 出现 1 次（期望 1）、ABORT_LOCK_EXISTS 出现 0 次（期望 0）
+  -> PASS
+C 组（原始日志完整性）：每份 raw 的 BUILD SUCCESS / Finished at 计数必须各为 1（交错写入会各为 2）
+  run1：BUILD SUCCESS=1、Finished at=1、字节=433547 -> PASS
+  run2：BUILD SUCCESS=1、Finished at=1、字节=432276 -> PASS
+  -> C 组 = PASS
+D 组（判别力实测）：
+  合成注入（复制一份 LOCK_ACQUIRED）：计数 = 2（期望 ≠1，必须被点名）
+  合成注入（把 run1 raw 复制一份）：BUILD SUCCESS/Finished at = (2, 2)（期望 (2,2)，必须被点名）
+  未注入态：LOCK_ACQUIRED=1、raw(1) = (1, 1)（期望 1 与 (1,1)=真值）
+  -> 判别力实测 PASS（合成注入必须被点名、未注入态按真值判定）
+
+FAIL = 0 条 []
+结论：A（工具链冻结）=PASS、B（单实例）=PASS、C（原始日志完整性）=PASS、D（判别力实测）=PASS
+说明：本轮的 raw / facts 均为**单实例**产物（B 组留痕恰好一次 LOCK_ACQUIRED、无 ABORT_LOCK_EXISTS），故 C 组计数即本轮可信度的机器证据（该判据的动因见本文件背景段）。
