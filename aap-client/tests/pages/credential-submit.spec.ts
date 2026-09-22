@@ -115,10 +115,20 @@ describe('页面 4 · 渲染：文案与 page-4-2 设计稿逐条一致', () => 
     expect(checked(1, 1)).toBe(false)
   })
 
-  it('底部固定操作条：保存草稿 + 提交检测', async () => {
+  it('操作条：加载模型列表 + 保存 + 提交，**位于模型清单卡内**（用户口径 2026-09-23）', async () => {
     const wrapper = await mountPage()
-    expect(wrapper.find('[data-testid="save-btn"]').text()).toBe('保存草稿')
-    expect(wrapper.find('[data-testid="submit-btn"]').text()).toContain('提交检测')
+    // 用户口径改名：保存草稿→保存、提交检测→提交
+    expect(wrapper.find('[data-testid="save-btn"]').text()).toBe('保存')
+    expect(wrapper.find('[data-testid="submit-btn"]').text()).toContain('提交')
+    expect(wrapper.find('[data-testid="load-models-btn"]').text()).toContain('加载模型列表')
+
+    // 用户口径：三个按钮在**模型清单卡片内**、清单下方；不再有底部固定操作条
+    const card = wrapper.find('.card--models')
+    expect(card.exists()).toBe(true)
+    expect(card.find('[data-testid="save-btn"]').exists()).toBe(true)
+    expect(card.find('[data-testid="submit-btn"]').exists()).toBe(true)
+    expect(card.find('[data-testid="load-models-btn"]').exists()).toBe(true)
+    expect(wrapper.find('.submit-bar').exists()).toBe(false)
   })
 })
 

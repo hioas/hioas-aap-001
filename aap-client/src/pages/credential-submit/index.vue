@@ -102,6 +102,7 @@
         <!-- 说明行：design id=5d8ad627 -->
         <text class="card__note">{{ MODEL_SECTION_NOTE }}</text>
 
+
         <!-- 厂商分组：design id=60022084 / ddfd78b5（#F8FAFC · r12 · padding 12 · gap 10） -->
         <view v-for="(group, gi) in form.vendors" :key="group.vendor" class="vendor" data-testid="vendor-group">
           <text class="vendor__name">{{ group.vendor }}</text>
@@ -135,17 +136,32 @@
           data-testid="catalog-more"
           @tap="onMoreVendors"
         >{{ form.catalogMoreText }}</text>
-      </view>
-    </view>
 
-    <!-- 底部固定操作条：design id=c735e46e（白 · padding 12/16/24/16） -->
-    <view class="submit-bar">
-      <view class="submit-bar__ghost" data-testid="save-btn" @tap="onSave">
-        <text class="submit-bar__ghost-text">保存草稿</text>
-      </view>
-      <view class="submit-bar__primary" data-testid="submit-btn" @tap="onSubmit">
-        <view class="glyph glyph--rocket" aria-hidden="true" />
-        <text class="submit-bar__primary-text">提交检测</text>
+        <!-- 操作条：**用户口径（2026-09-23）** —— 三个按钮放在**模型清单下方**，
+             不放底部固定 tabbar 区（用户原话：「这三个按钮在模型清单列表的下面，
+             不是在 tabbar 的地方，好好设计一下排放位置」）。
+             ⚠️ 按钮文案亦按用户口径改名：保存草稿→「保存」、提交检测→「提交」
+                （设计稿原文分别为「保存草稿」「提交检测」，已被用户覆盖）。
+             排布：加载（次要·描边，占宽更大，因其为前置动作）
+                   → 保存（次要·描边）→ 提交（主·实心蓝，视觉权重最高）。 -->
+        <view class="action-row">
+          <view
+            class="action-row__btn action-row__btn--outline"
+            data-testid="load-models-btn"
+            @tap="onLoadModels"
+          >
+            <view class="glyph glyph--refresh" aria-hidden="true" />
+            <text class="action-row__text action-row__text--outline">{{ LOAD_MODELS_LABEL }}</text>
+          </view>
+          <view class="action-row__btn action-row__btn--ghost" data-testid="save-btn" @tap="onSave">
+            <text class="action-row__text action-row__text--ghost">{{ SAVE_LABEL }}</text>
+          </view>
+          <view class="action-row__btn action-row__btn--primary" data-testid="submit-btn" @tap="onSubmit">
+            <view class="glyph glyph--rocket" aria-hidden="true" />
+            <text class="action-row__text action-row__text--primary">{{ SUBMIT_LABEL }}</text>
+          </view>
+        </view>
+        <text v-if="loadHint" class="action-row__hint" data-testid="load-models-hint">{{ loadHint }}</text>
       </view>
     </view>
   </view>
@@ -172,9 +188,13 @@ import {
   ALIAS_HINT,
   APIKEY_HINT,
   CONFIGURED_LABEL,
+  LOAD_MODELS_LABEL,
+  SAVE_LABEL,
+  SUBMIT_LABEL,
   MODEL_SECTION_NOTE,
   buildCredentialForm,
   buildSavePayload,
+  buildVendorsFromChannel,
   toggleModel,
   validateBaseUrl,
   type VendorGroup
@@ -293,6 +313,64 @@ function onToggle(key: string) {
 /** 画布无厂商目录页（.calicat/inventory.json 30 页已核对）→ client-only，不臆造路由 */
 function onMoreVendors() {
   toast('更多厂商即将开放')
+}
+
+
+/** 加载状态提示（拉取成功/失败的原因，非 toast 的持久留痕） */
+const loadHint = ref('')
+
+/**
+ * 加载模型列表 —— **用户口径（2026-09-23）**，设计稿无此按钮。
+ *
+ * 用户原话：「用户填入 url 和 apikey 后，在模型清单保存草稿前加一个加载按钮，
+ *            该按钮调用凭证，拉取模型清单」。
+ *
+ * 链路（= new-api 渠道页「获取模型列表」）：
+ *   ① 先把 base_url / api_key 落库 —— precheck 是拿**服务端的**凭据去打渠道的
+ *   ② POST /credentials/{id}/precheck → 后端 upstreamProbe **真打** {base_url}/models
+ *   ③ 拉回的 models 渲染为可勾选候选（buildVendorsFromChannel）
+ *   ④ 回写 model_list（**剥掉 api_key**，否则后端按「轮换密钥」把 ACTIVE 打回）
+ */
+async function onLoadModels() {
+  const invalid = validateForm()
+  if (invalid) return toast(invalid)
+  loadHint.value = ''
+  uni.showLoading({ title: '加载中' })
+  try {
+    const id = await ensureCredentialId()
+    await credentialApi.save(id, payloadOf())
+
+    const result = await credentialApi.precheck(id)
+    const models = Array.isArray(result?.models)
+      ? result.models.filter((m) => typeof m === 'string' && m.trim())
+      : []
+    if (models.length === 0) {
+      loadHint.value = '渠道未返回模型清单，请检查 BaseURL 与 APIKey'
+      toast(loadHint.value)
+      return
+    }
+
+    // 渠道拉回的清单 → 可勾选候选（默认全选）
+    vendors.value = buildVendorsFromChannel(models)
+    hasCatalog.value = true
+    modelListReady.value = true
+
+    // 回写：这次写的就是渠道真实清单，是权威来源
+    const { api_key: _drop, ...rest } = payloadOf()
+    await credentialApi.save(id, {
+      ...rest,
+      model_list: models.map((m) => ({ model_name: m }))
+    })
+
+    loadHint.value = `已从渠道拉取 ${models.length} 个模型`
+    toast(`已加载 ${models.length} 个模型`)
+  } catch (err) {
+    const msg = err instanceof ApiError ? err.message : '加载失败，请稍后重试'
+    toast(msg)
+    loadHint.value = msg
+  } finally {
+    uni.hideLoading()
+  }
 }
 
 /** 提交前置校验：名称必填 + BaseURL 形态（SSRF 内网拒绝由服务端 E-1201 判定） */
@@ -527,6 +605,59 @@ onMounted(load)
   line-height: 18px;
 }
 
+.action-row {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.action-row__btn {
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+/* 加载：次要（描边）—— 前置动作，占宽更大 */
+.action-row__btn--outline {
+  flex: 1.5;
+  border: 1px solid #2563eb;
+  background: #eff6ff;
+}
+
+/* 保存：次要（描边灰） */
+.action-row__btn--ghost {
+  flex: 1;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+}
+
+/* 提交：主按钮（实心蓝），视觉权重最高 */
+.action-row__btn--primary {
+  flex: 1.2;
+  background: #2563eb;
+}
+
+.action-row__text {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.action-row__text--outline { color: #2563eb; }
+.action-row__text--ghost   { color: #475569; }
+.action-row__text--primary { color: #ffffff; }
+
+.action-row__hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #16a34a;
+}
+
 /* 同卡片内的第二个字段行（设计稿：BaseURL 与 APIKey 同卡） */
 .card__title-row--sub {
   margin-top: 16px;
@@ -739,62 +870,10 @@ onMounted(load)
 }
 
 /* 底部固定操作条（design c735e46e） */
-.submit-bar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  max-width: 430px;
-  margin: 0 auto;
-  box-sizing: border-box;
-  background: $color-bg-card;
-  padding: 12px 16px 24px 16px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
 
-.submit-bar__ghost {
-  width: 156px;
-  height: 48px;
-  flex: none;
-  background: $color-bg-card;
-  border: 1px solid $color-border-strong;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* 设计稿 stroke 为内描边（156x48 含边框）→ border-box 保证高度仍为 48，操作条总高与设计一致 */
-  box-sizing: border-box;
-}
 
-.submit-bar__ghost-text {
-  font-size: $font-base;
-  font-weight: 500;
-  color: $color-text-tertiary;
-  line-height: 1.2;
-}
 
-.submit-bar__primary {
-  margin-left: 12px;
-  flex: 1;
-  height: 48px;
-  background: $color-primary;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
 
-.submit-bar__primary-text {
-  font-size: $font-md;
-  font-weight: 600;
-  color: #ffffff;
-  line-height: 1.2;
-}
 
 /* 图标占位（设计稿为 remixicon 矢量图标，PRD08 禁 emoji → CSS 形状占位，与序号 1/2/3 一致）
    ⚠️ 占位形状画进 ::before，外层 .glyph--* 的**盒子**尺寸 = 设计图层的声明盒

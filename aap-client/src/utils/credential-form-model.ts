@@ -24,6 +24,19 @@ export const CATALOG_MORE_TEXT = '仅展示 2 个厂商，查看更多厂商 ›
 /** 设计稿原文：已配置标签（设计 id=157197ab） */
 export const CONFIGURED_LABEL = '已配置'
 
+/** 「加载模型列表」按钮文案（**用户口径 2026-09-23**，设计稿无此按钮）。
+ *  行为：调凭证 → 后端真打 {base_url}/models → 拉取渠道模型清单。
+ *  等价 new-api 渠道编辑页的「获取模型列表」。 */
+export const LOAD_MODELS_LABEL = '加载模型列表'
+
+/** 「保存」按钮文案。**用户口径 2026-09-23 改名**：原「保存草稿」→「保存」。
+ *  （设计稿原文为「保存草稿」，用户已覆盖。） */
+export const SAVE_LABEL = '保存'
+
+/** 「提交」按钮文案。**用户口径 2026-09-23 改名**：原「提交检测」→「提交」。
+ *  （设计稿原文为「提交检测」，用户已覆盖。） */
+export const SUBMIT_LABEL = '提交'
+
 /** 建议区间（设计稿为「建议」而非校验规则：PRD 未定义 alias 长度约束） */
 const ALIAS_MIN = 6
 const ALIAS_MAX = 24
@@ -120,39 +133,15 @@ function optionOf(raw: ModelEntryRaw, vendor: string, checkedNames: Set<string>)
   }
 }
 
-export function countSelected(vendors: VendorGroup[]): number {
-  return vendors.reduce((sum, g) => sum + g.models.filter((m) => m.checked).length, 0)
-}
-
-
-export function buildVendorsFromCatalog(
-  catalog: Array<{
-    vendorName?: string | null
-    vendorKey?: string | null
-    modelUid?: string | null
-    contextWindow?: number | null
-    maxOutput?: number | null
-  }>,
-  checkedNames: Set<string> = new Set()
-): VendorGroup[] {
-  const byVendor = new Map<string, ModelOption[]>()
-  for (const m of catalog) {
-    const uid = text(m?.modelUid)
-    if (!uid) continue
-    const vendor = text(m?.vendorName) || text(m?.vendorKey) || ''
-    const opt = optionOf(
-      { model_name: uid, context_window: m?.contextWindow ?? undefined },
-      vendor,
-      checkedNames
-    )
-    if (!opt) continue
-    const list = byVendor.get(vendor) ?? []
-    list.push(opt)
-    byVendor.set(vendor, list)
-  }
-  return [...byVendor.entries()].map(([vendor, models]) => ({ vendor, models }))
-}
-
+/**
+ * 由**凭证详情**构造模型清单候选。
+ *
+ * ⚠️ 保留 `model_catalog` 分支的理由（我一度删掉它，被既有测试拦下）：
+ *    它是**凭证详情上的**字段，不是管理端那个 `/catalog/models` 目录 API
+ *    —— 用户否定的只是后者（「不是管理端提供的模型列表」）。
+ *    后端目前不产出该字段（credential 包内实测 0 处），故实际走 `model_list` 分支；
+ *    但既有用例编码了「详情带目录时按厂商分组」的行为，属既定契约，不擅自改。
+ */
 function buildVendors(raw: CredentialDetailRaw | null | undefined): VendorGroup[] {
   const list = Array.isArray(raw?.model_list) ? raw!.model_list! : []
   const checkedNames = new Set(list.map((m) => text(m?.model_name) || text(m?.model_id)).filter(Boolean))
@@ -176,7 +165,48 @@ function buildVendors(raw: CredentialDetailRaw | null | undefined): VendorGroup[
   const models = list
     .map((m) => optionOf(m, vendor, checkedNames))
     .filter((m): m is ModelOption => m !== null)
-  return models.length ? [{ vendor, models }] : []
+  return models.length > 0 ? [{ vendor, models }] : []
+}
+
+export function countSelected(vendors: VendorGroup[]): number {
+  return vendors.reduce((sum, g) => sum + g.models.filter((m) => m.checked).length, 0)
+}
+
+
+/**
+ * 用**渠道拉取的模型清单**构造可勾选候选。
+ *
+ * 用户口径（2026-09-23）：「用户填入 url 和 apikey 后…加载按钮…调用凭证，拉取模型清单」。
+ * 真源 = `POST /credentials/{id}/precheck` 返回的 `models`
+ *        （后端 upstreamProbe **真打** {base_url}/models，等价 new-api 的「获取模型列表」）。
+ *
+ * ⚠️ 与已删除的 `buildVendorsFromCatalog` 的区别：那份来自**管理端维护的目录**，
+ *    已被用户明确否定（「不是管理端提供的模型列表」）。本份来自**凭证自己的渠道**。
+ *
+ * 拉回来的模型默认**全部勾选**（与 new-api 一致：拉到的即可用）。
+ * 渠道清单是扁平的名字列表、不含厂商分组信息，故按单分组展示（不臆造厂商）。
+ */
+export function buildVendorsFromChannel(models: string[], vendorLabel = '渠道模型'): VendorGroup[] {
+  const seen = new Set<string>()
+  const list: string[] = []
+  for (const raw of models ?? []) {
+    const name = String(raw ?? '').trim()
+    if (!name || seen.has(name)) continue
+    seen.add(name)
+    list.push(name)
+  }
+  if (list.length === 0) return []
+  return [
+    {
+      vendor: vendorLabel,
+      models: list.map((name) => ({
+        key: `${vendorLabel}::${name}`,
+        name,
+        specText: '',
+        checked: true
+      }))
+    }
+  ]
 }
 
 export function buildCredentialForm(raw?: CredentialDetailRaw | null): CredentialFormModel {

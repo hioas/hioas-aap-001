@@ -1,5 +1,5 @@
 {
-  "at": "2026-09-20T00:49:35.842Z",
+  "at": "2026-09-22T22:30:52.088Z",
   "baseUrl": "http://localhost:5173",
   "phone": "13800138000",
   "steps": [
@@ -51,22 +51,22 @@
     {
       "name": "⑫ 管理端 DET-06 人工放行（真实鉴权 + 理由必填 + 审计）",
       "ok": true,
-      "detail": "jobId=459081987636523008 已放行 → status=COMPLETED"
+      "detail": "jobId=460134199250841600 已放行 → status=COMPLETED"
     },
     {
       "name": "⑬ 放行后检测任务真的推进了（业务结果断言）",
       "ok": true,
-      "detail": "status=COMPLETED · started_at=null · finished_at=2026-09-20T00:49:03Z"
+      "detail": "status=COMPLETED · started_at=null · finished_at=2026-09-22T22:30:10Z"
     },
     {
       "name": "⑭ 检测报告页在浏览器里渲染出内容",
       "ok": true,
-      "detail": "426 字；GET /reports → 本次未发"
+      "detail": "434 字；GET /reports → 本次未发"
     },
     {
       "name": "⑮ 报告数据真实可取（业务结果断言，非状态码）",
       "ok": true,
-      "detail": "报告数=10 · 首份 id=459082022101118976 · 详情字段=34"
+      "detail": "报告数=10 · 首份 id=460134233820295168 · 详情字段=34"
     },
     {
       "name": "⑯ 报价单列表 →「新建报价」",
@@ -76,37 +76,37 @@
     {
       "name": "⑰ 选报价主体 + 填报价单名称",
       "ok": true,
-      "detail": "主体=联调测试科技有限公司（面板选项 1 个）；名称=联调H5-54266"
+      "detail": "主体=联调测试科技有限公司（面板选项 1 个）；名称=联调H5-22242"
     },
     {
       "name": "⑱ 选凭证 → 模型列表带出 → 全选模型",
-      "ok": false,
-      "detail": "选了凭证后模型列表仍为空（带不出模型）"
+      "ok": true,
+      "detail": "凭证=联调凭证96456（面板选项 20 个）；模型行=10；已选=已选 1 / 10"
     },
     {
       "name": "⑲ 保存报价单 → 断言 POST /quotes 与明细写入",
-      "ok": false,
-      "detail": "点「保存」后未发出 POST /quotes"
+      "ok": true,
+      "detail": "POST /quotes code=0（id=460134304255242240）；明细写入 code=0"
     },
     {
       "name": "⑳ 模型定价 → 保存价格（PUT /quotes/items/{itemId}）",
-      "ok": false,
-      "detail": "上一步未拿到报价单 id"
+      "ok": true,
+      "detail": "PUT /quotes/items/{itemId} → code=0；体={\"input_price\":2.5,\"output_price\":10,\"billing_mode\":\"按 token\"}"
     },
     {
       "name": "㉑ 报价预览 → 提交报价单（POST /quotes/{id}/submit）",
-      "ok": false,
-      "detail": "未拿到报价单 id"
+      "ok": true,
+      "detail": "POST /quotes/{id}/submit → code=0"
     },
     {
       "name": "㉒ 提交后状态真的变了（业务结果断言，非状态码）",
-      "ok": false,
-      "detail": "GET /quotes/{id} → E-1406 接口或资源不存在"
+      "ok": true,
+      "detail": "报价单 Q20260922000010 status=SUBMITTED"
     },
     {
       "name": "㉓ 报价单出现在列表里且状态已更新（业务结果断言）",
       "ok": true,
-      "detail": "报价单 9 张，其中草稿/已提交 6 张；最新=Q20260919000009 status=SUBMITTED"
+      "detail": "报价单 10 张，其中草稿/已提交 7 张；最新=Q20260922000010 status=SUBMITTED"
     }
   ],
   "apiCalls": [
@@ -119,7 +119,7 @@
       "message": "ok",
       "data": {
         "ttl": 300,
-        "expire_at": "2026-09-20T00:53:41Z",
+        "expire_at": "2026-09-22T22:34:45Z",
         "dev_code": "123456"
       }
     },
@@ -187,7 +187,7 @@
         "daily": [],
         "cost": null,
         "updated_at": null,
-        "refreshed_at": "2026-09-20T00:48:44Z",
+        "refreshed_at": "2026-09-22T22:29:50Z",
         "degraded": false
       }
     },
@@ -210,17 +210,17 @@
     {
       "method": "POST",
       "url": "http://localhost:5173/api/v1/credentials",
-      "postData": "{\"alias\":\"联调凭证29258\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789865329945\"}",
+      "postData": "{\"alias\":\"联调凭证96456\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1790116197336\"}",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "id": "459081968002985984",
+        "id": "460134182293270528",
         "provider_id": "458589638116450304",
-        "alias": "联调凭证29258",
+        "alias": "联调凭证96456",
         "base_url": "http://127.0.0.1:9911/v1",
-        "api_key_mask": "sk-c***9945",
-        "api_key_masked": "sk-c***9945",
+        "api_key_mask": "sk-c***7336",
+        "api_key_masked": "sk-c***7336",
         "primary_flag": false,
         "is_primary": false,
         "declared_vendor": null,
@@ -234,25 +234,25 @@
         "latest_report_id": null,
         "precheck_passed": false,
         "precheck_at": null,
-        "created_at": "2026-09-20T00:48:50Z",
-        "updated_at": "2026-09-20T00:48:50Z",
+        "created_at": "2026-09-22T22:29:57Z",
+        "updated_at": "2026-09-22T22:29:57Z",
         "version": 0
       }
     },
     {
       "method": "PUT",
-      "url": "http://localhost:5173/api/v1/credentials/459081968002985984",
-      "postData": "{\"alias\":\"联调凭证29258\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789865329945\"}",
+      "url": "http://localhost:5173/api/v1/credentials/460134182293270528",
+      "postData": "{\"alias\":\"联调凭证96456\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1790116197336\"}",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "id": "459081968002985984",
+        "id": "460134182293270528",
         "provider_id": "458589638116450304",
-        "alias": "联调凭证29258",
+        "alias": "联调凭证96456",
         "base_url": "http://127.0.0.1:9911/v1",
-        "api_key_mask": "sk-c***9945",
-        "api_key_masked": "sk-c***9945",
+        "api_key_mask": "sk-c***7336",
+        "api_key_masked": "sk-c***7336",
         "primary_flag": false,
         "is_primary": false,
         "declared_vendor": null,
@@ -266,25 +266,25 @@
         "latest_report_id": null,
         "precheck_passed": false,
         "precheck_at": null,
-        "created_at": "2026-09-20T00:48:50Z",
-        "updated_at": "2026-09-20T00:48:50Z",
+        "created_at": "2026-09-22T22:29:57Z",
+        "updated_at": "2026-09-22T22:29:57Z",
         "version": 0
       }
     },
     {
       "method": "PUT",
-      "url": "http://localhost:5173/api/v1/credentials/459081968002985984",
-      "postData": "{\"alias\":\"联调凭证29258\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789865329945\"}",
+      "url": "http://localhost:5173/api/v1/credentials/460134182293270528",
+      "postData": "{\"alias\":\"联调凭证96456\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1790116197336\"}",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "id": "459081968002985984",
+        "id": "460134182293270528",
         "provider_id": "458589638116450304",
-        "alias": "联调凭证29258",
+        "alias": "联调凭证96456",
         "base_url": "http://127.0.0.1:9911/v1",
-        "api_key_mask": "sk-c***9945",
-        "api_key_masked": "sk-c***9945",
+        "api_key_mask": "sk-c***7336",
+        "api_key_masked": "sk-c***7336",
         "primary_flag": false,
         "is_primary": false,
         "declared_vendor": null,
@@ -298,21 +298,21 @@
         "latest_report_id": null,
         "precheck_passed": false,
         "precheck_at": null,
-        "created_at": "2026-09-20T00:48:50Z",
-        "updated_at": "2026-09-20T00:48:54Z",
+        "created_at": "2026-09-22T22:29:57Z",
+        "updated_at": "2026-09-22T22:30:01Z",
         "version": 1
       }
     },
     {
       "method": "POST",
-      "url": "http://localhost:5173/api/v1/credentials/459081968002985984/precheck",
+      "url": "http://localhost:5173/api/v1/credentials/460134182293270528/precheck",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "job_id": "459081987636523008",
-        "detection_job_id": "459081987636523008",
-        "job_no": "DJ202609200021",
+        "job_id": "460134199250841600",
+        "detection_job_id": "460134199250841600",
+        "job_no": "DJ202609220022",
         "precheck_status": "PASSED",
         "status": "ACTIVE",
         "models": [
@@ -331,48 +331,8 @@
     },
     {
       "method": "PUT",
-      "url": "http://localhost:5173/api/v1/credentials/459081968002985984",
-      "postData": "{\"alias\":\"联调凭证29258\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[],\"api_key\":\"sk-chain-1789865329945\"}",
-      "status": 200,
-      "code": "0",
-      "message": "ok",
-      "data": {
-        "id": "459081968002985984",
-        "provider_id": "458589638116450304",
-        "alias": "联调凭证29258",
-        "base_url": "http://127.0.0.1:9911/v1",
-        "api_key_mask": "sk-c***9945",
-        "api_key_masked": "sk-c***9945",
-        "primary_flag": false,
-        "is_primary": false,
-        "declared_vendor": null,
-        "declared_rpm": null,
-        "declared_tpm": null,
-        "declared_context_window": null,
-        "model_list": [],
-        "env_tag": null,
-        "status": "PENDING_PRECHECK",
-        "detection_status": "RUNNING",
-        "latest_report_id": null,
-        "precheck_passed": false,
-        "precheck_at": "2026-09-20T00:48:55Z",
-        "created_at": "2026-09-20T00:48:50Z",
-        "updated_at": "2026-09-20T00:48:55Z",
-        "version": 3
-      }
-    },
-    {
-      "method": "POST",
-      "url": "http://localhost:5173/api/v1/credentials/459081968002985984/precheck",
-      "status": 409,
-      "code": "E-1301",
-      "message": "该凭证已有进行中的检测任务，请等待完成或取消后再提交",
-      "data": null
-    },
-    {
-      "method": "PUT",
-      "url": "http://localhost:5173/api/v1/credentials/459081968002985984",
-      "postData": "{\"alias\":\"联调凭证29258\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[{\"model_name\":\"gpt-4o\"},{\"model_name\":\"gpt-4o-mini\"},{\"model_name\":\"gpt-4-turbo\"},{\"model_name\":\"claude-3-opus\"},{\"model_name\":\"claude-3-sonnet\"},{\"model_name\":\"claude-3-haiku\"},{\"model_name\":\"gemini-1.5-pro\"},{\"model_name\":\"deepseek-chat\"},{\"model_name\":\"qwen-max\"},{\"model_name\":\"glm-4\"}]}",
+      "url": "http://localhost:5173/api/v1/credentials/460134182293270528",
+      "postData": "{\"alias\":\"联调凭证96456\",\"base_url\":\"http://127.0.0.1:9911/v1\",\"model_list\":[{\"model_name\":\"gpt-4o\"},{\"model_name\":\"gpt-4o-mini\"},{\"model_name\":\"gpt-4-turbo\"},{\"model_name\":\"claude-3-opus\"},{\"model_name\":\"claude-3-sonnet\"},{\"model_name\":\"claude-3-haiku\"},{\"model_name\":\"gemini-1.5-pro\"},{\"model_name\":\"deepseek-chat\"},{\"model_name\":\"qwen-max\"},{\"model_name\":\"glm-4\"}]}",
       "status": 200,
       "code": "0",
       "message": "ok",
@@ -380,14 +340,26 @@
     },
     {
       "method": "GET",
-      "url": "http://localhost:5173/api/v1/detection-jobs/459081987636523008",
+      "url": "http://localhost:5173/api/v1/detection-jobs/460134199250841600/results",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "id": "459081987636523008",
-        "job_id": "459081987636523008",
-        "job_no": "DJ202609200021",
+        "job_id": "460134199250841600",
+        "total": 0,
+        "items": []
+      }
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/detection-jobs/460134199250841600",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": {
+        "id": "460134199250841600",
+        "job_id": "460134199250841600",
+        "job_no": "DJ202609220022",
         "provider_id": "458589638116450304",
         "credential_id": "<redacted len=18>",
         "status": "QUEUED",
@@ -410,20 +382,8 @@
           "total": 8,
           "eta_minutes": null
         },
-        "created_at": "2026-09-20T00:48:55Z",
-        "updated_at": "2026-09-20T00:48:55Z"
-      }
-    },
-    {
-      "method": "GET",
-      "url": "http://localhost:5173/api/v1/detection-jobs/459081987636523008/results",
-      "status": 200,
-      "code": "0",
-      "message": "ok",
-      "data": {
-        "job_id": "459081987636523008",
-        "total": 0,
-        "items": []
+        "created_at": "2026-09-22T22:30:01Z",
+        "updated_at": "2026-09-22T22:30:01Z"
       }
     },
     {
@@ -453,14 +413,6 @@
     {
       "method": "GET",
       "url": "http://localhost:5173/api/v1/quotes?page=1&pageSize=10",
-      "status": 200,
-      "code": "0",
-      "message": "ok",
-      "data": "(不可序列化)"
-    },
-    {
-      "method": "GET",
-      "url": "http://localhost:5173/api/v1/credentials?page=1&pageSize=20",
       "status": 200,
       "code": "0",
       "message": "ok",
@@ -476,34 +428,230 @@
     },
     {
       "method": "GET",
-      "url": "http://localhost:5173/api/v1/credentials/459081968002985984",
+      "url": "http://localhost:5173/api/v1/credentials?page=1&pageSize=20",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": "(不可序列化)"
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/credentials/460134182293270528",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": "(不可序列化)"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5173/api/v1/quotes",
+      "postData": "{\"name\":\"联调H5-22242\",\"provider_id\":\"458589638116450304\",\"credential_id\":\"460134182293270528\"}",
       "status": 200,
       "code": "0",
       "message": "ok",
       "data": {
-        "id": "459081968002985984",
-        "provider_id": "458589638116450304",
-        "alias": "联调凭证29258",
-        "base_url": "http://127.0.0.1:9911/v1",
-        "api_key_mask": "sk-c***9945",
-        "api_key_masked": "sk-c***9945",
-        "primary_flag": false,
-        "is_primary": false,
-        "declared_vendor": null,
-        "declared_rpm": null,
-        "declared_tpm": null,
-        "declared_context_window": null,
-        "model_list": [],
-        "env_tag": null,
-        "status": "PENDING_PRECHECK",
-        "detection_status": "PASS",
-        "latest_report_id": null,
-        "precheck_passed": false,
-        "precheck_at": "2026-09-20T00:48:55Z",
-        "created_at": "2026-09-20T00:48:50Z",
-        "updated_at": "2026-09-20T00:49:03Z",
-        "version": 5
+        "quote_id": "460134304255242240",
+        "id": "460134304255242240",
+        "quote_no": "Q20260922000010",
+        "status": "DRAFT",
+        "items": []
       }
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5173/api/v1/quotes/460134304255242240/items",
+      "postData": "{\"items\":[{\"model_name\":\"gpt-4o\"}]}",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": {
+        "items": [
+          {
+            "item_id": "460134304678866944",
+            "id": "460134304678866944",
+            "quote_id": "460134304255242240",
+            "quoteId": "460134304255242240",
+            "model_name": "gpt-4o",
+            "modelName": "gpt-4o",
+            "model_alias": null,
+            "input_price": null,
+            "output_price": null,
+            "cache_read_price": null,
+            "cache_write_price": null,
+            "cache_write_1h_price": null,
+            "image_input_price": null,
+            "image_output_price": null,
+            "audio_input_price": null,
+            "audio_output_price": null,
+            "tier": null,
+            "billing_mode": null,
+            "compile_status": "NOT_COMPILED",
+            "note": null,
+            "time_rule": null,
+            "tier_rule": null,
+            "request_rules": [],
+            "created_at": "2026-09-22T22:30:27Z",
+            "updated_at": "2026-09-22T22:30:27Z",
+            "version": 0,
+            "warnings": null
+          }
+        ],
+        "total": 1,
+        "warnings": []
+      }
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/quotes/460134304255242240/items",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": {
+        "items": [
+          {
+            "item_id": "460134304678866944",
+            "id": "460134304678866944",
+            "quote_id": "460134304255242240",
+            "quoteId": "460134304255242240",
+            "model_name": "gpt-4o",
+            "modelName": "gpt-4o",
+            "model_alias": null,
+            "input_price": null,
+            "output_price": null,
+            "cache_read_price": null,
+            "cache_write_price": null,
+            "cache_write_1h_price": null,
+            "image_input_price": null,
+            "image_output_price": null,
+            "audio_input_price": null,
+            "audio_output_price": null,
+            "tier": null,
+            "billing_mode": null,
+            "compile_status": "NOT_COMPILED",
+            "note": null,
+            "time_rule": null,
+            "tier_rule": null,
+            "request_rules": [],
+            "created_at": "2026-09-22T22:30:27Z",
+            "updated_at": "2026-09-22T22:30:27Z",
+            "version": 0,
+            "warnings": null
+          }
+        ],
+        "total": 1,
+        "warnings": []
+      }
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/quotes/460134304255242240/items",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": {
+        "items": [
+          {
+            "item_id": "460134304678866944",
+            "id": "460134304678866944",
+            "quote_id": "460134304255242240",
+            "quoteId": "460134304255242240",
+            "model_name": "gpt-4o",
+            "modelName": "gpt-4o",
+            "model_alias": null,
+            "input_price": null,
+            "output_price": null,
+            "cache_read_price": null,
+            "cache_write_price": null,
+            "cache_write_1h_price": null,
+            "image_input_price": null,
+            "image_output_price": null,
+            "audio_input_price": null,
+            "audio_output_price": null,
+            "tier": null,
+            "billing_mode": null,
+            "compile_status": "NOT_COMPILED",
+            "note": null,
+            "time_rule": null,
+            "tier_rule": null,
+            "request_rules": [],
+            "created_at": "2026-09-22T22:30:27Z",
+            "updated_at": "2026-09-22T22:30:27Z",
+            "version": 0,
+            "warnings": null
+          }
+        ],
+        "total": 1,
+        "warnings": []
+      }
+    },
+    {
+      "method": "PUT",
+      "url": "http://localhost:5173/api/v1/quotes/items/460134304678866944",
+      "postData": "{\"input_price\":2.5,\"output_price\":10,\"billing_mode\":\"按 token\"}",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": {
+        "item_id": "460134304678866944",
+        "id": "460134304678866944",
+        "quote_id": "460134304255242240",
+        "quoteId": "460134304255242240",
+        "model_name": "gpt-4o",
+        "modelName": "gpt-4o",
+        "model_alias": null,
+        "input_price": 2.5,
+        "output_price": 10,
+        "cache_read_price": null,
+        "cache_write_price": null,
+        "cache_write_1h_price": null,
+        "image_input_price": null,
+        "image_output_price": null,
+        "audio_input_price": null,
+        "audio_output_price": null,
+        "tier": null,
+        "billing_mode": "按 token",
+        "compile_status": "NOT_COMPILED",
+        "note": null,
+        "time_rule": null,
+        "tier_rule": null,
+        "request_rules": [],
+        "created_at": "2026-09-22T22:30:27Z",
+        "updated_at": "2026-09-22T22:30:38Z",
+        "version": 1,
+        "warnings": null
+      }
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/quotes/460134304255242240",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": "(不可序列化)"
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/quotes/460134304255242240",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": "(不可序列化)"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5173/api/v1/quotes/460134304255242240/submit",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": "(不可序列化)"
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:5173/api/v1/quotes?page=1&pageSize=10",
+      "status": 200,
+      "code": "0",
+      "message": "ok",
+      "data": "(不可序列化)"
     }
   ]
 }

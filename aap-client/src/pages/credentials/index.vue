@@ -53,7 +53,7 @@
 
         <!-- 数据行：design id=02850966（padding 12/0） -->
         <view v-for="(row, i) in model.rows" :key="row.id" class="cred-row" data-testid="cred-row">
-          <view class="cred-row__name-col">
+          <view class="cred-row__name-col" data-testid="cred-row-name" @tap="openEdit(row)">
             <text class="cred-row__alias">{{ row.alias }}</text>
             <text class="cred-row__time">{{ row.timeText }}</text>
           </view>
@@ -160,6 +160,20 @@ function openReport(row: CredentialRow) {
   if (!row.reportId) return
   const page = row.statusKey === 'rejected' ? REPORT_FAILED_PAGE : REPORT_PAGE
   uni.navigateTo({ url: `${page}?reportId=${row.reportId}` })
+}
+
+/**
+ * 点凭证名 → 回到编辑页（再次查看 / 修改）。
+ *
+ * 用户口径（2026-09-23）：「点击保存草稿后，回到凭证列表时，
+ *                         在列表中点击凭证名，可再次编辑查看和修改」。
+ *
+ * 编辑页以 `?id=<凭证id>` 为入参（见 credential-submit 的 resolveCredentialId：
+ * 优先页面栈 query，storage 兜底）。带 query 才进编辑态，不会误读残留 storage。
+ */
+function openEdit(row: CredentialRow) {
+  if (!row.id) return
+  uni.navigateTo({ url: `${CREDENTIAL_SUBMIT_PAGE}?id=${row.id}` })
 }
 
 function onTab(tab: { label: string; url: string }) {
