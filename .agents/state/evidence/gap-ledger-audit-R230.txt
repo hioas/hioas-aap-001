@@ -8,15 +8,15 @@ R230 台账追加与只读对账（单一事实源 = row_data_r230.py）　[rech
 [PASS] PRE(recheck) L0b 每行列数 = 表头列数（历史纪律 80/155/236） 违规行 = 0
 [PASS] PRE(recheck) L0c 「描述为空的行 = 0」内容级守卫（历史纪律 200） 空行 = 0
 [PASS] PRE(recheck) L1 R230 行条数 <= 1 条数 = 1
-[PASS] PRE(recheck) L2 R230 行描述**逐字符等于**单一事实源 len=2575（源 len=2575）
-[PASS] PRE(recheck) L3 描述长度下限 2000 len=2575
+[PASS] PRE(recheck) L2 R230 行描述**逐字符等于**单一事实源 + 收尾段（收尾形态 = 已收尾） len=2761（源 len=2575 / 含收尾段 len=2761）
+[PASS] PRE(recheck) L3 描述长度下限 2000 len=2761
 [PASS] PRE(recheck) L4 关键锚点全部出现在描述里（17 条） 缺失 = []
 [PASS] PRE(recheck) L5 证据列 = 单一事实源清单 条数 = 13
 [PRE(recheck)] 轮次连续性：末行 = R230（上一轮行 = R229）
 [PASS] PRE(recheck) L6 上一轮行恰好 1 条 条数 = 1
 [PASS] PRE(recheck) L7 轮次号连续（无缺号） 缺号 = 无
 [PASS] PRE(recheck) L8 轮次号条数 > 0 且区间上界 = R230（相位相关的正向对照） 条数 = 204 上界 = R230（期望 R230）
-[PASS] PRE P0r recheck 相位：R230 行已存在且描述逐字符等于单一事实源 已存在且相符
+[PASS] PRE P0r recheck 相位：R230 行已存在且描述逐字符等于事实源（收尾形态 = 已收尾） 已存在，形态相符 = True
 [PASS] PRE P2r recheck 相位：coverage-history 已含本轮行 已含
 [PASS] PRE P3r recheck 相位：tdd-state.md 已含本轮段 已含
 ------------------------------------------------------------------------------
@@ -25,8 +25,8 @@ R230 台账追加与只读对账（单一事实源 = row_data_r230.py）　[rech
 [PASS] POST L0b 每行列数 = 表头列数（历史纪律 80/155/236） 违规行 = 0
 [PASS] POST L0c 「描述为空的行 = 0」内容级守卫（历史纪律 200） 空行 = 0
 [PASS] POST L1 R230 行条数 <= 1 条数 = 1
-[PASS] POST L2 R230 行描述**逐字符等于**单一事实源 len=2575（源 len=2575）
-[PASS] POST L3 描述长度下限 2000 len=2575
+[PASS] POST L2 R230 行描述**逐字符等于**单一事实源 + 收尾段（收尾形态 = 已收尾） len=2761（源 len=2575 / 含收尾段 len=2761）
+[PASS] POST L3 描述长度下限 2000 len=2761
 [PASS] POST L4 关键锚点全部出现在描述里（17 条） 缺失 = []
 [PASS] POST L5 证据列 = 单一事实源清单 条数 = 13
 [POST] 轮次连续性：末行 = R230（上一轮行 = R229）
@@ -35,7 +35,7 @@ R230 台账追加与只读对账（单一事实源 = row_data_r230.py）　[rech
 [PASS] POST L8 轮次号条数 > 0 且区间上界 = R230（相位相关的正向对照） 条数 = 204 上界 = R230（期望 R230）
 [PASS] POST Q1 轮次号条数 +1 203 -> 204
 [PASS] POST Q2 末行 = R230 末行 = R230
-[PASS] POST Q3 末行「提交」列为空（待收尾回填） 值 = ''
+[PASS] POST Q3 「提交」列形态合法（未收尾=空；已收尾=7 位以上 sha 且是 HEAD 的祖先） 值 = 'cbcfd8f'
 [PASS] POST Q4 history 行数变化符合本相位（追加相位 +1；recheck 相位 0） 549 -> 549
 [PASS] POST Q5 history 仍为纯 LF CR = 0
 [PASS] POST Q6 history 末行 = 本轮行 末行 = '2026-09-22T10:13 R230 巡检轮 | total=90 implemented=90 missing='
