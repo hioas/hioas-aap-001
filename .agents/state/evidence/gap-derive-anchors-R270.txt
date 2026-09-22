@@ -1,0 +1,47 @@
+==============================================================================
+R270 真发现 ② 取证：PRE_ANCHORS 的硬编码期望值是滚动盲区（历史纪律 201/206/239）
+==============================================================================
+
+-- A 段：PRE-FIX（对象 = **机械滚动后、显式修正前**的派生器文本，坑 214）--
+[PASS] A0 解析到 PRE_ANCHORS 条目（正向对照 > 0） 条目 8 条
+   逐条核对（对象 = 本轮 SRC 目录 aap-r269-work）：
+     [失效] row_data_r269.py             'MAIN_FINDING_N = "2"'                         期望 1 实际 0
+     [命中] row_data_r269.py             'W = pathlib.Path('                            期望 1 实际 1
+     [失效] postcommit-check-r269.py     'FINDING_N = "2"'                              期望 1 实际 0
+     [失效] postcommit-check-r269.py     'REWORK_N = "8"'                               期望 1 实际 0
+     [命中] row_data_r269.py             '"evidence/audit-regression-%s.txt" % ROUND,'  期望 1 实际 1
+     [命中] gap-ledger-audit-r269.py     '"audit-regression-%s.txt" % RND,'             期望 1 实际 1
+     [命中] row_data_r269.py             '"evidence/gap-ledger-audit-%s.txt" % ROUND,'  期望 1 实际 1
+     [失效] append-r269.py               'and len(D.EV_LIST) == 11'                     期望 1 实际 0
+[PASS] A1 出现**失效项**（缺陷真的存在） 失效 4 条 / 命中 4 条
+[PASS] A2 正向对照：**存在命中项**（否则是「整表失效」而非「部分盲区」，判据不成立） 命中 4 条
+[PASS] A3 失效项**全部**是「硬编码字面量」型（余项全为结构化/路径型） 失效 4 条全为非结构化 = True；命中 4 条全为结构化 = True
+   A3 失效明细（机械滚动改不到它们）：
+     · row_data_r269.py → 'MAIN_FINDING_N = "2"'（期望 1、实际 0）
+     · postcommit-check-r269.py → 'FINDING_N = "2"'（期望 1、实际 0）
+     · postcommit-check-r269.py → 'REWORK_N = "8"'（期望 1、实际 0）
+     · append-r269.py → 'and len(D.EV_LIST) == 11'（期望 1、实际 0）
+
+[PASS] A4 「纯数字常量普查」正则**收不到**这些内嵌数字（机器取证） 普查正则 = '^([A-Z][A-Z0-9_]*) = "([0-9]+)"'；对同一文件的命中 = 0 条（元组字面量不在范围内）
+   根因链（三条齐备）：① 机械滚动只替换轮次号形态 → 内嵌裸数字/旧比较式改不到；
+                     ② 纯数字普查锚定行首赋值 → 元组字面量不在范围内；
+                     ③ 唯一防线是 derive 运行期 assert（运行期失败 ≠ 派生期发现）。
+
+-- B 段：POST-FIX（本轮已**结构化**：期望值从上一轮产物解析，不再手写数字）--
+[PASS] B0 本轮 derive 的 dry-run 输出可读且含结论行（正向对照：否则判定不可用） source=C:\Users\laitz\AppData\Local\Temp\aap-r270-work\derive-r270.stdout bytes=2522
+[PASS] B0b dry-run 结论行可解析（锚点条数 > 0） 解析 = 前置核对（dry-run，8 条锚点）失效 = 0
+[PASS] B1 本轮含**结构化解析**辅助函数 _prev_val（结构性消除，非逐处补） 命中 = True
+[PASS] B2 数字型期望值改为 `%s` 模板（不再出现硬编码数字期望） 模板命中 = 1 / 1 / 1
+[PASS] B3 本轮 dry-run 的**失效条数 = 0**（对照 A 段的 4 条失效） 失效 = 0（须 0）
+[PASS] B4 结构化解出的真值与**上一轮产物**独立核对一致（两个来源互不依赖） 解析 = 显式修正 (9)：PRE_ANCHORS 期望值结构化 —— 上一轮真值 FINDING=3 REWORK=21
+
+-- 结论 --
+  缺陷：PRE_ANCHORS 里的**硬编码期望值**（内嵌上一轮真值的数字、以及已被结构化取代的旧比较式）
+        是机械滚动的盲区（第 201/206/239 号纪律的第二个载体）；漏改时只有 derive **运行期** assert 会崩，
+        派生过程本身没有任何机器核对。A 段实测：4 条失效 / 4 条命中。
+  修法：期望值一律从**上一轮产物实际解析**（_prev_val + 「解析到且为数字」+ 两副本真值一致性断言），
+        并把「已被结构化取代的旧字面量比较」改为只核验 → 该载体从「每轮补一处」变为**结构性消除**（本轮改进 ②）。
+
+汇总：FAIL 断言 = 0 条
+EVIDENCE=gap-derive-anchors-R270.txt
+PROBE_END=1

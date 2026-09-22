@@ -1,0 +1,39 @@
+==============================================================================
+R270 真发现 ① 取证：一次性提交脚本误落产物目录（历史纪律 216 布局纪律）
+==============================================================================
+
+-- A 段：PRE-FIX（锚在**修正前**的只读探针原始输出上，坑 214）--
+[PASS] A0a 修正前原始测量文件存在且非空 path=C:\Users\laitz\AppData\Local\Temp\aap-r270-aux\precheck-r270-PREFIX-run1.stdout bytes=863
+[PASS] A0b 修正前测量行可解析（正向对照：否则判定不可用） 命中 = P5 源目录轮次产物 17 个 / FILES∪手写 12 个 / 集合相等 = False
+[PASS] A0c 修正前两侧条数均 > 0 actual=17 union=12
+[PASS] A1 修正前**集合不相等**（缺陷真的存在） 集合相等 = False（期望 False）
+[PASS] A2 差集条目可解析（正向对照 > 0） 差集 5 条 = ['commit-closeout-r269.sh', 'commit-correct-r269.sh', 'commit-correct2-r269.sh', 'commit-correct3-r269.sh', 'commit-r269.sh']
+[PASS] A3 差集**全部**为 `commit-*` 一次性提交脚本 commit 类 5 / 差集 5
+   A3 明细（5 个提交脚本，含主提交 + 收尾 + 3 次更正）：
+     · commit-closeout-r269.sh
+     · commit-correct-r269.sh
+     · commit-correct2-r269.sh
+     · commit-correct3-r269.sh
+     · commit-r269.sh
+
+-- 派生期守卫 ⑤ 的黑名单（修正前）未覆盖该类 --
+[PASS] A4 旧黑名单对差集命中 = 0（证明「守卫 ⑤ 覆盖不完整」这一根因） 旧黑名单命中 = 0 []
+
+-- B 段：POST-FIX（修法落地核对 = 布局修正，把一次性工具移入 aux）--
+   FILES∪手写 = 12 条；当前目录轮次产物 = 12 条
+[PASS] B0a 当前测量非空（正向对照） actual=12
+[PASS] B1 布局修正后**集合相等**（差集 0） 实际-清单 = [] / 清单-实际 = []
+[PASS] B2 5 个一次性提交脚本确在 aux 目录 aux 内 commit 类 5 个 = ['commit-closeout-r269.sh', 'commit-correct-r269.sh', 'commit-correct2-r269.sh', 'commit-correct3-r269.sh', 'commit-r269.sh']
+[PASS] B3 文件未丢失（移动而非删除，历史纪律 198/216） 集合相等 = True
+
+-- 结论 --
+  缺陷：上一轮（R269）把 5 个一次性提交脚本写在**产物目录**里 —— 它们按设计不属于滚动清单
+        也不属于手写产物 → 只有**下一轮**的 A0 覆盖完整性判据才会发现（该缺陷类的固有延迟一轮特征）。
+  根因：派生期守卫 ⑤ 的「一次性工具命名词头」黑名单**未包含 commit-** → 即便上一轮已有该守卫也抓不到。
+  修法：① 布局 —— 移入 aap-r269-aux/（一次性工具归 aux，历史纪律 216）；
+        ② 机器化 —— 守卫 ⑤ 黑名单补 `commit-` 并把判别力实测扩到 commit 形态（本轮改进 ①）；
+        ③ 流程 —— 本轮（R270）的提交脚本**直接写在 aux 目录**，产物目录不再出现该类文件。
+
+汇总：FAIL 断言 = 0 条
+EVIDENCE=gap-aux-commit-R270.txt
+PROBE_END=1
