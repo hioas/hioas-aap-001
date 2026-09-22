@@ -167,7 +167,6 @@
  */
 import { computed, onMounted, ref } from 'vue'
 import { ApiError } from '@/api/http'
-import { catalogApi } from '@/api/catalog'
 import { credentialApi } from '@/api/credential'
 import {
   ALIAS_HINT,
@@ -176,7 +175,6 @@ import {
   MODEL_SECTION_NOTE,
   buildCredentialForm,
   buildSavePayload,
-  buildVendorsFromCatalog,
   toggleModel,
   validateBaseUrl,
   type VendorGroup
@@ -250,53 +248,35 @@ function applyDetail(raw: Parameters<typeof buildCredentialForm>[0]) {
  */
 async function load() {
   credentialId.value = resolveCredentialId()
-  // 两者并行取（目录是必需的，详情在没有凭证 id 时可缺）
-  const [detailRes, catalogRes] = await Promise.allSettled([
-    credentialId.value ? credentialApi.detail(credentialId.value) : Promise.resolve(null),
-    catalogApi.availableModels()
-  ])
-  const detail = detailRes.status === 'fulfilled' ? detailRes.value : null
-  const catalog = catalogRes.status === 'fulfilled' ? catalogRes.value : []
 
-  if (detail) {
-    applyDetail(detail)
-  } else if (credentialId.value) {
-    // ⚠️ **必须透传服务端消息**（原实现是 `err instanceof ApiError ? err.message : ...`）。
-    //    改成 Promise.allSettled 时我一度写成通用文案「数据加载失败」，把 E-2001 的具体
-    //    原因丢了 —— 被既有用例「详情加载失败 → 提示含『内部错误』」抓到，已修回。
-    const reason = (detailRes as PromiseRejectedResult).reason
-    toast(reason instanceof ApiError ? reason.message : '数据加载失败，请稍后重试')
-  } else {
-    // 无凭证 id（新建）：仍要展示目录，否则用户看不到任何可选模型
+  // ⚠️ 模型清单的来源是**凭证自己**，不是管理端目录。
+  //   真源链路：POST /credentials/{id}/precheck → 后端 upstreamProbe.probe(baseUrl, apiKey)
+  //   **真打渠道** {base_url}/models → 返回 PrecheckResult.models（List<String>）
+  //   → 前端回写进 credential.model_list → 本页由详情读出展示。
+  //   后端 credential 包内**不存在** model_catalog 字段（实测 0 处），
+  //   故此前接的 GET /catalog/models（管理端维护的目录）是**错的**，已撤除。
+  if (!credentialId.value) {
+    // 新建凭证：还没保存、更没有渠道拉取结果 → 无清单（不拿全局目录冒充）
     alias.value = ''
     vendors.value = []
     hasCatalog.value = false
+    modelListReady.value = true
+    return
   }
 
-  // 已选集合以凭证详情为准（新建凭证时为空）
-  const checked = new Set(
-    (detail?.model_list ?? [])
-      .map((m) => String((m as { model_name?: string })?.model_name ?? '').trim())
-      .filter(Boolean)
-  )
-  const fromCatalog = buildVendorsFromCatalog(catalog, checked)
-
-  if (fromCatalog.length) {
-    // 目录可用 → 用它作为候选；再把「已勾选但不在目录里」的模型补进来，
-    // 避免覆盖用户历史上已选的模型（静默丢数据比多显示一行更糟）
-    const inCatalog = new Set(fromCatalog.flatMap((g) => g.models.map((m) => m.name)))
-    const orphans = [...checked].filter((n) => !inCatalog.has(n))
-    if (orphans.length) {
-      fromCatalog.push({
-        vendor: detail?.declared_vendor ? String(detail.declared_vendor) : '其他',
-        models: orphans.map((name) => ({ key: `其他::${name}`, name, specText: '', checked: true }))
-      })
-    }
-    vendors.value = fromCatalog
-    hasCatalog.value = true
+  try {
+    const detail = await credentialApi.detail(credentialId.value)
+    applyDetail(detail)
+    // 详情加载成功 ⇒ 表单勾选状态反映了服务端真实清单（= 渠道拉取结果）
+    modelListReady.value = true
+  } catch (err) {
+    // ⚠️ 必须透传服务端消息（`err instanceof ApiError ? err.message : ...`）
+    toast(err instanceof ApiError ? err.message : '数据加载失败，请稍后重试')
+    // 详情加载失败 ⇒ 表单勾选**不可信** → 保持 false，提交时省略 model_list（缺陷 14）
+    modelListReady.value = false
   }
-  // fromCatalog 为空时保留 applyDetail 的结果（凭证详情里自带的目录 / 已选模型）
 }
+
 
 function goBack() {
   uni.navigateBack({ delta: 1 })
@@ -321,13 +301,34 @@ function validateForm(): string | null {
   return validateBaseUrl(baseUrl.value)
 }
 
+/**
+ * 表单里的模型勾选状态是否**权威**（= 已从服务端加载，或用户在本页亲手改过）。
+ *
+ * ⚠️ 为什么需要这个旗标 —— 缺陷 14「重复提交把 model_list 清空」的根因：
+ *   `onSubmit` 第一步是 `save(id, payloadOf())`，而 `payloadOf()` 的 model_list 来自
+ *   **表单勾选状态**。若本页没把已有的 model_list 加载进表单（加载失败 / 新建态），
+ *   勾选状态就是空的 → 发 `[]` → 把库里的清单**覆盖成空** → 报价时带不出模型。
+ *
+ *   后端 `CredentialService.update` 对 model_list 是 **PATCH 语义**：
+ *       `if (command.modelList() != null) { entity.setModelList(...) }`
+ *   —— 即「未传 = 保留原值」。所以正确修法是**不传**，而不是传空数组。
+ *
+ * false ⇒ payloadOf() 会**省略** model_list，让服务端保留既有清单。
+ */
+const modelListReady = ref(false)
+
 function payloadOf() {
-  return buildSavePayload({
+  const payload = buildSavePayload({
     alias: alias.value,
     baseUrl: baseUrl.value,
     apiKey: apiKey.value,
     vendors: vendors.value
   })
+  if (!modelListReady.value) {
+    // 绝不拿未加载的空表单去覆盖服务端既有清单（见上方注释）
+    delete (payload as unknown as Record<string, unknown>).model_list
+  }
+  return payload
 }
 
 /**
@@ -391,6 +392,8 @@ async function onSubmit() {
         ...rest,
         model_list: upstreamModels.map((m) => ({ model_name: m }))
       })
+      // 刚把权威清单写回服务端 → 后续再次点「提交检测」时表单状态是可信的
+      modelListReady.value = true
     }
     const jobId = result?.job_id ?? result?.jobId ?? result?.detection_job_id ?? ''
     const query = jobId ? `?jobId=${encodeURIComponent(String(jobId))}` : ''

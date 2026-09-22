@@ -54,35 +54,8 @@ export function getCalls(api?: string): UniCall[] {
   return api ? calls.filter((c) => c.api === api) : calls.slice()
 }
 
-/**
- * 「可用模型目录」(`GET /catalog/models`) —— 凭证页会**并行**取它作为候选模型
- * （管理端维护的目录；见 src/api/catalog.ts）。
- *
- * ⚠️ 底座处理方式，以及为什么：
- *   1. **给空数据**：既有用例的详情 fixture 自带 model_catalog，页面对「详情已有目录」
- *      走详情那条路；若底座塞真数据会多渲染厂商组，把设计稿断言的渲染结果改掉。
- *   2. **不 record 调用**：这个请求是**基础设施**，不是被测行为；若记录，
- *      所有 `getCalls('request')` 的条数断言都要跟着 +1 平白改动。
- *   两条合起来 → 既有用例一字不改即可继续通过。
- *   **专测这条接线的用例**请用 vi.mock('@/api/catalog')（见
- *   tests/pages/credential-catalog-wiring.spec.ts），而不是依赖底座。
- */
-const CATALOG_URL_MARK = '/catalog/models'
-
 const uniStub = {
   request(options: Record<string, unknown>) {
-    const url = String((options as { url?: string }).url ?? '')
-    if (url.includes(CATALOG_URL_MARK)) {
-      // 目录：空数据 + 不 record（理由见上方注释）
-      const complete = options.complete as ((r: unknown) => void) | undefined
-      const success = options.success as ((r: unknown) => void) | undefined
-      const payload = { statusCode: 200, data: { code: '0', message: 'ok', data: [] }, header: {}, cookies: [] }
-      Promise.resolve().then(() => {
-        success?.(payload)
-        complete?.(payload)
-      })
-      return { abort: vi.fn() }
-    }
     record('request', [options])
     const resp = queue.length ? (queue.shift() as MockResponse) : last
     const complete = options.complete as ((r: unknown) => void) | undefined

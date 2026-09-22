@@ -124,17 +124,7 @@ export function countSelected(vendors: VendorGroup[]): number {
   return vendors.reduce((sum, g) => sum + g.models.filter((m) => m.checked).length, 0)
 }
 
-/**
- * 用**管理端维护的模型目录**构造候选清单（供应商侧 `/catalog/models`）。
- *
- * <p>为什么需要它：本页的候选模型此前只来自**凭证详情**（`raw.model_catalog`），
- * 而凭证刚建时该字段为空 → 供应商看到空列表 → 无法勾选 → 报价带不出模型。
- * 管理端建的厂商/模型必须经此函数进入本页。
- *
- * <p>映射规则（关键）：进 `model_list` 的是**模型标识 modelUid**
- * （后端 `CatalogViews.Model.modelUid` 的注释原文：「进 model_list 的就是它」），
- * 故映射为 {@code model_name = modelUid}；{@code modelName} 是给人看的名称。
- */
+
 export function buildVendorsFromCatalog(
   catalog: Array<{
     vendorName?: string | null
