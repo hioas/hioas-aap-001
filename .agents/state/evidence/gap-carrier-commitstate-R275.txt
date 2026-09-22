@@ -1,0 +1,50 @@
+==============================================================================
+R275 交付载体「提交态自洽」零覆盖取证（只读探针）
+==============================================================================
+载体：C1=coverage-history.txt / C2=aap-server-tdd-state.md / C3=coverage-report.json
+判据：±10 行窗口内同时出现「载体 token」与「show … HEAD:」= 1 个**提交态比对点**
+
+-- SEG 0：driver 命令表（本轮 r275-regression.py）--
+  命令表内 .py 名 = 79 → 解析到磁盘路径 79 / 未解析 0 []
+[PASS] A0a 正向对照：命令表解析到 > 0 个可读脚本（否则判定不可用，历史 46/75/98） 解析到 79 个
+  driver 引用脚本里对三载体的提交态比对点 = 0 条 （无）
+
+-- SEG A：PRE-FIX（修正前的产物目录 + tools/ 面）--
+  R274-work .py=12 比对点=0 / R274-aux .py=6 比对点=0 / tools .py=27 比对点=0
+[PASS] A0b 正向对照：三处均解析到 .py > 0（否则判定不可用） work=12 aux=6 tools=27
+[PASS] A1 PRE-FIX：三载体提交态比对点 = 0 条（提交态自洽在修正前**零覆盖**） work=0 aux=0 tools=0
+
+-- SEG B：POST-FIX（本轮产物目录）--
+  R275-work .py=9 比对点=3（覆盖载体 ['C1', 'C2', 'C3']）
+[PASS] A0c 正向对照：POST-FIX 解析到 .py > 0 work=9
+[PASS] A2 POST-FIX：三载体**各有**提交态比对点（修法①已落地到收尾守卫） 命中 = ['C1', 'C2', 'C3'] ['postcommit-check-r275.py']
+      postcommit-check-r275.py:80 CARRIERS = [".agents/state/evidence/coverage-history.txt",
+      postcommit-check-r275.py:81 ".agents/state/aap-server-tdd-state.md",
+      postcommit-check-r275.py:82 ".agents/state/evidence/coverage-report.json"]
+[PASS] A3 判别力实测：合成比对点必须被判出（恰好 1 条，载体 C2） 命中 = 1 [('C2', 'syn-carrier-reader-r275.py')]
+[PASS] A3b 判别力实测（反向）：超出窗口的合成夹具必须判不出 命中 = 0 []
+
+-- SEG D：三载体今日 `HEAD:` ⇔ 工作区（逐字节）--
+  C1 .agents/state/evidence/coverage-history.txt HEAD=548144 字节 / 工作区=548144 字节 → 相等 = True
+  C2 .agents/state/aap-server-tdd-state.md      HEAD=1683455 字节 / 工作区=1683455 字节 → 相等 = True
+  C3 .agents/state/evidence/coverage-report.json HEAD=906 字节 / 工作区=906 字节 → 相等 = True
+[PASS] A4 三载体今日逐字节自洽（`HEAD:` 侧读过、工作区侧读过，两侧相等） 相等 3 / 3；不一致 = 无
+[PASS] A5 判别力实测：合成漂移字节对必须被判不等 
+
+-- SEG E：真发现 ②（A4 当场抓出的行尾字节漂移 + 归一落地核对）--
+  修正前 A4 原始输出：[FAIL] A4 三载体今日逐字节自洽（`HEAD:` 侧读过、工作区侧读过，两侧相等） 相等 2 / 3；不一致 = ['.agents/state/evidence/coverage-report.json']
+  修正前 C3 原始行：C3 .agents/state/evidence/coverage-report.json HEAD=906 字节 / 工作区=962 字节 → 相等 = False
+  归一日志（修正前）：['修正前：工作区 962 字节 / CR = 56 ／ HEAD 906 字节', '写回：962 -> 906 字节（替换 CRLF -> LF 56 处）']
+  归一日志（本轮最终）：['修正后 = 906 字节 / CR = 0 / 与 HEAD 逐字节相等 = True', 'git diff --quiet rc = 0；ls-files --eol = i/lf    w/lf    attr/text=auto eol=lf \t.agents/state/evidence/coverage-report.json']
+[PASS] A6 修正前 A4 **确实**判红（留档里能找到 A4 的 FAIL 行） 留档 = probe-carrier-prefix.stdout
+[PASS] A7 修正前 C3 原始测得 = HEAD 906 / 工作区 962 字节（差异全为 CR） 
+[PASS] A8 归一后工作区 = 906 字节 / CR = 0 ∧ FIX_EOL_OK=1（落地核对） 
+[PASS] A9 A4 现为**通过**（漂移已消除；归一后逐字节相等） 相等 3 / 3
+
+结论①：修正前（R274 产物集 12 个 .py + aux 6 个 + tools 27 个 + driver 引用 79 个）对三载体的**提交态比对点 = 0 条**
+      → 「交付载体的提交态自洽」在现行每轮复跑面内**零覆盖**（R273 登记为待拍板、R274 未落地；本轮修法①落地）。
+结论②：修法①落地后**当场**抓出真实漂移（真发现 ②）：C3 工作区为 CRLF（962 字节，mtime 2026-09-20 08:26:17，已静默存在 ≥3 天）、HEAD 为 LF（906 字节），差异 56 处**全部是 CR**；
+      因 `.gitattributes` 归一使 `git status`/`git diff` 看不见、`splitlines()` 又吃掉 CR → 所有按 git/按行的既有判据**永久不可见**，只有**逐字节**比对能看见；本轮已做行尾归一（改进③）并把判据常驻到收尾守卫（改进①）。
+      今日三载体逐字节自洽（3/3 相等）→ 归一后无残留；该形态会随「把 worktree 报告拷回主仓」复发，故由常驻判据 P6 每轮兜住。
+FAIL 断言 = 0 条 （全 PASS）
+FACTS_END_MARK=1

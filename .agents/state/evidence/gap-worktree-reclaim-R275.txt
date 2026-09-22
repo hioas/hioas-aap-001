@@ -1,0 +1,34 @@
+==============================================================================
+R275 临时取证 worktree「真实回收（先归档、后回收）」取证（只读两段式）
+==============================================================================
+
+-- SEG A：PRE-FIX（修正前的收尾日志 = wt-remove-pre-fix.log）--
+  原始内容：WT_REMOVE_RC=0 / WT_REMOVE_VERIFIED=1
+[PASS] B0a 正向对照：PRE-FIX 日志可读且解析到键 > 0（否则判定不可用，历史 46/75/98） 解析到 2 个键
+[PASS] B1 PRE-FIX：回收**确实发生**（WT_REMOVE_RC=0 ∧ WT_REMOVE_VERIFIED=1） rc=0 verified=1
+[PASS] B2 PRE-FIX：**无任何归档事实键**（首版只回收不归档 → 下游读者断链，本轮返工 ①） 归档键 = 无
+  后果（当前测量）：WT 目录存在 = False；其中报告存在 = False → 首版形态下报告与测试源**不可恢复**
+[PASS] B3 判别力实测：合成「归档字节 = 0」的日志必须被判**归档不完整** 
+[PASS] B4 判别力实测（反向）：合规归档事实必须判**完整** 
+
+-- SEG B：POST-FIX（修正后的收尾日志）--
+  WT_ARCH_REPORT_BYTES=962 / WT_ARCH_REPORT_MTIME=1790107693 / WT_ARCH_REPORT_RC=0 / WT_ARCH_TESTSRC_FILES=40 / WT_ARCH_TESTSRC_RC=0 / WT_REMOVE_RC=0 / WT_REMOVE_VERIFIED=1
+[PASS] B5 POST-FIX：归档事实键齐备且数值合法（arch_complete） report_rc=0 bytes=962 testsrc=40
+[PASS] B6 POST-FIX：回收已执行并核验（RC=0 ∧ VERIFIED=1） 
+  归档物：报告存在 = True / 可解析 = True / 值 = (90, 90) / 测试源 .java = 40
+[PASS] B7 归档物可用（报告可解析 ∧ 90/90 ∧ 测试源 > 0） implemented=90 total=90 java=40
+[PASS] B8 注册表内不含本轮 worktree（与 analyze J1 的**独立第二证人**） 路径 = C:/Users/laitz/AppData/Local/Temp/aap-r275-wt
+
+-- SEG C：注册表全量（历史孤儿 = 单独列出，本轮**不处置**）--
+  注册表行数 = 3
+      E:/workspaces/hioas/hioas-aap-001             a41a5cd [main]
+      C:/Users/laitz/AppData/Local/Temp/aap-r267-wt c159593 (detached HEAD)
+      C:/Users/laitz/AppData/Local/Temp/aap-r268-wt f07b7f5 (detached HEAD)
+  孤儿：R267 worktree（残留 8 轮）→ 删除他方可能仍在用的目录树属**待拍板**，本轮只登记不处置
+  孤儿：R268 worktree（残留 7 轮）→ 删除他方可能仍在用的目录树属**待拍板**，本轮只登记不处置
+[PASS] B9 孤儿注册为**已登记待拍板项**（存在性判据：列出条数与注册表一致） 孤儿 = 2 条 [267, 268]
+
+结论：修正前 = 回收已发生但**零归档**（报告与测试源不可恢复 → 下游读者断链）；修正后 = **先归档、后回收**，归档事实键齐备、归档物可解析（90/90、40 个 .java）、注册表内无本轮路径。
+      历史孤儿 2 条（['R267', 'R268']）按历史纪律 213-③ **本轮不处置**，继续列为待拍板项。
+FAIL 断言 = 0 条 （全 PASS）
+FACTS_END_MARK=1
