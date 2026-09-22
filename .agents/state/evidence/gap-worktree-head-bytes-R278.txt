@@ -1,0 +1,44 @@
+==============================================================================
+R278 复跑核对：全部跟踪文本文件的「工作区字节 ⇔ HEAD 字节」逐字节扫描（非新发现轮）
+==============================================================================
+[PASS] S0a 跟踪文件总数 > 0（正向对照） 总数 = 6054
+[PASS] S0b 文本型子集 > 0（正向对照） 子集 = 5533（占 91.4%）
+[PASS] S0c HEAD 侧字节解析条数 = 文本型子集 5533 / 5533
+[PASS] S0d 正向对照：HEAD 侧**协议级错误**（missing/短读）= 0 错误 = 无
+S0e 信息项：HEAD 内为 0 字节的**合法空文件** = 25 条（不作判据；历史返工 ② 的修法）
+[PASS] S1a 相等条数 > 0（正向对照：比对逻辑本身可用） 相等 = 4665
+
+S1 逐字节比对：相等 4665 / **仅 CR 差异 866** / 其它差异 1 / 工作区缺失 1
+
+S2 仅 CR 差异按**目录域**分层（域 : 条数）
+   .agents/state/evidence                          744
+   evidence/（仓库根，前端/客户端取证）                          65
+   .agents/state                                    35
+   aap-client/evidence                              10
+   aap-client/tests                                  5
+   aap-admin/tools                                   4
+   aap-client/src                                    2
+   aap-admin/package.json                            1
+   合计                                              866
+
+S3 **后端交付区**（aap-server/src/ ∪ docs/backend/）命中 = 0 条
+S3b **审计工具链区**（tools/）命中 = 0 条（若 > 0 说明工具链自身也被写脏）
+
+S4 三方裁判：其它差异 1 条 ↔ `git status --porcelain`
+   .calicat-admin/raw/pages/page-3/screenshot.json                HEAD 179 B / 工作区 179 B；git status 命中 = [' M .calicat-admin/raw/pages/page-3/screenshot.json']
+   缺失 aap-admn/README.md                                         git status 命中 = [' D aap-admn/README.md']
+
+S5 双向取证：为何判「漂移」而不是「git 应有的检出形态」
+   core.autocrlf = 'true'
+   .gitattributes 规则（首行）= '# 统一换行：仓库内一律 LF，检出时按平台'
+   → `eol=lf` 声明检出应为 LF；工作区 CRLF 是**工具写入**的（非 git 检出形态）
+   ls-files --eol 抽样 = i/lf    w/lf    attr/text=auto eol=lf 	tools/gen-backend-models.py
+   归一化后果：`git status`/`git diff` 判 clean → 字节级差异对既有判据永久不可见（历史纪律 69/70/146）
+
+[PASS] S6 判别力实测 5 条（CR 对判红 / 内容差异不得判成「仅 CR」/ 相等不得进差异集） c1..c5 = [True, True, True, True, True]
+[PASS] S7 前置对照：**窄扫描根**（只看 tools/）得 0 条，全域得 866 条 → 两者不等（窄根会漏报） 
+
+结论（据实）：跟踪文本文件 5533 条中，**仅 CR 差异 866 条**（15.7%）——该形态对 `git status`/`git diff`/按行判据**全部不可见**；既有常驻判据只覆盖 3 个载体（更早轮次的 P6）
+        后端交付区命中 0 条（见 S3；本轮 = **归一保持性核对**，更早轮次处置 5 条）；tools/ 命中 0 条；其余 866 条属历史/证据区与前端区 → **待拍板**（批量归一会触及他方区域与历史产物）
+FAIL 断言 = 0 条 （全 PASS）
+FACTS_END_MARK=1
