@@ -1,0 +1,36 @@
+==============================================================================
+R248 前置探针：候选真发现机器核对（只读）
+==============================================================================
+[①-A] 源侧（R247 产物目录）含轮次号引用的 .py/.sh 产物 = 17 个（>0 正向对照）
+        - analyze-r247.py
+        - append-r247.py
+        - closeout-r247.py
+        - compare-faildiff-r247.py
+        - fixrow-r247.py
+        - fixrow2-r247.py
+        - gap-deriveface-r247.py
+        - mkcloseout-r247.sh
+        - mkcommit-r247.sh
+        - mkcommitmsg-r247.py
+        - notify-record-r247.py
+        - r247-regression.py
+        - recheck-post-commit-r247.py
+        - round-r247.sh
+        - row_data_r247.py
+        - strip-notify-r247.py
+        - syntax-check-r247.py
+[①-B] 上一轮派生器 FILES 实际条数 = 11（>0 正向对照）：['round-r246.sh', 'r246-regression.py', 'compare-faildiff-r246.py', 'analyze-r246.py', 'append-r246.py', 'closeout-r246.py', 'row_data_r246.py', 'recheck-post-commit-r246.py', 'syntax-check-r246.py', 'mkcommit-r246.sh', 'mkcloseout-r246.sh']
+[①-C] 上一轮台账登记的派生面 = 13 个；措辞「十二件由派生器」；实测 = 11/11
+[①-D] 其中**常设**产物 = 14 个；一次性专用 = 3 个
+[①-B2] 派生器 FILES 的**目标名**集合（须与常设产物名同形态）= ['round-r247.sh', 'r247-regression.py', 'compare-faildiff-r247.py', 'analyze-r247.py', 'append-r247.py', 'closeout-r247.py', 'row_data_r247.py', 'recheck-post-commit-r247.py', 'syntax-check-r247.py', 'mkcommit-r247.sh', 'mkcloseout-r247.sh']
+[①-E] 常设产物中**未被派生器 FILES 覆盖**的 = 3 个：['gap-deriveface-r247.py', 'mkcommitmsg-r247.py', 'notify-record-r247.py']
+       判定：① FAIL（登记 13 / FILES 11 / 常设 14 → 等式不成立：每轮靠人工滚动）
+[②-A] row_data_r247.py docstring 三元组 = ('2', '2', '2')（>0 正向对照）
+[②-B] row_data_r247.py 常量三元组 = (3 / 4 / 3)
+[②-C] docstring ⇔ 常量 一致 = False
+[②-D] DESC 自述 = 真发现 None 处 / 返工 None 处
+       判定：② FAIL（docstring 与常量/DESC **自相矛盾**）
+[③-A] 台账行「N 个产物」= 13 ∧「中文数字件由派生器滚动」= 十二 ∧「实测 X/Y」= 11/11
+       判定：③ FAIL（同一行两个数字互斥）
+==============================================================================
+探针结论：① FAIL / ② FAIL / ③ FAIL
