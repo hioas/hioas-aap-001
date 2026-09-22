@@ -1,0 +1,40 @@
+==============================================================================
+R250 前置探针：候选事实机器核对（只读）
+==============================================================================
+[①-A] 源侧（R249 产物目录）含轮次号引用的 .py/.sh 产物 = 14 个（>0 正向对照）
+        - analyze-r249.py
+        - append-r249.py
+        - closeout-r249.py
+        - compare-faildiff-r249.py
+        - gap-deriveface-r249.py
+        - mkcloseout-r249.sh
+        - mkcommit-r249.sh
+        - mkcommitmsg-r249.py
+        - notify-record-r249.py
+        - r249-regression.py
+        - recheck-post-commit-r249.py
+        - round-r249.sh
+        - row_data_r249.py
+        - syntax-check-r249.py
+[①-B] R249 派生报告（aap-r250-work）解析到带分类的条目 = 14 条（>0 正向对照）
+[①-B2] 分类直方图 = {'常设（滚动）': 12, '整体重写': 2, '一次性（不滚动）': 0, '**未登记**': 0}
+[①-C] 常设集合（报告，归一前 14 个）；未登记 = 0 个；源侧候选**未**被覆盖 = 0 个 []；报告里**源侧不存在**的条目（幽灵）= 0 个 []
+源侧实测候选集合 = 14 个；分类条目 = 14 个；未覆盖 = 0 个
+[PASS] ① 派生面等式（候选 = 分类条目 ∧ 未登记 0 ∧ 未覆盖 0 ∧ 幽灵 0） 候选 14 / 分类 14 / 未登记 0 / 未覆盖 0 / 幽灵 0
+[①-D] 判别力实测：把合成名（synth-r999-ghost.py）注入候选集合后，未覆盖 = 1 条 ['synth-r999-ghost.py'] -> 判据转红 = True（须 True）
+[①-E] 判别力实测（反向）：未注入时未覆盖 = 0 条（须 0），且与注入态**不相等** = True
+[②-A] row_data_r250.py 常量三元组 = (0 / 7 / 2)（>0 正向对照）
+[②-B] docstring 区（ROUND 常量前的头部）含裸真值三元组 = False（须 False，结构性修法维持）
+[PASS] ② 单一事实源 
+[③-A] R249 台账行：「派生面 = 14 个常设产物」∧「执行器 + 13 件由派生器…滚动」
+[PASS] ③ 上一轮台账行的派生面等式（N = 1 + M） 14 = 1 + 13
+[④-A] 历史缺陷留档（gap-precheck-R248.txt）：登记 = 13 个 / FILES = 11 条 / 未覆盖 = 3 个 ['gap-deriveface-r247.py', 'mkcommitmsg-r247.py', 'notify-record-r247.py']
+[PASS] ④ 历史缺陷有取证对象（两值不相等） 
+上一轮台账登记的派生面 = 13 个
+上一轮派生器 FILES 实际条数 = 11
+未被派生器 FILES 覆盖的 = 3 个：['gap-deriveface-r247.py', 'mkcommitmsg-r247.py', 'notify-record-r247.py']
+[⑤-A] 上一轮（R249）证据文件在仓库 evidence/ 下 = 13 个（>0 正向对照）
+[⑤-B] 本轮证据文件（截至本探针）= 12 个：['audit-regression-R250-faildiff.txt', 'audit-regression-R250-failraw.txt', 'audit-regression-R250-rcseq.txt', 'audit-regression-R250.txt', 'gap-deriveface-R250.txt', 'gap-precheck-R250.txt', 'green-verify-R250-analysis.txt', 'green-verify-R250-coverage-fields.txt', 'green-verify-R250-full-run1.txt', 'green-verify-R250-full-run2.txt', 'green-verify-R250-testcount.txt', 'green-verify-R250-tested-state.txt']（本文件 gap-precheck-R250.txt 为**自产**，落盘时产生，历史纪律 222）
+==============================================================================
+探针结论：① PASS / ② PASS / ③ PASS / ④ PASS（⑤ 为信息项）
+PRECHECK_END=1
