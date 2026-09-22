@@ -13,7 +13,7 @@ R255 派生面探针：含轮次号引用的产物集合 ⇔ 本轮派生面（�
 [PASS] A1c 派生面三类计数之和 == 声明集合大小 15 + 2 + 1 = 18 vs 18
 [A1d] 相位 = final；本轮派生面成员在产物目录里**实际存在** = True；本相位未落盘 = []
 [PASS] A1d 本轮派生面成员在产物目录里**实际存在** 缺失 = []
-[A1e] 相位留痕：记录 2 条 = pre 1 + final 1（含本次）；逐行 = ['pre missing=row_data_r255.py', 'final missing=-']
+[A1e] 相位留痕：记录 3 条 = pre 1 + final 2（含本次）；逐行 = ['pre missing=row_data_r255.py', 'final missing=-', 'final missing=-']
 [PASS] A1e0 相位留痕正向对照（pre 记录 ≥ 1 条） 1 条
 [PASS] A1e 中间相位的缺口**被登记**（非空）且最终相位已闭合（空） pre missing=row_data_r255.py / final missing=-
 [PASS] A1e2 判别力实测：合成「pre 缺口为空」的相位对必须判不合格 合成（pre=-, final=-）-> False
@@ -45,10 +45,10 @@ SELF=gap-toolface-R255.txt
 ------------------------------------------------------------------------------
 [F0a] 源目录里的 row_data 产物 = 1 个 ['row_data_r254.py']（> 0 正向对照）
 [PASS] F0a 解析到源侧 row_data 产物 1 个
-[F1] 前一轮（row_data_r254.py）row_data 自检复跑 rc=1；末 3 行 = ['    assert not _bare, ("DESC 正文含**裸**字面量返工真值", _bare)', '           ^^^^^^^^^', "AssertionError: ('DESC 正文含**裸**字面量返工真值', ['返工 3 处', '返工 8 处'])"]
+[F1] 前一轮（row_data_r254.py）row_data 自检复跑 rc=1；末 3 行 = ['    assert DESC == _prev, ("DESC 与 HEAD 内本轮描述列不一致", len(DESC), len(_prev))', '           ^^^^^^^^^^^^^', "AssertionError: ('DESC 与 HEAD 内本轮描述列不一致', 2990, 2990)"]
 [FAIL] F1 前一轮 row_data 自检 rc=0（一次性产物也会被机器核对） rc=1
 [F2] 本轮 row_data 产物 = ['row_data_r255.py']（落盘后复跑其自检 = 修法落地核对）
-[F2] 本轮 row_data 自检 rc=0；末 2 行 = ['  判别力实测：向区域注入合成裸形态「返工 9 处」后命中数 0 → 1（须 +1）', 'DESC 长度 = 3274；列数 = 8']
+[F2] 本轮 row_data 自检 rc=0；末 2 行 = ['  判别力实测：向区域注入合成裸形态「返工 9 处」后命中数 0 → 1（须 +1）', 'DESC 长度 = 3572；列数 = 8']
 [PASS] F2 本轮 row_data 自检 rc=0（判据区域按语义切分后不再恒红） rc=0
 ==============================================================================
 汇总：FAIL 断言 = 1 条 ['F1 前一轮 row_data 自检 rc=0（一次性产物也会被机器核对）']
