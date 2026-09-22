@@ -1,0 +1,31 @@
+==============================================================================
+R281 取证 · 覆盖报告逐族分布（by_task）的**算术**判据覆盖
+==============================================================================
+扫描根 tools      E:\workspaces\hioas\hioas-aap-001\tools -> 30 个脚本
+扫描根 prev-work  C:\Users\laitz\AppData\Local\Temp\aap-r280-work -> 10 个脚本
+扫描根 prev-aux   C:\Users\laitz\AppData\Local\Temp\aap-r280-aux -> 10 个脚本
+[PASS] A0a 正向对照：受判脚本数 = 50（> 0；否则判定不可用，历史 46/75/98）
+
+--- A1 算术判据点（0 条）---
+[PASS] A1 逐族**算术**判据点 = 0（判定：算术自洽**零判据**）
+--- A1b 邻接判据（引用 by_task 但无算术语义，**据实披露**）= 1 条 ---
+    prev-work/row_data_r280.py:150 | assert BY_FAMILY.startswith("T03=") and BY_FAMILY.count("/") == len(COVJ.get("by_task") or {}), (
+--- 信息项 记录点（只读/打印，不参与判定）= 0 条 ---
+--- 信息项 其它出现 = 5 条 ---
+    prev-work/analyze-r280.py:135 | for k, v in sorted((JW.get("by_task") or {}).items()):
+    prev-work/analyze-r280.py:144 | byt = JW.get("by_task") or {}
+    prev-work/analyze-r280.py:150 | ("total", "implemented", "missing", "registered_routes", "not_registered", "by_task"))
+    prev-work/analyze-r280.py:153 | for k in ("total","implemented","missing","registered_routes","not_registered","by_task"):
+    prev-work/row_data_r280.py:149 | for _k, _v in sorted((COVJ.get("by_task") or {}).items()))
+
+判据本体正向对照：合成健康态 -> True
+[PASS] A2a 判别力实测（反向）：合成健康态必须判绿
+[PASS] A2b 合成「Σ逐族 ≠ 顶层 implemented」 必须判红
+[PASS] A2c 合成「某族 implemented > total」 必须判红
+[PASS] A2d 合成「implemented+missing ≠ total」 必须判红
+
+事实面（上一轮归档报告）：total=90 implemented=90 missing=0 族数=12
+[PASS] A3a 正向对照：归档报告可解析 ∧ 族数 = 12（> 0）
+[PASS] A3 事实面：归档报告逐族算术自洽（缺口在**判据**而非数据）
+
+汇总：FAIL = 0 条 （全 PASS）
