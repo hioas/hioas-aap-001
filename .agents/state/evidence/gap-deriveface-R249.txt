@@ -1,0 +1,36 @@
+==============================================================================
+R249 取证 A：派生面 ⇔ 含轮次号引用集合（分类单一事实源 = 派生器报告）
+==============================================================================
+[A0a] 源侧含轮次号引用的产物 = 14 个（> 0 正向对照）
+[A0b] 派生器报告解析到带分类的条目 = 14 条（> 0 正向对照）
+[A1] 分类直方图 = {'常设（滚动）': 13, '整体重写': 1, '一次性（不滚动）': 0, '**未登记**': 0}
+[A2] **未登记成员**（派生器自报）= 0 []（必须为 0；派生器另有穷尽性断言兜底）
+[A2b] 源侧候选 ⊆ 报告条目：未被报告覆盖的候选 = 无（报告与源侧实测集合逐项一致）（必须为空）
+[A3] **历史缺陷**取证（锚在修正前的产物 gap-precheck-R248.txt；历史纪律 214）：
+      历史登记 = 13 个 / 历史派生器 FILES = 11 条 / 历史未覆盖常设产物 = 3 个 ['gap-deriveface-r247.py', 'mkcommitmsg-r247.py', 'notify-record-r247.py']
+[A3b] 修法落地核对（**本轮**探针 gap-precheck-R249.txt；历史纪律 214 的第二段）：
+      本轮实测候选 = 14 个 / 分类条目 = 14 个 / 未覆盖 = 0 个
+[B1] 本轮派生产物 = 14 个；常设集合 = 14 个；**缺失** = 0 无
+[B2] 上一轮候选中有 14 / 14 个已被本轮派生覆盖（一次性专用按语义不派生）
+------------------------------------------------------------------------------
+R249 取证 C：轮次映射链的**连续性**（历史纪律 234：多级滚动会连环改写）
+[C0a] 源码字面量里的映射链条数 = 0
+[C0b] 运行时值（row_data_r249.CHAIN，权威承载）= {r247→r248, r248→r249}（> 0 正向对照）
+[C0c] 运行时链条数 = 1（与源码字面量 0 条合计 1 条作扫描面正向对照）
+[C0d] DESC 承载核对：DESC 里含该链条 = True
+  row_data_r249.DESC           链 = {r247→r248, r248→r249} 连续=True
+[C1] 非连续（被连环改写）的映射链 = 0 条：[]
+[C2] 判别力实测（反向）：**非连续**链合成夹具必须判不合格 = True（须 True）
+[C2b] 判别力实测（正向）：**连续**链合成夹具必须判合格 = True（须 True；否则判据恒 FAIL，坑 81 族）
+[C2c] 自指守卫：本文件源码内不含合成字面量 = True
+[D1] 反向对照：产物中含当前轮形态的文件数 = 11（> 0，证明 C 段扫描面非空）
+------------------------------------------------------------------------------
+R249 取证 E：派生来的「提交文件清单」⇔ 本轮实际证据文件集合
+[E0a] 本轮证据文件（磁盘，按轮次号命名）= 11 个：['audit-regression-R249-faildiff.txt', 'audit-regression-R249-failraw.txt', 'audit-regression-R249-rcseq.txt', 'audit-regression-R249.txt', 'gap-precheck-R249.txt', 'green-verify-R249-analysis.txt', 'green-verify-R249-coverage-fields.txt', 'green-verify-R249-full-run1.txt', 'green-verify-R249-full-run2.txt', 'green-verify-R249-testcount.txt', 'green-verify-R249-tested-state.txt']
+[E0b] 提交清单里列出的本轮证据 = 13 个：['audit-regression-R249-faildiff.txt', 'audit-regression-R249-failraw.txt', 'audit-regression-R249-rcseq.txt', 'audit-regression-R249.txt', 'gap-deriveface-R249.txt', 'gap-ledger-audit-R249.txt', 'gap-precheck-R249.txt', 'green-verify-R249-analysis.txt', 'green-verify-R249-coverage-fields.txt', 'green-verify-R249-full-run1.txt', 'green-verify-R249-full-run2.txt', 'green-verify-R249-testcount.txt', 'green-verify-R249-tested-state.txt']
+[E1] 磁盘有、提交清单**未列**（= 会漏进提交）= 0 个：[]
+[E2] 清单列了、磁盘**没有**（= 悬空条目）= 0 个：[]
+[E3] 其中**自产/后产**条目（本脚本落盘 gap-deriveface-R249.txt；本轮 append 脚本产出 gap-ledger-audit-R249.txt）= 2 个，不计入悬空
+     判定：E PASS
+==============================================================================
+汇总：A2 未登记常设产物 = 0 / C1 非连续映射链 = 0 / E1 漏列证据 = 0 / E2 悬空 = 0
