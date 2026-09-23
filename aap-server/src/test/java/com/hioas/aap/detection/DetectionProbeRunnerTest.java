@@ -40,6 +40,7 @@ class DetectionProbeRunnerTest extends DbTestBase {
     private HttpServer upstream;
     private final AtomicInteger calls = new AtomicInteger();
     private final AtomicReference<String> authHeader = new AtomicReference<>();
+    private final AtomicReference<String> lastChatBody = new AtomicReference<>();
 
     @AfterEach
     void stopUpstream() {
@@ -52,13 +53,24 @@ class DetectionProbeRunnerTest extends DbTestBase {
     /**
      * chat 桩：{@code contentForCall} 按第几次调用给正文；{@code usage} 拼进响应体。
      * 每次响应的 {@code id}/{@code created} 都不同（真实上游也如此）。
+     *
+     * @param modelsJson 非空则同时挂 {@code /v1/models}（供「凭证清单为空 → 现场发现模型」用；null = 不挂）
      */
     private String startUpstream(java.util.function.IntFunction<String> contentForCall, boolean withUsage,
-                                 boolean withCachedTokens) throws Exception {
+                                 boolean withCachedTokens, String modelsJson) throws Exception {
         upstream = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        if (modelsJson != null) {
+            upstream.createContext("/v1/models", exchange -> {
+                byte[] bytes = modelsJson.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, bytes.length);
+                exchange.getResponseBody().write(bytes);
+                exchange.close();
+            });
+        }
         upstream.createContext("/v1/chat/completions", exchange -> {
             int n = calls.incrementAndGet();
             authHeader.set(exchange.getRequestHeaders().getFirst("Authorization"));
+            lastChatBody.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
             String usage = withUsage
                     ? (withCachedTokens
                     ? ",\"usage\":{\"prompt_tokens\":20,\"completion_tokens\":40,"
@@ -101,22 +113,22 @@ class DetectionProbeRunnerTest extends DbTestBase {
     @Test
     @DisplayName("凭证无模型清单：不发请求、8 项一律 FAILED（不猜模型）")
     void missingModelListFailsEveryProbe() throws Exception {
-        String baseUrl = startUpstream(n -> "x", true, false);
+        String baseUrl = startUpstream(n -> "x", true, false, null);
         DetectionProbeRunner.ProbeOutcome outcome =
                 runner.run(baseUrl, crypto.encrypt("sk-probe-test-key"), List.of());
 
         assertThat(outcome.scores()).hasSize(8);
         assertThat(outcome.scores()).allSatisfy(score ->
                 assertThat(score.status()).isEqualTo(ProbeScoring.ProbeStatus.FAILED));
-        assertThat(scoreOf(outcome, "D1").note()).contains("模型清单");
-        assertThat(calls.get()).isZero();
+        assertThat(scoreOf(outcome, "D1").note()).contains("上游未返回可用模型");
+        assertThat(calls.get()).as("发现不到模型就不该发 chat 请求").isZero();
     }
 
     @Test
     @DisplayName("一致性比的是**正文**不是整包：3 轮里 2 轮同文 ⇒ D3=66.67，指纹行为线同值且不否决")
     void consistencyComparesContentNotWholeBody() throws Exception {
         // 第 1 轮正文不同，第 2/3 轮相同；id 与 created 每轮都不同（若拿整包比对，一致率会是 0）
-        String baseUrl = startUpstream(n -> n == 1 ? "甲" : "乙", true, false);
+        String baseUrl = startUpstream(n -> n == 1 ? "甲" : "乙", true, false, null);
         DetectionProbeRunner.ProbeOutcome outcome =
                 runner.run(baseUrl, crypto.encrypt("sk-probe-test-key"), List.of("gpt-4o"));
 
@@ -150,7 +162,7 @@ class DetectionProbeRunnerTest extends DbTestBase {
     @Test
     @DisplayName("上游返回 cached_tokens>0 ⇒ D6 命中满分；usage 缺失 ⇒ D2 标 NOT_MEASURABLE（不填示意分）")
     void cacheAndTpsDependsOnUpstreamFields() throws Exception {
-        String withCache = startUpstream(n -> "丙", true, true);
+        String withCache = startUpstream(n -> "丙", true, true, null);
         DetectionProbeRunner.ProbeOutcome cached =
                 runner.run(withCache, crypto.encrypt("sk-probe-test-key"), List.of("gpt-4o"));
         assertThat(scoreOf(cached, "D6").status()).isEqualTo(ProbeScoring.ProbeStatus.SUCCESS);
@@ -158,12 +170,30 @@ class DetectionProbeRunnerTest extends DbTestBase {
 
         upstream.stop(0);
         calls.set(0);
-        String noUsage = startUpstream(n -> "丁", false, false);
+        String noUsage = startUpstream(n -> "丁", false, false, null);
         DetectionProbeRunner.ProbeOutcome bare =
                 runner.run(noUsage, crypto.encrypt("sk-probe-test-key"), List.of("gpt-4o"));
         assertThat(scoreOf(bare, "D2").status()).as("没有 usage 就不能算吞吐，宁可标不可测")
                 .isEqualTo(ProbeScoring.ProbeStatus.NOT_MEASURABLE);
         assertThat(scoreOf(bare, "D2").score()).isNull();
         assertThat(scoreOf(bare, "D6").status()).isEqualTo(ProbeScoring.ProbeStatus.NOT_MEASURABLE);
+    }
+
+    @Test
+    @DisplayName("凭证清单为空但上游 /v1/models 可用 ⇒ 现场发现模型并正常探测（不再误判 FAIL）")
+    void discoversModelFromUpstreamWhenListMissing() throws Exception {
+        // 复刻 dev 库真实场景：凭证 model_list = [] （预检只探 /models 可达，不校验清单非空），
+        // 上游却活得好好的 —— 修复前这条会被判全项 FAILED，并把供应商置 DETECT_FAILED。
+        String baseUrl = startUpstream(n -> "戊", true, false,
+                "{\"data\":[{\"id\":\"gpt-4o-mini\"},{\"id\":\"claude-3-haiku\"}]}");
+        DetectionProbeRunner.ProbeOutcome outcome =
+                runner.run(baseUrl, crypto.encrypt("sk-probe-test-key"), List.of());
+
+        assertThat(scoreOf(outcome, "D1").status()).isEqualTo(ProbeScoring.ProbeStatus.SUCCESS);
+        assertThat(outcome.metricsByProbe().get("D1").get("model")).isEqualTo("gpt-4o-mini");
+        assertThat(String.valueOf(outcome.metricsByProbe().get("D1").get("model_source")))
+                .as("必须写明模型来自现场发现，别让人以为凭证里有清单").contains("现场发现");
+        assertThat(lastChatBody.get()).as("探针必须用上游发现的模型").contains("\"model\":\"gpt-4o-mini\"");
+        assertThat(calls.get()).isEqualTo(3);
     }
 }

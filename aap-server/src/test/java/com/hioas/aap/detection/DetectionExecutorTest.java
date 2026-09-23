@@ -97,13 +97,19 @@ class DetectionExecutorTest extends ApiTestBase {
 
     /** 建凭证 + 预检通过（预检本身会建一条 QUEUED 的检测任务——缺陷现场）。返回 jobId。 */
     private String credentialAndQueuedJob(String token, String baseUrl) {
+        return credentialAndQueuedJob(token, baseUrl,
+                "[{\"model_name\":\"gpt-4o\",\"context_window\":128000,\"rpm\":60}]");
+    }
+
+    /** 同上，但可指定凭证的 model_list（传 {@code []} 复刻「凭证无清单」的真实场景）。 */
+    private String credentialAndQueuedJob(String token, String baseUrl, String modelListJson) {
         HttpResult created = post("/credentials", """
                 {
                   "alias":"检测执行器凭证","base_url":"%s","api_key":"sk-probe-e2e-fixture-0001",
                   "primary_flag":true,
-                  "model_list":[{"model_name":"gpt-4o","context_window":128000,"rpm":60}]
+                  "model_list":%s
                 }
-                """.formatted(baseUrl), token);
+                """.formatted(baseUrl, modelListJson), token);
         assertThat(created.status()).as(created.body()).isEqualTo(200);
         String credentialId = created.data().path("id").asText();
 
@@ -249,5 +255,30 @@ class DetectionExecutorTest extends ApiTestBase {
                 "select count(*) from aap_notification where recipient_type = 'PROVIDER' "
                         + "and event_code = 'DETECTION_PASSED' and category = 'DETECTION'",
                 Integer.class)).as("AC-21 检测通过通知").isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("DET-EXEC-04 凭证清单为空但上游可用：现场发现模型后正常探测（不再误判全项 FAILED）")
+    void emptyModelListIsRecoveredFromUpstream() throws Exception {
+        String token = token("13800000033");
+        String baseUrl = startUpstream(200);
+        // 复刻 dev 库实测场景（6 条待检任务里 5 条凭证的 model_list 是 []，预检照样通过）
+        String jobId = credentialAndQueuedJob(token, baseUrl, "[]");
+        String credentialId = jdbc.queryForObject(
+                "select credential_id from aap_detection_job where id = ?::bigint", String.class, jobId);
+
+        executor.scan();
+
+        assertThat(jdbc.queryForObject("select status from aap_detection_job where id = ?::bigint",
+                String.class, jobId)).isEqualTo("COMPLETED");
+        assertThat(jdbc.queryForObject("select status from aap_detection_result "
+                + "where job_id = ?::bigint and probe_code = 'D1'", String.class, jobId))
+                .as("修复前这里恒为 FAILED（凭证无模型清单）").isEqualTo("SUCCESS");
+        assertThat(jdbc.queryForObject("select metrics->>'model_source' from aap_detection_result "
+                + "where job_id = ?::bigint and probe_code = 'D1'", String.class, jobId))
+                .as("模型来源必须留痕").contains("现场发现");
+        assertThat(jdbc.queryForObject("select detection_status from aap_credential where id = ?::bigint",
+                String.class, credentialId)).as("不再被误判 FAIL").isEqualTo("PENDING");
+        assertThat(chatCalls.get()).isEqualTo(3);
     }
 }

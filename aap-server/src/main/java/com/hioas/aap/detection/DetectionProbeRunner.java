@@ -4,6 +4,7 @@ import com.hioas.aap.common.ApiException;
 import com.hioas.aap.common.CryptoService;
 import com.hioas.aap.common.JsonCodec;
 import com.hioas.aap.common.OutboundUrlGuard;
+import com.hioas.aap.credential.UpstreamProbe;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -53,6 +54,11 @@ import tools.jackson.databind.JsonNode;
  * </ul>
  * 这些差距在 {@code metrics} 里逐条注明，并在报告/结论里以「不可测项」形式体现。
  *
+ * <p>模型解析：优先用任务快照/凭证声明的模型清单；清单为空时**现场问上游** {@code GET {base_url}/models}
+ * 取首个模型（与预检同一路）。为什么必须有这一步：预检只探 {@code /models} 是否可达，不校验凭证清单非空，
+ * 实测 dev 库 6 条待检任务里 5 条凭证的 {@code model_list} 是 {@code []} —— 直接判失败会把活得好好的上游
+ * 判成 FAIL 并把供应商置 {@code DETECT_FAILED}。模型来源会写进 {@code metrics.D1.model_source}。
+ *
  * <p>安全：出站地址先过 {@link OutboundUrlGuard}（SSRF，PRD §5）；api_key 只在内存里解密，
  * 不写日志、不进 metrics/证据。
  */
@@ -65,6 +71,8 @@ public class DetectionProbeRunner {
     private static final int PROBE_TIMEOUT_SECONDS = 20;
     /** 取样轮数（D1/D2 取中位，D3 统计一致性）。 */
     private static final int ROUNDS = 3;
+    /** 现场发现模型清单（GET {base_url}/models）的超时（秒）——与预检同一路，故可短。 */
+    private static final int DISCOVERY_TIMEOUT_SECONDS = 10;
 
     /**
      * 探针 prompt：要**确定性且足够长的输出**。
@@ -78,10 +86,12 @@ public class DetectionProbeRunner {
 
     private final CryptoService crypto;
     private final OutboundUrlGuard urlGuard;
+    private final UpstreamProbe upstreamProbe;
 
-    public DetectionProbeRunner(CryptoService crypto, OutboundUrlGuard urlGuard) {
+    public DetectionProbeRunner(CryptoService crypto, OutboundUrlGuard urlGuard, UpstreamProbe upstreamProbe) {
         this.crypto = crypto;
         this.urlGuard = urlGuard;
+        this.upstreamProbe = upstreamProbe;
     }
 
     /** 一次探针运行的全部产物。 */
@@ -115,8 +125,19 @@ public class DetectionProbeRunner {
         }
 
         String model = (models == null || models.isEmpty()) ? null : models.get(0);
+        String modelSource = "凭证模型清单";
         if (model == null || model.isBlank()) {
-            return allFailed("凭证无模型清单，无法探测");
+            // 清单为空**不等于**凭证不可用：预检只探 /models 是否可达，不校验凭证清单非空。
+            // 实测（2026-09-23 dev 库）：6 条待检任务里 5 条凭证的 model_list 是 []，
+            // 若这里直接判失败，一条活得好好的上游会被判 FAIL、供应商被置 DETECT_FAILED。
+            // 处置：与预检同一口径**现场问上游**要模型清单（GET {base_url}/models），取首个探测。
+            List<String> discovered = discoverModels(baseUrl, apiKey);
+            if (discovered.isEmpty()) {
+                return allFailed("凭证无模型清单，且上游未返回可用模型");
+            }
+            model = discovered.get(0);
+            modelSource = "上游 /v1/models 现场发现（凭证清单为空，共 " + discovered.size() + " 个）";
+            log.info("凭证无模型清单，改用上游发现的模型探测：model={}", model);
         }
 
         List<ProbeScoring.ProbeScore> scores = new ArrayList<>();
@@ -160,8 +181,11 @@ public class DetectionProbeRunner {
         scores.add(ProbeScoring.scoreTtft(elapsedSamples));
         metrics.put("D1", Map.of(
                 "samples_ms", elapsedSamples,
+                "model", model,
+                "model_source", modelSource,
                 "method", "非流式请求，以整包到达耗时近似首字时延（未实现 stream=true 的 SSE 首包解析）"));
-        evidence.put("D1", ROUNDS + " 轮整包耗时（近似 TTFT）：" + elapsedSamples + " ms");
+        evidence.put("D1", ROUNDS + " 轮整包耗时（近似 TTFT）：" + elapsedSamples + " ms；探测模型 " + model
+                + "（" + modelSource + "）");
 
         // ── D2 P50 / 输出 TPS ──
         if (tpsSamples.isEmpty()) {
@@ -224,11 +248,13 @@ public class DetectionProbeRunner {
                 + "；未测线：自我认知 / tokenizer / 概率 / 上下文，权重已按比例重分配");
 
         // ── D8 真实源 ── 仅证据，不计分
-        String upstreamEvidence = "上游真实返回 " + contents.size() + " 次；usage.completion_tokens "
-                + (tpsSamples.isEmpty() ? "缺失" : "存在") + "；缓存字段 " + (cacheFieldSeen ? "存在" : "缺失");
+        String upstreamEvidence = "上游真实返回 " + contents.size() + " 次；探测模型 " + model + "（" + modelSource
+                + "）；usage.completion_tokens " + (tpsSamples.isEmpty() ? "缺失" : "存在")
+                + "；缓存字段 " + (cacheFieldSeen ? "存在" : "缺失");
         scores.add(ProbeScoring.scoreUpstreamOrigin(upstreamEvidence));
         evidence.put("D8", upstreamEvidence);
-        metrics.put("D8", Map.of("method", "仅输出证据，不纳入总分（权重 0）", "returned_rounds", contents.size()));
+        metrics.put("D8", Map.of("method", "仅输出证据，不纳入总分（权重 0）", "returned_rounds", contents.size(),
+                "model", model));
 
         scores.sort(Comparator.comparing(ProbeScoring.ProbeScore::probeCode));
         return new ProbeOutcome(scores, metrics, evidence);
@@ -249,6 +275,17 @@ public class DetectionProbeRunner {
         double weight = ProbeScoring.DEFAULT_WEIGHTS.getOrDefault(code, 0.0);
         return new ProbeScoring.ProbeScore(code, ProbeScoring.ProbeStatus.NOT_MEASURABLE,
                 null, weight, null, note);
+    }
+
+    /** 现场向上游要模型清单（与预检同一条路：GET {base_url}/models）；失败返回空表（不猜）。 */
+    private List<String> discoverModels(String baseUrl, String apiKey) {
+        try {
+            UpstreamProbe.ProbeResult result = upstreamProbe.probe(baseUrl, apiKey, DISCOVERY_TIMEOUT_SECONDS);
+            return result.models() == null ? List.of() : result.models();
+        } catch (RuntimeException e) {
+            log.warn("上游模型清单发现失败，按无清单处理");
+            return List.of();
+        }
     }
 
     /** 出现次数最多的取值（一致性率的分母口径：N 次里最大一致条约数 / N）。 */
