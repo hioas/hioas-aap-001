@@ -30,9 +30,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    /** 管理端登录/当前登录者（{@code /admin/auth/*} 与 {@code /auth/me} 的管理端分支）。 */
+    private final AdminAuthService adminAuthService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, AdminAuthService adminAuthService) {
         this.authService = authService;
+        this.adminAuthService = adminAuthService;
     }
 
     public record SmsSendRequest(
@@ -90,16 +93,25 @@ public class AuthController {
         return ApiEnvelope.ok(Map.of("logged_out", true));
     }
 
-    /** AUTH-06 当前登录者（含「我的设置」页所需字段）。 */
+    /**
+     * AUTH-06 当前登录者（含「我的设置」页所需字段）。
+     *
+     * <p>管理端主体走**管理端档案**（{@code aap_admin_user}）：管理端账号不在
+     * {@code aap_provider_account} 里，若不分支，管理端控制台登录成功后第一步调 {@code /auth/me}
+     * 就会拿到 {@code E-1902}「未认证或登录已过期」（实测 aap-admin `useSession` 必调本端点）。
+     */
     @GetMapping("/me")
     public ApiEnvelope<MeResult> me(@AuthenticationPrincipal AuthPrincipal principal) {
         if (principal == null) {
             throw new ApiException(ErrorCode.E_1902, "未认证或登录已过期");
         }
-        return ApiEnvelope.ok(authService.me(principal));
+        return ApiEnvelope.ok(principal.isAdmin()
+                ? adminAuthService.me(principal)
+                : authService.me(principal));
     }
 
-    private static String clientIp(HttpServletRequest request) {
+    /** 取真实客户端 IP（{@code X-Forwarded-For} 首段优先）。包级可见：{@link AdminAuthController} 复用。 */
+    static String clientIp(HttpServletRequest request) {
         String forwarded = request.getHeader("X-Forwarded-For");
         if (forwarded != null && !forwarded.isBlank()) {
             return forwarded.split(",")[0].trim();

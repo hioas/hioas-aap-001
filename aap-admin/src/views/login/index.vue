@@ -87,10 +87,11 @@ async function onSubmit() {
   error.value = '';
   loading.value = true;
   try {
-    // ⚠️ 真实端点是 `/auth/sms/login`（不是 /auth/login），请求体只有 {phone, smsCode}。
-    //    真源：aap-client/src/api/auth.ts:54。写错端点会得到 E-1902「未认证或登录已过期」
-    //    这种**指向错误方向**的报错（以为是 token 问题，其实是路由不存在）。
-    const r = await request<{ token: string; refresh_token?: string; refreshToken?: string }>('/auth/sms/login', {
+    // ⚠️ 管理端**必须**走 `/admin/auth/sms/login`（2026-09-23 新增）。
+    //    旧写法 `('/auth/sms/login'` 是供应商登录：后端固定签发 subjectType=PROVIDER+role=SUPPLIER，
+    //    于是登录「成功」但之后所有 /api/v1/admin/** 全是 403 E-1901 —— 管理端等于不可用。
+    //    `/auth/sms/send` 两边共用（同一套频控与锁定）。
+    const r = await request<{ token: string; refresh_token?: string; refreshToken?: string }>('/admin/auth/sms/login', {
       method: 'POST',
       body: { phone: form.phone, smsCode: form.smsCode },
       skipAuthRedirect: true

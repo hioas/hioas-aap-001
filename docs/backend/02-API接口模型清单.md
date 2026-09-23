@@ -7,7 +7,7 @@
 > + `docs/api/接口字段级schema.md`（供应商端字段级补充）+ `17-零歧义执行规格spec.md`（错误码/状态机）。
 > 模型定义：请求/响应体的 JSON Schema 见 `json-schema/**`，OpenAPI 见 `openapi.yaml`。
 
-**版本** v1.0 · 2026-09-17 · 共 **90 条**端点（供应商端 49 · 管理端 41，与 `openapi.yaml` 生成器逐条同源）。
+**版本** v1.0 · 2026-09-17 · 共 **91 条**端点（供应商端 49 · 管理端 42，与 `openapi.yaml` 生成器逐条同源）。
 
 **标注规则**
 
@@ -209,6 +209,20 @@
 | ADM-CFG10 | POST | `/admin/report-templates/{templateId}/publish` | TECH_OPS | → `ReportTemplate` | E-1601 | T14 |
 | ADM-A01 | GET | `/admin/audit-logs` | TECH_OPS SUPER_ADMIN | q：`page` `pageSize` `actorType?` `action?` `traceId?` `from?` `to?` → 分页 `AuditLog` | E-1901 | T13 |
 
+### 2.5 管理端账号接入（Auth）
+
+| ID | 方法 | 路径 | 角色 | 请求/响应 | 错误码 | 状态 |
+|---|---|---|---|---|---|---|
+| ADM-AUTH01 | POST | `/admin/auth/sms/login` | 免（`SecurityConfig.PUBLIC_PATHS` 放行） | body `{phone, smsCode}` → `LoginResult{token,role,status}`（`subjectType=ADMIN`，role 取自 `aap_admin_user.role`） | E-1001 E-1901 E-1902 E-1903 | T14 |
+
+> **为什么新增**：管理端此前**没有登录入口** —— `aap-admin` 登录页调的是供应商端点 `AUTH-02`，
+> 而它固定签发 `subjectType=PROVIDER`，导致登录「成功」但 `/admin/**` 一律 403 `E-1901`
+> （人工放行 `DET-06`、报价审核、配置发布在真实环境里全都调不动）。2026-09-23 运行态实测确证。
+>
+> 口径：验证码下发复用 `AUTH-01`（同一套 60s 频控 + 5 次错码锁 15 分钟）；**不自动注册** ——
+> 手机号必须已存在于 `aap_admin_user` 且 `status=ACTIVE`，否则 `E-1902`。
+> `AUTH-06 (/auth/me)` 对管理端主体返回管理端档案（此前会拿到 `E-1902`）。
+
 ---
 
 ## 3. 客户端 → 接口映射（可追溯）
@@ -295,6 +309,7 @@
 | 日期 | 变更 | 依据 |
 | --- | --- | --- |
 | 2026-09-18 | `QT-03/06/07/08` 错误码勘误：资源不存在由 `E-1401` 改为 **`E-1406`(404)**；`E-1401` 严格保留给「时段区间重叠/时段非法」（HTTP 400）；`QT-08` 增补 `E-1404`（阶梯首档/末档）与 `E-1104`（If-Match 失配） | 实现期发现同一错误码承载两种 HTTP 语义会误导前端（偏差 D-API-02）；10-PRD §5.1 V11–V14 | | 2026-09-18 | 审计动作枚举新增 `QUOTE_CREATE/QUOTE_SAVE/QUOTE_SUBMIT/QUOTE_WITHDRAW/QUOTE_VOID`（12→17） | 10-PRD §7 埋点 quote_created/saved/submitted/withdrawn | 
+| 2026-09-23 | 新增 **`ADM-AUTH01`**（`POST /admin/auth/sms/login`，管理端短信登录）；`AUTH-06` 明确管理端主体返回管理端档案；冻结清单 90 → **91**（管理端 41 → 42） | 运行态实测：管理端此前无登录入口，`aap-admin` 调供应商 `AUTH-02` 只得 PROVIDER 身份 → `/admin/**` 全 403 `E-1901`（人工放行 DET-06 等调不动，而报价前置 PASS 只能来自人工放行）→ 偏差 **D-AUTH-01** | 
 
 - 2026-09-17 v1.0 首版：从 `18-API设计OpenAPI.md` + `aap-client` 调用点反推，冻结 90 条端点 ID
   （供应商端 49 = 客户端已消费 30 条 + 补齐 `CRED-02/06/07`、`DET-01/04/05/06`、`QT-02/05/07/11/12`、`CON-01`、`PAY-01`、`NTF-01/02`、`AUTH-04/05`；管理端 41）。

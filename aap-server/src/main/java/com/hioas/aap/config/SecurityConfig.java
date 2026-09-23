@@ -38,6 +38,9 @@ public class SecurityConfig {
             "/actuator/health", "/actuator/health/**", "/actuator/info", "/actuator/metrics/**",
             "/api/v1/auth/sms/send", "/api/v1/auth/sms/login", "/api/v1/auth/wechat/login",
             "/api/v1/auth/refresh",
+            // 管理端登录（2026-09-23 新增）：登录本身不能要求先登录，故必须放行；
+            // 放行后能否登录由 aap_admin_user（手机号 + ACTIVE + role）决定。
+            "/api/v1/admin/auth/sms/login",
     };
 
     @Bean

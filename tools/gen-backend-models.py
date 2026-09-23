@@ -541,6 +541,9 @@ PATHS: list[tuple] = [
     ("NTF-02", "post", "/notifications/{id}/read", "Notification", "authenticated", None, "notification-read", [], ["E-1901"], "真源"),
     ("USE-01", "get", "/usage/summary", "Usage", "PROVIDER", None, "usage-summary", ["startHour", "endHour", "month"], ["E-1801"], "真源"),
     ("USE-02", "get", "/usage/hourly", "Usage", "PROVIDER", None, "usage-hourly-bucket", ["from", "to", "model", "group", "page", "pageSize"], ["E-1801"], "真源"),
+    # 管理端账号接入（2026-09-23 新增）：此前管理端没有登录入口 —— aap-admin 调供应商 AUTH-02
+    # 只会拿到 PROVIDER 身份 → /admin/** 全 403。见 docs/backend/02-API接口模型清单.md §2.5。
+    ("ADM-AUTH01", "post", "/admin/auth/sms/login", "AdminAuth", "anon", "auth-sms-login", "login-result", [], ["E-1001", "E-1901", "E-1902", "E-1903"], "新增"),
     ("ADM-P01", "get", "/admin/providers", "Admin", "BIZ_OPERATOR,TECH_OPS,SUPER_ADMIN", None, "provider-profile", ["page", "pageSize", "status", "keyword"], [], "推断"),
     ("ADM-P02", "post", "/admin/providers/{id}/suspend", "Admin", "BIZ_OPERATOR,TECH_OPS,SUPER_ADMIN", "provider-suspend", "provider-profile", [], ["E-1601"], "真源"),
     ("ADM-P03", "post", "/admin/providers/{id}/resume", "Admin", "BIZ_OPERATOR,TECH_OPS,SUPER_ADMIN", None, "provider-profile", [], ["E-1601"], "真源"),

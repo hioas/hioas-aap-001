@@ -2040,6 +2040,40 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /admin/auth/sms/login:
+    post:
+      operationId: ADM-AUTH01
+      tags:
+        - AdminAuth
+      summary: 管理端
+      description: "接口 ID `ADM-AUTH01`（依据：新增）"
+      x-aap-id: ADM-AUTH01
+      x-aap-source: 新增
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestAuthSmsLogin"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/LoginResult"
+        4XX:
+          description: 业务失败：E-1001,E-1901,E-1902,E-1903
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /admin/providers:
     get:
       operationId: ADM-P01

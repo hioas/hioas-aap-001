@@ -87,10 +87,10 @@ class EndpointCoverageTest extends ApiTestBase {
     }
 
     @Test
-    @DisplayName("接口覆盖：冻结清单 90 条必须全部已注册（缺失即红，明细落 coverage-report.json）")
+    @DisplayName("接口覆盖：冻结清单 91 条必须全部已注册（缺失即红，明细落 coverage-report.json）")
     void everyListedEndpointIsRegistered() throws Exception {
         List<Endpoint> endpoints = loadManifest();
-        assertThat(endpoints).as("清单接口数与冻结清单(90)不一致").hasSize(90);
+        assertThat(endpoints).as("清单接口数与冻结清单(91)不一致").hasSize(91);
 
         Set<String> registered = registeredRoutes();
         List<Map<String, Object>> missing = new ArrayList<>();
