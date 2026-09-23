@@ -582,9 +582,18 @@ const groups = computed(() => {
     vendor: g.vendor,
     models: sortModels(g.models.filter((m) => passFilter(m, g.vendor)))
   });
-  return groupsRaw.value
+  const list = groupsRaw.value
     .map(withFilter)
     .filter((g) => g.models.length > 0 || !filters.keyword.trim());
+  // 组顺序：**有模型的厂商优先**，再按厂商名稳定排序（同名前按 vendorKey，保证顺序确定）。
+  // 为什么：每页 4 家是用户口径（不能改），若 0 模型的厂商排前面，打开页面第一屏全是「暂无数据」，
+  // 而 KPI 同时显示「已接入模型 4」→ 看起来像坏了（2026-09-23 实测：模型被挤到第 2 页）。
+  return [...list].sort(
+    (a, b) =>
+      b.models.length - a.models.length ||
+      a.vendor.name.localeCompare(b.vendor.name, 'zh') ||
+      a.vendor.vendorKey.localeCompare(b.vendor.vendorKey)
+  );
 });
 
 /* ────────────── 厂商分组分页（设计稿 page-3 的分页栏） ──────────────
