@@ -266,11 +266,14 @@ import {
   validateForSave,
   type QuoteModelRow
 } from '@/utils/quote-setup-model'
+import { isEditableStatus } from '@/utils/quotes-model'
 
 /** toast 占位文案（设计稿无 toast 稿 → 记 missing-prd） */
 const TOAST_DRAFT = '已存为草稿'
 const TOAST_SAVED = '保存成功'
 const TOAST_FAIL = '保存失败，请稍后重试'
+/** 只读状态（已提交/待签署/已完成/作废）打开编辑页时的提示（#2：非草稿=只读） */
+const TOAST_READONLY = '当前状态不可编辑，仅可查看'
 
 interface SubjectOption {
   id: string
@@ -294,6 +297,14 @@ const credMask = ref('')
 const subjectOpen = ref(false)
 const credOpen = ref(false)
 const saving = ref(false)
+/**
+ * 该报价单是否只读（#2）。
+ *
+ * 服务端只允许 DRAFT/REJECTED 编辑（`QuoteService.EDITABLE`），其余状态调
+ * `PUT /quotes/{id}` 或 `POST /quotes/{id}/items` 一律 409 `E-1601`；
+ * 故非可编辑状态打开编辑页时置只读：只在点保存时提示，不发出必然失败的请求。
+ */
+const notEditable = ref(false)
 
 const subjectOptions = computed<SubjectOption[]>(() => {
   const p = profile.value
@@ -374,14 +385,19 @@ onMounted(async () => {
 /**
  * 回填既有报价单。
  *
- * ⚠️ 后端**没有** `PUT /quotes/{id}`（路由实测只有 GET/POST/DELETE + /items + /submit 等），
- * 所以报价单**表头字段（名称/主体/凭证）在当前接口能力下无法修改**；
- * 编辑能真正改动的是**明细行**（POST /quotes/{id}/items 整体替换）。
- * 这里如实回填并让用户看到现状，保存时只提交明细 —— 不假装表头也改了。
+ * 表头走 QT-02b（`PUT /quotes/{id}`，2026-09-23 服务端补上）：此前后端**没有**该路由，
+ * 表头（名称/主体/凭证）改了会被静默丢弃，只能渲染成只读并如实回填；现在保存时会真的写回。
+ * 明细行仍是 `POST /quotes/{id}/items` 整体替换。
+ *
+ * 只读门禁（#2）：服务端只允许 DRAFT/REJECTED 编辑（`QuoteService.EDITABLE`），
+ * 其余状态打开即置只读 —— 点保存只提示，不发出必然 409 E-1601 的请求。
  */
 async function loadExistingQuote() {
   try {
     const d = await quoteApi.detail(editQuoteId.value)
+    const status = (d as { status?: string } | null)?.status
+    notEditable.value = !isEditableStatus(status)
+    if (notEditable.value) uni.showToast({ title: TOAST_READONLY, icon: 'none' })
     name.value = String(d?.name ?? d?.title ?? name.value)
     const credId = String(d?.credential_id ?? '')
     if (credId) await pickCredential(credId) // 顺带把该凭证的模型清单拉出来
@@ -476,6 +492,11 @@ function currentState() {
 
 function onDraft() {
   if (saving.value) return
+  // 只读状态（非 DRAFT/REJECTED）：服务端必然 409，不发请求，只告知（#2）
+  if (notEditable.value) {
+    uni.showToast({ title: TOAST_READONLY, icon: 'none' })
+    return
+  }
   const errors = validateForDraft(currentState())
   if (errors.length) {
     uni.showToast({ title: errors[0], icon: 'none' })
@@ -486,6 +507,10 @@ function onDraft() {
 
 function onSave() {
   if (saving.value) return
+  if (notEditable.value) {
+    uni.showToast({ title: TOAST_READONLY, icon: 'none' })
+    return
+  }
   const errors = validateForSave(currentState())
   if (errors.length) {
     uni.showToast({ title: errors[0], icon: 'none' })
@@ -494,14 +519,20 @@ function onSave() {
   void submit(true)
 }
 
-/** 提交：POST /quotes（主体）→ 有勾选时 POST /quotes/{id}/items（明细行）→ 提示/跳转 */
+/** 提交：新建 POST /quotes；编辑 PUT /quotes/{id}（表头）→ POST /quotes/{id}/items（明细行）→ 提示/跳转 */
 async function submit(advance: boolean) {
   saving.value = true
   try {
     const items = buildItemsPayload(rows.value).items
 
-    // ── 编辑态：**不新建**，只整体替换该报价单的明细行（表头字段后端无更新接口，见 loadExistingQuote 注释）
+    // ── 编辑态：先更新表头（QT-02b），再整体替换明细行 ──
+    // 顺序有意：表头被拒（E-1601 状态 / E-1602 凭证未过检）时**不再动明细**，
+    // 避免「表头没改成、明细却变了」的半成品（此前表头改动被静默丢弃）。
     if (isEdit.value) {
+      await quoteApi.update(editQuoteId.value, {
+        name: name.value,
+        credential_id: credentialId.value
+      })
       if (items.length) await quoteApi.setItems(editQuoteId.value, { items })
       uni.showToast({ title: advance ? TOAST_SAVED : TOAST_DRAFT, icon: 'none' })
       if (advance) {

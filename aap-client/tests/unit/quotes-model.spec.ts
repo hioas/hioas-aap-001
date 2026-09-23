@@ -22,11 +22,12 @@ import {
   buildQuotesModel,
   filterStatusQuery,
   formatUpdatedAt,
+  isEditableStatus,
   metaParts,
   statusKeyOf
 } from '@/utils/quotes-model'
 import {
-  DESIGN_CARD_ACTIONS,
+  CARD_ACTIONS,
   DESIGN_CARD_STATUSES,
   DESIGN_FILTERS,
   DESIGN_META,
@@ -179,7 +180,7 @@ describe('序号 8 · 卡片视图模型', () => {
     expect(m.rows[0].statusBg).toBe('#f1f5f9')
   })
 
-  it('逐卡操作与设计稿一致（只有待签署多「签署」、已完成多「合同」）', () => {
+  it('逐卡操作按接口能力收敛（草稿/已驳回才有「报价」；待签署/已完成无「删除」）', () => {
     const m = buildQuotesModel({
       total: 5,
       items: [
@@ -190,7 +191,37 @@ describe('序号 8 · 卡片视图模型', () => {
         quote({ id: '5', status: 'CONVERTED' })
       ]
     })
-    expect(m.rows.map((r) => r.actions.map((a) => a.label))).toEqual(DESIGN_CARD_ACTIONS)
+    expect(m.rows.map((r) => r.actions.map((a) => a.label))).toEqual(CARD_ACTIONS)
+  })
+
+  it('不可编辑状态不给编辑入口：点下去必然是 409 E-1601 的入口不该出现', () => {
+    const editable = buildQuotesModel({ total: 2, items: [quote({ id: '1', status: 'DRAFT' }), quote({ id: '2', status: 'REJECTED' })] })
+    expect(editable.rows.every((r) => r.actions.some((a) => a.label === '报价'))).toBe(true)
+
+    const readonly = buildQuotesModel({
+      total: 4,
+      items: [
+        quote({ id: '1', status: 'SUBMITTED' }),
+        quote({ id: '2', status: 'APPROVED' }),
+        quote({ id: '3', status: 'CONVERTED' }),
+        quote({ id: '4', status: 'VOID' })
+      ]
+    })
+    expect(readonly.rows.every((r) => !r.actions.some((a) => a.label === '报价'))).toBe(true)
+    // 只读状态仍要能「查看」（预览页），不能变成无入口
+    expect(readonly.rows.every((r) => r.actions.some((a) => a.label === '预览'))).toBe(true)
+  })
+
+  it('isEditableStatus 与服务端 EDITABLE 同口径（含 REVIEWING 等别名与被拒的未知状态）', () => {
+    expect(isEditableStatus('DRAFT')).toBe(true)
+    expect(isEditableStatus('rejected')).toBe(true)
+    expect(isEditableStatus('SUBMITTED')).toBe(false)
+    expect(isEditableStatus('REVIEWING')).toBe(false)
+    expect(isEditableStatus('APPROVED')).toBe(false)
+    expect(isEditableStatus('CONVERTED')).toBe(false)
+    expect(isEditableStatus('VOID')).toBe(false)
+    expect(isEditableStatus('SOMETHING_NEW')).toBe(false)
+    expect(isEditableStatus(null)).toBe(false)
   })
 
   it('「报价」→ 新增报价单页（编辑态）；「预览」→ 报价预览页（画布序号 12-v1 / 12）', () => {

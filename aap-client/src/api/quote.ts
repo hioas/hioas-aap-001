@@ -7,9 +7,10 @@
  *   GET    /quotes           列表（分页 page/pageSize 默认 20 上限 200）
  *   DELETE /quotes/{quoteId} 删除（设计稿操作行「删除」；PRD 10 §4.1 的「作废 VOID」口径差异已记台账待拍板）
  *
- * 序号 9（模型报价设置）新增两条：
+ * 序号 9（模型报价设置）新增三条：
  *   POST /quotes                创建报价单（主体信息；请求体键见 buildQuotePayload）
  *   POST /quotes/{quoteId}/items 写入勾选的模型明细行（只带 model_name，单价在下一步设置）
+ *   PUT  /quotes/{quoteId}      更新**表头**（编辑态保存；服务端 QT-02b，2026-09-23 补 —— #12）
  *
  * 序号 11（模型定价-详情）新增三条：
  *   GET /quotes/items/{itemId}          取单个明细行的定价详情（页面入参 itemId）
@@ -78,6 +79,17 @@ export const quoteApi = {
       method: 'POST',
       data: payload as unknown as Record<string, unknown>
     })
+  },
+
+  /**
+   * 更新报价单**表头**（序号 9 编辑态「保存」：名称/凭证/币种/有效期/备注）
+   *
+   * 服务端 QT-02b（2026-09-23 补）：**部分更新**（只发改动过的字段）；
+   * 仅 DRAFT/REJECTED 可改（其余 409 E-1601）；换凭证要求预检+检测通过（E-1602）。
+   * 此前服务端没有该路由 → 编辑页表头的改动会被静默丢弃（#12）。
+   */
+  update(quoteId: string, payload: Record<string, unknown>) {
+    return http<QuoteDetailLike>(path(quoteId), { method: 'PUT', data: payload })
   },
 
   /** 明细行详情（序号 11 入参 itemId；字段级 schema 未定义 → 容错读取，missing-prd） */

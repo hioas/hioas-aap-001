@@ -4,12 +4,15 @@
  * 背景：此前「新建报价」→ `quote-models`，而卡片上的「报价」→ `quote-form`（旧设计 page-26 的另一套实现），
  * 同一个业务动作有两套长得不一样的界面。用户裁定：**以「新建报价」为准，卡片「报价」= 编辑那张报价单**。
  *
- * 本文件锁定三件事：
+ * 本文件锁定四件事：
  *   1. 路由层：`quote` 动作与「新建报价」指向**同一个页面**，靠 `?quoteId=` 区分新建/编辑
- *   2. 行为层：带 `?quoteId=` 进来是编辑态 —— 回填既有内容、保存走 setItems、**绝不 create**
- *   3. 反向护栏：不带 query 进来必须是**新建态**（不能被 storage 残留值误判成编辑）
+ *   2. 行为层：带 `?quoteId=` 进来是编辑态 —— 回填既有内容、保存**先 PUT 表头再 setItems**、
+ *      **绝不 create**（2026-09-23 起表头有 QT-02b 可写；此前表头改动被静默丢弃）
+ *   3. 只读门禁：非 DRAFT/REJECTED 的单子（服务端 EDITABLE 之外）点保存只提示、不发写请求
+ *   4. 反向护栏：不带 query 进来必须是**新建态**（不能被 storage 残留值误判成编辑）
  *
- * 接口真源：18-API → GET /quotes/{quoteId} · POST /quotes · POST /quotes/{quoteId}/items
+ * 接口真源：18-API → GET /quotes/{quoteId} · POST /quotes · PUT /quotes/{quoteId}（QT-02b）·
+ *          POST /quotes/{quoteId}/items
  */
 import { describe, expect, it } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
@@ -57,7 +60,7 @@ const QUOTE_DETAIL = {
  * 编辑态再 `loadExistingQuote()` → 先 `GET /quotes/{id}`，**之后**才 `pickCredential()` →
  * `GET /credentials/{id}`。所以报价单详情必须排在凭证详情**前面**。
  */
-async function mountPage(opts: { quoteId?: string } = {}) {
+async function mountPage(opts: { quoteId?: string; status?: string } = {}) {
   if (opts.quoteId) {
     globalThis.getCurrentPages = () => [{ options: { quoteId: opts.quoteId } }] as never
   } else {
@@ -66,7 +69,7 @@ async function mountPage(opts: { quoteId?: string } = {}) {
   pushResponse(ok(PROFILE))
   pushResponse(ok(CREDENTIALS))
   if (opts.quoteId) {
-    pushResponse(ok(QUOTE_DETAIL)) // ③ GET /quotes/q42
+    pushResponse(ok(opts.status ? { ...QUOTE_DETAIL, status: opts.status } : QUOTE_DETAIL)) // ③ GET /quotes/q42
     pushResponse(ok(C1_DETAIL)) // ④ GET /credentials/c1（编辑态回填模型清单）
   }
   const wrapper = mount(QuoteSetupPage)
@@ -124,6 +127,34 @@ describe('卡片「报价」= 编辑「新建报价」同一页', () => {
     // 明细替换打到的具体 item 端点（.../quotes/q42/items），但**没有**裸 POST /quotes 的建单请求
     expect(urls.some((u) => u.includes('/quotes/q42/items'))).toBe(true)
     expect(urls.filter((u) => /\/quotes\/?$/.test(u))).toEqual([])
+    delete (globalThis as Record<string, unknown>).getCurrentPages
+  })
+
+  it('编辑态保存：**先 PUT 表头**（QT-02b）再 setItems —— 表头的改动不再被静默丢弃', async () => {
+    const wrapper = await mountPage({ quoteId: 'q42' })
+    pushResponse(ok({})) // PUT /quotes/q42（表头）
+    pushResponse(ok({})) // POST /quotes/q42/items（明细）
+    await (wrapper.vm as unknown as { onSave: () => Promise<void> }).onSave()
+    await flushPromises()
+
+    const calls = getCalls('request').map((c) => c.args[0] as Record<string, unknown>)
+    const put = calls.find((c) => String(c.method).toUpperCase() === 'PUT')
+    expect(put, '编辑态保存必须先写表头').toBeTruthy()
+    expect(String(put?.url)).toMatch(/\/quotes\/q42$/)
+    expect(put?.data).toMatchObject({ name: '华东主线路报价', credential_id: 'c1' })
+    delete (globalThis as Record<string, unknown>).getCurrentPages
+  })
+
+  it('只读门禁：已提交（SUBMITTED）的单子点保存 → 只提示「当前状态不可编辑」，不发任何写请求', async () => {
+    const wrapper = await mountPage({ quoteId: 'q42', status: 'SUBMITTED' })
+    await (wrapper.vm as unknown as { onSave: () => Promise<void> }).onSave()
+    await flushPromises()
+
+    const writes = getCalls('request').filter((c) =>
+      ['PUT', 'POST', 'DELETE'].includes(String((c.args[0] as Record<string, unknown>).method).toUpperCase())
+    )
+    expect(writes, '非可编辑状态点保存不得发出必然 409 的写请求').toEqual([])
+    expect(getCalls('showToast').at(-1)?.args[0]).toMatchObject({ title: '当前状态不可编辑，仅可查看' })
     delete (globalThis as Record<string, unknown>).getCurrentPages
   })
 

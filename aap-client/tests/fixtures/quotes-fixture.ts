@@ -36,11 +36,20 @@ export const DESIGN_TABS = ['工作台', '报告', '报价', '我的']
 /** 5 张卡的状态胶囊文案（自上而下，design id=5c7b2f20 / 274472d8 / 29c0f0a7 / 3a47d6c3 / 6f03e4ed） */
 export const DESIGN_CARD_STATUSES = ['草稿', '已提交', '已驳回', '待签署', '已完成']
 
-/** 逐卡操作（design 报价卡1 / 卡1_3 / 卡3 / 已完成 / 已完成2 的操作行 kids 数） */
-export const DESIGN_CARD_ACTIONS: string[][] = [
-  ['报价', '预览', '删除'],
-  ['报价', '预览', '删除'],
-  ['报价', '预览', '删除'],
-  ['报价', '预览', '签署', '删除'],
-  ['报价', '预览', '合同', '删除']
+/**
+ * 逐卡操作（design 报价卡1 / 卡1_3 / 卡3 / 已完成 / 已完成2 的操作行 kids 数）。
+ *
+ * ⚠️ **已按接口能力收敛**（用户口径 2026-09-23，理由见 `utils/quotes-model.ts#actionsOf`）：
+ * 设计稿每张卡都画了「报价」与「删除」，但服务端只在 DRAFT/REJECTED 允许编辑
+ * （`QuoteService.EDITABLE`，其余 409 E-1601）、只在 DRAFT/SUBMITTED/REJECTED 允许作废
+ * （`QuoteService.VOIDABLE`）—— 待签署/已完成卡上的「报价」「删除」是**点下去必然失败**的入口，
+ * 故收敛为：只有草稿/已驳回有「报价」，只有可作废状态有「删除」。
+ * （设计稿的原始期望值见 git 历史；本条与设计的差异已记 aap-feature-status.csv 序号 8 备注。）
+ */
+export const CARD_ACTIONS: string[][] = [
+  ['报价', '预览', '删除'],   // DRAFT：可编辑、可作废
+  ['预览', '删除'],          // SUBMITTED：不可编辑、可作废
+  ['报价', '预览', '删除'],   // REJECTED：可编辑、可作废
+  ['预览', '签署'],          // APPROVED（待签署）：不可编辑、不可作废
+  ['预览', '合同']           // CONVERTED（已完成）：不可编辑、不可作废
 ]

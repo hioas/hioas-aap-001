@@ -122,6 +122,31 @@ export function statusKeyOf(raw?: string | null): QuoteStatusKey | undefined {
 }
 
 /**
+ * 服务端**可编辑**状态（真源 `QuoteService.EDITABLE = {DRAFT, REJECTED}`）——
+ * 其余状态改明细行（`POST /quotes/{id}/items`）或改表头（`PUT /quotes/{id}`）一律 409 `E-1601`。
+ */
+export const EDITABLE_STATUS_KEYS: readonly QuoteStatusKey[] = ['draft', 'rejected']
+
+/**
+ * 服务端**可作废**状态（真源 `QuoteService.VOIDABLE = {DRAFT, SUBMITTED, REJECTED}`）——
+ * 其余状态下 `DELETE /quotes/{id}` 一律 409。
+ */
+export const VOIDABLE_STATUS_KEYS: readonly QuoteStatusKey[] = ['draft', 'submitted', 'rejected']
+
+export function isEditableStatusKey(key?: QuoteStatusKey | null): boolean {
+  return !!key && EDITABLE_STATUS_KEYS.includes(key)
+}
+
+export function isVoidableStatusKey(key?: QuoteStatusKey | null): boolean {
+  return !!key && VOIDABLE_STATUS_KEYS.includes(key)
+}
+
+/** 便捷：由服务端原始状态判断是否可编辑（页面据它决定「只读查看」还是「可编辑」）。 */
+export function isEditableStatus(raw?: string | null): boolean {
+  return isEditableStatusKey(statusKeyOf(raw))
+}
+
+/**
  * 筛选 chip → GET /quotes 的 status 取值集合（undefined = 不带过滤）。
  * ⚠️ 查询参数名与取值集合为推断（18-API 只列路径），已记 missing-prd。
  */
@@ -223,16 +248,27 @@ function modelCount(raw: QuoteRowRaw): number {
   return Array.isArray(raw.items) ? raw.items.length : 0
 }
 
-/** 逐卡操作由状态派生（设计稿：草稿/已提交/已驳回 = 报价·预览·删除；待签署多「签署」；已完成多「合同」） */
+/** 逐卡操作由状态派生。
+ *
+ * ⚠️ **与设计稿的有意差异**（用户口径 2026-09-23，见 aap-feature-status.csv 序号 8 备注）：
+ * 设计稿在**每个**状态的卡片上都画了「报价」与「删除」，但后端只允许
+ * `DRAFT`/`REJECTED` 改明细行/表头（`QuoteService.EDITABLE`，其余 409 E-1601）、
+ * 只允许 `DRAFT`/`SUBMITTED`/`REJECTED` 作废（`QuoteService.VOIDABLE`）。
+ * 即设计稿上待签署/已完成的「报价」「删除」点下去**必然失败** ——
+ * 按用户口径「草稿=可编辑，已提交/待签署/其他=只读」收敛：
+ * 非可编辑状态不再给编辑入口（只留只读的「预览」/「签署」/「合同」），
+ * 不可作废状态不再给「删除」。
+ */
 function actionsOf(id: string, key: QuoteStatusKey | undefined, contractId?: string | null): QuoteAction[] {
-  const actions: QuoteAction[] = [
-    // ⚠️ 「报价」与「新建报价」必须是**同一个页面**（用户口径 2026-09-19）：
-    //    以「新建报价」为准，点卡片上的「报价」= 对那张报价单**做编辑**。
-    //    此前这里指向 /pages/quote-form/index（旧设计 page-26 的另一套实现），
-    //    于是「新建」与「编辑」成了两个长得不一样的页面 —— 已统一到 quote-models。
-    { key: 'quote', label: ACTION_LABELS.quote, kind: 'navigation', url: `${QUOTE_SETUP_PAGE}?quoteId=${id}` },
-    { key: 'preview', label: ACTION_LABELS.preview, kind: 'navigation', url: `${QUOTE_PREVIEW_PAGE}?quoteId=${id}` }
-  ]
+  const actions: QuoteAction[] = []
+  if (isEditableStatusKey(key)) {
+    // 「报价」与「新建报价」必须是**同一个页面**（用户口径 2026-09-19）：
+    // 以「新建报价」为准，点卡片上的「报价」= 对那张报价单**做编辑**。
+    // 此前这里指向 /pages/quote-form/index（旧设计 page-26 的另一套实现），
+    // 于是「新建」与「编辑」成了两个长得不一样的页面 —— 已统一到 quote-models。
+    actions.push({ key: 'quote', label: ACTION_LABELS.quote, kind: 'navigation', url: `${QUOTE_SETUP_PAGE}?quoteId=${id}` })
+  }
+  actions.push({ key: 'preview', label: ACTION_LABELS.preview, kind: 'navigation', url: `${QUOTE_PREVIEW_PAGE}?quoteId=${id}` })
   if (key === 'pending_sign') {
     actions.push({
       key: 'sign',
@@ -249,7 +285,9 @@ function actionsOf(id: string, key: QuoteStatusKey | undefined, contractId?: str
       url: contractId ? `${CONTRACT_PAGE}?contractId=${contractId}` : CONTRACT_PAGE
     })
   }
-  actions.push({ key: 'delete', label: ACTION_LABELS.delete, kind: 'api', api: 'deleteQuote' })
+  if (isVoidableStatusKey(key)) {
+    actions.push({ key: 'delete', label: ACTION_LABELS.delete, kind: 'api', api: 'deleteQuote' })
+  }
   return actions
 }
 

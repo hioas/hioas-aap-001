@@ -12,8 +12,8 @@ import QuotesPage from '@/pages/quotes/index.vue'
 import { getCalls, pushResponse, setModalAnswer, setNextResponse } from '../setup'
 import { QUOTE_SETUP_PAGE } from '@/utils/quotes-model'
 import {
+  CARD_ACTIONS,
   DESIGN_ACTIONS,
-  DESIGN_CARD_ACTIONS,
   DESIGN_CARD_STATUSES,
   DESIGN_FILTERS,
   DESIGN_META,
@@ -121,11 +121,11 @@ describe('序号 8 · 结构与设计稿一致', () => {
     ])
   })
 
-  it('逐卡操作与设计稿一致（只有待签署多「签署」、已完成多「合同」）', async () => {
+  it('逐卡操作按接口能力收敛（草稿/已驳回才有「报价」；待签署/已完成无「删除」）', async () => {
     const wrapper = await mountPage()
     const rows = wrapper.findAll('[data-testid="quote-card"]')
-    expect(rows.map((r) => r.findAll('.quote-action__label').map((l) => l.text()))).toEqual(DESIGN_CARD_ACTIONS)
-    // 操作文案取自设计稿全集：报价/预览/签署/合同/删除
+    expect(rows.map((r) => r.findAll('.quote-action__label').map((l) => l.text()))).toEqual(CARD_ACTIONS)
+    // 操作文案取自设计稿全集：报价/预览/签署/合同/删除（收敛只减少出现的位置，不新造文案）
     const all = new Set(wrapper.findAll('.quote-action__label').map((l) => l.text()))
     for (const label of all) expect(DESIGN_ACTIONS).toContain(label)
   })
