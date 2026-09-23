@@ -1,0 +1,34 @@
+==============================================================================
+R284 真发现① 取证：并发前置检查的 TOCTOU 窗口 + 判据范围缺口（只读）
+==============================================================================
+[PASS] A0 正向对照：首轮 run1/run2 的 surefire 合计行均可解析（解析到 0 行即判据不可用，历史 46/75/98） run1=True run2=True
+[PASS] A1 首轮 run1 判红（Errors ≥ 1）∧ 首轮 run2 判绿（Failures=Errors=0）—— 同代码两轮结果相反 run1=('211', '0', '1', '0') / run2=('211', '0', '0', '0')
+[PASS] A2 死锁指纹：raw 内出现 `deadlock detected` ∧ truncateAll 处 PessimisticLockingFailure 命中 1 处 deadlock=3 truncatePessimistic=1
+[PASS] A3 起跑前快照报「无并发」（PREFLIGHT_CONCURRENT_TEST_JVMS=0 ∧ SAME_REPO_MAVEN=0）→ 并发是在**起跑之后**出现的（TOCTOU） conc=0 same=0
+[PASS] A4 污染指纹：主仓 target 下存在 mtime ∈ 首轮 run1 窗口的测试产物（> 0 是正向对照；0 条即污染判定不成立、不得据此判「他方并发」） 命中 2 条，例如 ['2026-09-23T07-44-22_499.dumpstream', '2026-09-23T07-46-37_138.dumpstream']
+     首轮 run1 窗口 = [2026-09-23 07:43:03, 2026-09-23 07:47:25]；主仓 target = E:\workspaces\hioas\hioas-aap-001\aap-server\target\surefire-reports
+     PRE 判据 token = ['classworlds', 'surefirebooter']
+[PASS] A5 PRE（修正前）段：由脚本自身 grep 出的并发判据 token 集合只含 surefire/classworlds 类（**不含** IDE 测试运行器 JUnitStarter 一类）∧ 无运行期采样 ∧ 无主仓 target 指纹 sampler=0 mrepo=0
+[PASS] A6 POST（修正后）段：执行器含运行期采样器 ∧ 主仓 target mtime 指纹 ∧ 采样结果落盘 facts sampler=3 mrepo=2
+[PASS] A7 复跑两轮均绿（rc=0 ∧ Failures=Errors=Skipped=0） run1=[INFO] Tests run: 214, Failures: 0, Errors: 0, Skipped: 0 / run2=[INFO] Tests run: 214, Failures: 0, Errors: 0, Skipped: 0
+[PASS] A8 复跑期采样证据：采样条数 > 0 ∧ **外来**测试 JVM 峰值 = 0 ∧ 同仓库 maven 峰值 = 0 ∧ 主仓 target mtime 全程未被触碰（base == end） samples=20 conc_max=1（跑测期自身预期 1 → 外来 = 0）same_max=0 mrepo=1790120844->1790120844
+     采样口径（据实）：跑测期内**本轮自身**的 fork 型测试 JVM 恒为 1 → 外来测试 JVM = 观测峰值 − 1；此判据只覆盖 fork 型（`surefirebooter`）JVM，**IDE 启动型**不在此 token 范围内 → 由第二位**token 无关**的证人承担：主仓 target mtime 全程不变（任何来源的测试进程只要碰共享库就会改它）
+[PASS] K1 判别力实测：mtime **在**窗口内必须判「污染」（正例） 
+[PASS] K2 判别力实测：mtime **在**窗口外必须判「非污染」（负例） 
+[PASS] K3 判别力实测：无死锁行的文本必须判「非死锁」 
+[PASS] K4 解析失效反面：空文本必须判「判定不可用」而非判绿 
+
+汇总：PASS = 13 / FAIL = 0
+
+CONC_INVALID_ROUND=1
+CONC_DEADLOCK_HITS=3
+CONC_TRUNCATE_PESSIMISTIC=1
+CONC_PREFLIGHT_COLD=1
+CONC_MAINREPO_MT_IN_WINDOW=1
+CONC_MAINREPO_MT_HITS=2
+CONC_PRE_NO_SAMPLER=1
+CONC_TOCTOU=1
+CONC_RERUN_ALL_GREEN=1
+CONC_RERUN_SAMPLES=20
+CONC_SELFTEST=4/4
+CONC_END=1

@@ -1,0 +1,22 @@
+==============================================================================
+R284 跨轮 FAIL 明细比对（归一后）
+==============================================================================
+  R283 留档 failraw：解析到 127 行（跳过 [PASS] 行 0、无 tag 前缀 0）
+  R284 本轮 failraw：解析到 131 行（跳过 [PASS] 行 0、无 tag 前缀 0）
+正向对照：两侧解析行数均 > 0 → PASS（R283=127 / R284=131）
+归一集合：R283 = 127 条 / R284 = 131 条
+新增 8 条、消失 4 条
+  + [routes] A4 客户端每个调用点都在冻结清单内且方法一致：越界调用 1 个
+  + [spotcheck-config] A1b 读取点键未在任一 yml 声明、仅靠内联默认 = 1 条（运维在 yml 里找不到锚点，与其它键处理不一致）：app.detection.probe-timeout-seconds (aap-server/src/main/java/com/hioas/aap/credential/Cred
+  + [spotcheck-config] A2 孤儿配置键（yml 声明但实现零读取）= 1 条：app.detection.execute-initial-delay-ms
+  + [spotcheck-http-method] A3 实现方法分布与清单不一致（方法语义漂移）：DELETE 实现 3 / 清单 2
+  + [spotcheck-lock] A2 失配语义在实现内部即分叉：['E-1104', 'E-1601']（同一「乐观锁失配」语义用了两种码；逐站点 [('CredentialService.java#update', None), ('ProviderService.java#updateProfile', 'E-1601'), 
+  + [spotcheck-lock] A4 M「错误码」列声明实现真会抛的失配码：漏声明 1 条 [('PROV-02', 'E-1601', ['E-1001', 'E-1104'])]
+  + [spotcheck-state-machine] A2 ORM 状态流转点无守卫证据 1 个：aap-server/src/main/java/com/hioas/aap/detection/DetectionExecutor.java:94 job.setStatus("RUNNING") 无任何守卫证据
+  + [spotcheck-state-machine] A3b 实现自述与守卫集合不一致 1 条：aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java:31 自述 QUEUED→RUNNING，但实现里写向 RUNNING 的写点**全部无守卫**
+  - [spotcheck-config] A1b 读取点键未在任一 yml 声明、仅靠内联默认 = 1 条（运维在 yml 里找不到锚点，与其它键处理不一致）：app.detection.probe-timeout-seconds (aap-server/src/main/java/com/hioas/aap/credential/Cred
+  - [spotcheck-lock] A2 失配语义在实现内部即分叉：['E-1104', 'E-1601']（同一「乐观锁失配」语义用了两种码；逐站点 [('CredentialService.java#update', 'E-1601'), ('ProviderService.java#updateProfile', 'E-1601
+  - [spotcheck-lock] A4 M「错误码」列声明实现真会抛的失配码：漏声明 2 条 [('CRED-04', 'E-1601', ['E-1001', 'E-1104']), ('PROV-02', 'E-1601', ['E-1001', 'E-1104'])]
+  - [spotcheck-outbound] A8c PRD 声明「网络失败重试 2 次」，但测试桩只覆盖状态 [200, 401] —— **5xx/网络错误的重试路径零用例背书**（重试分支从未被执行，204 例全绿也看不见；坑 143-① 数值背书缺失）
+判定：存在差异（已逐条列出）
+COMPARE_END=1
