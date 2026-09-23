@@ -1,5 +1,5 @@
 {
-  "total": 91,
+  "total": 93,
   "endpoints": [
     {
       "id": "AUTH-01",
@@ -1156,6 +1156,40 @@
       "error_codes": [],
       "source": "真源",
       "task": "T11"
+    },
+    {
+      "id": "ADM-PAY04",
+      "method": "POST",
+      "path": "/api/v1/admin/payments",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,SUPER_ADMIN",
+      "request_model": "payment-record-create",
+      "response_model": "payment",
+      "query_params": [],
+      "error_codes": [
+        "E-1001",
+        "E-1406",
+        "E-1601"
+      ],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "ADM-PAY05",
+      "method": "POST",
+      "path": "/api/v1/admin/payments/{id}/void",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,SUPER_ADMIN",
+      "request_model": "payment-void",
+      "response_model": "payment",
+      "query_params": [],
+      "error_codes": [
+        "E-1001",
+        "E-1406",
+        "E-1601"
+      ],
+      "source": "新增",
+      "task": ""
     },
     {
       "id": "ADM-S01",

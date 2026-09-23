@@ -7,7 +7,7 @@
 > + `docs/api/接口字段级schema.md`（供应商端字段级补充）+ `17-零歧义执行规格spec.md`（错误码/状态机）。
 > 模型定义：请求/响应体的 JSON Schema 见 `json-schema/**`，OpenAPI 见 `openapi.yaml`。
 
-**版本** v1.0 · 2026-09-17 · 共 **91 条**端点（供应商端 49 · 管理端 42，与 `openapi.yaml` 生成器逐条同源）。
+**版本** v1.0 · 2026-09-17 · 共 **93 条**端点（供应商端 49 · 管理端 44，与 `openapi.yaml` 生成器逐条同源）。
 
 **标注规则**
 
@@ -184,6 +184,8 @@
 | ADM-PAY01 | GET | `/admin/payments` | BIZ_OPERATOR | q：分页 → 分页 `Payment` | | T11 |
 | ADM-PAY02 | POST | `/admin/payments/{id}/confirm` | BIZ_OPERATOR SUPER_ADMIN | → `Payment`（PAYMENT_RECORDED→CONFIRMED） | E-1601 E-1701 | T11 |
 | ADM-PAY03 | GET | `/admin/settlements` | BIZ_OPERATOR | q：分页 → 分页 `SettlementStatement` | | T11 |
+| ADM-PAY04 | POST | `/admin/payments` | BIZ_OPERATOR SUPER_ADMIN | body `{contract_id,amount,currency?,voucher_file_id,paid_at?,remark?}` → `Payment`（**记录打款**：UNSETTLED→PAYMENT_RECORDED；C4 金额>0 且币种一致、C5 凭证必填；**不产生资金流水** R-42） | E-1001 E-1406 E-1601 | T11 |
+| ADM-PAY05 | POST | `/admin/payments/{id}/void` | BIZ_OPERATOR SUPER_ADMIN | body `{reason}` → `Payment`（PAYMENT_RECORDED/CONFIRMED→**VOID**；必填理由，作废后可重录） | E-1001 E-1406 E-1601 | T11 |
 
 ### 2.4 同步 / 用量 / 配置 / 审计
 
@@ -310,6 +312,7 @@
 | --- | --- | --- |
 | 2026-09-18 | `QT-03/06/07/08` 错误码勘误：资源不存在由 `E-1401` 改为 **`E-1406`(404)**；`E-1401` 严格保留给「时段区间重叠/时段非法」（HTTP 400）；`QT-08` 增补 `E-1404`（阶梯首档/末档）与 `E-1104`（If-Match 失配） | 实现期发现同一错误码承载两种 HTTP 语义会误导前端（偏差 D-API-02）；10-PRD §5.1 V11–V14 | | 2026-09-18 | 审计动作枚举新增 `QUOTE_CREATE/QUOTE_SAVE/QUOTE_SUBMIT/QUOTE_WITHDRAW/QUOTE_VOID`（12→17） | 10-PRD §7 埋点 quote_created/saved/submitted/withdrawn | 
 | 2026-09-23 | 新增 **`ADM-AUTH01`**（`POST /admin/auth/sms/login`，管理端短信登录）；`AUTH-06` 明确管理端主体返回管理端档案；冻结清单 90 → **91**（管理端 41 → 42） | 运行态实测：管理端此前无登录入口，`aap-admin` 调供应商 `AUTH-02` 只得 PROVIDER 身份 → `/admin/**` 全 403 `E-1901`（人工放行 DET-06 等调不动，而报价前置 PASS 只能来自人工放行）→ 偏差 **D-AUTH-01** | 
+| 2026-09-23 | 新增 **`ADM-PAY04`**（`POST /admin/payments` 记录打款）与 **`ADM-PAY05`**（`POST /admin/payments/{id}/void` 作废打款）；审计动作枚举 +`PAYMENT_RECORD`/`PAYMENT_VOID`；冻结清单 91 → **93**（管理端 42 → 44） | 运行态实测：`aap_payment_record` 全仓无 insert 路径 → `ADM-PAY02` 无对象可确认（total=0），合同签完后链路断开；真源 10-报价与合同结算PRD §4.3/§5.3（记录打款需凭证、VOID 作废后重录） → 偏差 **D-PAY-01** | 
 
 - 2026-09-17 v1.0 首版：从 `18-API设计OpenAPI.md` + `aap-client` 调用点反推，冻结 90 条端点 ID
   （供应商端 49 = 客户端已消费 30 条 + 补齐 `CRED-02/06/07`、`DET-01/04/05/06`、`QT-02/05/07/11/12`、`CON-01`、`PAY-01`、`NTF-01/02`、`AUTH-04/05`；管理端 41）。

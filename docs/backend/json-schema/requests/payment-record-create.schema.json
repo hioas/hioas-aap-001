@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "payment-record-create",
+  "required": [
+    "contract_id",
+    "amount",
+    "voucher_file_id"
+  ],
+  "properties": {
+    "contract_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失；可空）"
+    },
+    "amount": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "currency": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[A-Z]{3}$"
+    },
+    "voucher_file_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失；可空）"
+    },
+    "paid_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "remark": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 255
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

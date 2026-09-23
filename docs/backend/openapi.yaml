@@ -3021,6 +3021,50 @@ paths:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/Payment"
+    post:
+      operationId: ADM-PAY04
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-PAY04`（依据：新增）"
+      x-aap-id: ADM-PAY04
+      x-aap-source: 新增
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - BIZ_OPERATOR
+        - SUPER_ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestPaymentRecordCreate"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              items:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/Payment"
+        4XX:
+          description: 业务失败：E-1001,E-1406,E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /admin/payments/{id}/confirm:
     post:
       operationId: ADM-PAY02
@@ -3112,6 +3156,57 @@ paths:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/SettlementStatement"
+  /admin/payments/{id}/void:
+    post:
+      operationId: ADM-PAY05
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-PAY05`（依据：新增）"
+      x-aap-id: ADM-PAY05
+      x-aap-source: 新增
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - BIZ_OPERATOR
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestPaymentVoid"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              items:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/Payment"
+        4XX:
+          description: 业务失败：E-1001,E-1406,E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /admin/sync/tasks:
     get:
       operationId: ADM-S01
@@ -4172,6 +4267,10 @@ components:
       $ref: ./json-schema/requests/auth-wechat-login.schema.json
     RequestAuthRefresh:
       $ref: ./json-schema/requests/auth-refresh.schema.json
+    RequestPaymentRecordCreate:
+      $ref: ./json-schema/requests/payment-record-create.schema.json
+    RequestPaymentVoid:
+      $ref: ./json-schema/requests/payment-void.schema.json
     RequestProviderProfileUpdate:
       $ref: ./json-schema/requests/provider-profile-update.schema.json
     RequestQualificationCreate:
@@ -4378,7 +4477,9 @@ components:
         - PROVIDER_SUSPEND
         - PROVIDER_RESUME
         - CONTRACT_SIGN
+        - PAYMENT_RECORD
         - PAYMENT_CONFIRM
+        - PAYMENT_VOID
         - DETECTION_RELEASE
         - PROFILE_UPDATE
         - AUTH_LOGIN

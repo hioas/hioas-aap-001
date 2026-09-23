@@ -57,7 +57,7 @@ ENUMS = {
     "QuoteRejectReason": ["PRICE_TOO_HIGH", "PRICE_STRUCTURE_INVALID", "CACHE_PRICE_MISSING", "TECH_RISK",
                           "VALIDITY_ISSUE", "MISSING_INFO", "OTHER"],
     "AuditAction": ["CREDENTIAL_REVEAL", "QUOTE_CREATE", "QUOTE_SAVE", "QUOTE_SUBMIT", "QUOTE_WITHDRAW", "QUOTE_VOID", "QUOTE_APPROVE", "QUOTE_REJECT", "SYNC_WRITE_PRICE", "PROVIDER_SUSPEND", "PROVIDER_RESUME",
-                    "CONTRACT_SIGN", "PAYMENT_CONFIRM", "DETECTION_RELEASE", "PROFILE_UPDATE", "AUTH_LOGIN",
+                    "CONTRACT_SIGN", "PAYMENT_RECORD", "PAYMENT_CONFIRM", "PAYMENT_VOID", "DETECTION_RELEASE", "PROFILE_UPDATE", "AUTH_LOGIN",
                     "CONFIG_PUBLISH", "SYNC_EXECUTE"],
     "ResultCode": ["0", "E-1001", "E-1101", "E-1102", "E-1104", "E-1201", "E-1301", "E-1302", "E-1303",
                    "E-1304", "E-1305", "E-1401", "E-1402", "E-1403", "E-1404", "E-1405", "E-1406",
@@ -398,6 +398,15 @@ REQUESTS: dict[str, dict] = {
         "smsCode": {"type": "string", "pattern": "^\\d{6}$"}}),
     "auth-wechat-login": dict(required=["code"], properties={"code": {"type": "string", "minLength": 1}}),
     "auth-refresh": dict(required=["refreshToken"], properties={"refreshToken": {"type": "string"}}),
+    # ADM-PAY04 记录打款（PRD 10 §5.3：C4 金额>0 且币种一致、C5 需凭证截图）
+    # 命名带 -create 后缀：避免与 T05 遗留的 MODELS["payment-record"]（打款行模型）撞名导致请求体 schema 被遮蔽
+    "payment-record-create": dict(required=["contract_id", "amount", "voucher_file_id"], properties={
+        "contract_id": ID, "amount": {"type": "number", "exclusiveMinimum": 0},
+        "currency": {"type": ["string", "null"], "pattern": "^[A-Z]{3}$"},
+        "voucher_file_id": ID, "paid_at": TS, "remark": {"type": ["string", "null"], "maxLength": 255}}),
+    # ADM-PAY05 作废打款（PRD 10 §4.3「VOID 作废后重录」，必填理由）
+    "payment-void": dict(required=["reason"], properties={
+        "reason": {"type": "string", "minLength": 1, "maxLength": 255}}),
     "provider-profile-update": dict(properties={
         "short_name": {"type": "string", "maxLength": 64},
         "company_name": {"type": "string", "maxLength": 128},
@@ -566,6 +575,11 @@ PATHS: list[tuple] = [
     ("ADM-PAY01", "get", "/admin/payments", "Admin", "BIZ_OPERATOR,SUPER_ADMIN", None, "payment", ["page", "pageSize", "status"], [], "真源"),
     ("ADM-PAY02", "post", "/admin/payments/{id}/confirm", "Admin", "BIZ_OPERATOR,SUPER_ADMIN", None, "payment", [], ["E-1601", "E-1701"], "真源"),
     ("ADM-PAY03", "get", "/admin/settlements", "Admin", "BIZ_OPERATOR,SUPER_ADMIN", None, "settlement-statement", ["page", "pageSize"], [], "真源"),
+    # 记录打款 / 作废打款（2026-09-23 新增）：真源 10-报价与合同结算PRD §4.3「UNSETTLED→PAYMENT_RECORDED→CONFIRMED；
+    # VOID 作废后重录」+ §5.3 C4/C5（金额>0 且币种一致、记录打款需凭证截图）。
+    # 此前 aap_payment_record 全仓无任何 insert → ADM-PAY02 无对象可确认（实测 total=0），合同签完后链路断开。
+    ("ADM-PAY04", "post", "/admin/payments", "Admin", "BIZ_OPERATOR,SUPER_ADMIN", "payment-record-create", "payment", [], ["E-1001", "E-1406", "E-1601"], "新增"),
+    ("ADM-PAY05", "post", "/admin/payments/{id}/void", "Admin", "BIZ_OPERATOR,SUPER_ADMIN", "payment-void", "payment", [], ["E-1001", "E-1406", "E-1601"], "新增"),
     ("ADM-S01", "get", "/admin/sync/tasks", "Admin", "TECH_OPS,SUPER_ADMIN", None, "sync-task", ["page", "pageSize", "status", "bindingId"], [], "真源"),
     ("ADM-S02", "get", "/admin/sync/tasks/{taskId}", "Admin", "TECH_OPS,SUPER_ADMIN", None, "sync-task", [], ["E-1501"], "真源"),
     ("ADM-S03", "post", "/admin/sync/tasks/{taskId}/retry", "Admin", "TECH_OPS,SUPER_ADMIN", None, "sync-task", [], ["E-1501", "E-1505"], "真源"),
