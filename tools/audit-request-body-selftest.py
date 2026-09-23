@@ -36,6 +36,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -43,7 +44,11 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 AUDIT = HERE / "audit-request-body.py"
 TMP = Path(str(Path.home()) + "/AppData/Local/Temp") if not Path("/tmp").exists() else Path("/tmp")
-WORK = TMP / f"aap-reqbody-selftest-{time.strftime('%H%M%S')}"
+# 唯一临时目录（结构性消除「rc 假红」这一缺陷类）：
+# 旧写法只用 `%H%M%S`（日内秒，命名空间 86400）且脚本从不清理历史目录 → 残留逐轮累积（棘轮），
+# 与任一历史运行**同秒**即 `shutil.copytree(..., WORK/"inject")` 撞 `FileExistsError` → rc 随机为 1，
+# 在回归面里表现为一条**无法归因的 rc 变化**（而 FAIL 明细零变化）。改用 mkdtemp ⇒ 名字唯一、可重跑、并发安全。
+WORK = Path(tempfile.mkdtemp(prefix="aap-reqbody-selftest-", dir=str(TMP)))
 
 results: list[str] = []
 npass = 0

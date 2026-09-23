@@ -1,0 +1,31 @@
+==============================================================================
+R285 真发现取证：辅助自测工具临时目录命名（HHMMSS）导致的 rc 假红（只读）
+==============================================================================
+[PASS] A0a 正向对照：HEAD 版本可解析出命名语句（0 处即判据不可用，历史 46/75/98） 命中 1 处
+[PASS] A1 PRE（HEAD）段：临时目录名只依赖 `%H%M%S`（命名空间 86400）∧ 无唯一化手段 唯一化手段命中 = 0
+[PASS] A1b PRE（HEAD）段：脚本无任何清理/删除历史目录的调用（棘轮：残留只增不减） 
+[PASS] A2a 正向对照：归档崩溃日志存在 ∧ 含 FileExistsError ∧ 可解析出碰撞目录名 日志=True FileExists=1 目录名=aap-reqbody-selftest-084244
+[PASS] A2b 碰撞对象是**历史残留**（其目录 mtime 早于本轮崩溃时刻的同一天）—— 同「日内秒」跨日重复命中 碰撞目录=aap-reqbody-selftest-084244 mtime=2026-09-20 08:42:47 / 本轮崩溃日志 mtime=2026-09-23 08:47:37
+[PASS] A2c 碰撞目录内含历史 `inject/` 复制体（正是 FileExistsError 的落点，非空目录） inject 存在=True
+[PASS] A3a 正向对照：解析到残留目录 > 0（解析失效时不得判绿，历史 46/98） 残留目录数 = 293
+     棘轮：命名空间 = 86400（日内秒）；残留目录 N = 293 → 单次运行的理论碰撞率 ≈ N/86400 = 0.3391%
+     实测：本轮已发生 1 次碰撞（A2 的机器证据）；碰撞一旦发生即产出**无法归因的 rc 变化**（本轮 driver 报「rc 变化 1 条」，而 FAIL 明细零新增零消失）
+[PASS] A4 修法落地：工作区版本改用 `tempfile.mkdtemp(prefix='aap-reqbody-selftest-')`（唯一目录，结构性消除而非依赖 PID 复用边界） 命中 1 处
+[PASS] A4b 修法落地：旧形态（`%H%M%S` 命名）在产物里 0 残留（否则两套命名并存 = 半修） 旧形态残留 = 0
+[PASS] K1 判别力实测：合成「旧命名形态」必须命中命名判据 
+[PASS] K2 判别力实测：合成「旧命名形态」必须**不**命中修法判据（不得两判据同时为真） 
+[PASS] K3 判别力实测：合成「新命名形态」必须命中修法判据 ∧ 不命中命名判据 
+[PASS] K4 解析失效反面：空文本必须判「判据不可用」而非判绿 
+
+汇总：PASS = 13 / FAIL = 0
+
+TMPDIR_COLLIDED=1
+TMPDIR_COLLISION_NAME=aap-reqbody-selftest-084244
+TMPDIR_LEFTOVER_N=293
+TMPDIR_NAMESPACE=86400
+TMPDIR_PRE_HHMMSS_ONLY=1
+TMPDIR_PRE_NO_CLEANUP=1
+TMPDIR_FIX_LANDED=1
+TMPDIR_OLD_FORM_LEFT=0
+TMPDIR_SELFTEST=4/4
+TMPDIR_END=1
