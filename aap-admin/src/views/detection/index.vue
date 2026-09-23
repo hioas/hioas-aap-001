@@ -1,43 +1,41 @@
 <template>
   <div class="dc">
-    <!-- ⚠️ 能力缺口（D-ADM-5）：管理端**没有检测任务列表接口**。
-         设计稿 page-5-pc 的四个 KPI + 任务表格无法用真实数据渲染 —— 不填示意值、不用 0 冒充未知。 -->
-    <el-alert type="warning" :closable="false" show-icon class="dc__gap" data-testid="detection-gap-banner">
-      <template #title>任务监控暂无数据来源（D-ADM-5）：管理端没有检测任务列表接口</template>
-      全仓 admin 侧与检测任务相关的端点只有 <code>POST /detection-jobs/{id}/release</code>（按 id 人工放行）；
-      <code>DET-01…05</code> 全部限供应商本人（管理端调用得 403 <code>E-1901</code>）→
-      设计稿的「运行中任务 / 排队等待 / 今日已完成 / 失败率」与任务表格**无法**用真实数据渲染。
-      本页因此只渲染<b>真实可用的能力</b>（按任务 ID 人工放行 + 检测项配置），其余显式标注未知。
+    <!-- 能力缺口已于 2026-09-23 关闭：新增管理端任务列表端点 ADM-DET01（GET /admin/detection-jobs） -->
+    <el-alert type="info" :closable="false" show-icon class="dc__gap" data-testid="detection-gap-banner">
+      <template #title>任务监控数据来源：ADM-DET01（2026-09-23 新增）</template>
+      此前管理端**没有**检测任务列表端点，KPI 与任务表只能显「未知」，人工放行需手输任务 ID
+      （运营无从得知 ID → 放行实际不可用）。现已补 <code>GET /admin/detection-jobs</code>
+      （跨供应商只读，含供应商名/凭证别名），KPI 与表格用真实数据渲染；下方「人工放行」保留手输入口作为兜底。
     </el-alert>
 
     <!-- KPI 4 张（设计稿：运行中任务 / 排队等待 / 今日已完成 / 失败率） -->
     <div class="kpi-row" data-testid="detection-kpi">
       <div class="aap-card kpi">
         <span class="kpi__label">运行中任务</span>
-        <span class="kpi__value kpi__value--todo">—</span>
-        <span class="kpi__note">无列表接口 → 未知（不是 0）</span>
+        <span class="kpi__value">{{ jobsReady ? kpi.running : '—' }}</span>
+        <span class="kpi__note">按 status=RUNNING 精确计数</span>
       </div>
       <div class="aap-card kpi">
         <span class="kpi__label">排队等待</span>
-        <span class="kpi__value kpi__value--todo">—</span>
-        <span class="kpi__note">无列表接口 → 未知（不是 0）</span>
+        <span class="kpi__value">{{ jobsReady ? kpi.queued : '—' }}</span>
+        <span class="kpi__note">按 status=QUEUED 精确计数</span>
       </div>
       <div class="aap-card kpi">
         <span class="kpi__label">今日已完成</span>
-        <span class="kpi__value kpi__value--todo">—</span>
-        <span class="kpi__note">无列表接口 → 未知（不是 0）</span>
+        <span class="kpi__value">{{ jobsReady ? kpi.completedToday : '—' }}</span>
+        <span class="kpi__note">近 {{ windowSize }} 条窗口内 finished_at 为今日</span>
       </div>
       <div class="aap-card kpi">
         <span class="kpi__label">失败率</span>
-        <span class="kpi__value kpi__value--todo">—</span>
-        <span class="kpi__note">无列表接口 → 未知（不是 0%）</span>
+        <span class="kpi__value">{{ jobsReady ? kpi.failRate : '—' }}</span>
+        <span class="kpi__note">近 {{ windowSize }} 条窗口内 FAILED 占比</span>
       </div>
     </div>
 
     <!-- 筛选卡：设计稿有，但没有列表接口 → 控件显式禁用（不给出点了没反应的假筛选） -->
     <div class="aap-card dc__bar">
       <el-input v-model="filters.keyword" placeholder="搜索任务 ID / 供应商" clearable style="width: 260px" disabled data-testid="task-search" />
-      <el-select v-model="filters.status" placeholder="全部状态" style="width: 150px" disabled data-testid="task-status">
+      <el-select v-model="filters.status" placeholder="全部状态" style="width: 150px" clearable data-testid="task-status" @change="loadJobs">
         <el-option v-for="(v, k) in JOB_STATUS" :key="k" :label="v.label" :value="k" />
       </el-select>
       <el-select v-model="filters.probe" placeholder="全部检测项" style="width: 150px" disabled data-testid="task-probe">
@@ -57,24 +55,41 @@
         <span class="aap-card__hint">任务 ID / 供应商·线路 / 进度 / 状态 / 耗时 / 操作</span>
       </div>
       <div class="aap-card__body">
-        <el-table :data="[]" size="small" data-testid="detection-table" empty-text="无数据来源（后端无管理端任务列表接口）">
-          <el-table-column label="任务 ID" min-width="150" />
-          <el-table-column label="供应商 / 线路" min-width="180" />
-          <el-table-column label="进度" min-width="150" />
-          <el-table-column label="状态" width="110" />
-          <el-table-column label="耗时" width="110" />
-          <el-table-column label="操作" width="180" />
+        <el-table :data="jobs" size="small" data-testid="detection-table" empty-text="暂无检测任务">
+          <el-table-column label="任务 ID" min-width="150">
+            <template #default="{ row }">
+              <span class="dc__mono" :title="row.id">{{ row.job_no || row.id }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="供应商 / 线路" min-width="180">
+            <template #default="{ row }">
+              {{ row.provider_name || row.provider_id || '—' }}
+              <span class="dc__hint">· {{ row.credential_alias || row.credential_id || '—' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="进度" min-width="150">
+            <template #default="{ row }">
+              {{ row.progress?.percent != null ? `${row.progress.percent}%` : '—' }}
+              <span class="dc__hint">{{ row.progress?.finished ?? '—' }}/{{ row.progress?.total ?? '—' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="状态" width="110">
+            <template #default="{ row }">
+              <span class="aap-badge" :class="`aap-badge--${jobTone(row.status)}`">{{ jobLabel(row.status) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="耗时" width="150">
+            <template #default="{ row }">{{ elapsedText(row) }}</template>
+          </el-table-column>
+          <el-table-column label="操作" width="180">
+            <template #default="{ row }">
+              <el-button size="small" type="primary" link :data-testid="`act-release-${row.id}`" @click="onRowRelease(row)">
+                人工放行
+              </el-button>
+            </template>
+          </el-table-column>
         </el-table>
-        <div class="dc__empty" data-testid="detection-empty">
-          <p><b>为什么是空的：</b>后端没有「管理端检测任务列表」端点（见上）。</p>
-          <p>要让它有数据，需要先满足其一：</p>
-          <ol>
-            <li>按 <b>D-ADM-5</b> 拍板补管理端任务列表接口（按状态/供应商分页 + 聚合计数）；</li>
-            <li>或先解 <b>缺陷1</b>（检测执行器缺失：<code>recordProbeResults</code> 全仓零调用方）——
-              任务恒 <code>QUEUED</code>，靠 DET-06 人工放行推进，列表也没有可看的进度。</li>
-          </ol>
-          <p class="dc__empty-foot">补齐前本页不填充任何示意数据 —— 设计稿的「8 / 12 / 46 / 4.2%」是画布示意值。</p>
-        </div>
+        <p v-if="jobsError" class="dc__err" data-testid="jobs-error">{{ jobsError }}</p>
       </div>
     </div>
 
@@ -219,7 +234,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import {
   detectionApi, JOB_STATUS, JOB_RESULT, CONFIG_STATUS, PROBE_NAMES,
   DEFAULT_TIMEOUT_SECONDS, LONG_TIMEOUT_CODES, LONG_TIMEOUT_SECONDS,
@@ -243,6 +258,60 @@ const released = ref<DetectionJob | null>(null);
 const configs = ref<DetectionConfig[]>([]);
 const loadingConfigs = ref(false);
 const configError = ref('');
+
+// ---------------------------------------------------------------- ADM-DET01 任务列表（2026-09-23 新增）
+/** 窗口口径：KPI「今日已完成/失败率」与表格都基于最近 N 条（后端无聚合/日期过滤接口，不臆造聚合值） */
+const windowSize = 50;
+const jobs = ref<DetectionJob[]>([]);
+const jobsReady = ref(false);
+const jobsError = ref('');
+const kpi = reactive({ running: 0, queued: 0, completedToday: 0, failRate: '0%' });
+
+async function loadJobs() {
+  jobsError.value = '';
+  try {
+    const [running, queued, window] = await Promise.all([
+      detectionApi.jobs({ status: 'RUNNING', page: 1, pageSize: 1 }),
+      detectionApi.jobs({ status: 'QUEUED', page: 1, pageSize: 1 }),
+      detectionApi.jobs({ status: filters.status || undefined, page: 1, pageSize: windowSize })
+    ]);
+    kpi.running = running?.total ?? 0;
+    kpi.queued = queued?.total ?? 0;
+    jobs.value = window?.items ?? [];
+    const today = new Date().toISOString().slice(0, 10);
+    kpi.completedToday = jobs.value.filter((j) => (j.finished_at ?? '').startsWith(today)).length;
+    const failed = jobs.value.filter((j) => j.status === 'FAILED').length;
+    kpi.failRate = jobs.value.length ? `${((failed / jobs.value.length) * 100).toFixed(1)}%` : '0%';
+    jobsReady.value = true;
+  } catch (e) {
+    jobsError.value = (e as Error).message;
+  }
+}
+
+/** 耗时：有 started_at 才算；未结束用当前时间（显示为已用） */
+function elapsedText(row: DetectionJob): string {
+  if (!row.started_at) return '未开始';
+  const start = new Date(row.started_at).getTime();
+  const end = row.finished_at ? new Date(row.finished_at).getTime() : Date.now();
+  const s = Math.max(0, Math.round((end - start) / 1000));
+  return s < 60 ? `${s} 秒` : `${Math.floor(s / 60)} 分 ${s % 60} 秒`;
+}
+
+/** 行内人工放行（DET-06）：理由必填，成功即刷新列表与 KPI */
+async function onRowRelease(row: DetectionJob) {
+  try {
+    const { value } = await ElMessageBox.prompt(
+      `放行理由（必填）：任务 ${row.job_no || row.id}`,
+      '人工放行（DET-06）',
+      { inputPlaceholder: '如：技术复核通过，人工放行', inputValidator: (v: string) => (v && v.trim() ? true : '理由必填') }
+    );
+    released.value = await detectionApi.release(String(row.id), value.trim());
+    ElMessage.success('已人工放行');
+    await loadJobs();
+  } catch (e) {
+    if (e instanceof Error) ElMessage.error(e.message); // 取消（字符串）不报错
+  }
+}
 
 const createOpen = ref(false);
 const creating = ref(false);
@@ -360,7 +429,10 @@ async function onPublish(row: DetectionConfig) {
   }
 }
 
-onMounted(loadConfigs);
+onMounted(() => {
+  loadConfigs();
+  loadJobs();
+});
 defineExpose({ loadConfigs, onRelease });
 </script>
 

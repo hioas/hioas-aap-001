@@ -7,7 +7,7 @@
 > + `docs/api/接口字段级schema.md`（供应商端字段级补充）+ `17-零歧义执行规格spec.md`（错误码/状态机）。
 > 模型定义：请求/响应体的 JSON Schema 见 `json-schema/**`，OpenAPI 见 `openapi.yaml`。
 
-**版本** v1.0 · 2026-09-17 · 共 **98 条**端点（供应商端 49 · 管理端 49，与 `openapi.yaml` 生成器逐条同源）。
+**版本** v1.0 · 2026-09-17 · 共 **99 条**端点（供应商端 49 · 管理端 50，与 `openapi.yaml` 生成器逐条同源）。
 
 **标注规则**
 
@@ -216,6 +216,13 @@
 | ADM-CFG09 | PUT | `/admin/report-templates/{templateId}` | TECH_OPS | → `ReportTemplate` | E-1601 | T14 |
 | ADM-CFG10 | POST | `/admin/report-templates/{templateId}/publish` | TECH_OPS | → `ReportTemplate` | E-1601 | T14 |
 | ADM-A01 | GET | `/admin/audit-logs` | TECH_OPS SUPER_ADMIN | q：`page` `pageSize` `actorType?` `action?` `traceId?` `from?` `to?` → 分页 `AuditLog` | E-1901 | T13 |
+| ADM-DET01 | GET | `/admin/detection-jobs` | TECH_OPS SUPER_ADMIN | q：`page` `pageSize` `status?` `credentialId?` `providerId?` → 分页 `DetectionJob`（含 `provider_name`/`credential_alias`，管理端列表附加字段） | | 新增 |
+
+> **为什么新增 ADM-DET01**：管理端此前**没有任何检测任务列表端点** —— 全仓管理端相关的只有
+> `POST /detection-jobs/{jobId}/release`（按 id 放行），而 `DET-01…05` 全部限供应商本人（管理端 403）。
+> 结果「检测中心」页 KPI 只能显「未知」、任务表为空、**人工放行需手输任务 ID**（运营无从得知 ID）
+> → 人工放行实际不可用，而它是凭证拿到 `PASS`（进而报价）的唯一路径（2026-09-23 运行态实测）。
+> 附加字段 `provider_name`/`credential_alias` 为**可选、向后兼容**（供应商侧接口保持 null）。
 
 ### 2.5 管理端账号接入（Auth）
 
@@ -327,6 +334,7 @@
 | --- | --- | --- |
 | 2026-09-18 | `QT-03/06/07/08` 错误码勘误：资源不存在由 `E-1401` 改为 **`E-1406`(404)**；`E-1401` 严格保留给「时段区间重叠/时段非法」（HTTP 400）；`QT-08` 增补 `E-1404`（阶梯首档/末档）与 `E-1104`（If-Match 失配） | 实现期发现同一错误码承载两种 HTTP 语义会误导前端（偏差 D-API-02）；10-PRD §5.1 V11–V14 | | 2026-09-18 | 审计动作枚举新增 `QUOTE_CREATE/QUOTE_SAVE/QUOTE_SUBMIT/QUOTE_WITHDRAW/QUOTE_VOID`（12→17） | 10-PRD §7 埋点 quote_created/saved/submitted/withdrawn | 
 | 2026-09-23 | 新增 **`ADM-AUTH01`**（`POST /admin/auth/sms/login`，管理端短信登录）；`AUTH-06` 明确管理端主体返回管理端档案；冻结清单 90 → **91**（管理端 41 → 42） | 运行态实测：管理端此前无登录入口，`aap-admin` 调供应商 `AUTH-02` 只得 PROVIDER 身份 → `/admin/**` 全 403 `E-1901`（人工放行 DET-06 等调不动，而报价前置 PASS 只能来自人工放行）→ 偏差 **D-AUTH-01** | 
+| 2026-09-23 | 新增 **`ADM-DET01`**（`GET /admin/detection-jobs`，管理端检测任务列表）；`detection-job` 模型 +2 个**可选**字段 `provider_name`/`credential_alias`；冻结清单 98 → **99**（管理端 49 → 50） | 运行态实测：管理端无任务列表端点 → 「检测中心」KPI/表格全空、人工放行需手输任务 ID（运营无从得知）→ **放行实际不可用**，而它是 PASS 的唯一路径 → 偏差 **D-ADM-05** | 
 | 2026-09-23 | 新增 **`ADM-Q03`**（`GET /admin/quotes/{id}/items`，管理端跨供应商只读报价明细）；冻结清单 97 → **98**（管理端 48 → 49） | 运行态实测：报价审核页调供应商端点 `GET /quotes/{id}/items` → 管理端令牌 403 → **审核员看不到价格只能盲审** → 偏差 **D-ADM-04** | 
 | 2026-09-23 | 新增 **`ADM-PAY04`**（`POST /admin/payments` 记录打款）与 **`ADM-PAY05`**（`POST /admin/payments/{id}/void` 作废打款）；审计动作枚举 +`PAYMENT_RECORD`/`PAYMENT_VOID`；冻结清单 91 → **93**（管理端 42 → 44） | 运行态实测：`aap_payment_record` 全仓无 insert 路径 → `ADM-PAY02` 无对象可确认（total=0），合同签完后链路断开；真源 10-报价与合同结算PRD §4.3/§5.3（记录打款需凭证、VOID 作废后重录） → 偏差 **D-PAY-01** | 
 

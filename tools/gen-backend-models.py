@@ -138,6 +138,8 @@ MODELS: dict[str, dict] = {
         "progress": {"type": ["object", "null"], "properties": {
             "percent": NUM, "finished": INT, "total": INT, "eta_minutes": NUM}},
         "created_at": TS, "updated_at": TS,
+        # ADM-DET01（2026-09-23 新增）管理端列表附加：供应商名/凭证别名，便于运营辨认；供应商侧为 null
+        "provider_name": {"type": ["string", "null"]}, "credential_alias": {"type": ["string", "null"]},
     }),
     "detection-result": dict(required=["probe_code", "status"], properties={
         "probe_code": {"type": "string", "pattern": "^D[1-8]$"}, "probe_name": STR,
@@ -623,6 +625,9 @@ PATHS: list[tuple] = [
     ("ADM-CFG08", "get", "/admin/report-templates/{templateId}", "Admin", "TECH_OPS,SUPER_ADMIN", None, "report-template", [], ["E-1406"], "推断"),
     ("ADM-CFG09", "put", "/admin/report-templates/{templateId}", "Admin", "TECH_OPS,SUPER_ADMIN", "report-template-save", "report-template", [], ["E-1601"], "推断"),
     ("ADM-CFG10", "post", "/admin/report-templates/{templateId}/publish", "Admin", "TECH_OPS,SUPER_ADMIN", None, "report-template", [], ["E-1601"], "推断"),
+    # 检测任务列表（2026-09-23 新增）：管理端此前无任何任务列表端点 → 检测中心页 KPI/表格全空、
+    # 人工放行只能手输任务 ID（DET-01…05 限供应商本人）→ 放行实际不可用（而它是 PASS 的唯一路径）。
+    ("ADM-DET01", "get", "/admin/detection-jobs", "Admin", "TECH_OPS,SUPER_ADMIN", None, "detection-job", ["status", "credentialId", "providerId", "page", "pageSize"], [], "新增"),
     ("ADM-A01", "get", "/admin/audit-logs", "Admin", "TECH_OPS,SUPER_ADMIN", None, "audit-log",
      ["page", "pageSize", "actorType", "action", "traceId", "from", "to"], ["E-1901"], "真源"),
 ]

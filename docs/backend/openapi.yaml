@@ -4307,6 +4307,60 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /admin/detection-jobs:
+    get:
+      operationId: ADM-DET01
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-DET01`（依据：新增）"
+      x-aap-id: ADM-DET01
+      x-aap-source: 新增
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: credentialId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: providerId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/DetectionJob"
   /admin/audit-logs:
     get:
       operationId: ADM-A01

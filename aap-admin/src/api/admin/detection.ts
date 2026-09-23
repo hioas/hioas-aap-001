@@ -35,6 +35,9 @@ export interface DetectionJob {
   progress?: { percent: number | null; finished: number | null; total: number | null; eta_minutes: number | null };
   created_at: string | null;
   updated_at: string | null;
+  /** ADM-DET01 管理端列表附加（供应商侧为 null）：运营据此辨认是哪个供应商/哪条线路 */
+  provider_name?: string | null;
+  credential_alias?: string | null;
 }
 
 /** 检测任务状态（`DetectionService`：QUEUED / RUNNING / PARTIAL_DONE / COMPLETED / CANCELLED） */
@@ -113,6 +116,15 @@ export interface DetectionConfigSave {
 }
 
 export const detectionApi = {
+  /**
+   * ADM-DET01 检测任务列表（管理端跨供应商；**2026-09-23 新增**）。
+   *
+   * <p>此前管理端无任何任务列表端点 → 本页 KPI/表格只能显「未知」，人工放行需手输任务 ID
+   * （运营无从得知 ID）→ 放行实际不可用，而它是凭证拿到 PASS（进而报价）的唯一路径。
+   */
+  jobs(query: { status?: string; credentialId?: string; providerId?: string; page?: number; pageSize?: number } = {}) {
+    return request<PageResult<DetectionJob>>('/admin/detection-jobs', { query });
+  },
   /** DET-06 人工放行：理由必填（后端 E-1001）；任务不存在 E-1304；已取消 E-1601 */
   release(jobId: string, reason: string) {
     return request<DetectionJob>(`/detection-jobs/${encodeURIComponent(jobId)}/release`, {

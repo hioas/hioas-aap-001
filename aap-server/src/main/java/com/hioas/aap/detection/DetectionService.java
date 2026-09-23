@@ -15,13 +15,17 @@ import com.hioas.aap.support.NotificationService;
 import com.hioas.aap.support.AuditService;
 import com.mybatisflex.core.query.QueryWrapper;
 import java.math.BigDecimal;
+import com.hioas.aap.common.PageQuery;
+import com.hioas.aap.common.PageResult;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -421,6 +425,11 @@ public class DetectionService {
     }
 
     private DetectionViews.Job toJobView(DetectionJobEntity job) {
+        return toJobView(job, null, null);
+    }
+
+    /** 带供应商名/凭证别名的视图（ADM-DET01 管理端列表用；供应商侧保持 null）。 */
+    private static DetectionViews.Job toJobView(DetectionJobEntity job, String providerName, String credentialAlias) {
         return new DetectionViews.Job(
                 String.valueOf(job.getId()), String.valueOf(job.getId()), job.getJobNo(),
                 job.getProviderId() == null ? null : String.valueOf(job.getProviderId()),
@@ -432,7 +441,81 @@ public class DetectionService {
                 job.getErrorCode(), job.getErrorMsg(), null, job.getAttemptCount(),
                 new DetectionViews.Progress(job.getProgressPercent(), job.getProgressFinished(),
                         job.getProgressTotal(), job.getEtaMinutes()),
-                format(job.getCreatedAt()), format(job.getUpdatedAt()));
+                format(job.getCreatedAt()), format(job.getUpdatedAt()),
+                providerName, credentialAlias);
+    }
+
+    // ------------------------------------------------------------------ ADM-DET01
+
+    /**
+     * ADM-DET01 管理端检测任务列表（跨供应商，只读）。
+     *
+     * <p>为什么需要（2026-09-23 运行态实测）：全仓管理端与检测任务相关的端点只有
+     * {@code POST /detection-jobs/{jobId}/release}（按 id 放行），而 {@code DET-01…05} 全部限供应商本人
+     * → 管理端「检测中心」页**拿不到任何任务数据**：KPI 只能显「未知」、任务表为空、
+     * 人工放行需手输任务 ID（运营根本无从得知 ID）→ **人工放行实际不可用**，
+     * 而它是凭证拿到 PASS（进而报价）的唯一路径。
+     *
+     * <p>过滤：{@code status}/{@code credentialId}/{@code providerId} 均可选；按创建时间倒序。
+     */
+    public PageResult<DetectionViews.Job> listForAdmin(String status, Long credentialId, Long providerId,
+                                                      Integer page, Integer pageSize) {
+        PageQuery query = PageQuery.of(page, pageSize);
+        long total = jobMapper.selectCountByQuery(adminFilter(status, credentialId, providerId));
+        List<DetectionJobEntity> rows = jobMapper.selectListByQuery(
+                adminFilter(status, credentialId, providerId)
+                        .orderBy("created_at desc, id desc")
+                        .limit(query.offset(), query.pageSize()));
+        if (rows.isEmpty()) {
+            return PageResult.of(List.of(), query.page(), query.pageSize(), total);
+        }
+        // 供应商名 / 凭证别名：按页批量取（避免 N+1）
+        Map<Long, String> providerNames = providerNames(rows);
+        Map<Long, String> credentialAliases = credentialAliases(rows);
+        List<DetectionViews.Job> items = rows.stream()
+                .map(job -> toJobView(job,
+                        job.getProviderId() == null ? null : providerNames.get(job.getProviderId()),
+                        job.getCredentialId() == null ? null : credentialAliases.get(job.getCredentialId())))
+                .toList();
+        return PageResult.of(items, query.page(), query.pageSize(), total);
+    }
+
+    private QueryWrapper adminFilter(String status, Long credentialId, Long providerId) {
+        QueryWrapper where = QueryWrapper.create();
+        if (status != null && !status.isBlank()) {
+            where.and("status = ?", status.trim().toUpperCase());
+        }
+        if (credentialId != null) {
+            where.and("credential_id = ?", credentialId);
+        }
+        if (providerId != null) {
+            where.and("provider_id = ?", providerId);
+        }
+        return where;
+    }
+
+    private Map<Long, String> providerNames(List<DetectionJobEntity> rows) {
+        List<Long> ids = rows.stream().map(DetectionJobEntity::getProviderId).filter(Objects::nonNull).distinct().toList();
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        Map<Long, String> names = new HashMap<>();
+        for (ProviderEntity provider : providerMapper.selectListByIds(ids)) {
+            names.put(provider.getId(), provider.getCompanyName());
+        }
+        return names;
+    }
+
+    private Map<Long, String> credentialAliases(List<DetectionJobEntity> rows) {
+        List<Long> ids = rows.stream().map(DetectionJobEntity::getCredentialId).filter(Objects::nonNull).distinct().toList();
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        Map<Long, String> aliases = new HashMap<>();
+        for (CredentialEntity credential : credentialMapper.selectListByIds(ids)) {
+            aliases.put(credential.getId(), credential.getAlias());
+        }
+        return aliases;
     }
 
     private static String format(OffsetDateTime value) {

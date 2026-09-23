@@ -46,7 +46,11 @@ public final class DetectionViews {
             @JsonProperty("attempt_count") Integer attemptCount,
             @JsonProperty("progress") Progress progress,
             @JsonProperty("created_at") String createdAt,
-            @JsonProperty("updated_at") String updatedAt) {
+            @JsonProperty("updated_at") String updatedAt,
+            // 管理端列表附加（ADM-DET01，2026-09-23 新增）：供应商名与凭证别名，便于运营辨认；
+            // 供应商侧接口不填（null），属**可选附加字段**，向后兼容。
+            @JsonProperty("provider_name") String providerName,
+            @JsonProperty("credential_alias") String credentialAlias) {
     }
 
     public record Result(
