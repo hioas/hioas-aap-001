@@ -61,6 +61,21 @@ public class QuoteController {
     public record ItemsRequest(@NotEmpty(message = "请至少选择一个模型") List<ItemRef> items) {
     }
 
+    /**
+     * QT-02b 更新报价单**表头**（名称/凭证/币种/有效期/备注）。**部分更新**：字段为 null 表示不改。
+     *
+     * <p>为什么要有：编辑页此前只能改明细行，表头无接口可改（客户端注释已写明「后端没有
+     * PUT /quotes/{id}」），于是「草稿改个名字再报」做不到、表头字段只能渲染成只读。
+     */
+    public record UpdateHeaderRequest(
+            @Size(max = 64, message = "报价单名称最多 64 字") String name,
+            String credential_id,
+            String currency,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime valid_from,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime valid_to,
+            @Size(max = 500, message = "备注最多 500 字") String remark) {
+    }
+
     /** 明细行引用。 */
     public record ItemRef(String model_name, String model_alias) {
     }
@@ -148,6 +163,22 @@ public class QuoteController {
     }
 
     // ------------------------------------------------------------------ QT-05/06
+
+    /**
+     * QT-02b 更新表头（名称/凭证/币种/有效期/备注）。
+     *
+     * <p>权限与状态同明细行写入：只能改自己的（他人/不存在 → E-1406），
+     * 仅 DRAFT/REJECTED 可改（其余 → E-1601），换凭证要求预检+检测通过（E-1602）。
+     */
+    @PutMapping("/{quoteId}")
+    public ApiEnvelope<QuoteViews.Detail> updateHeader(@AuthenticationPrincipal AuthPrincipal principal,
+                                                      @PathVariable Long quoteId,
+                                                      @RequestBody UpdateHeaderRequest request) {
+        return ApiEnvelope.ok(quoteService.updateHeader(principal, quoteId, new QuoteService.HeaderCommand(
+                request.name(),
+                request.credential_id() == null ? null : parseId(request.credential_id()),
+                request.currency(), request.valid_from(), request.valid_to(), request.remark())));
+    }
 
     /** QT-05 写入明细行。 */
     @PostMapping("/{quoteId}/items")

@@ -195,6 +195,67 @@ public class QuoteService {
         return toDetail(quote, items, List.of());
     }
 
+    // ------------------------------------------------------------------ QT-02b
+
+    /** QT-02b 表头更新命令；字段为 {@code null} = 不改该字段（部分更新）。 */
+    public record HeaderCommand(String name, Long credentialId, String currency,
+                                OffsetDateTime validFrom, OffsetDateTime validTo, String remark) {
+    }
+
+    /**
+     * QT-02b 更新报价单**表头**（名称/凭证/币种/有效期/备注）。
+     *
+     * <p>为什么需要它（#12）：编辑页此前只能改明细行，表头**没有接口可改** ——
+     * 客户端只能把表头字段渲染成只读并回填现状（见 quote-models 页注释），
+     * 用户「同一张草稿改个名字/换个凭证再报」做不到。
+     *
+     * <p>口径与创建/明细写入严格一致：
+     * <ul>
+     *   <li>只能改**自己**的报价单（他人/不存在 → {@code E-1406}，不区分二者）</li>
+     *   <li>仅可编辑状态可改（{@code DRAFT}/{@code REJECTED}，与 {@link #EDITABLE} 同一集合），
+     *       其余 → {@code E-1601}「当前状态不可编辑」——与明细写入用同一个守卫方法</li>
+     *   <li>换凭证时同样要求预检通过 + 检测通过（{@code E-1602}），不能把草稿指到未验过的通道</li>
+     * </ul>
+     */
+    @Transactional
+    public QuoteViews.Detail updateHeader(AuthPrincipal principal, Long quoteId, HeaderCommand command) {
+        QuoteEntity quote = requireEditable(principal, quoteId);
+        if (command.credentialId() != null && !command.credentialId().equals(quote.getCredentialId())) {
+            CredentialEntity credential = credentialMapper.selectOneById(command.credentialId());
+            if (credential == null || !credential.getProviderId().equals(principal.providerId())) {
+                throw new ApiException(ErrorCode.E_1406, "凭证不存在");
+            }
+            if (!"ACTIVE".equals(credential.getStatus()) || !"PASS".equals(credential.getDetectionStatus())) {
+                throw new ApiException(ErrorCode.E_1602,
+                        "凭证尚未通过检测，暂不能报价（当前 凭证状态=" + credential.getStatus()
+                                + "，检测状态=" + credential.getDetectionStatus() + "）");
+            }
+            quote.setCredentialId(credential.getId());
+        }
+        if (command.name() != null) {
+            quote.setName(command.name());
+        }
+        if (command.currency() != null && !command.currency().isBlank()) {
+            quote.setCurrency(command.currency().toUpperCase());
+        }
+        if (command.validFrom() != null) {
+            quote.setValidFrom(command.validFrom());
+        }
+        if (command.validTo() != null) {
+            quote.setValidTo(command.validTo());
+        }
+        if (command.remark() != null) {
+            quote.setRemark(command.remark());
+        }
+        quoteMapper.update(quote);
+        // 审计动作复用 QUOTE_SAVE（「保存报价单」）：audit-log.schema.json 的 enum 未含表头专用动作，
+        // 为一次表头更新去改对外契约不值；摘要里写清「更新表头」以便检索。
+        auditService.record(AuditService.AuditAction.QUOTE_SAVE, "quote", quoteId,
+                "更新报价单表头 " + quote.getQuoteNo());
+        log.info("报价单表头更新 quote_no={} status={}", quote.getQuoteNo(), quote.getStatus());
+        return detail(principal, quoteId);
+    }
+
     // ------------------------------------------------------------------ QT-04
 
     /** QT-04 作废（客户端「删除」按钮；PRD 口径为 VOID，冲突已记清单备注）。 */
