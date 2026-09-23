@@ -126,6 +126,19 @@
               </template>
             </el-table-column>
           </el-table>
+          <!-- 结算台账为何为空：后端**不生成**结算单（全仓对 aap_settlement_statement/line 只有读），
+               且 PRD 未定义生成口径 —— 自造算法会影响真实对账金额，故不猜。2026-09-23 登记 D-SETTLE-01。 -->
+          <p v-if="!statements.length" class="ct__note" data-testid="statement-gap">
+            结算台账为空 = <b>系统当前不生成结算单</b>：后端对 <code>aap_settlement_statement</code> /
+            <code>aap_settlement_line</code> <b>只有读取展示、没有任何写入路径</b>，且 PRD 未定义生成口径
+            （出账周期、平台费率 <code>platform_fee</code> 的计算基数、哪些用量计入）——
+            自造算法会直接影响真实对账金额，所以不猜。
+            <br />
+            本期口径（PRD 10 §M9、PRD 05）：<b>只记录打款状态与凭证，资金走线下对公</b>
+            —— 运营用上方「记录打款 / 确认打款」留痕即可，无需结算单。
+            <br />
+            要启用结算单，需先拍板三件事：①出账周期（自然月？）②平台费率与计费基数 ③用量归档取数范围 → <b>D-SETTLE-01</b>。
+          </p>
         </div>
       </div>
 
