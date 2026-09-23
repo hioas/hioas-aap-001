@@ -166,11 +166,11 @@
         </el-table>
         <p v-else class="pv__note" data-testid="qual-empty">
           该供应商资质文件为空（= 没有上传过，不是「取不到」）。
-          文件服务**代码已就绪**（缺陷2 已修，提交 <code>9cf495f</code>：<code>POST /files</code> 上传 +
-          <code>GET /files/{id}</code> 下载）；⚠️ 当前 dev 实例**尚未重启到含该版本的构建** ——
-          实测 <code>POST /files</code> 仍返回 404 <code>E-1406</code>，重启后再验。
-          另外「把文件挂到某供应商资质上」的 <code>POST /provider/qualifications</code> 仅**供应商本人**可用
-          （管理端调用得 403 <code>E-1901</code>）→ 管理端目前仍无法代上传，只能只读展示。
+          文件服务已可用（<code>POST /files</code> 上传 + <code>GET /files/{id}</code> 下载，
+          2026-09-23 真机复验：管理端「记录打款」上传凭证 200、本人下载 200 / 他人 403 <code>E-1901</code>）。
+          真实缺口：管理端**没有代供应商上传资质的端点** —— <code>POST /provider/qualifications</code>（PROV-04）
+          仅**供应商本人**可用，管理端调用得 403 <code>E-1901</code>；
+          运营若要代传需按 <b>D-ADM-06</b> 新增管理端资质上架端点，当前管理端只读展示。
         </p>
       </template>
     </el-drawer>
