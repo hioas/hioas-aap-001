@@ -1,14 +1,16 @@
 {
-  "total": 90,
-  "exact": 90,
+  "total": 99,
+  "exact": 99,
   "prefix": 0,
   "none": 0,
-  "id_traceable": 90,
-  "id_traceable_literal_only": 71,
+  "id_traceable": 99,
+  "id_traceable_literal_only": 80,
   "id_grouped_only": 19,
-  "id_traceable_same_file_as_call": 90,
+  "id_traceable_same_file_as_call": 98,
   "id_not_traceable": [],
-  "id_not_traceable_same_file_as_call": [],
+  "id_not_traceable_same_file_as_call": [
+    "ADM-AUTH01"
+  ],
   "none_ids": [],
   "prefix_ids": [],
   "endpoints": [
@@ -29,7 +31,7 @@
         "aap-server/src/test/java/com/hioas/aap/iam/AuthContractTest.java"
       ],
       "id_grouped_only": false,
-      "exact_sites": 28,
+      "exact_sites": 37,
       "prefix_sites": 0,
       "exact_sample": [
         {
@@ -60,7 +62,7 @@
       ],
       "id_refs_literal": [],
       "id_grouped_only": true,
-      "exact_sites": 25,
+      "exact_sites": 32,
       "prefix_sites": 0,
       "exact_sample": [
         {
@@ -183,7 +185,7 @@
       ],
       "id_refs_literal": [],
       "id_grouped_only": true,
-      "exact_sites": 10,
+      "exact_sites": 13,
       "prefix_sites": 0,
       "exact_sample": [
         {
@@ -422,12 +424,17 @@
         "aap-server/src/test/java/com/hioas/aap/credential/CredentialContractTest.java"
       ],
       "id_grouped_only": false,
-      "exact_sites": 1,
-      "prefix_sites": 8,
+      "exact_sites": 2,
+      "prefix_sites": 11,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/credential/CredentialContractTest.java",
           "line": "HttpResult list = get(\"/credentials\", token);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/CredentialDeleteContractTest.java",
+          "line": "HttpResult list = get(\"/credentials?page=1&pageSize=50\", token);",
           "helper": "get"
         }
       ],
@@ -459,8 +466,8 @@
       ],
       "id_refs_literal": [],
       "id_grouped_only": true,
-      "exact_sites": 8,
-      "prefix_sites": 1,
+      "exact_sites": 11,
+      "prefix_sites": 2,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
@@ -477,6 +484,11 @@
         {
           "file": "aap-server/src/test/java/com/hioas/aap/credential/CredentialContractTest.java",
           "line": "HttpResult list = get(\"/credentials\", token);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/credential/CredentialDeleteContractTest.java",
+          "line": "HttpResult list = get(\"/credentials?page=1&pageSize=50\", token);",
           "helper": "get"
         }
       ]
@@ -497,7 +509,7 @@
       "id_refs_literal": [],
       "id_grouped_only": true,
       "exact_sites": 10,
-      "prefix_sites": 43,
+      "prefix_sites": 55,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
@@ -541,7 +553,7 @@
       ],
       "id_grouped_only": false,
       "exact_sites": 1,
-      "prefix_sites": 52,
+      "prefix_sites": 64,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/credential/CredentialContractTest.java",
@@ -579,8 +591,8 @@
         "aap-server/src/test/java/com/hioas/aap/credential/CredentialContractTest.java"
       ],
       "id_grouped_only": false,
-      "exact_sites": 10,
-      "prefix_sites": 30,
+      "exact_sites": 13,
+      "prefix_sites": 36,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
@@ -624,7 +636,7 @@
       ],
       "id_grouped_only": false,
       "exact_sites": 1,
-      "prefix_sites": 30,
+      "prefix_sites": 36,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/credential/CredentialContractTest.java",
@@ -665,7 +677,7 @@
       ],
       "id_grouped_only": false,
       "exact_sites": 9,
-      "prefix_sites": 30,
+      "prefix_sites": 36,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/credential/AdminCredentialContractTest.java",
@@ -699,17 +711,19 @@
       "tag": "Detection",
       "evidence": "exact",
       "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/detection/AdminDetectionListTest.java",
         "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java"
       ],
       "id_refs_with_call": [
         "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java"
       ],
       "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/detection/AdminDetectionListTest.java",
         "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java"
       ],
       "id_grouped_only": false,
       "exact_sites": 5,
-      "prefix_sites": 0,
+      "prefix_sites": 8,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
@@ -722,7 +736,18 @@
           "helper": "post"
         }
       ],
-      "prefix_sample": []
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/AdminDetectionListTest.java",
+          "line": "HttpResult list = get(\"/admin/detection-jobs?page=1&pageSize=20\", tech);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/AdminDetectionListTest.java",
+          "line": "HttpResult filtered = get(\"/admin/detection-jobs?credentialId=\" + credentialId, tech);",
+          "helper": "get"
+        }
+      ]
     },
     {
       "id": "DET-02",
@@ -732,6 +757,7 @@
       "tag": "Detection",
       "evidence": "exact",
       "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/detection/AdminDetectionListTest.java",
         "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java"
       ],
       "id_refs_with_call": [
@@ -774,6 +800,7 @@
       "tag": "Detection",
       "evidence": "exact",
       "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/detection/AdminDetectionListTest.java",
         "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java"
       ],
       "id_refs_with_call": [
@@ -811,6 +838,7 @@
       "tag": "Detection",
       "evidence": "exact",
       "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/detection/AdminDetectionListTest.java",
         "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java"
       ],
       "id_refs_with_call": [
@@ -855,6 +883,7 @@
       "tag": "Detection",
       "evidence": "exact",
       "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/detection/AdminDetectionListTest.java",
         "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java"
       ],
       "id_refs_with_call": [
@@ -897,13 +926,16 @@
       "tag": "Detection",
       "evidence": "exact",
       "id_refs": [
-        "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java"
+        "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java",
+        "aap-server/src/test/java/com/hioas/aap/iam/AdminAuthContractTest.java"
       ],
       "id_refs_with_call": [
         "aap-server/src/test/java/com/hioas/aap/detection/DetectionContractTest.java"
       ],
-      "id_refs_literal": [],
-      "id_grouped_only": true,
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/iam/AdminAuthContractTest.java"
+      ],
+      "id_grouped_only": false,
       "exact_sites": 3,
       "prefix_sites": 12,
       "exact_sample": [
@@ -1100,7 +1132,7 @@
       ],
       "id_grouped_only": false,
       "exact_sites": 4,
-      "prefix_sites": 5,
+      "prefix_sites": 6,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
@@ -1134,16 +1166,19 @@
       "tag": "Quote",
       "evidence": "exact",
       "id_refs": [
-        "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java"
+        "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
+        "aap-server/src/test/java/com/hioas/aap/quote/QuoteHeaderUpdateTest.java"
       ],
       "id_refs_with_call": [
-        "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java"
+        "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
+        "aap-server/src/test/java/com/hioas/aap/quote/QuoteHeaderUpdateTest.java"
       ],
       "id_refs_literal": [
-        "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java"
+        "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
+        "aap-server/src/test/java/com/hioas/aap/quote/QuoteHeaderUpdateTest.java"
       ],
       "id_grouped_only": false,
-      "exact_sites": 5,
+      "exact_sites": 6,
       "prefix_sites": 4,
       "exact_sample": [
         {
@@ -1185,8 +1220,8 @@
       ],
       "id_refs_literal": [],
       "id_grouped_only": true,
-      "exact_sites": 17,
-      "prefix_sites": 91,
+      "exact_sites": 19,
+      "prefix_sites": 99,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/quote/AdminQuoteCompareContractTest.java",
@@ -1229,13 +1264,18 @@
         "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java"
       ],
       "id_grouped_only": false,
-      "exact_sites": 1,
-      "prefix_sites": 107,
+      "exact_sites": 2,
+      "prefix_sites": 116,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
           "line": "HttpResult deleted = delete(\"/quotes/\" + quoteId, token);",
           "helper": "delete"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteHeaderUpdateTest.java",
+          "line": "return send(\"PUT\", \"/quotes/\" + quoteId, body, token);",
+          "helper": "send"
         }
       ],
       "prefix_sample": [
@@ -1269,7 +1309,7 @@
       ],
       "id_grouped_only": false,
       "exact_sites": 6,
-      "prefix_sites": 64,
+      "prefix_sites": 78,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
@@ -1310,12 +1350,17 @@
       ],
       "id_refs_literal": [],
       "id_grouped_only": true,
-      "exact_sites": 1,
-      "prefix_sites": 69,
+      "exact_sites": 7,
+      "prefix_sites": 77,
       "exact_sample": [
         {
-          "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
-          "line": "HttpResult listItems = get(\"/quotes/\" + quoteId + \"/items\", token);",
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/AdminQuoteCompareContractTest.java",
+          "line": "HttpResult ok = get(\"/admin/quotes/720001/items\", biz);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/AdminQuoteCompareContractTest.java",
+          "line": "assertThat(get(\"/admin/quotes/720001/items\", superAdmin).status()).isEqualTo(200);",
           "helper": "get"
         }
       ],
@@ -1439,7 +1484,7 @@
       ],
       "id_grouped_only": false,
       "exact_sites": 9,
-      "prefix_sites": 63,
+      "prefix_sites": 71,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
@@ -1483,7 +1528,7 @@
       ],
       "id_grouped_only": false,
       "exact_sites": 3,
-      "prefix_sites": 63,
+      "prefix_sites": 71,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
@@ -1525,7 +1570,7 @@
       "id_refs_literal": [],
       "id_grouped_only": true,
       "exact_sites": 1,
-      "prefix_sites": 63,
+      "prefix_sites": 71,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/quote/QuoteContractTest.java",
@@ -1564,7 +1609,7 @@
       ],
       "id_grouped_only": false,
       "exact_sites": 1,
-      "prefix_sites": 63,
+      "prefix_sites": 71,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
@@ -1767,21 +1812,32 @@
         "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java"
       ],
       "id_grouped_only": false,
-      "exact_sites": 8,
-      "prefix_sites": 0,
+      "exact_sites": 12,
+      "prefix_sites": 13,
       "exact_sample": [
         {
-          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
-          "line": "HttpResult list = get(\"/payments?page=1&pageSize=20\", supplier);",
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java",
+          "line": "assertThat(get(\"/admin/payments?page=1&pageSize=1\", newToken).status())",
           "helper": "get"
         },
         {
           "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
-          "line": "HttpResult paged = get(\"/payments?page=5&pageSize=2\", supplier);",
+          "line": "HttpResult list = get(\"/payments?page=1&pageSize=20\", supplier);",
           "helper": "get"
         }
       ],
-      "prefix_sample": []
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentRecordTest.java",
+          "line": "HttpResult res = post(\"/admin/payments\", recordBody(contractId, \"1234.560000\", \"CNY\", voucher, \"首笔打款\"), admin);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentRecordTest.java",
+          "line": "HttpResult unsigned = post(\"/admin/payments\", recordBody(pending, \"100\", \"CNY\", voucher, null), admin);",
+          "helper": "post"
+        }
+      ]
     },
     {
       "id": "NTF-01",
@@ -1925,6 +1981,206 @@
         }
       ],
       "prefix_sample": []
+    },
+    {
+      "id": "ADM-AUTH01",
+      "method": "POST",
+      "path": "/api/v1/admin/auth/sms/login",
+      "task": "",
+      "tag": "AdminAuth",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java"
+      ],
+      "id_refs_with_call": [],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java"
+      ],
+      "id_grouped_only": false,
+      "exact_sites": 1,
+      "prefix_sites": 0,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminAuthContractTest.java",
+          "line": "return post(\"/admin/auth/sms/login\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": []
+    },
+    {
+      "id": "ADM-AUTH02",
+      "method": "GET",
+      "path": "/api/v1/admin/admin-users",
+      "task": "",
+      "tag": "AdminAuth",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java"
+      ],
+      "id_grouped_only": false,
+      "exact_sites": 5,
+      "prefix_sites": 8,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java",
+          "line": "assertThat(get(\"/admin/admin-users\", newToken).status())",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java",
+          "line": "HttpResult list = get(\"/admin/admin-users?page=1&pageSize=10\", superToken);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java",
+          "line": "HttpResult created = post(\"/admin/admin-users\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java",
+          "line": "assertThat(post(\"/admin/admin-users\", \"\"\"",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "ADM-AUTH03",
+      "method": "POST",
+      "path": "/api/v1/admin/admin-users",
+      "task": "",
+      "tag": "AdminAuth",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java"
+      ],
+      "id_grouped_only": false,
+      "exact_sites": 8,
+      "prefix_sites": 5,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java",
+          "line": "HttpResult created = post(\"/admin/admin-users\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java",
+          "line": "assertThat(post(\"/admin/admin-users\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java",
+          "line": "assertThat(get(\"/admin/admin-users\", newToken).status())",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java",
+          "line": "HttpResult list = get(\"/admin/admin-users?page=1&pageSize=10\", superToken);",
+          "helper": "get"
+        }
+      ]
+    },
+    {
+      "id": "ADM-AUTH04",
+      "method": "POST",
+      "path": "/api/v1/admin/admin-users/{id}/suspend",
+      "task": "",
+      "tag": "AdminAuth",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java"
+      ],
+      "id_grouped_only": false,
+      "exact_sites": 6,
+      "prefix_sites": 9,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java",
+          "line": "HttpResult noReason = post(\"/admin/admin-users/\" + targetId + \"/suspend\", \"{}\", superToken);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java",
+          "line": "HttpResult suspended = post(\"/admin/admin-users/\" + targetId + \"/suspend\",",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java",
+          "line": "HttpResult noReason = post(\"/admin/admin-users/\" + targetId + \"/suspend\", \"{}\", superToken);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java",
+          "line": "HttpResult suspended = post(\"/admin/admin-users/\" + targetId + \"/suspend\",",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "ADM-AUTH05",
+      "method": "POST",
+      "path": "/api/v1/admin/admin-users/{id}/resume",
+      "task": "",
+      "tag": "AdminAuth",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java"
+      ],
+      "id_refs_literal": [],
+      "id_grouped_only": true,
+      "exact_sites": 3,
+      "prefix_sites": 9,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java",
+          "line": "HttpResult resumed = post(\"/admin/admin-users/\" + targetId + \"/resume\", null, superToken);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java",
+          "line": "assertThat(post(\"/admin/admin-users/\" + targetId + \"/resume\", null, superToken).status())",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java",
+          "line": "HttpResult noReason = post(\"/admin/admin-users/\" + targetId + \"/suspend\", \"{}\", superToken);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java",
+          "line": "HttpResult suspended = post(\"/admin/admin-users/\" + targetId + \"/suspend\",",
+          "helper": null
+        }
+      ]
     },
     {
       "id": "ADM-P01",
@@ -2153,7 +2409,7 @@
       ],
       "id_grouped_only": false,
       "exact_sites": 8,
-      "prefix_sites": 20,
+      "prefix_sites": 25,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
@@ -2211,6 +2467,50 @@
         }
       ],
       "prefix_sample": []
+    },
+    {
+      "id": "ADM-Q03",
+      "method": "GET",
+      "path": "/api/v1/admin/quotes/{id}/items",
+      "task": "",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/quote/AdminQuoteCompareContractTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/quote/AdminQuoteCompareContractTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/quote/AdminQuoteCompareContractTest.java"
+      ],
+      "id_grouped_only": false,
+      "exact_sites": 5,
+      "prefix_sites": 25,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/AdminQuoteCompareContractTest.java",
+          "line": "HttpResult ok = get(\"/admin/quotes/720001/items\", biz);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/quote/AdminQuoteCompareContractTest.java",
+          "line": "assertThat(get(\"/admin/quotes/720001/items\", superAdmin).status()).isEqualTo(200);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult tooEarly = post(\"/admin/quotes/\" + quoteId + \"/compile\", null, admin);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/compile/CompilationContractTest.java",
+          "line": "HttpResult compiled = post(\"/admin/quotes/\" + quoteId + \"/compile\", null, admin);",
+          "helper": null
+        }
+      ]
     },
     {
       "id": "ADM-CP01",
@@ -2711,21 +3011,32 @@
         "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java"
       ],
       "id_grouped_only": false,
-      "exact_sites": 5,
-      "prefix_sites": 0,
+      "exact_sites": 7,
+      "prefix_sites": 13,
       "exact_sample": [
         {
-          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
-          "line": "HttpResult list = get(\"/admin/payments?page=1&pageSize=20\", admin);",
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java",
+          "line": "assertThat(get(\"/admin/payments?page=1&pageSize=1\", newToken).status())",
           "helper": "get"
         },
         {
           "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
-          "line": "assertThat(get(\"/admin/payments?status=CONFIRMED\", admin).data().path(\"total\").asLong()).isEqualTo(1L);",
+          "line": "HttpResult list = get(\"/admin/payments?page=1&pageSize=20\", admin);",
           "helper": "get"
         }
       ],
-      "prefix_sample": []
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentRecordTest.java",
+          "line": "HttpResult res = post(\"/admin/payments\", recordBody(contractId, \"1234.560000\", \"CNY\", voucher, \"首笔打款\"), admin);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentRecordTest.java",
+          "line": "HttpResult unsigned = post(\"/admin/payments\", recordBody(pending, \"100\", \"CNY\", voucher, null), admin);",
+          "helper": "post"
+        }
+      ]
     },
     {
       "id": "ADM-PAY02",
@@ -2735,17 +3046,20 @@
       "tag": "Admin",
       "evidence": "exact",
       "id_refs": [
-        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java"
+        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentRecordTest.java"
       ],
       "id_refs_with_call": [
-        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java"
+        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentRecordTest.java"
       ],
       "id_refs_literal": [
-        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java"
+        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentRecordTest.java"
       ],
       "id_grouped_only": false,
-      "exact_sites": 5,
-      "prefix_sites": 5,
+      "exact_sites": 6,
+      "prefix_sites": 11,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
@@ -2803,6 +3117,94 @@
         }
       ],
       "prefix_sample": []
+    },
+    {
+      "id": "ADM-PAY04",
+      "method": "POST",
+      "path": "/api/v1/admin/payments",
+      "task": "",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentRecordTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentRecordTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentRecordTest.java"
+      ],
+      "id_grouped_only": false,
+      "exact_sites": 13,
+      "prefix_sites": 7,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentRecordTest.java",
+          "line": "HttpResult res = post(\"/admin/payments\", recordBody(contractId, \"1234.560000\", \"CNY\", voucher, \"首笔打款\"), admin);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentRecordTest.java",
+          "line": "HttpResult unsigned = post(\"/admin/payments\", recordBody(pending, \"100\", \"CNY\", voucher, null), admin);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/iam/AdminUserAdminTest.java",
+          "line": "assertThat(get(\"/admin/payments?page=1&pageSize=1\", newToken).status())",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "HttpResult list = get(\"/admin/payments?page=1&pageSize=20\", admin);",
+          "helper": "get"
+        }
+      ]
+    },
+    {
+      "id": "ADM-PAY05",
+      "method": "POST",
+      "path": "/api/v1/admin/payments/{id}/void",
+      "task": "",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentRecordTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentRecordTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentRecordTest.java"
+      ],
+      "id_grouped_only": false,
+      "exact_sites": 5,
+      "prefix_sites": 11,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentRecordTest.java",
+          "line": "HttpResult noReason = post(\"/admin/payments/\" + paymentId + \"/void\", \"{}\", admin);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentRecordTest.java",
+          "line": "HttpResult voided = post(\"/admin/payments/\" + paymentId + \"/void\", \"{\\\"reason\\\":\\\"金额填错\\\"}\", admin);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "HttpResult rejected = post(\"/admin/payments/\" + blocked + \"/confirm\", null, admin);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "HttpResult ok = post(\"/admin/payments/\" + paymentId + \"/confirm\", null, admin);",
+          "helper": null
+        }
+      ]
     },
     {
       "id": "ADM-S01",
@@ -3121,7 +3523,7 @@
         "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java"
       ],
       "id_grouped_only": false,
-      "exact_sites": 8,
+      "exact_sites": 10,
       "prefix_sites": 1,
       "exact_sample": [
         {
@@ -3161,7 +3563,7 @@
       ],
       "id_grouped_only": false,
       "exact_sites": 1,
-      "prefix_sites": 8,
+      "prefix_sites": 10,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java",
@@ -3521,6 +3923,39 @@
           "helper": null
         }
       ]
+    },
+    {
+      "id": "ADM-DET01",
+      "method": "GET",
+      "path": "/api/v1/admin/detection-jobs",
+      "task": "",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/detection/AdminDetectionListTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/detection/AdminDetectionListTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/detection/AdminDetectionListTest.java"
+      ],
+      "id_grouped_only": false,
+      "exact_sites": 8,
+      "prefix_sites": 0,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/AdminDetectionListTest.java",
+          "line": "HttpResult list = get(\"/admin/detection-jobs?page=1&pageSize=20\", tech);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/detection/AdminDetectionListTest.java",
+          "line": "HttpResult filtered = get(\"/admin/detection-jobs?credentialId=\" + credentialId, tech);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": []
     },
     {
       "id": "ADM-A01",

@@ -71,7 +71,7 @@
 
 | ID | 方法 | 路径 | 鉴权 | 请求 | 响应 | 错误码 | 幂等/并发 | 依据 | 状态 |
 |---|---|---|---|---|---|---|---|---|---|
-| CRED-01 | GET | `/credentials` | ✅ | q：`page` `pageSize` `status?` | `{items:[CredentialRow],page,pageSize,total}` | | | 真源 | T05 |
+| CRED-01 | GET | `/credentials` | ✅ | q：`page` `pageSize` `status?`（**按检测状态过滤**：PENDING/PASS/FAIL…，非凭证状态；传 ACTIVE 得 0 条） | `{items:[CredentialRow],page,pageSize,total}` | | | 真源 | T05 |
 | CRED-02 | POST | `/credentials` | ✅ | body：`alias` `base_url` `api_key` `primary_flag` `declared_vendor` `declared_rpm` `declared_tpm` `declared_context_window` `model_list[]` | `CredentialDetail` | E-1001 E-1104 E-1201 | `Idempotency-Key` | 推断 | T05 |
 | CRED-03 | GET | `/credentials/{id}` | ✅ | — | `CredentialDetail` | E-1901 | | 真源 | T05 |
 | CRED-04 | PUT | `/credentials/{id}` | ✅ | body：同 CRED-02 的可写子集（`api_key?` 轮换） | `CredentialDetail` | E-1001 E-1104 | `If-Match` | 真源 | T05 |

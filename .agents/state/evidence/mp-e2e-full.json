@@ -1,6 +1,6 @@
 {
-  "apiBase": "http://127.0.0.1:8084/api/v1",
-  "phone": "13800138000",
+  "apiBase": "http://127.0.0.1:8086/api/v1",
+  "phone": "13900000101",
   "rows": [
     {
       "phase": "P0",
@@ -12,19 +12,19 @@
       "phase": "P0",
       "name": "POST /auth/sms/login",
       "ok": true,
-      "detail": "role=SUPPLIER providerId=458589638116450304"
+      "detail": "role=SUPPLIER providerId=460317332545990656"
     },
     {
       "phase": "P0",
       "name": "GET /auth/me",
       "ok": true,
-      "detail": "phone=138****8000 role=SUPPLIER"
+      "detail": "phone=139****0101 role=SUPPLIER"
     },
     {
       "phase": "P1",
       "name": "GET /provider/profile",
       "ok": true,
-      "detail": "company_name=联调测试科技有限公司 status=PENDING_CREDENTIAL"
+      "detail": "company_name=联调测试科技有限公司 status=DETECTING"
     },
     {
       "phase": "P1",
@@ -42,25 +42,25 @@
       "phase": "P1",
       "name": "POST /provider/qualifications",
       "ok": true,
-      "detail": "id=458711021156786176"
+      "detail": "id=460366591223898112"
     },
     {
       "phase": "P1",
       "name": "DELETE /provider/qualifications/{id}",
       "ok": true,
-      "detail": "已删除 458711021156786176"
+      "detail": "已删除 460366591223898112"
     },
     {
       "phase": "P2",
       "name": "POST /credentials  [非前端调用点·直连]",
       "ok": true,
-      "detail": "复用已存在 id=458688754783821824（E-1104 指纹重复，脚本幂等）"
+      "detail": "复用已存在 id=460364065065902080（E-1104 指纹重复，脚本幂等）"
     },
     {
       "phase": "P2",
       "name": "GET /credentials",
       "ok": true,
-      "detail": "条数=1"
+      "detail": "条数=5"
     },
     {
       "phase": "P2",
@@ -78,13 +78,13 @@
       "phase": "P2",
       "name": "POST /credentials/{id}/precheck",
       "ok": true,
-      "detail": "job=458711023966969856 precheck=PASSED status=ACTIVE"
+      "detail": "job=460366592532520960 precheck=PASSED status=ACTIVE"
     },
     {
       "phase": "P3",
       "name": "POST /detection-jobs",
       "ok": true,
-      "detail": "跳过新建：预检已建任务 jobId=458711023966969856（再建会 E-1301 互斥）"
+      "detail": "跳过新建：预检已建任务 jobId=460366592532520960（再建会 E-1301 互斥）"
     },
     {
       "phase": "P3",
@@ -100,12 +100,6 @@
     },
     {
       "phase": "P3",
-      "name": "GET /detection-jobs/{jobId}/results/{probeCode}",
-      "ok": false,
-      "detail": "无分项结果（检测执行器缺失，见报告）"
-    },
-    {
-      "phase": "P3",
       "name": "[ADMIN] POST /detection-jobs/{jobId}/release（DET-06 人工放行）",
       "ok": true,
       "detail": "status=COMPLETED result=PASS"
@@ -117,34 +111,40 @@
       "detail": "job=COMPLETED 凭证检测状态=PASS"
     },
     {
+      "phase": "P3",
+      "name": "GET /detection-jobs/{jobId}/results/{probeCode}",
+      "ok": true,
+      "detail": "分项=0（人工放行不跑探针，符合设计；真实执行的任务才会逐探针落库）"
+    },
+    {
       "phase": "P4",
       "name": "GET /reports",
       "ok": true,
-      "detail": "条数=0 first=-"
+      "detail": "条数=9 first=460366593040031744"
     },
     {
       "phase": "P4",
       "name": "GET /reports/{reportId}",
-      "ok": false,
-      "detail": "跳过：无报告（检测未产出）"
+      "ok": true,
+      "detail": "结论=未发现与宣称模型不一致的迹象（置信度：见报告）"
     },
     {
       "phase": "P4",
       "name": "GET /reports/{reportId}/export",
-      "ok": false,
-      "detail": "跳过：无报告"
+      "ok": true,
+      "detail": "字段=url,file_url,file_name,expire_at"
     },
     {
       "phase": "P5",
       "name": "GET /quotes",
       "ok": true,
-      "detail": "条数=1"
+      "detail": "条数=10"
     },
     {
       "phase": "P5",
       "name": "POST /quotes",
       "ok": true,
-      "detail": "quoteId=458711025170735104"
+      "detail": "quoteId=460366593933418496"
     },
     {
       "phase": "P5",
@@ -156,7 +156,7 @@
       "phase": "P5",
       "name": "GET /quotes/{quoteId}/items",
       "ok": true,
-      "detail": "行数=1 itemId=458711025414004736"
+      "detail": "行数=1 itemId=460366594143133696"
     },
     {
       "phase": "P5",
@@ -192,55 +192,55 @@
       "phase": "P6",
       "name": "[ADMIN] GET /admin/reviews + 领取 + 审核通过",
       "ok": true,
-      "detail": "reviewId=458711026525495296 已通过"
+      "detail": "reviewId=460366595007160320 已通过"
     },
     {
       "phase": "P6",
       "name": "[ADMIN] GET /admin/contracts + 签发",
-      "ok": false,
-      "detail": "E-1001 参数校验失败"
+      "ok": true,
+      "detail": "contractId=460366596059930624 已签发（file_id=460366596319977472）"
     },
     {
       "phase": "P6",
       "name": "GET /contracts",
       "ok": true,
-      "detail": "条数=2 first=458711028085776384"
+      "detail": "条数=5 first=460366596059930624"
     },
     {
       "phase": "P6",
       "name": "GET /contracts/{id}",
       "ok": true,
-      "detail": "status=CREATED"
+      "detail": "status=PENDING_SIGN"
     },
     {
       "phase": "P6",
       "name": "GET /contracts/{id}/file",
-      "ok": false,
-      "detail": "E-1701 合同尚未签发（当前：CREATED），暂无合同文件"
+      "ok": true,
+      "detail": "字段=url,file_url,file_name,expire_at"
     },
     {
       "phase": "P6",
       "name": "POST /contracts/{id}/sign",
-      "ok": false,
-      "detail": "E-1001 参数校验失败"
+      "ok": true,
+      "detail": "已签署（SEAL）"
     },
     {
       "phase": "P7",
       "name": "GET /notifications",
       "ok": true,
-      "detail": "条数=0 first=-"
+      "detail": "条数=6 first=460366593048420352"
     },
     {
       "phase": "P7",
       "name": "POST /notifications/{id}/read",
-      "ok": false,
-      "detail": "跳过：无站内信"
+      "ok": true,
+      "detail": "已读 460366593048420352"
     },
     {
       "phase": "P7",
       "name": "GET /payments",
       "ok": true,
-      "detail": "条数=0"
+      "detail": "条数=3"
     },
     {
       "phase": "P7",
@@ -258,7 +258,7 @@
       "phase": "P7",
       "name": "GET /usage/hourly（补 from/to 后应通过，证明端点本身可用）",
       "ok": true,
-      "detail": "from=2026-08-20T00:14:51Z 桶数=0"
+      "detail": "from=2026-08-24T13:53:30Z 桶数=0"
     },
     {
       "phase": "P9",
@@ -281,235 +281,253 @@
   ],
   "traffic": [
     {
-      "url": "http://127.0.0.1:8084/api/v1/auth/sms/send",
+      "url": "http://127.0.0.1:8086/api/v1/auth/sms/send",
       "method": "POST",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/auth/sms/login",
+      "url": "http://127.0.0.1:8086/api/v1/auth/sms/login",
       "method": "POST",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/auth/me",
+      "url": "http://127.0.0.1:8086/api/v1/auth/me",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/provider/profile",
+      "url": "http://127.0.0.1:8086/api/v1/provider/profile",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/provider/profile",
+      "url": "http://127.0.0.1:8086/api/v1/provider/profile",
       "method": "PUT",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/provider/qualifications",
+      "url": "http://127.0.0.1:8086/api/v1/provider/qualifications",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/provider/qualifications",
+      "url": "http://127.0.0.1:8086/api/v1/provider/qualifications",
       "method": "POST",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/provider/qualifications/458711021156786176",
+      "url": "http://127.0.0.1:8086/api/v1/provider/qualifications/460366591223898112",
       "method": "DELETE",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/credentials",
+      "url": "http://127.0.0.1:8086/api/v1/credentials",
       "method": "POST",
       "status": 409,
       "code": "E-1104"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/credentials?page=1&pageSize=50",
+      "url": "http://127.0.0.1:8086/api/v1/credentials?page=1&pageSize=50",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/credentials?page=1&pageSize=20",
+      "url": "http://127.0.0.1:8086/api/v1/credentials?page=1&pageSize=20",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/credentials/458688754783821824",
+      "url": "http://127.0.0.1:8086/api/v1/credentials/460364065065902080",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/credentials/458688754783821824",
+      "url": "http://127.0.0.1:8086/api/v1/credentials/460364065065902080",
       "method": "PUT",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/credentials/458688754783821824/precheck",
+      "url": "http://127.0.0.1:8086/api/v1/credentials/460364065065902080/precheck",
       "method": "POST",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/detection-jobs/458711023966969856",
+      "url": "http://127.0.0.1:8086/api/v1/detection-jobs/460366592532520960",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/detection-jobs/458711023966969856/results",
+      "url": "http://127.0.0.1:8086/api/v1/detection-jobs/460366592532520960/results",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/detection-jobs/458711023966969856/results",
+      "url": "http://127.0.0.1:8086/api/v1/detection-jobs/460366592532520960",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/detection-jobs/458711023966969856",
+      "url": "http://127.0.0.1:8086/api/v1/credentials/460364065065902080",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/credentials/458688754783821824",
+      "url": "http://127.0.0.1:8086/api/v1/detection-jobs/460366592532520960/results",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/reports?page=1&pageSize=20",
+      "url": "http://127.0.0.1:8086/api/v1/reports?page=1&pageSize=20",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/quotes?page=1&pageSize=20",
+      "url": "http://127.0.0.1:8086/api/v1/reports/460366593040031744",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/quotes",
+      "url": "http://127.0.0.1:8086/api/v1/reports/460366593040031744/export",
+      "method": "GET",
+      "status": 200,
+      "code": "0"
+    },
+    {
+      "url": "http://127.0.0.1:8086/api/v1/quotes?page=1&pageSize=20",
+      "method": "GET",
+      "status": 200,
+      "code": "0"
+    },
+    {
+      "url": "http://127.0.0.1:8086/api/v1/quotes",
       "method": "POST",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/quotes/458711025170735104/items",
+      "url": "http://127.0.0.1:8086/api/v1/quotes/460366593933418496/items",
       "method": "POST",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/quotes/458711025170735104/items",
+      "url": "http://127.0.0.1:8086/api/v1/quotes/460366593933418496/items",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/quotes/items/458711025414004736",
+      "url": "http://127.0.0.1:8086/api/v1/quotes/items/460366594143133696",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/quotes/items/458711025414004736",
+      "url": "http://127.0.0.1:8086/api/v1/quotes/items/460366594143133696",
       "method": "PUT",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/quotes/458711025170735104",
+      "url": "http://127.0.0.1:8086/api/v1/quotes/460366593933418496",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/quotes/458711025170735104/submit",
+      "url": "http://127.0.0.1:8086/api/v1/quotes/460366593933418496/submit",
       "method": "POST",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/contracts?page=1&pageSize=20",
+      "url": "http://127.0.0.1:8086/api/v1/contracts?page=1&pageSize=20",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/contracts/458711028085776384",
+      "url": "http://127.0.0.1:8086/api/v1/contracts/460366596059930624",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/contracts/458711028085776384/file",
-      "method": "GET",
-      "status": 409,
-      "code": "E-1701"
-    },
-    {
-      "url": "http://127.0.0.1:8084/api/v1/contracts/458711028085776384/sign",
-      "method": "POST",
-      "status": 400,
-      "code": "E-1001"
-    },
-    {
-      "url": "http://127.0.0.1:8084/api/v1/notifications?page=1&pageSize=20",
+      "url": "http://127.0.0.1:8086/api/v1/contracts/460366596059930624/file",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/payments?page=1&pageSize=20",
-      "method": "GET",
-      "status": 200,
-      "code": "0"
-    },
-    {
-      "url": "http://127.0.0.1:8084/api/v1/usage/summary",
-      "method": "GET",
-      "status": 200,
-      "code": "0"
-    },
-    {
-      "url": "http://127.0.0.1:8084/api/v1/usage/hourly?from=2026-08-20T00%3A14%3A51Z&to=2026-09-19T00%3A14%3A51Z",
-      "method": "GET",
-      "status": 200,
-      "code": "0"
-    },
-    {
-      "url": "http://127.0.0.1:8084/api/v1/auth/refresh",
+      "url": "http://127.0.0.1:8086/api/v1/contracts/460366596059930624/sign",
       "method": "POST",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/auth/me",
+      "url": "http://127.0.0.1:8086/api/v1/notifications?page=1&pageSize=20",
       "method": "GET",
       "status": 200,
       "code": "0"
     },
     {
-      "url": "http://127.0.0.1:8084/api/v1/auth/logout",
+      "url": "http://127.0.0.1:8086/api/v1/notifications/460366593048420352/read",
+      "method": "POST",
+      "status": 200,
+      "code": "0"
+    },
+    {
+      "url": "http://127.0.0.1:8086/api/v1/payments?page=1&pageSize=20",
+      "method": "GET",
+      "status": 200,
+      "code": "0"
+    },
+    {
+      "url": "http://127.0.0.1:8086/api/v1/usage/summary",
+      "method": "GET",
+      "status": 200,
+      "code": "0"
+    },
+    {
+      "url": "http://127.0.0.1:8086/api/v1/usage/hourly?from=2026-08-24T13%3A53%3A30Z&to=2026-09-23T13%3A53%3A30Z",
+      "method": "GET",
+      "status": 200,
+      "code": "0"
+    },
+    {
+      "url": "http://127.0.0.1:8086/api/v1/auth/refresh",
+      "method": "POST",
+      "status": 200,
+      "code": "0"
+    },
+    {
+      "url": "http://127.0.0.1:8086/api/v1/auth/me",
+      "method": "GET",
+      "status": 200,
+      "code": "0"
+    },
+    {
+      "url": "http://127.0.0.1:8086/api/v1/auth/logout",
       "method": "POST",
       "status": 200,
       "code": "0"
