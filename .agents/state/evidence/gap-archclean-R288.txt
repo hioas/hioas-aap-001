@@ -1,0 +1,28 @@
+==============================================================================
+R288 保持性核对：归档幂等化守卫（可达性 + 有效性；只读）
+==============================================================================
+-- A1 载体（仓库内、受 git 跟踪）--
+  助手路径 = E:\workspaces\hioas\hioas-aap-001\tools\round-archive-clean.py（存在 = True）
+[PASS] A1a 正向对照：HEAD 树内 tools/ 条目 > 0（否则判定不可用） tools/ 条目 = 40
+[PASS] A1 助手在 HEAD 树内 
+[PASS] A1b 助手被 git 跟踪（`git ls-files` 命中 1 条） 命中 1 条
+[PASS] A1c 旧名（只活在临时目录的助手）在 HEAD 树内零残留 命中 = 无
+-- A2 本轮执行器（round-r288.sh，12545 字节）--
+[PASS] A2a 正向对照：执行器文本非空 
+[PASS] A2 调用点恰好 1 处（路径由调用方传入，非硬编码） 命中 1 处
+[PASS] A2b 前置检查含可达性断言 ∧ 自测调用 
+[PASS] A2c 旧临时助手名（$W/clean-arch.py）悬空引用 = 0 处 命中 = 无
+[PASS] A2d 调用点在**可达性为 Y** 时执行（结构性：不可达则记录 SKIPPED 而非静默） 
+-- A3 门槛目标体检（执行器落盘）--
+  可达 = Y / 自测 rc = 0 / 路径 = E:/workspaces/hioas/hioas-aap-001/tools/round-archive-clean.py
+[PASS] A3 facts 三键齐备（可达 / 自测 rc / 路径） 
+[PASS] A3b 可达 = Y ∧ 自测 rc = 0（守卫**真的执行过**，历史纪律 238/251） reachable=Y rc=0
+[PASS] A3c 路径指向**仓库内**（不是临时目录） 'E:/workspaces/hioas/hioas-aap-001/tools/round-archive-clean.py'
+-- A4 工具可用性（本轮现跑）--
+[PASS] A4 `--selftest` rc = 0 且输出非空（正向对照） rc=0 末行 = ['SELFTEST_OK=0']
+[PASS] A5 判别力实测：合成「调用点指向临时助手」必须命中悬空判据 ∧ 真实执行器不得命中 合成命中=True 真实命中=False
+[PASS] A5b 判别力实测（反向）：合成「仓库内助手」文本必须**不**命中悬空判据 
+[PASS] A6 判定可用性：执行器 ∧ 助手文件均非空 
+
+汇总：PASS = 16 / FAIL = 0
+GUARD_ARCHCLEAN_END=1

@@ -1,0 +1,199 @@
+==============================================================================
+R288 覆盖缺口扫描（只读）：磁盘脚本集合 ⊇ driver 引用集 ？
+==============================================================================
+-- ① driver 引用集 --
+  字典推导式解析      = 1 处（模板 + 键元组；0 即判解析失效）
+  显式覆盖            = 1 条 [('63', 'aap-r63-work')]
+  额外目录变量        = 2 条 [('R158W', 'aap-r158-work'), ('W', 'aap-r288-regression')]
+  R[..]/name.py 引用  = 50 条
+  tools/xxx.py 引用    = 27 条
+  裸文件名引用        = 52 条
+-- ② 仓库 tools/*.py（28 个）--
+  未被 driver 引用的 tools/ 脚本 = 1 个 ['round-archive-clean.py']
+-- ③ driver 引用的目录（28 个；磁盘缺失 = 0）--
+  扫描到但未被 driver 引用的候选 = 174 个
+    R45      dbg.py
+    R45      spotcheck-pagination-order.py
+    R49      probe.py
+    R49      probe2.py
+    R49      probe3.py
+    R52      spotcheck-time-bucket.py
+    R53      spotcheck-sensitive-fields.py
+    R55      audit-regression-r55.py
+    R55      debug-ddl.py
+    R55      debug-quote.py
+    R55      debug-routes.py
+    R55      ledger-close-r55.py
+    R55      make-evidence-r55.py
+    R55      normalize-eol-r55.py
+    R55      notify-fail-r55.py
+    R55      recon-endpoints.py
+    R55      skill-add-r55.py
+    R55      worktree-evidence-r55.py
+    R55      write-ledger-r55.py
+    R56      audit-regression-r56.py
+    R56      closeout-r56.py
+    R56      fix-csv-r56.py
+    R56      make-evidence-r56.py
+    R56      notify-fail-r56.py
+    R56      write-ledger-r56.py
+    R57      mut-ann-format.py
+    R57      mut-evidence.py
+    R57      mut-matchparen.py
+    R57      recon.py
+    R58      cov-wt.py
+    R58      cov.py
+    R58      diag.py
+    R58      normlf.py
+    R58      r58-closeout.py
+    R58      r58-ledger.py
+    R59      cov-wt.py
+    R59      cov.py
+    R59      csvpeek.py
+    R59      normlf.py
+    R59      probe.py
+    R59      r59-closeout.py
+    R59      r59-evidence.py
+    R59      r59-ledger.py
+    R60      cov-wt.py
+    R60      cov.py
+    R60      fix-weak-markers.py
+    R60      fix2-weak-labels.py
+    R60      normlf.py
+    R60      probe-domain.py
+    R60      r60-closeout.py
+    R60      r60-covcheck.py
+    R60      r60-evidence.py
+    R60      r60-faildiff.py
+    R60      r60-final-check.py
+    R60      r60-ledger.py
+    R60      r60-normlf.py
+    R60      r60-regression.py
+    R60      spotcheck-string-length-R60-v2.py
+    R60      spotcheck-string-length-R60-v3.py
+    R60      spotcheck-string-length-R60-v4.py
+    R60      spotcheck-string-length-R60-v5.py
+    R60      spotcheck-string-length-R60.py
+    R61      r61-classdiff.py
+    R61      r61-closeout.py
+    R61      r61-evidence.py
+    R61      r61-faildiff.py
+    R61      r61-ledger.py
+    R61      r61-regression.py
+    R62      r62-classdiff.py
+    R62      r62-cleanwt.py
+    R62      r62-closeout.py
+    R62      r62-evidence.py
+    R62      r62-faildiff.py
+    R62      r62-feishu.py
+    R62      r62-regression.py
+    R62      r62-verify.py
+    R62      recon-default.py
+    R62      recon-idem.py
+    R62      recon-idem2.py
+    R62      recon-idem3.py
+    R62      wt-cov.py
+    R63      r63-closeout.py
+    R63      r63-faildiff.py
+    R63      r63-ledger.py
+    R63      r63-rcseq.py
+    R63      r63-regression.py
+    R63      r63-runlog-evidence.py
+    R63      r63-selftest-evidence.py
+    R63      r63-verify.py
+    R63      r63-worktree-evidence.py
+    R63      r63-wtcov.py
+    R65      csvcheck.py
+    R65      dbg-comma.py
+    R65      dbg-testrefs.py
+    R65      dbg-writes.py
+    R65      prepend.py
+    R65      r65-closeout.py
+    R65      r65-crossround.py
+    R65      r65-evidence.py
+    R65      r65-ledger.py
+    R65      r65-regression.py
+    R65      r65-wt-evidence.py
+    R65      run-to-file.py
+    R66      r66-closeout.py
+    R66      r66-closeout2.py
+    R66      r66-crossround.py
+    R66      r66-dbg.py
+    R66      r66-evidence.py
+    R66      r66-history.py
+    R66      r66-ledger.py
+    R66      r66-rcseq.py
+    R66      r66-regression.py
+    R66      r66-spotcheck-evidence.py
+    R66      r66-state.py
+    R66      r66-worktree.py
+    R66      r66-wt-evidence.py
+    R66      r66-wt-note.py
+    R66      spotcheck-state-machine-R66.py
+    R67      copy-evidence.py
+    R67      copy-r66-scripts.py
+    R67      dbg-chain.py
+    R67      dbg-map.py
+    R67      dbg-map2.py
+    R67      dbg-sync.py
+    R67      explore-tx.py
+    R67      explore-tx2.py
+    R67      explore-tx3.py
+    R67      gen-r67-scripts.py
+    R67      r67-closeout.py
+    R67      r67-crossround.py
+    R67      r67-evidence.py
+    R67      r67-keyorder.py
+    R67      r67-ledger.py
+    R67      r67-rcseq.py
+    R67      r67-regression.py
+    R67      r67-spotcheck-evidence.py
+    R67      r67-wt-evidence.py
+    R67      spotcheck-tx-boundary-R67-v1.py
+    R68      explore-http-method.py
+    R68      normalize-covreport.py
+    R68      r68-classdiff.py
+    R68      r68-closeout.py
+    R68      r68-evidence.py
+    R68      r68-ledger-check.py
+    R68      r68-ledger-inspect.py
+    R68      r68-ledger-inspect2.py
+    R68      r68-ledger.py
+    R68      r68-regression.py
+    R69      dump-cov.py
+    R69      r69-classdiff.py
+    R69      r69-closeout.py
+    R69      r69-evidence.py
+    R69      r69-ledger-inspect.py
+    R69      r69-ledger.py
+    R69      r69-rcseq.py
+    R69      r69-regression.py
+    R70      r70-closeout.py
+    R70      r70-evidence.py
+    R70      r70-feishu-note.py
+    R70      r70-rcseq.py
+    R70      r70-regression.py
+    R70      r70-state.py
+    R72      r72-closeout.py
+    R72      r72-covfields-arg.py
+    R72      r72-covfields.py
+    R72      r72-csv-backfill.py
+    R72      r72-evidence.py
+    R72      r72-feishu-note.py
+    R72      r72-regression.py
+    R72      r72-spot-evidence.py
+    R72      r72-write-ledger.py
+    R158W    gap-derived-files-R158.py
+    R158W    gap-tools-scan-R158.py
+    R158W    r158-regression.py
+-- 结论 --
+  真缺口候选（tools/ 侧）= ['round-archive-clean.py']
+  真缺口候选（各目录侧）= 174 个（分类如下）
+    [一次性辅助脚本（设计上不进 driver）] 164 个
+    [同名 vN 旧版/被取代] 8 个
+    [复核链/事实探针（**需人拍板是否扩面**，历史纪律 182/213-③）] 2 个
+        R158W/gap-derived-files-R158.py
+        R158W/gap-tools-scan-R158.py
+    round-archive-clean.py       由执行器前置检查每轮跑 --selftest（非回归面条目，属覆盖缺口修复的载体）
+  正向对照：字典推导式解析 = 1（须 1）∧ 目录数 = 28（> 0）∧ 磁盘 tools 数 = 28（> 0）
+SCAN_END=1
