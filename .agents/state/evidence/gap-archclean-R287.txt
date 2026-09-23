@@ -1,0 +1,34 @@
+==============================================================================
+R287 真发现① 取证：巡检工具链守卫的「守卫可达性」缺口（归档幂等化助手）
+==============================================================================
+-- PRE 段（锚修正前产物）--
+  修正前执行器 = C:\Users\laitz\AppData\Local\Temp\aap-r286-work\round-r286.sh（存在 = True）
+[PASS] P1 修正前执行器含悬空调用点 `python $W/clean-arch.py`（命中恰好 1 处） 命中 1 处
+  助手存在性（精确名 clean-arch.py）：{'aap-r286-work/clean-arch.py': False, 'aap-r287-work/clean-arch.py': False, 'repo tools/clean-arch.py': False}；`git ls-files` 命中 = 0 条；HEAD 树命中 = 0 条
+[PASS] P2 悬空判定：修正前那一轮的 work dir 里该助手**不存在** ∧ 仓库 tools/ 零命中 ∧ git 跟踪零命中 r286-work=False / repo=False / tracked=0 / head=0
+  助手最后存在的副本 = C:\Users\laitz\AppData\Local\Temp\aap-r285-work\clean-arch.py（存在 = True）；其**代码区**出现的归档根常量 = ['aap-r284-work/wt-arch']
+[PASS] P3 修正前助手把归档根**硬编码**为某一轮的工作目录（与「由调用方传入」互斥） 命中 = ['aap-r284-work/wt-arch']
+[PASS] P3b 该硬编码轮次 ≠ 修正前那一轮（即便可达也作用于**错误对象**） 命中 = ['aap-r284-work/wt-arch']
+[PASS] P3c 正向对照：code_only 未把整份文件剥空（代码区长度 > 0，历史纪律 46/75） 代码区长度 = 1084
+  历史归档日志 = 13 个（aap-r275-work … aap-r287-work）；其中含 WT_ARCH_CLEAN_RC 的 = 0 个 []
+[PASS] P4 正向对照：历史归档日志解析到 > 0 个（否则「从未执行」判定不可用，历史纪律 46/98） 解析到 13 个
+[PASS] P5 事实面：历史各轮中**没有任何一轮**执行过该助手（含 WT_ARCH_CLEAN_RC 的轮数 = 0） 执行过的轮 = 无
+[PASS] P5b 同一份归档日志里存在**其它**归档留痕（证明日志确实被写、不是解析失效） 
+-- POST 段（锚本轮修法落地）--
+[PASS] Q1 本轮执行器：调用点改指仓库内助手（命中 1 处）∧ 对已丢失临时助手的引用残留 = 0 新调用点 = 1 / 旧引用 = 0
+[PASS] Q2 前置检查断言可达性 ∧ 每轮跑其 --selftest（正向对照） 
+[PASS] Q3 仓库内助手存在 ∧ 归档根由调用方传入 ∧ **代码区**无硬编码轮次目录 exists=True argv=True code_hardcoded=False docstring_mentions=True
+[INFO] Q3b 提交前相位：仓库内助手尚未被 git 跟踪（跟踪性由提交后核对承担；历史纪律 219-③）
+  本轮 facts：reachable=Y / selftest_rc=0
+[PASS] Q4 门槛目标体检 + 守卫**真的执行过**（历史纪律 238/251）：reachable = Y ∧ selftest rc = 0 
+-- 判别力实测（判据必须有可能为假，历史纪律 46/75/98/230）--
+[PASS] K1 合成「修正前调用点」必须命中悬空判据 命中 = True（须 True）
+[PASS] K2 本轮执行器文本不得命中悬空判据 命中 = False（须 False）
+[PASS] K3 合成「硬编码归档根」（代码区）必须命中硬编码判据 命中 = True（须 True）
+[PASS] K4 仓库内助手**代码区**不得命中硬编码判据 命中 = False（须 False）
+[PASS] K4b 前置对照：修正前助手的**代码区**必须命中（证明 K4 使用的 code_only 有判别力） 
+[PASS] K4c 据实说明：本仓库助手对历史缺陷的 **docstring 描述**确实含该串（文档项，非代码残留） 
+[PASS] K5 空文本必须判「判据不可用」（正/反向命中均为 False） 
+
+汇总：FAIL = 0 （全 PASS）
+GAP_ARCHCLEAN_END=1
