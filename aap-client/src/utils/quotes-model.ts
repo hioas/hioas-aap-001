@@ -291,6 +291,19 @@ function actionsOf(id: string, key: QuoteStatusKey | undefined, contractId?: str
   return actions
 }
 
+/**
+ * 卡片**主体**点击目标（用户口径 2026-09-23「报价单卡片还是不能点击」）。
+ *
+ * <p>与卡片上的动作**同源**：取首个可导航的 `quote`/`preview` 动作 —— 可编辑（DRAFT/REJECTED）→ 报价编辑页，
+ * 其余状态 → 只读预览页。不另写一套状态判断，避免「卡片点击」与「动作链接」日后漂移。
+ */
+export function cardTargetUrl(row: QuoteRow): string | undefined {
+  const hit =
+    row.actions.find((a) => a.kind === 'navigation' && (a.key === 'quote' || a.key === 'preview')) ??
+    row.actions.find((a) => a.kind === 'navigation')
+  return hit?.url
+}
+
 function toRow(raw: QuoteRowRaw, index: number): QuoteRow {
   const id = raw.id || `row-${index}`
   const key = statusKeyOf(raw.status)

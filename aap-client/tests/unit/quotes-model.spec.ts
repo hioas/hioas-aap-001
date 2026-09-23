@@ -22,9 +22,12 @@ import {
   buildQuotesModel,
   filterStatusQuery,
   formatUpdatedAt,
+  QUOTE_PREVIEW_PAGE,
+  QUOTE_SETUP_PAGE,
   isEditableStatus,
   metaParts,
-  statusKeyOf
+  statusKeyOf,
+  cardTargetUrl
 } from '@/utils/quotes-model'
 import {
   CARD_ACTIONS,
@@ -270,5 +273,30 @@ describe('序号 8 · 卡片视图模型', () => {
     const m = buildQuotesModel({ total: 0, items: [] }, 'pending_sign')
     expect(m.active).toBe('pending_sign')
     expect(m.activeStatusQuery).toEqual(['APPROVED', 'CONTRACT_CREATED'])
+  })
+})
+
+
+describe('cardTargetUrl（卡片主体点击目标 · 用户口径 2026-09-23「报价单卡片还是不能点击」）', () => {
+  const rowOf = (status: string) =>
+    buildQuotesModel({ total: 1, items: [quote({ id: 'qx', status })] }).rows[0]
+
+  it('可编辑状态（草稿/已驳回）→ 报价编辑页（与卡片「报价」动作同源）', () => {
+    expect(cardTargetUrl(rowOf('DRAFT'))).toBe(`${QUOTE_SETUP_PAGE}?quoteId=qx`)
+    expect(cardTargetUrl(rowOf('REJECTED'))).toBe(`${QUOTE_SETUP_PAGE}?quoteId=qx`)
+  })
+
+  it('不可编辑状态（已提交/待签署/已完成/作废）→ 只读预览页', () => {
+    for (const s of ['SUBMITTED', 'REVIEWING', 'APPROVED', 'CONTRACT_CREATED', 'CONVERTED', 'VOID']) {
+      expect(cardTargetUrl(rowOf(s)), `status=${s}`).toBe(`${QUOTE_PREVIEW_PAGE}?quoteId=qx`)
+    }
+  })
+
+  it('目标恒等于卡片上首个可导航动作的 URL（只有一套状态判断，防漂移）', () => {
+    for (const s of ['DRAFT', 'REJECTED', 'SUBMITTED', 'APPROVED', 'CONVERTED']) {
+      const row = rowOf(s)
+      const firstNav = row.actions.find((a) => a.kind === 'navigation' && (a.key === 'quote' || a.key === 'preview'))
+      expect(cardTargetUrl(row), `status=${s}`).toBe(firstNav?.url)
+    }
   })
 })

@@ -26,7 +26,13 @@
 
     <!-- 列表区：design id=14f06409（padding 12/16 · 卡间距 12 · 卡 178 高） -->
     <view class="quotes__list">
-      <view v-for="row in model.rows" :key="row.id" class="quote-card" data-testid="quote-card">
+      <view
+        v-for="row in model.rows"
+        :key="row.id"
+        class="quote-card"
+        data-testid="quote-card"
+        @tap="onCardTap(row)"
+      >
         <!-- 顶行：标题 15px SemiBold + 状态胶囊（22 高 r11） -->
         <view class="quote-card__top">
           <text class="quote-card__title">{{ row.title }}</text>
@@ -64,7 +70,7 @@
             :key="a.key"
             class="quote-action"
             :data-testid="`action-${a.key}-${row.id}`"
-            @tap="onAction(row, a)"
+            @tap.stop="onAction(row, a)"
           >
             <view class="glyph" :class="`glyph--${a.key}`" aria-hidden="true" />
             <text class="quote-action__label">{{ a.label }}</text>
@@ -120,6 +126,7 @@ import {
   PAGE_TITLE,
   QUOTE_NO_LABEL,
   buildQuotesModel,
+  cardTargetUrl,
   metaParts,
   type QuoteAction,
   type QuoteFilterKey,
@@ -173,6 +180,16 @@ function onAction(row: QuoteRow, action: QuoteAction) {
     return
   }
   if (action.api === 'deleteQuote') confirmDelete(row)
+}
+
+/**
+ * 卡片**主体**点击（用户口径 2026-09-23：卡片要能点）。
+ * 目标与卡片上的动作同源（见 {@link cardTargetUrl}）：可编辑 → 报价编辑页，其余 → 只读预览页。
+ * 动作区已用 `@tap.stop` 阻止冒泡，故点「删除/签署」不会顺带跳页。
+ */
+function onCardTap(row: QuoteRow) {
+  const url = cardTargetUrl(row)
+  if (url) uni.navigateTo({ url })
 }
 
 /** 删除：二次确认 → DELETE → 重新拉当前筛选的列表（失败只提示，不动列表） */
@@ -354,6 +371,8 @@ onMounted(load)
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  /* 卡片主体可点（用户口径 2026-09-23）：H5/桌面给手型提示；小程序无 cursor 概念，忽略该声明 */
+  cursor: pointer;
 }
 
 .quote-card__top {

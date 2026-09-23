@@ -192,6 +192,28 @@ describe('序号 8 · 交互（分类见台账）', () => {
     expect((getCalls('navigateTo').at(-1)?.args[0] as Record<string, unknown>).url).toBe('/pages/quote-preview/index?quoteId=q2')
   })
 
+  it('卡片**主体**可点：草稿卡 → 报价编辑页；已提交卡 → 预览页（用户口径 2026-09-23）', async () => {
+    const wrapper = await mountPage()
+    const cards = wrapper.findAll('[data-testid="quote-card"]')
+
+    await cards[0].trigger('tap')
+    expect((getCalls('navigateTo').at(-1)?.args[0] as Record<string, unknown>).url).toBe(
+      '/pages/quote-models/index?quoteId=q1'
+    )
+
+    await cards[1].trigger('tap')
+    expect((getCalls('navigateTo').at(-1)?.args[0] as Record<string, unknown>).url).toBe(
+      '/pages/quote-preview/index?quoteId=q2'
+    )
+  })
+
+  it('点卡片上的动作不会顺带触发卡片跳转（@tap.stop 防冒泡）', async () => {
+    const wrapper = await mountPage()
+    const before = getCalls('navigateTo').length
+    await tap(wrapper, 'action-preview-q2')
+    expect(getCalls('navigateTo').length).toBe(before + 1)
+  })
+
   it('待签署卡的「签署」→ /pages/contract/index?contractId=…（画布 15）', async () => {
     const wrapper = await mountPage()
     await tap(wrapper, 'action-sign-q4')
