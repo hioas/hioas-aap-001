@@ -1,0 +1,62 @@
+==============================================================================
+R313 跨轮 FAIL 明细比对（归一后）
+==============================================================================
+  R312 留档 failraw：解析到 138 行（跳过 [PASS] 行 0、无 tag 前缀 0）
+  R313 本轮 failraw：解析到 142 行（跳过 [PASS] 行 0、无 tag 前缀 0）
+正向对照：两侧解析行数均 > 0 → PASS（R312=138 / R313=142）
+归一集合：R312 = 138 条 / R313 = 142 条
+新增 28 条、消失 24 条
+  + [enum-sets] A2 openapi 内联枚举名全部在 md §5 登记 | 孤儿 5: AuditAction(23), CredentialDetectionStatus(4), IndustryCategory(3), QuoteRejectReason(7), ResultCode(28)
+  + [enum-sets] A5 全部 schema enum 均归属到 md §5 枚举族（未归属的已逐条 FAIL） | 已归属 23 / 37，未归属 13
+  + [enum-sets] models/admin-user.schema.json:status 取值 ['ACTIVE', 'SUSPENDED'] 不匹配任何 md §5 族
+  + [enum-sets] models/audit-log.schema.json:action 取值 ['ADMIN_USER_CREATE', 'ADMIN_USER_RESUME', 'ADMIN_USER_SUSPEND', 'AUTH_LOGIN', 'CONFIG_PUBLISH', 'CONTRACT_SIGN
+  + [enum-sets-selftest] 真实仓库：解析到 16 个族 / 34 个 schema enum / 21 个 openapi enum | rc=1
+  + [error-codes] A9 md 每行错误码列 = 清单：不一致 11 条
+  + [gap-logical-fk] A4 3/11 处请求体引用字段**已消费但无同域存在性校验**（可写入指向不存在父行的引用）：PROV-04(file_id), ADM-CFG07(logo_file_id), ADM-CFG09(logo_file_id)
+  + [gap-pagination-defaults] A1 openapi 每个 page/pageSize 参数都声明 default：缺失 48/48（样例 PROV-03(page)、PROV-03(pageSize)、CRED-01(page)、CRED-01(pageSize)、RPT-01(page)）
+  + [gap-pagination-defaults] A2 openapi 每个 pageSize 参数都声明 maximum：缺失 24/24
+  + [gap-pagination-defaults-selftest] T1 注入修法锚点命中 46 处（= page+pageSize 参数数） — hits=48
+  + [gap-pagination-order] P3 汇总：分页 SQL 排序确定性：PASS 13 / FAIL 1 / 未能静态判定 0
+  + [gap-paging-range] A4: openapi 声明 pageSize 上限 200 的 operation：0/24
+  + [gap-paging-range] A5: openapi 声明 pageSize 默认值 20 的 operation：0/24
+  + [gap-paging-range] A5b: openapi 声明 page 默认值 1 的 operation：0/24
+  + [gap-param-reach-selftest] B8 定位率 25/25
+  + [gap-sensitive-fields] A2c 逐端点响应 DTO 敏感键 ⇔ response_model schema（已定位的端点全部一致） 已定位 38 个端点（跳过 59：AUTH-01: 无键; AUTH-05: 未定位控制器; PROV-03: 返回 Map（键在 Service 里拼装，静态不可判定）; PROV-04: 
+  + [gap-status-machine] A3g md 迁移声明定位率 5/6（要求全部定位且 > 0）
+  + [gap-status-machine] A7 schema admin-user.schema.json 的 status enum 比 ER aap_provider_account 少声明：缺 ['DISABLED']（客户端类型/运行时校验会判为非法值）
+  + [gen-selftest] 输出声明 84/84 个产物一致 (check ok: 89/89 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）)
+  + [request-body] A1b 孤儿请求模型 schema 文件 = 0（仓库里有、清单无端点引用）：孤儿 1 个：['payment-record']
+  + [request-body] A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）：不一致 9 条：{'ADM-CFG07': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-CFG09': "
+  + [response-shape] A2 openapi 声明分页 ⇔ 实现返回分页形状 DTO（items+page+pageSize+total）：不一致 41 条（openapi 与实现至少一侧错）
+  + [response-shape] A3 openapi 分页响应 ⇒ 该端点声明 page+pageSize 查询参数：自相矛盾 39 条
+  + [spotcheck-http-method] A3 实现方法分布与清单不一致（方法语义漂移）：GET 实现 52 / 清单 46
+  + [spotcheck-http-method] A3 实现方法分布与清单不一致（方法语义漂移）：POST 实现 47 / 清单 44
+  + [spotcheck-numeric-range] A4 孤儿请求模型 `payment-record`：生成器注册表有、endpoints.json 零端点引用 → 契约产物不可达（死产物；补端点或删注册项都属契约变更，待拍板）
+  + [spotcheck-required] A2 无「必填同时可空」的自相矛盾属性：矛盾模型 5 个：{'contract-issue': ['file_id'], 'detection-job-create': ['credential_id'], 'payment-record': ['contract_id', 'provider_id
+  + [spotcheck-unique] A2 「仅靠强预查（查重后插入）、无捕获、无 upsert」且唯一列名命中契约表面 6 条 —— 预查与写入之间无锁，并发重复提交撞唯一索引 → 500 E-2001，而契约承诺 409 业务码：uq_admin_username,uq_provider_uscc,uq_credential_pri
+  - [enum-sets] A2 openapi 内联枚举名全部在 md §5 登记 | 孤儿 5: AuditAction(20), CredentialDetectionStatus(4), IndustryCategory(3), QuoteRejectReason(7), ResultCode(28)
+  - [enum-sets] A5 全部 schema enum 均归属到 md §5 枚举族（未归属的已逐条 FAIL） | 已归属 21 / 34，未归属 12
+  - [enum-sets] models/audit-log.schema.json:action 取值 ['AUTH_LOGIN', 'CONFIG_PUBLISH', 'CONTRACT_SIGN', 'CREDENTIAL_REVEAL', 'DETECTION_RELEASE', 'PAYMENT_CONFIRM', 
+  - [error-codes] A9 md 每行错误码列 = 清单：不一致 10 条
+  - [gap-logical-fk] A4 3/12 处请求体引用字段**已消费但无同域存在性校验**（可写入指向不存在父行的引用）：PROV-04(file_id), ADM-CFG07(logo_file_id), ADM-CFG09(logo_file_id)
+  - [gap-pagination-defaults] A1 openapi 每个 page/pageSize 参数都声明 default：缺失 46/46（样例 PROV-03(page)、PROV-03(pageSize)、CRED-01(page)、CRED-01(pageSize)、RPT-01(page)）
+  - [gap-pagination-defaults] A2 openapi 每个 pageSize 参数都声明 maximum：缺失 23/23
+  - [gap-pagination-order] P3 汇总：分页 SQL 排序确定性：PASS 12 / FAIL 1 / 未能静态判定 0
+  - [gap-paging-range] A4: openapi 声明 pageSize 上限 200 的 operation：0/23
+  - [gap-paging-range] A5: openapi 声明 pageSize 默认值 20 的 operation：0/23
+  - [gap-paging-range] A5b: openapi 声明 page 默认值 1 的 operation：0/23
+  - [gap-sensitive-fields] A2c 逐端点响应 DTO 敏感键 ⇔ response_model schema（已定位的端点全部一致） 已定位 38 个端点（跳过 55：AUTH-01: 无键; AUTH-05: 未定位控制器; PROV-03: 返回 Map（键在 Service 里拼装，静态不可判定）; PROV-04: 
+  - [gap-status-machine] A3g md 迁移声明定位率 3/4（要求全部定位且 > 0）
+  - [gen-selftest] 输出声明 84/84 个产物一致 (check ok: 85/85 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）)
+  - [request-body] A4 md「请求」列字段都在请求模型 schema 的 properties 里：缺 1 条：{'ADM-PAY04': "payment-record 缺 ['paid_at']"}
+  - [request-body] A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）：不一致 10 条：{'ADM-CFG07': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-CFG09': 
+  - [response-shape] A2 openapi 声明分页 ⇔ 实现返回分页形状 DTO（items+page+pageSize+total）：不一致 38 条（openapi 与实现至少一侧错）
+  - [response-shape] A3 openapi 分页响应 ⇒ 该端点声明 page+pageSize 查询参数：自相矛盾 36 条
+  - [spotcheck-http-method] A3 实现方法分布与清单不一致（方法语义漂移）：GET 实现 51 / 清单 45
+  - [spotcheck-http-method] A3 实现方法分布与清单不一致（方法语义漂移）：POST 实现 44 / 清单 41
+  - [spotcheck-numeric-range-selftest] 真实仓库 FAIL 集合 = {A4}（与登记一致） | []
+  - [spotcheck-required] A2 无「必填同时可空」的自相矛盾属性：矛盾模型 4 个：{'contract-issue': ['file_id'], 'detection-job-create': ['credential_id'], 'payment-record': ['contract_id', 'provider_id
+  - [spotcheck-required] A4 实现声明必填的字段都在 schema.required 里：不一致 1 条
+  - [spotcheck-unique] A2 「仅靠强预查（查重后插入）、无捕获、无 upsert」且唯一列名命中契约表面 5 条 —— 预查与写入之间无锁，并发重复提交撞唯一索引 → 500 E-2001，而契约承诺 409 业务码：uq_provider_uscc,uq_credential_primary,uq_credential
+判定：存在差异（已逐条列出）
+COMPARE_END=1
