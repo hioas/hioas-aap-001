@@ -20,7 +20,9 @@ const routes: RouteRecordRaw[] = [
       { path: 'reviews', name: 'reviews', component: () => import('@/views/reviews/index.vue'), meta: { title: '报价审核' } },
       { path: 'contracts', name: 'contracts', component: () => import('@/views/contracts/index.vue'), meta: { title: '合同与结算' } },
       { path: 'compilation', name: 'compilation', component: () => import('@/views/compilation/index.vue'), meta: { title: '编译确认台' } },
-      { path: 'sync', name: 'sync', component: () => import('@/views/sync/index.vue'), meta: { title: 'new-api 同步' } }
+      { path: 'sync', name: 'sync', component: () => import('@/views/sync/index.vue'), meta: { title: 'new-api 同步' } },
+      // 2026-09-23 新增：ADM-AUTH02…05 的入口（导航项仅 SUPER_ADMIN 可见，页面内另有角色门禁）
+      { path: 'admin-users', name: 'admin-users', component: () => import('@/views/adminUsers/index.vue'), meta: { title: '运营账号' } }
     ]
   },
   { path: '/:pathMatch(.*)*', redirect: '/dashboard' }

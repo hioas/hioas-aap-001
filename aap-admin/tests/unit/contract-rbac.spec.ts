@@ -5,14 +5,25 @@ import { REJECT_REASON_CODES, REVIEW_STATUS } from '@/api/admin/reviews';
 import { humanCount, toRfc3339Utc } from '@/api/admin/usage';
 
 describe('aap-admin · 导航与权限（PRD 13 §1/§2）', () => {
-  it('导航分组与文案逐字取自设计稿（page-1-pc）', () => {
-    expect(NAV_GROUPS.map((g) => g.label)).toEqual(['概览', '进件管理', '下发与同步']);
+  it('导航分组与文案逐字取自设计稿（page-1-pc）+ 2026-09-23 例外「系统管理/运营账号」', () => {
+    // 前 3 组逐字取自设计稿；第 4 组是**有意例外**（ADM-AUTH02…05 有接口无入口，见 nav.ts 文件头）
+    expect(NAV_GROUPS.map((g) => g.label)).toEqual(['概览', '进件管理', '下发与同步', '系统管理']);
     const labels = NAV_GROUPS.flatMap((g) => g.items.map((i) => i.label));
     expect(labels).toEqual([
       '状态看板', '用量统计', '模型管理',
       '供应商管理', '检测中心', '报价审核', '合同与结算',
-      '编译确认台', 'new-api 同步'
+      '编译确认台', 'new-api 同步',
+      '运营账号'
     ]);
+  });
+
+  it('运营账号菜单仅超管可见（建号/停用=提权；后端同为 SUPER_ADMIN 门禁）', () => {
+    expect(can('SUPER_ADMIN', 'admin.user.manage')).toBe(true);
+    expect(can('BIZ_OPERATOR', 'admin.user.manage')).toBe(false);
+    expect(can('TECH_OPS', 'admin.user.manage')).toBe(false);
+    const item = NAV_GROUPS.flatMap((g) => g.items).find((i) => i.key === 'adminUsers');
+    expect(item?.permission).toBe('admin.user.manage');
+    expect(item?.route).toBe('/admin-users');
   });
 
   it('角色标签三档（运营商务 / 技术运营 / 超管）', () => {

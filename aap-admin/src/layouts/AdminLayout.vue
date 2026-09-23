@@ -57,16 +57,37 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { NAV_GROUPS, can, ROLE_LABEL, type AdminRole } from '@/config/nav';
-import { tokenStore } from '@/api/http';
+import { request, tokenStore, ApiError } from '@/api/http';
 import { ICONS } from '@/components/icons';
 import { useSession } from '@/composables/useSession';
 
 const route = useRoute();
 const router = useRouter();
-const { userName, role } = useSession();
+const { userName, role, set: setSession } = useSession();
+
+/**
+ * 会话**恢复**：刷新/直接打开链接/新标签页时，内存里的 `useSession` 会重置为默认最小权限角色
+ * （BIZ_OPERATOR），于是按权限点过滤的菜单与按钮会**整体消失** —— 超管刷新一下就看到"功能不见了"。
+ * 真源是 `GET /auth/me`（见 useSession 注释），因此布局挂载时必须回填一次。
+ * 仅 401 才清 token 并回登录页；其它错误（后端抖动）不清，避免把可用会话误杀。
+ */
+onMounted(async () => {
+  if (!tokenStore.get()) return;
+  try {
+    const me = await request<{ name?: string; nickname?: string; phone?: string; role?: string }>('/auth/me');
+    if (me?.role) {
+      setSession(me.name ?? me.nickname ?? me.phone ?? '管理员', me.role as AdminRole);
+    }
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 401) {
+      tokenStore.clear();
+      router.push('/login');
+    }
+  }
+});
 
 const roleLabel = computed(() => ROLE_LABEL[role.value]);
 const userInitial = computed(() => (userName.value || '运').slice(0, 1));
