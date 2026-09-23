@@ -1,0 +1,14 @@
+==============================================================================
+R315 跨轮 FAIL 明细比对（归一后）
+==============================================================================
+  R314 留档 failraw：解析到 143 行（跳过 [PASS] 行 0、无 tag 前缀 0）
+  R315 本轮 failraw：解析到 145 行（跳过 [PASS] 行 0、无 tag 前缀 0）
+正向对照：两侧解析行数均 > 0 → PASS（R314=143 / R315=145）
+归一集合：R314 = 143 条 / R315 = 145 条
+新增 3 条、消失 1 条
+  + [contract-keys] docs/backend/openapi.yaml ADM-DET01：有 pageSize 参数但响应未 PageMeta 包装（分页端点漏包装）
+  + [response-shape] A2 openapi 声明分页 ⇔ 实现返回分页形状 DTO（items+page+pageSize+total）：不一致 43 条（openapi 与实现至少一侧错）
+  + [response-shape] A4 实现分页形状 DTO ⇒ openapi 分页：不一致 1 条
+  - [response-shape] A2 openapi 声明分页 ⇔ 实现返回分页形状 DTO（items+page+pageSize+total）：不一致 42 条（openapi 与实现至少一侧错）
+判定：存在差异（已逐条列出）
+COMPARE_END=1
