@@ -16,6 +16,11 @@ app:
   detection:
     # 测试环境关闭定时复测：与用例抢库会产生不可复现的随机失败（逻辑由 RecheckServiceTest 直接驱动）
     recheck-enabled: false
+    # 检测执行器定时扫描：测试里同样关掉（initial-delay 调到 24h 等价于不启动）——
+    # 否则扫描线程会顺手消费其他用例刚建的 QUEUED 任务，产生随机失败。
+    # 执行器逻辑由 DetectionExecutorTest 直接调 scan() 覆盖。
+    execute-delay-ms: 86400000
+    execute-initial-delay-ms: 86400000
   credential:
     aes-key: ${AAP_CREDENTIAL_AES_KEY}
     # 本地端到端联调/测试：允许 127.0.0.1 的上游桩（**不放行私网/链路本地/元数据地址**，AC-29 仍可验证）
