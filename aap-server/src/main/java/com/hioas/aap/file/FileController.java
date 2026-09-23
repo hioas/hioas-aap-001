@@ -1,11 +1,13 @@
 package com.hioas.aap.file;
 
 import com.hioas.aap.common.ApiEnvelope;
+import com.hioas.aap.iam.AuthPrincipal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,8 +29,9 @@ import org.springframework.web.multipart.MultipartFile;
  *   <li>{@code GET  /api/v1/files/{id}} —— 下载文件本体</li>
  * </ul>
  *
- * <p>鉴权：需登录（与其余业务接口一致）。归属校验由各业务域自己做
- * （例如合同只能由相关方取自己的合同文件）—— 本控制器只负责「按 id 取文件」。
+ * <p>鉴权：需登录（与其余业务接口一致），**下载带归属校验**（S-1 修复）：
+ * 管理端可下载全部；供应商只能下载自己上传的文件；无归属文件（管理端上传）对所有登录方可见。
+ * 规则真源在 {@link FileService#loadForDownload}。
  */
 @RestController
 @RequestMapping("/api/v1/files")
@@ -42,7 +45,8 @@ public class FileController {
 
     /** 上传。字段名固定 {@code file}；{@code biz_type} 可选（CONTRACT / QUALIFICATION / VOUCHER…）。 */
     @PostMapping
-    public ApiEnvelope<FileService.View> upload(@RequestParam("file") MultipartFile file,
+    public ApiEnvelope<FileService.View> upload(@AuthenticationPrincipal AuthPrincipal principal,
+                                                @RequestParam("file") MultipartFile file,
                                                 @RequestParam(value = "biz_type", required = false) String bizType) {
         if (file == null) {
             throw new IllegalArgumentException("缺少文件字段 file");
@@ -53,13 +57,19 @@ public class FileController {
         } catch (java.io.IOException e) {
             throw new IllegalStateException("读取上传内容失败", e);
         }
-        return ApiEnvelope.ok(fileService.upload(content, file.getOriginalFilename(), file.getContentType(), bizType));
+        // 归属随上传落库：管理端上传 → owner=null（平台文件，各登录方可下载）
+        Long ownerProviderId = principal == null ? null : principal.providerId();
+        Long uploadedBy = principal == null ? null : principal.accountId();
+        return ApiEnvelope.ok(fileService.upload(content, file.getOriginalFilename(), file.getContentType(),
+                bizType, ownerProviderId, uploadedBy));
     }
 
     /** 下载：返回二进制流，带原始文件名（Content-Disposition，RFC 5987 编码支持中文名）。 */
     @GetMapping("/{id}")
-    public ResponseEntity<byte[]> download(@PathVariable String id) {
-        FileService.Loaded loaded = fileService.load(parseId(id));
+    public ResponseEntity<byte[]> download(@AuthenticationPrincipal AuthPrincipal principal,
+                                           @PathVariable String id) {
+        // S-1：下载必须过归属校验（供应商只能取自己上传的；管理端可审阅全部）
+        FileService.Loaded loaded = fileService.loadForDownload(parseId(id), principal);
         FileAssetEntity asset = loaded.asset();
         String fileName = asset.getOriginalName() == null ? "download" : asset.getOriginalName();
         String encoded = URLEncoder.encode(fileName, StandardCharsets.UTF_8).replace("+", "%20");

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hioas.aap.common.CryptoService;
 import com.hioas.aap.common.ErrorCode;
 import com.hioas.aap.common.ApiException;
+import com.hioas.aap.iam.AuthPrincipal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -24,7 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
  * </ul>
  *
  * <p><b>安全边界</b>：扩展名白名单 + 单文件大小上限 + key 由本服务生成（不接受调用方传 key，
- * 避免路径穿越与命名冲突）。
+ * 避免路径穿越与命名冲突）；**下载带归属校验**（{@link #loadForDownload}，S-1：此前任何登录主体
+ * 都能按 id 取他人文件）。
  */
 @Service
 public class FileService {
@@ -68,9 +70,12 @@ public class FileService {
      * @param originalName 原始文件名（扩展名决定存储键与校验）
      * @param contentType  声明的 MIME（可空，仅作记录）
      * @param bizType      业务类型（CONTRACT / QUALIFICATION / VOUCHER…，可空）
+     * @param ownerProviderId     归属供应商 id（供应商上传时填本人 provider id；管理端上传填 null）
+     * @param uploadedByAccountId 上传者账号 id（仅留痕，不参与鉴权）
      */
     @Transactional
-    public View upload(byte[] content, String originalName, String contentType, String bizType) {
+    public View upload(byte[] content, String originalName, String contentType, String bizType,
+                       Long ownerProviderId, Long uploadedByAccountId) {
         if (content == null || content.length == 0) {
             throw ApiException.field(ErrorCode.E_1001, "file", "文件内容不能为空");
         }
@@ -98,6 +103,8 @@ public class FileService {
         entity.setBizType(type);
         entity.setEncrypted(false);
         entity.setStatus("ACTIVE");
+        entity.setOwnerProviderId(ownerProviderId);
+        entity.setUploadedByAccountId(uploadedByAccountId);
         mapper.insert(entity);
 
         String key = "%s/%s/%d%s".formatted(
@@ -132,6 +139,28 @@ public class FileService {
     public boolean exists(Long fileId) {
         FileAssetEntity entity = fileId == null ? null : mapper.selectOneById(fileId);
         return entity != null && !Boolean.TRUE.equals(entity.getDeleted());
+    }
+
+    /**
+     * 下载读取：**带归属校验**（S-1 越权修复）。规则（唯一真源）：
+     * <ol>
+     *   <li>管理端（{@link AuthPrincipal#isAdmin()}）→ 放行：要审供应商提交的合同与资质</li>
+     *   <li>供应商 → 只放行**自己上传**的文件；他人文件一律 {@code E-1901}（403），
+     *       不区分「不是你的」与「不存在」的存在性探测只在 id 层面（雪花 id 不可枚举）</li>
+     *   <li>无归属（{@code owner_provider_id} 为空 = 管理端上传，如平台签发的合同）→ 放行，
+     *       否则「管理端上传、供应商下载」的正常流程会断</li>
+     * </ol>
+     */
+    public Loaded loadForDownload(Long fileId, AuthPrincipal principal) {
+        Loaded loaded = load(fileId);
+        if (principal == null) {
+            throw new ApiException(ErrorCode.E_1901, "无权下载该文件");
+        }
+        Long owner = loaded.asset().getOwnerProviderId();
+        if (principal.isAdmin() || owner == null || owner.equals(principal.providerId())) {
+            return loaded;
+        }
+        throw new ApiException(ErrorCode.E_1901, "无权下载该文件（不属于当前供应商）");
     }
 
     public record Loaded(FileAssetEntity asset, byte[] content) {

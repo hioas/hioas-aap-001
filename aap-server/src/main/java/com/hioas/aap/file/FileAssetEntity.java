@@ -28,6 +28,32 @@ public class FileAssetEntity extends BaseEntity {
     private String status;
     private OffsetDateTime expireAt;
 
+    /**
+     * 归属供应商 id（上传者）；{@code null} = 管理端上传（平台签发的合同等，对所有已登录方可见）。
+     *
+     * <p>S-1：此前无此列，任何登录主体都能按 id 下载他人文件（IDOR）。校验规则见
+     * {@link FileService#loadForDownload(Long, com.hioas.aap.iam.AuthPrincipal)}。
+     */
+    private Long ownerProviderId;
+    /** 上传者账号 id（供应商账号或管理端账号）——仅留痕，不参与鉴权。 */
+    private Long uploadedByAccountId;
+
+    public Long getOwnerProviderId() {
+        return ownerProviderId;
+    }
+
+    public void setOwnerProviderId(Long v) {
+        this.ownerProviderId = v;
+    }
+
+    public Long getUploadedByAccountId() {
+        return uploadedByAccountId;
+    }
+
+    public void setUploadedByAccountId(Long v) {
+        this.uploadedByAccountId = v;
+    }
+
     public String getFileKey() {
         return fileKey;
     }
