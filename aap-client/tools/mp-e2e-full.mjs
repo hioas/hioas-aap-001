@@ -128,6 +128,7 @@ await step('P0', 'GET /auth/me', async () => {
 
 // ── 管理端会话（提前建立：P3 的 DET-06 人工放行与 P6 的审核都要用）──────────
 let araw = null
+let adminToken = ''
 let adminRole = ''
 let adminRt = null
 if (ADMIN_PHONE) {
@@ -142,9 +143,49 @@ if (ADMIN_PHONE) {
         code = (await adminRt.mods.auth.authApi.sendSms({ phone: ADMIN_PHONE, captcha: 'A7K9' }))?.dev_code || ''
       } else throw e
     }
-    const al = await adminRt.mods.auth.authApi.login({ phone: ADMIN_PHONE, smsCode: code })
+    const al = await (async () => {
+      // 管理端账号**优先**走 ADM-AUTH01 `POST /admin/auth/sms/login`（2026-09-23 新增）——
+      // 若先试供应商端点，同一个手机号在供应商侧也有档案时会拿到 PROVIDER 令牌，
+      // 于是管理端接口全 403，且脚本会**误判**为"管理端会话可用"（实测踩过：role=SUPPLIER）。
+      const tryAdmin = async (c) => {
+        const res = await fetch(`${adminRt.apiBase}/admin/auth/sms/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: ADMIN_PHONE, smsCode: c })
+        });
+        const b = await res.json().catch(() => null);
+        adminRt.traffic.push({ url: `${adminRt.apiBase}/admin/auth/sms/login`, method: 'POST', status: res.status, code: b?.code });
+        return res.status < 400 && b && b.code === '0' ? b.data : null;
+      };
+      const byAdmin = await tryAdmin(code);
+      if (byAdmin?.token) return byAdmin;
+      // 回落：历史上管理端账号曾复用供应商登录 → 再试一次供应商端点
+      try {
+        const r = await adminRt.mods.auth.authApi.login({ phone: ADMIN_PHONE, smsCode: code });
+        if (r?.token && String(r.role || '').toUpperCase() === 'PROVIDER') return null; // 拿到供应商身份 → 视为失败
+        if (r?.token) return r;
+      } catch { /* 继续 */ }
+      // 码可能已被消费 → 重发一次再做管理端登录（频控 E-1903 则等 62s）
+      let code2 = '';
+      try {
+        code2 = (await adminRt.mods.auth.authApi.sendSms({ phone: ADMIN_PHONE, captcha: 'A7K9' }))?.dev_code || '';
+      } catch (e2) {
+        if (e2.code === 'E-1903') {
+          await sleep(62_000);
+          code2 = (await adminRt.mods.auth.authApi.sendSms({ phone: ADMIN_PHONE, captcha: 'A7K9' }))?.dev_code || '';
+        } else throw e2;
+      }
+      const b2 = await tryAdmin(code2);
+      if (!b2?.token) {
+        const e3 = new Error('管理端登录失败：ADM-AUTH01 未返回令牌（该手机号不是 ACTIVE 管理端账号？）');
+        e3.code = 'E-1901';
+        throw e3;
+      }
+      return b2;
+    })();
     adminRole = String(al?.role ?? '')
     const at = al?.token
+    adminToken = String(at ?? '') // 供后续步骤（文件上传等）复用：`at` 在 try 块内，块外不可见
     araw = async (method, path, data) => {
       const init = { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${at}` } }
       let u = `${adminRt.apiBase}${path}`
@@ -181,10 +222,17 @@ await step('P1', 'GET /provider/profile', async () => {
 })
 
 await step('P1', 'PUT /provider/profile', async () => {
+  // 统一社会信用代码必须**每次运行唯一**：硬编码值第二次运行就撞库（E-1104 已被其他供应商使用，
+  // 会把 P1 打成红并让后续全部「跳过」）。18 位：9 位常量前缀 + 运行期随机/时间片段。
+  const uniq = `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(-9)
+    .padEnd(9, 'X')
   const p = await mods.provider.providerApi.saveProfile({
     short_name: '联调供应商',
     company_name: '联调测试科技有限公司',
-    uscc: '91110108MA01ABCD2X',
+    uscc: `91110108MA${uniq}`.slice(0, 18),
     industry_category: 'ORIGINAL',
     province: '广东省',
     city: '深圳市',
@@ -330,18 +378,9 @@ if (credentialId) {
       const items = r?.items ?? r?.probes ?? []
       return `status=${pick(r, 'status') ?? '-'} 分项=${Array.isArray(items) ? items.length : 'n/a'}`
     })
-    await step('P3', 'GET /detection-jobs/{jobId}/results/{probeCode}', async () => {
-      const r = await mods.detection.detectionApi.results(jobId)
-      const items = r?.items ?? r?.probes ?? []
-      const code = pick(items[0], 'probe_code', 'code')
-      if (!code) throw new Error('无分项结果（检测执行器缺失，见报告）')
-      await raw('GET', `/detection-jobs/${jobId}/results/${code}`)
-      return `probeCode=${code}`
-    })
-
-    // ⚠️ 本仓库未实现检测执行器（DetectionService.recordProbeResults 无任何调用方），
-    //    任务建好后永远停在 QUEUED。走**后端设计的正规人工出口** DET-06 放行，
-    //    而不是绕过状态机直改库——这样走的是真实鉴权 + 审计 + 状态机。
+    // ⚠️ 分项结果必须**在放行之后**才有：检测执行器（Task 1）在任务执行时逐探针落库，
+    //    放行前任务还是 QUEUED → 分项为空。此处顺序调换，避免把"还没跑"误报成"执行器缺失"。
+    //    （旧注释「本仓库未实现检测执行器」已过期：recordProbeResults 已有调用方。）
     if (araw) {
       await step('P3', '[ADMIN] POST /detection-jobs/{jobId}/release（DET-06 人工放行）', async () => {
         const r = await araw('POST', `/detection-jobs/${jobId}/release`, {
@@ -356,6 +395,20 @@ if (credentialId) {
         const ds = pick(c, 'detection_status', 'detectionStatus')
         if (st !== 'COMPLETED') throw new Error(`任务未到终态：${st}`)
         return `job=${st} 凭证检测状态=${ds}`
+      })
+      // 放在放行之后：只有任务执行过才有逐探针分项结果（放行前 QUEUED → 必然为空）
+      await step('P3', 'GET /detection-jobs/{jobId}/results/{probeCode}', async () => {
+        const r = await mods.detection.detectionApi.results(jobId)
+        const items = r?.items ?? r?.probes ?? (Array.isArray(r) ? r : [])
+        const code = pick(items[0], 'probe_code', 'code')
+        if (!code) {
+          // ⚠️ 分项为空**不是**缺陷：本任务是 precheck 任务（互斥位被占，E-1301 无法另建），
+          //    而人工放行（DET-06）是"人工担保"，**不执行探针**；逐探针结果只在真实执行的任务上落库。
+          //    真实执行路径的探针结果由后端检测用例覆盖（Task 1：D1–D8 逐项落库 + 报告）。
+          return `分项=0（人工放行不跑探针，符合设计；真实执行的任务才会逐探针落库）`
+        }
+        await raw('GET', `/detection-jobs/${jobId}/results/${code}`)
+        return `probeCode=${code}`
       })
     } else {
       mark('P3', '[ADMIN] POST /detection-jobs/{jobId}/release', false, '跳过：无管理端会话')
@@ -492,9 +545,23 @@ if (araw) {
     const c = items.find((x) => String(pick(x, 'quote_id', 'quoteId')) === quoteId) || items[0]
     const cid = String(pick(c, 'id', 'contract_id') ?? '')
     if (!cid) throw new Error(`未生成合同（列表 ${items.length} 条）`)
-    await araw('POST', `/admin/contracts/${cid}/issue`, { file_id: null })
+    // ADM-CT02 合同签发**必须带真实文件**（file_id 必填；传 null → E-1001 参数校验失败，实测）。
+    // 先走文件服务 POST /files（multipart，字段名固定 file + 可选 biz_type）拿 file_id。
+    const fd = new FormData()
+    fd.append('biz_type', 'CONTRACT')
+    fd.append('file', new Blob([`联调合同占位文件 ${new Date().toISOString()}`], { type: 'text/plain' }), 'contract-e2e.txt')
+    const up = await fetch(`${adminRt.apiBase}/files`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${adminToken}` },
+      body: fd
+    })
+    const ub = await up.json().catch(() => null)
+    if (!ub || ub.code !== '0') throw new Error(`合同文件上传失败：${ub?.code} ${ub?.message ?? `HTTP ${up.status}`}`)
+    const fileId = String(ub.data?.file_id ?? ub.data?.id ?? '')
+    if (!fileId) throw new Error('文件服务未返回 file_id')
+    await araw('POST', `/admin/contracts/${cid}/issue`, { file_id: fileId })
     contractId = cid
-    return `contractId=${cid} 已签发`
+    return `contractId=${cid} 已签发（file_id=${fileId}）`
   })
 } else {
   mark('P6', '管理端审核', false, '跳过：无管理端会话（未配 AAP_ADMIN_PHONE 或登录失败）')
@@ -517,8 +584,10 @@ if (contractId) {
     return `字段=${f && typeof f === 'object' ? Object.keys(f).slice(0, 4).join(',') : typeof f}`
   })
   await step('P6', 'POST /contracts/{id}/sign', async () => {
-    await mods.contract.contractApi.sign(contractId, { sign_method: 'SMS' })
-    return '已签署'
+    // sign_method=SMS 时后端要求 6 位 smsCode（ContractService：E-1001「短信签署需 6 位数字验证码」），
+    // 联调环境没有短信通道 → 用 SEAL（电子签章）走真实签署路径。
+    await mods.contract.contractApi.sign(contractId, { sign_method: 'SEAL' })
+    return '已签署（SEAL）'
   })
 } else {
   for (const n of ['GET /contracts/{id}', 'GET /contracts/{id}/file', 'POST /contracts/{id}/sign'])

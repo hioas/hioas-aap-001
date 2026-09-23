@@ -19,6 +19,18 @@ const here = dirname(fileURLToPath(import.meta.url))
 export const DIST_API = resolve(here, '../dist/build/mp-weixin/api')
 
 /**
+ * 基址归一化：确保以 `/api/v1` 结尾。
+ * 为什么要：产物里的 API_BASE 由**构建期** `VITE_API_BASE` 决定，而联调常临时换后端
+ * （如换到带本地修复的 8086）。调用方写 `http://host:port` 是自然写法，但直连请求
+ * 会因此丢掉 `/api/v1` 前缀（实测：POST /credentials → E-1406 假失败）。
+ */
+function normalizeApiBase(raw) {
+  const u = new URL(String(raw));
+  const p = u.pathname.replace(/\/+$/, '');
+  return `${u.origin}${p && p !== '/' ? p : '/api/v1'}`.replace(/\/+$/, '');
+}
+
+/**
  * 沙箱根目录：**必须放在项目外**。
  * 放在项目内会被 vite dev server 的文件监听捕获，创建/删除时把 dev server 直接打崩
  * （实测：`EBUSY` → dev server 退出，5173 拒绝连接）。放 tmpdir 就彻底不在监听范围内。
@@ -31,7 +43,14 @@ const SANDBOX_ROOT = join(tmpdir(), 'aap-mp-sandboxes')
  * @returns {{ mods: Record<string, any>, storage: Map<string,string>, traffic: Array, uniStub: object, cleanup: () => void }}
  */
 export function createMpRuntime(opts = {}) {
-  const apiBase = opts.apiBase || process.env.AAP_API_BASE || 'http://127.0.0.1:8084/api/v1'
+  // 基址归一化：AAP_API_BASE 常被写成 `http://127.0.0.1:8086`（漏 /api/v1）→ 直连 raw() 会打到
+  // 不存在的路径（实测 POST /credentials 得 E-1406）。这里统一补全，客户端请求与直连请求用同一个基址。
+  const apiBase = normalizeApiBase(
+    opts.apiBase || process.env.AAP_API_BASE || 'http://127.0.0.1:8084/api/v1'
+  )
+  /** 是否显式指定了后端（用于判断要不要改写产物里的构建期基址） */
+  const targetBase = process.env.AAP_API_BASE ? apiBase : ''
+  const redirects = []
   const sandbox = join(SANDBOX_ROOT, `${opts.sandboxName || 'mp-harness'}-${process.pid}`)
 
   rmSync(sandbox, { recursive: true, force: true })
@@ -50,6 +69,21 @@ export function createMpRuntime(opts = {}) {
     }
     const method = String(options.method ?? 'GET').toUpperCase()
     let url = rawUrl
+    // 基址重定向（**仅当显式设置 AAP_API_BASE**）：产物里的 API_BASE 是构建期常量，
+    // 而联调常要换后端（例如换到带本地修复的 8086）。这里只改 origin + /api/v1 前缀，
+    // 路径与 query 原样保留；每次改写都记一条 redirects，避免"悄悄打到别的后端"掩盖问题。
+    if (targetBase) {
+      try {
+        const u = new URL(rawUrl)
+        const tb = new URL(targetBase)
+        const path = u.pathname.replace(/^\/api\/v1/, '') || '/'
+        const to = `${tb.origin}${tb.pathname.replace(/\/+$/, '')}${path}${u.search}`
+        if (to !== rawUrl) {
+          redirects.push({ from: rawUrl, to })
+          url = to
+        }
+      } catch { /* 非法 URL → 交给下面 fail 分支 */ }
+    }
     const data = options.data
     const init = { method, headers: { ...(options.header || {}) } }
 
@@ -136,6 +170,8 @@ export function createMpRuntime(opts = {}) {
     traffic,
     uniStub,
     apiBase,
+    /** 构建期基址被改写为 AAP_API_BASE 的记录（非空即说明本次跑的不是产物里的默认后端） */
+    redirects,
     cleanup: () => rmSync(sandbox, { recursive: true, force: true })
   }
 }
