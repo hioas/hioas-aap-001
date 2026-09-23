@@ -70,6 +70,19 @@ describe('aap-admin · 契约对齐后端', () => {
     expect(PAYMENT_STATUS.PENDING.tone).toBe('warn');
     expect(PAYMENT_STATUS.CONFIRMED.tone).toBe('success');
   });
+
+  it('状态映射必须覆盖**后端真实状态**（否则徽章显示原始码 / 列表筛不到记录）', () => {
+    // 后端 ContractService 状态机：CREATED → PENDING_SIGN → SUPPLIER_SIGNED → SIGNED → ARCHIVED
+    for (const s of ['CREATED', 'PENDING_SIGN', 'SUPPLIER_SIGNED', 'SIGNED', 'ARCHIVED', 'VOID']) {
+      expect(CONTRACT_STATUS[s], `CONTRACT_STATUS.${s}`).toBeDefined();
+    }
+    // 后端 PaymentRecordEntity 四态（PRD 10 §4.3）：曾被写成 PENDING/PAID → 打款记录在管理端完全看不到
+    for (const s of ['UNSETTLED', 'PAYMENT_RECORDED', 'CONFIRMED', 'VOID']) {
+      expect(PAYMENT_STATUS[s], `PAYMENT_STATUS.${s}`).toBeDefined();
+    }
+    expect(PAYMENT_STATUS.PAYMENT_RECORDED.tone).toBe('info');
+    expect(PAYMENT_STATUS.VOID.tone).toBe('danger');
+  });
 });
 
 describe('aap-admin · 用量工具函数', () => {

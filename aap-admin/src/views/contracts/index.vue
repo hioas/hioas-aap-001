@@ -87,6 +87,16 @@
               >
                 签署确认
               </el-link>
+              <el-link
+                v-if="canWrite && isRecordable(row)"
+                type="success"
+                :underline="false"
+                class="ct__act"
+                data-testid="act-record-pay"
+                @click="openRecord(row)"
+              >
+                记录打款
+              </el-link>
             </template>
           </el-table-column>
         </el-table>
@@ -136,6 +146,9 @@
             </div>
             <div class="pay-item__amt">{{ money(p.amount) }}</div>
             <el-button v-if="canWrite" size="small" data-testid="act-confirm-pay" @click="onConfirmPay(p)">确认打款</el-button>
+            <el-button v-if="canWrite && canVoidPay(p)" size="small" text type="danger" data-testid="act-void-pay" @click="onVoidPay(p)">
+              作废
+            </el-button>
           </div>
           <p class="ct__note">
             PRD 13 §6：「**不做资金流转，仅记录**」—— 此处只更新记录状态，不触发任何转账。
@@ -180,6 +193,32 @@
         </p>
       </template>
     </el-drawer>
+
+    <!-- 记录打款（ADM-PAY04）：运营线下打款后录入留痕；PRD 10 R-42 只记录不流转 -->
+    <el-dialog v-model="recordOpen" title="记录打款（仅留痕，不产生资金流转）" width="520px" data-testid="record-dialog">
+      <el-form label-width="92px">
+        <el-form-item label="合同">
+          <span data-testid="rec-contract">{{ recordTarget?.contract_no || recordTarget?.id }}</span>
+          <span class="ct__hint">· 供应商 {{ recordTarget?.supplier_name || recordTarget?.provider_id }}</span>
+        </el-form-item>
+        <el-form-item label="打款金额">
+          <el-input-number v-model="recordForm.amount" :min="0.01" :precision="2" :step="100" data-testid="rec-amount" />
+          <span class="ct__hint">币种 {{ recordForm.currency || recordTarget?.currency || '—' }}（须与合同一致，C4）</span>
+        </el-form-item>
+        <el-form-item label="打款凭证">
+          <input type="file" accept="image/*,.pdf" data-testid="rec-voucher" @change="onVoucherPick" />
+          <span v-if="recordForm.voucherName" class="ct__hint">已上传：{{ recordForm.voucherName }}</span>
+          <span v-else class="ct__hint">凭证截图必填（C5）</span>
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="recordForm.remark" maxlength="255" placeholder="如：对公转账，流水号 …" data-testid="rec-remark" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="recordOpen = false">取消</el-button>
+        <el-button type="primary" :loading="saving" data-testid="rec-submit" @click="onSubmitRecord">提交</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -187,7 +226,7 @@
 import { computed, onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
-  contractApi, CONTRACT_STATUS, PAYMENT_STATUS,
+  contractApi, uploadVoucher, CONTRACT_STATUS, PAYMENT_STATUS,
   type ContractRow, type PaymentRow, type StatementRow
 } from '@/api/admin/contracts';
 import { useSession } from '@/composables/useSession';
@@ -214,8 +253,9 @@ const fmt = (s: string | null | undefined) => (s ? String(s).replace('T', ' ').s
 const money = (v: number | null | undefined) =>
   v == null ? '—' : `¥${Number(v).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-const pendingPayments = computed(() => payments.value.filter((p) => p.status === 'PENDING' || p.status === 'PAID'));
-const pendingPayCount = computed(() => payments.value.filter((p) => p.status === 'PENDING').length);
+/** 待确认的打款记录：后端四态里的 PAYMENT_RECORDED（旧值 UNSETTLED 一并兼容） */
+const pendingPayments = computed(() => payments.value.filter((p) => ['PAYMENT_RECORDED', 'UNSETTLED'].includes(p.status)));
+const pendingPayCount = computed(() => payments.value.filter((p) => p.status === 'PAYMENT_RECORDED').length);
 
 /** 合同 ↔ 结算额映射：后端 Contract 视图无「本期结算额」，从 Statement 按 contract_id 找（找不到就显式留白） */
 function amountOf(contractId: string): string | null {
@@ -252,7 +292,7 @@ async function loadAll() {
     // KPI 由真实数据如实统计（后端无聚合接口）
     kpi.pendingSign = (c?.items ?? []).filter(isSignedPending).length;
     kpi.monthAmount = statements.value.reduce((a, x) => a + Number(x.total_amount ?? 0), 0);
-    kpi.pendingPay = payments.value.filter((x) => x.status === 'PENDING').reduce((a, x) => a + Number(x.amount ?? 0), 0);
+    kpi.pendingPay = payments.value.filter((x) => x.status === 'PAYMENT_RECORDED').reduce((a, x) => a + Number(x.amount ?? 0), 0);
     kpi.settled = payments.value.filter((x) => x.status === 'CONFIRMED').reduce((a, x) => a + Number(x.amount ?? 0), 0);
   } catch (e) {
     error.value = (e as Error).message;
@@ -303,7 +343,85 @@ async function onConfirmPay(p: PaymentRow) {
 
 function onBatchPay() {
   // PRD 13 §6 允许批量打款（仅记录）。后端无批量接口 → 逐条确认，不假装有批量端点。
-  ElMessage.info(`后端无批量打款接口，请逐条确认（当前 ${pendingPayCount.value} 笔待打款）`);
+  ElMessage.info(`后端无批量打款接口，请逐条确认（当前 ${pendingPayCount.value} 笔待确认）`);
+}
+
+// ---------------------------------------------------------------- 记录打款 / 作废（ADM-PAY04/05）
+const recordOpen = ref(false);
+const recordTarget = ref<ContractRow | null>(null);
+const saving = ref(false);
+const recordForm = reactive({ amount: 0, currency: '', voucherId: '', voucherName: '', remark: '' });
+
+/** 仅「已签署」合同可记录打款（后端：未签署 409 E-1601，AC-40 未签署禁打款） */
+const isRecordable = (r: ContractRow) => r.status === 'SIGNED';
+/** 可作废：后端 VOIDABLE = PAYMENT_RECORDED / CONFIRMED */
+const canVoidPay = (p: PaymentRow) => ['PAYMENT_RECORDED', 'CONFIRMED'].includes(p.status);
+
+function openRecord(r: ContractRow) {
+  recordTarget.value = r;
+  recordForm.amount = 0;
+  recordForm.currency = r.currency ?? '';
+  recordForm.voucherId = '';
+  recordForm.voucherName = '';
+  recordForm.remark = '';
+  recordOpen.value = true;
+}
+
+async function onVoucherPick(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+  try {
+    recordForm.voucherId = await uploadVoucher(file);
+    recordForm.voucherName = file.name;
+    ElMessage.success('凭证已上传');
+  } catch (err) {
+    ElMessage.error((err as Error).message);
+  }
+}
+
+async function onSubmitRecord() {
+  const t = recordTarget.value;
+  if (!t) return;
+  if (!(recordForm.amount > 0)) {
+    ElMessage.warning('打款金额必须大于 0（C4）');
+    return;
+  }
+  if (!recordForm.voucherId) {
+    ElMessage.warning('请先上传打款凭证（C5）');
+    return;
+  }
+  saving.value = true;
+  try {
+    const p = await contractApi.recordPayment({
+      contract_id: t.id,
+      amount: recordForm.amount,
+      currency: recordForm.currency || null,
+      voucher_file_id: recordForm.voucherId,
+      remark: recordForm.remark || null
+    });
+    ElMessage.success(`已记录打款：${p.contract_no ?? t.contract_no}（${payLabel(p.status)}）`);
+    recordOpen.value = false;
+    await loadAll();
+  } catch (err) {
+    ElMessage.error((err as Error).message);
+  } finally {
+    saving.value = false;
+  }
+}
+
+async function onVoidPay(p: PaymentRow) {
+  try {
+    const { value } = await ElMessageBox.prompt('作废后该笔不计入钱包，可重新录入。请填写作废理由：', '作废打款', {
+      inputPlaceholder: '如：金额填错',
+      inputValidator: (v: string) => (v && v.trim() ? true : '理由必填')
+    });
+    await contractApi.voidPayment(p.id, value.trim());
+    ElMessage.success('已作废');
+    await loadAll();
+  } catch (e) {
+    // 取消（字符串 'cancel'/'close'）不报错，只提示真实失败
+    if (e instanceof Error) ElMessage.error(e.message);
+  }
 }
 
 function onExport() {
@@ -334,6 +452,9 @@ defineExpose({ loadAll });
 .ct__err { color: var(--c-danger); font-size: var(--fs-base); margin: 10px 0 0; }
 .ct__empty { padding: 20px; text-align: center; color: var(--c-text-muted); font-size: var(--fs-base); }
 .ct__note { font-size: var(--fs-sm); color: var(--c-text-muted); margin: 12px 0 0; line-height: 1.6; }
+
+/* 表单内联提示（记录打款弹窗：币种口径 / 凭证状态） */
+.ct__hint { font-size: var(--fs-sm); color: var(--c-text-muted); margin-left: 8px; }
 
 .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 @media (max-width: 1280px) { .row-2 { grid-template-columns: 1fr; } }
