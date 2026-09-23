@@ -7,7 +7,7 @@
 > + `docs/api/接口字段级schema.md`（供应商端字段级补充）+ `17-零歧义执行规格spec.md`（错误码/状态机）。
 > 模型定义：请求/响应体的 JSON Schema 见 `json-schema/**`，OpenAPI 见 `openapi.yaml`。
 
-**版本** v1.0 · 2026-09-17 · 共 **93 条**端点（供应商端 49 · 管理端 44，与 `openapi.yaml` 生成器逐条同源）。
+**版本** v1.0 · 2026-09-17 · 共 **97 条**端点（供应商端 49 · 管理端 48，与 `openapi.yaml` 生成器逐条同源）。
 
 **标注规则**
 
@@ -216,6 +216,15 @@
 | ID | 方法 | 路径 | 角色 | 请求/响应 | 错误码 | 状态 |
 |---|---|---|---|---|---|---|
 | ADM-AUTH01 | POST | `/admin/auth/sms/login` | 免（`SecurityConfig.PUBLIC_PATHS` 放行） | body `{phone, smsCode}` → `LoginResult{token,role,status}`（`subjectType=ADMIN`，role 取自 `aap_admin_user.role`） | E-1001 E-1901 E-1902 E-1903 | T14 |
+| ADM-AUTH02 | GET | `/admin/admin-users` | SUPER_ADMIN | q：`page` `pageSize` `role?` `status?` `keyword?` → 分页 `AdminUser`（只出 `phone_masked`） | E-1901 | T14 |
+| ADM-AUTH03 | POST | `/admin/admin-users` | SUPER_ADMIN | body `{username,display_name?,role,phone}` → `AdminUser`（手机号即登录名；`username`/`phone` 唯一；role 白名单 BIZ_OPERATOR/TECH_OPS/SUPER_ADMIN） | E-1001 | T14 |
+| ADM-AUTH04 | POST | `/admin/admin-users/{id}/suspend` | SUPER_ADMIN | body `{reason}` → `AdminUser`（ACTIVE→SUSPENDED；不可停用自己、不可停用最后一个启用中超管） | E-1001 E-1406 E-1601 | T14 |
+| ADM-AUTH05 | POST | `/admin/admin-users/{id}/resume` | SUPER_ADMIN | → `AdminUser`（SUSPENDED→ACTIVE） | E-1406 E-1601 | T14 |
+
+> **为什么新增（ADM-AUTH02…05）**：`ADM-AUTH01` 打通管理端登录后，**建号仍只能靠 SQL**
+> （13-管理端PRD 要求管理端账号可自助管理）。全部限 SUPER_ADMIN —— 建号/停用属提权操作。
+> 本期无密码登录：`password_hash` 落不可用占位 `"!"`，登录一律走 `ADM-AUTH01` 短信码。
+> `phone_hash` 列**无唯一索引**，故重复手机号由服务层拦截（否则短信登录将无法确定登录到哪个账号）。
 
 > **为什么新增**：管理端此前**没有登录入口** —— `aap-admin` 登录页调的是供应商端点 `AUTH-02`，
 > 而它固定签发 `subjectType=PROVIDER`，导致登录「成功」但 `/admin/**` 一律 403 `E-1901`

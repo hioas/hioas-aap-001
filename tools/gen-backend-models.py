@@ -58,6 +58,7 @@ ENUMS = {
                           "VALIDITY_ISSUE", "MISSING_INFO", "OTHER"],
     "AuditAction": ["CREDENTIAL_REVEAL", "QUOTE_CREATE", "QUOTE_SAVE", "QUOTE_SUBMIT", "QUOTE_WITHDRAW", "QUOTE_VOID", "QUOTE_APPROVE", "QUOTE_REJECT", "SYNC_WRITE_PRICE", "PROVIDER_SUSPEND", "PROVIDER_RESUME",
                     "CONTRACT_SIGN", "PAYMENT_RECORD", "PAYMENT_CONFIRM", "PAYMENT_VOID", "DETECTION_RELEASE", "PROFILE_UPDATE", "AUTH_LOGIN",
+                    "ADMIN_USER_CREATE", "ADMIN_USER_SUSPEND", "ADMIN_USER_RESUME",
                     "CONFIG_PUBLISH", "SYNC_EXECUTE"],
     "ResultCode": ["0", "E-1001", "E-1101", "E-1102", "E-1104", "E-1201", "E-1301", "E-1302", "E-1303",
                    "E-1304", "E-1305", "E-1401", "E-1402", "E-1403", "E-1404", "E-1405", "E-1406",
@@ -368,6 +369,13 @@ MODELS: dict[str, dict] = {
         "target_type": STR, "target_id": ID, "summary": STR,
         "before_value": {"type": ["object", "null"]}, "after_value": {"type": ["object", "null"]},
         "result": STR, "risk_level": STR, "created_at": TS}),
+    # 管理端运营账号（ADM-AUTH02…05，2026-09-23 新增）：手机号即登录名（短信登录），
+    # 密码列在 build_admin_user 里落不可用占位（本期无密码登录，见 iam/AdminUserService）。
+    "admin-user": dict(required=["id", "username", "role", "status"], properties={
+        "id": ID, "username": STR, "display_name": STR,
+        "role": {"type": "string", "enum": ENUMS["Role"]},
+        "status": {"type": "string", "enum": ["ACTIVE", "SUSPENDED", None]},
+        "phone_masked": STR, "last_login_at": TS, "created_at": TS}),
     "login-result": dict(required=["token", "role"], properties={
         "token": STR, "refresh_token": STR, "refreshToken": STR,
         "role": {"type": "string", "enum": ENUMS["Role"]},
@@ -406,6 +414,15 @@ REQUESTS: dict[str, dict] = {
         "voucher_file_id": ID, "paid_at": TS, "remark": {"type": ["string", "null"], "maxLength": 255}}),
     # ADM-PAY05 作废打款（PRD 10 §4.3「VOID 作废后重录」，必填理由）
     "payment-void": dict(required=["reason"], properties={
+        "reason": {"type": "string", "minLength": 1, "maxLength": 255}}),
+    # ADM-AUTH03 建运营账号（手机号即登录名：短信登录，故 phone 必填；username 为展示/审计用）
+    "admin-user-create": dict(required=["username", "role", "phone"], properties={
+        "username": {"type": "string", "minLength": 1, "maxLength": 64},
+        "display_name": {"type": ["string", "null"], "maxLength": 64},
+        "role": {"type": "string", "enum": ["BIZ_OPERATOR", "TECH_OPS", "SUPER_ADMIN"]},
+        "phone": {"type": "string", "pattern": "^1[3-9]\\d{9}$"}}),
+    # ADM-AUTH04 停用运营账号（必填理由，便于追责）
+    "admin-user-suspend": dict(required=["reason"], properties={
         "reason": {"type": "string", "minLength": 1, "maxLength": 255}}),
     "provider-profile-update": dict(properties={
         "short_name": {"type": "string", "maxLength": 64},
@@ -553,6 +570,11 @@ PATHS: list[tuple] = [
     # 管理端账号接入（2026-09-23 新增）：此前管理端没有登录入口 —— aap-admin 调供应商 AUTH-02
     # 只会拿到 PROVIDER 身份 → /admin/** 全 403。见 docs/backend/02-API接口模型清单.md §2.5。
     ("ADM-AUTH01", "post", "/admin/auth/sms/login", "AdminAuth", "anon", "auth-sms-login", "login-result", [], ["E-1001", "E-1901", "E-1902", "E-1903"], "新增"),
+    # 运营账号管理（2026-09-23 新增）：管理端账号此前只能靠 SQL 建号。全部限 SUPER_ADMIN。
+    ("ADM-AUTH02", "get", "/admin/admin-users", "AdminAuth", "SUPER_ADMIN", None, "admin-user", ["page", "pageSize", "role", "status", "keyword"], [], "新增"),
+    ("ADM-AUTH03", "post", "/admin/admin-users", "AdminAuth", "SUPER_ADMIN", "admin-user-create", "admin-user", [], ["E-1001"], "新增"),
+    ("ADM-AUTH04", "post", "/admin/admin-users/{id}/suspend", "AdminAuth", "SUPER_ADMIN", "admin-user-suspend", "admin-user", [], ["E-1001", "E-1406", "E-1601"], "新增"),
+    ("ADM-AUTH05", "post", "/admin/admin-users/{id}/resume", "AdminAuth", "SUPER_ADMIN", None, "admin-user", [], ["E-1406", "E-1601"], "新增"),
     ("ADM-P01", "get", "/admin/providers", "Admin", "BIZ_OPERATOR,TECH_OPS,SUPER_ADMIN", None, "provider-profile", ["page", "pageSize", "status", "keyword"], [], "推断"),
     ("ADM-P02", "post", "/admin/providers/{id}/suspend", "Admin", "BIZ_OPERATOR,TECH_OPS,SUPER_ADMIN", "provider-suspend", "provider-profile", [], ["E-1601"], "真源"),
     ("ADM-P03", "post", "/admin/providers/{id}/resume", "Admin", "BIZ_OPERATOR,TECH_OPS,SUPER_ADMIN", None, "provider-profile", [], ["E-1601"], "真源"),
@@ -607,6 +629,7 @@ LIST_RESPONSE_MODELS = {
     "usage-hourly-bucket", "audit-log", "sync-task", "channel-binding", "provider-profile",
     "detection-config", "report-template", "review-task", "review-record", "quote-compare",
     "model-info", "detection-result", "quote-item", "compilation-result", "settlement-statement",
+    "admin-user",
     "quote-version", "credential-precheck", "provider-qualification",
 }
 

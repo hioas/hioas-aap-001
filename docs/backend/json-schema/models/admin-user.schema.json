@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "admin-user",
+  "required": [
+    "id",
+    "username",
+    "role",
+    "status"
+  ],
+  "properties": {
+    "id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失；可空）"
+    },
+    "username": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "display_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "SUPPLIER",
+        "PROVIDER",
+        "BIZ_OPERATOR",
+        "TECH_OPS",
+        "SUPER_ADMIN"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "SUSPENDED",
+        null
+      ]
+    },
+    "phone_masked": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "last_login_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "created_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

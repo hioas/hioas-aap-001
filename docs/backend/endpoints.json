@@ -1,5 +1,5 @@
 {
-  "total": 93,
+  "total": 97,
   "endpoints": [
     {
       "id": "AUTH-01",
@@ -802,6 +802,73 @@
         "E-1901",
         "E-1902",
         "E-1903"
+      ],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "ADM-AUTH02",
+      "method": "GET",
+      "path": "/api/v1/admin/admin-users",
+      "tag": "AdminAuth",
+      "auth": "SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "admin-user",
+      "query_params": [
+        "page",
+        "pageSize",
+        "role",
+        "status",
+        "keyword"
+      ],
+      "error_codes": [],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "ADM-AUTH03",
+      "method": "POST",
+      "path": "/api/v1/admin/admin-users",
+      "tag": "AdminAuth",
+      "auth": "SUPER_ADMIN",
+      "request_model": "admin-user-create",
+      "response_model": "admin-user",
+      "query_params": [],
+      "error_codes": [
+        "E-1001"
+      ],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "ADM-AUTH04",
+      "method": "POST",
+      "path": "/api/v1/admin/admin-users/{id}/suspend",
+      "tag": "AdminAuth",
+      "auth": "SUPER_ADMIN",
+      "request_model": "admin-user-suspend",
+      "response_model": "admin-user",
+      "query_params": [],
+      "error_codes": [
+        "E-1001",
+        "E-1406",
+        "E-1601"
+      ],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "ADM-AUTH05",
+      "method": "POST",
+      "path": "/api/v1/admin/admin-users/{id}/resume",
+      "tag": "AdminAuth",
+      "auth": "SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "admin-user",
+      "query_params": [],
+      "error_codes": [
+        "E-1406",
+        "E-1601"
       ],
       "source": "新增",
       "task": ""
