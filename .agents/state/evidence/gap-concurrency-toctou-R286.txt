@@ -1,0 +1,38 @@
+==============================================================================
+R286 取证：TOCTOU 窗口 + 判据范围缺口（**历史（R284）事实复核 + 本轮保持性核对**；只读）
+==============================================================================
+-- 历史段（R284 无效轮归档 = C:\Users\laitz\AppData\Local\Temp\aap-r284-aux\invalid-run1）--
+[PASS] A0a 正向对照：历史归档三件产物齐备（缺一即判据不可用，历史 46/75/98） 存在 = ['run1.raw', 'run2.raw', 'facts-run.log']
+[PASS] A0 正向对照：历史 run1/run2 的 surefire 合计行均可解析（解析到 0 行即判据不可用） run1=True run2=True
+[PASS] A1 历史事实：run1 判红（Errors ≥ 1）∧ **同一提交** run2 判绿（Failures=Errors=0）—— 同代码两轮结果相反 run1=('211', '0', '1', '0') / run2=('211', '0', '0', '0')
+[PASS] A2 历史事实：死锁指纹命中（`deadlock detected` > 0 ∧ truncateAll 处 PessimisticLockingFailure = 1 处） deadlock=3 truncatePessimistic=1
+[PASS] A3 历史事实：起跑前快照报「无并发」（CONCURRENT_TEST_JVMS=0 ∧ SAME_REPO_MAVEN=0）→ 并发出现在**起跑之后**（TOCTOU） conc=0 same=0
+[PASS] A4 历史污染指纹仍可当场复核：主仓 target 下存在 mtime ∈ 历史 run1 窗口的测试产物（> 0 是正向对照；0 条即污染判定不成立、不得据此判「他方并发」） 命中 2 条，例如 ['2026-09-23T07-44-22_499.dumpstream', '2026-09-23T07-46-37_138.dumpstream']
+     历史 run1 窗口 = [2026-09-23 07:43:03, 2026-09-23 07:47:25]；主仓 target = E:\workspaces\hioas\hioas-aap-001\aap-server\target\surefire-reports
+     PRE（修正前）判据 token = ['classworlds', 'surefirebooter']
+[PASS] A5 PRE（修正前）段：由脚本自身 grep 出的并发判据 token 集合只含 surefire/classworlds 类（**不含** IDE 测试运行器 JUnitStarter 一类）∧ 无运行期采样 ∧ 无主仓 target 指纹 sampler=0 mrepo=0
+[PASS] A6 保持性核对：本轮执行器仍含运行期采样器 ∧ 主仓 target mtime 指纹 ∧ 采样结果落盘 facts sampler=3 mrepo=2
+[PASS] A7 本轮两轮均绿（rc=0 ∧ Failures=Errors=Skipped=0） run1=[INFO] Tests run: 221, Failures: 0, Errors: 0, Skipped: 0 / run2=[INFO] Tests run: 221, Failures: 0, Errors: 0, Skipped: 0
+[PASS] A8 本轮采样证据：采样条数 > 0 ∧ **外来**测试 JVM 峰值 = 0 ∧ 同仓库 maven 峰值 = 0 ∧ 主仓 target mtime 全程未被触碰（base == end） samples=8 conc_max=1（跑测期自身预期 1 → 外来 = 0）same_max=0 mrepo=1790122782->1790122782
+     采样口径（据实）：跑测期内**本轮自身**的 fork 型测试 JVM 恒为 1 → 外来测试 JVM = 观测峰值 − 1；此判据只覆盖 fork 型（`surefirebooter`）JVM，**IDE 启动型**不在此 token 范围内 → 由第二位**token 无关**的证人承担：主仓 target mtime 全程不变（任何来源的测试进程只要碰共享库就会改它）
+[PASS] K1 判别力实测：mtime **在**窗口内必须判「污染」（正例） 
+[PASS] K2 判别力实测：mtime **在**窗口外必须判「非污染」（负例） 
+[PASS] K3 判别力实测：无死锁行的文本必须判「非死锁」 
+[PASS] K4 解析失效反面：空文本必须判「判定不可用」而非判绿 
+
+汇总：PASS = 14 / FAIL = 0
+
+CONC_MODE=KEEPCHECK
+CONC_INVALID_ROUND_HISTORICAL=1
+CONC_DEADLOCK_HITS=3
+CONC_TRUNCATE_PESSIMISTIC=1
+CONC_PREFLIGHT_COLD=1
+CONC_MAINREPO_MT_IN_WINDOW=1
+CONC_MAINREPO_MT_HITS=2
+CONC_PRE_NO_SAMPLER=1
+CONC_POST_SAMPLER_KEPT=1
+CONC_TOCTOU=1
+CONC_RERUN_ALL_GREEN=1
+CONC_RERUN_SAMPLES=8
+CONC_SELFTEST=4/4
+CONC_END=1
