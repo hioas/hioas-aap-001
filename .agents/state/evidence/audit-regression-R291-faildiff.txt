@@ -1,0 +1,16 @@
+==============================================================================
+R291 跨轮 FAIL 明细比对（归一后）
+==============================================================================
+  R290 留档 failraw：解析到 132 行（跳过 [PASS] 行 0、无 tag 前缀 0）
+  R291 本轮 failraw：解析到 132 行（跳过 [PASS] 行 0、无 tag 前缀 0）
+正向对照：两侧解析行数均 > 0 → PASS（R290=132 / R291=132）
+归一集合：R290 = 132 条 / R291 = 132 条
+新增 3 条、消失 3 条
+  + [gap-softdelete] A3 aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java:622 表 aap_price_time_rule 的查询链上无 `deleted = false`：(select id from aap_price_time_ru
+  + [routes] A4 客户端每个调用点都在冻结清单内且方法一致：越界调用 2 个
+  + [spotcheck-http-method] A3 实现方法分布与清单不一致（方法语义漂移）：PUT 实现 7 / 清单 5
+  - [gap-softdelete] A3 aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java:561 表 aap_price_time_rule 的查询链上无 `deleted = false`：(select id from aap_price_time_ru
+  - [routes] A4 客户端每个调用点都在冻结清单内且方法一致：越界调用 1 个
+  - [spotcheck-http-method] A3 实现方法分布与清单不一致（方法语义漂移）：PUT 实现 6 / 清单 5
+判定：存在差异（已逐条列出）
+COMPARE_END=1
