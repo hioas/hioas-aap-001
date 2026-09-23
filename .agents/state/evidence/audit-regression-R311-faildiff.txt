@@ -1,0 +1,16 @@
+==============================================================================
+R311 跨轮 FAIL 明细比对（归一后）
+==============================================================================
+  R310 留档 failraw：解析到 132 行（跳过 [PASS] 行 0、无 tag 前缀 0）
+  R311 本轮 failraw：解析到 134 行（跳过 [PASS] 行 0、无 tag 前缀 0）
+正向对照：两侧解析行数均 > 0 → PASS（R310=132 / R311=134）
+归一集合：R310 = 132 条 / R311 = 134 条
+新增 4 条、消失 2 条
+  + [auth-contract] A7 md 的 `免` 行集合 = 清单 anon 集合：不一致 {'ADM-AUTH01': 'PUBLIC_PATHS'}
+  + [gap-sensitive-fields] A2c 逐端点响应 DTO 敏感键 ⇔ response_model schema（已定位的端点全部一致） 已定位 38 个端点（跳过 53：AUTH-01: 无键; AUTH-05: 未定位控制器; PROV-03: 返回 Map（键在 Service 里拼装，静态不可判定）; PROV-04: 
+  + [spotcheck-http-method] A3 实现方法分布与清单不一致（方法语义漂移）：POST 实现 42 / 清单 39
+  + [spotcheck-success-shape-selftest] T16 真实仓库正向对照：控制器定位 90/90 且解析到 90 个 operation rc=1
+  - [gap-sensitive-fields] A2c 逐端点响应 DTO 敏感键 ⇔ response_model schema（已定位的端点全部一致） 已定位 37 个端点（跳过 53：AUTH-01: 无键; AUTH-05: 未定位控制器; PROV-03: 返回 Map（键在 Service 里拼装，静态不可判定）; PROV-04: 
+  - [spotcheck-http-method] A3 实现方法分布与清单不一致（方法语义漂移）：POST 实现 41 / 清单 38
+判定：存在差异（已逐条列出）
+COMPARE_END=1

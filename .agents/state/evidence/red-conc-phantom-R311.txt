@@ -1,0 +1,44 @@
+==============================================================================
+R311 真发现①（红线取证，历史纪律 11/20/158 的**实动**复现）：他方在主仓并发跑 mvn test
+==============================================================================
+被测提交 = 6ef5620（临时 detached worktree，与当时 HEAD 一致）
+前置检查 = 执行=1 / PREFLIGHT_OK=1（起跑那一刻是干净的：同一窗口内他方随后才起跑）
+run1 窗口 = [2026-09-23 19:26:56, 2026-09-23 19:28:39] rc=1
+run2 窗口 = [2026-09-23 19:28:40, 2026-09-23 19:29:53] rc=1
+run1 合计 = [ERROR] Tests run: 229, Failures: 1, Errors: 0, Skipped: 0
+run2 合计 = [ERROR] Tests run: 229, Failures: 4, Errors: 0, Skipped: 0
+
+失败方法（两轮集合**不相同**——同提交两轮不同红，是并发污染的固定指纹）：
+  run1  [ERROR] com.hioas.aap.file.FileOwnershipTest.crossProviderDownloadIsDenied -- Time elapsed: 0.415 s <<< FAILURE!
+  run2  [ERROR] com.hioas.aap.adminconfig.DetectionConfigContractTest.createDetailList -- Time elapsed: 4.313 s <<< FAILURE!
+  run2  [ERROR] com.hioas.aap.adminconfig.DetectionConfigContractTest.permissions -- Time elapsed: 0.607 s <<< FAILURE!
+  run2  [ERROR] com.hioas.aap.adminconfig.DetectionConfigContractTest.updateOnlyDraft -- Time elapsed: 0.319 s <<< FAILURE!
+  run2  [ERROR] com.hioas.aap.adminconfig.DetectionConfigContractTest.publishWithAuditTrail -- Time elapsed: 0.227 s <<< FAILURE!
+
+失败码（失败块窗口内解析）：run1 = ['E-1001'] / run2 = ['E-1902']（均指向「认证态/验证码态被清空」，非业务断言失败）
+响应体摘录（run1）：[{"code":"E-1001","message":"验证码不存在或已过期，请重新获取","data":null,"traceId":"1cc626dbc6234b3cb9c2ba2b47f51ea8","details":[]}] 
+响应体摘录（run2）：[{"code":"E-1902","message":"未认证或登录已过期","data":null,"traceId":"dbdd9c5ddd8e46e5ad9311f78146a966","details":null}] 
+
+并发指纹（运行期采样，只读；CONC_TEST 含本轮自身 surefire 分叉，故峰值 2 = 本轮 1 + 外来 1）：
+  19:26:52 CONC_TEST=0 SAME_REPO_MAVEN=0 FOREIGN_MAVEN=1 MAINREPO_TGT_MT=1790133961
+  19:27:20 CONC_TEST=1 SAME_REPO_MAVEN=1 FOREIGN_MAVEN=2 MAINREPO_TGT_MT=1790162824
+  19:27:45 CONC_TEST=1 SAME_REPO_MAVEN=0 FOREIGN_MAVEN=2 MAINREPO_TGT_MT=1790162850
+  19:28:11 CONC_TEST=2 SAME_REPO_MAVEN=1 FOREIGN_MAVEN=2 MAINREPO_TGT_MT=1790162878
+  19:28:35 CONC_TEST=1 SAME_REPO_MAVEN=0 FOREIGN_MAVEN=2 MAINREPO_TGT_MT=1790162894
+  19:29:03 CONC_TEST=2 SAME_REPO_MAVEN=1 FOREIGN_MAVEN=2 MAINREPO_TGT_MT=1790162928
+  19:29:27 CONC_TEST=1 SAME_REPO_MAVEN=0 FOREIGN_MAVEN=2 MAINREPO_TGT_MT=1790162949
+  19:29:50 CONC_TEST=1 SAME_REPO_MAVEN=0 FOREIGN_MAVEN=2 MAINREPO_TGT_MT=1790162949
+
+判定：他方 `mvn test` 与本轮窗口**重叠**，且**实际造成失败**（幽灵失败）。
+      失败码 E-1001 / E-1902 的含义是「验证码/令牌不存在或已过期」——集成测试每例前 truncateAll()
+      清同一套测试库（aap_server_test）时，跨进程会互相清掉对方刚发的令牌（历史纪律 11/20/158）。
+      交付物侧 0 处：同一提交在等待安静后重跑两轮 rc=0/0、各 229 例全绿（该两轮的窗口干净度见下方【据实限定】，不夸大为干净窗口）。
+
+他方身份（只读取证、未触碰；多项目共存安全边界）：AdminAuthController/AdminAuthService/AdminAuthContractTest（新）
+      + SecurityConfig/AuthController/EndpointCoverageTest（改），mtime 19:25:03–19:36:08；
+      主仓 target/surefire-reports 下并见他方的 AdminAuthContractTest 结果与 *.dumpstream（19:27:58 / 19:28:48）。
+      未对其执行任何 kill / 重启 / 改写。
+
+【据实限定】本段上文提到的重跑两轮（rc=0/0）**不是「干净窗口」下的绿**：运行期采样显示他方测试进程在本轮窗口内
+      再次出现（CONC_TEST 峰值 = 2），只是未再造成失败。可机器判定为干净窗口的只有附加验证（见
+      green-verify-R311-extra-91.txt：主仓 surefire-reports mtime 窗口前后恒定）。

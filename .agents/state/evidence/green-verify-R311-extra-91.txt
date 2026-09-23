@@ -1,0 +1,38 @@
+==============================================================================
+R311 附加只读验证（**不构成本轮基线**）：本轮跑测窗口之后落地的 feat 提交 a96a8d9
+==============================================================================
+背景：本轮基线（被测提交 6ef5620）两轮全量跑完之后，主仓 HEAD 被他方 feat 提交推进到 a96a8d9
+      ——「feat(auth): 补管理端登录入口（ADM-AUTH01）— 关闭 D-AUTH-01」，**冻结清单 90 → 91 条**
+      （新增端点 ADM-AUTH01；同时改了 EndpointCoverageTest 的期望值 90 → 91、endpoints.json、
+        tools/gen-backend-models.py、openapi.yaml、AdminAuthContractTest/AdminAuthService/AdminAuthController）。
+为什么单独取证：本轮基线只覆盖 6ef5620（历史纪律 193/198）；HEAD 的 91/91 是**他方自述**，
+      不作本作业的验证结论 —— 故在**独立 detached worktree**（唯一目录名、收尾 git worktree remove --force）
+      上单独跑一轮，把「新的 HEAD 是否全绿」变成机器事实。
+
+WT2_SHA                      = a96a8d9
+EXTRA_RUN_RC                 = 0
+EXTRA_RUN_WINDOW             = [2026-09-23 19:47:03, 2026-09-23 19:49:07]
+EXTRA_TIMELINE               = [INFO] Total time:  02:02 min
+EXTRA_SUM                    = [INFO] Tests run: 233, Failures: 0, Errors: 0, Skipped: 0
+EXTRA_CLASSES                = 40
+EXTRA_MAINREPO_MT_BEFORE     = 1790163485
+EXTRA_MAINREPO_MT_AFTER      = 1790163485
+EXTRA_FAILURE_LINES          = 0
+WT2_REMOVE_RC                = 0
+WT2_REMOVE_VERIFIED          = 1
+EXTRA_END                    = 1
+
+窗口干净度判定（可机器判定，历史纪律 193/241）：主仓 target/surefire-reports mtime
+  before = 1790163485 / after = 1790163485 → 恒定 → 窗口内主仓无人跑测 = 干净窗口
+落盘源：附加验证的覆盖报告来自该 worktree（回收前归档 = extra-coverage-report.json，历史纪律 12/95）：
+  total              = 91
+  implemented        = 91
+  missing            = 0
+  registered_routes  = 108
+  not_registered     = []（缺省即空数组）
+
+结论（据实）：新的 HEAD a96a8d9 在**可机器判定为干净**的窗口内单轮全绿：
+  [INFO] Tests run: 233, Failures: 0, Errors: 0, Skipped: 0 / 40 类 / rc=0；
+  覆盖 = 91/91 implemented、missing=0、registered_routes=108、not_registered=[]。
+  该结果**只覆盖一次单轮**（不是两轮防 flaky），且被测对象是他方新提交 —— 按历史纪律 12/95 明确标注，
+  不与本轮基线（6ef5620 的两轮全量）混为一谈。
