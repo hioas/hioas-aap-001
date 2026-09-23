@@ -197,7 +197,10 @@ async function select(t: ReviewTask) {
   // 明细行：QT-06 `GET /quotes/{quoteId}/items` **没有分页参数**（返回 QuoteViews.Items 全量），
   // 所以这里不传 page/pageSize（曾经传 page_size 是无效参数，后端静默忽略）。
   try {
-    const r = await request<{ items?: Record<string, unknown>[] }>(`/quotes/${t.quote_id}/items`);
+    // ⚠️ 必须走**管理端**端点：`GET /quotes/{id}/items` 是供应商端点（hasAnyRole SUPPLIER/PROVIDER），
+    //    管理端令牌会得到 403 → 审核页价格表恒为空（2026-09-23 实测：控制台 403 +「暂无明细」占位文案）。
+    //    后端已补 ADM-Q03 `GET /admin/quotes/{id}/items`（跨供应商只读）。
+    const r = await request<{ items?: Record<string, unknown>[] }>(`/admin/quotes/${t.quote_id}/items`);
     items.value = r?.items ?? [];
   } catch { /* 保持空 */ }
   try {

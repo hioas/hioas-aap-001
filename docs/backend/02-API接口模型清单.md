@@ -7,7 +7,7 @@
 > + `docs/api/接口字段级schema.md`（供应商端字段级补充）+ `17-零歧义执行规格spec.md`（错误码/状态机）。
 > 模型定义：请求/响应体的 JSON Schema 见 `json-schema/**`，OpenAPI 见 `openapi.yaml`。
 
-**版本** v1.0 · 2026-09-17 · 共 **97 条**端点（供应商端 49 · 管理端 48，与 `openapi.yaml` 生成器逐条同源）。
+**版本** v1.0 · 2026-09-17 · 共 **98 条**端点（供应商端 49 · 管理端 49，与 `openapi.yaml` 生成器逐条同源）。
 
 **标注规则**
 
@@ -163,7 +163,8 @@
 | ID | 方法 | 路径 | 角色 | 请求/响应 | 错误码 | 状态 |
 |---|---|---|---|---|---|---|
 | ADM-Q01 | POST | `/admin/quotes/{id}/compile` | TECH_OPS SUPER_ADMIN | → `CompilationResult` | E-1401~E-1405 E-1601(未审核通过) | T09 |
-| ADM-Q02 | GET | `/admin/quotes/compare` | BIZ_OPERATOR | q：`quoteIds`(逗号) → `{items:[QuoteCompare]}`（旧值/新值/涨跌幅 A8） | | T14 |
+| ADM-Q02 | GET | `/admin/quotes/compare` | BIZ_OPERATOR SUPER_ADMIN | q：`quoteIds`(逗号) → `{items:[QuoteCompare]}`（旧值/新值/涨跌幅 A8） | | T14 |
+| ADM-Q03 | GET | `/admin/quotes/{id}/items` | BIZ_OPERATOR SUPER_ADMIN | → `QuoteViews.Items`（管理端**跨供应商只读**报价明细；报价审核页消费） | E-1406 | T14 |
 | ADM-CP01 | GET | `/admin/compilations` | TECH_OPS | q：`page` `pageSize` `status?` → 分页 | | T09 |
 | ADM-CP02 | GET | `/admin/compilations/{id}` | TECH_OPS | → `CompilationResult`（含 `compiled[]` `verify_report`） | E-1406 | T09 |
 | ADM-CP03 | POST | `/admin/compilations/{id}/verify` | TECH_OPS | → `VerifyReport`（V1–V6） | E-1405 | T09 |
@@ -173,6 +174,11 @@
 | ADM-R03 | POST | `/admin/reviews/{id}/approve` | BIZ_OPERATOR | body `{comment?}` → `ReviewTask`（→ APPROVED，自动生成合同） | E-1601 | T10 |
 | ADM-R04 | POST | `/admin/reviews/{id}/reject` | BIZ_OPERATOR | body `{reason_code,reason_text,item_id?}`（**必填**） | E-1001 E-1601 | T10 |
 | ADM-R05 | GET | `/admin/reviews/records` | 同上 | q：`quoteId?` → `{items:[ReviewRecord]}` | | T10 |
+
+> **为什么新增 ADM-Q03**：报价审核页原先调供应商端点 `GET /quotes/{id}/items`
+> （`hasAnyRole('SUPPLIER','PROVIDER')`）→ 管理端令牌必然 **403** → **审核员看不到逐模型价格，只能盲审**
+> （2026-09-23 运行态实测：详情页「该报价单暂无明细（或接口未返回）」+ 控制台 403）。不做归属校验
+> （管理端本就跨供应商），但报价单必须存在且未删除，否则 `E-1406`。
 
 ### 2.3 合同 / 打款 / 结算
 
@@ -321,6 +327,7 @@
 | --- | --- | --- |
 | 2026-09-18 | `QT-03/06/07/08` 错误码勘误：资源不存在由 `E-1401` 改为 **`E-1406`(404)**；`E-1401` 严格保留给「时段区间重叠/时段非法」（HTTP 400）；`QT-08` 增补 `E-1404`（阶梯首档/末档）与 `E-1104`（If-Match 失配） | 实现期发现同一错误码承载两种 HTTP 语义会误导前端（偏差 D-API-02）；10-PRD §5.1 V11–V14 | | 2026-09-18 | 审计动作枚举新增 `QUOTE_CREATE/QUOTE_SAVE/QUOTE_SUBMIT/QUOTE_WITHDRAW/QUOTE_VOID`（12→17） | 10-PRD §7 埋点 quote_created/saved/submitted/withdrawn | 
 | 2026-09-23 | 新增 **`ADM-AUTH01`**（`POST /admin/auth/sms/login`，管理端短信登录）；`AUTH-06` 明确管理端主体返回管理端档案；冻结清单 90 → **91**（管理端 41 → 42） | 运行态实测：管理端此前无登录入口，`aap-admin` 调供应商 `AUTH-02` 只得 PROVIDER 身份 → `/admin/**` 全 403 `E-1901`（人工放行 DET-06 等调不动，而报价前置 PASS 只能来自人工放行）→ 偏差 **D-AUTH-01** | 
+| 2026-09-23 | 新增 **`ADM-Q03`**（`GET /admin/quotes/{id}/items`，管理端跨供应商只读报价明细）；冻结清单 97 → **98**（管理端 48 → 49） | 运行态实测：报价审核页调供应商端点 `GET /quotes/{id}/items` → 管理端令牌 403 → **审核员看不到价格只能盲审** → 偏差 **D-ADM-04** | 
 | 2026-09-23 | 新增 **`ADM-PAY04`**（`POST /admin/payments` 记录打款）与 **`ADM-PAY05`**（`POST /admin/payments/{id}/void` 作废打款）；审计动作枚举 +`PAYMENT_RECORD`/`PAYMENT_VOID`；冻结清单 91 → **93**（管理端 42 → 44） | 运行态实测：`aap_payment_record` 全仓无 insert 路径 → `ADM-PAY02` 无对象可确认（total=0），合同签完后链路断开；真源 10-报价与合同结算PRD §4.3/§5.3（记录打款需凭证、VOID 作废后重录） → 偏差 **D-PAY-01** | 
 
 - 2026-09-17 v1.0 首版：从 `18-API设计OpenAPI.md` + `aap-client` 调用点反推，冻结 90 条端点 ID

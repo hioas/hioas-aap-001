@@ -329,6 +329,24 @@ public class QuoteService {
         return new QuoteViews.Items(items, items.size(), List.of());
     }
 
+    /**
+     * ADM-Q03 管理端读报价明细（跨供应商，只读）。
+     *
+     * <p>为什么需要：管理端审核页此前调的是供应商端点 {@code GET /quotes/{id}/items}
+     * （`hasAnyRole('SUPPLIER','PROVIDER')`）→ 管理端令牌必然 403 → **审核员看不到价格，只能盲审**
+     * （2026-09-23 运行态实测：审核详情显示「该报价单暂无明细（或接口未返回）」+ 控制台 403）。
+     *
+     * <p>不做归属校验（管理端本就跨供应商），但报价单必须存在且未删除，否则 404 {@code E-1406}。
+     */
+    public QuoteViews.Items listItemsForAdmin(Long quoteId) {
+        QuoteEntity quote = quoteId == null ? null : quoteMapper.selectOneById(quoteId);
+        if (quote == null || Boolean.TRUE.equals(quote.getDeleted())) {
+            throw new ApiException(ErrorCode.E_1406, "报价单不存在");
+        }
+        List<QuoteViews.Item> items = items(quoteId);
+        return new QuoteViews.Items(items, items.size(), List.of());
+    }
+
     /** QT-07 单行详情。 */
     public QuoteViews.Item getItem(AuthPrincipal principal, Long itemId) {
         QuoteItemEntity item = itemMapper.selectOneById(itemId);

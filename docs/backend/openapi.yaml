@@ -2590,6 +2590,51 @@ paths:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/QuoteCompare"
+  /admin/quotes/{id}/items:
+    get:
+      operationId: ADM-Q03
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-Q03`（依据：新增）"
+      x-aap-id: ADM-Q03
+      x-aap-source: 新增
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - BIZ_OPERATOR
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              items:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/QuoteItem"
+        4XX:
+          description: 业务失败：E-1406
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /admin/compilations:
     get:
       operationId: ADM-CP01

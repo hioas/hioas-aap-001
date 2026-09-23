@@ -582,6 +582,9 @@ PATHS: list[tuple] = [
     ("ADM-C02", "post", "/admin/credentials/{id}/reveal", "Admin", "SUPER_ADMIN", "credential-reveal", "reveal-result", [], ["E-1901", "E-1902"], "真源"),
     ("ADM-Q01", "post", "/admin/quotes/{id}/compile", "Admin", "TECH_OPS,SUPER_ADMIN", None, "compilation-result", [], ["E-1401", "E-1402", "E-1405"], "真源"),
     ("ADM-Q02", "get", "/admin/quotes/compare", "Admin", "BIZ_OPERATOR,SUPER_ADMIN", None, "quote-compare", ["quoteIds"], [], "推断"),
+    # 报价明细（2026-09-23 新增）：审核页原先调供应商端点 GET /quotes/{id}/items → 管理端令牌 403
+    # → 审核员看不到逐模型价格（运行态实测）。管理端跨供应商只读。
+    ("ADM-Q03", "get", "/admin/quotes/{id}/items", "Admin", "BIZ_OPERATOR,SUPER_ADMIN", None, "quote-item", [], ["E-1406"], "新增"),
     ("ADM-CP01", "get", "/admin/compilations", "Admin", "TECH_OPS,SUPER_ADMIN", None, "compilation-result", ["page", "pageSize", "status"], [], "真源"),
     ("ADM-CP02", "get", "/admin/compilations/{id}", "Admin", "TECH_OPS,SUPER_ADMIN", None, "compilation-result", [], ["E-1406"], "真源"),
     ("ADM-CP03", "post", "/admin/compilations/{id}/verify", "Admin", "TECH_OPS,SUPER_ADMIN", None, "verify-report", [], ["E-1405"], "真源"),

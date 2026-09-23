@@ -204,4 +204,32 @@ class AdminQuoteCompareContractTest extends ApiTestBase {
         assertThat(anonymous.status()).as(anonymous.body()).isEqualTo(401);
         assertThat(anonymous.code()).isEqualTo("E-1902");
     }
+
+    @Test
+    @DisplayName("ADM-Q03 管理端读报价明细：BIZ_OPERATOR/SUPER_ADMIN 200（跨供应商只读）；供应商 403；不存在 404")
+    void adminReadsQuoteItems() {
+        // 为什么补这条端点：审核页原先调供应商端点 GET /quotes/{id}/items → 管理端令牌 403
+        // → 审核员看不到逐模型价格（2026-09-23 运行态实测）。
+        insertQuote(720001L, "QADM-Q03-1", "SUBMITTED", 1, "2026-09-23T10:00:00Z");
+        insertItem(720101L, 720001L, "gpt-4o", "2.500000", "10.000000");
+
+        String biz = adminToken(962001L, "BIZ_OPERATOR");
+        HttpResult ok = get("/admin/quotes/720001/items", biz);
+        assertThat(ok.status()).as(ok.body()).isEqualTo(200);
+        SchemaAssert.assertModel("quote-item", json(ok.data().path("items").get(0)));
+        assertThat(ok.data().path("total").asInt()).isEqualTo(1);
+        assertThat(ok.data().path("items").get(0).path("model_name").asText()).isEqualTo("gpt-4o");
+
+        String superAdmin = adminToken(962002L, "SUPER_ADMIN");
+        assertThat(get("/admin/quotes/720001/items", superAdmin).status()).isEqualTo(200);
+
+        // 供应商端点仍是供应商专用：管理端不得借它读；反之供应商也不得调管理端端点
+        HttpResult forbidden = get("/quotes/720001/items", biz);
+        assertThat(forbidden.status()).as("管理端调供应商端点必须 403（这正是原缺陷的根因）").isEqualTo(403);
+        assertThat(get("/admin/quotes/720001/items", supplierToken()).status()).isEqualTo(403);
+
+        // 不存在 / 非法 ID
+        assertThat(get("/admin/quotes/720999/items", biz).code()).isEqualTo("E-1406");
+        assertThat(get("/admin/quotes/720001/items").status()).as("未认证").isEqualTo(401);
+    }
 }
