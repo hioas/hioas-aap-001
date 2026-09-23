@@ -1,0 +1,41 @@
+==============================================================================
+R314 跨轮 FAIL 明细比对（归一后）
+==============================================================================
+  R313 留档 failraw：解析到 142 行（跳过 [PASS] 行 0、无 tag 前缀 0）
+  R314 本轮 failraw：解析到 143 行（跳过 [PASS] 行 0、无 tag 前缀 0）
+正向对照：两侧解析行数均 > 0 → PASS（R313=142 / R314=143）
+归一集合：R313 = 142 条 / R314 = 143 条
+新增 16 条、消失 15 条
+  + [auth-contract] A8 md「角色」列 = 清单角色集合（仅逐条列角色的 7 列表头行）：不一致 31 条
+  + [gap-pagination-defaults] A1 openapi 每个 page/pageSize 参数都声明 default：缺失 50/50（样例 PROV-03(page)、PROV-03(pageSize)、CRED-01(page)、CRED-01(pageSize)、RPT-01(page)）
+  + [gap-pagination-defaults] A2 openapi 每个 pageSize 参数都声明 maximum：缺失 25/25
+  + [gap-pagination-defaults-selftest] T1 注入修法锚点命中 46 处（= page+pageSize 参数数） — hits=50
+  + [gap-paging-range] A4: openapi 声明 pageSize 上限 200 的 operation：0/25
+  + [gap-paging-range] A5: openapi 声明 pageSize 默认值 20 的 operation：0/25
+  + [gap-paging-range] A5b: openapi 声明 page 默认值 1 的 operation：0/25
+  + [gap-sensitive-fields] A2 服务端出口的敏感键 ⊆ 契约声明键 出口 25 键，契约未声明：['mobile']
+  + [gap-sensitive-fields] A2c 超集字段：DET-01(job-created) 实现出口未声明=['credential_alias']
+  + [gap-sensitive-fields] A2c 逐端点响应 DTO 敏感键 ⇔ response_model schema（已定位的端点全部一致） 已定位 39 个端点（跳过 60：AUTH-01: 无键; AUTH-05: 未定位控制器; PROV-03: 返回 Map（键在 Service 里拼装，静态不可判定）; PROV-04: 
+  + [gap-softdelete] A3 aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java:640 表 aap_price_time_rule 的查询链上无 `deleted = false`：(select id from aap_price_time_ru
+  + [gap-status-machine] A3 md L193 UNSETTLED→PAYMENT_RECORDED 缺 from 守卫：实现写 PAYMENT_RECORDED 但无 UNSETTLED 约束（aap-server/src/main/java/com/hioas/aap/settlement/SettlementServi
+  + [response-shape] A2 openapi 声明分页 ⇔ 实现返回分页形状 DTO（items+page+pageSize+total）：不一致 42 条（openapi 与实现至少一侧错）
+  + [response-shape] A3 openapi 分页响应 ⇒ 该端点声明 page+pageSize 查询参数：自相矛盾 40 条
+  + [spotcheck-http-method] A3 实现方法分布与清单不一致（方法语义漂移）：GET 实现 54 / 清单 48
+  + [spotcheck-state-machine] A3b 实现自述与守卫集合不一致 1 条：aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java:35 自述 QUEUED→RUNNING，但实现里写向 RUNNING 的写点**全部无守卫**
+  - [auth-contract] A8 md「角色」列 = 清单角色集合（仅逐条列角色的 7 列表头行）：不一致 32 条
+  - [gap-pagination-defaults] A1 openapi 每个 page/pageSize 参数都声明 default：缺失 48/48（样例 PROV-03(page)、PROV-03(pageSize)、CRED-01(page)、CRED-01(pageSize)、RPT-01(page)）
+  - [gap-pagination-defaults] A2 openapi 每个 pageSize 参数都声明 maximum：缺失 24/24
+  - [gap-pagination-defaults-selftest] T1 注入修法锚点命中 46 处（= page+pageSize 参数数） — hits=48
+  - [gap-paging-range] A4: openapi 声明 pageSize 上限 200 的 operation：0/24
+  - [gap-paging-range] A5: openapi 声明 pageSize 默认值 20 的 operation：0/24
+  - [gap-paging-range] A5b: openapi 声明 page 默认值 1 的 operation：0/24
+  - [gap-sensitive-fields] A2 服务端出口的敏感键 ⊆ 契约声明键 出口 24 键，契约未声明：['mobile']
+  - [gap-sensitive-fields] A2c 逐端点响应 DTO 敏感键 ⇔ response_model schema（已定位的端点全部一致） 已定位 38 个端点（跳过 59：AUTH-01: 无键; AUTH-05: 未定位控制器; PROV-03: 返回 Map（键在 Service 里拼装，静态不可判定）; PROV-04: 
+  - [gap-softdelete] A3 aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java:622 表 aap_price_time_rule 的查询链上无 `deleted = false`：(select id from aap_price_time_ru
+  - [gap-status-machine] A3 md L187 UNSETTLED→PAYMENT_RECORDED 缺 from 守卫：实现写 PAYMENT_RECORDED 但无 UNSETTLED 约束（aap-server/src/main/java/com/hioas/aap/settlement/SettlementServi
+  - [response-shape] A2 openapi 声明分页 ⇔ 实现返回分页形状 DTO（items+page+pageSize+total）：不一致 41 条（openapi 与实现至少一侧错）
+  - [response-shape] A3 openapi 分页响应 ⇒ 该端点声明 page+pageSize 查询参数：自相矛盾 39 条
+  - [spotcheck-http-method] A3 实现方法分布与清单不一致（方法语义漂移）：GET 实现 52 / 清单 46
+  - [spotcheck-state-machine] A3b 实现自述与守卫集合不一致 1 条：aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java:31 自述 QUEUED→RUNNING，但实现里写向 RUNNING 的写点**全部无守卫**
+判定：存在差异（已逐条列出）
+COMPARE_END=1

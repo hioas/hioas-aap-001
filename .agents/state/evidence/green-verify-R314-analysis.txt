@@ -1,0 +1,89 @@
+==============================================================================
+R314 巡检轮分析（冻结清单 missing=0 已在册；本轮 = 只校验不改交付代码）
+==============================================================================
+[facts] ROUND=R314 SESSION_HEAD=164807f WT_SHA=164807f SERVER_DIRTY=4
+[facts] 工具链指纹（**历史**新增，非本轮）：JDK=openjdk version "25.0.4" 2026-07-21 LTS / Maven=Apache Maven 3.8.6 (84538c9988a25aec085021c365c560670ad80f63)
+[facts] 并发前置检查：执行=1 JPS可达=Y JPS行数=14 并发测试JVM=0 bash=/usr/bin/bash mvn=/c/Users/laitz/bin/mvn
+[facts] 事实键齐备：是
+-- 事实（读执行器落盘）--
+  run1 rc=0 window=[2026-09-23 21:03:13, 2026-09-23 21:05:26] classes=42
+  run1 timeline=[[INFO] Total time:  02:11 min] 解析=131 秒 / 写法=mm:ss
+  run1 sum=[INFO] Tests run: 240, Failures: 0, Errors: 0, Skipped: 0
+  run2 rc=0 window=[2026-09-23 21:05:26, 2026-09-23 21:07:32] classes=42
+  run2 timeline=[[INFO] Total time:  02:03 min] 解析=123 秒 / 写法=mm:ss
+  run2 sum=[INFO] Tests run: 240, Failures: 0, Errors: 0, Skipped: 0
+[PASS] F0a 两轮耗时写法解析成功（双写法解析器正向对照） run1=mm:ss run2=mm:ss
+  耗时写法结论：两轮同一种写法（mm:ss）→ 按坑 176 据实写「本轮未复现另一种写法」
+[PASS] A_r1 本轮 rc=0 rc=0
+[PASS] A_r2 本轮 rc=0 rc=0
+[PASS] A0a 逐类解析非空 run1=42 类 / run2=42 类（坑 46/75 正向对照）
+[PASS] A1 逐类结果 diff=0（已剥 Time elapsed 再排序，坑 59/79） 仅run1=0 仅run2=0 值不同=0
+  surefire 合计：run1=(240, 0, 0, 0) run2=(240, 0, 0, 0)
+[PASS] A2 两轮合计全绿（Failures=0 Errors=0 Skipped=0）且两轮一致 run1=(240, 0, 0, 0) run2=(240, 0, 0, 0)
+[PASS] B0a 归档内覆盖报告可解析（执行器回收 WT 前归档；历史 238/251 的收尾首次真的执行） path=C:\Users\laitz\AppData\Local\Temp\aap-r314-work\wt-arch\coverage-report.json
+  覆盖门禁：total=97 implemented=97 missing=0 registered_routes=114 not_registered=[]
+[PASS] B1 清单每一条都落地（missing=0 且 implemented=total 且 total>=90 下界） total=97 implemented=97 missing=0
+[PASS] B1b 覆盖报告 total == 本轮清单条数（单一事实源，机器推导） 清单条数=97 报告 total=97
+[FAIL] B1c 门禁文件内注释口径 ⇔ 断言口径（两套门禁都看不见「注释里的条数」，历史 43/73） 断言条数=[98] 注释条数=[90]（注释行正向对照 > 0；合成判别力实测 ok=True bad=False）
+[PASS] B2 not_registered 为空 not_registered=[]
+  按族：=7/7 T03=6/6 T04=5/5 T05=7/7 T06=6/6 T07=4/4 T08=11/11 T09=6/6 T10=5/5 T11=11/11 T12=4/4 T13=3/3 T14=22/22
+[PASS] B3 族合计 == 报告 total（不写死总条数；纯数字盲区结构性消除，历史 201/206） 族合计=97 / total=97
+[FAIL] B4 worktree 报告 ⇔ HEAD 内已提交副本 逐字段全等（对照侧 = `git show HEAD:…`，坑 12/96/172） HEAD 副本 total=90 / 工作区副本 total=99（后者含他方在途改动，仅信息项）
+      total: wt=97 repo=90
+      implemented: wt=97 repo=90
+      registered_routes: wt=114 repo=105
+      by_task: wt={'': {'total': 7, 'implemented': 7}, 'T03': {'total': 6, 'implemented': 6}, 'T04': {'total': 5, 'implemented': 5}, 'T05': {'total': 7, 'implemented': 7}, 'T06': {'total': 6, 'implemented': 6}, 'T07': {'total': 4, 'implemented': 4}, 'T08': {'total': 11, 'implemented': 11}, 'T09': {'total': 6, 'implemented': 6}, 'T10': {'total': 5, 'implemented': 5}, 'T11': {'total': 11, 'implemented': 11}, 'T12': {'total': 4, 'implemented': 4}, 'T13': {'total': 3, 'implemented': 3}, 'T14': {'total': 22, 'implemented': 22}} repo={'T03': {'implemented': 6, 'total': 6}, 'T04': {'implemented': 5, 'total': 5}, 'T05': {'implemented': 7, 'total': 7}, 'T06': {'implemented': 6, 'total': 6}, 'T07': {'implemented': 4, 'total': 4}, 'T08': {'implemented': 11, 'total': 11}, 'T09': {'implemented': 6, 'total': 6}, 'T10': {'implemented': 5, 'total': 5}, 'T11': {'implemented': 11, 'total': 11}, 'T12': {'implemented': 4, 'total': 4}, 'T13': {'implemented': 3, 'total': 3}, 'T14': {'implemented': 22, 'total': 22}}
+[PASS] B4b 本轮覆盖报告 mtime ∈ 跑测窗口（新鲜度：报告确实被本轮重写） mtime=2026-09-23 21:05:54 窗口=[2026-09-23 21:03:13, 2026-09-23 21:07:32]
+[FAIL] B4c 与已提交副本的差异仅为**键序**（值/格式漂移必须转红） 行数 wt=61 repo=57；字节差异行=43；归一尾随逗号后行多重集相等=False
+      字节差异行数 = 43（坑 56：Map.of 键序随 JVM 随机化 —— 值全等但字节不稳定；产物被 git 跟踪）
+      L2    wt='  "total" : 97,'              repo='  "total" : 90,'
+      L3    wt='  "implemented" : 97,'        repo='  "implemented" : 90,'
+[PASS] C0a @Test 词边界计数 > 0 @Test=240（坑 35：必须词边界）
+[PASS] C1 @Test 计数 == surefire 合计 @Test=240 surefire=240
+[PASS] C2 禁用扫描 0 条（不得削弱测试） 命中=0 []
+-- 被测状态 --
+  worktree 检出提交 = 164807f
+  证据写入时 HEAD  = f312358
+  主仓库 aap-server 在途改动 = 5 条
+  两者对 aap-server 的差异行数 = 5（他方可在测试窗口内推进 HEAD，历史纪律 198）
+  结论覆盖范围 = **本轮结论只覆盖被测提交 164807f**；HEAD 已推进到 f312358 且交付区差异 5 行（他方在途）→ 该差异未纳入本轮结论
+[PASS] D1 被测状态三项事实**逐条落盘**（worktree 提交 / 证据写入时 HEAD / 交付区差异行数） wt=164807f head=f312358 差异行=5
+[PASS] D1b 结论覆盖范围的**据实声明**（差异 = 0 行 → 覆盖 HEAD；否则显式降级为只覆盖被测提交，不得静默夸大） **本轮结论只覆盖被测提交 164807f**；HEAD 已推进到 f312358 且交付区差异 5 行（他方在途）→ 该差异未纳入本轮结论
+  [INFO] 主仓库 aap-server 在途改动 = 5 条（他方在途；本轮只登记不触碰，历史纪律 15/198）
+      M aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java
+       M aap-server/src/main/java/com/hioas/aap/detection/DetectionViews.java
+       M aap-server/src/test/java/com/hioas/aap/coverage/EndpointCoverageTest.java
+      ?? aap-server/src/main/java/com/hioas/aap/detection/AdminDetectionController.java
+      ?? aap-server/src/test/java/com/hioas/aap/detection/AdminDetectionListTest.java
+-- 临时取证 worktree（**历史**改进②：先归档、后回收）--
+  注册表行数 = 3；本轮路径（归一后）= C:/Users/laitz/AppData/Local/Temp/aap-r314-wt；在注册表内 = False
+  归档：报告存在 = True / 测试源 .java = 48 个 / 归档事实键 = ['WT_ARCH_REPORT_RC', 'WT_ARCH_REPORT_BYTES']
+[PASS] J0a 归档齐备（正向对照：报告存在 ∧ 测试源 .java > 0；否则判定不可用，历史 46/75/98） report=True files=48
+[PASS] J1 本轮 worktree 已被真实回收（不在 `git worktree list` 内） 路径 = C:/Users/laitz/AppData/Local/Temp/aap-r314-wt
+[PASS] J2 判别力实测：合成「本轮路径出现在注册表内」必须被判红 
+[PASS] J3 判别力实测（反向）：真实注册表文本必须判绿 
+-- 两轮窗口（串行性）--
+  RUN1_START  = 2026-09-23 21:03:13
+  RUN1_END    = 2026-09-23 21:05:26
+  RUN2_START  = 2026-09-23 21:05:26
+  RUN2_END    = 2026-09-23 21:07:32
+[PASS] D3a 四个窗口时刻齐备（正向对照：否则判定不可用） 缺失 = []
+[PASS] D3 两轮窗口有序且非重叠（run1_start ≤ run1_end ≤ run2_start ≤ run2_end） 窗口 = ['2026-09-23 21:03:13', '2026-09-23 21:05:26', '2026-09-23 21:05:26', '2026-09-23 21:07:32']
+[PASS] D3b 判别力实测：合成**重叠**窗口（run2 起点严格早于 run1 终点）必须被判红 合成 = ['2026-09-23 21:03:13', '2026-09-23 21:05:26', '2026-09-23 21:05:25', '2026-09-23 21:07:32']
+[PASS] D3c 判别力实测：合成**逆序**窗口必须被判红 合成 = ['2026-09-23 21:07:32', '2026-09-23 21:05:26', '2026-09-23 21:05:26', '2026-09-23 21:03:13']
+[PASS] D3b1 前置对照：重叠夹具与真实窗口**不相等**（否则合成反例退化为真实态） 
+[PASS] D3c1 前置对照：逆序夹具与真实窗口**不相等** 
+[PASS] E0a 生成物快照非空 产物=89 个（坑 46/75 正向对照）
+[PASS] E1 零写副作用（size+md5 全等） 变化=0 []
+[PASS] E2 生成器 --check rc=0 rc=0（产物 89 个逐一致 + 孤儿 0）
+  生成器 --check 末尾输出：
+      | check ok: 89/89 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）
+      | ok: models=56 requests=28 paths=85 operations=99 files=87
+-- 轮次计数（口径：含 missing=0 的行的不同轮次号个数）--
+  历史轮次号 = 295 个，区间 [R19, R313]（正向对照 > 0）
+[PASS] F1 历史轮次号连续（无缺号） 缺号 = []
+[PASS] F2 轮次计数可推导且 > 1 本轮 = 连续第 296 轮（口径见 F1；总条数不写死，历史 201/206）
+==============================================================================
+汇总：FAIL 断言 = 3 条 ['B1c 门禁文件内注释口径 ⇔ 断言口径（两套门禁都看不见「注释里的条数」，历史 43/73）', 'B4 worktree 报告 ⇔ HEAD 内已提交副本 逐字段全等（对照侧 = `git show HEAD:…`，坑 12/96/172）', 'B4c 与已提交副本的差异仅为**键序**（值/格式漂移必须转红）']
+97/97 连续第 296 轮全绿（本轮为只校验轮；作业目标「90 条全部落地」= 该数已含于 total 之中）
+FACTS_END_MARK=1
