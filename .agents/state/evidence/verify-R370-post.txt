@@ -1,0 +1,19 @@
+[PASS] P0 取到主提交号与主题（单一事实源派生，非裸 HEAD） | c41704bc | chore(evidence): R370 巡检轮（missing=0；新增第 39 类只读不变量：证据产物轮次自述一致性；复跑第 37/38 类；两轮 252 || HEAD=78aaccc1（收尾链已提交 ⇒ HEAD ≠ 主提交，属预期）
+[PASS] P1a 台账本轮行在 HEAD 内恰好 1 条 | 命中 1
+[PASS] P1b 工作区本轮行恰好 1 条 | 命中 1
+[PASS] P1c 提交列仍为空（收尾前） | HEAD='' 工作区=''
+[FAIL] P1d HEAD 内本轮行与工作区行**逐列相等** | 不等列 [4]
+[PASS] P2a 实际缺失项**全部**落在豁免白名单内（⊆ D.LATER ∪ {自身}） | 缺 ['gap-evlist-post-R370.txt', 'verify-R370-post.txt', 'verify-R370-postcheck.txt']（白名单 ['closeout-R370.txt', 'correction-R370.txt', 'correction2-R370.txt', 'gap-evlist-post-R370.txt', 'verify-R370-post.txt', 'verify-R370-postcheck.txt']）
+[PASS] P2 白名单受夹：缺失条数 <= 7（上限 = 白名单规模） | n=3
+[PASS] P2b 正向对照：受判（已在 HEAD 树内）证据数 > 0 ∧ 归属齐备 | 受判 22 份 / 缺 3 份 / 声明 25 份
+[PASS] P3 逐条登记引入提交归属 | 登记 25/25，引入提交 = ['(未找到新增记录；按设计为既有文件的改写，如 coverage-history)', '4932aa01', '78aaccc1', 'c41704bc']
+  归属明细：{'audit-regression-R370-faildiff.txt': 'c41704bc', 'audit-regression-R370-failraw.txt': 'c41704bc', 'audit-regression-R370-rcseq.txt': 'c41704bc', 'audit-regression-R370.txt': 'c41704bc', 'closeout-R370.txt': '4932aa01', 'correction-R370.txt': '4932aa01', 'correction2-R370.txt': '78aaccc1', 'gap-conc-inwindow-R370.txt': 'c41704bc', 'gap-evlist-R370.txt': 'c41704bc', 'gap-evlist-post-R370.txt': '(未找到新增记录；按设计为既有文件的改写，如 coverage-history)', 'gap-evround-R370.txt': 'c41704bc', 'gap-ledger-vs-tree-R370.txt': 'c41704bc', 'gap-rework-R370.txt': 'c41704bc', 'gap-stalereport-R370.txt': 'c41704bc', 'gap-stalereport-fix-R370.txt': 'c41704bc', 'gap-window-writes-R370.txt': 'c41704bc', 'green-verify-R370-coverage-fields.txt': 'c41704bc', 'green-verify-R370-full-run1.txt': 'c41704bc', 'green-verify-R370-full-run2.txt': 'c41704bc', 'green-verify-R370-testcount.txt': 'c41704bc', 'green-verify-R370-tested-state.txt': 'c41704bc', 'postwrite-check-R370.txt': '4932aa01', 'round-R370-analysis.txt': 'c41704bc', 'verify-R370-post.txt': '(未找到新增记录；按设计为既有文件的改写，如 coverage-history)', 'verify-R370-postcheck.txt': '(未找到新增记录；按设计为既有文件的改写，如 coverage-history)'}
+[PASS] P4 主提交 ∪ 收尾链（c41704bc..HEAD）只碰 .agents/state/**（交付面越界 = 0） | 越界 0 []
+[PASS] P4b 正向对照：提交文件数 > 0 | n=28
+[PASS] P5 真值推进轮：主提交记「发布当时真值 7 处」，收尾链更正提交承载权威数字（10 处） | 主提交抓到 7；收尾链返工声明（新→旧）= [('78aaccc1', 10), ('4932aa01', 9)]
+[FAIL] P6 HEAD 内描述列 == 落盘单一事实源 | len=5714 vs 5744
+[PASS] P7a HEAD 内 coverage-history 末行 = 本轮行 | 2026-09-25 04:36 R370 巡检轮 | 清单 102/102（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 f3f6aabf**，工
+[PASS] P7b HEAD 树内本轮产物 CR=0 ∧ 末字节换行 | 违规 []
+MAIN_COMMIT=c41704bc
+SUM PASS=13 FAIL=2
+VERIFY_POST_R370_END=1
