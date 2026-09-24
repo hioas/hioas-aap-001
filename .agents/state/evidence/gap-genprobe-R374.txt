@@ -1,0 +1,34 @@
+R374 真发现取证：提交态「冻结清单生成物 ⇔ 生成器」漂移（隔离他方在途改动，现场复跑）
+==============================================================================
+仓库 = E:/workspaces/hioas/hioas-aap-001
+被测提交 = HEAD = ed7ea9f4（临时 detached worktree 内跑生成器，不碰主仓工作区）
+worktree = C:\Users\laitz\AppData\Local\Temp\aap-r374-genprobe2-verify1
+------------------------------------------------------------------------------
+A0 正向对照：worktree add rc = 0（须 0；否则以下读数不可用）
+A1 生成器在提交态运行 rc = 0（须 0）
+A2 `git diff --numstat` 变更文件行 = 1（正向对照 > 0）
+   变更文件 = ['docs/backend/endpoints.json']
+A3 端点数：HEAD = 108 / 生成态 = 108（正向对照：两者 > 0 且相等）
+A4 差异端点数 = 6（> 0 正向对照；0 则本判据不可用）
+A5 差异**字段集合** = ['task']（须 == ['task']，即零契约语义变更）
+     ADM-PAY06    POST   /api/v1/admin/settlements                     {'task': ('', 'T17')}
+     ADM-PAY07    GET    /api/v1/admin/settlements/{id}                {'task': ('', 'T17')}
+     ADM-PAY08    POST   /api/v1/admin/settlements/{id}/confirm        {'task': ('', 'T17')}
+     ADM-PAY09    POST   /api/v1/admin/settlements/{id}/void           {'task': ('', 'T17')}
+     SET-01       GET    /api/v1/settlements                           {'task': ('', 'T17')}
+     SET-02       GET    /api/v1/settlements/{id}                      {'task': ('', 'T17')}
+A6 第三方证人（台账 接口ID → 任务号）与生成态 `task` 一致性：
+     ADM-PAY06    台账任务号 = ['T17']  生成态 task = 'T17'
+     ADM-PAY07    台账任务号 = ['T17']  生成态 task = 'T17'
+     ADM-PAY08    台账任务号 = ['T17']  生成态 task = 'T17'
+     ADM-PAY09    台账任务号 = ['T17']  生成态 task = 'T17'
+     SET-01       台账任务号 = ['T17']  生成态 task = 'T17'
+     SET-02       台账任务号 = ['T17']  生成态 task = 'T17'
+A6b 三方一致（台账 = 生成态） = True（须 True；据此判定 `endpoints.json` 为**过期侧**）
+A7 同轮 driver 的 gen-check 读数 = 1（README：FAIL 通道不可见条目，理由落盘于崩溃通道段）
+     理由行 = ['gen-check                      rc=1 理由 = check FAILED: 漂移 1 + 孤儿 0 / 共 97 个产物（仓库零写副作用）']
+A8 worktree 回收 rc = 0（须 0；不碰他方工作区，历史 242）
+------------------------------------------------------------------------------
+结论：提交态生成器会把 `docs/backend/endpoints.json` 的 **6 个端点**的 `task` 字段由空串写成台账任务号（差异字段仅 `task`、零契约语义变更）⇒ **过期侧 = endpoints.json**（三方证人一致）；本轮为校验轮且该产物属他方交付面 ⇒ **只登记未代改**（历史 193/194/213-③）
+SELF_NOTE=1（本文件由 gap-genprobe-R374 现场复跑产出，被测提交 = ed7ea9f4）
+GAP_GENPROBE_R374_END=1
