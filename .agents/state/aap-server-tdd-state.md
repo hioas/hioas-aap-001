@@ -10902,3 +10902,41 @@ R106 的 `fix-guards-r106.py` 把 `verify-final.py` / `final-check.py` 的返工
 本次接线后该两条**已真正 exact**，该出入自然消解。
 
 **提交**：`005358e`（前端接线 + 门禁收紧）、`3abb877`（补登 S07/S08/S09 的 4 个 json-schema 产物，T15 漏提交）。
+
+### R358（巡检轮 · 校验 + 第 30 类只读取证 + 凭据泄漏修复）
+
+**结论**：`missing = 0` → **交付代码零改动**；本轮为**校验轮**。两轮全量在**本轮新建的 HEAD 临时 worktree** 内
+**串行**复跑：各 **252 例 / 44 类**、`rc = 0`、Failures/Errors/Skipped **0/0/0**、逐类 diff **= 0**；
+`@Test` 词边界计数 **252 == surefire 合计**（无用例被静默跳过）。被测提交 **4e0fd30**（worktree 内 `rev-parse` 实测；
+跑完 `git worktree remove --force` 收尾）。覆盖 **102/102**、`missing=0`、`registered_routes=119`。
+**连续第 340 轮全绿**。
+
+**第 30 类只读取证（本轮新增）：证据/产物里的凭据出口。**
+为什么两套门禁都看不见：契约测试只把**真实响应体**与 JSON Schema 比对（证据文件里的令牌不是响应体）；
+覆盖门禁只比「方法+路径」；openapi 与客户端 TS 不被任何测试读取/执行。
+**真发现 1 处**：修前 5 个证据文件在 HEAD 态合计 **JWT=10 / 键值=20** 条真实凭据（access token 303/244 字符 +
+不透明 refresh token 43 字符）；**且门禁自身有口径盲区** —— `tools/evidence-secrets.py` 的键值正则只认**双引号 JSON**，
+而泄漏形态是 **Python repr（单引号）** → **不透明 refresh token 检出 0**（修前「命中 10 条」是不完整读数）。
+根因：`tools/biz-closure-e2e.py` 的 `step()` 把 `str(detail)` 原样写进 RESULTS 与 stdout，而 `dev_login()` 返回整个登录响应体。
+
+**据实修复（3 处，均带机器核对）**：① 生成侧新增 `mask_secrets()` 出口（落盘与 stdout 都走它，返回值不变）；
+② 门禁口径补 repr 单引号形态 + 新增 `--selftest`（判别力实测 6/6）；③ 就地对 5 个文件脱敏（复扫剩余 **0**）。
+修后独立探针（不同代码路径）复扫 **JWT=0 / 键值=0**、受核 5958 文件 `(size, md5)` 零变化、探针自测 7/7。
+
+**本轮返工 4 处（全部判据/脚本/期望侧，交付面与测试面零改动；都是断言当场响亮失败）**：
+① **并发前置检查判据过宽**（`classworlds|surefire|maven` 命中 IDEA 的 `RemoteMavenServer36` 与两个
+`spring-boot:run` dev 进程）→ **真的把本轮执行拦下**（`PREFLIGHT_RESULT=CONC_BUSY_ABORT`）；
+修法 = 收窄为「surefire 分叉 ∨ maven launcher 且参数含 test 目标」，并配**正反双向对照**（2/2 与 0/2）；
+② **`$(busy_probe)` 捕获了函数内日志输出** → 返回值恒不等于 `0`，症状是「每一 tick 都判忙、必然 ABORT」；
+修法 = 函数内日志改重定向到 facts、函数 stdout 只留计数（历史 46/98 同族）；
+③ **门禁 KV 正则手写转义被吞**：`["']` 写成 `[']` → 只认单引号，**双引号 JSON 样本 0 命中**；
+修法 = 改用 `chr(34)/chr(39)/chr(92)` 拼装整行（结构性消除转义，历史 245-③）；
+④ **本探针自身两处写错**：判别力实测的期望表两格互换（双引号样本应 KV_GATE=1）、长度保真断言硬编码 `303`
+而夹具是 102 字符 → 两处都在断言当场失败后**改判据/改期望的推导依据**，不是「为让测试变绿而迁就实现」。
+
+**证据**：`evidence/round-R358-analysis.txt`、`evidence/green-verify-R358-tested-state.txt`、
+`evidence/green-verify-R358-testcount.txt`、`evidence/gap-cred-exit-R358.txt`；`coverage-history.txt` 追加本轮行。
+
+**待拍板**：① **历史**里已提交的令牌无法靠就地脱敏消除（需改写历史，高风险）——本轮处置范围 = 工作区 + 生成侧防复发；
+② 第 30 类是否立为常驻不变量并纳入 driver（现状该轴常驻判据 = 门禁一条，但**驱动器里没有「证据面凭据」这一步**）；
+③ 承接 R357 在册项（零背书码 `E-1405`、命令表 ROOT 口径 63/80、回归面基线重算等，见台账描述列）。

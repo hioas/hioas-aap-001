@@ -1,0 +1,37 @@
+R358 被测状态（事实来自执行器落盘的 facts-run.log，源码零硬编码）
+
+  FACTS_ROUND                      R358
+  FACTS_WINDOW_START               22:41:56
+  FACTS_WINDOW_END                 22:47:03
+  FACTS_TESTED_COMMIT              4e0fd30
+  FACTS_TESTED_COMMIT_FULL         4e0fd301f3131c30aeb53ddaefb05ac164312a9e
+  FACTS_TESTED_SUBJECT             chore(evidence): dev 环境闭环复跑 27/27 —— 同时证明 V13 的 (provider_id, source_hash) 唯一口径在 dev 库已生效
+  FACTS_RUN1_START                 22:42:12
+  FACTS_RUN1_END                   22:44:58
+  FACTS_RUN1_RC                    0
+  FACTS_RUN2_START                 22:44:58
+  FACTS_RUN2_END                   22:47:00
+  FACTS_RUN2_RC                    0
+  ENV_BASH                         /usr/bin/bash
+  ENV_MVN                          /c/Users/laitz/bin/mvn
+  ENV_JAVA                         /e/workspaces/jdk/temurin-25.0.4/bin/java
+  ENV_JPS                          /e/workspaces/jdk/temurin-25.0.4/bin/jps
+  ENV_JPS_REACHABLE                Y
+  PREFLIGHT_CONTROL_POS_MATCH      2/2
+  PREFLIGHT_CONTROL_NEG_MATCH      0/2（必须 0）
+  PREFLIGHT_RESULT                 CLEAR
+  PREFLIGHT_OK                     1
+  WORKTREE_ADD_RC                  0
+  WORKTREE_REMOVE_RC               0
+  FACTS_HEAD_AT_END                4e0fd30
+
+== worktree 收尾（跑完即回收，历史 27/28） ==
+  rc=0
+  E:/workspaces/hioas/hioas-aap-001             4e0fd30 [main]
+  C:/Users/laitz/AppData/Local/Temp/aap-r267-wt c159593 (detached HEAD)
+  C:/Users/laitz/AppData/Local/Temp/aap-r268-wt f07b7f5 (detached HEAD)
+
+== 结论 ==
+  被测状态 = 上述 commit 的 **临时 detached worktree**（非工作区，规避他方在途改动，历史 193）
+  两轮 rc = 0 / 0；窗口 22:41:56–22:47:03
+  并发前置检查：正对照 2/2、负对照 0/2（必须 0）（判据既要有牙、也不得滥伤，历史 66/75/241）

@@ -38,6 +38,7 @@ from __future__ import annotations
 import argparse
 import io
 import json
+import re
 import os
 import random
 import string
@@ -122,14 +123,29 @@ class Client:
         return payload.get("data")
 
 
+# ---- 凭据脱敏出口（引入于收尾轮 R358；历史：登录响应体原样进证据 → 真实 access/refresh token 被写进 git）----
+SECRET_KEY_PAT = ('token|access_?token|refresh_?token|id_?token|api_?key|apikey|secret'
+                  '|client_?secret|password|passwd|authorization|credentials?')
+JWT_VALUE_RE = re.compile('eyJ[A-Za-z0-9_-]{8,}[.][A-Za-z0-9_-]{8,}[.][A-Za-z0-9_-]{8,}')
+KV_SECRET_RE = re.compile('((?:["\'])(?:' + SECRET_KEY_PAT + ')(?:["\'])[ ]*:[ ]*(?:["\']))([^"\']{12,})(["\'])', re.I)
+
+
+def mask_secrets(text: str) -> str:
+    """把凭据值（JWT 形态 / 凭据类键名下的长值）替换为 <redacted len=N>。
+    报告落盘与 stdout 都必须走这一出口 —— 它是「证据里不得有真实令牌」的唯一执行点。"""
+    text = KV_SECRET_RE.sub(
+                lambda m: m.group(1) + '<redacted len=%d>' % len(m.group(2)) + m.group(3), text)
+    return JWT_VALUE_RE.sub(lambda m: '<redacted len=%d>' % len(m.group(0)), text)
+
+
 def step(phase: str, name: str, fn):
     started = time.time()
     try:
         detail = fn()
         RESULTS.append({"phase": phase, "name": name, "ok": True,
-                        "detail": "" if detail is None else str(detail),
+                        "detail": "" if detail is None else mask_secrets(str(detail)),
                         "ms": int((time.time() - started) * 1000)})
-        print("  [OK]   [%s] %s%s" % (phase, name, (" — " + str(detail)) if detail else ""), flush=True)
+        print("  [OK]   [%s] %s%s" % (phase, name, (" — " + mask_secrets(str(detail))) if detail else ""), flush=True)
         return True, detail
     except CallError as exc:
         RESULTS.append({"phase": phase, "name": name, "ok": False,
