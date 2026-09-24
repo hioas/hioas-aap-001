@@ -1,0 +1,13 @@
+第 17 类**形态域穷举表**（供下一轮消费；口径 = 各源实际存在的写法，历史 144/215）
+
+- 服务端出口 Java 类型写法：['BigDecimal', 'Double']
+- 比率字段 → 生产函数：[('cache_hit_rate', 'cacheHitRate'), ('cache_parse_rate', 'cacheParseRate'), ('mom_rate', 'momRate'), ('deviation_rate', 'deviationRate')]
+- 差型无界 = [('mom_rate', 'momRate', 'Double'), ('deviation_rate', 'deviationRate', 'Double')]；计数型有界 = [('cache_hit_rate', 'cacheHitRate', 'Double'), ('cache_parse_rate', 'cacheParseRate', 'Double')]；无舍入点 = ['cache_hit_rate', 'cache_parse_rate', 'mom_rate', 'deviation_rate']
+- 契约声明：{'cache_hit_rate': {'type': ['number', 'null'], 'has_range': False, 'has_desc': False, 'has_multipleOf': False}, 'cache_parse_rate': {'type': ['number', 'null'], 'has_range': False, 'has_desc': False, 'has_multipleOf': False}, 'mom_rate': {'type': ['number', 'null'], 'has_range': False, 'has_desc': False, 'has_multipleOf': False}, 'deviation_rate': {'type': ['number', 'null'], 'has_range': False, 'has_desc': False, 'has_multipleOf': False}}
+- openapi 引用者（按 $ref 目标反查）：['UsageSummary']
+- 客户端判别式（逐字）：Math.abs(value) <= 1 ? value * 100 : value
+- 客户端消费点：['cache_hit_rate', 'mom_rate']（字段名级 = ['cache_hit_rate', 'mom_rate']）
+- 阈值：0.05 >
+- 穷举口径：b ∈ [0.1, 6.0] 步长 0.00002；命中 9157 / 295001
+
+GAP_RATIO_UNITS_FORMS_END=1

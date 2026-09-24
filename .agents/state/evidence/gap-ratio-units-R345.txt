@@ -1,0 +1,44 @@
+第 17 类只读取证（一次性）· 比率类字段的量纲 / 值域 / 精度口径 · R345
+受核文件 6 个：['aap-server/src/main/java/com/hioas/aap/usage/UsageViews.java', 'aap-server/src/main/java/com/hioas/aap/usage/UsageMetrics.java', 'docs/backend/json-schema/models/usage-summary.schema.json', 'docs/backend/openapi.yaml', 'aap-client/src/utils/format.ts', 'aap-client/src/utils/workbench-model.ts']
+服务端解析到数值出口 21 个；比率出口 ['cache_hit_rate', 'cache_parse_rate', 'mom_rate', 'deviation_rate']
+服务端：差型无界 = ['mom_rate', 'deviation_rate']；计数型有界 = ['cache_hit_rate', 'cache_parse_rate']；无舍入点 = ['cache_hit_rate', 'cache_parse_rate', 'mom_rate', 'deviation_rate']；有分母守卫 = ['cache_hit_rate', 'cache_parse_rate', 'mom_rate', 'deviation_rate']
+客户端 src 44 个 .ts；字段名级消费 = ['cache_hit_rate', 'mom_rate']；formatPercent(raw.*) 消费点 = ['cache_hit_rate', 'mom_rate']
+契约侧：schema 比率字段 4 个；openapi $ref 引用者 = ['UsageSummary']；金额字段有量纲声明 6 处
+客户端判别式（逐字）= Math.abs(value) <= 1 ? value * 100 : value
+穷举口径 b ∈ [0.1, 6.0]（scale-6 可达值 ∧ 十进制恰好 5%）= 295001 条；误告警 9157 条（3.10%）
+
+[PASS] A0a 正向对照：服务端 UsageViews 解析到数值出口 > 0
+[PASS] A0a2 正向对照：服务端 UsageMetrics 解析到静态生产函数 > 0
+[PASS] A1 服务端「差型无界比率」= 2 个（mom_rate / deviation_rate：分子为差 ∧ 无显式钳制）
+[PASS] A1b 全部比率出口确有「分母 <= 0 / signum() == 0 → null」守卫（禁 0 冒充无数据，md §0 红线）
+[PASS] A5 无舍入点的比率出口 > 0（精度口径缺口，信息项）
+[PASS] A0a3 正向对照：客户端 src 解析到 .ts 文件 > 0
+[PASS] A0b 正向对照：schema 解析到比率字段 > 0
+[PASS] A2 契约侧对无界比率的**量纲/值域**声明 = 0 处（真缺口：只写 number|null）
+[PASS] A2b 同族对照：金额字段有量纲声明（`numeric(18,6)`）> 0 处 ⇒ 比率的零声明**不是风格统一**
+[PASS] A0b2 正向对照：openapi 侧按 **$ref 目标路径** 反查到引用者 > 0（不按名字匹配，历史 92）
+[PASS] A0c 正向对照：客户端 formatPercent 的判别式可解析
+[PASS] A3a 客户端判别式 = 值域启发式（|v| <= 1 视作分数，否则视作百分数）
+[PASS] A0c2 正向对照：客户端对服务端比率的消费点 > 0
+[PASS] A3 跨侧冲突可判定：客户端消费的字段中存在服务端**无界**比率 ∧ 判别式为启发式
+[PASS] A3b 机器复算：服务端合法值 1.25（语义 +125%）经客户端判别式显示为 '1.3%'（错 100 倍）
+[PASS] A3c 反例对照：|rate| <= 1 的合法值显示正确 ⇒ 缺陷只在边界外（非全局）
+[PASS] A0d 正向对照：阈值常量与比较运算符均可解析
+[PASS] A0d2 正向对照：穷举条数 > 0（口径 = 十进制恰好 5% ∧ 两值均为 scale-6 可达值）
+[PASS] A4 阈值边界：十进制恰好 5% 的输入对被实现判「告警」= 9157 / 295001（3.10%）⇒ 与「> 5% 才告警」不一致
+[PASS] A4c 双向存在性（穷举集）：误判告警 9157 条 > 0 ∧ 未误判 285844 条 > 0 ⇒ 误报由 float 舍入方向决定、非「一律误报」
+[PASS] A4b 反例对照（整值样例）：既有误判（['0.25', '1.00', '2.00']）也有不误判（['0.10', '5.00', '6.00']）⇒ 触发面窄且**非一律**（诚实分级；本轮此处首版按**手算**写成「全部不误告警」→ 断言转红，改为机器复算后的事实）
+[PASS] A6 客户端展示层自带舍入（Math.round(pct*10)/10）⇒ 位数不定只影响原始 JSON，不影响展示（缓解项）
+[PASS] A9 判别力实测：注入①（schema 补 maximum）使 A2 转绿且基线非空 = True；注入②（客户端判别式改非启发式）使 A3 转绿且基线 = 消费∩无界 = ['mom_rate']（非空）= True（须全 True）
+[PASS] A9b 判别力实测的锚点必须真的命中源码（否则是空转通过，历史 66/94/104）
+[PASS] A10 零写副作用：受核 6 个文件 (size, md5) 前后全等
+[INFO] 客户端全量消费点（字段名级）：['cache_hit_rate', 'mom_rate']
+[INFO] schema 声明 cache_hit_rate   = {'type': ['number', 'null'], 'has_range': False, 'has_desc': False, 'has_multipleOf': False}
+[INFO] schema 声明 cache_parse_rate = {'type': ['number', 'null'], 'has_range': False, 'has_desc': False, 'has_multipleOf': False}
+[INFO] schema 声明 mom_rate         = {'type': ['number', 'null'], 'has_range': False, 'has_desc': False, 'has_multipleOf': False}
+[INFO] schema 声明 deviation_rate   = {'type': ['number', 'null'], 'has_range': False, 'has_desc': False, 'has_multipleOf': False}
+[INFO] 整值样例逐条机器复算（b, float 比率, 是否误判告警）：[('0.10', '0.049999999999999906', False), ('0.25', '0.050000000000000044', True), ('1.00', '0.050000000000000044', True), ('2.00', '0.050000000000000044', True), ('5.00', '0.050000000000000003', False), ('6.00', '0.049999999999999968', False)]
+
+汇总：PASS 25 / FAIL 0
+结论（机器判据，据实）：① 真漂移 1 条 = mom_rate（服务端差型无界比率 × 客户端值域启发式 × 契约零声明量纲）⇒ |rate| > 1 时显示值错 100 倍；② 真缺陷 1 条 = 差异率 ±5% 阈值以 float 比较，十进制恰好 5% 的输入对被判「告警」（与「> 5% 才告警」口径不一致，触发面窄）；③ 信息项 = 比率出口无舍入点（JSON 位数不定；客户端展示层已自行舍入 ⇒ 缓解）。
+GAP_RATIO_UNITS_END=1
