@@ -1,0 +1,19 @@
+[PASS] P0 取到主提交号与主题 | 4ddfcc38 | chore(aap-server): R368 巡检轮取证（两轮 252 例全绿 · missing=0 · 第 37 类只读不变量 13 PASS/0 FAI
+[PASS] P1a 台账本轮行在 HEAD 内恰好 1 条 | 命中 1
+[PASS] P1b 工作区本轮行恰好 1 条 | 命中 1
+[PASS] P1c 提交列仍为空（收尾前） | HEAD='' 工作区=''
+[PASS] P1d HEAD 内本轮行与工作区行**逐列相等** | 不等列 []
+[PASS] P2a 豁免清单条数受夹（<= 2） | n=2
+[PASS] P2 缺的**恰好**是自身/后续产出文件，其余全部在 HEAD 树内 | 缺 ['verify-R368-post.txt', 'verify-R368-postcheck.txt']（豁免清单 ['verify-R368-post.txt', 'verify-R368-postcheck.txt']）
+[PASS] P2b 正向对照：受判证据数 > 0 | 受判 18 份
+[PASS] P3 逐条登记引入提交归属 | 登记 20/20，引入提交 = ['(未找到新增记录；按设计为既有文件的改写，如 coverage-history)', '4ddfcc38']
+  归属明细：{'audit-regression-R368-faildiff.txt': '4ddfcc38', 'audit-regression-R368-failraw.txt': '4ddfcc38', 'audit-regression-R368-rcseq.txt': '4ddfcc38', 'audit-regression-R368.txt': '4ddfcc38', 'closeout-R368.txt': '4ddfcc38', 'gap-conc-inwindow-R368.txt': '4ddfcc38', 'gap-ledger-vs-tree-R368.txt': '4ddfcc38', 'gap-rework-R368.txt': '4ddfcc38', 'gap-stalereport-R368.txt': '4ddfcc38', 'gap-stalereport-fix-R368.txt': '4ddfcc38', 'gap-window-writes-R368.txt': '4ddfcc38', 'green-verify-R368-coverage-fields.txt': '4ddfcc38', 'green-verify-R368-full-run1.txt': '4ddfcc38', 'green-verify-R368-full-run2.txt': '4ddfcc38', 'green-verify-R368-testcount.txt': '4ddfcc38', 'green-verify-R368-tested-state.txt': '4ddfcc38', 'postwrite-check-R368.txt': '4ddfcc38', 'round-R368-analysis.txt': '4ddfcc38', 'verify-R368-post.txt': '(未找到新增记录；按设计为既有文件的改写，如 coverage-history)', 'verify-R368-postcheck.txt': '(未找到新增记录；按设计为既有文件的改写，如 coverage-history)'}
+[PASS] P4 本轮提交只碰 .agents/state/**（交付面越界 = 0） | 越界 0 []
+[PASS] P4b 正向对照：提交文件数 > 0 | n=21
+[PASS] P5 主提交 message 含规范返工真值形态 | 第 37 类只读不变量 13 PASS/0 FAIL · 返工真值 = 9 处）
+[PASS] P6 HEAD 内描述列 == 落盘单一事实源 | len=3852 vs 3852
+[PASS] P7a HEAD 内 coverage-history 末行 = 本轮行 | 2026-09-25 03:39 R368 巡检轮 | 清单 102/102（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 310e5dc3**，工
+[PASS] P7b HEAD 树内本轮产物 CR=0 ∧ 末字节换行 | 违规 []
+MAIN_COMMIT=4ddfcc38
+SUM PASS=15 FAIL=0
+VERIFY_POST_R368_END=1
