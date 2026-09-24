@@ -1,0 +1,20 @@
+==============================================================================
+R336 一次性只读取证：R335 两门前置门槛判据的**落地核对**（本轮执行器 + 本轮 facts vs 修正前执行器）
+==============================================================================
+[PASS] A0 正向对照：两份执行器文本都可读且非空（否则判定不可用，历史 46/141） 本轮 349 行 / 修正前 316 行 / facts 50 行
+A1 逐 token 命中（本轮执行器）：{'JPS_GATE_OK': 7, 'ARCH_CLEAN_GUARD_OK': 2, 'PREFLIGHT_JPS_GATE_OK': 2, 'PREFLIGHT_ARCH_CLEAN_GUARD_OK': 2}
+[PASS] A1 本轮执行器含两门门槛判据 + 中止分支 + facts 落盘键（全部 > 0） {'JPS_GATE_OK': 7, 'ARCH_CLEAN_GUARD_OK': 2, 'PREFLIGHT_JPS_GATE_OK': 2, 'PREFLIGHT_ARCH_CLEAN_GUARD_OK': 2}
+[PASS] A1b 门槛判据的**中止分支**形态完整（含 `: > "$FACTS"` 清空与 `exit 9`，历史 240） 命中 = True
+A2 修正前（R334 执行器）逐 token 命中：{'JPS_GATE_OK': 0, 'ARCH_CLEAN_GUARD_OK': 0, 'PREFLIGHT_JPS_GATE_OK': 0, 'PREFLIGHT_ARCH_CLEAN_GUARD_OK': 0}
+[PASS] A2 修正前执行器**零命中**本轮两门新判据的键（⇒ 该修正是真实变更，非文本搬运） {'JPS_GATE_OK': 0, 'ARCH_CLEAN_GUARD_OK': 0, 'PREFLIGHT_JPS_GATE_OK': 0, 'PREFLIGHT_ARCH_CLEAN_GUARD_OK': 0}
+A2b 信息项（范围纪律，历史 81）：通用中止标记 `PREFLIGHT_ABORT=1` 在修正前已有 1 处、本轮 2 处 —— 它属**更早的内存/并发门槛**那条中止路径，**不计入**本轮两门判据（首版误将其计入 → 假 FAIL，返工 ①）
+A3 本轮 facts 门槛读数：{'PREFLIGHT_ARCH_CLEAN_GUARD_OK': '1', 'PREFLIGHT_ARCH_CLEAN_REACHABLE': 'Y', 'PREFLIGHT_ARCH_CLEAN_SELFTEST_RC': '0', 'PREFLIGHT_JPS_GATE_OK': '1'}
+[PASS] A3 本轮 facts 含门槛读数 ∧ 取值与「门槛通过」一致（JPS_GATE_OK=1 ∧ ARCH_CLEAN_GUARD_OK=1 ∧ 其两个输入合法） {'PREFLIGHT_ARCH_CLEAN_GUARD_OK': '1', 'PREFLIGHT_ARCH_CLEAN_REACHABLE': 'Y', 'PREFLIGHT_ARCH_CLEAN_SELFTEST_RC': '0', 'PREFLIGHT_JPS_GATE_OK': '1'}
+[PASS] A3b 对照：facts 同时记录了门槛的**输入**读数（可达性 / 自测 RC，判据与读数同源，历史 243-③） 
+[PASS] A4 注入锚点命中恰好 1 处 ∧ 注入后文本确实变短（历史 66/94：注入必须真的改到源码） 锚点命中 1 处 / 长度 14856 -> 14470
+[PASS] A4b 判别力实测：删掉中止块后「门槛块形态」判定由 True 变 False ∧ 两门判据的键计数下降 注入后 = {'JPS_GATE_OK': 6, 'ARCH_CLEAN_GUARD_OK': 2, 'PREFLIGHT_JPS_GATE_OK': 2, 'PREFLIGHT_ARCH_CLEAN_GUARD_OK': 2}（块形态 False）
+B 段 prefix 快照：修正前执行器内相关行 = 0 条 / 修正后 = 9 条（正向对照：后者须 > 0）
+[PASS] B 修正前快照的相关行数 == 0 ∧ 修正后 > 0（同一判据在两版本上结论不同） 
+
+汇总：FAIL 断言 = 0 条 （全 PASS）
+GAP_GATE_LANDED_END=1
