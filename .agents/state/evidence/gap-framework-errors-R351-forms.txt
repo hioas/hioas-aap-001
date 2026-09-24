@@ -1,0 +1,14 @@
+形态域表 · 第 23 类（框架级/容器级异常路径与上传上限完备性）· R351
+源 H 实现：@ExceptionHandler 站点 = 11 处；集合 = ['AccessDeniedException', 'ApiException', 'AuthenticationException', 'ConstraintViolationException', 'Exception', 'HttpMessageNotReadableException', 'HttpRequestMethodNotSupportedException', 'MethodArgumentNotValidException', 'MethodArgumentTypeMismatchException', 'MissingServletRequestParameterException', 'NoResourceFoundException']
+源 H2 兜底：Exception.class = True -> E-2001（500 档）
+源 F 目录（类名, 期望状态, 可达, 有专门处理器）= [('HttpMediaTypeNotSupportedException', 415, True, False), ('HttpMediaTypeNotAcceptableException', 406, True, False), ('MaxUploadSizeExceededException', 413, True, False), ('MissingServletRequestPartException', 400, True, False), ('MissingRequestHeaderException', 400, False, False), ('BindException', 400, False, False), ('AsyncRequestTimeoutException', 503, False, False), ('HttpMessageNotWritableException', 500, True, False)]
+源 F2 可达且无专门处理器 = [('HttpMediaTypeNotSupportedException', 415), ('HttpMediaTypeNotAcceptableException', 406), ('MaxUploadSizeExceededException', 413), ('MissingServletRequestPartException', 400)]
+源 F 可达性依据：@RequestBody = 35 / MultipartFile = 2 / @ModelAttribute = 0 / 异步 = 0
+源 Y1 主配置 multipart 声明 = 0 处 / 测试配置 = 0 处
+源 Y2 框架默认（本地库 spring-boot-servlet-4.1.1-sources.jar，sha1 校验 True）：['private DataSize maxFileSize = DataSize.ofMegabytes(1);'] / ['private DataSize maxRequestSize = DataSize.ofMegabytes(10);']；前缀 spring.servlet.multipart = True
+源 C 契约上限 = 10485760 字节 / 实现常量 = 10485760 字节 / 生效 = 1048576 字节（框架默认 1MB）
+源 K 错误码 27 条；状态域 = ['400', '401', '403', '404', '409', '429', '500', '502', '503']；415/406/413 缺失 = ['415', '406', '413']
+源 T 测试判据 = 0 处（类名 {'HttpMediaTypeNotSupported': 0, 'HttpMediaTypeNotAcceptable': 0, 'MaxUploadSize': 0, 'MissingServletRequestPart': 0} / 状态形态 0）；源 D driver 判据 = 0 处（{'HttpMediaTypeNotSupported': 0, 'HttpMediaTypeNotAcceptable': 0, 'MaxUploadSize': 0, 'MissingServletRequestPart': 0} / 0）
+源 X 客户端按状态分支 = True
+受核文件 = 471 个（零写副作用口径）
+GAP_FRAMEWORK_ERRORS_FORMS_END=1

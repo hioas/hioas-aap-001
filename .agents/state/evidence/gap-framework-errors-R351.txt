@@ -1,0 +1,70 @@
+第 23 类只读取证：框架级/容器级异常路径与上传上限的「码 ⇔ HTTP 状态 ⇔ 包络」完备性 · R351
+==============================================================================
+源 H：`@ExceptionHandler` 站点 = 11 处 -> ['AccessDeniedException', 'ApiException', 'AuthenticationException', 'ConstraintViolationException', 'Exception', 'HttpMessageNotReadableException', 'HttpRequestMethodNotSupportedException', 'MethodArgumentNotValidException', 'MethodArgumentTypeMismatchException', 'MissingServletRequestParameterException', 'NoResourceFoundException']
+[PASS] H0 正向对照：处理器解析到 > 0（否则判定不可用，历史 46/98/141） 11
+[PASS] H1 兜底处理器（Exception.class）恰 1 处（未枚举异常的唯一落点） catchall=1
+[PASS] H2 兜底处理器存在且把未枚举异常映射为 E-2001（= 500 档） body 长度 = 235 / E_2001 = True
+源 F 可达性依据：`@RequestBody` 出现 = 35 处 / `MultipartFile` = 2 处 / `@ModelAttribute` = 0 处 / 异步 = 0 处
+[PASS] F0 正向对照：可达性依据解析到 > 0（JSON 端点 ∧ multipart 端点） json=35 multipart=2
+源 F：目录 = 8 类（可达 = 5 类；**可达且无专门处理器** = 4 类）
+   HttpMediaTypeNotSupportedException         期望 415  可达=True  专门处理器=N  客户端可发 Content-Type: text/plain 打 JSON 端点（@RequestBody 出现 35 处）
+   HttpMediaTypeNotAcceptableException        期望 406  可达=True  专门处理器=N  客户端可发 Accept: application/xml（响应为 JSON）
+   MaxUploadSizeExceededException             期望 413  可达=True  专门处理器=N  客户端可上传超出**容器**上限的文件（multipart 端点 = POST /api/v1/files）
+   MissingServletRequestPartException         期望 400  可达=True  专门处理器=N  客户端可发 multipart 但**不带 file 部件**（@RequestParam MultipartFile 未标 required=false）
+   MissingRequestHeaderException              期望 400  可达=False 专门处理器=N  全仓无 required 的 @RequestHeader
+   BindException                              期望 400  可达=False 专门处理器=N  无 @ModelAttribute 形参（= 0 处）
+   AsyncRequestTimeoutException               期望 503  可达=False 专门处理器=N  无异步返回（= 0 处）
+   HttpMessageNotWritableException            期望 500  可达=True  专门处理器=N  服务端序列化失败 —— 500 语义正确
+[PASS] F1 目录每条都带可达性判据 ∧ 目录非空（判定可用） 目录 8 类
+[FAIL] F2 **客户端可达且无专门处理器**的框架异常 = 0 类（现状 = 落兜底 500 E-2001） 未覆盖 = [('HttpMediaTypeNotSupportedException', 415), ('HttpMediaTypeNotAcceptableException', 406), ('MaxUploadSizeExceededException', 413), ('MissingServletRequestPartException', 400)]
+[PASS] F3 同一受判函数的两分支**结论不同**（可达性/处理器任一变化都必须改变结果，历史 82/93） 三支对照
+源 Y1：主配置 multipart 上限声明 = 0 处 / 测试配置 = 0 处
+[PASS] Y0 正向对照：主配置解析器真的读到输入（`spring:` 段存在） spring: 出现 1 次
+源 Y2 框架默认值取证（本地库工件 spring-boot-servlet-4.1.1-sources.jar / sha1 校验 = True）：['private DataSize maxFileSize = DataSize.ofMegabytes(1);'] | ['private DataSize maxRequestSize = DataSize.ofMegabytes(10);'] | 前缀命中 = True
+[PASS] Y2 正向对照：Boot 4.1.1 工件的 `MultipartProperties` 被真的读到 ∧ 工件 sha1 校验通过 ∧ 前缀 = spring.servlet.multipart 默认 maxFileSize = 1 MB
+[PASS] Y1 主/测试配置**都未声明**容器上传上限（⇒ 生效值 = 框架默认；默认口径只存在于工件里） main=0 test=0
+源 C：契约 `file_size` 上限 = 10485760 字节 / 实现 `MAX_FILE_BYTES` = 10485760 字节
+[PASS] C0 正向对照：契约与实现两侧上限都解析到（历史 46） 10485760 / 10485760
+[PASS] C1 契约声明 == 实现常量（两侧口径一致） 10485760 vs 10485760
+[FAIL] C2 **生效上限 >= 声明上限**（容器默认 1MB 会先于 10MB 校验拒收 => 声明路径不可达） 生效 = 1048576 字节 vs 声明 = 10485760 字节（差 10 倍）
+[PASS] C3 「死守卫」判定与 C2 同源一致（同一事实不得两种结论，历史 95） DEAD_GUARD = True
+INFO 观察项：大小守卫行 = ['if (content.length > MAX_FILE_BYTES) {']；控制器先 `getBytes()` 全量读入（= True）后再判大小 ⇒ 守卫**不前置**（容器默认上限恰好在内存侧兜住，故仅列观察项，历史 170-③ 同族）
+[PASS] K0 正向对照：错误码解析到 > 0（历史 46/85） 27 条 / 状态域 ['400', '401', '403', '404', '409', '429', '500', '502', '503']
+INFO 信息项：错误码表**无 415/406/413 类码**（缺失 = ['415', '406', '413']）⇒ 若要以业务码表达这三类须**新增码**（契约变更，须人拍板）；复用 E-1001(400) 则语义自洽
+[PASS] K2 客户端的按 HTTP 状态分支点存在且口径可读（状态语义有消费方） 
+源 T：测试源 49 个文件 -> 类名命中 = {'HttpMediaTypeNotSupported': 0, 'HttpMediaTypeNotAcceptable': 0, 'MaxUploadSize': 0, 'MissingServletRequestPart': 0} / 状态断言形态 = 0（合计 0）
+   （信息项：**裸数字计数不可用** = {'415': 0, '413': 0, '406': 41} —— `406` 的命中全部来自错误码 `E-1406`，即「判据范围与语义不符」的污染，历史 81/144；故本判据只用形态化写法）
+源 D：driver 类名命中 = {'HttpMediaTypeNotSupported': 0, 'HttpMediaTypeNotAcceptable': 0, 'MaxUploadSize': 0, 'MissingServletRequestPart': 0} / 状态断言形态 = 0（合计 0）
+[PASS] T0 正向对照：测试源解析到 > 0 个文件 ∧ 形态化判据**至少命中过一条样本**（用同一函数在合成行上验证，历史 75/98） 49 个文件
+[FAIL] T1 框架级错误路径有**常驻测试判据**（现状 = 0 处 ⇒ 该耦合对所有用例不可见） 测试判据 = 0 处
+[FAIL] D1 回归面 driver 有该轴判据（现状 = 0 处） driver 判据 = 0 处
+源 E 判别力实测（历史 66/90/94/104：注入必须真的改到文本，且与真值无包含关系）
+[PASS] E1 受判函数判别力：可达∧无处理器 -> 命中（[('SynNotSupported', 415)]）；补上处理器 -> 不命中（[]）；不可达 -> 不命中 
+[PASS] E2 注入①（补 415 处理器）真的改到源码文本 ∧ 分类结果翻转（415 由未覆盖 -> 已覆盖） 处理器 11 -> 12 / 未覆盖 4 -> 3
+[PASS] E3 注入②（主配置补 multipart 声明）真的改到 yml 文本 ∧ 「未声明」判定翻转 声明数 0 -> 2
+[PASS] E4 注入③（测试源补一条 415 断言形态）使同一计数函数 +1（判据对形态有牙齿） 合成行计数 = 1
+[PASS] E5 注入④（契约上限改 99999999）使 C1 判定翻转（两侧不一致） 合成 = 99999999 vs 实现 = 10485760
+[PASS] E6 零写副作用：受核文件 (size, md5) 前后全等（历史 39/40/131） 受核文件 = 471 个 / 变化 = 0
+
+机器可读读数（下游单一事实源**结构化解析**本段，禁止手写）：
+R1 @ExceptionHandler 站点 = 11 处
+R2 框架目录 = 8 类 / 可达 = 5 类 / **可达且无专门处理器 = 4 类**
+R3 声明上限 = 10485760 字节 / 实现常量 = 10485760 字节 / 生效上限 = 1048576 字节 / 框架默认 = 1 MB
+R4 主配置声明 = 0 处 / 测试配置声明 = 0 处
+R5 测试判据 = 0 处 / driver 判据 = 0 处
+R6 兜底去向 = E-2001（500 档）= True / 未覆盖异常 = ['HttpMediaTypeNotSupportedException', 'HttpMediaTypeNotAcceptableException', 'MaxUploadSizeExceededException', 'MissingServletRequestPartException']
+R7 错误码表 = 27 条 / 415-406-413 缺失 = ['415', '406', '413']
+R8 受核文件 = 471 个 / (size, md5) 变化 = 0
+
+真发现（据实，5 条相互独立的机器判据）：
+  ① 声明的上传上限（10485760 字节 = 10MB）**≠ 生效上限**（1048576 字节 = 1MB）：主/测试配置**零声明** `spring.servlet.multipart.max-file-size` ⇒ 生效值 = 框架默认（Boot 4.1.1 工件取证：`private DataSize maxFileSize = DataSize.ofMegabytes(1);`）；⇒ 1MB–10MB 区间的上传**永远到不了** `FileService` 的 10MB 校验（容器先拒），声明的 400 `E-1001`「单个文件不超过 10MB」路径在该区间**不可达**、`MAX_FILE_BYTES` 分支为**死守卫**（判据 Y1 + C2 + C3）。
+  ② **客户端可触发的 4xx 被兜底报成 5xx**（判据 F2）：['HttpMediaTypeNotSupportedException', 'HttpMediaTypeNotAcceptableException', 'MaxUploadSizeExceededException', 'MissingServletRequestPartException'] 四类**无专门处理器** ⇒ 落 `Exception.class` 兜底 ⇒ **HTTP 500 + E-2001** —— 错误归因反向（客户端请求错误计入服务端 5xx，告警链路误报），且客户端按状态分支只有 401（415/413/406 会被当成系统错误）。
+  ③ **判据缺口（双零）**：该轴在测试源 0 处判据、回归面 driver 0 处判据（判据 T1 + D1）⇒ 对 243 例契约测试与全部审计工具完全不可见。
+信息项（据实分级，非缺陷）：① 错误码表无 415/406/413 类码（缺失 = ['415', '406', '413']）⇒ 新增码 = 契约变更（须人拍板），复用 E-1001(400) 语义自洽；② 上传守卫**不前置**（先 `getBytes()` 全量读入再判大小，getBytes=True）—— 因容器默认 1MB 恰在内存侧兜住，故仅为观察项；③ `HttpMessageNotWritableException` 落 500 **语义正确**；④ `server.error.include-message=never` + `whitelabel.enabled=false` ⇒ 即便走容器默认错误页也不泄漏根因。
+
+汇总：PASS 21 / FAIL 4（受判条数 25）
+  [FAIL] F2 **客户端可达且无专门处理器**的框架异常 = 0 类（现状 = 落兜底 500 E-2001）
+  [FAIL] C2 **生效上限 >= 声明上限**（容器默认 1MB 会先于 10MB 校验拒收 => 声明路径不可达）
+  [FAIL] T1 框架级错误路径有**常驻测试判据**（现状 = 0 处 ⇒ 该耦合对所有用例不可见）
+  [FAIL] D1 回归面 driver 有该轴判据（现状 = 0 处）
+GAP_FRAMEWORK_ERRORS_END=1
