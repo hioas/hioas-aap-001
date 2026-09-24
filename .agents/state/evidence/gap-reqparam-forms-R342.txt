@@ -1,0 +1,32 @@
+[PASS] A0a 家族成员数 > 0：家族 = 5 个（audit-routes.py, audit-auth-contract.py, audit-query-params.py, audit-request-body.py, audit-response-shape.py）
+[PASS] A0b 受核控制器文件数 > 0：控制器文件 = 28 个
+[PASS] A0c 真实仓库 @RequestParam 站点数 > 0：站点 = 91 处
+[PASS] A1a 形态计数之和 == 站点数（无漏算）：sum = 91 / sites = 91
+[PASS] A1b 未出现「括号不配对」形态：N0 = 0
+[PASS] A1c 形态域非空（正向对照）：形态种类 = 2 种
+[PASS] A2a 参与成员数 + 不可见成员数 == 家族成员数：1 + 4 = 5
+[PASS] A2b 参与成员确实持有取值实现（助手/正则）：参与者 = [('audit-query-params.py', True)]
+[PASS] A2c 不可见成员的源码里该注解出现 0 次：不可见 = [('audit-auth-contract.py', 0), ('audit-request-body.py', 0), ('audit-response-shape.py', 0), ('audit-routes.py', 0)]
+[PASS] A3a 该成员对已出现形态**全部**取值正确（含 required 语义）：偏差 = {}
+[PASS] A3b 裸注解形态被**响亮拒绝**（进 problems，而非静默取错）：n1 q = ([], [])；problems = ['SynReqParamController.java: @GetMapping 的 @RequestParam 无实参列表']
+[PASS] A3c 解析到 5 个端点（正向对照）：解析到 5 个
+[PASS] A3d 判别力实测：去掉名字字面量后取值**确实变化**：去字面量后 n3 q = ['x']（原 ['third_name']）
+[PASS] A4a 真实家族在该轴**不可适用**（参与成员数 < 2）：参与成员数 = 1
+[PASS] A4b 判别力实测：同一判据在合成两成员集上给出**相反**结论：合成集参与数 = 2 -> True
+[PASS] A4c 该轴无族外裁判（据实声明为推断型/单侧证据）：query 轴的 join 键即该成员自身解析的路径 ⇒ 无族外裁判（R341 已记录）；故本轴结论限于「成员内自洽 + 形态域穷举」
+[PASS] A5a 放大效应可量化（该轴唯一成员出错则全部站点连带错位）：唯一成员承担 91 处站点、跨 23 个控制器；Top = [('UsageController.java', 9), ('AuditLogController.java', 7), ('AdminUsageController.java', 7)]
+[PASS] A6 零写副作用（受核文件 md5 运行前后全等）：受核文件 = 56 个；变化 = 无
+[PASS] A7 证据件数常量与清单同源（>= 2）：本脚本产出 2 件证据（结束标记与注册表同源）
+
+R342 第 14 类只读取证读数（机器结论，正向/反向对照齐全）：
+  家族成员 = 5 个；参与该轴的成员 = ['audit-query-params.py']；对该轴不可见的成员 = ['audit-auth-contract.py', 'audit-request-body.py', 'audit-response-shape.py', 'audit-routes.py']
+  真实仓库 @RequestParam 站点 = 91 处 / 跨 23 个控制器；形态域 = [('N2-位置实参', 1), ('N4-实参列表无名字字面量', 90)]
+  行为实测（唯一成员 parse_controllers × 5 形态）= {'/syn/rp/n1': ([], []), '/syn/rp/n2': (['second_name'], ['second_name']), '/syn/rp/n3': (['third_name'], ['third_name']), '/syn/rp/n4': (['fourthName'], []), '/syn/rp/n5': (['fifth_name'], [])}
+  裸注解形态（Spring 合法）：该成员**响亮拒绝**（problems 提示「无实参列表」，非静默取错）；该形态在本仓库 = 0 处（潜在缺口，非现网缺陷）
+  家族互比可适用性：真实 = False（参与 1 < 2 ⇒ **无定义域**）/ 合成两成员集 = True
+  放大效应：唯一成员承担全部 91 处站点（Top 控制器 = [('UsageController.java', 9), ('AuditLogController.java', 7), ('AdminUsageController.java', 7)]）
+  裁判可用性：query 轴无族外裁判 ⇒ 本轴结论为**单侧证据**（成员内自洽 + 形态域穷举）
+  结构性结论：一致性判据的边界分三类 —— R340 方法级轴「无牙齿（一致地错）」、R341 类级轴「有牙齿（分歧）」、
+            本轮请求参数轴「**不可适用（无定义域）**」⇒ 用家族互比当 oracle 前必须先查**参与成员数**。
+  零写副作用：受核文件 56 个（md5 全等）
+GAP_REQPARAM_FORMS_END=1

@@ -1,0 +1,21 @@
+R342 第 14 类只读取证 · 形态域 / 成员矩阵读数表
+
+[真实仓库形态域穷举]（91 处站点）
+  N2-位置实参                    1 处
+  N4-实参列表无名字字面量              90 处
+
+[家族成员 × 该轴参与度]
+  audit-auth-contract.py       @RequestParam 出现 0 次  取值实现 = False
+  audit-query-params.py        @RequestParam 出现 8 次  取值实现 = True
+  audit-request-body.py        @RequestParam 出现 0 次  取值实现 = False
+  audit-response-shape.py      @RequestParam 出现 0 次  取值实现 = False
+  audit-routes.py              @RequestParam 出现 0 次  取值实现 = False
+
+[行为实测逐形态]
+  /syn/rp/n1     q=[] required=[]
+  /syn/rp/n2     q=['second_name'] required=['second_name']
+  /syn/rp/n3     q=['third_name'] required=['third_name']
+  /syn/rp/n4     q=['fourthName'] required=[]
+  /syn/rp/n5     q=['fifth_name'] required=[]
+
+GAP_REQPARAM_FORMS_TABLE_END=1
