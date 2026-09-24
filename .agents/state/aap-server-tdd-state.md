@@ -11248,3 +11248,11 @@ wisemapping 的 `spring-boot:run`）**均未被误判为测试 JVM**（这正是
 **待拍板**：本轮**新增 2 项** —— ① 任务级行 `T15` 的「待实现」是陈旧还是正确的更宽交付项；② 本轮新增只读抽查是否纳入仓库 `tools/` 与 driver（扩面决定，本轮未扩面）。其余沿用上一轮在册项（见本文件前序段与 R357–R362 台账描述列）；其中 R357 的「`evidence-secrets` 8 条命中处置」已于 R358 完成、可销项。观察项：两个更早的 detached worktree（`aap-r267-wt` / `aap-r268-wt`）本轮复核**仍在 `git worktree list` 注册表内** —— **本轮不动**，沿用待清理项。
 
 **证据**：evidence/round-R363-analysis.txt；evidence/green-verify-R363-tested-state.txt；evidence/green-verify-R363-testcount.txt；evidence/green-verify-R363-full-run1.txt；evidence/green-verify-R363-full-run2.txt；evidence/green-verify-R363-coverage-fields.txt；evidence/audit-regression-R363.txt；evidence/audit-regression-R363-rcseq.txt；evidence/audit-regression-R363-failraw.txt；evidence/audit-regression-R363-faildiff.txt；evidence/gap-conc-inwindow-R363.txt；evidence/gap-ledger-vs-tree-R363.txt；evidence/gap-window-writes-R363.txt；evidence/gap-ledger-evidence-R363.txt；evidence/gap-ledger-evidence-R363-fix.txt；evidence/coverage-history.txt（追加 R363 行）
+
+### R363 收尾（主提交 `c68dbc8`）
+
+**本收尾只做两件事**：① 回填台账「提交」列 = `c68dbc8`（**不改写**已发布的主提交 —— 历史 209）；② 落 `evidence/verify-R363-post.txt`（**提交后核对 7/7 PASS**，且按历史 243-① **在该收尾之前**运行）。
+
+**本轮无据实更正**：主提交 message 与本收尾段、台账描述列三处一致记「真发现 1 处 / 返工 4 处」；收尾核对阶段**未**暴露新的返工项 ⇒ 权威数字 = 返工 4 处（与主提交所记相同，不做 209 型更正）。这不是「先写错再补正」的修正史，也不虚构修正史。
+
+**三处一致**：台账行描述列 / 本状态段 / 收尾提交 message 均记**权威数字 = 返工 4 处**、真发现 1 处、回归面 84 条（未扩面）、覆盖 102/102（missing=0）。收尾提交紧随主提交之后的独立小提交，仅动台账 / 状态 / 留痕三处，**未改动交付代码与测试面**（他方在途改动一仍其旧、未触碰）。
