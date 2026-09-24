@@ -1,0 +1,56 @@
+==============================================================================
+R360 真发现取证：生成物漂移（endpoints.json）+ 生成器自测的工具侧缺陷
+判据锚点：A/B 段锚在**修正前**的产物（`ee97ca7`）；C 段锚在修正后（工作区）。
+==============================================================================
+
+-- A 段：提交态漂移的只读复现与方向裁定 --
+      ee97ca7 里三个新端点 task = [('ADM-S07', ''), ('ADM-S08', ''), ('ADM-S09', '')]
+  [PASS] A1 修正前：三端点 task 为空串 | rows=[('ADM-S07', ''), ('ADM-S08', ''), ('ADM-S09', '')]
+      生成器产物（工作区现况）三端点 task = [('ADM-S07', 'T15'), ('ADM-S08', 'T15'), ('ADM-S09', 'T15')]
+  [PASS] A2 生成器输出：三端点 task = T15 | rows=[('ADM-S07', 'T15'), ('ADM-S08', 'T15'), ('ADM-S09', 'T15')]
+      差异（ee97ca7 -> 工作区）= '3\t3\tdocs/backend/endpoints.json'
+  [PASS] A3 差异恰好 3 行（仅 task 字段） | numstat='3\t3\tdocs/backend/endpoints.json'
+      台账反查表里三端点 = [('T15', 'ADM-S07'), ('T15', 'ADM-S08'), ('T15', 'ADM-S09')]（生成器的 task 由此反查）
+  [PASS] A4 台账（生成器输入）标 T15 ⇒ 生成物侧过期、台账/生成器为对侧 | rows=[('T15', 'ADM-S07'), ('T15', 'ADM-S08'), ('T15', 'ADM-S09')]
+  [PASS] A5 修复后 --check rc=0（漂移已消，且零写副作用） | rc=0 
+
+-- B 段（判别力实测）：**修正前**的自测在缺陷态下会改写仓库产物 --
+  [PASS] B0 已置为缺陷态（endpoints.json == ee97ca7 的字节） | 930259ac9361
+      修正前版本 rc=1；endpoints.json md5 930259ac9361 -> 0bf07228d7db
+        [FAIL] 干净仓库 --check → rc=0  (rc=1)
+        [FAIL] 输出声明 84/84 个产物一致
+        [FAIL] 生成产物与基线逐字节一致（内容 md5 不变，仅 mtime 变）  (内容变化的文件数=1 ['docs\\backend\\endpoints.json'])
+        [FAIL] 所有产物内容回到基线（无残留）  (残留=['docs\\backend\\endpoints.json'])
+        结果：FAILED（4/14 条断言未通过）
+  [PASS] B1 修正前的自测**改写了仓库产物**（md5 变化 ⇒ 漂移被就地「洗白」） | 930259ac9361 -> 0bf07228d7db
+      修正后版本 rc=1；NET_ZERO_WRITE=YES
+        [FAIL] 干净仓库 --check → rc=0  (rc=1)
+        [FAIL] 生成产物与基线逐字节一致（内容 md5 不变，仅 mtime 变）  (内容变化的文件数=1 ['docs\\backend\\endpoints.json']（已按字节快照还原 1 个）)
+        结果：FAILED（2/15 条断言未通过）
+  [PASS] B2 修正后：即使身处缺陷态也**净零写** | 930259ac9361 -> 930259ac9361
+  [PASS] B3 修正后：仍判出该漂移（判据未放宽） | rc=1 fails=2
+  [PASS] B4 已复原（自测与产物字节回到进入本段前）
+
+-- C 段：修复后状态 --
+  [PASS] C1 修复后 --check rc=0 且零写副作用 | rc=0
+  [PASS] C2 修复后自测 rc=0（结果=全部通过） | rc=0
+  [PASS] C3 修复后自测净零写 | 0bf07228d7db -> 0bf07228d7db
+      生成器声明的产物总数 = 93
+
+-- D 段：纯数字盲区（写死 84/84 vs 实际产物数） --
+      修正前写死 = ('84', '84')；实际产物数 = 93；修正后由产物清单推出 = True
+  [PASS] D1 修正前写死 84 而实际 93（恒 FAIL） | 写死=84 / 实际=93
+  [PASS] D2 修正后由产物清单推出（动态口径，非硬编码）
+
+复原核对：selftest md5=dbeb3de0230e / endpoints.json md5=0bf07228d7db（须与进入脚本时一致）
+  [PASS] E1 脚本退出后仓库字节一致（净零写）
+判据：PASS 16 / FAIL 0（**只计本脚本自身的判据行**：引用自被测工具输出的行不计入，历史 81/103）
+GAP_GEN_DRIFT_END=1
+
+-- E 段：覆盖门禁单类复跑（**带上本轮的 endpoints.json 修复**，HEAD 的临时 detached worktree 内） --
+      worktree 提交 = ee97ca7（`git -C <wt> rev-parse --short HEAD`）；worktree 内 endpoints.json md5 = 0bf07228d7db1c7f2f84e0d79282483b（= 修复后/生成器版本）
+      影响面核对：`EndpointCoverageTest` 中 `task()` 仅用于 by_task 分组与报告（grep 无断言），故 task 字段修复对用例**不可见**：
+        [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 12.62 s -- in com.hioas.aap.coverage.EndpointCoverageTest
+        [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
+        [INFO] BUILD SUCCESS
+  [PASS] E2 门禁单类在修复后的清单上仍 1/1 通过（`BUILD SUCCESS`）

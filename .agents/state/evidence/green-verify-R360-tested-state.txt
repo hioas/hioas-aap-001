@@ -1,0 +1,17 @@
+R360 校验轮（missing==0 -> 交付代码零改动）；全部读数由 analyze-r360.py 从 facts-run.log / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = ee97ca7
+被测提交全 SHA = ee97ca7f49c3582193ff6e776929e78048578897
+被测提交主题 = chore(evidence): R359 更正 —— 返工真值 1/2/3 处 -> 4 处（第 2/3/4 项为收尾核对阶段暴露，独立提交据实更正）
+run1 = 23:23:49 -> 23:26:12 rc=0 / run2 = 23:26:13 -> 23:28:17 rc=0（串行，run1_end == run2_start）
+窗口 = 23:23:36 -> 23:28:21；HEAD 起点 = ee97ca7 / 终点 = ee97ca7
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 7 条
+   M        .agents/state/evidence/coverage-report.json  mtime=(无 mtime) 
+   M        .agents/state/evidence/endpoint-test-audit.json  mtime=(无 mtime) 
+   M        .agents/state/evidence/endpoint-test-audit.txt  mtime=(无 mtime) 
+   M        README.md  mtime=(无 mtime) 
+   M        aap-server/pom.xml  mtime=(无 mtime) 
+   M        aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=(无 mtime) 
+   ??       aap-server/src/main/webapp/  mtime=(无 mtime) 
+窗口内他方改动条数 = 0

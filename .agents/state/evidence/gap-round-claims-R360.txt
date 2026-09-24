@@ -1,0 +1,67 @@
+==============================================================================
+R360 第 31 类只读取证：轮次自述真值一致性（本轮自述 A ⇔ 权威数字 B；同轮 A==B ∧ 跨文件 B==B）
+==============================================================================
+ROOT = E:\workspaces\hioas\hioas-aap-001 | 工具 = tools/audit-round-claims.py
+
+-- A 段：缺陷态（修正前） --
+A1 本轮修正**前**的真实捕获（截自 claims-prefix.txt，长度 1132 字符）：
+      round=R359 val=4 line=11006
+      round=R239 val=6 line=9188
+      round=R251 val=19 line=9370
+      round=R307 val=7 line=10125
+      round=R308 val=11 line=10142
+      round=R349 val=9 line=10736
+      round=R359 val=3 line=11006
+      [FAIL] A1 同轮「本轮自述」与「权威数字」相等 | 违规 1: R359 A=[4] B=[3]
+      [FAIL] A2 同轮「状态文件权威数字」与「台账描述列权威数字」相等 | 违规 1: R359 state=[3] csv=[4]
+      判据：PASS 9 / FAIL 2 / rc=1
+  [PASS] A1 缺陷态捕获里点名 2 条 FAIL（A1 同轮 + A2 跨文件） | n=2
+  [PASS] A1b 捕获里含 R359 的两处不一致值（A=[4] B=[3] / state=[3] csv=[4]）
+A2 反向注入（可复现重建）：把当前产物里的 B 值 4 改回 3 -> rc=1
+      [FAIL] A1 同轮「本轮自述」与「权威数字」相等 | 违规 1: R359 A=[4] B=[3]
+      [FAIL] A2 同轮「状态文件权威数字」与「台账描述列权威数字」相等 | 违规 1: R359 state=[3] csv=[4]
+      判据：PASS 9 / FAIL 2 / rc=1
+  [PASS] A2 注入缺陷必须被点名（rc=1 且两条 FAIL 与真实捕获同形）
+
+-- B 段：修正后（真实仓库） --
+B1 真实仓库运行：rc=0
+      [PASS] A0a 状态文件 A 形态（本轮自述）解析到 > 0 条 | n=1
+      [PASS] A0b 状态文件 B 形态（权威声明）解析到 > 0 条 | n=6
+      [PASS] A0c 台账描述列 B 形态解析到 > 0 条 | n=9
+      [PASS] A0d 状态文件段标题归属锚点解析到 > 0 段 | n=353
+      [PASS] A0e 台账表头列数 = 8 | cols=8
+      [PASS] A3 可做「A↔B 同轮比对」的轮次数 > 0 | n=1 ['R359']
+      [PASS] A1 同轮「本轮自述」与「权威数字」相等 | 违规 0:
+      [PASS] A3b 可做「跨文件（状态↔台账）比对」的轮次数 > 0 | n=6 ['R239', 'R251', 'R307', 'R308', 'R349', 'R359']
+      [PASS] A2 同轮「状态文件权威数字」与「台账描述列权威数字」相等 | 违规 0:
+      [PASS] A4 归属锚点=段标题（段内引用他轮 R 号不得改变归属） | A=['R360'] B=['R360']
+      [PASS] A4b 合成行两形态各恰 1 条 | A=1 B=1
+      判据：PASS 11 / FAIL 0 / rc=0
+  [PASS] B1 修正后 rc=0 且 A1/A2 均 PASS
+B2 修正后状态文件 B 值序列 = ['6', '19', '7', '11', '9', '4'] / 台账 B 值序列 = ['5', '4', '6', '19', '2', '7', '11', '9', '4']
+  [PASS] B2 R359 两侧 B 值一致 = 4 | state=['6', '19', '7', '11', '9', '4'] csv=['5', '4', '6', '19', '2', '7', '11', '9', '4']
+
+-- C 段：判别力实测（负向自测六分支） --
+      ROOT = E:\workspaces\hioas\hioas-aap-001 | SELFTEST = True
+      [PASS] SELFTEST S1 合规夹具 -> rc=0 且无 A1/A2 违规 rc=0(期望 0) have=True nothave=True
+      [PASS] SELFTEST S2 同轮 A≠B -> 恰好点名 A1 违规 rc=1(期望 1) have=True nothave=True
+      [PASS] SELFTEST S3 跨文件 state=4 / csv=5 -> 恰好点名 A2 违规 rc=1(期望 1) have=True nothave=True
+      [PASS] SELFTEST S4 空夹具 -> 判据不可用（点名 A0a/A0b/A0c） rc=2(期望 2) have=True nothave=True
+      [PASS] SELFTEST S5 归属反例（段内引用 R359）-> rc=0 rc=0(期望 0) have=True nothave=True
+      [PASS] SELFTEST S6 审计本体零写副作用（两文件 mtime/size/md5 前后全等）
+      [PASS] SELFTEST 夹具目录 = C:\Users\laitz\AppData\Local\Temp\aap-r360-claims-fixtures
+      SELFTEST_FAILS = 0 []
+      SELFTEST_RC = 0
+  [PASS] C1 负向自测 rc=0、S1..S6 全 PASS、SELFTEST_FAILS = 0 | pass=6
+
+-- D 段：归属判据陷阱（判据范围必须与语义一致，历史 81/218） --
+D1 该行**行内最后一个** R 号 = R357（正文引用了更早轮次的 R 号）
+D2 该行**段标题**给出的归属 = R359
+  [PASS] D1b 两种归属确实不同（证明「行内最后一个 R 号」是不可用判据） | naive=R357
+
+-- E 段：零写副作用（历史 39：mtime 变了而 md5 没变也算写副作用） --
+E1 被读两文件 (mtime_ns, size, md5_12) 前后：True / ['843879c2d11e', '85f34930b3e9']
+  [PASS] E1 审计本体零写副作用
+
+判据：PASS 8 / FAIL 0（只计本脚本自身的判据行；引用自被测工具输出的行不计入，历史 81/103）
+GAP_ROUND_CLAIMS_END=1

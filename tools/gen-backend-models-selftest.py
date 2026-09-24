@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -83,10 +84,22 @@ def main() -> int:
         base = fingerprint(paths)
         rc, out, err = run_gen(["--check"])
         check(rc == 0, "干净仓库 --check → rc=0", "rc=%d" % rc)
-        check("84/84" in out, "输出声明 84/84 个产物一致", out.strip().splitlines()[0] if out else "")
+        # 纯数字口径不得硬编码（历史 201/206）：产物数由**磁盘实际扫到的清单**推出。
+        # 判据与「仓库是否干净」解耦 —— 生成器在**两种状态**都会声明产物总数
+        # （成功：stdout `check ok: N/N`；失败：stderr `共 N 个产物`），故只比总数，不依赖 rc。
+        _n = len(paths)
+        _m = re.search(r"check ok: (\d+)/(\d+)", out) or re.search(r"共 (\d+) 个产物", err)
+        _decl = None
+        if _m:
+            _decl = _m.group(2) if _m.re.groups == 2 else _m.group(1)
+        check(_decl is not None and _decl == str(_n), "生成器声明的产物总数 == 自测扫到的产物数",
+              "gen=%s / selftest=%d" % (_decl, _n))
+        if rc == 0:
+            check("%d/%d" % (_n, _n) in out, "干净仓库输出声明 %d/%d 个产物一致（非硬编码）" % (_n, _n),
+                  out.strip().splitlines()[0] if out else "")
         after = fingerprint(paths)
         changed = [p for p in paths if base[p] != after[p]]
-        check(not changed, "零写副作用：84 个产物 (mtime,size,md5) 全不变",
+        check(not changed, "零写副作用：%d 个产物 (mtime,size,md5) 全不变" % len(paths),
               "变化的文件数=%d %s" % (len(changed), [os.path.relpath(p, ROOT) for p in changed[:3]]))
 
         print("---- 分支 B：语义漂移（改 title）----")
@@ -122,13 +135,28 @@ def main() -> int:
               err.strip().splitlines()[0] if err else "")
         os.remove(orphan)
 
-        print("---- 分支 D：生成模式逐字节一致 ----")
+        print("---- 分支 D：生成模式逐字节一致（并保证**净零写**）----")
+        # 真实缺陷（本轮发现）：分支 D 以「生成模式与基线逐字节一致」为断言，**但仓库本已漂移时**这
+        # 一步会**就地改写**产物（把漂移修好）—— 于是自测既改写了仓库、又把漂移「洗白」（下一轮 gen-check 变绿）。
+        # 修法：进入分支 D 前取**字节快照**，跑完后凡内容变化的文件一律按快照还原 —— 保证自测对被测对象净零写；
+        # **判据不放宽**：下面的逐字节一致断言照旧，仓库漂移仍会被判 FAIL（只是不再被自测抹掉）。
+        snap = {p: open(p, "rb").read() for p in paths if os.path.exists(p)}
         rc, out, err = run_gen([])
         check(rc == 0, "生成模式 → rc=0", "rc=%d" % rc)
         after = fingerprint(paths)
         diff = [p for p in paths if base[p][2] != after[p][2]]
+        restored = 0
+        for p in diff:
+            if p in snap:
+                with open(p, "wb") as fh:
+                    fh.write(snap[p])
+                restored += 1
         check(not diff, "生成产物与基线逐字节一致（内容 md5 不变，仅 mtime 变）",
-              "内容变化的文件数=%d %s" % (len(diff), [os.path.relpath(p, ROOT) for p in diff[:3]]))
+              "内容变化的文件数=%d %s（已按字节快照还原 %d 个）" % (
+                  len(diff), [os.path.relpath(p, ROOT) for p in diff[:3]], restored))
+        _left_now = [p for p in paths if p in snap and open(p, "rb").read() != snap[p]]
+        check(not _left_now, "净零写：自测结束后所有产物与**进入自测时**逐字节一致",
+              "仍有差异=%d %s" % (len(_left_now), [os.path.relpath(p, ROOT) for p in _left_now[:3]]))
 
         print("---- 收尾：仓库必须干净（自测零残留）----")
         after = fingerprint(paths)
