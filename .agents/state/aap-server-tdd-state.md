@@ -11348,6 +11348,8 @@ wisemapping 的 `spring-boot:run`）**均未被误判为测试 JVM**（这正是
 * **两轮全量**：run1 03:04:44–03:07:01（02:15 min）/ run2 03:07:01–03:08:59（01:56 min），各 252 例 / 44 类、rc=0、Failures-Errors-Skipped 0-0-0；逐类 diff = 0；`@Test` 词边界 252 == surefire 252；禁用扫描 0。
 * **第 36 类只读不变量（本轮新增）**：追加目标与归档产物的字节形态一致性（行尾 / 末行换行 / BOM / NUL）。硬判据全绿：三个追加目标 `i/lf ∧ w/lf ∧ CR=0 ∧ 末字节=\n`、索引侧 i/crlf = 0、本轮 13 份产物 0 违规；信息项 4 项（工作区 CRLF 876 / 末字节非换行 539 / 命名不自述 654 / 受判文本 6492）；判别力实测 7 支全过；零写副作用（三个追加目标 (size, md5) 全等）。
 * **回归面**：复跑 84 条、rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 41 脚本 · 159 行；faildiff 对 R366 新增 0 / 消失 0；G 组 FAIL 0；只读探针 `PROBE_FAILS = []`；常驻红 2 条（最长连续非零 rc = 193 轮）。
-* **本轮返工真值 = 14 处**（全部判据/脚本/派生侧，逐条见 `evidence/gap-rework-R367.txt`）；**权威数字 = 返工 14 处**（三处一致：台账描述列 / 状态文件本段 / 收尾提交 message）。
+* **本轮返工真值 = 17 处**（全部判据/脚本/派生侧，逐条见 `evidence/gap-rework-R367.txt`）；**权威数字 = 返工 17 处**（三处一致：台账描述列 / 状态文件本段 / 收尾提交 message）。
 * 证据清单（20 条）：evidence/round-R367-analysis.txt；evidence/green-verify-R367-tested-state.txt；evidence/green-verify-R367-testcount.txt；evidence/green-verify-R367-full-run1.txt；evidence/green-verify-R367-full-run2.txt；evidence/green-verify-R367-coverage-fields.txt；evidence/audit-regression-R367.txt；evidence/audit-regression-R367-rcseq.txt；evidence/audit-regression-R367-failraw.txt；evidence/audit-regression-R367-faildiff.txt；evidence/gap-conc-inwindow-R367.txt；evidence/gap-ledger-vs-tree-R367.txt；evidence/gap-window-writes-R367.txt；evidence/gap-byteform-R367.txt；evidence/gap-byteform-appendum-R367.txt；evidence/gap-rework-R367.txt；evidence/verify-R367-post.txt；evidence/closeout-R367.txt；evidence/verify-R367-postcheck.txt；coverage-history.txt（追加 R367 行）
+
+**收尾更正**：**权威数字 = 17 处**（主提交 message 记 14 处；3 项判据侧缺陷收尾阶段才暴露）→ 台账 / 状态文件 / 收尾提交 message 三处一致；不改写已发布提交（历史 209/250）。
 
