@@ -1,0 +1,26 @@
+R344 第 16 类：媒体类型**形态域**穷举（先 grep 出全部写法再写解析器，坑 144）
+① openapi：`content:` 下一层裸媒体类型键（缩进 = content 缩进 + 2）—— 命中 99 个 operation，键集合 = ['application/json']
+② md：反引号包裹 `x/y` —— 命中 1 条（列：['响应']）
+③ Java 常量 `MediaType.X` —— 解析到 8 种映射
+④ Java 字符串字面量 `"x/y;charset=..."` —— 取分号前
+⑤ 客户端 `'Content-Type': 'x/y'` —— 命中 1 条
+
+逐源读数（正向对照，全部 > 0）：md 行 113 / md token 1 / openapi op 99 / 实现站点 10 / 客户端站点 1 / 测试站点 6 / multipart 实现点 2
+
+md 非 JSON：[('RPT-03', '响应', 'text/html')]
+openapi 非 JSON：0 条
+跨源漂移：[{'id': 'RPT-03', 'md': 'text/html', 'openapi': ['application/json'], 'line': 102}]
+实现非 JSON 站点：
+  aap-server/src/main/java/com/hioas/aap/report/ReportController.java:74 [produces] ['text/html'] | 最近映射 = @GetMapping(value = "/{reportId}/html", produces = MediaType.TEXT_HTML_VALUE)
+  aap-server/src/main/java/com/hioas/aap/report/ReportController.java:80 [contentType] ['text/html'] | 最近映射 = @GetMapping(value = "/{reportId}/html", produces = MediaType.TEXT_HTML_VALUE)
+测试 content-type 断言 6 处：[('aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java', 227), ('aap-server/src/test/java/com/hioas/aap/report/ReportContractTest.java', 188), ('aap-server/src/test/java/com/hioas/aap/support/ApiTestBase.java', 123), ('aap-server/src/test/java/com/hioas/aap/support/ApiTestBase.java', 169), ('aap-server/src/test/java/com/hioas/aap/support/ApiTestBase.java', 179), ('aap-server/src/test/java/com/hioas/aap/sync/SyncAdminContractTest.java', 114)]
+客户端媒体类型取值域：['application/json']
+
+形态域表（写法 → 命中数）：
+  openapi content 键        → 131
+  md 反引号媒体类型          → 1
+  实现 produces/consumes     → 1
+  实现 contentType/setContentType → 9
+  客户端 Content-Type/Accept → 1
+
+GAP_MEDIA_TYPE_FORMS_END=1

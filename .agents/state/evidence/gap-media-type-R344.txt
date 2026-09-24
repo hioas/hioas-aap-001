@@ -1,0 +1,45 @@
+R344 第 16 类只读取证：请求/响应媒体类型（Content-Type / Accept）跨源一致性
+为什么两套门禁都看不见：契约测试只比**响应体**与 JSON Schema（媒体类型不在 body/schema）；覆盖门禁只比「方法+路径」；openapi 与客户端 TS 不被任何测试读取/执行。
+真源：M=md 清单逐行（按表头定位列序）／O=openapi 逐 operation 的 content 键／I=实现 produces·consumes·contentType 站点 + MultipartFile／C=客户端头字面量／T=测试 content-type 断言。
+
+[PASS] A0a openapi 解析到 99 个 operation（> 0）
+[PASS] A0b md 解析到 113 行、媒体类型 token 1 条（> 0）
+[PASS] A0c 实现 10 站点 / 客户端 1 站点 / 测试 6 站点（全部 > 0）
+[PASS] A1 openapi 非 JSON 媒体类型声明 = 0（99 op 的 req/resp content 键全部 application/json）
+[PASS] A2 md 侧非 JSON 媒体类型 1 条：[('RPT-03', '响应', 'text/html')]
+[PASS] A3 漂移 1 条：RPT-03 md=text/html / openapi=['application/json']；第三方裁判（实现）=aap-server/src/main/java/com/hioas/aap/report/ReportController.java:74 ⇒ **openapi 单侧错**（2:1）
+[PASS] A4 实现侧非 JSON 站点 2 条（逐条见证据）
+[PASS] A5 测试侧 content-type 断言 6 处，其中直接钉 RPT-03 = 1 处 ⇒ **结构背书成立**（漂移不是「无人值守的盲区」，而是「断言已存在、文档侧错」）
+[PASS] A6 实现侧 multipart 请求体 2 处、openapi 相关声明 0 条 ⇒ 与在册「清单外端点」登记一致（信息项，非新发现）
+[PASS] A7 客户端媒体类型取值域 = ['application/json']（1 站点）；multipart/二进制响应处理点 0 处 ⇒ 与实现侧非 JSON 端点**无客户端**（信息项）
+[PASS] A0a openapi 解析到 99 个 operation（> 0）
+[PASS] A0b md 解析到 113 行、媒体类型 token 1 条（> 0）
+[PASS] A0c 实现 10 站点 / 客户端 1 站点 / 测试 6 站点（全部 > 0）
+[PASS] A2 md 侧非 JSON 媒体类型 1 条：[('RPT-03', '响应', 'text/html')]
+[PASS] A3 漂移 1 条：RPT-03 md=text/html / openapi=['application/json', 'text/plain']；第三方裁判（实现）=aap-server/src/main/java/com/hioas/aap/report/ReportController.java:74 ⇒ **openapi 单侧错**（2:1）
+[PASS] A4 实现侧非 JSON 站点 2 条（逐条见证据）
+[PASS] A5 测试侧 content-type 断言 6 处，其中直接钉 RPT-03 = 1 处 ⇒ **结构背书成立**（漂移不是「无人值守的盲区」，而是「断言已存在、文档侧错」）
+[PASS] A6 实现侧 multipart 请求体 2 处、openapi 相关声明 0 条 ⇒ 与在册「清单外端点」登记一致（信息项，非新发现）
+[PASS] A7 客户端媒体类型取值域 = ['application/json']（1 站点）；multipart/二进制响应处理点 0 处 ⇒ 与实现侧非 JSON 端点**无客户端**（信息项）
+[PASS] A0a openapi 解析到 99 个 operation（> 0）
+[PASS] A0b md 解析到 113 行、媒体类型 token 1 条（> 0）
+[PASS] A0c 实现 10 站点 / 客户端 1 站点 / 测试 6 站点（全部 > 0）
+[PASS] A1 openapi 非 JSON 媒体类型声明 = 0（99 op 的 req/resp content 键全部 application/json）
+[PASS] A4 实现侧非 JSON 站点 2 条（逐条见证据）
+[PASS] A5 测试侧 content-type 断言 6 处，其中直接钉 RPT-03 = 1 处 ⇒ **结构背书成立**（漂移不是「无人值守的盲区」，而是「断言已存在、文档侧错」）
+[PASS] A6 实现侧 multipart 请求体 2 处、openapi 相关声明 0 条 ⇒ 与在册「清单外端点」登记一致（信息项，非新发现）
+[PASS] A7 客户端媒体类型取值域 = ['application/json']（1 站点）；multipart/二进制响应处理点 0 处 ⇒ 与实现侧非 JSON 端点**无客户端**（信息项）
+[PASS] A0a openapi 解析到 99 个 operation（> 0）
+[PASS] A0b md 解析到 113 行、媒体类型 token 1 条（> 0）
+[PASS] A1 openapi 非 JSON 媒体类型声明 = 0（99 op 的 req/resp content 键全部 application/json）
+[PASS] A2 md 侧非 JSON 媒体类型 1 条：[('RPT-03', '响应', 'text/html')]
+[PASS] A3 漂移 1 条：RPT-03 md=text/html / openapi=['application/json']；第三方裁判（实现）=aap-server/src/main/java/com/hioas/aap/report/ReportController.java:74 ⇒ **openapi 单侧错**（2:1）
+[PASS] A4 实现侧非 JSON 站点 2 条（逐条见证据）
+[PASS] A6 实现侧 multipart 请求体 2 处、openapi 相关声明 0 条 ⇒ 与在册「清单外端点」登记一致（信息项，非新发现）
+[PASS] A7 客户端媒体类型取值域 = ['application/json']（1 站点）；multipart/二进制响应处理点 0 处 ⇒ 与实现侧非 JSON 端点**无客户端**（信息项）
+[PASS] A8 判别力实测 3/3 分支全部「恰好新增点名断言」
+[PASS] A9 零写副作用：受核 3 个文件 (size, md5) 前后全等
+
+汇总：PASS 37 / FAIL 0
+
+GAP_MEDIA_TYPE_END=1
