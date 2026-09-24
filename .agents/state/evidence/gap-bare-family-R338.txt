@@ -1,0 +1,61 @@
+A0 tools/ 侧脚本 = 16 个（不含自测）；家族（源码含字面量 '(Get|Post'）= 5 个：['audit-auth-contract.py', 'audit-query-params.py', 'audit-request-body.py', 'audit-response-shape.py', 'audit-routes.py']
+[PASS] A0a tools/ 脚本数 > 0：16
+[PASS] A0b 家族成员数 > 0：5
+A0c 「剥注释」判据的判别力：全文含 'find(")"' 但**剥注释后不含**的成员 = ['audit-query-params.py', 'audit-response-shape.py']（该步是承重的，历史 47/218）
+[PASS] A0d 至少 1 个成员只在**注释**里出现该字样（证明剥注释不是空转）：['audit-query-params.py', 'audit-response-shape.py']
+A1 audit-auth-contract.py     -> 未守卫 （代码行 [228]）
+A1 audit-query-params.py      -> 已守卫 （另 [398] 行为**注释**，不作代码证据）
+A1 audit-request-body.py      -> 已守卫 
+A1 audit-response-shape.py    -> 已守卫 （另 [522] 行为**注释**，不作代码证据）
+A1 audit-routes.py            -> 未守卫 （代码行 [244]）
+A1a 静态判定：未守卫 = ['audit-auth-contract.py', 'audit-routes.py'] / 已守卫 = ['audit-query-params.py', 'audit-request-body.py', 'audit-response-shape.py'] / 未能判定 = []
+[PASS] A1b 未守卫成员数 > 0（否则判据空转，历史 98）：2
+[PASS] A1c 已守卫成员数 > 0（两分支才可比）：3
+[PASS] A1d 无「未能静态判定」条目：[]
+[PASS] A1e 判定覆盖全部家族成员：5/5
+A2 行为实测（**各工具自己的 parse_controllers** 跑合成夹具；夹具 = C:\Users\laitz\AppData\Local\Temp\aap-r338-dev\fixtures-R338）
+   audit-auth-contract.py     裸注解夹具 = [('POST', '/synx')]  幻影=True  真实缺失=True  | 带实参夹具 = [('POST', '/syn/up')]
+   audit-query-params.py      裸注解夹具 = [('POST', '/syn')]   幻影=False 真实缺失=False | 带实参夹具 = [('POST', '/syn/up')]
+   audit-request-body.py      裸注解夹具 = [('POST', '/syn')]   幻影=False 真实缺失=False | 带实参夹具 = [('POST', '/syn/up')]
+   audit-response-shape.py    裸注解夹具 = [('POST', '/syn')]   幻影=False 真实缺失=False | 带实参夹具 = [('POST', '/syn/up')]
+   audit-routes.py            裸注解夹具 = [('POST', '/synx')]  幻影=True  真实缺失=True  | 带实参夹具 = [('POST', '/syn/up')]
+A2a 行为判定：复现缺陷 = ['audit-auth-contract.py', 'audit-routes.py'] / 正确 = ['audit-query-params.py', 'audit-request-body.py', 'audit-response-shape.py']
+[PASS] A2b 行为实测复现缺陷的成员数 > 0：2
+[PASS] A2c 行为实测结论正确的成员数 > 0（两分支可比）：3
+[PASS] A2d 带实参夹具**全部**工具均解析正确（对照分支）
+[PASS] A1x 静态判定 ⇔ 行为判定（两套独立方法结论一致）：静态未守卫 ['audit-auth-contract.py', 'audit-routes.py'] vs 行为复现 ['audit-auth-contract.py', 'audit-routes.py']
+A3 audit-auth-contract.py     现判据路由 = 111 条
+A3 audit-query-params.py      现判据路由 = 111 条
+A3 audit-request-body.py      现判据路由 = 111 条
+A3 audit-response-shape.py    现判据路由 = 111 条
+A3 audit-routes.py            现判据路由 = 111 条
+[PASS] A4a 修正判据的独立实现 >= 2（交叉核对才有意义）：3
+A4 audit-query-params.py 与 audit-request-body.py 的路由集合一致 = True（各 111 / 111 条）
+A4 audit-query-params.py 与 audit-response-shape.py 的路由集合一致 = True（各 111 / 111 条）
+[PASS] A4b 多套独立已守卫实现结论一致（修正判据可信）：[('audit-request-body.py', True), ('audit-response-shape.py', True)]
+A4c 修正判据（oracle = audit-query-params.py）= 111 条
+A3a 逐工具 Δ(现判据 vs 修正判据)：
+   audit-auth-contract.py     Δ = 2 条 [('POST', '/files'), ('POST', '/filesfile')]
+   audit-query-params.py      Δ = 0 条 []
+   audit-request-body.py      Δ = 0 条 []
+   audit-response-shape.py    Δ = 0 条 []
+   audit-routes.py            Δ = 2 条 [('POST', '/files'), ('POST', '/filesfile')]
+[PASS] A3b **Δ 非空的工具恰为行为实测复现缺陷的成员**：['audit-auth-contract.py', 'audit-routes.py'] vs ['audit-auth-contract.py', 'audit-routes.py']
+[PASS] A3c **结论正确的成员 Δ 全为空**（两分支都有真读数）
+A5 裸注解处数 = 21；其中「首个 `)` 之前含**成对**字符串字面量」（⇒ 路径被改写）= 1 处：
+   FileController.java          幻影键 = ('POST', '/filesfile')     段 = 'public ApiEnvelope<FileService.View> upload(@A'
+[PASS] A5a 裸注解解析到 > 0 处：21
+[PASS] A5b 被改写处数 > 0（否则下游断言空转）：1
+   A5c 第三方裁判：FileController.java          幻影键 ('POST', '/filesfile')     复现缺陷成员全命中=True / 结论正确成员全未命中=True
+[PASS] A5d 每处「被改写」在**复现缺陷**成员的解析集合里都真的出现（口径与影响面一致）
+[PASS] A5e 同一幻影在**结论正确**成员的解析集合里都不出现（反向对照）
+A5f 复现缺陷成员 audit-auth-contract.py 与修正判据的对称差集 = 2 条；被改写处数 = 1
+[PASS] A5g 对称差集条数 == 2 × 被改写处数（每条错位 = 少一条真实 + 多一条幻影）：2 vs 2
+A6 冻结清单端点数 = 99
+[PASS] A6a 清单端点数 > 0（正向对照）：99
+[PASS] A6b 幻影路由均未被冻结清单声明（故本轮未触发假漂移）：[]
+
+汇总：PASS 22 / FAIL 0
+[PASS] A7a 合成「幻影占据真实位置」的集合被判红（判据有牙齿）
+[PASS] A7b 合成「正确解析」的集合被判绿
+GAP_BARE_FAMILY_END=1

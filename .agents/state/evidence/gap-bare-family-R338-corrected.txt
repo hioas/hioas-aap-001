@@ -1,0 +1,15 @@
+修正后逐工具路由集合与 Δ 表（修正判据 = 多套已守卫实现的交叉核对结论）
+RND=R338
+家族成员 = 5 个（tools/ 侧脚本 16 个；判据 = 源码含字面量 '(Get|Post'）
+静态判定：未守卫 2 个 ['audit-auth-contract.py', 'audit-routes.py'] / 已守卫 3 个 ['audit-query-params.py', 'audit-request-body.py', 'audit-response-shape.py']
+行为判定（合成夹具）：复现缺陷 2 个 ['audit-auth-contract.py', 'audit-routes.py'] / 结论正确 3 个 ['audit-query-params.py', 'audit-request-body.py', 'audit-response-shape.py']
+audit-auth-contract.py     静态=未守卫  行为=复现缺陷      现判据=111 条  Δ=2 条 [('POST', '/files'), ('POST', '/filesfile')]
+audit-query-params.py      静态=已守卫  行为=正确        现判据=111 条  Δ=0 条 
+audit-request-body.py      静态=已守卫  行为=正确        现判据=111 条  Δ=0 条 
+audit-response-shape.py    静态=已守卫  行为=正确        现判据=111 条  Δ=0 条 
+audit-routes.py            静态=未守卫  行为=复现缺陷      现判据=111 条  Δ=2 条 [('POST', '/files'), ('POST', '/filesfile')]
+修正判据（oracle = audit-query-params.py）= 111 条；复现缺陷成员 ['audit-auth-contract.py', 'audit-routes.py'] 与它对称差集 = 2 条
+被改写处 = 1 处：["FileController.java -> ('POST', '/filesfile')"]
+幻影是否被冻结清单声明 = [False]
+结论：该缺陷在家族内**有 2 处副本**（['audit-auth-contract.py', 'audit-routes.py']），修正面 = 2 个常驻审计工具（不是 1 处）
+GAP_BARE_FAMILY_CORRECTED_END=1
