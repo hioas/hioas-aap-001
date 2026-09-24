@@ -1,0 +1,18 @@
+R363 新增只读抽查 v3：台账「证据」列 -> 存在性 + git 跟踪（跨**全部**轮次，非只查当轮）
+==============================================================================
+表头列数 = 8；数据行数 = 434
+FormA（bare `evidence/<f>`，基底 .agents/state/）引用条数 = 4109
+FormB（`.agents/state/evidence/<f>`）引用条数 = 3
+FormC（其它 evidence 目录形态，信息项）引用条数 = 2（去重样例 ['aap-admin/evidence/admin-20260924/', 'aap-admin/evidence/publish-e2e/']）
+证据列**真为空**的行 = 1 ['T15']
+OTHERFORM（非 evidence 目录形态的产物引用）行 = 1 [('T16a', 'docs/backend/json-schema/{models/newapi-endpoint,requests/{newapi-endp')]
+分类完备性：覆盖行数 = 353 / 数据行数 = 353
+FormA+B 磁盘缺失 = 0 []
+FormA+B 磁盘存在但**未跟踪** = 0 []
+（信息项）FormC 磁盘缺失 = 0 []；未跟踪 = 2
+[PASS] 正向对照：FormA+B 引用条数 > 0 | A=4109 B=3
+[PASS] 分类完备（五类覆盖全部数据行；历史 98/141） | 未覆盖 [] / 多出 []
+[PASS] FormA+B 磁盘缺失 = 0 | []
+[PASS] FormA+B 未跟踪 = 0 | []
+[PASS] OTHERFORM 行数 <= 2 且逐条点名（上限守卫，历史 57/68） | [('T16a', 'docs/backend/json-schema/{models/newapi-endpoint,requests/{newapi-endp')]
+LEDGER_EVIDENCE_END=1

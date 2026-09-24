@@ -11198,3 +11198,53 @@ wisemapping 的 `spring-boot:run`）**均未被误判为测试 JVM**（这正是
 **【据实更正】返工真值 2 处 -> 3 处**：主提交 message 所记「返工 2 处」系其**成文时**的真值；第 3 项（**提交后核对脚本把判据计数写死为 6**，而脚本实有 7 条判据 ⇒ 结论行「PASS 6」与上方 7 行 `[PASS]` 自相矛盾）在**收尾核对阶段**才暴露，故按历史 209/250 以**独立收尾提交**据实更正、**不改写**已发布主提交，并同步「台账行描述列 / 本状态段 / 收尾提交 message」三处 —— **权威数字 = 返工 3 处**。这不是「先写错再补正」的修正史，也不虚构修正史。
 
 **三处一致**：台账行描述列 / 本状态段 / 收尾提交 message 均记 **权威数字 = 返工 3 处**、真发现 2 处、回归面 84 条、覆盖 102/102。收尾提交紧随主提交之后的独立小提交，仅动台账 / 状态 / 留痕三处，**未改动交付代码与测试面**（他方在途改动一仍其旧、未触碰）。
+
+
+## R363 巡检轮（missing=0 校验轮；交付代码零改动）
+
+**本轮性质**：`missing == 0` ⇒ 按作业纪律**不改交付代码、不改测试面**，**未扩面**回归序列。本轮为**校验轮**：两轮全量在**新建的 HEAD 临时 detached worktree** 内串行执行（`git worktree add --detach … HEAD`，跑完 `worktree remove --force`；历史 27/28/193），其后**串行**复跑既有巡检链（执行器 → 分析器 → chain → 回归面 driver 84 条 → faildiff 比对器 → 三项只读事实探针），并另跑一项**本轮新增的只读抽查**（跨全部轮次的台账证据列完整性）；主仓库的他方在途改动只登记、不触碰。
+
+**被测状态**：提交 `c602613`（c60261353c82ebfd1a2305c2a9065feaf571781b）；**被测提交主题（引用他轮原文，非本轮自述）**：『chore(aap-server): R362 收尾 · 回填台账「提交」列 = 0b3f0a8 + 落 verify-R362-post.txt（提交后核对 7/7 PASS）；据实更正返工真值 2 -> 3 处（第 3 项为收尾核对阶段暴露）；不改写已发布主提交』
+窗口 `2026-09-25 01:09:16 -> 01:13:56`（epoch 1790269756 -> 1790270036，**由执行器落盘、消费方只读**）；run1 01:09:30–01:11:51 / run2 01:11:52–01:13:52（**串行、不重叠**）；worktree 与 HEAD 差异行数 = 0；HEAD 起点 = 终点 = `c602613`（他方在窗口内**未推进**）。
+
+**机器读数（由 `analyze-r363.py` 从 facts / run{1,2}.raw / 归档解析，非手写）**：
+
+| 项 | 读数 |
+|---|---|
+| 覆盖（被测状态） | total=102、implemented=102、missing=0、registered_routes=119、not_registered=[] |
+| 两轮全量 | 各 252 例 / 44 类；rc=0；Failures/Errors/Skipped = 0/0/0；逐类 diff=0 |
+| Maven 耗时 | run1 `02:18 min` / run2 `01:58 min`；均 `BUILD SUCCESS` |
+| 用例对账 | `@Test` 词边界 252 == surefire 合计 252（子串 254 作对照）；禁用扫描 = 0 条 |
+| 连续全绿 | 第 345 轮（由上一轮 coverage-history 行**推导**：prev=344 -> 345，非硬编码） |
+| 回归面 | 复跑 84 条 / 上一轮 84 条；**rc 变化 0 条**；未复跑 0；FAIL 明细 41 脚本 / 159 行；faildiff 新增 0 / 消失 0；G 组 FAIL 0 条；零写副作用（93 个生成物 size+md5 全等） |
+
+**真发现 1 处（新增只读不变量；结论 = 零缺口）**
+
+跨**全部**轮次的「台账证据列 -> 磁盘存在性 + git 跟踪」此前**从未**被核对 —— 历轮只在提交后核对脚本（`verify-*-post.py` 的 V2）里核**当轮**约 14 条证据文件是否在 HEAD 树内。本轮新增只读抽查（脚本只活在临时目录；**是否纳入 `tools/` 与 driver = 扩面决定，本轮刻意未扩面**）：
+
+| 形态 | 条数 | 说明 |
+|---|---|---|
+| FormA `evidence/<f>` | 4109 | 台账里的主流写法（相对 `.agents/state/`） |
+| FormB `.agents/state/evidence/<f>` | 3 | 同一事实的另一种写法 |
+| FormC `aap-admin/evidence/…` | 2 | 目录形态，存在；未跟踪 2 条（信息项） |
+| EMPTY（真为空） | 1 行 | `T15`（任务级行，见下） |
+| OTHERFORM | 1 行 | `T16a`（花括号展开的 json-schema 产物清单） |
+
+读数：**磁盘缺失 = 0**、**磁盘存在但未跟踪 = 0**、**分类完备 353/353** ⇒ **历史 4112 条证据引用全部落盘且全部被 git 跟踪**（证据链零缺口）。判据自身的返工见下（4 处）。
+
+**观察项（非缺陷判定，列待拍板）**：任务级行 `T15`（依据列 = 端到端验收与交付）状态 = **待实现**、证据列空；而 T15 的三条端点行（`ADM-S07/S08/S09`）状态 = 已实现(7例全绿)、覆盖报告 `T15 3/3`。两层语义（**任务级交付项** vs **端点级实现**）在台账里未作区分，机器**无法**判定是「陈旧未更新」还是「正确的更宽交付项」（端到端验收本身可能确实未做）⇒ 按「无依据不改台账」列**待拍板**，本轮**未改**该行。
+
+**本轮返工真值 = 4 处**（全部判据侧；均由判据自身的 FAIL 行或输出对照当场暴露，**未产出任何假绿产物**）
+
+* ① **v1 的「证据列为空」判据范围过窄**：只认 `.agents/state/evidence/*.(txt|json|log)` 形态 ⇒ 把 `T16` 的 `aap-admin/evidence/…`（目录形态）与 `T16a` 的 `docs/backend/json-schema/{…}.schema.json`（花括号展开形态）误记为「证据列为空」（实测输出 `证据列为空的行 = 3 ['T15','T16','T16a']`）⇒ 判据范围与语义不符（历史 81）。修法 = 五类**完备分类** + 分类完备性断言。
+* ② **v2 的解析基底错**：把台账 4109 条使用的 bare `evidence/<f>` 形态按**仓库根**解析 ⇒ 报出 `OTHER 磁盘缺失 = 4109`（文件其实都在 `.agents/state/evidence/` 下）⇒ 一批**假发现**（历史 218 同族：判据必须回到被测文本的真实形态）。修法 = 按形态定基底。
+* ③ **v3 首跑**：同一缺陷类**连续第二次** —— 正则只捕获**文件名**（`evidence/` 前缀已在模式内），却仍用 `.agents/state/` 当基底 ⇒ 报出 `FormA+B 磁盘缺失 = 4112`（[FAIL] 由判据自身响亮报出）。教训：凡「捕获组只含片段」的模式，基底必须与被测文本的**真实前缀**对齐，不能凭上一版记忆类推（历史 90/104）；只看「有没有 FAIL」不够，必须核对失败条目的**具体内容**。
+* ④ **调试脚本的「任务级行」判据写成「接口ID 列为空」** ⇒ 命中**全部 341 条 R 轮次行**（R 行本就不带接口ID），一次输出 5.19 万字符；判据范围与语义不符（历史 81 家族）。正解 = 按**任务号前缀**过滤。该脚本**只打印、不写判定**，无产物污染。
+
+**逐条据实说明**：真发现 1 处与返工 ① ② ③ ④ 全部为**判据/脚本侧**，**交付代码与测试面零改动**；本轮为校验轮，未新增端点、未新增用例（`missing == 0`）。
+
+**权威数字 = 返工 4 处**；权威文本 = 台账描述列。
+
+**待拍板**：本轮**新增 2 项** —— ① 任务级行 `T15` 的「待实现」是陈旧还是正确的更宽交付项；② 本轮新增只读抽查是否纳入仓库 `tools/` 与 driver（扩面决定，本轮未扩面）。其余沿用上一轮在册项（见本文件前序段与 R357–R362 台账描述列）；其中 R357 的「`evidence-secrets` 8 条命中处置」已于 R358 完成、可销项。观察项：两个更早的 detached worktree（`aap-r267-wt` / `aap-r268-wt`）本轮复核**仍在 `git worktree list` 注册表内** —— **本轮不动**，沿用待清理项。
+
+**证据**：evidence/round-R363-analysis.txt；evidence/green-verify-R363-tested-state.txt；evidence/green-verify-R363-testcount.txt；evidence/green-verify-R363-full-run1.txt；evidence/green-verify-R363-full-run2.txt；evidence/green-verify-R363-coverage-fields.txt；evidence/audit-regression-R363.txt；evidence/audit-regression-R363-rcseq.txt；evidence/audit-regression-R363-failraw.txt；evidence/audit-regression-R363-faildiff.txt；evidence/gap-conc-inwindow-R363.txt；evidence/gap-ledger-vs-tree-R363.txt；evidence/gap-window-writes-R363.txt；evidence/gap-ledger-evidence-R363.txt；evidence/gap-ledger-evidence-R363-fix.txt；evidence/coverage-history.txt（追加 R363 行）
