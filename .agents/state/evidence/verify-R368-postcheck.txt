@@ -1,0 +1,17 @@
+[PASS] D0 主提交 message 的真值声明可解析（恰好 1 处） | 解析到 [9]（主提交 4ddfcc38）
+[PASS] D1 三处真值一致（**真值推进分支**：主提交 9 → 最终 13） | 台账 [13] / 状态 [13] / 收尾链含最终真值声明的提交 = ['4e73e357abb1820e5d4c60ddb2ed08e098fd3af6']（真值 13）
+[PASS] D1a 主提交真值读数（**信息项**：仅证明可解析并与最终真值同源） | 主提交 4ddfcc38 记 9 处；最终 13 处；差异分支 = True
+[PASS] D1b 真值推进分支：台账含「据实更正声明」∧ 状态文件含「收尾更正」 | 更正声明 = True / 收尾更正 = True
+[PASS] D2 台账「提交」列 = 主提交 ∧ 主提交为 HEAD 祖先 | 提交列=4ddfcc38 MAIN=4ddfcc38
+[PASS] D3 收尾后全部声明证据（本文件自身除外）均在 HEAD 树内 | 缺 0 []
+[PASS] D3b 本文件 SELF 单列（落盘产生，不参与断言） | verify-R368-postcheck.txt
+[PASS] D4 收尾链只碰台账/状态/本轮证据（按「文件名含本轮轮次号」规则推导）∧ 全在 .agents/state/** | 链长 3 / 文件 ['.agents/state/aap-server-feature-status.csv', '.agents/state/aap-server-tdd-state.md', '.agents/state/evidence/closeout-R368.txt', '.agents/state/evidence/correction-R368.txt', '.agents/state/evidence/gap-rework-R368.txt', '.agents/state/evidence/verify-R368-post.txt'] / 越界项 []
+[PASS] D4c 正向对照：识别为「本轮证据」的文件数 > 0 | n=4
+[PASS] D4b 台账与状态都在**本轮提交链**（MAIN~1..HEAD）内 | 账=True 态=True
+[PASS] D5 交付面越界 = 0（收尾链内 aap-*/ 改动 = 0） | 越界 0
+[PASS] D6 HEAD 树内本轮产物与两个追加目标 CR=0 ∧ 末字节换行 | 违规 []
+[PASS] D7 真值推进分支：陈旧措辞所在文件（收尾取证）已追加更正段 ∧ 更正段位于其后 | 含更正段 = True；陈旧措辞位置 = 928，更正段位置 = 1125
+[PASS] D8 正向对照：证据条数 > 0 ∧ 收尾链提交数 > 0 | 证据 20 条 / 收尾链 3 提交
+MAIN_COMMIT=4ddfcc38 HEAD=4e73e357 收尾链 = ['4e73e357abb1820e5d4c60ddb2ed08e098fd3af6', '310c2f2451c125a14ac9ce398dfc53f92df9b491', 'eb147e0e274523d3f8e0d93579efc12a56a42b7e']
+SUM PASS=14 FAIL=0
+POSTCHECK_R368_END=1
