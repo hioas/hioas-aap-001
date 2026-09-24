@@ -1,0 +1,50 @@
+== R369 第 38 类只读不变量：台账证据清单 ⇔ 磁盘 ⇔ git 跟踪 ⇔ HEAD 树（phase=pre） ==
+  被检清单来源 = **单一事实源** `rowdata_r369.EV_LIST`（24 条；写入期台账本轮行尚未产生）
+  git ls-files = 7449 条；清单条目 = 24 条
+[PASS] A0 git ls-files 解析到 > 0 条（正向对照；判据失效则集合恒空） | n=7449
+[PASS] A0b 清单条目数 > 0（正向对照；空清单不得判 PASS，历史 98/141） | n=24
+[PASS] A0c 清单条目全部归一到 .agents/state/ 下 | n=24
+  清单分类：{'evidence类': 24}
+[PASS] A0d evidence 类条目 > 0（本类的主对象） | n=24
+
+== pre 段：已产出条目的一致性 ==
+  已产出 = 15 / 24；未产出 = 9（带解释的 9：本阶段稍后产出 3 / 收尾期白名单 5 / 落盘时产生 1）
+    - 未产出：gap-stalereport-fix-R369.txt
+    - 未产出：gap-evlist-R369.txt
+    - 未产出：gap-evlist-post-R369.txt
+    - 未产出：gap-rework-R369.txt
+    - 未产出：postwrite-check-R369.txt
+    - 未产出：verify-R369-post.txt
+    - 未产出：closeout-R369.txt
+    - 未产出：correction-R369.txt
+    - 未产出：verify-R369-postcheck.txt
+[INFO] 本阶段自身产物 `gap-evlist-R369.txt` 标注为「落盘时产生」：它在**本文件落盘之后**才存在（历史 222：本文件不得被判成缺失）
+[PASS] B1 未产出条目**全部**有解释（本阶段稍后产出 ∪ 收尾期白名单 ∪ 本文件自身）—— 无法解释的未产出即转红 | 未解释 = 无
+[PASS] B2pre 主提交之前：已产出条目**均未被跟踪**（属预期；post 段将以 F2 硬断言转 0） | 未跟踪 14 / 已产出 15 —— 正向对照说明主提交尚未发生（历史 227/250 的分支写法）
+[PASS] B3 pre 段适用性：已产出条目 > 0（否则本段判定不可用，历史 141/220-③） | 已产出 15
+
+== 轮次形态孤儿读数（窗口 = R369/R368/R367；有界扫描 + 显式声明范围） ==
+[PASS] R2c 窗口内被跟踪证据文件 > 0（正向对照） | n=43
+[INFO] 孤儿读数**仅在 post 段**有意义：`git grep` 只搜**已跟踪**文件，而本轮证据在主提交之前全部未跟踪 → pre 段硬算会把它们全判「完全无引用」（**假发现**）。pre 段只登记磁盘份数 = 14 份（历史 81：判据范围须与语义一致）
+
+== H 判别力实测（每支结论可区分；判据函数与主判据**同一份**） ==
+  H1 合成「清单含不存在文件」→ 白名单外未产出 = ['__synthetic-absent-R369.txt']（须恰好点名 1 条）
+  H2 注入「未跟踪」→ 未跟踪 = ['gap-stalereport-R369.txt']（须 ≥ 1）；真实集合对照 = ['gap-stalereport-R369.txt']
+  H3 合成「已跟踪但未声明」→ 未声明 = ['gap-synthetic-orphan-R369.txt']（须恰好 1 条）
+  H4 零写副作用判据注入「内容变化」→ ['a']（须非空）/ 注入「无变化」→ []（须空）
+  H5 孤儿分类注入「无引用 + 有引用」→ 无引用 ['_a'] / 有引用 ['_b']
+[PASS] H1 判别力：合成缺失条目被点名且恰好 1 条 | ['evidence/__synthetic-absent-R369.txt']
+[PASS] H2 判别力：合成未跟踪条目被点名（≥1） | ['gap-stalereport-R369.txt']
+[PASS] H3 判别力：合成孤儿被点名且恰好 1 条（否则 R1 的「0 命中」是空转） | ['.agents/state/evidence/gap-synthetic-orphan-R369.txt']
+[PASS] H4 判别力：注入内容变化必须被判「有变化」、无变化必须判「无变化」 | changed=['a'] unchanged=[]
+[PASS] H5 判别力：孤儿分类可区分「完全无引用」与「有引用」 | (['_a'], ['_b'])
+
+== I 零写副作用（before = 进程起点 / after = 全部 git 调用之后） ==
+  受核 4 份：aap-server-feature-status.csv=(2995729,59355709); coverage-report.json=(1031,eaeb9ea9); gap-stalereport-R369.txt=(4766,6265bf01); endpoints.json=(38830,0bf07228)
+[PASS] I0 受核文件数 > 0 且起点读数非空（正向对照） | n=4 非空 4
+[PASS] I1 受核文件运行前后 (size, md5) 全等 = 0 变化（本脚本零写仓库） | 变化 = []
+[INFO] changed=0 条（本脚本唯一写点 = 本类自身的证据文件 EV/gap-evlist-*.txt；受核文件零改写）
+
+SUMMARY PASS=15 FAIL=0 INFO=3 TOTAL=15
+EVIDENCE_TARGET=gap-evlist-R369.txt（本脚本唯一写点：本类自身的证据文件；受核文件见 I 段）
+EVLIST_PRE_END=1

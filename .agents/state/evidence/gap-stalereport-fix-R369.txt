@@ -1,0 +1,48 @@
+== A 落地（只读审计读数 → 仓库证据） ==
+  源 stale-report-audit.log exists=True size=4766
+[PASS] A0 源读数文件存在且非空 | size=4766
+[PASS] A1 证据文件 CR = 0 | CR=0
+[PASS] A2 证据文件末字节 = 换行 | 末字节=b'\n'
+[PASS] A3 证据文件含 SUMMARY 行 | 命中 1
+[PASS] A4 证据文件含结束标记 | 标记命中 1
+[PASS] A5 SUMMARY 解析到（读数非空） | SUMMARY PASS=14 FAIL=0
+  落地读数：SUMMARY PASS=14 FAIL=0（4766 字节 / 48 行）
+[PASS] A5b 硬判据 H1/H2 在读数里各 1 条 PASS | H1=1 H2=1
+
+== B 三个追加目标相对 HEAD 的 numstat（追加 N 行却大量删除 = 行尾改写，历史 69/84） ==
+  .agents/state/aap-server-feature-status.csv          插入=1 删除=0
+  .agents/state/aap-server-tdd-state.md                插入=10 删除=0
+  .agents/state/evidence/coverage-history.txt          插入=2 删除=0
+[PASS] B1 aap-server-feature-status.csv 删除 <= 1（非整文件行尾改写） | 删除=0
+[PASS] B1b aap-server-feature-status.csv 插入 >= 1（确有追加） | 插入=1
+[PASS] B2 aap-server-feature-status.csv 同一判据函数判定 = PASS | verdict=PASS
+[PASS] B1 aap-server-tdd-state.md 删除 <= 1（非整文件行尾改写） | 删除=0
+[PASS] B1b aap-server-tdd-state.md 插入 >= 1（确有追加） | 插入=10
+[PASS] B2 aap-server-tdd-state.md 同一判据函数判定 = PASS | verdict=PASS
+[PASS] B1 coverage-history.txt 删除 <= 1（非整文件行尾改写） | 删除=0
+[PASS] B1b coverage-history.txt 插入 >= 1（确有追加） | 插入=2
+[PASS] B2 coverage-history.txt 同一判据函数判定 = PASS | verdict=PASS
+[PASS] B0 至少一个追加目标出现差异（正向对照） | 有差异 3 个
+
+== C 回归面未扩面 ==
+  本轮复跑 = 84 / 上一轮 = 84
+[PASS] C0 driver 复跑条数被解析到 | 本轮=84 上轮=84
+[PASS] C1 回归面条数未扩面（本轮 == 上一轮） | 84 vs 84
+
+== D 第 37 类未写入 driver（刻意未扩面） ==
+  driver.log 中 'stalereport' 命中 0（须 0）
+[PASS] D1 第 37 类脚本未进 driver（0 命中） | 命中=0
+  正向对照：driver.log 里解析到 84 条命令结果行（须 = 复跑条数）
+[PASS] D2 正向对照：driver 命令结果行 > 0 且 == 复跑条数 | ncmd=84 vs 84
+
+== E 判别力实测（同一条判据函数喂合成 numstat） ==
+  合成「插入 3 / 删除 0」-> PASS（须 PASS） / 合成「删除 99」-> FAIL（须 FAIL） / 合成「无差异」-> FAIL（须 FAIL）
+[PASS] E1 判别力实测：三支结论可区分 | PASS / FAIL / FAIL
+
+== F 零写副作用 ==
+  受核 4 个文件，变化 0 个：[]
+[PASS] F1 其余 3 个受核文件（非本脚本落盘目标）(size, md5) 全等 | 变化 = []
+[PASS] F2 正向对照：受核文件数 > 0 且 md5 读数非空 | n=4
+
+SUMMARY PASS=24 FAIL=0
+STALE_REPORT_APPENDUM_END=1
