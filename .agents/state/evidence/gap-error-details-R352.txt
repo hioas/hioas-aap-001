@@ -1,0 +1,174 @@
+R352 第 24 类只读取证：错误响应字段级明细（details[].field）的「字段名口径」一致性
+（只读；不起 shell；夹具为内存合成 —— 天然规避脚本/夹具目录混用，历史 106/240/251）
+受核文件 = 330 个（main java + test java + json-schema + 客户端 http.ts + 生成器）
+可解析域 = 契约/模型 schema 属性名（含递归内联嵌套对象）∪ @RequestParam 名 ∪ @PathVariable 名
+判据版本 = v2（本轮判据/脚本修正共 13 处见同目录 forms 文件的 REWORK 段：v1 起草期 4 + v1->v2 判据 6 + v2 追加 3；修的是判据，不是期望值）
+
+受核文件 = 330 个（零写副作用判据：运行前后 (size, md5) 全等）
+
+R1 可解析域（契约/schema 属性名 ∪ 查询参数名 ∪ 路径变量名）
+  契约/schema 属性名（含递归内联嵌套对象）= 433 个（来源：87 个 *.schema.json）
+  控制器 @RequestParam 名 = 29 个；@PathVariable 名 = 11 个
+  md 冻结清单（真源）行 = 99 行；反引号 token = 111 个
+
+[PASS] R1a 正向对照：可解析域非空（> 0）且三类来源各自 > 0 | 域=470（schema 433 / md 111）Q=29 V=11
+[PASS] R1b **开放对象**（契约声明 type=object 且无 properties ⇒ 其子键天然不可解析）> 0 | 开放对象 = ['after_value', 'before_value', 'input', 'metrics', 'params', 'payload', 'previous_expr', 'request_payload', 'response_payload', 'snapshot', 'tech_metrics_snapshot', 'tier_distribution', 'veto_rule']
+R0 契约侧：`details[].field` 声明 = {"type": ["string", "null"]}
+     `details[].reason` 声明 = {"type": ["string", "null"]}
+     `details` 整体 type = ['array', 'null']；items 的属性集合 = ['field', 'reason']
+[PASS] R0a 契约侧对 `field` 的取值约束数 = 0（无 enum/pattern/format ⇒ 任何命名口径都通过） | 非 type 关键字 = []
+[PASS] R0b 契约侧对 `reason` 的取值约束数 = 0（文案不受约束） | []
+
+R2 实现侧填充点 = 104 处（三种调用形态：`new ApiErrorDetail(` / `ApiException.field(` / `ApiEnvelope.invalid(`）
+    · 其中经**转发器**调用 = 66 处（判据 v1 漏检，历史 125/169）
+        AdminDetectionConfigController.java         :85   形态=forward:ApiException.field field="configId"
+        AdminReportTemplateController.java          :87   形态=forward:ApiException.field field="templateId"
+        DetectionConfigService.java                 :235  形态=forward:ApiException.field field="probes.probe_code"
+        DetectionConfigService.java                 :239  形态=forward:ApiException.field field="probes.probe_code"
+        DetectionConfigService.java                 :243  形态=forward:ApiException.field field="probes.weight"
+        DetectionConfigService.java                 :250  形态=forward:ApiException.field field="probes.probe_name"
+        DetectionConfigService.java                 :256  形态=forward:ApiException.field field="probes.timeout_seconds"
+        DetectionConfigService.java                 :282  形态=forward:ApiException.field field="name"
+        DetectionConfigService.java                 :287  形态=forward:ApiException.field field="name"
+        DetectionConfigService.java                 :297  形态=forward:ApiException.field field="pass_score"
+        DetectionConfigService.java                 :308  形态=forward:ApiException.field field="veto_rule"
+        DetectionConfigService.java                 :314  形态=forward:ApiException.field field="veto_rule.probe"
+        DetectionConfigService.java                 :329  形态=forward:ApiException.field field="status"
+        ReportTemplateService.java                  :187  形态=forward:ApiException.field field="title"
+        ReportTemplateService.java                  :190  形态=forward:ApiException.field field="title"
+        ReportTemplateService.java                  :193  形态=forward:ApiException.field field="section_order"
+        ReportTemplateService.java                  :199  形态=forward:ApiException.field field="section_order"
+        ReportTemplateService.java                  :203  形态=forward:ApiException.field field="section_order"
+        ReportTemplateService.java                  :209  形态=forward:ApiException.field field="disclaimer"
+        ReportTemplateService.java                  :222  形态=forward:ApiException.field field="logo_file_id"
+        AdminContractController.java                :73   形态=forward:ApiException.field field="id"
+        AdminContractController.java                :78   形态=forward:ApiException.field field="id"
+        AdminContractController.java                :86   形态=forward:ApiException.field field="file_id"
+        ContractController.java                     :74   形态=forward:ApiException.field field="id"
+        ContractController.java                     :79   形态=forward:ApiException.field field="id"
+        ContractService.java                        :193  形态=forward:ApiException.field field="sign_method"
+        ContractService.java                        :197  形态=forward:ApiException.field field="smsCode"
+        ContractService.java                        :243  形态=forward:ApiException.field field="file_id"
+        ContractService.java                        :249  形态=forward:ApiException.field field="file_id"
+        ContractService.java                        :254  形态=forward:ApiException.field field="platform_fee_rate"
+        ContractService.java                        :258  形态=forward:ApiException.field field="valid_to"
+        FileService.java                            :80   形态=forward:ApiException.field field="file"
+        FileService.java                            :83   形态=forward:ApiException.field field="file"
+        FileService.java                            :88   形态=forward:ApiException.field field="file"
+        AdminUserController.java                    :92   形态=forward:ApiException.field field="id"
+        AdminUserController.java                    :97   形态=forward:ApiException.field field="id"
+        AdminUserService.java                       :124  形态=forward:ApiException.field field="role"
+        AdminUserService.java                       :129  形态=forward:ApiException.field field="phone"
+        AdminUserService.java                       :133  形态=forward:ApiException.field field="display_name"
+        AdminUserService.java                       :140  形态=forward:ApiException.field field="username"
+        AdminUserService.java                       :148  形态=forward:ApiException.field field="phone"
+        AdminUserService.java                       :177  形态=forward:ApiException.field field="reason"
+        AdminUserService.java                       :289  形态=forward:ApiException.field field=field
+        AdminUserService.java                       :292  形态=forward:ApiException.field field=field
+        AdminQuoteCompareService.java               :109  形态=forward:ApiException.field field="quoteIds"
+        AdminQuoteCompareService.java               :114  形态=forward:ApiException.field field="quoteIds"
+        AdminReviewController.java                  :88   形态=forward:ApiException.field field="id"
+        ReviewService.java                          :258  形态=forward:ApiException.field field="reason_code"
+        ReviewService.java                          :262  形态=forward:ApiException.field field="reason_code"
+        AdminPaymentController.java                 :120  形态=forward:ApiException.field field=field
+        AdminPaymentController.java                 :127  形态=forward:ApiException.field field="id"
+        AdminPaymentController.java                 :132  形态=forward:ApiException.field field="id"
+        SettlementService.java                      :198  形态=forward:ApiException.field field="contract_id"
+        SettlementService.java                      :206  形态=forward:ApiException.field field="amount"
+        SettlementService.java                      :211  形态=forward:ApiException.field field="currency"
+        SettlementService.java                      :215  形态=forward:ApiException.field field="voucher_file_id"
+        SettlementService.java                      :221  形态=forward:ApiException.field field="voucher_file_id"
+        SettlementService.java                      :271  形态=forward:ApiException.field field="reason"
+        AuditLogQueryService.java                   :64   形态=forward:ApiException.field field="action"
+        AuditLogQueryService.java                   :135  形态=forward:ApiException.field field=field
+        NotificationController.java                 :73   形态=forward:ApiException.field field="id"
+        NotificationService.java                    :196  形态=forward:ApiException.field field="unread"
+        AdminSyncController.java                    :90   形态=forward:ApiException.field field=field
+        SyncAdminService.java                       :368  形态=forward:ApiException.field field="target_status"
+        SyncAdminService.java                       :372  形态=forward:ApiException.field field="target_status"
+        SyncAdminService.java                       :546  形态=forward:ApiException.field field="id"
+    · 框架派生（Bean Validation / 参数绑定）= 4 处
+        GlobalExceptionHandler.java                 :51   fe.getField()
+        GlobalExceptionHandler.java                 :60   v.getPropertyPath().toString()
+        GlobalExceptionHandler.java                 :68   ex.getParameterName()
+        GlobalExceptionHandler.java                 :73   ex.getName()
+    · 手写字面量 = 92 处
+    · 变量/派生表达式 = 8 处
+        CompilationService.java                     :270  failedField  ||  reason=failed == null ? "模拟求值与预期不一致"
+                            : 
+        AdminUserService.java                       :289  field  ||  reason=label + "必填"
+        AdminUserService.java                       :292  field  ||  reason=label + "不超过 " + max + " 字"
+        QuoteValidation.java                        :159  p + entry.getKey()  ||  reason="单价不能为负（V4）"
+        QuoteValidation.java                        :272  field  ||  reason="倍率必须大于 0（V10）"
+        AdminPaymentController.java                 :120  field  ||  reason="不是合法的雪花 ID：" + value
+        AuditLogQueryService.java                   :135  field  ||  reason="不是合法的 RFC3339 时间：" + value
+        AdminSyncController.java                    :90   field  ||  reason="不是合法的雪花 ID：" + value
+[PASS] R2a 正向对照：框架派生 / 手写字面量 / 转发器调用三类各自 > 0（否则判定不可用，历史 46/141） | frw=4 lit=92 fwd=66 var=8
+
+R3 手写字面量的可解析性（逐 token 回查可解析域；合成名豁免须显式 + 上限，历史 57/68/190）
+    受判字面量 = 100 处；不可解析 token = 4 个（其中豁免 1 / 非豁免 3）
+    [FAIL] QuoteValidation.java                      :193  字面量=p + "price_time_rule.segments[" + i + "]"  -> token `segments` 不在可解析域内
+    [FAIL] QuoteValidation.java                      :199  字面量=p + "price_time_rule.segments[" + i + "]"  -> token `segments` 不在可解析域内
+    [FAIL] QuoteValidation.java                      :207  字面量=p + "price_time_rule.segments[" + i + "]"  -> token `segments` 不在可解析域内
+    [豁免] DetectionConfigService.java               :314  字面量="veto_rule.probe"  -> token `probe`：契约把该子对象声明为**开放对象**（`type: object` 且无 `properties`）⇒ 子键天然不可解析，属声明使然
+[FAIL] R3a 非豁免的不可解析 token = 0（每个取值都能回查到契约字段/查询参数/路径变量） | 不可解析 3 个：['segments']
+[PASS] R3b 豁免条数 <= 2（合成名 1 + 契约开放对象子键 1）且豁免项真的出现在受判集合里（豁免不得被架空，历史 57/190） | 豁免 1 条：['probe']
+
+R4 承载机制：@RequestBody 站点 = 25 个 / 去重 DTO 类型 = 20 个
+    · 机制①（Java 组件名直写 snake_case，无 @JsonProperty）= 19 个
+    · 机制②（camelCase 组件 + @JsonProperty）= 0 个 []
+    · 未能静态判定（DTO 定义不在 main 源内）= 1 个 ['AuthController']
+[PASS] R4a 机制①（无 @JsonProperty 的请求 DTO）> 0（正面结论：主承载机制与契约同名） | 19 个
+[PASS] R4b 机制② 且带组件级校验注解 = 0（> 0 时该端点的 `details[].field` 会是 camelCase，与契约属性名不符） | 0 个 []
+
+R5 测试侧 `details` 判据分档（强 = 从 `details` 取 `field` 值后断言；弱 = `details` 序列化后 contains）
+    · 强形态 = 3 处
+        ApiContractTest.java                      :67   fields.add(node.path("field").asText());
+        ApiContractTest.java                      :69   assertThat(fields).contains("phone", "smsCode");
+        AdminQuoteCompareContractTest.java        :103  if (modelName.equals(item.path("model_name").asText()) && field.equals(item.path("field").asText())) {
+    · 弱形态 = 5 处
+        AdminCredentialContractTest.java          :170  assertThat(badFormat.json().path("details").toString()).contains("smsCode");
+        AdminCredentialContractTest.java          :223  assertThat(wrongCode.json().path("details").toString()).contains("smsCode");
+        AdminProviderContractTest.java            :148  assertThat(noReason.json().path("details").toString()).contains("suspend_reason");
+        ProviderContractTest.java                 :91   assertThat(badUscc.json().path("details").toString()).contains("uscc");
+        ProviderContractTest.java                 :97   assertThat(badPhone.json().path("details").toString()).contains("contact_phone");
+[PASS] R5a 存在强形态断言（> 0，否则该轴在测试侧只有无牙齿形态） | 强=3
+
+R6 弱形态空转面：`field` 取值**再次出现在同一处 reason 的字符串字面量**里 = 2 处
+        QuoteService.java                         :154  field token `credential_id` 出现在 reason="credential_id 必填"
+        QuoteService.java                         :289  field token `items` 出现在 reason="items 不能为空（V1）"
+[FAIL] R6a 该空转面 = 0（弱形态 `details.toString().contains(name)` 无法区分 field 与 reason） | 2 处（这些站点上弱形态断言无牙齿）
+
+R7 driver（回归面）判据：含 `details` / `ApiErrorDetail` 的行 = 0 处
+[FAIL] R7a driver 判据 > 0（否则该轴对 82 条常驻复跑完全不可见） | 0 处
+
+R8 客户端 `details` 相关行 = 4 行（其中注释/声明 4 行）
+        access-application.ts:7 *   通用约定：前缀 /api/v1；鉴权 Authorization: Bearer ***；错误体 ApiError(code+message+traceId+details
+        http.ts:28 details?: unknown
+        http.ts:30 constructor(code: string, message: string, traceId?: string, details?: unknown) {
+        http.ts:35 this.details = details
+    · 非注释非声明的**读取/消费点** = 0 处
+[FAIL] R8a 客户端消费 `details` 的点 > 0（= 0 时该轴在客户端侧零消费：死字段，历史 R346 已登记） | 读取点 = 0
+
+---- 判别力实测（每支断言「注入真的改到了文本」或有明确正/负对照，历史 66/90/94/104）----
+E1 受判函数三支对照：snake_case=False（须 False）/ camelCase=True（须 True）/ 拼接表达式=False（须 False）
+E2 合成注入：camelCase 实参判定 = True；变体替换确实发生 = True
+E3 token 归一：`items[i].model_name` -> ['items', 'model_name']（须 ['items','model_name']）；去掉末字符 -> ['items', 'model_nam']（须不同）
+E4 形态分类器判别力：弱形态行命中 = True / 强形态两行命中 = True（须全 True）
+E5 可解析域判别力：合成名 `__not_a_field__` 在域内 = False（须 False）/ `api_key` ∧ `peak_ranges` 在域内 = True（须 True）
+E5b **真缺陷侧判别力**：内部模型名 `segments` 在契约域内 = False（须 False —— 若为 True 说明域过宽、R3a 的 FAIL 会被掩盖）
+E6 空转面判据判别力：`rule.tz()` 形态不命中 = True（须 True）/ 字面量里重复字段名命中 = True（须 True）
+E7 客户端读取点过滤判别力：4 个合成行中被保留的读取点 = 1（须 1，即 `assertThat(x);` 形态）
+判别力实测汇总：[True, True, True, True, True, True, True]
+[PASS] E8 判别力实测全部成立（每支都有牙齿且注入真的改到文本） | [True, True, True, True, True, True, True]
+
+R9 零写副作用：受核 330 个文件 `(size, md5)` 变化 = 0
+[PASS] R9a 受核文件指纹前后全等（零写副作用，历史 39） | []
+
+汇总：PASS 11 / FAIL 4（受判条数 15）
+FAIL 明细：
+  - R3a 非豁免的不可解析 token = 0（每个取值都能回查到契约字段/查询参数/路径变量）：不可解析 3 个：['segments']
+  - R6a 该空转面 = 0（弱形态 `details.toString().contains(name)` 无法区分 field 与 reason）：2 处（这些站点上弱形态断言无牙齿）
+  - R7a driver 判据 > 0（否则该轴对 82 条常驻复跑完全不可见）：0 处
+  - R8a 客户端消费 `details` 的点 > 0（= 0 时该轴在客户端侧零消费：死字段，历史 R346 已登记）：读取点 = 0
+GAP_ERROR_DETAILS_END=1

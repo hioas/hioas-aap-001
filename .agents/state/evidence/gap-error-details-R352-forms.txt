@@ -1,0 +1,35 @@
+R352 第 24 类取证：形态域穷举表（口径 = 该轴**取值形态**，逐形态给出读数与判定）
+
+S1 契约侧 `details[].field` 形态：自由字符串（type=['string', 'null']；非 type 关键字 = []）
+S2 实现侧填充点形态：直接构造 38 / 经转发器 66（其中框架派生 4 / 手写字面量 92 / 变量派生 8）
+S3 框架派生来源四形态：`fe.getField()`（Bean Validation 属性名）/ `v.getPropertyPath()`（含方法名前缀）/`ex.getParameterName()`（请求参数名）/ `ex.getName()`（绑定名）—— 逐处点名见主取证 R2
+S4 字面量命名形态：snake_case（与契约同名）111 / camelCase（取自 Java 标识符）6
+S5 请求 DTO 承载机制：机制① 19 / 机制② 0 / 未能静态判定 1
+S6 测试判据形态：强 3 / 弱 5
+S7 driver 判据：0 处（口径 = 含 `details`/`ApiErrorDetail` 的行）
+S8 客户端：`details` 相关行 4 / 消费点 0
+S9 不可解析 token：非豁免 3 / 合成名豁免 1
+S10 判别力实测 7 支：[True, True, True, True, True, True, True]
+
+REWORK（本轮判据/脚本修正 13 处，均为「修判据，不改期望值」；三段各自列举，条数由事实源推出）
+  A. v1 起草期修正（4 处）：
+  A1 `_frw` 行打印格式化错（元组拼接写成逐元素展开）-> 修正
+  A2 `new ApiErrorDetail(` 首参用 `split(...,1)[1]` 提参（实参内层括号会错切）-> 改括号配平 `_arg0_of()`
+  A3 R8a 客户端判据把 `"http.ts" not in x` 混进 `any(...)` -> 拆 `_cl_http` / `_cl_other` 两个显式列表
+  A4 S8 打印文案的 `%` 表达式自相抵消（`- len(..) + len(..)`）-> 直接打印两列表长度
+  B. v1 -> v2 判据修正（6 处）：
+  B1 可解析域未递归内联嵌套对象 -> 13 条假 FAIL（历史 46/57/81）
+  B2 测试形态分类器正则写错 -> 「强形态 0 处」假结论（历史 46/98）
+  B3 空转面比整个 reason 表达式 -> `rule.tz()` 让 `tz` 假命中（历史 81）
+  B4 客户端把注释行算作消费点 -> 死字段被误判为有消费（历史 58-3）
+  B5 只扫 `new ApiErrorDetail(` -> 漏掉两个转发器的调用点（历史 125/169）
+  B6 判别力探针负例取 `templateId`（它本就该在**契约全域**内）-> 探针假失败（历史 82/93）
+  C. v2 追加修正（3 处）：
+  C1 可解析域漏 **md 冻结清单**这一真源（历史 59/89/144）-> 13 条合法字面量（`price_time_rule` / `price_tier_rule`）被报成不可解析；补 md 反引号 token（按**未转义**竖线切分，历史 48/65）
+  C2 未识别「契约把子对象声明为**开放对象**」（`type: object` 且无 `properties`）-> `veto_rule.probe` 报假 FAIL；改为机器推导开放对象集合并给豁免设上限（历史 57/68/190）
+  C3 判别力正向探针取域外名 `price_time_rule` -> 探针假红（历史 82/93）；改用 `api_key` ∧ `peak_ranges`，并新增 E5b「真缺陷侧判别力」（`segments` 必须**不在**域内，否则域过宽会掩盖 R3a 的 FAIL）
+
+汇总：PASS 11 / FAIL 4
+GAP_ERROR_DETAILS_FORMS_END=1
+
+REWORK_ITEMS=13（A=4 / B=6 / C=3；正向对照：三段条数各自与声明一致）
