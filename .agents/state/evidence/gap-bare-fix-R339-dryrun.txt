@@ -1,0 +1,9 @@
+R339 修法 dry-run 落地读数表（只读；修正副本只写临时目录，常驻工具未改 —— 须人拍板）
+修正判据（oracle = audit-query-params.py）= 111 条；复现缺陷成员 ['audit-auth-contract.py（2 条）', 'audit-routes.py（2 条）'] 与它对称差集 = 2 条
+幻影键 = [('POST', '/filesfile')]；缺席键 = [('POST', '/files')]
+| 成员 | 修正前 Δ | 修正后 Δ | 需补 match_paren 助手 | 修法锚点 |
+|---|---|---|---|---|
+| audit-auth-contract.py | 2 | 0 | 是 | 括号配对替换（1 处） |
+| audit-routes.py | 2 | 0 | 否 | 括号配对替换（1 处） |
+家族成员（修正后）与 oracle 逐条一致 = 5 / 5
+结论：该缺陷在家族内有 2 处副本（['audit-auth-contract.py', 'audit-routes.py']），修法 dry-run 后 Δ 归零 = ['audit-auth-contract.py', 'audit-routes.py']，修正面 = 2 个常驻审计工具；修法可落地且充分（本表为机器读数）

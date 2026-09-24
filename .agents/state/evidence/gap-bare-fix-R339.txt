@@ -1,0 +1,15 @@
+[PASS] A0 tools/ 侧脚本：tools/*.py = 28 个；其中不含自测 = 16 个；家族（源码含字面量 `@(Get|Post`） = 5 个：['audit-auth-contract.py', 'audit-query-params.py', 'audit-request-body.py', 'audit-response-shape.py', 'audit-routes.py']
+[PASS] A1a 静态判定（剥注释）：未守卫 = ['audit-auth-contract.py', 'audit-routes.py'] / 已守卫 = ['audit-query-params.py', 'audit-request-body.py', 'audit-response-shape.py'] / 未能判定 = []
+[PASS] A1b 修正判据（oracle）非空：oracle = audit-query-params.py，解析到 111 条路由
+[PASS] A2a 行为判定（修正前）：复现缺陷 = ['audit-auth-contract.py', 'audit-routes.py'] / 正确 = ['audit-query-params.py', 'audit-request-body.py', 'audit-response-shape.py']
+[PASS] A2b 幻影/缺席路由：幻影 = [('POST', '/filesfile')]；缺席 = [('POST', '/files')]（共 2 条对称差集 / 成员）
+[PASS] A3 修法 dry-run 应用：可修 = ['audit-auth-contract.py', 'audit-routes.py'] / 锚点未命中 = [] / 需补助手 = ['audit-auth-contract.py']
+[PASS] A3a 修正后对称差集：归零 = ['audit-auth-contract.py', 'audit-routes.py'] / 仍非零 = []
+[PASS] A4 家族一致性（修正后 / 未守卫成员取 dry-run 结果）：与 oracle 逐条一致的成员 = 5 / 5
+[PASS] A5 判别力实测（合成夹具，两端结论不同）：未修成员解析到路径段 = ['file']（须 ['file']）/ 已修解析到 = []（须 []）
+[PASS] A7a 自测夹具形态普查（正向对照）：受查自测 = 12 个；含裸注解夹具的文件 = ['audit-query-params-selftest.py']；裸注解夹具总数 = 3（须 > 0，防解析器空转）
+[PASS] A7b 触发形态判据判别力（两端结论不同）：合成触发形态 -> 1（须 1）/ 合成无引号裸注解 -> 0（须 0）
+[PASS] A7c 触发形态的夹具覆盖（真发现：判据盲区）：触发形态夹具总数 = 0；逐文件 = {'audit-query-params-selftest.py': (3, 0)}
+[PASS] A6 零写副作用（本脚本只读仓库）：受核文件 56 个（tools/*.py + 控制器 .java），运行前后 md5 全等 = True
+汇总：PASS 13 / FAIL 0
+GAP_BARE_FIX_END=1
