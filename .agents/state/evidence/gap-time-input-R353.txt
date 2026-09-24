@@ -1,0 +1,135 @@
+R353 · 第二十五类只读取证：时间/日期类参数在「入口」上的契约一致性
+（格式声明 ⇔ 服务端解析接受域 ⇔ 客户端发送形态 ⇔ 测试形态域 ⇔ 失败语义）
+只读脚本：gap-time-input-R353.py（无外部 shell、无中间产物；历史 240/251）
+
+--- 真源读数（每源带正向对照；零计数单列） ---
+R1 md 表格行 = 99（表头列数分布 [7, 10]）
+R1a 含时间类参数的端点行 = 5：['USE-01', 'USE-02', 'ADM-U01', 'ADM-U02', 'ADM-A01']
+     USE-01     GET   `/usage/summary`               时间参数=endHour,month,startHour        查询型=True 带格式标注=False
+     USE-02     GET   `/usage/hourly`                时间参数=from,to                        查询型=True 带格式标注=False
+     ADM-U01    GET   `/admin/usage/hourly`          时间参数=from,to                        查询型=True 带格式标注=False
+     ADM-U02    POST  `/admin/usage/refresh`         时间参数=from,to                        查询型=False 带格式标注=False
+     ADM-A01    GET   `/admin/audit-logs`            时间参数=from,to                        查询型=True 带格式标注=False
+R1b 逐端点「请求」列带格式标注的时间参数 = 0 处
+R1c §0「时间」通用约定行 = 1 行 | | 时间 | RFC3339 **UTC**；小时桶为整点；`DATE` 字段 `yyyy-MM-dd` |
+R1d 契约对 `month` 取值格式的声明条数（§0+逐端点）= 0
+R1e 契约对时间参数的「成对/互斥」约束声明 = 0 处
+R2 openapi 参数块 = 156 个；时间类查询参数块 = 9 个 [('USE-01', 'startHour'), ('USE-01', 'endHour'), ('USE-01', 'month'), ('USE-02', 'from'), ('USE-02', 'to'), ('ADM-U01', 'from'), ('ADM-U01', 'to'), ('ADM-A01', 'from'), ('ADM-A01', 'to')]
+R2b 其中声明 `format` 的 = 0 个 / 声明 `pattern` 的 = 0 个
+R2c openapi 对 `month` 取值格式的声明 = 0 个（端点 ['USE-01']）
+R3 endpoints.json 端点 = 99 条；时间类 query_params = {'ADM-A01': ['from', 'to'], 'ADM-U01': ['from', 'to'], 'USE-01': ['startHour', 'endHour', 'month'], 'USE-02': ['from', 'to']}
+R4 解析助手 `parseInstant` 定义 = 2 处 ['aap-server\\src\\main\\java\\com\\hioas\\aap\\support\\AuditLogQueryService.java', 'aap-server\\src\\main\\java\\com\\hioas\\aap\\usage\\UsageService.java']
+R4a `parseInstant(...)` 调用点 = 8 处
+R4b 接受域（代码形态判定）= {'aap-server\\src\\main\\java\\com\\hioas\\aap\\support\\AuditLogQueryService.java': 'offset_or_instant', 'aap-server\\src\\main\\java\\com\\hioas\\aap\\usage\\UsageService.java': 'offset_only'}
+R4c 空值语义 = {'aap-server\\src\\main\\java\\com\\hioas\\aap\\support\\AuditLogQueryService.java': 'returns_null', 'aap-server\\src\\main\\java\\com\\hioas\\aap\\usage\\UsageService.java': 'throws'}
+R4d `month` 校验模式 = ['private static final Pattern MONTH_PATTERN = Pattern.compile("^(\\\\d{4})-(\\\\d{1,2})$");']
+R4e ErrorCode 引用：E_1001 = 102 处 / E_1801 = 6 处
+R4f 时间类查询参数控制器形参类型 = {'aap-server\\src\\main\\java\\com\\hioas\\aap\\usage\\AdminUsageController.java': [('from', 'String', False), ('to', 'String', False)], 'aap-server\\src\\main\\java\\com\\hioas\\aap\\usage\\UsageController.java': [('startHour', 'String', False), ('endHour', 'String', False), ('month', 'String', False), ('from', 'String', False), ('to', 'String', False)]}
+R5 客户端声明时间类参数的 API 函数 = 3 个 [('usage.ts', 'summary'), ('usage.ts', 'overview'), ('usage.ts', 'hourly')]
+R5a 客户端 `usageApi.*(...)` 真实调用点 = 2 处 [('index.vue', 'overview', '{ month: month.value }'), ('index.vue', 'summary', '')]
+R5b 其中 `hourly`（from/to 端点）调用点 = 0 处
+R5c 客户端本地时间串构造点 = 4 处 [('messages-model.ts', 157), ('usage-model.ts', 145), ('usage-model.ts', 154), ('usage-model.ts', 161)]
+R6 测试里时间类参数构造点 = 55 处
+     NotificationContractTest.java  from       2026-06-02T00:00:00Z         -> Z
+     NotificationContractTest.java  to         2026-06-03T00:00:00Z         -> Z
+     NotificationContractTest.java  from       2030-01-01T00:00:00Z         -> Z
+     NotificationContractTest.java  from       不是时间                         -> illegal
+     UsageContractTest.java         startHour  2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         endHour    2026-06-02T00:00:00Z         -> Z
+     UsageContractTest.java         month      2026-06                      -> month
+     UsageContractTest.java         startHour  2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         endHour    2026-06-02T00:00:00Z         -> Z
+     UsageContractTest.java         startHour  2026-06-02T00:00:00Z         -> Z
+     UsageContractTest.java         endHour    2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         month      2026-13                      -> month
+     UsageContractTest.java         month      六月                           -> illegal
+     UsageContractTest.java         startHour  2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         endHour    不是时间                         -> illegal
+     UsageContractTest.java         month      2026-06                      -> month
+     UsageContractTest.java         month      2026-06                      -> month
+     UsageContractTest.java         month      2026-06                      -> month
+     UsageContractTest.java         month      2026-06                      -> month
+     UsageContractTest.java         month      2026-06                      -> month
+     UsageContractTest.java         month      2026-06                      -> month
+     UsageContractTest.java         from       2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         to         2026-06-02T00:00:00Z         -> Z
+     UsageContractTest.java         from       2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         to         2026-06-02T00:00:00Z         -> Z
+     UsageContractTest.java         from       2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         to         2026-06-02T00:00:00Z         -> Z
+     UsageContractTest.java         from       2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         to         2026-06-02T00:00:00Z         -> Z
+     UsageContractTest.java         from       2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         to         2026-06-02T00:00:00Z         -> Z
+     UsageContractTest.java         from       2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         to         2026-06-02T00:00:00Z         -> Z
+     UsageContractTest.java         from       2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         to         2026-06-02T00:00:00Z         -> Z
+     UsageContractTest.java         from       2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         to         2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         from       2026-06-02T00:00:00Z         -> Z
+     UsageContractTest.java         to         2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         from       2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         to         2026-06-02T00:00:00Z         -> Z
+     UsageContractTest.java         from       2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         to         2026-06-02T00:00:00Z         -> Z
+     UsageContractTest.java         from       2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         to         2026-06-02T00:00:00Z         -> Z
+     UsageContractTest.java         from       2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         to         2026-06-02T00:00:00Z         -> Z
+     UsageContractTest.java         from       2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         to         2026-06-02T00:00:00Z         -> Z
+     UsageContractTest.java         from       2026-06-02T00:00:00Z         -> Z
+     UsageContractTest.java         to         2026-06-03T00:00:00Z         -> Z
+     UsageContractTest.java         from       2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         to         2026-06-02T00:00:00Z         -> Z
+     UsageContractTest.java         from       2026-06-01T00:00:00Z         -> Z
+     UsageContractTest.java         to         2026-06-02T00:00:00Z         -> Z
+R6a 形态分档 = {'Z': 44, 'illegal': 3, 'month': 8}
+R6b 时间参数失败断言（两测试类内 E-1001 出现）= 4 处
+R7 driver 源读到 = True（23288 字符）
+R7a driver 内该轴判据 = 0 处
+R9 零写副作用：受核 457 个文件 `(size, md5)` 变化 = 0
+
+--- 判据 ---
+[PASS] A0z 正向对照：受核快照非空
+[PASS] A0a 正向对照：md 解析到时间类参数端点 > 0
+[PASS] A0b 正向对照：md 解析到「查询型」时间参数端点 > 0
+[PASS] A0c 正向对照：§0 时间约定行被解析到
+[PASS] A0d 正向对照：openapi 解析到时间类查询参数块 > 0
+[PASS] A0e 正向对照：endpoints.json 解析到时间类 query_params > 0
+[PASS] A0f 正向对照：解析助手定义 > 0 ∧ 调用点 > 0
+[PASS] A0g 正向对照：`month` 校验模式被解析到
+[PASS] A0h 正向对照：控制器形参被解析到 > 0
+[PASS] A0i 正向对照：客户端 API 声明 + 调用点被解析到
+[PASS] A0j 正向对照：测试时间参数构造点被解析到 > 0
+[PASS] A0k 正向对照：driver 源被读到 > 0
+[FAIL] A1 机读契约（openapi）对时间类查询参数声明 `format`/`pattern` > 0: format 0 / pattern 0 ⇒ 协议层无法机读校验时间格式（格式只存在于 §0 散文行）
+[FAIL] A2 契约（§0 + 逐端点 + openapi）对 `month` 取值格式的声明 > 0: md 0 / openapi 0 处 —— 实现按 `MONTH_PATTERN` 严格校验并拒绝非法值（E-1001），而客户端仅有本地约定 `currentMonth()`
+[FAIL] A3 契约对时间参数的「成对/互斥」约束声明 > 0: 声明 0 处 —— 实现 `startHour`/`endHour` 必须成对（单给 → 400 E-1001）
+[FAIL] A4 测试覆盖**合法非 Z 偏移**形态（`+08:00`）> 0: 非 Z 合法偏移形态用例 = 0 处（实现接受且归一到 UTC，但无断言）
+[FAIL] A5 driver 该轴判据 > 0: driver 判据 = 0 处
+
+--- 机器判据读数（结构化解析锚点；禁止手写） ---
+A1 机读契约时间参数 format/pattern 声明 = 0 / 0 个
+A2 契约对 month 格式的声明合计 = 0 处（md 0 + openapi 0）
+A3 契约成对/互斥约束声明 = 0 处
+A4 测试覆盖合法非 Z 偏移形态 = 0 处
+A5 driver 该轴判据 = 0 处
+R1 契约端点行 = 5 条（查询型 4 / 体参数型 1）
+R2 openapi 时间类查询参数块 = 9 个（其中声明 format 的 = 0）
+R3 endpoints.json 时间类 query_params 端点 = 4 个
+R4 parseInstant 定义 = 2 处；调用点 = 8 处
+R5 客户端 API 声明 = 3 个；真实调用点 = 2 处；hourly 调用点 = 0 处；本地构造点 = 4 处
+R6 测试构造点 = 55 处；形态分档 = {'Z': 44, 'illegal': 3, 'month': 8}；失败断言 = 4 处
+R9 受核文件 = 457 个且 `(size, md5)` 变化 = 0
+
+--- 信息项（不计 FAIL，但必须点名） ---
+[INFO] B1 入口失败码 E-1001 vs 逐端点错误码列 E-1801（与在册族同源，不重复计为真发现）
+[INFO] B2 同名解析助手两处空值语义不同（由必填性差异正当化；Instant.parse 回退不可达）
+[INFO] B3 接受域 = 必须带偏移；契约未声明「必须带偏移」
+[INFO] B4 客户端 hourly 调用点 = 0（该端点无消费面）
+[INFO] B5 客户端 API 声明 startHour/endHour 可选，服务端要求成对（类型层不表达）
+
+汇总：PASS 12 / FAIL 5（受判条数 17）
+判别力实测汇总：[D1=True, D2=True, D3=True, D4=True, D5=True, D6=True, D7=True]

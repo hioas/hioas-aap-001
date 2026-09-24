@@ -1,0 +1,43 @@
+R353 · 第 25 类取证 · 形态域与受判纯函数对照
+（本文件由 gap-time-input-R353.py 生成；只读）
+
+受判纯函数 = 4 个：judge_format_declared / judge_month_declared / judge_instant_accepts / judge_test_form
+· judge_format_declared 三支：带格式标注 → True；裸参数名 → False；合成 'q：`from(RFC3339)`' → True（D1 已实测）
+· judge_month_declared 两支：合成 'month 取值格式 `YYYY-MM`' → 1；'`month?`' → 0（D2 已实测）
+· judge_instant_accepts 三支：offset_only / offset_or_instant / date_accepted（D3 已实测）
+· judge_test_form 五支：Z / offset / date_only / no_offset / illegal（D4 已实测）
+
+形态域穷举（时间类参数在「入口」链路各环的取值形态）：
+  ① md 请求列：时间参数 token = from,to,startHour,endHour,month
+     其中「查询型」端点 = 4 条 / 「体参数型」端点 = 1 条
+  ② openapi query schema：format 声明 = 0 / pattern 声明 = 0（受判域 9 个块）
+  ③ endpoints.json：query_params 只列名字（带类型/format 的 = 0）
+  ④ 实现接受域（代码形态判定）= {'aap-server\\src\\main\\java\\com\\hioas\\aap\\support\\AuditLogQueryService.java': 'offset_or_instant', 'aap-server\\src\\main\\java\\com\\hioas\\aap\\usage\\UsageService.java': 'offset_only'}
+  ⑤ 客户端发送形态：API 声明 3 个 / 真实调用 2 处 / 本地构造 4 处
+  ⑥ 测试形态分档 = {'Z': 44, 'illegal': 3, 'month': 8}
+  ⑦ driver 判据 = 0 处
+
+豁免三件套（显式 + 上限 + 断言豁免项真的在受判集合里，历史 57/68/190）：
+  豁免条数 = 1（上限 2）
+  豁免项 = ['ADM-U02（时间参数在**请求体**而非查询参数，§0「DATE 字段 yyyy-MM-dd」为其声明面）']
+  非空转核对：体参数型端点 = 1 条；豁免项 = 1 条（相等 ⇒ 豁免非空转）
+
+本类判据/脚本修正（据实，判据侧）：
+  R1 A1 md 表格按裸 `split('|')` 切分 → 含转义竖线的行会因列数不符被静默跳过（改 `(?<!\\)\|` 并还原字面竖线；历史 48）
+  R2 A2 openapi 参数块解析在 `responses:` 处未收口 → 块跨端点粘连；改为同时按 `^  /\S+:` 与 `responses|security` 收口（历史 72：跨源审计先看「解析到几条」）
+  R3 A3 客户端调用点未剥注释 → 注释里的 `usageApi.hourly(` 会被算作真实调用点（历史 58-③）；改 `strip_comments()` 后再匹配
+  R4 B1 `month` 格式声明的判据首版写成「全文 grep `month` ∧ `YYYY-MM`」，会把**同一段落里无关的 month 提及**算成声明（历史 81：判据范围与语义一致）；收窄为「`month` 后 24 字符内出现格式串」
+  R5 B2 测试形态分类器首版按**参数名**判定（`from` → 记为 Z 形态）→ `from=` 与形态无关，产出「非法形态 0 处」假结论；改为按**值形态**分类（历史 46/145：异常值先怀疑解析器）
+  R6 B3 `E_1001` 计数首版把 `ErrorCode.java` 的**枚举声明**算进实现抛点（虚高）；收窄为仅实现类内的 `ErrorCode.E_1001` 引用（历史 81）
+  R7 B4 md 表头列定位写成精确匹配 `hdr.index("请求")` → 管理端表的「请求/响应」列**整批漏收**（实读 49/99 行，USE-01/ADM-A01 全部缺席）；改为按**列名子串**定位 + 按**每张表的表头**定位列序（历史 89：同文件多套表头）
+  R8 B5 md 参数 token 正则未允许反引号内的 `?`（真实写法 `` `startHour?` ``）→ USE-01/ADM-A01 漏收；补 `\??`（历史 218：锚点/形态要对齐字节而非显示层）
+  R9 B6 体参数型端点（`body {from?,to?}` **无反引号**）未被识别 → 补「体花括号 token」提取；否则「豁免项非空转」断言（历史 57/190）没有受判对象、会空转
+  R10 B7 driver 路径拼接 `TW / "r%s-regression.py" % ...` 的 `%` 优先级错 → `TypeError`（历史 232：`%` 高于字符串拼接）
+  R11 B8 driver 判据口径过宽（`from=`、`RFC3339` 这类裸串）→ 会把「相邻但不同轴」的既有审计算成本轴判据；收窄为本轴特征串（`parseInstant|time-input|入口时间解析`），相邻轴单列读数（历史 81/144）
+  R12 C1 A1 判据**极性写反**：把「零声明」写成 PASS 条件（缺声明反而判绿）→ 改为「声明数 > 0」为 PASS（历史 179 同族：判据方向必须与语义一致）
+  R13 C2 受判纯函数 `judge_test_form` 的 `no_offset` 正则漏了一个日期分量（`^\d{4}-\d{2}T…` 实为 `^\d{4}-\d{2}-\d{2}T…`）→ D4 五支对照当场判红（历史 175 正例：崩溃优于静默）
+  R14 C3 D6 判别力探针的合成串含第二个参数（`&to=x`）→ 形态计数得到 2 项、断言假失败；收窄为单参数合成串（历史 136 夹具侧）
+  R15 C4 测试形态分类器缺 `month` 类别 → `month=2026-06` 原被判 `illegal`（假形态分布）；补该类别
+
+REWORK_ITEMS=15（A=3 / B=8 / C=4）
+汇总：PASS 12 / FAIL 5（受判条数 17）
