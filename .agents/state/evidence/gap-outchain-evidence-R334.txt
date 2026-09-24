@@ -1,0 +1,51 @@
+==============================================================================
+R334 一次性只读取证：tools/ 侧门禁的「负向自测」覆盖缺口（发现时状态 + 本轮常驻化对照）
+==============================================================================
+[A0] 正向对照：本轮 driver 存在 = True ∧ 其命令表可解析
+[A0] tools/ 侧审计条目 = 15 ∧ 负向自测条目 = 13 ∧ 命令表条目 = 28（三项均须 > 0，正向对照）
+[A0] 判据自查：解析出的路径形态异常（带引号 / 非 tools/ 前缀）= 0 无（须 0）
+[A1] tools/ 侧**审计**逐名读数：有负向自测 13 个 / 无 2 个
+       [有] tools/audit-auth-contract.py（同族 -selftest）
+       [有] tools/audit-contract-keys.py（同族 -selftest）
+       [有] tools/audit-endpoint-tests.py（同族 -selftest）
+       [有] tools/audit-enum-sets.py（同族 -selftest）
+       [有] tools/audit-error-codes.py（同族 -selftest）
+       [有] tools/audit-id-types.py（同族 -selftest）
+       [有] tools/audit-query-params.py（同族 -selftest）
+       [有] tools/audit-request-body.py（同族 -selftest）
+       [有] tools/audit-response-shape.py（同族 -selftest）
+       [有] tools/audit-routes.py（同族 -selftest）
+       [有] tools/audit-secret-leak.py（自身 --selftest）
+       [有] tools/audit-time-format.py（同族 -selftest）
+       [有] tools/gen-backend-models.py（同族 -selftest）
+       [无] tools/check-openapi-parses.py  <== 缺口：rc=0 / 0 命中 = **通过态**，而**无常驻**正向对照
+       [无] tools/evidence-secrets.py  <== 缺口：rc=0 / 0 命中 = **通过态**，而**无常驻**正向对照
+[A1] 登记项核对：无自测清单 == 登记项 ['tools/check-openapi-parses.py', 'tools/evidence-secrets.py']（一致）
+[A1b] 仓库内**引号定界**实现 `--selftest` 的工具 = 2 个 ['audit-secret-leak.py', 'round-archive-clean.py']（须 > 0：证明判定分支可达）
+[A1b] 判别力实测：合成引号字面量命中 = True（须 True）/ 裸词不命中 = True（须 True，历史 225）
+[A2] 注入实测：合成**含 JWT** 夹具 -> rc=1（须 1）∧ stdout 含命中行 = True（须 True）
+[A2] 反向对照：合成**干净**夹具 -> rc=0（须 0）（历史 132：两分支结论必须不同）
+[A2] 命中行为 ['C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r334-dev\\wpe-fixtures\\synth-dirty.txt JWT            102    be1bb685674c']
+[A2] 结论（据实）：检测器**有牙齿**（注入即命中）—— 缺的不是能力，而是**仓库内无常驻对照**，故「命中 0 条」这一读数**不能被唯一解释为「真的干净」**（历史 46/75/98）。
+[A3a] 合成夹具（**跨盘**：C: 临时目录）-> rc=1 ∧ stderr 含 ValueError + mount = True（实测）
+[A3a] stderr 末行 = ["ValueError: path is on mount 'C:', start on mount 'E:'"]
+[A3b] 同一夹具（**仓库盘内**）-> rc=0 ∧ stdout = OK: aap-server\target\wpe-r334-fixtures\synth-no-paths.yaml 可解析；paths=0 operations=0（空转形态成立 = True）
+[A3b] 夹具清理：文件已删除 = True ∧ 目录内剩余文件 = 0（判据须证明清理真的发生）
+[A3c] 反向对照：真实 openapi.yaml -> rc=0 ∧ stdout = OK: docs\backend\openapi.yaml 可解析；paths=85 operations=99
+[A3] 结论（据实）：① 它**可以**被判据化（A3b 复现了「paths=0 仍 rc=0」）② 但**跨盘夹具**会先撞上未捕获的 ValueError（A3a）—— 而本项目的全部临时夹具都在 C: 盘、仓库在 E: 盘 => 「用夹具给它写负向自测」这一步在**现成结构下不可行**，这正是该门禁长期无负向自测的**结构性原因之一**。
+[A4-prefix] **修正前**产物（上一轮 driver）存在 = True ∧ 其中 H 组守卫读数 = 0 处（须 0 = 当时无此守卫）
+[A4-post] **修正后**产物（本轮 driver）H 组守卫读数 = 8 处（须 > 0）∧ driver.log 里 H 组结论 = ['H 组判定：全部 PASS（含 1 条三分支判别力实测）']
+       H1 tools/ 侧审计 ⇔ 负向自测：审计 15 个 -> 有自测 13 个 / 无自测 2 个 ['tools/check-openapi-parses.py', 'tools/evidence-secrets.py']
+       H3 **新增**的无自测审计（不在登记项里）= 无（须为空；扩面需人拍板，历史 213-③）
+
+[A5] 自指文件单列 SELF（落盘时产生，不对其自身断言存在 —— 历史 222）：['gap-outchain-evidence-R334.txt', 'gap-outchain-evidence-R334-prefix.txt']
+[A5] 既有同类证据文件（须全部存在）：
+      [PASS] gap-conc-inwindow-R334.txt
+      [PASS] gap-gen-consistency-R334.txt
+      [PASS] gap-ledger-vs-tree-R334.txt
+      [PASS] gap-window-writes-R334.txt
+      [PASS] gap-commit-counts-R334.txt
+[A5] 计数由 len 推出：既有 5 条 + 本类自产 2 条（本文件 + 前缀快照）
+
+汇总：PASS 5 / FAIL 0
+GAP_OUTCHAIN_EVIDENCE_END=1
