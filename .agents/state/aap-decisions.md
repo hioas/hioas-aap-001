@@ -596,3 +596,38 @@ org.springframework.dao.DuplicateKeyException:
 
 红基线：`Tests run: 9, Failures: 2`（两例均为 `E-2001`）；修复后：`Tests run: 9, Failures: 0`。
 证据：`.agents/state/evidence/red-compilation.txt` / `green-compilation.txt`。
+
+---
+
+## D-ADM-7 · 上架闭环在管理端接线（S07/S08/S09 + S02 + U02）—— 已实施 2026-09-24
+
+**背景（事实）**：`ADM-S07/S08/S09`（登记 new-api 端点 / 发起上架 / 执行上架）由 D-SYNC-03 于 2026-09-24 补齐后端并有
+契约测试（`SyncPublishContractTest` 7/7 绿）+ 端到端脚本（`tools/biz-closure-e2e.py` 27/27），
+但 `aap-admin` 侧**零调用** ⇒ 运营在界面上无法登记端点、无法发起上架、无法执行上架；
+第 27 类只读取证（R355）已把它记为「零接线且无标注」的真发现。
+
+**决策**：在管理端**接线**这三条端点（不新增端点、不改错误语义、不动后端），
+并顺带接上此前同样零调用的 `ADM-S02`（任务详情）与 `ADM-U02`（用量聚合刷新）。
+
+**边界（刻意保留的限制，不因「好用」而放宽）**：
+
+1. **不绕过闸门③**：ADM-S08 要求该供应商存在 `gate_status=CONFIRMED` 的编译产物，否则后端 409 `E-1407`；
+   前端**原样透出**该错误，不做「先建任务后补编译」这类绕行。
+2. **Api Key 只进不出**：ADM-S07 的 `api_key` 加密落库，响应只回 `api_key_mask`；页面不回显、失败提示不含 key。
+3. **写操作二次确认**：ADM-S09 会真实写入 new-api，点「执行」前必须有确认框，不做静默写入。
+4. **权限对齐后端**：登记端点用既有 `newapi.config`（SUPER_ADMIN）；用量刷新**新增** `usage.refresh` 权限点
+   （TECH_OPS/SUPER_ADMIN，与 `AdminUsageController` 的 `@PreAuthorize` 一致）——
+   注意 `can()` 对未登记权限点默认放行，权限点漏登记会造成「前端可见但后端 403」的错位。
+
+**验证**：`npm run build` ✓、`npm test` 54 passed；`admin-acceptance.mjs` **15/15**（含新增抽屉判据）；
+`publish-e2e.mjs` **17/17** —— 任务 `SY202609240008` 发起→执行 `code=0`，渠道 `channel_id=1004 ENABLED` 且回读一致。
+证据：`aap-admin/evidence/admin-20260924/`、`aap-admin/evidence/publish-e2e/`（不入库）。
+
+**仍未闭环的四项（非本决策范围，需产品/环境侧拍板）**：
+
+1. 结算单生成口径未定（**D-SETTLE-01**：出账周期 / `platform_fee` 计费基数 / 金额计算基数三件事 PRD 零定义）——
+   自造算法会直接影响真实对账金额，故不猜；`ADM-PAY03` 因此恒空。
+2. 用量真实源未接入：`aap_usage_hourly` 的写入源是本地日志文件适配器（`app.usage.log-file`），
+   非 new-api Log 表 / `SumUsedQuota`（D-USAGE-01）；且缺 T+5min 定时聚合任务。
+3. 真实 new-api 未接入（本轮及 T15 用本地一体桩 `tools/newapi-stub.py`）。
+4. 检测自然通过依赖真实厂商接口；本地走 DET-06 人工放行。
