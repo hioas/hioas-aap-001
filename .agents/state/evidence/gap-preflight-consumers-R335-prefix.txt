@@ -1,0 +1,10 @@
+R335 只读取证的**修正前快照**（发现时状态；锚定修正前产物 = 上一轮执行器，磁盘上仍在）
+==============================================================================
+A0 正向对照：上一轮执行器 PREFLIGHT_* 键 24 个（须 > 0）
+A1 门槛型且失败取值零中止消费 = 3 条 ['ARCH_CLEAN_REACHABLE', 'CRITERION_SELFTEST_OK', 'JPS_REACHABLE']
+A2 逐键：
+     ARCH_CLEAN_REACHABLE               var=ARCH_CLEAN_REACHABLE     消费点=3 已设门槛=否
+     CRITERION_SELFTEST_OK              var=CRIT_SELFTEST_OK         消费点=0 已设门槛=否
+     JPS_REACHABLE                      var=JPS_REACHABLE            消费点=1 已设门槛=否
+A3 该快照与修正后读数的差异即为本轮的修法落点（D11-①②）；本文件落盘于修正之后，内容取自**未修正**的上一轮产物。
+PREFIX_SNAPSHOT_END=1

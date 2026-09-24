@@ -1,0 +1,36 @@
+R335 只读取证：执行器**前置门槛读数**的「消费者」⇔ 链路事实（真发现 ① / 改进 D11-①②）
+==============================================================================
+口径：门槛型键 = 键名匹配 (REACHABLE|SELFTEST|GATE_OK|_OK)$；「已设门槛」= 该读数的**失败取值**被某条件测试(!= / -ne / = "N" / = "0" / -lt) **或** 由它经 1 步派生出的 `W=1` 变量被如此测试。
+
+A 段 静态枚举（消费者面 = 执行器 + 链内分析脚本 + aux 链；Python 侧不起 shell —— 历史 240）
+A0 正向对照：R334 执行器 PREFLIGHT_* 键 24 个 / R335 26 个 / 消费者面文件 R334=26 R335=24（须均 > 0）
+A1 修正前 R334：门槛型读数
+     ARCH_CLEAN_REACHABLE               var=ARCH_CLEAN_REACHABLE     消费点=3  已设门槛=**否**      
+     CRITERION_SELFTEST_OK              var=CRIT_SELFTEST_OK         消费点=0  已设门槛=**否**      
+     JPS_REACHABLE                      var=JPS_REACHABLE            消费点=1  已设门槛=**否**      
+   未设门槛 = 3 条 ['ARCH_CLEAN_REACHABLE', 'CRITERION_SELFTEST_OK', 'JPS_REACHABLE']
+A1 修正后 R335：门槛型读数
+     ARCH_CLEAN_GUARD_OK                var=ARCH_GUARD_OK            消费点=2  已设门槛=直接         round-r335.sh:119:if [ "$JPS_GATE_OK" != "1" ] || [ "$ARCH_GUARD_OK" !
+     ARCH_CLEAN_REACHABLE               var=ARCH_CLEAN_REACHABLE     消费点=4  已设门槛=派生 ARCH_GUARD_OK round-r335.sh:119:if [ "$JPS_GATE_OK" != "1" ] || [ "$ARCH_GUARD_OK" !
+     CRITERION_SELFTEST_OK              var=CRIT_SELFTEST_OK         消费点=0  已设门槛=**否**      
+     JPS_GATE_OK                        var=JPS_GATE_OK              消费点=2  已设门槛=直接         round-r335.sh:119:if [ "$JPS_GATE_OK" != "1" ] || [ "$ARCH_GUARD_OK" !
+     JPS_REACHABLE                      var=JPS_REACHABLE            消费点=2  已设门槛=派生 JPS_GATE_OK round-r335.sh:119:if [ "$JPS_GATE_OK" != "1" ] || [ "$ARCH_GUARD_OK" !
+   未设门槛 = 1 条 ['CRITERION_SELFTEST_OK']
+A2 修正后未登记的欠门槛读数 = 无（须为空）
+A2b 登记豁免 1 条（上限 1）；空转核对（声明的豁免必须真的欠门槛）= 无
+     CRITERION_SELFTEST_OK：结论镜像：其判据由 CRIT_POS/CRIT_NEG 在同一 if 里直接强制（含 exit 9），该键本身零消费者 ≠ 未强制
+
+B 段 行为对照（**沙箱夹具**：抽取真实执行器文本的**前置段**，只在闸门后插入 `WOULD_CONTINUE=1; exit 0`，并把 T/W/WT/LOCK 与 trap 重定向到夹具目录 -> 不跑 mvn、不碰 worktree、不碰仓库）
+   fix-r334-archmissing.sh    rc=0  继续=True  中止=False 期望 rc=0 继续=True 中止=False -> PASS
+   fix-r335-archmissing.sh    rc=9  继续=False 中止=True  期望 rc=9 继续=False 中止=True -> PASS
+   fix-r335-jpsmissing.sh     rc=9  继续=False 中止=True  期望 rc=9 继续=False 中止=True -> PASS
+   fix-r335-clean.sh          rc=0  继续=True  中止=False 期望 rc=0 继续=True 中止=False -> PASS
+   fix-r335-injected.sh       rc=0  继续=True  中止=False 期望 rc=0 继续=True 中止=False -> PASS
+B 段判定：全 PASS
+   判别力实测：`fix-r335-injected.sh` = 把**中止块**从修正后文本里删掉（注入锚点命中 1 次）-> 与修正前同形（继续执行）⇒ B 段的结论确实来自该块，而非其它因素（历史 66/94/175）
+
+C 段 本轮 facts：PREFLIGHT_JPS_GATE_OK=1 / PREFLIGHT_ARCH_CLEAN_GUARD_OK=1（须均 1）
+
+结论：修正前有 3 条门槛读数**失败取值零中止消费**（jps 不可达 -> 并发守卫空转假绿；归档清理助手缺失/自测失败 -> 归档清理未验证即跳过）；修正后 = 1 条（仅登记豁免 1 条），且行为对照显示同一破坏下 修正前「继续执行」、修正后「rc=9 + 中止」。
+判定：PASS
+GAP_PREFLIGHT_CONSUMERS_END=1
