@@ -10942,3 +10942,52 @@ R106 的 `fix-guards-r106.py` 把 `verify-final.py` / `final-check.py` 的返工
 ③ 承接 R357 在册项（零背书码 `E-1405`、命令表 ROOT 口径 63/80、回归面基线重算等，见台账描述列）。
 
 **本轮提交**：`44cfdd9`（唯一提交；交付代码零改动、测试面零改动）。本轮另据实登记一处**粗自检的自指命中**：硬规则 4 的正则对「键名模式表」（`password` 后接长 alnum 串）与「生成式/夹具密钥」（`sk-` + uuid 派生、`sk-aaa…1111` 之类一眼假的夹具）会各报一条命中，**均非真实密钥值**（权威判据 = `tools/evidence-secrets.py`：命中 0 条）——属历史 47/123 同族，共享自检口径是否收窄留待拍板，本轮不擅自改。
+
+
+## R359 巡检轮（missing=0 校验轮；交付代码零改动）
+
+**本轮性质**：`missing == 0` ⇒ 按作业纪律**不改交付代码、不改测试面、不扩面回归序列**，只做校验与留证。
+两轮全量测试在**本轮新建的 HEAD 临时 detached worktree** 内串行执行（`git worktree add --detach … HEAD`，
+跑完 `worktree remove --force` 收尾；历史 27/28/193），裸机主体仓库的他方在途改动只登记、不触碰。
+
+**被测状态**：提交 `92bfaba`（92bfabad494a84e376c399c2a486b2c3503f4971）—— chore(evidence): R358 收尾 —— 「提交」列回填 44cfdd9 + 状态文件补提交行与粗自检自指命中登记（无更正）
+窗口 23:03:17 -> 23:08:29（run1 23:03:37–23:06:24 / run2 23:06:24–23:08:26，串行；run1_end == run2_start）。
+worktree 与 HEAD 差异行数 = 0；HEAD 起点 = 终点 = `92bfaba`（他方在窗口内**未推进**）。
+
+**机器读数（六项，全部由 `analyze-R359.py` 从 facts/raw 解析，非手写）**：
+
+| 项 | 读数 |
+|---|---|
+| 覆盖（被测状态） | total=102、implemented=102、missing=0、registered_routes=119、not_registered=[] |
+| 覆盖（取证时刻现况） | total=102、implemented=102、missing=0、registered_routes=119（两态一致） |
+| 两轮全量 | 各 252 例 / 44 类；rc=0；Failures/Errors/Skipped = 0/0/0；逐类 diff=0 |
+| Maven 耗时 / 构建 | run1 `02:42 min` / run2 `01:59 min`；均 `BUILD SUCCESS` |
+| 用例对账 | `@Test` 词边界 252 == surefire 合计 252；禁用扫描 = 0 条 |
+| 连续全绿 | 第 341 轮（由上一轮 coverage-history 行**推导**，非硬编码 —— 历史 201/206） |
+
+**并发前置检查**：判据 =「surefire 分叉 ∨ maven launcher 且参数含 test/verify」（R358 据实收窄的形态）+
+正反双向对照 `CONTROL_POS=2/2` / `CONTROL_NEG=0/2`（必须 0）⇒ `PREFLIGHT_RESULT=CLEAR`、`PREFLIGHT_OK=1`。
+本机同期在跑的 12 个 JVM（IDEA 的 `RemoteMavenServer36`、本项目的 `AapServerApplication` dev 服务器、
+wisemapping 的 `spring-boot:run`）**均未被误判为测试 JVM**（这正是 R358 返工 ① 要防的「判据范围与语义不符」，历史 81/241）。
+
+**凭据出口复验（R358 真发现的回归复核，独立代码路径）**：`tools/evidence-secrets.py` 默认扫描**命中 0 条**，
+且 `--selftest` **6/6** —— 「0 命中」因此是**可信读数**而非解析器失效（历史 46/75/98 的固定纪律：
+0 发现一律先怀疑判据）。
+
+**证据脚本零硬编码守卫（历史 243-③ 的机器化）**：执行器把「会变化的纯值」（窗口起止、短/全 SHA、两轮起止、rc）
+落成 `facts-run.log`，证据脚本只**读**；并配一条守卫断言这些值**不出现在证据脚本自身源码里**（实测命中 0）。
+轮次计数「连续第 N 轮」同样由上一轮台账行**推导**（prev=340 -> 341）。⇒ 该类「纯数字/哈希盲区」
+（历史 201/206/217-③）从根上消除，而不是每轮靠人手改。
+
+**本轮返工 1 处（判据侧，当场响亮失败）**：
+**F3 判据的字面量形态与产物实际写法不符** —— 断言写成「末行 `startswith "R359 "`」，而 coverage-history 行形态是
+`<date> <time> R359 巡检轮 | …`（**行首是日期**）⇒ **有效的守卫被判失败**。修法 = 引入单一判据
+`is_round_row(x) = ("R359 " in x[:40])`，并**同时**用于幂等过滤与 F3 断言（历史 218/225/226：
+判据必须对齐真实书写形态；**改的是判据，不是放宽期望值**）。
+
+**红基线**：无（校验轮不改代码，无 TDD 红绿循环）。判据 PASS 28 / FAIL 0。
+
+**证据**：`evidence/round-R359-analysis.txt`；`evidence/green-verify-R359-tested-state.txt`；`evidence/green-verify-R359-testcount.txt`；`evidence/green-verify-R359-full-run1.txt`；`evidence/green-verify-R359-full-run2.txt`；`evidence/green-verify-R359-coverage-fields.txt`；`evidence/coverage-history.txt（追加 R359 行）`；`coverage-history.txt` 追加本轮行（末行 = R359，numstat 1 插入 / 0 删除、CR=0）。
+
+**待拍板**：本轮**不新增**，沿用上一轮在册项（见本文件「待拍板」段与 R357/R358 台账描述列）；
+其中 R357 的「`evidence-secrets` 8 条命中处置」已于 R358 完成、**可销项**。

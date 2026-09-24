@@ -1,0 +1,75 @@
+== R359 全量测试  ==
+R359 巡检轮（missing==0 校验轮）—— 交付代码零改动、测试面零改动、回归序列未扩面。
+
+一、本轮做了什么
+  1. 串行两轮全量测试，均在**本轮新建的 HEAD 临时 detached worktree** 内执行（历史 27/28/193）：
+     被测提交 92bfaba（92bfabad494a84e376c399c2a486b2c3503f4971）
+     窗口 23:03:17 -> 23:08:29（run1 23:03:37-23:06:24 / run2 23:06:24-23:08:26，串行）
+  2. 校验项：覆盖报告字段（两态）/ @Test 词边界计数对账 / 禁用扫描 / 逐类 diff / Maven 耗时与构建结果 /
+     他方在途改动是否落在窗口内（只登记不触碰）/ facts 纯值不回写证据脚本（历史 243-③）。
+
+二、结果（全部为机器读数，非手写）
+  覆盖：被测状态 102/102（missing=0、registered_routes=119、not_registered=[]）
+  用例：两轮各 252 例 / 44 类；@Test 词边界 252 == 合计；禁用 0 条；逐类 diff 0 条
+  构建：BUILD SUCCESS / BUILD SUCCESS；rc = 0 / 0
+  连续全绿：第 341 轮（由上一轮 coverage-history 行推导，非硬编码 —— 历史 201/206）
+
+三、红基线 / 判据失败
+  红基线：无（校验轮不改代码，无 TDD 红绿循环）。判据 PASS 28 / FAIL 0。
+
+四、待拍板（沿用上一轮在册项，本轮不新增）
+  见 .agents/state/aap-server-tdd-state.md 的「待拍板」段与台账描述列。
+
+---- 判据明细 ----
+[PASS] A0 facts 必填键齐备 | 共 35 键
+[PASS] A0b FACTS_ROUND == 本轮 | 实测 R359
+[PASS] A0c FACTS_WRITTEN == 1 | 执行器完整跑完
+[PASS] A0d 两轮 rc 均为 0 | run1=0 run2=0
+[PASS] A0e 证据脚本零硬编码（窗口/SHA 字面量不出现在自身源码里） | 受检 6 个纯值，命中 0
+[PASS] B0 两轮各解析到 1 条合计行 | run1=1 run2=1
+[PASS] B0b 两轮各解析到 44 条类级行 | run1=44 run2=44
+[PASS] B0c 两轮 Maven 耗时与构建结果均解析到 | run1=BUILD SUCCESS/02:42 min run2=BUILD SUCCESS/01:59 min
+[PASS] B1 两轮全绿（Failures/Errors/Skipped 全 0） | run1=(252, 0, 0, 0) run2=(252, 0, 0, 0)
+[PASS] B2 两轮用例总数一致 | run1=252 run2=252
+[PASS] B3 构建结果 = BUILD SUCCESS | BUILD SUCCESS / BUILD SUCCESS
+[PASS] B4 两轮串行（run1_end <= run2_start） | 23:06:24 -> 23:06:24
+[PASS] B5 逐类结果 diff = 0（已剥耗时再排序） | 差异 0 条
+[PASS] B5b 类级用例数之和 == 合计行（两轮各自） | run1 252/252 run2 252/252
+[PASS] C0 测试源在磁盘上（归档自被测 worktree） | 50 个 .java
+[PASS] C1 @Test 词边界计数 == surefire 合计（无用例被静默跳过） | @Test\b=252 / run1=252 / run2=252
+        @Test 子串计数（含 @TestConfiguration 等，作对照）= 254
+[PASS] C2 禁用扫描 = 0 条（不得削弱测试） | 0
+
+覆盖（被测状态 = worktree 内产出）：total=102 implemented=102 missing=0 registered_routes=119
+覆盖（取证时刻现况 = 工作区）：total=102 implemented=102 missing=0 registered_routes=119
+[PASS] D0 被测状态 missing == 0 | missing=0
+[PASS] D1 两态 total 一致 | 102 vs 102
+[PASS] D2 by_task 全族 implemented == total | 13 族
+
+主体仓库 git status --porcelain：轮前 7 条 / 轮后 7 条
+        [M] .agents/state/evidence/coverage-report.json
+        [M] .agents/state/evidence/endpoint-test-audit.json
+        [M] .agents/state/evidence/endpoint-test-audit.txt
+        [M] README.md
+        [M] aap-server/pom.xml
+        [M] aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+        [??] aap-server/src/main/webapp/
+[PASS] E0 worktree 与 HEAD 零差异（两轮跑的是提交态） | WT_DIRTY_LINES=0
+[PASS] E0b 被测提交 == 窗口起点 HEAD | 92bfaba == 92bfaba
+        HEAD 起点=92bfaba / 终点=92bfaba（他方在轮内是否推进：否）
+        他方在途改动落在窗口内的条目数 = 0（本轮未 git add、未触碰，历史 15/193/198）
+[PASS] F0b history 幂等（本轮行最多 1 条） | 本轮已存在 1 行
+[PASS] F0 coverage-history 末行 == 上一轮 | 末行前 40 字 = 2026-09-24 23:15 R358 巡检轮 | 清单 102/102（作
+[PASS] F1 上一轮「连续第 N 轮」可解析（历史 201/206：纯数字盲区改用推导） | prev=340
+[PASS] F2 本轮全绿 -> 连续轮次 = prev+1 | =341
+
+连续全绿轮次（推导）= 第 341 轮（上一轮行解析值 340）
+[PASS] F3 history 追加后末行 == 本轮 | 末行 = 2026-09-24 23:08:26 R359 巡检轮 | 清单 102/102（作业目标「90 
+[PASS] F4 history 无 CR（LF 一致） | CR 数 = 0
+
+---- 结论（机器生成摘要）----
+被测状态 total/implemented/missing = 102/102/0，registered_routes=119
+两轮全量各 252 例 / 44 类，rc=0，F/E/S = 0/0/0，逐类 diff = 0
+Maven 耗时 run1=02:42 min / run2=01:59 min；构建 BUILD SUCCESS / BUILD SUCCESS
+连续全绿轮次 = 第 341 轮；本轮交付代码改动 = 0 行（校验轮）
+判据：PASS 28 / FAIL 0
