@@ -1,0 +1,12 @@
+R340 路径表达式形态域读数表（只读；夹具只写临时目录 C:\Users\laitz\AppData\Local\Temp\aap-r340-fixtures，与脚本目录分开命名 —— 历史 106）
+形态 × 成员矩阵（值 = 各成员 parse_controllers 在合成夹具上解析到的路由集合）：
+| 合成形态 | 期望 | audit-routes.py | audit-auth-contract.py | audit-query-params.py | audit-request-body.py | audit-response-shape.py | 结论 |
+|---|---|---|---|---|---|---|---|
+| F1-位置实参 | ('GET', '/syn/x') | [('GET', '/syn/x')] | [('GET', '/syn/x')] | [('GET', '/syn/x')] | [('GET', '/syn/x')] | [('GET', '/syn/x')] | **正确** |
+| F2-value-在前（真实形态） | ('GET', '/syn/x') | [('GET', '/syn/x')] | [('GET', '/syn/x')] | [('GET', '/syn/x')] | [('GET', '/syn/x')] | [('GET', '/syn/x')] | **正确** |
+| F3-produces-在前（等价写法） | ('GET', '/syn/x') | [('GET', '/syntext/html')] | [('GET', '/syntext/html')] | [('GET', '/syntext/html')] | [('GET', '/syntext/html')] | [('GET', '/syntext/html')] | **静默取错** |
+| F4-裸注解 | ('GET', '/syn') | [('GET', '/syn')] | [('GET', '/syn')] | [('GET', '/syn')] | [('GET', '/syn')] | [('GET', '/syn')] | **正确** |
+真实仓库形态域（带实参轴）：位置实参 = 89 处 / 命名实参 = 1 处 / 无字面量 = 0 处；家族写法提取值 != 真路径 = 0 处
+命名实参实例（唯一 1 处）= [('ReportController.java', 74, '/{reportId}/html', '/{reportId}/html')]
+静态：家族路径提取式命中 5 / 5 成员（提取点 5 处）；取值行按实参名过滤 = 0 处
+结论：**该缺陷是族内「共同盲区」**（5/5 成员一致地错）—— 与 R337/R338 的「分歧型」缺陷属不同种类：分歧型可被「家族互比」发现，共同盲区**不能**（一致性 ≠ 正确性）。当前仓库**未触发**（带实参轴静默取错 = 0 处），属**潜在缺陷**：一旦出现 `produces`/`consumes` 在 `value` 之前的等价写法，5 个常驻审计工具会同时静默取错。修法方向 = 路径提取改为**按实参名优先**（`value=`/`name=` 优先，回退到位置实参），**未落盘**（改常驻审计工具属须人拍板）。

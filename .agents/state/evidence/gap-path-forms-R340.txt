@@ -1,0 +1,15 @@
+[PASS] A0 家族成员与正向对照：tools/*.py = 28 个；不含自测 = 16 个；家族（源码含字面量 `@(Get|Post`）= 5 个：['audit-auth-contract.py', 'audit-query-params.py', 'audit-request-body.py', 'audit-response-shape.py', 'audit-routes.py']；控制器文件 = 28 个（须均 > 0）
+[PASS] A1a 形态域穷举（实测仓库控制器，带实参轴）：映射注解 = 111 处；带实参 = 90 处（位置实参 = 89 / 命名实参 = 1 / 无字面量 = 0）；裸注解 = 21 处
+[PASS] A1b 当前仓库「静默取错」处数（带实参轴）：家族写法提取值 != 真路径 = 0 处（逐处 = []）；带实参处共 90 处 ⇒ 当前仓库未触发该形态
+[PASS] A1c 命名实参形态的实参顺序：命名实参形态 = 1 处；逐处 = [('ReportController.java', 74, '/{reportId}/html')]；首个命名实参 = ['value']（value= 在 produces= 之前 ⇒ 侥幸正确）
+[PASS] A2a 家族「路径提取式」逐成员（静态，剥注释；作用域 = parse_controllers 函数体）：命中 5 / 5 成员（提取点共 5 处）；逐成员 = ['audit-routes.py:L246 paths = re.findall(r\'"([^"]*)"\', seg) || sub = paths[0] if paths else ""', 'audit-auth-contract.py:L229 paths = re.findall(r\'"([^"]*)"\', seg) || sub = paths[0] if paths else ""', 'audit-query-params.py:L408 paths = re.findall(r\'"([^"]*)"\', seg) || sub = paths[0] if paths else ""', 'audit-request-body.py:L427 pm = re.search(r\'"([^"]*)"\', inner) || path = pm.group(1) if pm else ""', 'audit-response-shape.py:L530 paths = re.findall(r\'"([^"]*)"\', seg) || sub = paths[0] if paths else ""']
+[PASS] A2b 家族内「路径取值按实参名过滤」的实现：取值行按 value|name 过滤的提取点 = 0 处 []（0 处 ⇒ 全族**按位置取**、与实参形状无关）；判别力实测：合成「按名取值」行被判红 = True（须 True）
+[PASS] A3a 行为实测（合成夹具 × 4 形态 × 5 成员）：矩阵覆盖 = 4 形态 × 5 成员；跨成员一致 = {'F1-位置实参': True, 'F2-value-在前（真实形态）': True, 'F3-produces-在前（等价写法）': True, 'F4-裸注解': True}
+[PASS] A3b 正确形态（F1 / F2 / F4）：5/5 成员给出期望值的形态 = ['F1-位置实参', 'F2-value-在前（真实形态）', 'F4-裸注解']（逐形态 = {'F1-位置实参': [('GET', '/syn/x')], 'F2-value-在前（真实形态）': [('GET', '/syn/x')], 'F4-裸注解': [('GET', '/syn')]}）
+[PASS] A3c 静默取错形态（F3：produces 在前）：5/5 成员结果 = [('GET', '/syntext/html')]（期望 [('GET', '/syn/x')]）—— 无异常、无告警，且**全族一致地错**
+[PASS] A4a 家族一致性判据的牙齿边界（**新结论**）：F3 下跨成员一致 = True 而结果全错 = True ⇒ 「一致性」只证明无分歧、**不证明正确**；用一族实现互相当 oracle 对**共同盲区**无牙齿（历史 57/98 族）
+[PASS] A4b 判别力实测（同一判据两分支结论不同）：F1：一致 = True ∧ 正确 = True；F3：一致 = True ∧ 正确 = False（两端结论不同）
+[PASS] A5 第三方裁判可用性（据实，**推断型**结论须标明）：路由轴 = 覆盖门禁读**真实 Spring 路由注册表**（清单 99/99、missing 0、not_registered []、registered_routes 116）⇒ 该形态下路由轴**有裁判**；auth / query 轴 = 以**工具自身解析的路径**为 join 键 ⇒ 该形态下会静默落到错误键、**无裁判**（结论为据实推断，非实测）
+[PASS] A6 零写副作用（本脚本只读仓库）：受核文件 56 个（tools/*.py + 控制器 .java），运行前后 md5 全等 = True
+汇总：PASS 13 / FAIL 0
+GAP_PATH_FORMS_END=1
