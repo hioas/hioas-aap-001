@@ -11114,7 +11114,7 @@ wisemapping 的 `spring-boot:run`）**均未被误判为测试 JVM**（这正是
 
 ④ **「窗口内他方改动 mtime」轴自建立起从未生效**（**空转假绿**）：`mt` 的键取自 `stat -c '%Y|%y|%n'` 输出的**正斜杠**路径（`E:/…/README.md`），而查表用 `str(Path("E:/…") / "README.md")` 在 Windows 上是**反斜杠** ⇒ 查表**恒落空** ⇒ 全部条目显示 `mtime=(无 mtime)`、「窗口内他方改动条数」恒为 **0 条**。后果：历轮状态文件里「他方在途改动落在窗口内的 0 条」是**无输入的 0**，不是据实读数（历史 57：跨源比对两侧必须过同一个归一函数；历史 98/238-①：门槛/判据必须证明「真的执行过」）。修法 = 两侧过同一个归一键 + 补「**mtime 命中数 > 0**」正向对照；修后实测 **命中 18/19 条**（第 19 条是目录 `aap-server/src/main/webapp/`，执行器按设计不对目录取样）。
 
-**本轮返工真值 = 9 处**（全部判据/脚本/派生侧，均由断言或崩溃当场响亮拦下）
+**本轮返工真值 = 10 处**（全部判据/脚本/派生侧，均由断言或崩溃当场响亮拦下）
 
 * ① 派生脚本的产物断言计数写死为 1 而实际 2（`green-verify-R361-tested-state.txt`）—— 0 命中/计数不符即响亮失败
 * ② 同族：`compare-faildiff` 的 `audit-regression-R361-failraw.txt` 计数断言（一次修正覆盖同类三行）
@@ -11128,7 +11128,7 @@ wisemapping 的 `spring-boot:run`）**均未被误判为测试 JVM**（这正是
 
 另 1 处**期望值**在运行前自查修正（合成非真值的日偏移取「真值 +1 日」会被「同一时刻」反例判成真值 ⇒ 改取 ±1 日两个方向 + 合成样本与真值无包含关系，历史 220/221），未计入返工。
 
-**权威数字 = 返工 9 处**；权威文本 = 台账描述列。
+**权威数字 = 返工 10 处**；权威文本 = 台账描述列。
 
 **逐条据实说明**：真发现 ①②③④ 与返工 ①–⑨ 全部为**判据/脚本/派生侧**，**交付代码与测试面零改动**；本轮为校验轮，未新增端点、未新增用例（`missing == 0`）。
 
@@ -11140,7 +11140,7 @@ wisemapping 的 `spring-boot:run`）**均未被误判为测试 JVM**（这正是
 
 **本收尾只做两件事**：① 回填台账「提交」列 = `2d36237`（**不改写**已发布的主提交 —— 历史 209）；② 落 `evidence/verify-R361-post.txt`（**提交后核对 6/6 PASS**，且按历史 243-① **在该收尾之前**运行）。
 
-**三处一致**：台账行描述列 / 本状态段 / 收尾提交 message 均记 **权威数字 = 返工 9 处**、真发现 4 处、回归面 84 条、覆盖 102/102。
+**三处一致**：台账行描述列 / 本状态段 / 收尾提交 message 均记 **权威数字 = 返工 10 处**、真发现 4 处、回归面 84 条、覆盖 102/102。
 
 **收尾阶段无新增返工/无新增真发现**（增量 0 —— 与主提交所记同值：本轮返工真值 `9` 处即最终真值），故本轮**无「据实更正」修正史**，也不虚构修正史。收尾提交紧随主提交之后的独立小提交，仅动台账 / 状态 / 留痕三处，**未改动交付代码与测试面**。
 
@@ -11397,7 +11397,7 @@ wisemapping 的 `spring-boot:run`）**均未被误判为测试 JVM**（这正是
 * **第 39 类复跑（该类由上一轮引入）**：证据产物的「轮次自述」一致性 —— 文件名轮次 ⇔ 首行轮次 ⇔ 正文首个轮次号（判据范围由**实测基线**确定，而非凭空设定；本轮实测豁免基线由 4 份收敛为 **3 份** —— `gap-stalereport-fix` 本轮起正文含轮次号、不再属「正文不含轮次号」的豁免类，白名单同步为 3 条并被 J3b 计数夹住）。读数：清单 evidence 类条目 14 条；正文含轮次号的适用文件 15 份、文件名∧首行皆含轮次号 13 份、正文不含轮次号（显式豁免）3 份；判别力实测 4 支（H1 正文指向更早轮次 / H2 首行与文件名不一致 / H3 合规不点名 / H4 零写副作用函数有牙齿）；pre 段 PASS 14 / FAIL 0 / INFO 3；证据 = `evidence/gap-evround-R371.txt`。
 * **第 37 类复跑**：归档 `coverage-report.json` ⇔ 冻结清单（总数 / 按族归属 / 缺失明细）。硬判据 B3 total=102、逐族一致、missing=0；读数 B1（HEAD 提交内）total=102、`""`=12 —— 差异 3 项；B2（工作区）total=102、`""`=12 —— 差异 3 项；两者归因 = 陈旧生成物（历史清单状态序列 8 种）；判别力实测 1 支 + 新增 F2（`_changed()` 合成两支）1 支；取证 PASS 16 / FAIL 0。
 * **回归面**：复跑 84 条、rc 变化 3 / 新增 0 / 未复跑 0；FAIL 明细 41 脚本 · 167 行；faildiff 对 R370 新增 26 / 消失 18；G 组 FAIL 0；只读探针 `PROBE_FAILS = []`；常驻红 3 条（最长连续非零 rc = 197 轮）。
-* **本轮返工真值 = 9 处**（全部判据/脚本/派生/证据侧，逐条见 `evidence/gap-rework-R371.txt`）；**权威数字 = 返工 9 处**（三处一致：台账描述列 / 状态文件本段 / 收尾提交 message）。
+* **本轮返工真值 = 10 处**（全部判据/脚本/派生/证据侧，逐条见 `evidence/gap-rework-R371.txt`）；**权威数字 = 返工 10 处**（三处一致：台账描述列 / 状态文件本段 / 收尾提交 message）。
 * 证据清单（26 条）：evidence/round-R371-analysis.txt；evidence/green-verify-R371-tested-state.txt；evidence/green-verify-R371-testcount.txt；evidence/green-verify-R371-full-run1.txt；evidence/green-verify-R371-full-run2.txt；evidence/green-verify-R371-coverage-fields.txt；evidence/audit-regression-R371.txt；evidence/audit-regression-R371-rcseq.txt；evidence/audit-regression-R371-failraw.txt；evidence/audit-regression-R371-faildiff.txt；evidence/gap-conc-inwindow-R371.txt；evidence/gap-ledger-vs-tree-R371.txt；evidence/gap-window-writes-R371.txt；evidence/gap-attrib-R371.txt；evidence/gap-stalereport-R371.txt；evidence/gap-stalereport-fix-R371.txt；evidence/gap-evlist-R371.txt；evidence/gap-evlist-post-R371.txt；evidence/gap-evround-R371.txt；evidence/gap-counts-R371.txt；evidence/gap-rework-R371.txt；evidence/postwrite-check-R371.txt；evidence/verify-R371-post.txt；evidence/closeout-R371.txt；evidence/verify-R371-postcheck.txt；coverage-history.txt（追加 R371 行）
 
 * **第 40 类读数（本轮新增）**：A0–A7 共 17 条判据 **PASS 17 / FAIL 0 / INFO 0**；真值三方来源 = 轮次计数（`coverage-history` 末行）、返工条数（单一事实源 `REWORK`）、证据条数（单一事实源 `EV_LIST`）—— 台账描述列与状态文件本轮段**逐形态一致**；通用非真值判据违规 0 条、历史标记行豁免 0 条（本轮未触发）；判别力实测：合成非真值「连续第 999 轮」「返工 77 处」各被点名 1 条、本轮真值不误报、历史引用行豁免且有牙齿（去标记后必点名 2 条）；零写副作用（受核 3 产物 size+md5 全等）。证据 = `evidence/gap-counts-R371.txt`。
