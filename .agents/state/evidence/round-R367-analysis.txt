@@ -1,0 +1,48 @@
+R367 校验轮（missing==0 -> 交付代码零改动）；全部读数由 analyze-r367.py 从 facts-run.log / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+判据：PASS 38 / FAIL 0
+
+=== 证据文件 ===
+  green-verify-R367-tested-state.txt             lines~15 exists=True
+  green-verify-R367-testcount.txt                lines~9 exists=True
+  green-verify-R367-full-run1.txt                lines~49 exists=True
+  green-verify-R367-full-run2.txt                lines~49 exists=True
+  green-verify-R367-coverage-fields.txt          lines~6 exists=True
+[PASS] H0 窗口 epoch 事实被解析（执行器落盘、消费方只读，历史 243-③）
+[PASS] P0 解析器正向对照 RE_TOTAL/INFO(单行样本)
+[PASS] P0 解析器正向对照 RE_TOTAL/ERROR(历史 228)
+[PASS] P0 解析器正向对照 RE_TOTAL/多行文本中段(真实用法)
+[PASS] P0 解析器正向对照 RE_CLASS
+[PASS] P0 解析器正向对照 RE_TT_MIN
+[PASS] P0 解析器正向对照 RE_TT_SEC(历史 175)
+[PASS] A1 run1 合计行解析到恰好 1 条
+[PASS] A1 run1 逐类结果解析到 > 0 条
+[PASS] A1 run1 耗时被解析到（双写法）
+[PASS] A2 run2 合计行解析到恰好 1 条
+[PASS] A2 run2 逐类结果解析到 > 0 条
+[PASS] A2 run2 耗时被解析到（双写法）
+[PASS] B1 run1 Tests run / Failures / Errors / Skipped = 252/0/0/0 全绿
+[PASS] B1 run1 rc=0
+[PASS] B1 run1 BUILD SUCCESS
+[PASS] B2 run2 Tests run / Failures / Errors / Skipped = 252/0/0/0 全绿
+[PASS] B2 run2 rc=0
+[PASS] B2 run2 BUILD SUCCESS
+[PASS] C 两轮逐类结果 diff = 0
+[PASS] Cb 两轮类数一致
+[PASS] D 两轮串行（不重叠：run2_start >= run1_end）
+[PASS] E0 归档测试源码解析到 > 0 个 java 文件
+[PASS] E @Test 词边界计数 == surefire 合计
+[PASS] Eb 禁用扫描 = 0 条
+[PASS] F 覆盖报告解析到 total > 0
+[PASS] Fb missing == 0
+[PASS] Fc implemented == total
+[PASS] Fd 已注册路由 > 0 且未注册为空
+[PASS] Fe 按族分布解析到 > 0 族
+[PASS] G 找到上一轮 coverage-history 行
+[PASS] Gb 上一轮行含「连续第 N 轮」形态
+[PASS] Gc 上一轮行含用例数形态
+[PASS] H 主体的在途改动被登记
+[PASS] Hb 窗口前后**他方**改动集合一致（本轮自身写入不计）
+[PASS] H0b 在途改动的 mtime 命中数 > 0（判据失效则恒为 0，历史 57/98/238-①）
+[PASS] I coverage-history 末行 = 本轮行
+[PASS] Ib coverage-history CR = 0

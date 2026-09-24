@@ -1,0 +1,40 @@
+== R367 · 第 36 类只读取证：追加目标与归档产物的字节形态一致性 ==
+ROOT=E:\workspaces\hioas\hioas-aap-001
+
+-- A 追加目标（硬判据）--
+[PASS] A 追加目标字节形态干净 aap-server-feature-status.csv | i=i/lf w=w/lf bytes=2979908 OK
+[PASS] A 追加目标字节形态干净 aap-server-tdd-state.md | i=i/lf w=w/lf bytes=3339138 OK
+[PASS] A 追加目标字节形态干净 coverage-history.txt | i=i/lf w=w/lf bytes=570566 OK
+[PASS] A0 正向对照：追加目标全部解析到 eol 与字节 | 解析 3/3
+
+-- B 索引侧行尾（硬判据）--
+  索引侧分布：{'i/-text': 383, 'i/lf': 6997, 'i/none': 26}
+[PASS] B 索引侧 CRLF 文件 = 0（i/crlf） | i/crlf=0
+[PASS] B0 正向对照：索引侧条目数 > 0 | 条目 7406
+[PASS] B1 判别力实测：合成 i/crlf 计数分支可失败 | i/crlf=1 时同一判据为 FAIL（分支存在）
+
+-- C 本轮产物（硬判据）--
+[PASS] C0 正向对照：本轮产物 > 0 | n=13
+[PASS] C 本轮全部产物 CR=0 ∧ 末字节=\n ∧ 无 BOM/NUL | 受判 13 份，违规 0 份 []
+
+-- D 信息项（非缺陷判定）--
+  D1 受判文本文件（索引内、按扩展名、非 NUL）= 6492
+  D2 工作区侧含 CR 的文件 = 876（git 归一化后仍判 clean ⇒ 检出状态，非仓库缺陷）
+  D3 末字节非换行的文本文件 = 539（JSON 落盘风格，无追加需求）
+  D4 evidence/ 下文件名含轮次 = 4377，其中内容自述该轮次 = 3723（差 654：rcseq/audit 类按设计不自述）
+  D5 三项追加目标的现场读数已由 A 段给出（硬判据）
+
+-- E 判别力实测（合成夹具，走同一个 judge()）--
+  合成结论：{'clean.txt': 'clean', 'crlf.txt': ['CR=2'], 'noeol.txt': ['NOEOL'], 'bom.txt': ['BOM'], 'nul.bin': ['NUL']}
+[PASS] E1 干净夹具 0 违规（不得误报） | []
+[PASS] E2 CRLF 夹具被点名 | ['CR=2']
+[PASS] E3 无末行夹具被点名 | ['NOEOL']
+[PASS] E4 BOM 夹具被点名 | ['BOM']
+[PASS] E5 NUL 夹具被点名 | ['NUL']
+[PASS] E6 恰好 4 个合成夹具违规 / 1 个干净（判据不瞎也不滥） | n_bad=4
+[PASS] E7 注入对照：干净夹具改成 CRLF 后必须转红 | ['CR=2']
+
+[PASS] F 零写副作用：追加目标 (size, md5) 运行前后全等 | n=3 变化=0
+
+SUMMARY PASS=17 FAIL=0
+BYTEFORM_R367_END=1
