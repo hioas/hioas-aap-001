@@ -1,0 +1,29 @@
+第 19 类只读取证：日志侧出口（traceId 传导 + 敏感字段脱敏口径）跨源一致性 · R347
+（只读：零写副作用；不起 shell，历史 240/251）
+
+L  日志语句集合 = 64 条（正向对照）
+J  MDC 键：常量定义/别名 = ['TraceIdFilter.java', 'TraceIdFilter.java', 'TraceIdFilter.java']；常量引用读取点 = 4 处；**裸字面量（实现侧）= 1 处 [('AuditService.java', 34, '"traceId"')]**；配置侧 %X{} 键 = ['traceId']；测试侧裸字面量 = 2 处
+   MDC 判据：耦合（实现侧裸字面量）∧ 测试侧裸字面量 = 2 处 ⇒ A3c 判定 = FAIL（真发现）
+   V  短信/验证码域内日志实参违规 = 0 处；域外同名命中 = 3 处（信息项，上限 5）[('GlobalExceptionHandler.java', 41), ('GlobalExceptionHandler.java', 43), ('ReviewService.java', 290)]
+   敏感实参判据：掩码形态 = 2 处；违规 = 0 处；仅字面量内敏感词（非违规）= 2 处
+M  md §0 声明（traceId 同时写入日志与审计）行数 = 1
+D  DDL：trace_id 列行 = [1096]；索引行 = [1117]
+X  日志配置：pattern 键 = ['traceId']（常量 = 'traceId'）；age = ['14d']；max = ['20']；size = ['50 MB']
+C  掩码证据：日志实参里的掩码形态 = 2 处 [('CredentialService.java', 133, 'entity.getApiKeyMask()'), ('AdminAuthService.java', 84, 'crypto.maskPhone(phone)')]；掩码实现本体 = [('CatalogService.java', 266), ('CryptoService.java', 114), ('CryptoService.java', 122)]
+T  测试背书：结构级 16 / 取值级 9 / 书写形态级 2
+
+-- 真发现（机器取证）--
+① **审计出口用裸字面量取 MDC 键**：['AuditService.java'] —— 与其余 4 处「常量引用」写法**同族不同形态**（历史 44）。当前**无故障**（取值相等：['"traceId"'] == 'traceId'），但**常量改名即静默失效**：审计列 trace_id 恒 NULL、日志 pattern 与键失配（日志里 traceId 恒空），而测试侧钉的也是裸字面量、且日志断言只覆盖「文件存在 + traceId 进了 pattern」⇒ 该耦合**零自动化判据**（这正是它对 243 例契约测试完全不可见的原因）。
+   修法 = 审计出口改用常量引用（`ApiEnvelope.TRACE_ID`）；属**改交付代码** ⇒ 按「missing==0 -> 只校验不改代码」的作业纪律**未改**，列待拍板。
+② 配置侧 `%X{traceId}` 是**结构性无法引用 Java 常量**的第三处承载（XML）：只能核「取值相等」，故本类把它单列为**信息项**（非缺陷），并以 A2a 的「pattern 键 ∈ 常量取值」钉住。
+
+-- 正面结论（机器取证）--
+· 日志实参的敏感语义 token **一律掩码**（违规 = 0；掩码实参 2 处，含 `maskPhone(...)` 与 `getPhoneMasked()` 两种形态）；掩码实现本体存在（不是靠字段缺席）。
+· 验证码**零处**进入日志实参（注释自称「不记录验证码」有代码依据：只记 `scene/ttl/fixed`）。
+· traceId 三出口的机器依据齐备：日志 pattern ['traceId'] ∧ 审计 setTraceId 写入点 [('AuditLogEntity.java', 42), ('AuditService.java', 34)] ∧ DDL trace_id 列 + 索引。
+· 保留期/滚动自述与配置一致（自述「保留 14 天」⇔ `age=14d`；`size`/`max` 齐备）。
+· 日志目录双默认值同源（yml `${LOG_DIR:logs}` ⇔ xml `${spring:app.logging.dir:-logs}`，默认字面量相等）—— 同值副本，登记为信息项（历史 44 同族）。
+
+PASS 29 / FAIL 1
+  [FAIL] A3c **真发现（全量用例与全部门禁都看不见）**：实现侧存在裸字面量耦合 ∧ 测试侧也以裸字面量书写该键 ⇒ 常量改名时两侧静默同绿、**无任何自动化判据**（两分支判据：任一侧改用常量即转绿，历史 81/95/98）
+GAP_LOG_EGRESS_END=1

@@ -1,0 +1,9 @@
+形态域表 · 第 19 类 · R347
+1) MDC 键的承载形态：① 常量定义（['TraceIdFilter.java', 'TraceIdFilter.java', 'TraceIdFilter.java']）② 常量引用（4 处）③ 裸字面量（实现 1 / 配置 1 / 测试 2）
+2) 日志实参的脱敏形态：① 掩码（`maskPhone(x)` / `getPhoneMasked()`）2 处 ② 违规裸值 0 处
+3) 验证码形态：日志实参 0 处；作用域内标识符 27 次（正面依据，非空转）
+4) 出口形态：包体 traceId（第 18 类已覆盖）/ 响应头 X-Trace-Id / 日志 pattern %%X{} / 审计列 —— 本类只覆盖**后两者**（前两者引用既有类结论，不重复声明）
+5) 测试背书形态：结构级（文件存在 + pattern 键）/ 取值级（包体 traceId == 头）/ 书写形态级 = 0 断言
+6) 保留期形态：自述「14 天」⇔ `age="14d"`；`max="20"`；`size="50 MB"`
+7) 判据形态：本类 FAIL 语义 = 判据/读数与预期不符；漂移事实写在结论段（与既有类一致）
+GAP_LOG_EGRESS_FORMS_END=1
