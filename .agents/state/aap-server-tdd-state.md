@@ -11135,3 +11135,11 @@ wisemapping 的 `spring-boot:run`）**均未被误判为测试 JVM**（这正是
 **待拍板**：本轮**新增 0 项**（真发现 ①–④ 均已按判据侧修法落地并复跑验证）；沿用上一轮在册项 —— 其中**与工具链载体相关的两项本轮据实加强**：① 「**只读事实探针 / 执行器是否收进仓库**」—— 本轮真发现 ③④ 再次证明它们在仓库外（临时目录）时缺陷只能靠每轮复跑偶然暴露；② 「**命令表 ROOT 口径**」（63/80 条不读 driver 的 ROOT）。其余在册项见本文件「待拍板」段与 R357–R360 台账描述列；R357 的「`evidence-secrets` 8 条命中处置」已于 R358 完成、可销项。
 
 **证据**：evidence/round-R361-analysis.txt；evidence/green-verify-R361-tested-state.txt；evidence/green-verify-R361-testcount.txt；evidence/green-verify-R361-full-run1.txt；evidence/green-verify-R361-full-run2.txt；evidence/green-verify-R361-coverage-fields.txt；evidence/audit-regression-R361.txt；evidence/audit-regression-R361-rcseq.txt；evidence/audit-regression-R361-failraw.txt；evidence/audit-regression-R361-faildiff.txt；evidence/gap-conc-inwindow-R361.txt；evidence/gap-conc-inwindow-R361-prefix.txt；evidence/gap-ledger-vs-tree-R361.txt；evidence/gap-window-writes-R361.txt；evidence/gap-window-writes-R361-prefix.txt；evidence/gap-probes-crash-R361.txt；evidence/coverage-history.txt（追加 R361 行）
+
+### R361 收尾（主提交 `2d36237`）
+
+**本收尾只做两件事**：① 回填台账「提交」列 = `2d36237`（**不改写**已发布的主提交 —— 历史 209）；② 落 `evidence/verify-R361-post.txt`（**提交后核对 6/6 PASS**，且按历史 243-① **在该收尾之前**运行）。
+
+**三处一致**：台账行描述列 / 本状态段 / 收尾提交 message 均记 **权威数字 = 返工 9 处**、真发现 4 处、回归面 84 条、覆盖 102/102。
+
+**收尾阶段无新增返工/无新增真发现**（增量 0 —— 与主提交所记同值：本轮返工真值 `9` 处即最终真值），故本轮**无「据实更正」修正史**，也不虚构修正史。收尾提交紧随主提交之后的独立小提交，仅动台账 / 状态 / 留痕三处，**未改动交付代码与测试面**。
