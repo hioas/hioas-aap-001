@@ -1,0 +1,73 @@
+==============================================================================
+R354 第 26 类只读取证：请求体「未知/额外属性」策略的契约一致性
+==============================================================================
+A0a 请求 schema 解析：28 / 28（解析失败 无）｜additionalProperties 分布 true=28 false=0 缺省=0（正向对照须 > 0）
+A0b endpoints.json：端点 99 条、去重 request_model 27 个（正向对照须 > 0）
+A0c md §0 通用约定：定位行段 [22, 41)、表行 14（正向对照须 > 0）
+A1 契约声明面（未知/额外属性策略）：
+    · S 侧（requests/*.schema.json）：`additionalProperties: true` = 28 / 28 ⇒ 明确「**允许**额外属性」
+    · M 侧（md §0 通用约定表）：命中「未知/额外/忽略」字样的行 = 0 []
+    · O 侧（openapi.yaml）：requestBody 组件引用 366 处、内联 `additionalProperties` 重声明 = 0 处（须 0 = 由 $ref 承接）
+A2 实现侧：`@RequestBody` 站点 35 处、涉及 DTO 简单名 25 个（正向对照须 > 0）
+    · DTO 声明（含同名跨文件）共 30 处：带 `@JsonIgnoreProperties(ignoreUnknown=true)` = 14、不带 = 16
+        [IG] SaveRequest                AdminReportTemplateController.java:93
+        [IG] SaveRequest                DetectionConfigViews.java:50
+        [IG] ModelRequest               CatalogViews.java:73
+        [IG] VendorRequest              CatalogViews.java:90
+        [IG] IssueRequest               AdminContractController.java:92
+        [IG] SignRequest                ContractController.java:85
+        [--] RevealRequest              AdminCredentialController.java:39
+        [--] CredentialRequest          CredentialController.java:41
+        [--] RevealRequest              CredentialController.java:54
+        [--] CreateJobRequest           DetectionController.java:35
+        [--] ReleaseRequest             DetectionController.java:40
+        [IG] CreateRequest              AdminUserController.java:75
+        [IG] SuspendRequest             AdminUserController.java:85
+        [--] SmsSendRequest             AuthController.java:41
+        [--] SmsLoginRequest            AuthController.java:47
+        [--] WechatLoginRequest         AuthController.java:52
+        [--] RefreshRequest             AuthController.java:55
+        [--] SuspendRequest             AdminProviderController.java:40
+        [--] UpdateProfileRequest       ProviderController.java:43
+        [--] QualificationRequest       ProviderController.java:58
+        [--] CreateRequest              QuoteController.java:50
+        [--] ItemsRequest               QuoteController.java:61
+        [--] UpdateHeaderRequest        QuoteController.java:70
+        [--] SaveItemRequest            QuoteController.java:109
+        [IG] ApproveRequest             AdminReviewController.java:95
+        [IG] RejectRequest              AdminReviewController.java:100
+        [IG] RecordRequest              AdminPaymentController.java:96
+        [IG] VoidRequest                AdminPaymentController.java:108
+        [IG] BindingStatusRequest       SyncViews.java:91
+        [IG] RefreshRequest             AdminUsageController.java:87
+    · 简单名同名碰撞：['CreateRequest', 'RefreshRequest', 'RevealRequest', 'SaveRequest', 'SuspendRequest']
+A3 全局配置：application.yml 显式声明 fail-on-unknown-properties = 0 处、use-jackson2-defaults = 0 处；application-test.yml 存在 = True（0 / 0）
+A4 运行期有效默认值取证（只读本地 maven 仓库源码 jar，不联网）：
+    · Jackson 3（3.1.5）`FAIL_ON_UNKNOWN_PROPERTIES(false)`
+    · Spring Boot（4.1.1）`useJackson2Defaults` 无初始化器 ⇒ 默认 false ⇒ `configureForJackson2()` 分支不执行
+A5 测试形态域：测试文件 49 个｜未声明 JSON 键构造点 = 0 ｜「不可解析」语义断言 = 0 ｜（form 字段助手形参命中 = 3，**已按语义排除**；畸形 JSON 体在本测试风格里**不可静态判定** ⇒ 记信息项）
+A6 回归面 driver（r354-regression.py）：本轴判据 = 0 处｜driver 自身行数 = 449（正向对照须 > 0）
+
+判别力实测（每支先断言**注入真的改到源码**）：
+    [PASS] D1 schema additionalProperties true->false
+    [PASS] D2 注入标注（对未标注声明的副本）
+    [PASS] D3 md §0 合成声明行命中 / 无关行不命中
+    [PASS] D4 空输入判「不可用」（A0* 会转红）
+    [PASS] D5 正向对照非空转（schema>0 ∧ 站点>0 ∧ md 行>0）
+
+零写副作用：受核文件 275 个、指纹变化 = 0 处 （无）（判据 = (size, mtime_ns, md5) 全等）
+
+汇总结论（第 26 类：请求体「未知/额外属性」策略契约一致性）：
+  · S/O 侧：28 / 28 个请求 schema 声明 `additionalProperties: true`（明确允许额外属性）；openapi 内联重声明 0 处
+  · M 侧：md §0 通用约定声明 = 0 处；I 侧：带标注 14 处 / 不带 16 处；C 侧：全局配置显式声明 = 0 处
+  · R 侧：Jackson 3（3.1.5）`FAIL_ON_UNKNOWN_PROPERTIES(false)`
+  · T 侧：未声明 JSON 键构造点 0 / 「不可解析」语义断言 0（form 助手命中 3 已排除）；D 侧：driver 判据 0 处
+  · 信息项：A4 结论：运行期有效行为 = **忽略未知属性**（Jackson 3 默认）⇒ 与 schema 的 `additionalProperties: true` **一致**，当前无线上故障面；风险 = 该行为**隐式依赖未声明的框架默认值**（Jackson 2→3 之间该默认值反转）
+
+汇总：PASS 7 / FAIL 5（受判条数 12）
+  [FAIL] A1 md §0 通用约定零声明「未知/额外属性」策略（策略只存在于 schema 层，散文契约缺该项）
+  [FAIL] A2 同一契约面下实现侧**两种处置并存**（带标注 14 处 / 不带 16 处）
+  [FAIL] A3 全局配置零显式声明（策略隐式依赖框架默认值 —— 该默认值在 Jackson 2→3 之间发生过**反转**）
+  [FAIL] A5 验证面缺口：未声明 JSON 键与「请求体不可解析」在本轴**零用例**（行为变化对回归面不可见）
+  [FAIL] A6 回归面缺口：本轴无任何 driver 判据（该不变量不在回归面上）
+GAP_UNKNOWN_PROPS_END=1

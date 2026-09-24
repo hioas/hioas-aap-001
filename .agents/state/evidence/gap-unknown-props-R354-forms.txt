@@ -1,0 +1,87 @@
+R354 第 26 类 形态域穷举（每源的全部写法，历史 144：先 grep 出全部写法再写解析器）
+----------------------------------------------------------------------
+[S] requests/*.schema.json 的 additionalProperties 全部取值形态：
+    admin-user-create.schema.json              True
+    admin-user-suspend.schema.json             True
+    auth-refresh.schema.json                   True
+    auth-sms-login.schema.json                 True
+    auth-sms-send.schema.json                  True
+    auth-wechat-login.schema.json              True
+    binding-status.schema.json                 True
+    contract-issue.schema.json                 True
+    contract-sign.schema.json                  True
+    credential-create.schema.json              True
+    credential-reveal.schema.json              True
+    detection-config-save.schema.json          True
+    detection-job-create.schema.json           True
+    detection-release.schema.json              True
+    payment-record-create.schema.json          True
+    payment-record.schema.json                 True
+    payment-void.schema.json                   True
+    provider-profile-update.schema.json        True
+    provider-suspend.schema.json               True
+    qualification-create.schema.json           True
+    quote-create.schema.json                   True
+    quote-item-save.schema.json                True
+    quote-items-create.schema.json             True
+    quote-submit.schema.json                   True
+    report-template-save.schema.json           True
+    review-approve.schema.json                 True
+    review-reject.schema.json                  True
+    usage-refresh.schema.json                  True
+[O] openapi.yaml requestBody 组件引用形态（去重前缀）：['AdminUser', 'AuditLog', 'ChannelBinding', 'CompilationResult', 'Contract', 'CredentialDetail']
+[M] md §0 通用约定表全部行（逐行原样）：
+    | 项 | 约定 |
+    |---|---|
+    | 前缀 | `/api/v1` |
+    | 鉴权 | `Authorization: Bearer <jwt>`；JWT claims：`sub`(账号 id) `role` `subjectType`(PROVIDER/ADMIN) `providerId` `exp` `jti` |
+    | 响应包体 | `{"code":"0|E-xxxx","message":"...","data":{...},"traceId":"..."}` |
+    | 分页 | 请求 `page`（默认 1）/ `pageSize`（默认 20，上限 200）；响应 `data:{items:[],page,pageSize,total}`（**字段名以客户端为准**：`aap-client/src/utils/credentials-model.ts` 等读 `raw.items`；`list` 仅是 messages 适配器的兜底。原文档 `docs/api/接口字段级schema.md` 写 `list`，与本清单冲突 → 见偏差 D-API-01） |
+    | 幂等 | 非幂等写支持 `Idempotency-Key`（24h，命中返回首次响应体，C11） |
+    | 乐观锁 | 需并发保护的写支持 `If-Match: <version 或 updated_at>`；不匹配 → 409 + `E-1601` |
+    | 时间 | RFC3339 **UTC**；小时桶为整点；`DATE` 字段 `yyyy-MM-dd` |
+    | 金额 | 真实单价 `USD / 1M tokens`，`numeric(18,6)`；总额 USD |
+    | 脱敏 | `api_key_mask`=`sk-****abcd`（R-05）；手机号 `138****8888`（R-48）；**后端永不回明文** |
+    | 缺字段 | 一律 `null` 或省略，前端显示占位；**禁止 0 冒充"没有数据"**（例外 `cache_parse_status=NO_CACHE_FIELD` 明确记 0） |
+    | 排序 | 列表默认 `created_at desc, id desc` |
+    | traceId | 响应头 `X-Trace-Id` 与包体 `traceId` 一致，同时写入日志与审计 |
+[I] @RequestBody 站点的 DTO 引用形态：['ApproveRequest', 'BindingStatusRequest', 'CreateJobRequest', 'CreateRequest', 'CredentialRequest', 'IssueRequest', 'ItemsRequest', 'ModelRequest', 'QualificationRequest', 'RecordRequest', 'RefreshRequest', 'RejectRequest', 'ReleaseRequest', 'RevealRequest', 'SaveItemRequest', 'SaveRequest', 'SignRequest', 'SmsLoginRequest', 'SmsSendRequest', 'SuspendRequest', 'UpdateHeaderRequest', 'UpdateProfileRequest', 'VendorRequest', 'VoidRequest', 'WechatLoginRequest']
+[I] DTO 声明处的注解形态（含/不含 JsonIgnoreProperties 的原文片段）：
+    SaveRequest                AdminReportTemplateController.java 有 @JsonIgnoreProperties(ignoreUnknown=true)
+    SaveRequest                DetectionConfigViews.java          有 @JsonIgnoreProperties(ignoreUnknown=true)
+    ModelRequest               CatalogViews.java                  有 @JsonIgnoreProperties(ignoreUnknown=true)
+    VendorRequest              CatalogViews.java                  有 @JsonIgnoreProperties(ignoreUnknown=true)
+    IssueRequest               AdminContractController.java       有 @JsonIgnoreProperties(ignoreUnknown=true)
+    SignRequest                ContractController.java            有 @JsonIgnoreProperties(ignoreUnknown=true)
+    RevealRequest              AdminCredentialController.java     无紧邻该注解
+    CredentialRequest          CredentialController.java          无紧邻该注解
+    RevealRequest              CredentialController.java          无紧邻该注解
+    CreateJobRequest           DetectionController.java           无紧邻该注解
+    ReleaseRequest             DetectionController.java           无紧邻该注解
+    CreateRequest              AdminUserController.java           有 @JsonIgnoreProperties(ignoreUnknown=true)
+    SuspendRequest             AdminUserController.java           有 @JsonIgnoreProperties(ignoreUnknown=true)
+    SmsSendRequest             AuthController.java                无紧邻该注解
+    SmsLoginRequest            AuthController.java                无紧邻该注解
+    WechatLoginRequest         AuthController.java                无紧邻该注解
+    RefreshRequest             AuthController.java                无紧邻该注解
+    SuspendRequest             AdminProviderController.java       无紧邻该注解
+    UpdateProfileRequest       ProviderController.java            无紧邻该注解
+    QualificationRequest       ProviderController.java            无紧邻该注解
+    CreateRequest              QuoteController.java               无紧邻该注解
+    ItemsRequest               QuoteController.java               无紧邻该注解
+    UpdateHeaderRequest        QuoteController.java               无紧邻该注解
+    SaveItemRequest            QuoteController.java               无紧邻该注解
+    ApproveRequest             AdminReviewController.java         有 @JsonIgnoreProperties(ignoreUnknown=true)
+    RejectRequest              AdminReviewController.java         有 @JsonIgnoreProperties(ignoreUnknown=true)
+    RecordRequest              AdminPaymentController.java        有 @JsonIgnoreProperties(ignoreUnknown=true)
+    VoidRequest                AdminPaymentController.java        有 @JsonIgnoreProperties(ignoreUnknown=true)
+    BindingStatusRequest       SyncViews.java                     有 @JsonIgnoreProperties(ignoreUnknown=true)
+    RefreshRequest             AdminUsageController.java          有 @JsonIgnoreProperties(ignoreUnknown=true)
+[G] GlobalExceptionHandler 的不可解析语义行：['import org.springframework.http.converter.HttpMessageNotReadableException;', '@ExceptionHandler(HttpMessageNotReadableException.class)', 'public ResponseEntity<ApiEnvelope<Void>> handleUnreadable(HttpMessageNotReadableException ex) {', 'return badRequest(List.of(new ApiErrorDetail("body", "请求体不是合法 JSON 或字段类型不匹配")));']
+[T] 测试形态域扫描口径：引号定界的 JSON 键 `"unknown|`"extra|`"unexpected|`"未知 ｜（form 字段助手形参 `extraFields` **按语义排除**，历史 81）
+    T_UNK=0 T_MSG=0 T_FORM_EXCLUDED=3
+[D] driver 本轴口径：unknown-props|未知属性|unknown_propert|JsonIgnoreProperties -> 0 处
+REWORK_ITEMS=5（A=3 / B=2）
+  A 起草期：① 照抄上一轮 derive 的 class-24 锚点在 R353 产物中 0 命中（precheck 拦住，改用实际字节锚点，历史 205/218）；② 主取证落盘口径改为脚本自写 body（避免 shell 重定向带 CR，历史 146/84）；③ 判别力 D2 支首版含死代码与重复登记、且未对「锚点未命中」判红（重写为三态，历史 66/94）
+  B v1->v2：④ A5 判据范围与语义不符 —— `extraField` 命中的是 ApiTestBase 的**表单字段助手形参**，使本该判红的「验证面缺口」被误判 PASS（收窄为引号定界的 JSON 键并显式排除，历史 81/144）；⑤ 撤销拼凑式「畸形 JSON 构造点」正则计数（本测试风格用类型化助手构造请求体，该量**不可静态判定** ⇒ 如实记信息项，避免假精度）
+FORMS_END=1
