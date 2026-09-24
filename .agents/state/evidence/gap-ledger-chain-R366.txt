@@ -1,0 +1,67 @@
+  [PASS] A0a 台账 R 行解析到 > 0 条（正向对照） | R 行 = 339 / 总行 = 437
+  [PASS] A0b 台账每行列数 == 表头列数（列数集合 %s） | 表头 8 列 / 集合 [8]
+  [PASS] A0c 声明了 SHA 形态「提交」的行 > 0 且空值行被单列（正向对照 + 不为空话） | SHA 行 = 333 / 空 = 6
+  [PASS] A0d 声明条目总数 > 0 且形态分布已分类 | 条目 = 4067（形态 {'标准路径': 4060, '带注解': 7}）
+  [PASS] A0e 带注解条目已按「先剥注解再判」处理（历史 218/225） | 带注解条目 = 7
+  [PASS] B0 HEAD 树内证据文件集合解析到 > 0 条（正向对照） | n=5641
+  [PASS] B0b 集合里不含被 git 引号包裹的路径（引号形态 = 解析未走 -z 的指纹） | 带引号条目 = 0
+  [PASS] C0 引入索引解析到 > 0 条新增记录（正向对照） | 新增记录 7432 条 / 唯一路径 7432 个
+  [PASS] C0b 引入索引对证据目录有命中（正向对照；否则本类判定整体不可用） | 证据目录命中 4626
+  [PASS] D0 声明的提交对象被批量解析（正向对照 ∧ 输入/输出行数一致） | 输出行 333 / 声明 333
+  [PASS] D1 每个声明的「提交」都是真实 commit 对象（跨核对：第 34 类同轴） | 非 commit = 无
+
+==============================================================================
+R366 第 35 类只读不变量：台账「证据」声明 ⇔ 归档提交链归属
+==============================================================================
+读数（每一类都由数据推出）：声明条目 4067 条（R 行 339 条，其中声明 SHA 者 333 条）
+  ① OWN（由该行声明的提交引入）= 3964 条
+  ② OTHER（由**另一个**提交引入）合计 = 103 条，其中 incremental 型 `coverage-history.txt` = 7 条（**已知形态**：每轮追加、引入提交唯一）；其余 = 96 条，涉及 28 个 (声明提交, 实际提交) 组合
+  ③ ABSENT（树里不存在 ⇒ 追溯链断裂）= 0 条
+  ④ NO_ADD_REASON（在树里但无新增记录，异常形态）= 0 条
+  [PASS] E1 归属判定可用（声明条目 > 0 ∧ 树内集合 > 0 ∧ 引入索引 > 0） | 条目 4067 / 树内 5641 / 索引 7432
+  [PASS] E2 **ABSENT = 0 条**（声明的证据文件必须真的进过提交；缺一即追溯链断裂，历史 16） | ABSENT = 0 []
+  [PASS] E3 NO_ADD_REASON = 0 条（在树里却没有任何新增记录 = 判据或历史的异常，不得静默） | NO_ADD_REASON = 0 []
+  OTHER 组合：声明 721974e -> 实际引入 b5feaf8c（14 条）：['evidence/audit-regression-R201.txt', 'evidence/audit-regression-R201-rcseq.txt', 'evidence/audit-regression-R201-failraw.txt']
+  OTHER 组合：声明 e8509e9 -> 实际引入 709c0648（14 条）：['evidence/green-verify-R149-full-run1.txt', 'evidence/green-verify-R149-full-run2.txt', 'evidence/green-verify-R149-classdiff.txt']
+  OTHER 组合：声明 6013c30 -> 实际引入 d3fcd194（10 条）：['evidence/green-verify-R94-full-run1.txt', 'evidence/green-verify-R94-full-run2.txt', 'evidence/green-verify-R94-classdiff.txt']
+  OTHER 组合：声明 6c1b934 -> 实际引入 3fe000fe（9 条）：['evidence/green-verify-R75-full-run1.txt', 'evidence/green-verify-R75-full-run2.txt', 'evidence/green-verify-R75-classdiff.txt']
+  OTHER 组合：声明 8b6983a -> 实际引入 8527fa0f（9 条）：['evidence/green-verify-R76-full-run1.txt', 'evidence/green-verify-R76-full-run2.txt', 'evidence/green-verify-R76-classdiff.txt']
+  OTHER 组合：声明 a0c397b -> 实际引入 8a6931b0（6 条）：['evidence/green-verify-R331-analysis.txt', 'evidence/green-verify-R331-coverage-fields.txt', 'evidence/green-verify-R331-full-run1.txt']
+  OTHER 组合：声明 c56fd63 -> 实际引入 51877459（6 条）：['evidence/green-verify-R125-full-run1.txt', 'evidence/green-verify-R125-full-run2.txt', 'evidence/green-verify-R125-classdiff.txt']
+  OTHER 组合：声明 0feeba1 -> 实际引入 791aafcd（4 条）：['evidence/gap-postcommit-R177.txt', 'evidence/gap-finalize-R177.txt', 'evidence/gap-fixdesc-R177.txt']
+  OTHER 组合：声明 02270cc -> 实际引入 6af32e18（2 条）：['evidence/gap-postcommit-R175.txt', 'evidence/gap-finalize-R175.txt']
+  OTHER 组合：声明 65fbb72 -> 实际引入 37ff71e0（2 条）：['evidence/gap-postcommit-R174.txt', 'evidence/gap-finalize-R174.txt']
+  OTHER 组合：声明 663dea9 -> 实际引入 9720176a（2 条）：['evidence/gap-postcommit-R176.txt', 'evidence/gap-finalize-R176.txt']
+  OTHER 组合：声明 6fcc26d -> 实际引入 b7c675c7（2 条）：['evidence/gap-postcommit-R178.txt', 'evidence/gap-finalize-R178.txt']
+  OTHER 组合：声明 (空) -> 实际引入 892cfcad（1 条）：['evidence/green-R27-contract-keys.txt']
+  OTHER 组合：声明 (空) -> 实际引入 36ca1834（1 条）：['evidence/audit-error-codes-R28.txt']
+  OTHER 组合：声明 (空) -> 实际引入 83362e8d（1 条）：['evidence/audit-error-codes-adjudication-R29.txt']
+  OTHER 组合：声明 (空) -> 实际引入 b49cc8d4（1 条）：['evidence/audit-auth-contract-R30.txt']
+  OTHER 组合：声明 (空) -> 实际引入 62a5d158（1 条）：['evidence/audit-routes-R31.txt']
+  OTHER 组合：声明 (空) -> 实际引入 f15c2a72（1 条）：['evidence/audit-query-params-R32.txt']
+  OTHER 组合：声明 4d7cfd9 -> 实际引入 81e7dc89（1 条）：['evidence/gap-notifyrecon-R232.txt']
+  OTHER 组合：声明 6726cf2 -> 实际引入 d9956792（1 条）：['evidence/gap-conc-inwindow-R290.txt']
+  OTHER 组合：声明 6d322b3 -> 实际引入 1784f4b8（1 条）：['evidence/ledger-commitcol-gap-R81.txt']
+  OTHER 组合：声明 6fcc26d -> 实际引入 8e562513（1 条）：['evidence/gap-final-check-R178.txt']
+  OTHER 组合：声明 852b53e -> 实际引入 0731dc70（1 条）：['evidence/green-verify-R34-summary.txt']
+  OTHER 组合：声明 a487362 -> 实际引入 89511fb1（1 条）：['evidence/gap-guard-roundnum-R108.txt']
+  OTHER 组合：声明 aaf8451 -> 实际引入 cee5d296（1 条）：['evidence/gap-finalize-R179.txt']
+  OTHER 组合：声明 e2680b1 -> 实际引入 81ea66d1（1 条）：['evidence/green-verify-R38-summary.txt']
+  OTHER 组合：声明 e2680b1 -> 实际引入 b3e3566a（1 条）：['evidence/audit-id-types-R38.txt']
+  OTHER 组合：声明 ff8a894 -> 实际引入 bfc88066（1 条）：['evidence/gap-closeoutslot-R209.txt']
+  [PASS] E4 OTHER 组合**全部**列出（列出 28 组 == 声称 28 组；截断会让下游落地取证漏组，历史 12/95） | 列出 28 / 声称 28
+  OTHER 组合条数合计 = 96 条（与 103 条 - 7 条 incremental 须相等）
+  [PASS] F0 孤儿证据判定可用（树内集合 > 0 ∧ 声明集合 > 0） | 树内 5641 / 声明 4061
+  ⑤ 孤儿证据（在 HEAD 树内、未被任何 R 行声明）合计 = 1580 条：
+     · **轮次形态**（含 `-R<数字>`，属「清单未收录」候选）= 256 条 ['.agents/state/evidence/audit-auth-adjudication-R30.txt', '.agents/state/evidence/audit-contract-keys-R28.txt', '.agents/state/evidence/audit-contract-keys-R30.txt', '.agents/state/evidence/audit-contract-keys-selftest-R27.txt', '.agents/state/evidence/audit-contract-keys-selftest-R28.txt', '.agents/state/evidence/audit-contract-keys-selftest-R30.txt']
+     · 非轮次形态（历轮 raw 日志 / 合成夹具 / 截图 / 中间物等，**预期不在清单里**）= 1324 条 ['.agents/state/evidence/20260916-0921-序号2-工作台-图例统一口径D3-h5-430宽.png', '.agents/state/evidence/20260916-0938-序号3-凭证列表-checks轮-h5-430宽.png', '.agents/state/evidence/20260916-0955-序号4-提交接入凭证-checks轮-h5-430宽.png', '.agents/state/evidence/20260916-1022-序号4v1-接入凭证表单-checks轮-h5-430宽.png', '.agents/state/evidence/20260916-1042-序号5-检测进行中-checks轮-h5-430宽.png', '.agents/state/evidence/20260916-1221-序号9-模型报价设置-checks轮-h5-430宽.png']
+     轮次形态孤儿的命名归类（前 8）：{'green-verify-R*': 80, 'gap-postcommit-R*': 50, 'commitstate-verify-R*': 10, 'audit-regression-R*': 9, 'audit-endpoint-tests-R*': 8, 'gap-finalize-R*': 8, 'verify-R*': 8, 'secret-leak-audit-R*': 7}
+
+G 判别力实测（合成夹具，四分支结论必须两两不同）：OWN=OWN / OTHER=OTHER / ABSENT=ABSENT / NO_ADD_REASON=NO_ADD_REASON
+  [PASS] G1 判别力实测：四分支给出四种不同结论（守卫确有牙齿） | 实测 ['OWN', 'OTHER', 'ABSENT', 'NO_ADD_REASON']
+  [PASS] G2 反向对照：空声明集合下「可用性谓词」必须判不可用（不得判绿） | 空条目 -> False / 实际条目 -> True / 空树分类 -> ABSENT
+
+判定：全部通过（FAIL 0 条 无）
+口径说明：ABSENT / NO_ADD_REASON 为**硬判据**；OTHER 为**分级登记项**（收尾提交携带、他方提交携带属已知形态，逐组合列出供人拍板，不据此判红 —— 历史 53/54/85）。
+跨核对：本类的存在性轴与第 34 类的可达性轴**互补**（一个钉「文件在不在树里、谁引入」，一个钉「提交号真不真、时间自洽」）。
+LEDGER_CHAIN_END=1
