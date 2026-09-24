@@ -62,7 +62,15 @@ const CONTENT_GATES = {
     textAny: ['合同与结算台账', '待打款批次', '结算台账明细']
   },
   '/usage': {
-    require: ['[data-testid="usage-kpi"]', '[data-testid="usage-chart"]', '[data-testid="model-table"]'],
+    // ⚠️ 2026-09-24：ADM-U02 聚合刷新接线后本页判据收紧 ——
+    //    原先只判三张卡，接口有封装但页面零调用（点了没有入口）。
+    //    现在必须存在「聚合刷新」入口（角色无权限时不渲染，故用 SUPER_ADMIN 跑验收）。
+    require: [
+      '[data-testid="usage-kpi"]',
+      '[data-testid="usage-chart"]',
+      '[data-testid="model-table"]',
+      '[data-testid="btn-aggregate-refresh"]'
+    ],
     textAny: ['总请求数', '调用与消耗趋势', '模型维度用量']
   },
   '/models': {
@@ -118,19 +126,57 @@ const CONTENT_GATES = {
     textAny: ['新增供应商', '接入线路', '档案完整度'],
     mustMatch: [/共 \d+ 家/, /共 \d+ 条，每页 \d+ 条/]
   },
-  // 页 5：检测中心（page-5-pc）。任务监控**无列表接口**（D-ADM-5）→ 页面必须显式声明缺口；
-  // 真实能力是「人工放行（DET-06）」与「检测项配置（ADM-CFG01…05）」两张卡。
+  // 页 5：检测中心（page-5-pc）。
+  // ⚠️ 2026-09-24：D-ADM-5（管理端无检测任务列表端点）已于 2026-09-23 由 ADM-DET01
+  //    (`GET /admin/detection-jobs`) 关闭，横幅已改写为「任务监控数据来源：ADM-DET01」。
+  //    旧判据 `mustMatch: [/D-ADM-5/]` 属**过期门禁**（缺口已补、判据没同步）→ 已删除，
+  //    改为断言新事实：横幅声明新的数据来源编号。
   '/detection': {
     require: ['[data-testid="detection-gap-banner"]', '[data-testid="detection-kpi"]', '[data-testid="cfg-table"]'],
-    textAny: ['检测项配置', '人工放行', '无数据来源'],
-    mustMatch: [/D-ADM-5/]
+    textAny: ['检测项配置', '人工放行', '任务监控数据来源'],
+    mustMatch: [/ADM-DET01/]
   },
-  // 页 8：new-api 同步（page-8-pc）。上游模型清单未配置 ACTIVE 端点 → 预期 E-1501（已登记形态）；
-  // 页面把它渲染成「接口异常」标签，属**被处理的状态**。
+  // 页 6：编译确认台（ADM-Q01 + ADM-CP01…04）。此前 CONTENT_GATES 里**没有这一页**，
+  // 于是走 else 分支要求「待实现」徽章 —— 而它其实已接线（真实调用 /admin/compilations），
+  // 结果被误报成「状态不明」。这里补上业务判据（2026-09-24）。
+  '/compilation': {
+    require: [
+      '[data-testid="compile-note"]',
+      '[data-testid="compile-table"]',
+      '[data-testid="btn-compile"]',
+      '[data-testid="compile-count"]'
+    ],
+    textAny: ['编译确认台', '编译记录', '发起编译'],
+    mustMatch: [/共 \d+ 条/]
+  },
+  // 页 8：new-api 同步（page-8-pc）。
+  // ⚠️ 2026-09-24：上架闭环（ADM-S07/S08/S09 + S02）接线后判据收紧 ——
+  //    原先只有只读三卡 + 「未接线」缺口说明；现在必须能点开「发起上架同步」对话框并渲染字段。
+  //    只查按钮存在会漏掉「按钮在、点了没反应」这一类假完成（技能已登记的盲区）。
   '/sync': {
-    require: ['[data-testid="sync-kpi"]', '[data-testid="binding-table"]', '[data-testid="sync-task-table"]'],
+    require: [
+      '[data-testid="sync-kpi"]',
+      '[data-testid="binding-table"]',
+      '[data-testid="sync-task-table"]',
+      '[data-testid="btn-sync-now"]'
+    ],
     textAny: ['渠道价格同步状态', '同步任务与日志', '渠道总数'],
-    allowCodes: ['E-1501']
+    // 上游模型清单未配置 ACTIVE 端点时 502 E-1501（已登记形态，页面渲染为「接口异常」）——
+    // 属**被处理的状态**，放行；但上架写路径（S07/S08/S09）不得出现任何错误码。
+    allowCodes: ['E-1501'],
+    drawers: [
+      {
+        open: '[data-testid="btn-sync-now"]',
+        expect: [
+          '[data-testid="publish-dialog"]',
+          '[data-testid="publish-provider"]',
+          '[data-testid="publish-compilation"]',
+          '[data-testid="publish-channel-name"]',
+          '[data-testid="publish-mode"]',
+          '[data-testid="publish-submit"]'
+        ]
+      }
+    ]
   }
 };
 

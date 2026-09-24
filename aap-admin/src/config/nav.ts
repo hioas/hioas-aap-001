@@ -100,6 +100,8 @@ export function can(role: AdminRole, action: string): boolean {
     'contract.write': ['BIZ_OPERATOR', 'SUPER_ADMIN'],
     'compile.confirm': ['TECH_OPS', 'SUPER_ADMIN'],
     'sync.run': ['BIZ_OPERATOR', 'TECH_OPS', 'SUPER_ADMIN'],
+    // ADM-U02 聚合刷新：与后端 @PreAuthorize 一致（技术运营/超管），运营商务不可点
+    'usage.refresh': ['TECH_OPS', 'SUPER_ADMIN'],
     'audit.read': ['TECH_OPS', 'SUPER_ADMIN'],
     'apikey.reveal': ['SUPER_ADMIN'],
     'newapi.config': ['SUPER_ADMIN'],

@@ -8,9 +8,16 @@
  *   POST /admin/channel-bindings/{id}/status  {target_status}   启停（ADM-S05，仅 SYNCED/ENABLED/DISABLED）
  *   GET  /admin/sync/models/upstream                            上游模型清单（ADM-S06，未配 ACTIVE 端点 → E-1501）
  *
- * ⚠️ 后端**没有**「立即触发渠道同步」端点，也没有同步计划（间隔/下次同步）配置端点：
- *   设计稿的「立即同步 / 自动同步 / 下次同步 / 同步间隔」在管理端无对应能力（登记 D-ADM-6）。
- *   真实可用的是：读列表、按任务重试、渠道启停、读上游清单。
+ *   POST /admin/newapi-endpoints  {name,base_url,api_key,readonly}   登记同步端点（ADM-S07，仅 SUPER_ADMIN）
+ *   POST /admin/sync/tasks  {provider_id,compilation_id?,channel_name?,mode?}  发起上架同步（ADM-S08）
+ *   POST /admin/sync/tasks/{taskId}/execute  {dry_run?}              执行上架（ADM-S09，读前写后三段式）
+ *
+ * ⚠️ 诚实边界：
+ *   - 「立即同步单个渠道」没有对应端点：上架是**按任务**推进的（ADM-S08 建任务 → ADM-S09 执行），
+ *     不是「按渠道点一下」；设计稿的「自动同步 / 下次同步 / 同步间隔」仍无配置端点（登记 D-ADM-6）。
+ *   - ADM-S08 要求该供应商存在 gate_status=CONFIRMED 的编译产物，否则 409 E-1407（闸门③）——
+ *     前端把该错误如实透出，不做「先建任务再补编译」这类绕闸门的动作。
+ *   - ADM-S07 的 api_key **只进不出**：响应只回 api_key_mask，页面永不回显明文。
  */
 import { request, type PageResult } from '@/api/http';
 
@@ -71,6 +78,22 @@ export interface UpstreamModel {
   enabled: boolean | null;
 }
 
+/**
+ * ADM-S07 响应：new-api 同步端点。
+ * 注意字段只有 `api_key_mask`（形如 `sk-****abcd`）——**没有**明文 `api_key` 字段，
+ * 与契约一致（服务端加密落库，掩码是唯一出口）。
+ */
+export interface NewApiEndpoint {
+  id: string;
+  name: string;
+  base_url: string;
+  readonly: boolean | null;
+  status: string | null;
+  api_key_mask: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
 /** 同步任务状态（`SyncAdminService.RETRYABLE` 等口径：PENDING/RUNNING/SUCCESS/FAILED/MANUAL） */
 export const SYNC_TASK_STATUS: Record<string, { label: string; tone: 'info' | 'warn' | 'success' | 'danger' | 'muted' }> = {
   PENDING: { label: '待同步', tone: 'warn' },
@@ -123,5 +146,29 @@ export const syncApi = {
   },
   upstreamModels() {
     return request<{ models: UpstreamModel[] }>('/admin/sync/models/upstream');
+  },
+  /**
+   * ADM-S07 登记 new-api 端点（仅 SUPER_ADMIN）。
+   * `api_key` 只进不出：服务端加密落 `api_key_cipher`，响应只回掩码。
+   */
+  registerEndpoint(body: { name: string; base_url: string; api_key: string; readonly?: boolean }) {
+    return request<NewApiEndpoint>('/admin/newapi-endpoints', { method: 'POST', body });
+  },
+  /**
+   * ADM-S08 发起上架同步（建渠道 + 写价）。
+   * 闸门③：该供应商需有 `CONFIRMED` 编译产物，否则 409 `E-1407`；
+   * 幂等键 `sha256(provider_id|ADD_CHANNEL|channel_name)` —— 重复发起返回**同一**任务。
+   */
+  createTask(body: {
+    provider_id: string;
+    compilation_id?: string;
+    channel_name?: string;
+    mode?: 'REVIEW_THEN_APPLY' | 'DRY_RUN';
+  }) {
+    return request<SyncTask>('/admin/sync/tasks', { method: 'POST', body });
+  },
+  /** ADM-S09 执行上架（读前写后三段式 + 回读一致）；`dryRun=true` 只回预演，零上游写零库写。 */
+  executeTask(taskId: string, dryRun = false) {
+    return request<SyncTask>(`/admin/sync/tasks/${taskId}/execute`, { method: 'POST', body: { dry_run: dryRun } });
   }
 };

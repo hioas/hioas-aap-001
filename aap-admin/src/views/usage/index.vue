@@ -40,6 +40,15 @@
       </el-select>
       <el-button type="primary" data-testid="btn-query" @click="load">查询</el-button>
       <el-button :loading="loading" data-testid="btn-refresh" @click="load">刷新</el-button>
+      <el-button
+        v-if="canRefresh"
+        :loading="refreshing"
+        data-testid="btn-aggregate-refresh"
+        title="POST /admin/usage/refresh：从上游日志源拉取并幂等 UPSERT 到 aap_usage_hourly（ADM-U02）"
+        @click="onAggregateRefresh"
+      >
+        聚合刷新
+      </el-button>
       <span class="us__spacer" />
       <el-button data-testid="btn-export" @click="onExport">导出报表</el-button>
     </div>
@@ -117,6 +126,13 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
 import { usageApi, toRfc3339Utc, humanCount, money, type UsageBucket } from '@/api/admin/usage';
+import { useSession } from '@/composables/useSession';
+import { can, type AdminRole } from '@/config/nav';
+
+const { role } = useSession();
+/** ADM-U02 与后端 @PreAuthorize 对齐（TECH_OPS/SUPER_ADMIN）：无权限者看不到按钮，也不发请求 */
+const canRefresh = computed(() => can(role.value as AdminRole, 'usage.refresh'));
+const refreshing = ref(false);
 
 const buckets = ref<UsageBucket[]>([]);
 const loading = ref(false);
@@ -239,6 +255,32 @@ async function load() {
     ElMessage.error(error.value);
   } finally {
     loading.value = false;
+  }
+}
+
+/**
+ * ADM-U02 聚合刷新（2026-09-24 接线；此前接口有封装、页面零调用）。
+ * 诚实边界：后端读的是 `app.usage.log-file` 这个本地日志源（mock 适配器），不是真实 new-api Log 表；
+ * 未配置该文件时后端返回 503 E-1801 —— 这里原样透出，绝不显示"已刷新"假成功。
+ */
+async function onAggregateRefresh() {
+  const [a, b] = range.value ?? [start, now];
+  refreshing.value = true;
+  try {
+    const r = await usageApi.refresh(toRfc3339Utc(a), toRfc3339Utc(b));
+    const body = (r ?? {}) as Record<string, unknown>;
+    const inserted = Number(body.inserted);
+    const updated = Number(body.updated);
+    const counts =
+      Number.isFinite(inserted) || Number.isFinite(updated)
+        ? `（新增 ${Number.isFinite(inserted) ? inserted : '—'} 桶 / 更新 ${Number.isFinite(updated) ? updated : '—'} 桶）`
+        : '';
+    ElMessage.success(`聚合刷新已执行${counts}，批次 ${body.batch_id ?? '—'}`);
+    await load();
+  } catch (e) {
+    ElMessage.error((e as Error).message);
+  } finally {
+    refreshing.value = false;
   }
 }
 

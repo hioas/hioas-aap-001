@@ -8,7 +8,16 @@
       <span class="sy__spacer" />
       <el-switch v-model="autoSync" disabled data-testid="sync-auto" />
       <span class="sy__hint" title="后端无同步计划配置端点（D-ADM-6）">自动同步</span>
-      <el-button type="primary" data-testid="btn-sync-now" @click="onSyncNow">立即同步</el-button>
+      <el-button v-if="canRegisterEndpoint" size="small" data-testid="btn-register-endpoint" @click="openEndpointDialog">
+        登记同步端点
+      </el-button>
+      <el-button
+        type="primary"
+        data-testid="btn-sync-now"
+        :disabled="!canRun"
+        title="按任务发起上架同步（ADM-S08 → ADM-S09）；后端无「按渠道立即同步」端点"
+        @click="openPublishDialog"
+      >立即同步</el-button>
     </div>
 
     <!-- KPI 4 张（设计稿：渠道总数 / 已同步 / 待同步 / 同步失败） -->
@@ -170,22 +179,134 @@
           <el-table-column label="最近更新" width="150">
             <template #default="{ row }">{{ fmt(row.updated_at) }}</template>
           </el-table-column>
-          <el-table-column label="操作" width="100" fixed="right">
+          <el-table-column label="操作" width="210" fixed="right">
             <template #default="{ row }">
               <el-link
-                v-if="canRetry(row.status)"
+                v-if="canExecute(row.status)"
                 type="primary"
                 :underline="false"
+                :disabled="!canRun"
+                data-testid="task-execute"
+                @click="onExecute(row)"
+              >
+                执行
+              </el-link>
+              <el-link
+                type="primary"
+                :underline="false"
+                :style="{ marginLeft: canExecute(row.status) ? '8px' : '0' }"
+                data-testid="task-detail"
+                @click="openTaskDetail(row)"
+              >
+                详情
+              </el-link>
+              <el-link
+                v-if="canRetry(row.status)"
+                type="warning"
+                :underline="false"
+                style="margin-left: 8px"
                 :disabled="!canRun"
                 data-testid="task-retry"
                 @click="onRetry(row)"
               >
                 重试
               </el-link>
-              <span v-else class="sy__hint" title="后端只允许 FAILED / MANUAL 重试">—</span>
             </template>
           </el-table-column>
         </el-table>
+
+        <!-- ADM-S02 任务详情抽屉（含 operations 明细与 payload）：接口此前有封装、页面零调用，本次接线 -->
+        <el-drawer v-model="detailVisible" title="同步任务详情" size="560px" data-testid="task-detail-drawer">
+          <div v-if="detail" class="dt">
+            <div class="dt__row"><span class="dt__k">任务号</span><span class="dt__v">{{ detail.task_no || detail.task_id }}</span></div>
+            <div class="dt__row"><span class="dt__k">状态</span><span class="dt__v">{{ taskLabel(detail.status) }}</span></div>
+            <div class="dt__row"><span class="dt__k">类型</span><span class="dt__v">{{ detail.task_type || '—' }}</span></div>
+            <div class="dt__row"><span class="dt__k">供应商</span><span class="dt__v">{{ providerName(detail.provider_id) }}</span></div>
+            <div class="dt__row"><span class="dt__k">编译产物</span><span class="dt__v">{{ detail.compilation_id || '—' }}</span></div>
+            <div class="dt__row"><span class="dt__k">尝试次数</span><span class="dt__v">{{ detail.attempt_count ?? '—' }}</span></div>
+            <div class="dt__row">
+              <span class="dt__k">回读一致</span>
+              <span class="dt__v">{{ detail.readback_equal == null ? '—' : detail.readback_equal ? '一致' : '不一致' }}</span>
+            </div>
+            <div class="dt__row"><span class="dt__k">幂等键</span><span class="dt__v dt__v--mono">{{ detail.idempotency_key || '—' }}</span></div>
+            <div class="dt__row"><span class="dt__k">最近错误</span><span class="dt__v">{{ detail.last_error || '—' }}</span></div>
+
+            <div class="dt__title">执行明细（aap_sync_operation）</div>
+            <el-table :data="detail.operations ?? []" size="small" data-testid="task-operation-table" empty-text="暂无明细">
+              <el-table-column label="操作" width="130" prop="operation" />
+              <el-table-column label="结果" width="100" prop="result" />
+              <el-table-column label="第几次" width="80" prop="attempt_no" />
+              <el-table-column label="回读" width="90">
+                <template #default="{ row }">
+                  {{ row.readback_equal == null ? '—' : row.readback_equal ? '一致' : '不一致' }}
+                </template>
+              </el-table-column>
+              <el-table-column label="错误" min-width="160" prop="error" />
+            </el-table>
+
+            <div class="dt__title">任务载荷（读前写后三段式的输入）</div>
+            <pre class="dt__json" data-testid="task-payload">{{ pretty(detail.payload) }}</pre>
+          </div>
+          <p v-else class="sy__hint">加载中…</p>
+        </el-drawer>
+
+        <!-- ADM-S07 登记 new-api 端点（仅 SUPER_ADMIN） -->
+        <el-dialog v-model="endpointDialog" title="登记 new-api 同步端点" width="560px" data-testid="endpoint-dialog">
+          <el-form label-width="110px">
+            <el-form-item label="名称">
+              <el-input v-model="endpointForm.name" maxlength="64" data-testid="endpoint-name" />
+            </el-form-item>
+            <el-form-item label="Base URL">
+              <el-input v-model="endpointForm.base_url" maxlength="255" placeholder="https://newapi.example.com" data-testid="endpoint-base-url" />
+            </el-form-item>
+            <el-form-item label="Api Key">
+              <el-input v-model="endpointForm.api_key" type="password" show-password maxlength="512" data-testid="endpoint-api-key" />
+            </el-form-item>
+            <el-form-item label="只读端点">
+              <el-switch v-model="endpointForm.readonly" />
+            </el-form-item>
+          </el-form>
+          <p class="sy__note">
+            Api Key 加密落库（<code>api_key_cipher</code>），响应只回掩码 —— 页面不会、也无法回显明文。
+            标记「只读」后该端点的写操作一律 <code>E-1505</code>。
+          </p>
+          <template #footer>
+            <el-button @click="endpointDialog = false">取消</el-button>
+            <el-button type="primary" :loading="submitting" data-testid="endpoint-submit" @click="onRegisterEndpoint">登记</el-button>
+          </template>
+        </el-dialog>
+
+        <!-- ADM-S08 发起上架同步（建渠道 + 写价；执行在 ADM-S09） -->
+        <el-dialog v-model="publishDialog" title="发起上架同步（建渠道 + 写价）" width="600px" data-testid="publish-dialog">
+          <el-form label-width="130px">
+            <el-form-item label="供应商">
+              <el-select v-model="publishForm.provider_id" filterable placeholder="选择供应商" style="width: 100%" data-testid="publish-provider">
+                <el-option v-for="p in providers" :key="p.id" :label="p.company_name || p.provider_code || p.id" :value="String(p.id)" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="编译产物 ID">
+              <el-input v-model="publishForm.compilation_id" placeholder="留空 = 取该供应商最近一条已确认产物" data-testid="publish-compilation" />
+            </el-form-item>
+            <el-form-item label="渠道名">
+              <el-input v-model="publishForm.channel_name" placeholder="留空 = 服务端按 AAP-{简称}-{序号} 生成" data-testid="publish-channel-name" />
+            </el-form-item>
+            <el-form-item label="模式">
+              <el-select v-model="publishForm.mode" style="width: 100%" data-testid="publish-mode">
+                <el-option label="审核后应用（REVIEW_THEN_APPLY）" value="REVIEW_THEN_APPLY" />
+                <el-option label="仅预演（DRY_RUN）" value="DRY_RUN" />
+              </el-select>
+            </el-form-item>
+          </el-form>
+          <p class="sy__note">
+            闸门③：该供应商必须已有 <strong>CONFIRMED</strong> 编译产物，否则 409 <code>E-1407</code>（不绕过）。
+            幂等键 <code>sha256(provider_id|ADD_CHANNEL|channel_name)</code> —— 同供应商同名渠道重复发起会复用同一条任务。
+            本步只建任务（<code>PENDING</code>），真正写入 new-api 在「执行」（ADM-S09）。
+          </p>
+          <template #footer>
+            <el-button @click="publishDialog = false">取消</el-button>
+            <el-button type="primary" :loading="submitting" data-testid="publish-submit" @click="onCreateTask">发起同步</el-button>
+          </template>
+        </el-dialog>
 
         <div class="sy__logs">
           <div class="sy__logs-title">同步日志</div>
@@ -214,8 +335,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
-import { ElMessage } from 'element-plus';
+import { computed, onMounted, reactive, ref } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import {
   syncApi, SYNC_TASK_STATUS, BINDING_STATUS, SWITCHABLE_BINDING_STATUS, RETRYABLE_TASK_STATUS,
   type ChannelBinding, type SyncTask
@@ -237,6 +358,27 @@ const providers = ref<ProviderRow[]>([]);
 const taskStatus = ref('');
 const autoSync = ref(true); // 设计帧开关为开；无配置端点 → 控件禁用
 const upstreamOk = ref<boolean | null>(null);
+
+/* ── ADM-S07/S08/S09 上架闭环（2026-09-24 接线）────────────────────────────
+ * 此前这三条后端端点已实现且有契约测试，但页面零调用 ⇒ 管理端看不到、也点不动上架。
+ * 本次只做「接线」：不新增端点、不改错误语义，错误原样透出（尤其闸门③ E-1407）。
+ * ──────────────────────────────────────────────────────────────────────── */
+const canRegisterEndpoint = computed(() => can(role.value as AdminRole, 'newapi.config'));
+const submitting = ref(false);
+
+const endpointDialog = ref(false);
+const endpointForm = reactive({ name: '', base_url: '', api_key: '', readonly: false });
+
+const publishDialog = ref(false);
+const publishForm = reactive({
+  provider_id: '',
+  compilation_id: '',
+  channel_name: '',
+  mode: 'REVIEW_THEN_APPLY' as 'REVIEW_THEN_APPLY' | 'DRY_RUN'
+});
+
+const detailVisible = ref(false);
+const detail = ref<SyncTask | null>(null);
 
 const bindingLabel = (s: string | null | undefined) => (s ? BINDING_STATUS[s]?.label ?? s : '—');
 const bindingTone = (s: string | null | undefined) => (s ? BINDING_STATUS[s]?.tone : undefined) ?? 'muted';
@@ -268,6 +410,9 @@ const healthDot = computed(() =>
 
 const canSwitch = (s: string) => SWITCHABLE_BINDING_STATUS.includes(s);
 const canRetry = (s: string) => RETRYABLE_TASK_STATUS.includes(s);
+/** ADM-S09 可执行的任务状态（与 SyncPublishService.execute 的状态闸门一致；RUNNING 不可重入） */
+const EXECUTABLE_TASK_STATUS = ['PENDING', 'SYNCED', 'FAILED', 'MANUAL'];
+const canExecute = (s: string) => EXECUTABLE_TASK_STATUS.includes(s);
 
 /** 供应商名由 /admin/providers 关联（绑定视图只有 provider_id） */
 function providerName(id: string | null | undefined): string {
@@ -335,11 +480,111 @@ async function onRetry(row: SyncTask) {
   }
 }
 
-function onSyncNow() {
-  // 绝不假装触发：后端没有「立即同步」端点（ADM-S03 只能按任务重试；ADM-U02 是用量聚合刷新，是另一件事）
-  ElMessage.warning(
-    '后端未提供「立即触发渠道同步」端点（ADM-S03 只能按任务重试、ADM-U02 是用量聚合刷新）→ 本次未发出任何请求。'
-  );
+/** payload 展示：对象美化、字符串原样、空值给「—」（不假装有内容） */
+function pretty(v: unknown): string {
+  if (v == null) return '—';
+  if (typeof v === 'string') return v;
+  try {
+    return JSON.stringify(v, null, 2);
+  } catch {
+    return String(v);
+  }
+}
+
+/** ADM-S07：登记 new-api 端点（仅 SUPER_ADMIN；api_key 只进不出） */
+function openEndpointDialog() {
+  endpointForm.name = '';
+  endpointForm.base_url = '';
+  endpointForm.api_key = '';
+  endpointForm.readonly = false;
+  endpointDialog.value = true;
+}
+
+async function onRegisterEndpoint() {
+  if (!endpointForm.name.trim() || !endpointForm.base_url.trim() || !endpointForm.api_key.trim()) {
+    ElMessage.warning('名称 / Base URL / Api Key 均为必填');
+    return;
+  }
+  submitting.value = true;
+  try {
+    const ep = await syncApi.registerEndpoint({
+      name: endpointForm.name.trim(),
+      base_url: endpointForm.base_url.trim(),
+      api_key: endpointForm.api_key,
+      readonly: endpointForm.readonly
+    });
+    endpointDialog.value = false;
+    endpointForm.api_key = ''; // 明文不留在内存里
+    ElMessage.success(`端点已登记：${ep?.name ?? ''}（key 掩码 ${ep?.api_key_mask ?? '—'}）`);
+    await loadAll();
+  } catch (e) {
+    ElMessage.error((e as Error).message);
+  } finally {
+    submitting.value = false;
+  }
+}
+
+/** ADM-S08：发起上架同步（建渠道 + 写价）——闸门③ 未确认编译产物会被后端以 E-1407 拒绝 */
+function openPublishDialog() {
+  publishDialog.value = true;
+}
+
+async function onCreateTask() {
+  if (!publishForm.provider_id) {
+    ElMessage.warning('请选择供应商');
+    return;
+  }
+  submitting.value = true;
+  try {
+    const t = await syncApi.createTask({
+      provider_id: publishForm.provider_id,
+      compilation_id: publishForm.compilation_id.trim() || undefined,
+      channel_name: publishForm.channel_name.trim() || undefined,
+      mode: publishForm.mode
+    });
+    publishDialog.value = false;
+    ElMessage.success(
+      `已建上架任务 ${t?.task_no || t?.task_id || ''}（${t?.status ?? ''}）—— 下一步在任务行点「执行」才真正写入 new-api`
+    );
+    await loadAll();
+  } catch (e) {
+    ElMessage.error((e as Error).message);
+  } finally {
+    submitting.value = false;
+  }
+}
+
+/** ADM-S09：执行上架（真写上游 → 回读比对）。写操作先二次确认，不做静默写入 */
+async function onExecute(row: SyncTask) {
+  const id = row.task_id || row.id;
+  try {
+    await ElMessageBox.confirm(
+      `将对 new-api 真实写入渠道与价格（读前 → 写后 → 回读一致），任务 ${row.task_no || id}。是否继续？`,
+      '执行上架同步',
+      { type: 'warning', confirmButtonText: '执行', cancelButtonText: '取消' }
+    );
+  } catch {
+    return; // 用户取消
+  }
+  try {
+    const t = await syncApi.executeTask(id);
+    const note = t?.readback_equal === false ? '（回读不一致：本地状态未沿用，需人工核对）' : '';
+    ElMessage.success(`上架执行完成：${t?.status ?? ''}${note}`);
+    await loadAll();
+  } catch (e) {
+    ElMessage.error((e as Error).message);
+  }
+}
+
+/** ADM-S02：任务详情抽屉（先用行数据占位避免空白，再拉全量含 operations） */
+async function openTaskDetail(row: SyncTask) {
+  detail.value = row;
+  detailVisible.value = true;
+  try {
+    detail.value = (await syncApi.taskDetail(row.task_id || row.id)) ?? row;
+  } catch (e) {
+    ElMessage.error((e as Error).message);
+  }
 }
 
 onMounted(loadAll);
@@ -351,6 +596,41 @@ defineExpose({ loadAll });
 .sy__bar { display: flex; align-items: center; gap: 10px; padding: 14px 16px; flex-wrap: wrap; }
 .sy__spacer { flex: 1; }
 .sy__hint { font-size: var(--fs-sm); color: var(--c-text-muted); }
+
+/* ADM-S02 详情抽屉 / S07-S08 对话框（2026-09-24 接线新增） */
+.sy__note {
+  margin: 4px 0 0;
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+  color: var(--c-text-muted);
+}
+.sy__note code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--c-fill, rgba(148, 163, 184, 0.16));
+}
+.dt { display: flex; flex-direction: column; gap: 6px; }
+.dt__row { display: flex; gap: 12px; font-size: var(--fs-base); }
+.dt__k { width: 92px; flex: none; color: var(--c-text-muted); }
+.dt__v { flex: 1; word-break: break-all; }
+.dt__v--mono { font-family: var(--font-mono, monospace); font-size: var(--fs-sm); }
+.dt__title {
+  margin-top: 14px;
+  font-size: var(--fs-base);
+  font-weight: 600;
+}
+.dt__json {
+  max-height: 220px;
+  overflow: auto;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--c-fill, rgba(148, 163, 184, 0.12));
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fs-sm);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
 .sy__todo { font-size: var(--fs-base); color: var(--c-text-muted); }
 .sy__err { font-size: var(--fs-base); color: var(--c-danger); }
 .sy__err-block { color: var(--c-danger); font-size: var(--fs-base); margin: 10px 0 0; }
