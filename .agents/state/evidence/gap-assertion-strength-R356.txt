@@ -1,0 +1,164 @@
+==============================================================================
+R356 第 28 类只读取证：端点级用例的**断言强度**（结构级 ⇔ 语义级 ⇔ 缺失）
+==============================================================================
+ROOT = E:\workspaces\hioas\hioas-aap-001
+
+-- A 逐源读数（每源带 > 0 正向对照）--
+A1 清单端点 = 99
+  [PASS] A0a 清单端点 > 0 =99
+A2 测试源文件 = 49
+  [PASS] A0b 测试源文件 > 0 =49
+A3 解析到方法 = 464（源代码里 @Test 标注 = 243）
+  [PASS] A0c 解析到方法 >= @Test 标注数 464 vs 243
+A4 调用点（已解析）= 625；未能静态判定 = 9
+  [PASS] A0d 解析到调用点 > 0 =625
+A4b 助手赋值点索引 = 192 键；发生「断言在调用方」传播的调用点 = 92
+  [PASS] A0g 调用方传播非空转（> 0） =92
+A5 方法级断言强度分布：契约级S=78 业务码级C=65 字段级F=19 仅结构级T=66 无断言N=236
+  [PASS] A0e 分类器非空转（S>0 且 T>0） S=78 T=66
+  [PASS] A0e2 分类闭合（S+C+F+T+N == 方法数） 464 vs 464
+A6 逐端点定位率 = 99 / 99
+  [PASS] A0f 定位率 > 0 99/99
+A7 端点级强度：语义级（S/C/F）= 99；仅结构级（T/N）= 0；零用例 = 0
+A7b 敏感性（诚实披露）：**仅靠调用方传播**才达语义级的端点 = 21 ['AUTH-01', 'AUTH-02', 'AUTH-06', 'CRED-02', 'CRED-05', 'DET-01', 'QT-02', 'QT-05', 'QT-08', 'QT-09', 'ADM-AUTH01', 'ADM-CP01', 'ADM-CP03', 'ADM-R01', 'ADM-R02', 'ADM-R03', 'ADM-R04', 'ADM-R05', 'ADM-CFG02', 'ADM-CFG07', 'ADM-DET01']；不启用传播时「仅结构级」= 21 条 ['AUTH-01', 'AUTH-02', 'AUTH-06', 'CRED-02', 'CRED-05', 'DET-01', 'QT-02', 'QT-05', 'QT-08', 'QT-09', 'ADM-AUTH01', 'ADM-CP01', 'ADM-CP03', 'ADM-R01', 'ADM-R02', 'ADM-R03', 'ADM-R04', 'ADM-R05', 'ADM-CFG02', 'ADM-CFG07', 'ADM-DET01']
+
+-- B 机器判据 --
+  [PASS] B1 每个端点至少有一个真实 HTTP 用例 无调用点 0 条：[]
+  [PASS] B2 每个端点至少有一个语义级断言（契约/业务码/字段） 仅结构级 0 条：[]
+
+-- C 形态域穷举（端点 × 定位 × 强度）--
+  AUTH-01   POST   /auth/sms/send                               调用点=37 强度=S 档位=C,N,S,T
+  AUTH-02   POST   /auth/sms/login                              调用点=31 强度=S 档位=C,N,S,T
+  AUTH-03   POST   /auth/wechat/login                           调用点=2 强度=S 档位=S
+  AUTH-04   POST   /auth/refresh                                调用点=2 强度=S 档位=S
+  AUTH-05   POST   /auth/logout                                 调用点=1 强度=C 档位=C
+  AUTH-06   GET    /auth/me                                     调用点=13 强度=S 档位=C,S,T
+  PROV-01   GET    /provider/profile                            调用点=2 强度=S 档位=C,S
+  PROV-02   PUT    /provider/profile                            调用点=7 强度=S 档位=C,S
+  PROV-03   GET    /provider/qualifications                     调用点=2 强度=S 档位=S
+  PROV-04   POST   /provider/qualifications                     调用点=3 强度=S 档位=C,S
+  PROV-05   DELETE /provider/qualifications/{}                  调用点=1 强度=S 档位=S
+  CRED-01   GET    /credentials                                 调用点=2 强度=S 档位=C,S
+  CRED-02   POST   /credentials                                 调用点=11 强度=S 档位=C,N,T
+  CRED-03   GET    /credentials/{}                              调用点=3 强度=S 档位=C,S
+  CRED-04   PUT    /credentials/{}                              调用点=1 强度=F 档位=F
+  CRED-05   POST   /credentials/{}/precheck                     调用点=13 强度=S 档位=C,N,S,T
+  CRED-06   GET    /credentials/{}/precheck/latest              调用点=1 强度=S 档位=S
+  CRED-07   POST   /credentials/{}/reveal                       调用点=2 强度=S 档位=S
+  DET-01    POST   /detection-jobs                              调用点=5 强度=S 档位=C,S,T
+  DET-02    GET    /detection-jobs/{}                           调用点=3 强度=S 档位=C,S
+  DET-03    GET    /detection-jobs/{}/results                   调用点=1 强度=S 档位=S
+  DET-04    GET    /detection-jobs/{}/results/{}                调用点=2 强度=S 档位=S
+  DET-05    POST   /detection-jobs/{}/cancel                    调用点=3 强度=S 档位=C,S
+  DET-06    POST   /detection-jobs/{}/release                   调用点=3 强度=C 档位=C
+  RPT-01    GET    /reports                                     调用点=4 强度=S 档位=C,F,S
+  RPT-02    GET    /reports/{}                                  调用点=3 强度=S 档位=C,F,S
+  RPT-03    GET    /reports/{}/html                             调用点=1 强度=S 档位=S
+  RPT-04    GET    /reports/{}/export                           调用点=1 强度=S 档位=S
+  QT-01     GET    /quotes                                      调用点=4 强度=S 档位=C,S
+  QT-02     POST   /quotes                                      调用点=6 强度=C 档位=C,T
+  QT-03     GET    /quotes/{}                                   调用点=4 强度=S 档位=C,F,S
+  QT-04     DELETE /quotes/{}                                   调用点=1 强度=S 档位=S
+  QT-05     POST   /quotes/{}/items                             调用点=6 强度=S 档位=S,T
+  QT-06     GET    /quotes/{}/items                             调用点=2 强度=S 档位=S
+  QT-07     GET    /quotes/items/{}                             调用点=3 强度=S 档位=C,S
+  QT-08     PUT    /quotes/items/{}                             调用点=15 强度=S 档位=C,S,T
+  QT-09     POST   /quotes/{}/submit                            调用点=9 强度=S 档位=S,T
+  QT-10     POST   /quotes/{}/withdraw                          调用点=3 强度=S 档位=S
+  QT-11     GET    /quotes/{}/versions                          调用点=1 强度=S 档位=S
+  QT-12     POST   /quotes/{}/compile-preview                   调用点=1 强度=F 档位=F
+  CON-01    GET    /contracts                                   调用点=6 强度=S 档位=S
+  CON-02    GET    /contracts/{}                                调用点=5 强度=S 档位=S
+  CON-03    GET    /contracts/{}/file                           调用点=5 强度=S 档位=C,S
+  CON-04    POST   /contracts/{}/sign                           调用点=8 强度=S 档位=C,F,S
+  PAY-01    GET    /payments                                    调用点=5 强度=S 档位=C,S
+  NTF-01    GET    /notifications                               调用点=14 强度=S 档位=C,F,S
+  NTF-02    POST   /notifications/{}/read                       调用点=7 强度=S 档位=C,F,S
+  USE-01    GET    /usage/summary                               调用点=9 强度=S 档位=C,F,S
+  USE-02    GET    /usage/hourly                                调用点=11 强度=S 档位=C,S
+  ADM-AUTH01 POST   /admin/auth/sms/login                        调用点=1 强度=S 档位=N
+  ADM-AUTH02 GET    /admin/admin-users                           调用点=5 强度=S 档位=S
+  ADM-AUTH03 POST   /admin/admin-users                           调用点=8 强度=S 档位=C,S
+  ADM-AUTH04 POST   /admin/admin-users/{}/suspend                调用点=6 强度=C 档位=C
+  ADM-AUTH05 POST   /admin/admin-users/{}/resume                 调用点=3 强度=C 档位=C
+  ADM-P01   GET    /admin/providers                             调用点=11 强度=S 档位=C,S
+  ADM-P02   POST   /admin/providers/{}/suspend                  调用点=9 强度=S 档位=C,S
+  ADM-P03   POST   /admin/providers/{}/resume                   调用点=8 强度=S 档位=C,S
+  ADM-C01   GET    /admin/credentials/{}                        调用点=6 强度=S 档位=S
+  ADM-C02   POST   /admin/credentials/{}/reveal                 调用点=7 强度=S 档位=S
+  ADM-Q01   POST   /admin/quotes/{}/compile                     调用点=8 强度=S 档位=C,F,S
+  ADM-Q02   GET    /admin/quotes/compare                        调用点=12 强度=S 档位=C,S
+  ADM-Q03   GET    /admin/quotes/{}/items                       调用点=5 强度=S 档位=S
+  ADM-CP01  GET    /admin/compilations                          调用点=4 强度=S 档位=S,T
+  ADM-CP02  GET    /admin/compilations/{}                       调用点=3 强度=S 档位=S
+  ADM-CP03  POST   /admin/compilations/{}/verify                调用点=2 强度=S 档位=S,T
+  ADM-CP04  POST   /admin/compilations/{}/confirm               调用点=2 强度=S 档位=S
+  ADM-R01   GET    /admin/reviews                               调用点=7 强度=S 档位=S,T
+  ADM-R02   POST   /admin/reviews/{}/claim                      调用点=11 强度=S 档位=C,F,S,T
+  ADM-R03   POST   /admin/reviews/{}/approve                    调用点=5 强度=S 档位=C,S,T
+  ADM-R04   POST   /admin/reviews/{}/reject                     调用点=7 强度=C 档位=C,T
+  ADM-R05   GET    /admin/reviews/records                       调用点=3 强度=S 档位=S,T
+  ADM-CT01  GET    /admin/contracts                             调用点=5 强度=S 档位=S
+  ADM-CT02  POST   /admin/contracts/{}/issue                    调用点=9 强度=S 档位=C,S
+  ADM-CT03  POST   /admin/contracts/{}/confirm-sign             调用点=4 强度=S 档位=C,S
+  ADM-PAY01 GET    /admin/payments                              调用点=7 强度=S 档位=S
+  ADM-PAY02 POST   /admin/payments/{}/confirm                   调用点=6 强度=S 档位=S
+  ADM-PAY03 GET    /admin/settlements                           调用点=3 强度=S 档位=S
+  ADM-PAY04 POST   /admin/payments                              调用点=13 强度=S 档位=C,S
+  ADM-PAY05 POST   /admin/payments/{}/void                      调用点=5 强度=C 档位=C
+  ADM-S01   GET    /admin/sync/tasks                            调用点=10 强度=S 档位=C,S
+  ADM-S02   GET    /admin/sync/tasks/{}                         调用点=3 强度=S 档位=S
+  ADM-S03   POST   /admin/sync/tasks/{}/retry                   调用点=10 强度=S 档位=C,S
+  ADM-S04   GET    /admin/channel-bindings                      调用点=4 强度=S 档位=C,S
+  ADM-S05   POST   /admin/channel-bindings/{}/status            调用点=10 强度=S 档位=C,S
+  ADM-S06   GET    /admin/sync/models/upstream                  调用点=5 强度=S 档位=C,S
+  ADM-U01   GET    /admin/usage/hourly                          调用点=7 强度=S 档位=S
+  ADM-U02   POST   /admin/usage/refresh                         调用点=6 强度=S 档位=C,S
+  ADM-CFG01 GET    /admin/detection-configs                     调用点=10 强度=S 档位=C,F,S
+  ADM-CFG02 POST   /admin/detection-configs                     调用点=1 强度=C 档位=N
+  ADM-CFG03 GET    /admin/detection-configs/{}                  调用点=2 强度=S 档位=S
+  ADM-CFG04 PUT    /admin/detection-configs/{}                  调用点=5 强度=S 档位=S
+  ADM-CFG05 POST   /admin/detection-configs/{}/publish          调用点=6 强度=S 档位=C,F,S
+  ADM-CFG06 GET    /admin/report-templates                      调用点=8 强度=S 档位=C,S
+  ADM-CFG07 POST   /admin/report-templates                      调用点=1 强度=S 档位=N
+  ADM-CFG08 GET    /admin/report-templates/{}                   调用点=2 强度=S 档位=S
+  ADM-CFG09 PUT    /admin/report-templates/{}                   调用点=3 强度=S 档位=S
+  ADM-CFG10 POST   /admin/report-templates/{}/publish           调用点=5 强度=S 档位=C,F,S
+  ADM-DET01 GET    /admin/detection-jobs                        调用点=8 强度=S 档位=S,T
+  ADM-A01   GET    /admin/audit-logs                            调用点=21 强度=S 档位=C,S
+
+-- D 判别力实测（每支先断言注入真的改到源码，66/90/94）--
+  D1 合成[仅状态] -> 判 T（期望 T）
+  D1 合成[业务码] -> 判 C（期望 C）
+  D1 合成[契约] -> 判 S（期望 S）
+  D1 合成[字段] -> 判 F（期望 F）
+  D1 合成[无断言] -> 判 N（期望 N）
+  D1 合成[失败信息不是字段断言] -> 判 T（期望 T）
+  [PASS] D1 合成形态六支分类正确 
+  D2 合成[拼接路径] -> POST /a/{}/b（期望 POST /a/{}/b）
+  D2 合成[单字面量+尾变量] -> DELETE /credentials/{}（期望 DELETE /credentials/{}）
+  D2 合成[纯字面量] -> POST /quotes（期望 POST /quotes）
+  D2 合成[send 显式方法] -> GET /admin/x（期望 GET /admin/x）
+  D2 合成[文本块实参不误判] -> POST /x（期望 POST /x）
+  [PASS] D2 合成路径解析五支正确（含文本块实参） 
+  D3 文本块夹具：strip 后含 JSON 花括号 = True；方法体终点下标 = 100 / 文本长度 = 101（须 == 末字符）
+  [PASS] D3 含 JSON 花括号的文本块不破坏方法体跨度（否则整批端点被判「零调用点」假发现） _be=100 len-1=100
+  D5 合成[契约变量 vs 数字字面量] /admin/providers/{}/suspend vs /admin/providers/810001/suspend -> True（期望 True）
+  D5 合成[契约变量 vs 字母数字字面量] /detection-jobs/{}/results/{}/x vs /detection-jobs/12/results/D1/x -> True（期望 True）
+  D5 合成[末段不同则不得命中] /admin/providers/{}/suspend vs /admin/providers/810001/resume -> False（期望 False）
+  D5 合成[段数不同则不得命中] /auth/sms/send vs /auth/sms/send/extra -> False（期望 False）
+  D5 合成[同级不同资源不得混淆] /auth/sms/send vs /auth/sms/login -> False（期望 False）
+  D5 合成[两侧变量亦可匹配] /quotes/{}/items vs /quotes/{}/items -> True（期望 True）
+  [PASS] D5 契约变量通配匹配六支（含三条反向对照，防滥匹配） 
+  D4 注入对象 = aap-server/src/test/java/com/hioas/aap/adminconfig/DetectionConfigContractTest.java#createDetailList；注入真的改到源码 = True
+  [PASS] D4 注入真的改到源码（否则判别力空转，66/94） 
+  D4b 注入后强度 = F（期望非 S：语义级断言被移除）
+  [PASS] D4b 注入后必须降级（守卫有牙齿） got=F
+
+E 零写副作用：受核文件 = 49 个；(size, mtime_ns, md5) 变化 = 0
+  [PASS] E1 只读（零写副作用） []
+
+==============================================================================
+汇总：PASS 17 / FAIL 0
+读数：清单端点 99；测试源 49 文件；解析方法 464（@Test 243）；已解析调用点 625（未判定 9）；定位率 99/99；语义级 99；仅结构级 0；零用例 0
+GAP_ASSERTION_STRENGTH_END=1
