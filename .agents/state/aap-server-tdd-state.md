@@ -11322,3 +11322,12 @@ wisemapping 的 `spring-boot:run`）**均未被误判为测试 JVM**（这正是
 * **据实更正（历史 209）**：主提交 `92f87d4e` 的台账描述写「返工 10 处」，收尾阶段新增第 ⑪⑫ 项（提交后核对脚本的两条过窄判据）→ 权威数字更正为 **返工 13 处**。这是**收尾阶段才暴露**的返工，据实更正、**不 amend 已发布的主提交**；非「先写错再补正」的修正史。台账 / 状态文件 / 本收尾提交 message **三处一致**。
 * 收尾阶段机器核对：更正范围仅限描述列的返工计数形态（`fold()` 归一后逐字符相等）∧ 其余 7 列逐列相等 ∧ 主提交是本收尾提交的祖先。
 * 状态/台账/核对证据三者 CR=0；轮次连续无重号（R27…R364）；第 31 类守卫（`tools/audit-round-claims.py`）rc=0。
+
+### R365 巡检轮（missing = 0 → 校验轮；交付面/测试面零改动；回归面 84 → 84 未扩面）
+
+* **被测状态**：102/102（missing=0、registered_routes=119、not_registered=[]）；**连续第 347 轮全绿**（由上一轮 history 行推得）。被测提交 = worktree 实际检出 **679c3a8c**；窗口 02:02:14 → 02:06:49；HEAD 起点 = 终点。**红基线：无**（校验轮不改代码）。
+* **两轮全量**：run1 02:02:26–02:04:40（02:11 min）/ run2 02:04:40–02:06:46（02:04 min），各 252 例 / 44 类、rc=0、Failures-Errors-Skipped 0-0-0；逐类 diff = 0；`@Test` 词边界 252 == surefire 252；禁用扫描 0。
+* **第 34 类只读不变量（本轮新增）**：跨轮「账本自述 ⇔ 归档提交链 + 该轮执行器落盘 facts」。读数：FORM_A 58 行、声明被测提交 52 行、受判 52 轮（**可达 52 / 不可达 0 / 非 commit 0**）；**真发现 1 处** = R358 行时间戳 `23:15` 与该轮落盘窗口结束 `22:47:03` 不符（且晚于自身提交 1220 秒）⇒ **据实更正**；修后复核 逆序对 0 / 硬正差 0；观察项 (312, 304), (323, 292)（未改，待拍板）。
+* **回归面**：复跑 84 条、rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 41 脚本 · 159 行；faildiff 对 R364 新增 0 / 消失 0；G 组 FAIL 0；零写副作用（受核 93 个生成物全等）；常驻红 6 条（最长连续非零 rc = 191 轮）。
+* **本轮返工真值 = 11 处**（全部判据/脚本侧，逐条见台账描述列）；**权威数字 = 返工 11 处**（三处一致：台账 / 状态文件 / 收尾提交）。
+* 证据清单（18 条）：evidence/round-R365-analysis.txt；evidence/green-verify-R365-tested-state.txt；evidence/green-verify-R365-testcount.txt；evidence/green-verify-R365-full-run1.txt；evidence/green-verify-R365-full-run2.txt；evidence/green-verify-R365-coverage-fields.txt；evidence/audit-regression-R365.txt；evidence/audit-regression-R365-rcseq.txt；evidence/audit-regression-R365-failraw.txt；evidence/audit-regression-R365-faildiff.txt；evidence/gap-conc-inwindow-R365.txt；evidence/gap-ledger-vs-tree-R365.txt；evidence/gap-window-writes-R365.txt；evidence/gap-history-chain-R365.txt；evidence/gap-history-fix-R365.txt；evidence/gap-probe-fix-R365.txt；evidence/gap-rework-R365.txt；evidence/coverage-history.txt（追加 R365 行）

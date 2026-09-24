@@ -1,0 +1,35 @@
+R365 改进项落地取证：只读探针 (c) 分支「分类完备」恒真式 -> 条件化 + 判别力（历史 75/98/220-③）
+修正前产物 = C:\Users\laitz\AppData\Local\Temp\aap-r364-work\gap-r364-probes.py
+修正后产物 = C:\Users\laitz\AppData\Local\Temp\aap-r365-work\gap-r365-probes.py
+==============================================================================
+-- 修正前（回修正前产物取证，历史 214）--
+恒真式判据命中 1 次；条件化判据命中 0 + 0 次（须 0 = 本轮新增）
+len(mine) + len(others) == len(files), "mine=%d others=%d total=%d" % (len(mine), len(others), len(files)))
+
+print("RUN_PROBES_END=1")
+print("PROBE_FAILS =", fails)
+
+-- 修正后 --
+恒真式判据命中 0 次（须 0）；三分类判别力 1；条件化 1；证据文件复读 1
+(c) 归属函数三分类判别力（合成夹具：自身 / 他方·被测面 / 他方·非被测面）",
+    all(_bucket(r) == exp for r, exp in _syn_bucket),
+    "合成 %d 条 -> %s" % (len(_syn_bucket), [_bucket(r) for r, _x in _syn_bucket]))
+# 「分类完备」在**零写入**时是恒真式（mine/others 由 files 划分而来，数学上必成立）⇒ 不得冒充守卫；
+# 正解 = 回到**证据文件本体**复读：分类数据行数逐条 == files 且标签与独立分类函数一致（可失败：写出/标签错位即红）
+# —— 条件化 + 证据自证（历史 220-③「条件化」与历史 12「证据必须自证真实结论」）
+_evlines = [x for x in (EV / "gap-window-writes-R365.txt").read_text(encoding="utf-8").splitlines()
+            if x.startswith("   ") and (" 自身" in x or " 他方·" in x)]
+
+if files:
+    chk("(c) 分类完备（非空窗口）：证据文件分类数据行 == files 且标签与分类函数逐条一致", _ev_ok,
+        "证据分类行 %d / files %d" % (len(_evlines), len(files)))
+else:
+    chk("(c) 零写入（预期态）：证据文件不得出现分类数据行", not _evlines,
+        "分类数据行 = %d（须 0）" % len(_evlines))
+
+-- 判别力实测 --
+注入文本 = 'chk("(c) 注入的恒真式判据", len(mine) + len(others) == len(files), "x")'（注入真的改到了文本 = True）；检测器命中 1 次（须 1）
+
+结论：判据缺陷已在**产物侧**结构性消除（恒真式 -> 可失败的三分类判别力 + 条件化 + 证据自证复读）；
+      全程只改只读探针脚本，**未触碰交付代码与测试面**；注入实测证明检测器有牙齿。
+PROBE_FIX_END=1
