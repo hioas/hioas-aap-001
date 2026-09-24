@@ -1,0 +1,16 @@
+[PASS] D1 台账描述列 / 状态本段 / 收尾链提交 message 三处真值一致 | 台账 [20] / 状态 [20] / 收尾链含最终真值声明的提交 = ['326f2233c491e1127395bfcd5ccf0867e20bdc81']（真值 20）
+[PASS] D1a 主提交 message 所记历史真值可解析且与 rowdata 同源 | 主提交 c1629e5b 记 14 处；最终 20 处；需更正 = True
+[PASS] D1b 真值推进分支：台账含「据实更正声明」∧ 状态文件含「收尾更正」 | 更正声明 = True / 收尾更正 = True
+[PASS] D2 台账「提交」列 = 主提交 ∧ 主提交为 HEAD 祖先 | 提交列=c1629e5b MAIN=c1629e5b
+[PASS] D3 收尾后全部声明证据（本文件自身除外）均在 HEAD 树内 | 缺 0 []
+[PASS] D3b 本文件 SELF 单列（落盘产生，不参与断言） | verify-R367-postcheck.txt
+[PASS] D4 收尾链只碰台账/状态/本轮证据（按「文件名含本轮轮次号」规则推导）∧ 全在 .agents/state/** | 链长 5 / 文件 ['.agents/state/aap-server-feature-status.csv', '.agents/state/aap-server-tdd-state.md', '.agents/state/evidence/closeout-R367.txt', '.agents/state/evidence/correction-R367.txt', '.agents/state/evidence/correction2-R367.txt', '.agents/state/evidence/verify-R367-post.txt'] / 越界项 []
+[PASS] D4c 正向对照：识别为「本轮证据」的文件数 > 0 | n=4
+[PASS] D4b 台账与状态都在**本轮提交链**（MAIN~1..HEAD）内 | 账=True 态=True
+[PASS] D5 交付面越界 = 0（收尾链内 aap-*/ 改动 = 0） | 越界 0
+[PASS] D6 HEAD 树内本轮产物与两个追加目标 CR=0 ∧ 末字节换行 | 违规 []
+[PASS] D7 陈旧措辞所在文件（收尾取证）已追加更正段 ∧ 更正段位于其后 | 含更正段 = True；陈旧措辞位置 = 935，更正段位置 = 1134
+[PASS] D8 正向对照：证据条数 > 0 ∧ 收尾链提交数 > 0 | 证据 19 条 / 收尾链 5 提交
+MAIN_COMMIT=c1629e5b HEAD=326f2233 收尾链 = ['326f2233c491e1127395bfcd5ccf0867e20bdc81', '43ad632d5d4128631539cf4aa77be49e8abf3d16', 'bcf04cbae047bb894df5141fb6c73a53b8482d1b', '6c08ea7d99576867ddd9847221bab555fa8b45ca', '5537863992469636ba98d27f88be4214e3cc765e']
+SUM PASS=13 FAIL=0
+POSTCHECK_R367_END=1
