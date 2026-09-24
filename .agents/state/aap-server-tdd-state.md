@@ -11353,3 +11353,12 @@ wisemapping 的 `spring-boot:run`）**均未被误判为测试 JVM**（这正是
 
 **收尾更正**：**权威数字 = 20 处**（主提交 message 记 14 处；6 项判据侧缺陷收尾阶段才暴露）→ 台账 / 状态文件 / 收尾提交 message 三处一致；不改写已发布提交（历史 209/250）。
 
+### R368 巡检轮（missing = 0 → 校验轮；交付面/测试面零改动；回归面 R367 → 84 未扩面）
+
+* **被测状态**：102/102（missing=0、registered_routes=119）；**连续第 350 轮全绿**（由上一轮 history 行推得、并与解析链写入值交叉校核）。被测提交 = worktree 实际检出 **310e5dc3**；窗口 03:34:00 → 03:38:33；HEAD 起点 = 终点 = 310e5dc3。**红基线：无**（校验轮不改代码）。
+* **两轮全量**：run1 03:34:13–03:36:31（02:15 min）/ run2 03:36:31–03:38:30（01:57 min），各 252 例 / 44 类、rc=0、Failures-Errors-Skipped 0-0-0；逐类 diff = 0；`@Test` 词边界 252 == surefire 252；禁用扫描 0。
+* **第 37 类只读不变量（本轮新增）**：归档 `coverage-report.json` ⇔ 冻结清单（总数 / 按族归属 / 缺失明细）。硬判据：B3（本轮运行生成的归档副本）total=102、逐族一致、missing=0、H1/H2 各 1 条 PASS；读数：B1（HEAD 提交内）total=99、`""`=9、含 T15=False —— 差异 2 项；B2（工作区）total=102、`""`=12、含 T15=False —— 差异 2 项；两者归因 = 陈旧生成物（历史清单状态序列 8 种）；判别力实测 1 支；零写副作用（受核 3 个文件 (size, md5) 全等）；取证 PASS 13 / FAIL 0。
+* **回归面**：复跑 84 条、rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 41 脚本 · 159 行；faildiff 对 R367 新增 0 / 消失 0；G 组 FAIL 0；只读探针 `PROBE_FAILS = []`；常驻红 2 条（最长连续非零 rc = 194 轮）。
+* **本轮返工真值 = 9 处**（全部判据/脚本/派生/证据侧，逐条见 `evidence/gap-rework-R368.txt`）；**权威数字 = 返工 9 处**（三处一致：台账描述列 / 状态文件本段 / 收尾提交 message）。
+* 证据清单（21 条）：evidence/round-R368-analysis.txt；evidence/green-verify-R368-tested-state.txt；evidence/green-verify-R368-testcount.txt；evidence/green-verify-R368-full-run1.txt；evidence/green-verify-R368-full-run2.txt；evidence/green-verify-R368-coverage-fields.txt；evidence/audit-regression-R368.txt；evidence/audit-regression-R368-rcseq.txt；evidence/audit-regression-R368-failraw.txt；evidence/audit-regression-R368-faildiff.txt；evidence/gap-conc-inwindow-R368.txt；evidence/gap-ledger-vs-tree-R368.txt；evidence/gap-window-writes-R368.txt；evidence/gap-stalereport-R368.txt；evidence/gap-stalereport-fix-R368.txt；evidence/gap-rework-R368.txt；evidence/postwrite-check-R368.txt；evidence/verify-R368-post.txt；evidence/closeout-R368.txt；evidence/verify-R368-postcheck.txt；coverage-history.txt（追加 R368 行）
+
