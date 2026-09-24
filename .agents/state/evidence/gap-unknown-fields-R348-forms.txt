@@ -1,0 +1,8 @@
+形态域表 · 第 20 类 · R348
+1) 契约侧 `additionalProperties` 形态：① 显式 true（28）② 缺省（0）③ 显式 false（0）
+2) 实现侧未知字段口径的承载形态：① 显式 `@JsonIgnoreProperties(ignoreUnknown=true)`（14 个 DTO）② **框架默认（零标注，17 个 DTO）** ③ 显式严格 false（0）④ 未能静态判定（0 个站点）
+3) 配置侧形态：① yml 显式 `fail-on-unknown-properties`（0 处）② `default-property-inclusion: always`（1 处）③ 依赖框架默认（现状）
+4) 测试背书形态：① 未知字段构造（0 处）② 契约 `additionalProperties` 断言（0 处）③ 反序列化配置断言（0 处）
+5) 判据形态：本类 FAIL 语义 = 判据或读数与预期不符；漂移事实写在结论段（与既有类一致）
+6) 与相邻类的边界：第 16 类查**媒体类型**（Content-Type/Accept）；第 18 类查**响应包络键集合**；第 47 类（领域）查**请求体必填性** —— 本类只查**未知字段**（契约外字段的处置），与三者均不同轴
+GAP_UNKNOWN_FIELDS_FORMS_END=1

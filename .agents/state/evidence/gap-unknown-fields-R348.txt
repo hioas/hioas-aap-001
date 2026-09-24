@@ -1,0 +1,22 @@
+第 20 类只读取证：请求体未知字段处置口径跨源一致性 · R348
+（只读：零写副作用；不起 shell，历史 240/251）
+
+S  契约侧请求模型 schema = 28 个；`additionalProperties` 分布 = {'True': 28}（显式宽容 28 / 显式严格 0）
+E  端点 → request_model：模型 27 个 / 端点引用 32 处；引用了请求模型的端点涉及模型 = ['admin-user-create', 'admin-user-suspend', 'auth-refresh', 'auth-sms-login', 'auth-sms-send', 'auth-wechat-login']
+Y  配置侧 `spring.jackson.*` 键集合：{'application.yml': ['default-property-inclusion'], 'application-test.yml': []}；**`fail-on-unknown-properties` 显式设置 = 无**
+I  实现侧 @RequestBody 站点 = 35；定位到 DTO 声明 = 35（定位率 100%）；未定位 = 无
+   承载形态三分类：显式 `@JsonIgnoreProperties(ignoreUnknown=true)` = 14 个 DTO ['ApproveRequest@AdminReviewController.java', 'BindingStatusRequest@SyncViews.java', 'CreateRequest@AdminUserController.java', 'IssueRequest@AdminContractController.java', 'ModelRequest@CatalogViews.java', 'RecordRequest@AdminPaymentController.java', 'RefreshRequest@AdminUsageController.java', 'RejectRequest@AdminReviewController.java', 'SaveRequest@AdminReportTemplateController.java', 'SaveRequest@DetectionConfigViews.java', 'SignRequest@ContractController.java', 'SuspendRequest@AdminUserController.java', 'VendorRequest@CatalogViews.java', 'VoidRequest@AdminPaymentController.java']；**框架默认（零标注）= 17 个 DTO** ['AuthController.SmsLoginRequest@AuthController.java', 'CreateJobRequest@DetectionController.java', 'CreateRequest@QuoteController.java', 'CredentialRequest@CredentialController.java', 'ItemsRequest@QuoteController.java', 'QualificationRequest@ProviderController.java', 'RefreshRequest@AuthController.java', 'ReleaseRequest@DetectionController.java', 'RevealRequest@AdminCredentialController.java', 'RevealRequest@CredentialController.java', 'SaveItemRequest@QuoteController.java', 'SmsLoginRequest@AuthController.java', 'SmsSendRequest@AuthController.java', 'SuspendRequest@AdminProviderController.java', 'UpdateHeaderRequest@QuoteController.java', 'UpdateProfileRequest@ProviderController.java', 'WechatLoginRequest@AuthController.java']；显式严格（false）= 0
+   受影响面：`@RequestBody` 站点中 DTO 走**框架默认**口径的 = 18 / 35 个站点（涉及控制器 8 个：['AdminAuthController.java', 'AdminCredentialController.java', 'AdminProviderController.java', 'AuthController.java', 'CredentialController.java', 'DetectionController.java', 'ProviderController.java', 'QuoteController.java']）
+   （模型名 → DTO 的逐条映射需 kebab↔camel 猜测 ⇒ 按纪律**不猜**，只报站点/控制器级受影响面，样式化映射记「未能静态判定」，历史 99）
+T  测试背书：未知字段构造点 = 0 处；契约 `additionalProperties` 断言点 = 0 处
+
+-- 真发现（机器取证）--
+① **同一契约口径在实现里由两种机制承载**：14 个请求 DTO 显式标注 `ignoreUnknown=true`，另有 **17 个请求 DTO 零标注**（依赖 Spring Boot 的 Jackson 默认），而 `application.yml` 的 `jackson:` 块**只**设 `default-property-inclusion: always`、**不含** `fail-on-unknown-properties` ⇒ 「未知字段被静默忽略」这一契约承诺**没有任何显式配置或断言承载**（历史 44：同族两种写法是漂移高发地）。
+   当前**无故障**（两形态取值等价），但**框架默认变更或任一环节显式开启严格** ⇒ 未标注的 17 个模型会静默 400/`E-1801`，而全部用例（243 例）**零覆盖未知字段**（构造点 = 0）⇒ 该漂移对两套门禁完全不可见。
+   修法二选一（均属**改交付代码/测试面** ⇒ 按「missing==0 -> 只校验不改代码」未改，列待拍板）：① 统一为显式标注（17 处补齐）；② 在 yml 显式钉住 `fail-on-unknown-properties: false` 并给未标注 DTO 留白。
+② **正值结论**：契约侧 28/28 请求模型**显式声明** `additionalProperties: true`（宽容），与实现「忽略未知字段」的口径**方向一致**；显式严格声明 = 0（无相反要求）。
+③ **信息项**：`aap-client` 侧请求体键集合未做逐字段静态比对（形态差异大、静态不可判定 ⇒ 按纪律只记信息项，不当漂移，历史 58/99）。
+
+PASS 18 / FAIL 1
+  [FAIL] A3c **同族两种写法**判定：同一契约口径在实现里由「显式标注」与「框架默认」两种机制承载 ⇒ 漂移候选（历史 44）
+GAP_UNKNOWN_FIELDS_END=1
