@@ -1,0 +1,50 @@
+R372 校验轮（missing==0 -> 交付代码零改动）；全部读数由 analyze-r372.py 从 facts-run.log / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+判据：PASS 39 / FAIL 0
+  [INFO] Hb2 窗口内他方改动 = 22 条（他方活跃 ⇒ 具名读数、不判 FAIL；他方静止时本读数为 0），逐条 = ['aap-admin/src/api/admin/contracts.ts', 'aap-admin/src/views/contracts/index.vue', 'aap-admin/tools/admin-acceptance.mjs', 'aap-admin/tools/settlement-e2e.mjs', 'aap-server/src/main/java/com/hioas/aap/settlement/AdminPaymentController.java', 'aap-server/src/main/java/com/hioas/aap/settlement/PaymentViews.java', 'aap-server/src/main/java/com/hioas/aap/settlement/SettlementController.java', 'aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java', 'aap-server/src/main/java/com/hioas/aap/support/AuditService.java', 'aap-server/src/main/resources/db/migration/V14__settlement_generation.sql', 'aap-server/src/test/java/com/hioas/aap/coverage/EndpointCoverageTest.java', 'aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java', 'docs/backend/02-API\\346\\216\\245\\345\\217\\243\\346\\250\\241\\345\\236\\213\\346\\270\\205\\345\\215\\225.md', 'docs/backend/endpoints.json', 'docs/backend/json-schema/models/audit-log.schema.json', 'docs/backend/json-schema/models/settlement-detail.schema.json', 'docs/backend/json-schema/models/settlement-line.schema.json', 'docs/backend/json-schema/requests/settlement-generate.schema.json', 'docs/backend/json-schema/requests/settlement-void.schema.json', 'docs/backend/openapi.yaml', 'tools/biz-closure-e2e.py', 'tools/gen-backend-models.py']（历史 81/194/198）
+
+=== 证据文件 ===
+  green-verify-R372-tested-state.txt             lines~47 exists=True
+  green-verify-R372-testcount.txt                lines~9 exists=True
+  green-verify-R372-full-run1.txt                lines~49 exists=True
+  green-verify-R372-full-run2.txt                lines~49 exists=True
+  green-verify-R372-coverage-fields.txt          lines~6 exists=True
+[PASS] H0 窗口 epoch 事实被解析（执行器落盘、消费方只读，历史 243-③）
+[PASS] P0 解析器正向对照 RE_TOTAL/INFO(单行样本)
+[PASS] P0 解析器正向对照 RE_TOTAL/ERROR(历史 228)
+[PASS] P0 解析器正向对照 RE_TOTAL/多行文本中段(真实用法)
+[PASS] P0 解析器正向对照 RE_CLASS
+[PASS] P0 解析器正向对照 RE_TT_MIN
+[PASS] P0 解析器正向对照 RE_TT_SEC(历史 175)
+[PASS] A1 run1 合计行解析到恰好 1 条
+[PASS] A1 run1 逐类结果解析到 > 0 条
+[PASS] A1 run1 耗时被解析到（双写法）
+[PASS] A2 run2 合计行解析到恰好 1 条
+[PASS] A2 run2 逐类结果解析到 > 0 条
+[PASS] A2 run2 耗时被解析到（双写法）
+[PASS] B1 run1 Tests run / Failures / Errors / Skipped = 252/0/0/0 全绿
+[PASS] B1 run1 rc=0
+[PASS] B1 run1 BUILD SUCCESS
+[PASS] B2 run2 Tests run / Failures / Errors / Skipped = 252/0/0/0 全绿
+[PASS] B2 run2 rc=0
+[PASS] B2 run2 BUILD SUCCESS
+[PASS] C 两轮逐类结果 diff = 0
+[PASS] Cb 两轮类数一致
+[PASS] D 两轮串行（不重叠：run2_start >= run1_end）
+[PASS] E0 归档测试源码解析到 > 0 个 java 文件
+[PASS] E @Test 词边界计数 == surefire 合计
+[PASS] Eb 禁用扫描 = 0 条
+[PASS] F 覆盖报告解析到 total > 0
+[PASS] Fb missing == 0
+[PASS] Fc implemented == total
+[PASS] Fd 已注册路由 > 0 且未注册为空
+[PASS] Fe 按族分布解析到 > 0 族
+[PASS] G 找到上一轮 coverage-history 行
+[PASS] Gb 上一轮行含「连续第 N 轮」形态
+[PASS] Gc 上一轮行含用例数形态
+[PASS] H 主体的在途改动被登记
+[PASS] Hc 归属分类器判别力实测（我方正例 2 / 被测面反例 1）
+[PASS] Hb1 本轮自身写入 ⊆ 我方写点（.agents/state/** ∨ tools/audit-round-claims*）
+[PASS] H0b 在途改动的 mtime 命中数 > 0（判据失效则恒为 0，历史 57/98/238-①）
+[PASS] I coverage-history 末行 = 本轮行
+[PASS] Ib coverage-history CR = 0

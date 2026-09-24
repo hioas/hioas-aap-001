@@ -1,0 +1,44 @@
+==============================================================================
+R372 跨轮 FAIL 明细比对（归一后）
+==============================================================================
+  R371 留档 failraw：解析到 167 行（跳过 [PASS] 行 0、无 tag 前缀 0）
+  R372 本轮 failraw：解析到 163 行（跳过 [PASS] 行 0、无 tag 前缀 0）
+正向对照：两侧解析行数均 > 0 → PASS（R371=167 / R372=163）
+归一集合：R371 = 167 条 / R372 = 163 条
+新增 15 条、消失 19 条
+  + [enum-sets] A2 openapi 内联枚举名全部在 md §5 登记 | 孤儿 5: AuditAction(26), CredentialDetectionStatus(4), IndustryCategory(3), QuoteRejectReason(7), ResultCode(28)
+  + [enum-sets] models/audit-log.schema.json:action 取值 ['ADMIN_USER_CREATE', 'ADMIN_USER_RESUME', 'ADMIN_USER_SUSPEND', 'AUTH_LOGIN', 'CONFIG_PUBLISH', 'CONTRACT_SIGN
+  + [gap-audit-log-selftest] C13 真实仓库的两条发现（A6 孤儿 action / A7 声明未填充列）可复现
+  + [gap-pagination-order] P3 汇总：分页 SQL 排序确定性：PASS 14 / FAIL 1 / 未能静态判定 0
+  + [gap-softdelete] A4 aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:57 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+  + [gap-softdelete] A4 aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:721 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+  + [gap-softdelete] A4s A4 漂移 13 条
+  + [gap-status-machine] A3g md 迁移声明定位率 7/8（要求全部定位且 > 0）
+  + [gap-time-bucket] A5 服务端月桶按 UTC 计算（取证点 7 处），而客户端把**本机当前月**当 month 查询参数传给该端点（aap-client/src/pages/usage/index.vue:207 `month.value` ← `currentMonth()`）→ 东八区每月 1 日 00:00–
+  + [gen-selftest] 干净仓库 --check → rc=0 (rc=1)
+  + [gen-selftest] 生成产物与基线逐字节一致（内容 md5 不变，仅 mtime 变） (内容变化的文件数=1 ['docs//backend//endpoints.json']（已按字节快照还原 1 个）)
+  + [request-body] A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）：不一致 10 条：{'ADM-CFG07': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-CFG09': 
+  + [spotcheck-config] A2 孤儿配置键（yml 声明但实现零读取）= 1 条：app.detection.execute-initial-delay-ms
+  + [spotcheck-http-method] A3 实现方法分布与清单不一致（方法语义漂移）：GET 实现 57 / 清单 51
+  + [spotcheck-http-method] A3 实现方法分布与清单不一致（方法语义漂移）：POST 实现 53 / 清单 50
+  - [auth-contract] A1 清单每条端点都能在实现里定位到路由（解析器覆盖性正向对照）：未定位 6 条：['ADM-PAY06', 'ADM-PAY07', 'ADM-PAY08', 'ADM-PAY09', 'SET-01', 'SET-02']
+  - [enum-sets] A2 openapi 内联枚举名全部在 md §5 登记 | 孤儿 5: AuditAction(23), CredentialDetectionStatus(4), IndustryCategory(3), QuoteRejectReason(7), ResultCode(28)
+  - [enum-sets] models/audit-log.schema.json:action 取值 ['ADMIN_USER_CREATE', 'ADMIN_USER_RESUME', 'ADMIN_USER_SUSPEND', 'AUTH_LOGIN', 'CONFIG_PUBLISH', 'CONTRACT_SIGN
+  - [gap-audit-log] A6 契约目录的 action 全部有实现调用点 | 孤儿 action 3 个：['STATEMENT_CONFIRM', 'STATEMENT_GENERATE', 'STATEMENT_VOID']
+  - [gap-logical-fk] A0g 控制器路由定位率仅 102/108 → 未定位：GET /admin/settlements/{}, GET /settlements, GET /settlements/{}, POST /admin/settlements, POST /admin/settlements/{}/conf
+  - [gap-pagination-order] P3 汇总：分页 SQL 排序确定性：PASS 13 / FAIL 1 / 未能静态判定 0
+  - [gap-softdelete] A4 aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:339 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+  - [gap-softdelete] A4 aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:50 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+  - [gap-softdelete] A4s A4 漂移 12 条
+  - [gap-status-machine] A3 md L199 DRAFT→CONFIRMED 缺 from 守卫：实现写 CONFIRMED 但无 DRAFT 约束（aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java aap_payment_re
+  - [gap-status-machine] A3 md L200 DRAFT→VOID 缺 from 守卫：实现写 VOID 但无 DRAFT 约束（aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java aap_payment_record）
+  - [gap-status-machine] A3g md 迁移声明定位率 5/8（要求全部定位且 > 0）
+  - [gap-time-bucket] A5 服务端月桶按 UTC 计算（取证点 5 处），而客户端把**本机当前月**当 month 查询参数传给该端点（aap-client/src/pages/usage/index.vue:207 `month.value` ← `currentMonth()`）→ 东八区每月 1 日 00:00–
+  - [query-params] A3a 清单每条端点都在实现里定位到同方法同路径的控制器方法：未定位 6 条
+  - [request-body] A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）：不一致 12 条：{'ADM-CFG07': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-CFG09': 
+  - [routes] A3 清单每条端点都在实现里有同方法同路径的路由：未定位 6 条
+  - [spotcheck-config] A2 孤儿配置键（yml 声明但实现零读取）= 4 条：app.detection.execute-initial-delay-ms；app.settlement.amount-basis；app.settlement.cycle；app.settlement.fee-basis
+  - [spotcheck-http-method] A3 实现方法分布与清单不一致（方法语义漂移）：GET 实现 54 / 清单 51
+  - [spotcheck-state-machine] A3 md from→to 与实现不一致 2 条：ADM-PAY08 md 声明 DRAFT→CONFIRMED，实现写点（aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:165 / aap-serve
+判定：存在差异（已逐条列出）
+COMPARE_END=1

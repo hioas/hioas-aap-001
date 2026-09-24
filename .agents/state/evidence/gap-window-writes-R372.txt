@@ -1,0 +1,19 @@
+R372 只读事实探针（窗口 05:49:48 -> 05:55:18；被测提交 80d4bdcc）
+==============================================================================
+候选集合 = tracked 7539 + untracked 23 -> 去重 7553（有界扫描；整仓 rglob 在本机超 180s）
+窗口内（05:49:48 -> 05:55:18 = epoch 1790286588 -> 1790286918，2026-09-25 05:49:48 -> 2026-09-25 05:55:18）被写入的仓库文件 = 11 条
+  其中本轮自身产物（.agents/state/**、tools/audit-round-claims*.py）= 1 条
+  其中**他方**文件 = 10 条（被测面 9 / 非被测面 1）
+   09-25 05:50:09 他方·被测面     aap-client/src/api/payment.ts
+   09-25 05:50:12 他方·被测面     aap-client/src/utils/settlement-model.ts
+   09-25 05:50:25 他方·被测面     aap-client/src/pages/settlements/index.vue
+   09-25 05:50:32 他方·被测面     aap-client/src/pages.json
+   09-25 05:51:00 他方·被测面     aap-client/src/utils/routes.ts
+   09-25 05:51:13 他方·被测面     aap-client/src/utils/mine-model.ts
+   09-25 05:51:15 他方·被测面     aap-client/tests/unit/mine-model.spec.ts
+   09-25 05:51:30 他方·被测面     aap-client/tests/unit/settlement-model.spec.ts
+   09-25 05:52:29 他方·被测面     aap-client/tests/pages/mine-flow.spec.ts
+   09-25 05:54:02 他方·非被测面    .agents/state/aap-decisions.md
+   09-25 05:54:44 自身         .agents/state/aap-server-feature-status.csv
+回修正前对照：旧判据（只比 HH:MM:SS）命中 24 条 / 新判据（epoch）命中 11 条 -> 跨日假阳性 13 条（历史 214：缺陷取证锚在修正前判据上）
+WINDOW_WRITES_END=1

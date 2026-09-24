@@ -1,0 +1,47 @@
+R372 校验轮（missing==0 -> 交付代码零改动）；全部读数由 analyze-r372.py 从 facts-run.log / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 80d4bdcc
+被测提交全 SHA = 80d4bdccf90660416b4e832bd4e85a6e3837f168
+被测提交主题 = chore(evidence): R371 收尾二次终读（D1-D4 复跑全绿：证据 26/26 在 HEAD 树内、台账 c4 与工作区一致、提交列 affa3881、状态含收尾更正段）
+run1 = 05:50:05 -> 05:53:01 rc=0 / run2 = 05:53:02 -> 05:55:15 rc=0（串行，run1_end == run2_start）
+窗口 = 05:49:48 -> 05:55:18；HEAD 起点 = 80d4bdcc / 终点 = 9d659840
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 37 条
+   M        .agents/state/aap-decisions.md  mtime=2026-09-25 05:15:40.810645400 +0800 
+   ??       .agents/state/evidence/biz-closure-20260925-final.json  mtime=2026-09-25 05:44:09.227287100 +0800 
+   ??       .agents/state/evidence/biz-closure-20260925-settlement-rate.json  mtime=2026-09-25 05:42:35.375188200 +0800 
+   ??       .agents/state/evidence/biz-closure-20260925-settlement.json  mtime=2026-09-25 05:40:52.895736300 +0800 
+   M        .agents/state/evidence/coverage-report.json  mtime=2026-09-25 05:34:37.995978600 +0800 / 2026-09-25 05:34:37.995978600 +0800 
+   M        .agents/state/evidence/endpoint-test-audit.json  mtime=2026-09-25 05:15:39.809066700 +0800 / 2026-09-25 05:15:39.809066700 +0800 
+   M        .agents/state/evidence/endpoint-test-audit.txt  mtime=2026-09-25 05:15:39.810062900 +0800 / 2026-09-25 05:15:39.810062900 +0800 
+   ??       .agents/state/evidence/green-Settlement.txt  mtime=2026-09-25 05:28:18.390025200 +0800 
+   ??       .agents/state/evidence/green-full-20260925.txt  mtime=2026-09-25 05:36:17.953452200 +0800 
+   ??       .agents/state/evidence/red-Settlement.txt  mtime=2026-09-25 05:21:56.880914600 +0800 
+   M        README.md  mtime=2026-09-24 07:51:14.626000000 +0800 / 2026-09-24 07:51:14.626000000 +0800 
+   M        aap-admin/src/api/admin/contracts.ts  mtime=2026-09-25 05:43:32.068788900 +0800 
+   M        aap-admin/src/views/contracts/index.vue  mtime=2026-09-25 05:44:32.670081100 +0800 
+   M        aap-admin/tools/admin-acceptance.mjs  mtime=2026-09-25 05:46:08.176228100 +0800 
+   ??       aap-admin/tools/settlement-e2e.mjs  mtime=2026-09-25 05:48:02.274232000 +0800 
+   M        aap-server/pom.xml  mtime=2026-09-24 08:07:37.296202200 +0800 / 2026-09-24 08:07:37.296202200 +0800 
+   M        aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39.191402700 +0800 / 2026-09-24 19:12:39.191402700 +0800 
+   M        aap-server/src/main/java/com/hioas/aap/settlement/AdminPaymentController.java  mtime=2026-09-25 05:24:49.771826800 +0800 
+   M        aap-server/src/main/java/com/hioas/aap/settlement/PaymentViews.java  mtime=2026-09-25 05:25:55.180661100 +0800 
+   ??       aap-server/src/main/java/com/hioas/aap/settlement/SettlementController.java  mtime=2026-09-25 05:24:51.256908200 +0800 
+   M        aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java  mtime=2026-09-25 05:25:00.186528200 +0800 
+   M        aap-server/src/main/java/com/hioas/aap/support/AuditService.java  mtime=2026-09-25 05:13:49.647617400 +0800 
+   M        aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53.863778300 +0800 / 2026-09-25 05:13:53.863778300 +0800 
+   ??       aap-server/src/main/resources/db/migration/V14__settlement_generation.sql  mtime=2026-09-25 05:13:45.509286400 +0800 
+   ??       aap-server/src/main/webapp/  mtime=(无 mtime) 
+   M        aap-server/src/test/java/com/hioas/aap/coverage/EndpointCoverageTest.java  mtime=2026-09-25 05:32:45.924495000 +0800 
+   ??       aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java  mtime=2026-09-25 05:27:16.122484700 +0800 
+   M        docs/backend/02-API\346\216\245\345\217\243\346\250\241\345\236\213\346\270\205\345\215\225.md  mtime=(无 mtime) 
+   M        docs/backend/endpoints.json  mtime=2026-09-25 05:17:28.069457500 +0800 
+   M        docs/backend/json-schema/models/audit-log.schema.json  mtime=2026-09-25 05:17:27.985050400 +0800 
+   ??       docs/backend/json-schema/models/settlement-detail.schema.json  mtime=2026-09-25 05:17:27.971042500 +0800 
+   ??       docs/backend/json-schema/models/settlement-line.schema.json  mtime=2026-09-25 05:17:27.970042700 +0800 
+   ??       docs/backend/json-schema/requests/settlement-generate.schema.json  mtime=2026-09-25 05:17:27.995555800 +0800 
+   ??       docs/backend/json-schema/requests/settlement-void.schema.json  mtime=2026-09-25 05:17:27.996566900 +0800 
+   M        docs/backend/openapi.yaml  mtime=2026-09-25 05:17:28.029591400 +0800 
+   M        tools/biz-closure-e2e.py  mtime=2026-09-25 05:42:51.195818600 +0800 
+   M        tools/gen-backend-models.py  mtime=2026-09-25 05:17:26.397060000 +0800 
+窗口内他方改动条数 = 0（按 epoch 判定；窗口 2026-09-25 05:49:48 -> 2026-09-25 05:55:18；mtime 命中 35/37 条）
