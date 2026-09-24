@@ -1,0 +1,28 @@
+R371 只读事实探针（窗口 05:10:44 -> 05:15:32；被测提交 5f2e3044）
+==============================================================================
+HEAD 起点 = 5f2e3044 / 终点 = 5f2e3044（相等 ⇒ 他方在窗口内未推进）
+HEAD 提交 = 5f2e3044 chore(evidence): R370 收尾链顺序无关化（更正段重写保留尾段）+ 收尾后复核 15/15 终读
+他方在窗口内推进的提交数 = 0（由 HEAD 起止推断）
+   M        README.md                                                    mtime=2026-09-24 07:51:14.626000000 +0800 / 2026-09-24 07:51:14.626000000 +0800 
+   M        aap-server/pom.xml                                           mtime=2026-09-24 08:07:37.296202200 +0800 / 2026-09-24 08:07:37.296202200 +0800 
+   M        aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java mtime=2026-09-24 19:12:39.191402700 +0800 / 2026-09-24 19:12:39.191402700 +0800 
+   ??       aap-server/src/main/webapp/                                  mtime= 
+在途改动登记条数 = 4；其中 mtime 落在窗口内 = 0（mtime 命中 3/4 条 —— 正斜杠/反斜杠已归一，历史 57）
+窗口前后 git status 集合差异 = 16 条（自身 1 / 他方 15）；主仓库窗口内零写入属预期（执行器全程在临时 worktree 内跑测）
+  他方条目变化（登记，不判 FAIL）：?? aap-server/src/main/resources/db/migration/V14__settlement_generation.sql
+  他方条目变化（登记，不判 FAIL）：?? aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java
+  他方条目变化（登记，不判 FAIL）：?? docs/backend/json-schema/models/settlement-detail.schema.json
+  他方条目变化（登记，不判 FAIL）：?? docs/backend/json-schema/models/settlement-line.schema.json
+  他方条目变化（登记，不判 FAIL）：?? docs/backend/json-schema/requests/settlement-generate.schema.json
+  他方条目变化（登记，不判 FAIL）：?? docs/backend/json-schema/requests/settlement-void.schema.json
+  他方条目变化（登记，不判 FAIL）：M "docs/backend/02-API\346\216\245\345\217\243\346\250\241\345\236\213\346\270\205\345\215\225.md"
+  他方条目变化（登记，不判 FAIL）：M aap-server/src/main/java/com/hioas/aap/settlement/PaymentViews.java
+  他方条目变化（登记，不判 FAIL）：M aap-server/src/main/java/com/hioas/aap/support/AuditService.java
+  他方条目变化（登记，不判 FAIL）：M aap-server/src/main/resources/application.yml
+  他方条目变化（登记，不判 FAIL）：M aap-server/src/test/java/com/hioas/aap/coverage/EndpointCoverageTest.java
+  他方条目变化（登记，不判 FAIL）：M docs/backend/endpoints.json
+  他方条目变化（登记，不判 FAIL）：M docs/backend/json-schema/models/audit-log.schema.json
+  他方条目变化（登记，不判 FAIL）：M docs/backend/openapi.yaml
+  他方条目变化（登记，不判 FAIL）：M tools/gen-backend-models.py
+  本轮自身条目：?? .agents/state/evidence/red-Settlement.txt
+CONC_END=1

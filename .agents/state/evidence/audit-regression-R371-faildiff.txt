@@ -1,0 +1,54 @@
+==============================================================================
+R371 跨轮 FAIL 明细比对（归一后）
+==============================================================================
+  R370 留档 failraw：解析到 159 行（跳过 [PASS] 行 0、无 tag 前缀 0）
+  R371 本轮 failraw：解析到 167 行（跳过 [PASS] 行 0、无 tag 前缀 0）
+正向对照：两侧解析行数均 > 0 → PASS（R370=159 / R371=167）
+归一集合：R370 = 159 条 / R371 = 167 条
+新增 26 条、消失 18 条
+  + [auth-contract] A1 清单每条端点都能在实现里定位到路由（解析器覆盖性正向对照）：未定位 6 条：['ADM-PAY06', 'ADM-PAY07', 'ADM-PAY08', 'ADM-PAY09', 'SET-01', 'SET-02']
+  + [enum-sets] models/audit-log.schema.json:action 取值 ['ADMIN_USER_CREATE', 'ADMIN_USER_RESUME', 'ADMIN_USER_SUSPEND', 'AUTH_LOGIN', 'CONFIG_PUBLISH', 'CONTRACT_SIGN
+  + [gap-audit-log] A6 契约目录的 action 全部有实现调用点 | 孤儿 action 3 个：['STATEMENT_CONFIRM', 'STATEMENT_GENERATE', 'STATEMENT_VOID']
+  + [gap-logical-fk] A0g 控制器路由定位率仅 102/108 → 未定位：GET /admin/settlements/{}, GET /settlements, GET /settlements/{}, POST /admin/settlements, POST /admin/settlements/{}/conf
+  + [gap-logical-fk] A4 3/14 处请求体引用字段**已消费但无同域存在性校验**（可写入指向不存在父行的引用）：PROV-04(file_id), ADM-CFG07(logo_file_id), ADM-CFG09(logo_file_id)
+  + [gap-pagination-defaults] A1 openapi 每个 page/pageSize 参数都声明 default：缺失 52/52（样例 PROV-03(page)、PROV-03(pageSize)、CRED-01(page)、CRED-01(pageSize)、RPT-01(page)）
+  + [gap-pagination-defaults] A2 openapi 每个 pageSize 参数都声明 maximum：缺失 26/26
+  + [gap-pagination-defaults-selftest] T1 注入修法锚点命中 46 处（= page+pageSize 参数数） — hits=52
+  + [gap-paging-range] A4: openapi 声明 pageSize 上限 200 的 operation：0/26
+  + [gap-paging-range] A5: openapi 声明 pageSize 默认值 20 的 operation：0/26
+  + [gap-paging-range] A5b: openapi 声明 page 默认值 1 的 operation：0/26
+  + [gap-sensitive-fields] A2c 逐端点响应 DTO 敏感键 ⇔ response_model schema（已定位的端点全部一致） 已定位 39 个端点（跳过 69：AUTH-01: 无键; AUTH-05: 未定位控制器; PROV-03: 返回 Map（键在 Service 里拼装，静态不可判定）; PROV-04: 
+  + [gap-status-machine] A3 md L195 UNSETTLED→PAYMENT_RECORDED 缺 from 守卫：实现写 PAYMENT_RECORDED 但无 UNSETTLED 约束（aap-server/src/main/java/com/hioas/aap/settlement/SettlementServi
+  + [gap-status-machine] A3 md L199 DRAFT→CONFIRMED 缺 from 守卫：实现写 CONFIRMED 但无 DRAFT 约束（aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java aap_payment_re
+  + [gap-status-machine] A3 md L200 DRAFT→VOID 缺 from 守卫：实现写 VOID 但无 DRAFT 约束（aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java aap_payment_record）
+  + [gap-status-machine] A3g md 迁移声明定位率 5/8（要求全部定位且 > 0）
+  + [query-params] A3a 清单每条端点都在实现里定位到同方法同路径的控制器方法：未定位 6 条
+  + [request-body] A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）：不一致 12 条：{'ADM-CFG07': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-CFG09': 
+  + [routes] A3 清单每条端点都在实现里有同方法同路径的路由：未定位 6 条
+  + [spotcheck-config] A2 孤儿配置键（yml 声明但实现零读取）= 4 条：app.detection.execute-initial-delay-ms；app.settlement.amount-basis；app.settlement.cycle；app.settlement.fee-basis
+  + [spotcheck-entity-ddl] A7b 声明未引用的孤儿序列 5 条（上限 3）：['seq_model_catalog', 'seq_settlement_line', 'seq_settlement_line_id', 'seq_settlement_statement_id', 'seq_vendor']
+  + [spotcheck-http-method] A3 实现方法分布与清单不一致（方法语义漂移）：GET 实现 54 / 清单 51
+  + [spotcheck-required] A2 无「必填同时可空」的自相矛盾属性：矛盾模型 6 个：{'contract-issue': ['file_id'], 'detection-job-create': ['credential_id'], 'payment-record': ['contract_id', 'provider_id
+  + [spotcheck-state-machine] A3 md from→to 与实现不一致 2 条：ADM-PAY08 md 声明 DRAFT→CONFIRMED，实现写点（aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:165 / aap-serve
+  + [spotcheck-string-length] A3c settlement-void.reason 声明 maxLength=255 但实现侧零强制，DDL 侧为 无同名列（无长度上限）→ 超长输入被**静默接受**，契约声明的上限无效（端点 ADM-PAY09）
+  + [spotcheck-string-length-selftest] S16 真实仓库 FAIL 明细 9 条 FAIL 明细=18
+  - [enum-sets] models/audit-log.schema.json:action 取值 ['ADMIN_USER_CREATE', 'ADMIN_USER_RESUME', 'ADMIN_USER_SUSPEND', 'AUTH_LOGIN', 'CONFIG_PUBLISH', 'CONTRACT_SIGN
+  - [gap-audit-log-selftest] C13 真实仓库的两条发现（A6 孤儿 action / A7 声明未填充列）可复现
+  - [gap-logical-fk] A4 3/13 处请求体引用字段**已消费但无同域存在性校验**（可写入指向不存在父行的引用）：PROV-04(file_id), ADM-CFG07(logo_file_id), ADM-CFG09(logo_file_id)
+  - [gap-pagination-defaults] A1 openapi 每个 page/pageSize 参数都声明 default：缺失 50/50（样例 PROV-03(page)、PROV-03(pageSize)、CRED-01(page)、CRED-01(pageSize)、RPT-01(page)）
+  - [gap-pagination-defaults] A2 openapi 每个 pageSize 参数都声明 maximum：缺失 25/25
+  - [gap-pagination-defaults-selftest] T1 注入修法锚点命中 46 处（= page+pageSize 参数数） — hits=50
+  - [gap-paging-range] A4: openapi 声明 pageSize 上限 200 的 operation：0/25
+  - [gap-paging-range] A5: openapi 声明 pageSize 默认值 20 的 operation：0/25
+  - [gap-paging-range] A5b: openapi 声明 page 默认值 1 的 operation：0/25
+  - [gap-sensitive-fields] A2c 逐端点响应 DTO 敏感键 ⇔ response_model schema（已定位的端点全部一致） 已定位 39 个端点（跳过 63：AUTH-01: 无键; AUTH-05: 未定位控制器; PROV-03: 返回 Map（键在 Service 里拼装，静态不可判定）; PROV-04: 
+  - [gap-status-machine] A3 md L193 UNSETTLED→PAYMENT_RECORDED 缺 from 守卫：实现写 PAYMENT_RECORDED 但无 UNSETTLED 约束（aap-server/src/main/java/com/hioas/aap/settlement/SettlementServi
+  - [gap-status-machine] A3g md 迁移声明定位率 5/6（要求全部定位且 > 0）
+  - [request-body] A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）：不一致 10 条：{'ADM-CFG07': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-CFG09': 
+  - [spotcheck-config] A2 孤儿配置键（yml 声明但实现零读取）= 1 条：app.detection.execute-initial-delay-ms
+  - [spotcheck-http-method] A3 实现方法分布与清单不一致（方法语义漂移）：GET 实现 54 / 清单 48
+  - [spotcheck-http-method] A3 实现方法分布与清单不一致（方法语义漂移）：POST 实现 50 / 清单 47
+  - [spotcheck-required] A2 无「必填同时可空」的自相矛盾属性：矛盾模型 5 个：{'contract-issue': ['file_id'], 'detection-job-create': ['credential_id'], 'payment-record': ['contract_id', 'provider_id
+  - [spotcheck-string-length-selftest] S16 真实仓库 FAIL 明细 9 条 FAIL 明细=17
+判定：存在差异（已逐条列出）
+COMPARE_END=1
