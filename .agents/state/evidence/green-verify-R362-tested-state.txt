@@ -1,0 +1,15 @@
+R362 校验轮（missing==0 -> 交付代码零改动）；全部读数由 analyze-r362.py 从 facts-run.log / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 64fcd1c
+被测提交全 SHA = 64fcd1c38d833429d3937bd0c8e80dafde5ce6ad
+被测提交主题 = chore(aap-server): R361 收尾 · 回填台账「提交」列 = 2d36237 + 落 verify-R361-post.txt（提交后核对 6/6 PASS）；权威数字 = 返工 9 处；不改写已发布主提交
+run1 = 00:46:26 -> 00:48:42 rc=0 / run2 = 00:48:43 -> 00:50:43 rc=0（串行，run1_end == run2_start）
+窗口 = 00:46:14 -> 00:50:47；HEAD 起点 = 64fcd1c / 终点 = 64fcd1c
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 5 条
+   M        .agents/state/evidence/coverage-report.json  mtime=2026-09-24 22:08:41.236722100 +0800 / 2026-09-24 22:08:41.236722100 +0800 
+   M        README.md  mtime=2026-09-24 07:51:14.626000000 +0800 / 2026-09-24 07:51:14.626000000 +0800 
+   M        aap-server/pom.xml  mtime=2026-09-24 08:07:37.296202200 +0800 / 2026-09-24 08:07:37.296202200 +0800 
+   M        aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39.191402700 +0800 / 2026-09-24 19:12:39.191402700 +0800 
+   ??       aap-server/src/main/webapp/  mtime=(无 mtime) 
+窗口内他方改动条数 = 0（按 epoch 判定；窗口 2026-09-25 00:46:14 -> 2026-09-25 00:50:47；mtime 命中 4/5 条）

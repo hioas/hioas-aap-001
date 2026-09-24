@@ -11143,3 +11143,49 @@ wisemapping 的 `spring-boot:run`）**均未被误判为测试 JVM**（这正是
 **三处一致**：台账行描述列 / 本状态段 / 收尾提交 message 均记 **权威数字 = 返工 9 处**、真发现 4 处、回归面 84 条、覆盖 102/102。
 
 **收尾阶段无新增返工/无新增真发现**（增量 0 —— 与主提交所记同值：本轮返工真值 `9` 处即最终真值），故本轮**无「据实更正」修正史**，也不虚构修正史。收尾提交紧随主提交之后的独立小提交，仅动台账 / 状态 / 留痕三处，**未改动交付代码与测试面**。
+
+
+## R362 巡检轮（missing=0 校验轮；交付代码零改动）
+
+**本轮性质**：`missing == 0` ⇒ 按作业纪律**不改交付代码、不改测试面**，**未扩面**回归序列。本轮为**校验轮**：两轮全量在**新建的 HEAD 临时 detached worktree** 内串行执行（`git worktree add --detach … HEAD`，跑完 `worktree remove --force`；历史 27/28/193），其后**串行**复跑既有巡检链（执行器 → 分析器 → chain → 回归面 driver 84 条 → faildiff 比对器 → 三项只读事实探针）；主仓库的他方在途改动只登记、不触碰。
+
+**被测状态**：提交 `64fcd1c`（64fcd1c38d833429d3937bd0c8e80dafde5ce6ad）；**被测提交主题（引用他轮原文，非本轮自述）**：『chore(aap-server): R361 收尾 · 回填台账「提交」列 = 2d36237 + 落 verify-R361-post.txt（提交后核对 6/6 PASS）；权威数字 = 返工 9 处；不改写已发布主提交』
+窗口 `2026-09-25 00:46:14 -> 00:50:47`（epoch 1790268374 -> 1790268647，**由执行器落盘、消费方只读**）；run1 00:46:26–00:48:42 / run2 00:48:43–00:50:43（**串行、不重叠**）；worktree 与 HEAD 差异行数 = 0；HEAD 起点 = 终点 = `64fcd1c`（他方在窗口内**未推进**）。
+
+**机器读数（由 `analyze-r362.py` 从 facts / run{1,2}.raw / 归档解析，非手写）**：
+
+| 项 | 读数 |
+|---|---|
+| 覆盖（被测状态） | total=102、implemented=102、missing=0、registered_routes=119、not_registered=[] |
+| 两轮全量 | 各 252 例 / 44 类；rc=0；Failures/Errors/Skipped = 0/0/0；逐类 diff=0 |
+| Maven 耗时 | run1 `02:14 min` / run2 `01:58 min`；均 `BUILD SUCCESS` |
+| 用例对账 | `@Test` 词边界 252 == surefire 合计 252（子串 254 作对照）；禁用扫描 = 0 条 |
+| 连续全绿 | 第 344 轮（由上一轮 coverage-history 行**推导**：prev=343 -> 344，非硬编码） |
+| 回归面 | 复跑 84 条 / 上一轮 84 条；**rc 变化 0 条**；未复跑 0；FAIL 明细 41 脚本 / 159 行；faildiff 新增 0 / 消失 0；G 组 FAIL 0 条；零写副作用（93 个生成物 size+md5 全等） |
+
+**真发现 2 处**（全部判据/生成物侧；详见台账描述列与 `evidence/gap-probe-vacuous-R362.txt`）
+
+① **提交态被跟踪生成物 `coverage-report.json` 陈旧**（三态据实并列 —— 判据 = 三者互不相同，故「陈旧」这一结论本身可被机器复核）：
+
+| 来源 | total / implemented | registered_routes | by_task 空任务号 / T15 |
+|---|---|---|---|
+| HEAD（提交态） | 99 / 99 | 116 | 9 / 无 |
+| 工作区（他方 09-24 22:08 主仓库跑测的中间态，未提交） | 102 / 102 | 119 | 12 / 无 |
+| 本轮 worktree 实跑产物（权威 = 单一事实源） | 102 / 102 | 119 | 9 / 3 |
+
+判据依据：`git show HEAD:docs/backend/endpoints.json` = **102 条（含 `"T15"` 3 条）**，故权威口径为 102/119/`T15`。**没有门禁读该文件** —— `EndpointCoverageTest` 只把它当跑测**输出**（`Path.of("..", ".agents", "state", "evidence", "coverage-report.json")`）⇒ 陈旧对 252 例全绿**完全不可见**（同族：R360 的 endpoints.json 生成物漂移）。**处置 = 按多代理纪律不触碰**（该路径在工作区带他方未提交改动，历史 15/193/194/198），修法列**待拍板**。
+
+② **只读事实探针 (c) 的「自身产物据实登记」是恒真断言**：原文 `chk("(c) 窗口内自身产物据实登记（执行器 worktree 隔离 ⇒ 0 属预期）", len(mine) >= 0, ...)` —— `len(mine) >= 0` **数学上恒真** ⇒ 该 PASS 无判别力，与历史 75/98「空转假绿」同族（永远无法区分「真干净」与「归属函数失效」）。修法 = 换成能失败的真不变量「窗口内写入的**分类完备**：自身 + 他方 = 总数」，并落进派生前置改写表（`derive-r362.py` 的 PRE 项）做**结构性消除**；修后复跑 `(c)` 全 PASS 且 `mine=0 others=0 total=0` 三数自洽。
+
+**本轮返工真值 = 2 处**（全部判据/脚本/派生侧，均由断言或崩溃当场响亮拦下）
+
+* ① 派生脚本 `derive-r362.py` 的 `FILES` 列表**照抄上一轮 derive**（写 `round-r360.sh` 等，而源目录 `aap-r361-work` 里实际是 `*-r361.*`）⇒ `FileNotFoundError`、派生中止在第一个文件（历史 243-② 的实例：**源侧文件名必须取源目录实际名**，照抄上一轮 derive 必踩；崩溃是正确行为，历史 175 —— 响亮失败远好于静默产出指向上一轮的脚本）⇒ 改为「源侧名字取源目录实际名」并补「前置改写锚点在源产物命中 1 次」的前置对照（4/4 命中）。
+* ② **状态文件段的「被测提交主题」按原文粘贴上一轮提交 message**（该 message 自带 B 形态 `权威数字 = 返工 9 处`）⇒ 第 31 类守卫 `tools/audit-round-claims.py` 把它误当**本轮自述**，报 `R362 A=[1] B=[1,9]`（**守卫正确报警 —— 不是守卫失效**，历史 175 正例）⇒ 修法 = 该主题按**引用区**标注（外层 『』 + 「引用他轮原文，非本轮自述」标签；内层「提交」用角引号，故外层必须用 『』 以免嵌套截断，历史 27/202/204-①），并给写入脚本加**与守卫同源的尾自检**（直调守卫并断言 rc=0）—— 该缺陷类从此不可能静默通过。
+
+**逐条据实说明**：真发现 ① ② 与返工 ① ② 全部为**判据/生成物/脚本/派生侧**，**交付代码与测试面零改动**；本轮为校验轮，未新增端点、未新增用例（`missing == 0`）。
+
+**权威数字 = 返工 2 处**；权威文本 = 台账描述列。
+
+**待拍板**：本轮**新增 1 项** —— 是否用本轮 worktree 权威产物（102/102/119/`(空任务号) 9`/`T15 3`）刷新提交态的 `coverage-report.json`（零交付面影响；本轮因其在工作区属他方未提交改动而**未触碰**）。其余沿用上一轮在册项（见本文件「待拍板」段与 R357–R361 台账描述列）；R357 的「`evidence-secrets` 8 条命中处置」已于 R358 完成、可销项。观察项：临时目录里仍留有**两个更早的 detached worktree**（`aap-r267-wt` / `aap-r268-wt`，早于本轮）——**本轮不动**，登记为待清理项。
+
+**证据**：evidence/round-R362-analysis.txt；evidence/green-verify-R362-tested-state.txt；evidence/green-verify-R362-testcount.txt；evidence/green-verify-R362-full-run1.txt；evidence/green-verify-R362-full-run2.txt；evidence/green-verify-R362-coverage-fields.txt；evidence/audit-regression-R362.txt；evidence/audit-regression-R362-rcseq.txt；evidence/audit-regression-R362-failraw.txt；evidence/audit-regression-R362-faildiff.txt；evidence/gap-conc-inwindow-R362.txt；evidence/gap-ledger-vs-tree-R362.txt；evidence/gap-window-writes-R362.txt；evidence/gap-probe-vacuous-R362.txt；evidence/coverage-history.txt（追加 R362 行）
