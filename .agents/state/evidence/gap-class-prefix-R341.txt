@@ -1,0 +1,17 @@
+[PASS] A0 家族成员与正向对照：tools/*.py = 28 个；不含自测 = 16 个；家族（源码含字面量 `@(Get|Post`）= 5 个：['audit-auth-contract.py', 'audit-query-params.py', 'audit-request-body.py', 'audit-response-shape.py', 'audit-routes.py']；控制器文件 = 28 个；类级 @RequestMapping = 28 处（须均 > 0）
+[PASS] A1a 类级形态域穷举（实测仓库控制器）：裸字面量 = 28 处 / 命名实参 = 0 处 / 多路径 = 0 处 / 无字面量 = 0 处（合计须 == 类级注解处数 28）
+[PASS] A1b 当前仓库「家族写法（位置式）提取值 != 真路径」处数：不一致 = 0 处 []；共核 28 处 ⇒ 当前仓库**未触发**类级取错（形态域 = 全部裸字面量）
+[PASS] A2a 族内**类级前缀**取值写法逐成员（静态，剥注释；作用域 = class_prefix 函数体 / 该成员的类级注解提取行）：位置式 = 4 个 [('audit-routes.py', 'L218'), ('audit-auth-contract.py', 'L156'), ('audit-query-params.py', 'L281'), ('audit-response-shape.py', 'L493')]；严格字面量式 = 1 个 [('audit-request-body.py', 'L416')]；未能判定 = 0 个 []（合计须 == 家族 5）
+[PASS] A2b 两种取值哲学并存（族内不统一）：位置式（findall + 首个字面量）= 4 / 严格字面量式（@RequestMapping\(…）= 1 ⇒ **族内两种取值哲学**；判别力实测：合成位置式行被判「位置式」= True（须 True）
+[PASS] A3a 行为实测（合成夹具 × 5 类级形态 × 5 成员）：矩阵覆盖 = 5 形态 × 5 成员；跨成员一致 = {'C1-裸字面量（真实形态）': True, 'C2-命名实参 value=': False, 'C3-produces-在前（等价写法）': False, 'C4-命名实参 path=': False, 'C5-多路径数组': False}
+[PASS] A3b 真实形态（C1-裸字面量）：5/5 成员一致给出期望值 = [('GET', '/syn/x')]（一致 = True）
+[PASS] A3c 命名实参 / 多路径形态（第 5 成员前缀为空 ⇒ **分歧**）：逐形态 = {'C2-命名实参 value=': (['audit-request-body.py'], [('GET', '/syn/x')], [('GET', '/x')]), 'C4-命名实参 path=': (['audit-request-body.py'], [('GET', '/syn/x')], [('GET', '/x')]), 'C5-多路径数组': (['audit-request-body.py'], [('GET', '/syn/x')], [('GET', '/x')])}（第 5 成员键 = ('GET','/x') ⇒ 真路由 /syn/x 缺席）
+[PASS] A3d produces-在前形态（4 位置式成员**一致地错**）：4 个位置式成员结果 = ["[('GET', 'text/html/x')]"]（期望 [('GET', '/syn/x')]）；第 5 成员 = [('GET', '/x')] ⇒ 4 成员一致地错且与第 5 成员**分歧**
+[PASS] A4a 家族一致性判据的牙齿边界（**依轴而异**）：类级轴：C1 跨成员一致 = True（且正确）/ C2 跨成员一致 = False（第 5 成员前缀为空 ⇒ **分歧可被判出 = 有牙齿**） / C3 跨成员一致 = False；对照 R340 的**方法级轴**（F3：5/5 一致地错 = 一致 True ∧ 全错 True ⇒ **无牙齿**）⇒ 「家族一致性」的牙齿状态**依轴而异**，结论不可跨轴外推（一致性只证明无分歧、不证明正确）
+[PASS] A4b 类级前缀取错的**放大效应**（量化）：单控制器端点数 max = 13（QuoteController.java）；类级前缀一次取错 ⇒ 该控制器**全部 13 条**端点 join 键连带错位（方法级取错只影响 1 条）—— 这是类级轴比方法级轴更重的原因
+[PASS] A5 第三方裁判可用性（据实分级）：routes 轴**有**裁判（覆盖门禁读真实 Spring 路由注册表，registered_routes = 116）；auth / query 轴以**工具自身解析的路径**为 join 键 ⇒ 该形态下静默落到错误键、**无裁判**（推断型结论）
+[PASS] A6 零写副作用：受核文件 28 个（tools/*.py 前后 md5+size 全等）；差异 = 无
+
+汇总：PASS 13 / FAIL 0
+证据条数 = 13（由 len() 推出，历史 222）
+GAP_CLASS_PREFIX_END=1

@@ -1,0 +1,12 @@
+真实仓库类级前缀形态域：裸字面量 = 28 处 / 命名实参 = 0 处 / 多路径 = 0 处 / 无字面量 = 0 处
+族内类级取值写法：位置式 = ['audit-routes.py', 'audit-auth-contract.py', 'audit-query-params.py', 'audit-response-shape.py'] / 严格字面量式 = ['audit-request-body.py']
+当前仓库静默取错处数 = 0 处（未触发）
+行为矩阵（类级形态 × 成员）：
+  C1-裸字面量（真实形态） 一致=True 值=["[('GET', '/syn/x')]"]
+  C2-命名实参 value= 一致=False 值=["[('GET', '/syn/x')]", "[('GET', '/x')]"]
+  C3-produces-在前（等价写法） 一致=False 值=["[('GET', '/x')]", "[('GET', 'text/html/x')]"]
+  C4-命名实参 path= 一致=False 值=["[('GET', '/syn/x')]", "[('GET', '/x')]"]
+  C5-多路径数组 一致=False 值=["[('GET', '/syn/x')]", "[('GET', '/x')]"]
+放大效应：单控制器端点数 max = 13（QuoteController.java）
+结论：类级轴第 5 成员（严格字面量式）在命名实参形态下前缀为空（**分歧** ⇒ 一致性判据**有牙齿**），而 4 个位置式成员在 produces-在前形态下**一致地错**；与 R340 的方法级轴（一致地错、无牙齿）形成对照 ⇒ 「家族一致性」的牙齿状态**依轴而异**、结论不可跨轴外推
+GAP_CLASS_PREFIX_FORMS_END=1
