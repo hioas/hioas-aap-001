@@ -1,0 +1,22 @@
+R355 第 27 类 · 形态域与判据形态（forms）
+请求助手形态：aap-client = `http<T>(path, opts)`；aap-admin = `request<T>(path, opts)`（默认 method=GET）
+路径形态实测：literal=45 / template=29 / template+helper=7 / helper-bare=8 / dynamic=1
+路径助手形态：`const path = (id: string) => `/x/${encodeURIComponent(id)}``（仅 aap-client；aap-admin 用内联模板）
+朴素判据的假结论：`grep 'http('` = 0 处（泛型）；只扫 aap-client ⇒ 管理端整族假「零接线」
+「有据未接线」判据 = 客户端源码（**不剥注释**）里该路径**所属注释块**内出现 未接线/不臆造/留待/占位
+REWORK_ITEMS=14（A=4 / B=9 / C=1）
+C1 执行期把辅助脚本写入受检目录（work）⇒ 分析链两次运行的文件数 14→15、确定性门禁响亮失败 RC=12；改布局：辅助脚本移出受检目录后复跑通过
+A1 precheck 首版锚点抄成更早一轮 class-25（0 命中，precheck 响亮拦下）
+A2 mk-derive v1 只改「新侧」⇒ 派生器三态判据判「判据失效」（old/new 未分别锚定，历史 196）
+A3 mk-derive v1 把去轮次化修正挂在 derive 脚本文本（实际须作用于产物侧 repl1/rolled[dst]）
+A4 mk-derive v1 的 G8 守卫无豁免 ⇒ 命中守卫自身的判别力夹具（假 FAIL；历史 190/212）
+B1 取证 v1 范围只扫 aap-client ⇒ 管理端 65 条假「零接线」（历史 81：范围须与语义一致）
+B2 取证 v1 把裸助手形态 `http(path(id))` 归为 dynamic ⇒ 5 条 exact 漏判（历史 58-②）
+B3 取证 v1 的 A5 支② 判据自相矛盾（替换后断言「不存在指向被替换值的调用点」）⇒ 判别力用例恒假
+B4 取证 v2 的 A3 越界判据把 list 放进 set 去重 ⇒ TypeError（把 sorted 结果 tuple 化后通过）
+B5 取证 v3 的「有据未接线」窗口只取 ±3 行 ⇒ 同块注释内较远的标注漏判、19 条全记「无据」（历史 81）
+B6 取证 v3 的变量折叠用 `[^}]*` 非配对 ⇒ 嵌套三元模板被内层 `}` 截断（假越界 1 条）（历史 63/112）
+B7 取证 v4 的 path_regex 分隔符多一个斜杠 ⇒ 路径依据恒不命中（19 条假「无据」；坑 46）
+B8 取证 v4 的模板提取用朴素 find(反引号) ⇒ 内层反引号处截断、三元模板被切碎（坑 63/112）
+B9 取证 v5 的单档「有据」无法表达客户端**短写法**标注（`/withdraw`）⇒ 无据数被高估（改强/弱两档）
+GAP_CLIENT_WIRING_FORMS_END=1
