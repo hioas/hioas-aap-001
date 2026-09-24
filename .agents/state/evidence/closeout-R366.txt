@@ -1,16 +1,18 @@
 R366 收尾取证（在**提交后核对之后**运行，历史 243-①）
 ==============================================================================
-主提交号 = 7ab9c163（`git rev-parse --short HEAD`，收尾提交为其直接后继）
+主提交号 = 7ab9c163（来源 = 台账「提交」列；**不得取 HEAD**，历史 243-②/#21）
 ① 台账「提交」列：已应用（同值，幂等命中）；回填后字段数 8、末列 == 主提交号、其余 7 列逐字符不变
-② 状态文件本轮段：已就地重写收尾 bullet（真值 = 22 处；index=11343）；本轮段标题恰 1 条、段内含收尾 bullet
-③ 三处返工真值一致：台账自称 22 / 台账权威 22 / 状态自称 22 / 状态权威 22 / message 10（**主提交 message 与最终真值不同 ⇒ 据实更正**：message 记 10 处、最终真值 22 处（第 22 项为收尾阶段才暴露；不改写已发布提交，由收尾提交承载，历史 209/250））
+② 状态文件本轮段：已就地重写收尾 bullet（真值 = 23 处；index=11343）；本轮段标题恰 1 条、段内含收尾 bullet
+③ 三处返工真值一致：台账自称 23 / 台账权威 23 / 状态自称 23 / 状态权威 23 / message 10（**主提交 message 与最终真值不同 ⇒ 据实更正**：message 记 10 处、最终真值 23 处（第 23 项为收尾阶段才暴露；不改写已发布提交，由收尾提交承载，历史 209/250））
 ④ 本次收尾改动（numstat，期望 = 台账 1 增 1 删（回填末列 + 真值更正）+ 状态 2 增 1 删（重写 bullet + 真值更正）；历史 250：期望按**构成**断言）：
    1	1	.agents/state/aap-server-feature-status.csv
    2	2	.agents/state/aap-server-tdd-state.md
 ⑤ 主提交现场读数（git --numstat）：19 文件 / 779 插入 / 0 删除 = 单一事实源清单 17 条（16 份证据 + coverage-history）+ 台账 + 状态文件 = 19
    自洽断言：清单 17 + 台账 + 状态 == 主提交文件数 19 -> True
-⑥ 收尾提交携带文件（按语义分类，历史 236：与**单一事实源清单求交集**，不按目录前缀计数）：
-   证据（提交后产生、不属主提交清单，历史 222）：verify-R366-post.txt、closeout-R366.txt
-   台账 + 状态文件（回填与收尾 bullet 的承载），共 4 文件
+⑥ 收尾链**现场读数**（`git diff --name-only 7ab9c163..HEAD`；历史 236：与单一事实源清单求交集、不按目录前缀计数；历史 222：链尾提交会随真值推进而增带重渲染与复核取证 ⇒ 由 git 现场推出、**不写死数字**）：
+   收尾链 = 4 提交 / 6 文件
+   ① 主提交清单内（台账 / 状态 / 清单证据）：['.agents/state/aap-server-feature-status.csv', '.agents/state/aap-server-tdd-state.md']
+   ② 主提交清单外（收尾链专有：收尾 / 更正 / 复核取证与重渲染）：['.agents/state/evidence/closeout-R366.txt', '.agents/state/evidence/gap-rework-R366.txt', '.agents/state/evidence/verify-R366-post.txt', '.agents/state/evidence/verify-R366-postcheck.txt']
+   自洽断言：① + ② == 链内文件数 -> True
 收尾提交 message 与本文件 / 状态文件 / 台账三处一致（历史 209）。
 CLOSEOUT_END=1
