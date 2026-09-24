@@ -3,16 +3,16 @@
 [PASS] D1a 主提交真值读数（**信息项**：仅证明可解析并与最终真值同源） | 主提交 c41704bc 记 7 处；最终 11 处；差异分支 = True
 [PASS] D1b 真值推进分支：台账含「据实更正声明」∧ 状态文件含「收尾更正」 | 更正声明 = True / 收尾更正 = True
 [PASS] D2 台账「提交」列 = 主提交 ∧ 主提交为 HEAD 祖先 | 提交列=c41704bc MAIN=c41704bc
-[PASS] D3 收尾后全部声明证据（白名单 ∪ 本文件自身除外）均在 HEAD 树内 | 缺 0 []；白名单内尚未落盘（允许，属后续产出）= ['gap-evlist-post-R370.txt', 'verify-R370-postcheck.txt']
+[PASS] D3 收尾后全部声明证据（白名单 ∪ 本文件自身除外）均在 HEAD 树内 | 缺 0 []；白名单内尚未落盘（允许，属后续产出）= []
 [PASS] D3b 本文件 SELF 单列（落盘产生，不参与断言） | verify-R370-postcheck.txt
-[PASS] D3c 正向对照：受判（已在 HEAD 树内）证据数 > 0 ∧ 白名单条数 <= 7 | 受判 23 份 / 白名单 6 条
-[PASS] D4 收尾链只碰台账/状态/本轮证据（规则推导；他方在途例外 ≤ 1 且显式） | 链长 6 / 文件 ['.agents/state/aap-server-feature-status.csv', '.agents/state/aap-server-tdd-state.md', '.agents/state/evidence/closeout-R370.txt', '.agents/state/evidence/correction-R370.txt', '.agents/state/evidence/correction2-R370.txt', '.agents/state/evidence/coverage-report.json', '.agents/state/evidence/gap-rework-R370.txt', '.agents/state/evidence/postwrite-check-R370.txt', '.agents/state/evidence/verify-R370-post.txt'] / 未登记越界项 [] / 已登记例外 ['.agents/state/evidence/coverage-report.json']（依据：他方在途 M 文件被 `git add -A .agents/state/` 扫入本轮收尾链提交（见返工 ⑪））
-[PASS] D4c 正向对照：识别为「本轮证据」的文件数 > 0 | n=6
+[PASS] D3c 正向对照：受判（已在 HEAD 树内）证据数 > 0 ∧ 白名单条数 <= 7 | 受判 25 份 / 白名单 6 条
+[PASS] D4 收尾链只碰台账/状态/本轮证据（规则推导；他方在途例外 ≤ 1 且显式） | 链长 9 / 文件 ['.agents/state/aap-server-feature-status.csv', '.agents/state/aap-server-tdd-state.md', '.agents/state/evidence/closeout-R370.txt', '.agents/state/evidence/correction-R370.txt', '.agents/state/evidence/correction2-R370.txt', '.agents/state/evidence/coverage-report.json', '.agents/state/evidence/gap-evlist-R370.txt', '.agents/state/evidence/gap-evlist-post-R370.txt', '.agents/state/evidence/gap-evround-R370.txt', '.agents/state/evidence/gap-rework-R370.txt', '.agents/state/evidence/postwrite-check-R370.txt', '.agents/state/evidence/verify-R370-post.txt', '.agents/state/evidence/verify-R370-postcheck.txt'] / 未登记越界项 [] / 已登记例外 ['.agents/state/evidence/coverage-report.json']（依据：他方在途 M 文件被 `git add -A .agents/state/` 扫入本轮收尾链提交（见返工 ⑪））
+[PASS] D4c 正向对照：识别为「本轮证据」的文件数 > 0 | n=10
 [PASS] D4b 台账与状态都在**本轮提交链**（MAIN~1..HEAD）内 | 账=True 态=True
 [PASS] D5 交付面越界 = 0（收尾链内 aap-*/ 改动 = 0） | 越界 0
 [PASS] D6 HEAD 树内本轮产物与两个追加目标 CR=0 ∧ 末字节换行 | 违规 []
 [PASS] D7 真值推进分支（陈旧措辞已就地改写）：收尾取证含「真值推进」事实句 ∧ 假自述零残留 ∧ 含最终真值 | 陈旧措辞位置 = -1（-1 = 已改写）；含事实句 = True；含最终真值 = True
-[PASS] D8 正向对照：证据条数 > 0 ∧ 收尾链提交数 > 0 | 证据 25 条 / 收尾链 6 提交
-MAIN_COMMIT=c41704bc HEAD=79cfd927 收尾链 = ['79cfd927936fbf5acdd6978cd78e2f89f71b8099', 'db8dba2d6f73e828c754a3bf1bd37461d67b4fcb', '654a443a5677f0fa8cd617d9be803f3c2541e820', '54f3ea6463f74c94563571d1dab6c3fc3293c70d', '78aaccc166321523baf43bd8ce66848c52b427e9', '4932aa014e06f56f6699490989fe6788b70d3558']
+[PASS] D8 正向对照：证据条数 > 0 ∧ 收尾链提交数 > 0 | 证据 25 条 / 收尾链 9 提交
+MAIN_COMMIT=c41704bc HEAD=80984ec9 收尾链 = ['80984ec9a474985830981a626536550f232bac97', 'e571386d97cbf7fbd2ccc9d2197cef724a88b50b', '87e0c4707aea374e6b3316e682c19879e1a1e497', '79cfd927936fbf5acdd6978cd78e2f89f71b8099', 'db8dba2d6f73e828c754a3bf1bd37461d67b4fcb', '654a443a5677f0fa8cd617d9be803f3c2541e820', '54f3ea6463f74c94563571d1dab6c3fc3293c70d', '78aaccc166321523baf43bd8ce66848c52b427e9', '4932aa014e06f56f6699490989fe6788b70d3558']
 SUM PASS=15 FAIL=0
 POSTCHECK_R370_END=1
