@@ -10903,6 +10903,83 @@ R106 的 `fix-guards-r106.py` 把 `verify-final.py` / `final-check.py` 的返工
 
 **提交**：`005358e`（前端接线 + 门禁收紧）、`3abb877`（补登 S07/S08/S09 的 4 个 json-schema 产物，T15 漏提交）。
 
+### T17 结算出账端到端闭环（ADM-PAY06–09 / SET-01–02）· 2026-09-24/25 · 提交 9d659840
+
+**为什么做**：闭环的最后一段「打款 → 结算单 → 对账单」此前是断的 —— `aap_settlement_statement` /
+`aap_settlement_line` **全仓零写入**（R355 起在册），ADM-PAY03 实测 `total=0`，供应商看不到任何对账明细。
+口径三件事（出账周期 / `platform_fee` 计费基数 / 金额计算基数）在 22 份 PRD **零定义**
+（`grep` 七个关键词全 0 命中），故原登记为待拍板 **D-SETTLE-01**。
+
+**决策**：按用户授权「自己思考、自己想办法、自己解决」**自主拍板并实施** → 决策 **D-SETTLE-02**
+（`.agents/state/aap-decisions.md`）：周期 = 自然月 UTC（与用量窗口 `YYYY-MM` 同口径）；金额基数 =
+`aap_usage_hourly.cost_usd` 合计；平台费 = 合同 `platform_fee_rate` × 基数；明细维度 = 渠道 × 模型；
+门槛 = 合同 `min_settlement_amount`。三项口径由 `@Value` 带默认值提供（可覆盖、刻意不写进 `application.yml`）。
+
+**硬口径（刻意保留的边界）**：无 SIGNED 合同 → 409 `E-1701`；周期内无用量 → 409 `E-1601`，**不生成 0 元单**
+（0 会冒充「有数据」）；同周期幂等返回既有单（V14 部分唯一索引把 `VOID` 排除在唯一性之外 → 作废后可重算、
+历史单保留）；生成时回填期内未关联打款的 `statement_id`；作废必填理由并落审计；**不做资金流转**
+（PRD 10 R-42：平台不发起/接收资金 —— 结算单是对账凭证）。
+
+**端点（冻结清单 102 → 108；生成器为唯一真源）**：
+
+| 端点 | 方法 | 路径 | 权限 |
+| --- | --- | --- | --- |
+| ADM-PAY06 | POST | `/admin/settlements` | 运营商务/超管（`contract.write`） |
+| ADM-PAY07 | GET | `/admin/settlements/{id}` | 同上（读） |
+| ADM-PAY08 | POST | `/admin/settlements/{id}/confirm` | 同上（`DRAFT → CONFIRMED` 终态） |
+| ADM-PAY09 | POST | `/admin/settlements/{id}/void` | 同上（`DRAFT → VOID`，理由必填） |
+| SET-01 | GET | `/settlements` | `SUPPLIER`/`PROVIDER`（只读本人） |
+| SET-02 | GET | `/settlements/{id}` | 同上（越权与不存在同为 404 `E-1406`） |
+
+生成器改 4 处 → 重生成 `endpoints.json` / `openapi.yaml` / `json-schema/**`（含 4 个新 schema；
+审计动作枚举 `STATEMENT_GENERATE/CONFIRM/VOID` 同步进 openapi 与 `audit-log.schema.json`）；
+`EndpointCoverageTest` 冻结数 102 → 108。
+
+**TDD 证据链**：
+
+- **红**：`SettlementContractTest` 11 例 → 10 失败 + 1 错误，失败点 = **405 Method Allowed / 端点不存在**
+  （`.agents/state/evidence/red-Settlement.txt`）。⚠️ 首轮红灯其实是**夹具缺陷**（uscc 位数不足），
+  修正夹具后重跑才得到「红在目标行为缺失」的干净基线 —— 红基线的失败点必须核对，否则红灯会骗人。
+- **绿**：同 11 例 `Tests run: 11, Failures: 0, Errors: 0`（`.agents/state/evidence/green-Settlement.txt`）。
+  期间修 2 处自身缺陷：`Line` 视图字段与收紧后的 DDL 不一致；`EndpointCoverageTest` 只改了文案与
+  `@DisplayName` 而**漏改数值** `hasSize(102)` —— 门禁当场转红，正是它该有的样子。
+- **全量回归**：`Tests run: 263, Failures: 0, Errors: 0`（`.agents/state/evidence/green-full-20260925.txt`），
+  即既有 252 + 新增 11，零回归。
+
+**端到端（后端直连 HTTP，`tools/biz-closure-e2e.py`）**：新增 P10 段 6 步 →
+**33/33 全绿**（原 27 + 6）：生成 `ST2026090002` `total=61.7` / `fee=6.17`（合同费率 10%，端到端覆盖
+「费率非 0」路径）→ 明细 5 行且 **Σ明细 == 总额**、净额 = 总额 − 平台费 → 期内 5 笔 CONFIRMED 打款
+`statement_id` 回填 → 同周期重复生成返回同一单（幂等）→ 确认出账 → 供应商端可见同单同金额。
+证据 `aap-admin/../.agents/state/evidence/biz-closure-20260925-final.json`。
+（脚本同时修 2 处：签发合同时带 `platform_fee_rate=0.1`；生成步容忍幂等复用 →
+脚本从此**可重复跑，不再需要人工清库**。）
+
+**管理端 UI 真机闭环（`aap-admin/tools/settlement-e2e.mjs`，新增）**：**16/16**
+—— 出账对话框打开（ADM-PAY06 入口）→ 默认选中供应商（仅 SIGNED 合同）+ 月份 = 当前 **UTC** 月 →
+`POST /admin/settlements` **HTTP 200** → 台账新增 `ST2026090004` → 状态列渲染**中文标签**而非原始码
+（`草稿/已出账/已作废`，此前该列错用打款状态映射）→ 明细对话框 **6 行** → 确认出账 → 「已出账」；
+控制台 0 报错。页面门禁 `admin-acceptance.mjs` **15/15**，`/contracts` 判据**同步收紧**
+（出账入口必须存在；`mustNotMatch` 反向断言文案不得再声称「系统当前不生成结算单」——
+实现之后那句话就是假话，是本页最容易悄悄回退的一处）。
+
+**供应商端 H5**：新增 `/pages/settlements`（SET-01 列表 + SET-02 明细）+ `settlement-model.ts`（纯函数口径层）
++ 11 例单测；`mine` 页「结算账户」入口由 **target 空串（无落点阻塞）** 改为真实跳转 ——
+原测试「点『结算账户』不跳转」与缺口一同关闭（并入 `it.each` 后「9 个入口行」才名副其实）。
+`npm test` **1269/1269** 全绿（79 文件）；`npm run build:h5` ✓。
+
+**管理端构建/单测**：`npm run build` ✓（`vue-tsc --noEmit` 通过，修掉一处我引入的未使用变量）；
+`npm test` **54 passed**。
+
+**已知边界（据实登记，不假装闭环）**：
+
+1. **平台费率来自合同**：`platform_fee_rate` 有写入路径（合同签发端点可选参数，校验 ∈ [0,1]），
+   但当前 dev 库历史合同该列全为 **NULL** → 那些单的平台费算 0。端到端已改为签发时传 `0.1` 覆盖此路径；
+   真实运营口径（费率由谁定、默认值多少）仍需产品确认。
+2. **结算单不涉资金流转**（PRD 10 R-42）：打款与结算单是两条独立留痕，生成时只做关联回填。
+3. **用量源仍是本地日志适配器**（非 new-api Log 表 / `SumUsedQuota`），无 T+5min 定时聚合任务 —— 沿用既有缺口。
+4. **真实 new-api 未接入**，用本地一体桩（`tools/newapi-stub.py`，非交付路径）替代 —— 沿用既有缺口。
+5. **检测在本地桩上无法自然 PASS**，靠 DET-06 人工放行 —— 沿用既有缺口（真实厂商接口下才成立）。
+
 ### R358（巡检轮 · 校验 + 第 30 类只读取证 + 凭据泄漏修复）
 
 **结论**：`missing = 0` → **交付代码零改动**；本轮为**校验轮**。两轮全量在**本轮新建的 HEAD 临时 worktree** 内
