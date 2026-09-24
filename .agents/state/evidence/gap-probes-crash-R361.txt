@@ -1,0 +1,22 @@
+== gap-probes-crash-R361.txt ==
+==============================================================================
+R361 返工取证：修法 v1 的**崩溃**留痕（`NameError: name '_mine_st' is not defined`）。
+根因：把使用 `_mine_st/_rel/_delta` 的合成夹具段插在 `wr()` 之前，而这些定义在其之后。
+纪律（历史 175/243-①）：**崩溃是正确行为** —— 它把「判据口径与实际不符」在派生期响亮暴露，
+远好于把一个空证据文件当合格产物写进仓库；chain 的 ARTIFACT_TRUNCATED 判据当场抓到半截输出。
+
+  写入 gap-conc-inwindow-R361.txt（12 行，CR=0）
+  [PASS] (a) 窗口起止与 HEAD 起止被解析
+  [PASS] (a) 窗口前后**他方**改动集合一致（本轮自身写入不计） | 他方新增/消失 = 无 / 本轮自身 = 无
+  [FAIL] (a) 归属判据正向对照：本轮自身新增被识别 >= 1 条 | mine=0
+  写入 gap-ledger-vs-tree-R361.txt（9 行，CR=0）
+  [PASS] (b) 台账每行列数 = 表头列数 | 违规 0 行
+  [PASS] (b) 轮次号无缺号无重号 | gaps=[] dups=[]
+  [PASS] (b) 末轮行描述列非空（内容级） | len=1942
+  候选文件集合 = tracked 7303 + untracked 18 -> 去重 7316（须 > 0）
+  写入 gap-window-writes-R361.txt（22 行，CR=0）
+  [PASS] (c) 候选文件集合解析到 > 0 条（正向对照） | n=7316
+  [FAIL] (c) 窗口内他方写入**被测面** = 0 条 | sut=['aap-client/src/api/base-url.ts', 'aap-client/tests/unit/api-base-url.spec.ts']
+  [PASS] (c) 窗口内自身产物 > 0 条（正向对照） | mine=11
+RUN_PROBES_END=1
+PROBE_FAILS = ['(a) 归属判据正向对照：本轮自身新增被识别 >= 1 条', '(c) 窗口内他方写入**被测面** = 0 条']

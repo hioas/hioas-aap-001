@@ -1,0 +1,29 @@
+== gap-window-writes-R361-prefix.txt ==
+==============================================================================
+R361 真发现 ① 取证：**修正前**只读事实探针 (c) 的原文（旧判据只比 HH:MM:SS、忽略日期 -> 假 FAIL）。
+要点：报出「窗口内他方写入被测面 2 条」，而那两个 aap-client 文件 mtime 实为 **2026-09-19**
+（00:08:59 / 00:07:15，与窗口 00:06:13–00:10:44 **同一时刻、不同日期**）。
+本文件是「缺陷取证」而非本轮结论 —— 本轮结论见 gap-window-writes-R361.txt（已按 epoch 修正）。
+
+R361 只读事实探针（窗口 00:06:13 -> 00:10:44；被测提交 8e63254）
+==============================================================================
+候选集合 = tracked 7303 + untracked 18 -> 去重 7316（有界扫描；整仓 rglob 在本机超 180s）
+窗口内（00:06:13 -> 00:10:44）被写入的仓库文件 = 15 条
+  其中本轮自身产物（.agents/state/**、tools/audit-round-claims*.py）= 11 条
+  其中**他方**文件 = 4 条（被测面 2 / 非被测面 2）
+   00:07:15 他方·被测面     aap-client/tests/unit/api-base-url.spec.ts
+   00:07:24 自身         .agents/state/evidence/audit-regression-R105-coverage-gap.txt
+   00:07:25 自身         .agents/state/evidence/audit-regression-R105-faildiff.txt
+   00:07:25 自身         .agents/state/evidence/audit-regression-R105-rcseq.txt
+   00:07:25 自身         .agents/state/evidence/audit-regression-R105.txt
+   00:07:39 自身         .agents/state/evidence/full-20260919/green-file2.txt
+   00:08:06 自身         .agents/state/evidence/red-mp-integration-2-unit.txt
+   00:08:49 自身         .agents/state/evidence/red-mp-integration-1-artifact-gate.txt
+   00:08:59 他方·被测面     aap-client/src/api/base-url.ts
+   00:09:09 自身         .agents/state/evidence/full-20260919/green-file3.txt
+   00:09:19 自身         .agents/state/evidence/green-mp-integration-1-unit.txt
+   00:10:15 自身         .agents/state/evidence/green-mp-integration-2-full-round1.txt
+   00:10:22 自身         .agents/state/evidence/full-20260919/green-file4.txt
+   00:10:30 他方·非被测面    aap-admin/tests/unit/detection.spec.ts
+   00:10:30 他方·非被测面    aap-admin/tests/unit/sync.spec.ts
+WINDOW_WRITES_END=1

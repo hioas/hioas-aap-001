@@ -11084,3 +11084,54 @@ wisemapping 的 `spring-boot:run`）**均未被误判为测试 JVM**（这正是
 ⑬ 提交后核对的 V11 把本轮真值**写死为 10**（纯数字盲区复发）→ 已改为由台账行解析）；
 权威数字 = 返工 16 处；权威文本 = 台账描述列。
 **本条为本轮最终真值**（取代上一条所记 11 处；**不改写**已发布提交，历史 209）；据实说明：第 12/13 项均在**收尾阶段**才暴露。
+
+
+## R361 巡检轮（missing=0 校验轮；交付代码零改动）
+
+**本轮性质**：`missing == 0` ⇒ 按作业纪律**不改交付代码、不改测试面**，**未扩面**回归序列。本轮为**校验轮**：两轮全量在**新建的 HEAD 临时 detached worktree** 内串行执行（`git worktree add --detach … HEAD`，跑完 `worktree remove --force`；历史 27/28/193），其后**串行**复跑既有巡检链（执行器 → 分析器 → chain → 回归面 driver 84 条 → faildiff 比对器 → 三项只读事实探针）；主仓库的他方在途改动只登记、不触碰。
+
+**被测状态**：提交 `8e63254`（8e63254c9d6f0875ba8097c9d8baa3475e2b9e2c）—— chore(aap-server): R360 第 2/3 次更正（据实）· 返工真值 11 -> 16 处（收尾阶段新增 ⑫-⑯，全部判据侧、均由断言/rc 当场拦下）+ 第 31 类守卫剥离引用区并补 S7/S7b 成对判别力
+窗口 `2026-09-25 00:16:43 -> 00:21:22`（epoch 1790266603 -> 1790266882，**由执行器落盘、消费方只读**）；run1 00:16:53–00:19:12 / run2 00:19:12–00:21:17（**串行、不重叠**）；worktree 与 HEAD 差异行数 = 0；HEAD 起点 = 终点 = `8e63254`（他方在窗口内**未推进**）。
+
+**机器读数（由 `analyze-r361.py` 从 facts / run{1,2}.raw / 归档解析，非手写）**：
+
+| 项 | 读数 |
+|---|---|
+| 覆盖（被测状态） | total=102、implemented=102、missing=0、registered_routes=119、not_registered=[] |
+| 两轮全量 | 各 252 例 / 44 类；rc=0；Failures/Errors/Skipped = 0/0/0；逐类 diff=0 |
+| Maven 耗时 | run1 `02:16 min` / run2 `02:02 min`；均 `BUILD SUCCESS` |
+| 用例对账 | `@Test` 词边界 252 == surefire 合计 252（子串 254 作对照）；禁用扫描 = 0 条 |
+| 连续全绿 | 第 343 轮（由上一轮 coverage-history 行**推导**：prev=342 -> 343，非硬编码） |
+| 回归面 | 复跑 84 条 / 上一轮 84 条；**rc 变化 0 条**；未复跑 0；FAIL 明细 41 脚本 / 159 行；faildiff 新增 0 / 消失 0；G 组 FAIL 0 条；零写副作用（93 个生成物 size+md5 全等） |
+
+**真发现 4 处**（全部判据/工具侧；详见台账描述列与各证据文件）
+
+① **只读事实探针 (c) 的窗口判据忽略日期**：判据只比 `HH:MM:SS`（窗口 00:16:43–00:21:21），于是「**与窗口同一时刻、不同日期**」的旧文件被**假命中** —— 报出假 FAIL「窗口内他方写入**被测面** = 0 条」不成立（被点名 2 条 `aap-client/*`，mtime 实为 **2026-09-19** 00:08:59 / 00:07:15）。修法 = 执行器补落 **epoch** 窗口事实（`FACTS_WINDOW_START_TS/END_TS` + ISO），探针与分析器一律按 epoch 比对；并加**回修正前对照**行量化：**旧判据命中 35 条 / 新判据 0 条 ⇒ 跨日假阳性 35 条**（缺陷取证锚在修正前判据上，历史 214/218）。指纹（历史 46/81）：报出「他方写入被测面」，而磁盘上那些文件是往日的。
+
+② **(c) 的「自身产物 > 0」是数据依赖型正向对照** ⇒ 执行器全程 worktree 隔离（这是**好事**）时主仓库窗口内零写入 ⇒ 该断言**恒假红**；上一轮之所以通过，是靠 ① 的跨日假命中**偶然**命中。修法 = 对**归属函数**本身做**合成夹具判别力测试**（` M .agents/state/…` / `?? tools/…` 判自身、` M aap-server/…` / ` M aap-client/…` 判他方，两分支结论必须相反），实际计数只作据实登记（历史 75/98/141）。
+
+③ **执行器归档非幂等**：`cp -rp "$WT/aap-server/src/test/java" "$ARCH/testsrc"`（dst 已存在）会**嵌套**成 `testsrc/java` ⇒ 归档 java 文件数 50 -> **100** ⇒ 分析器的「`@Test` 词边界计数 == surefire 合计」判据会假红（本轮实测：二次运行时 `ARCH_TEST_FILES=100`）。修法 = `mkdir -p "$ARCH/testsrc"` + `cp -rp src/. dst/`（幂等），并已清理本轮归档回 50（历史 208：产物必须可重跑）。
+
+④ **「窗口内他方改动 mtime」轴自建立起从未生效**（**空转假绿**）：`mt` 的键取自 `stat -c '%Y|%y|%n'` 输出的**正斜杠**路径（`E:/…/README.md`），而查表用 `str(Path("E:/…") / "README.md")` 在 Windows 上是**反斜杠** ⇒ 查表**恒落空** ⇒ 全部条目显示 `mtime=(无 mtime)`、「窗口内他方改动条数」恒为 **0 条**。后果：历轮状态文件里「他方在途改动落在窗口内的 0 条」是**无输入的 0**，不是据实读数（历史 57：跨源比对两侧必须过同一个归一函数；历史 98/238-①：门槛/判据必须证明「真的执行过」）。修法 = 两侧过同一个归一键 + 补「**mtime 命中数 > 0**」正向对照；修后实测 **命中 18/19 条**（第 19 条是目录 `aap-server/src/main/webapp/`，执行器按设计不对目录取样）。
+
+**本轮返工真值 = 9 处**（全部判据/脚本/派生侧，均由断言或崩溃当场响亮拦下）
+
+* ① 派生脚本的产物断言计数写死为 1 而实际 2（`green-verify-R361-tested-state.txt`）—— 0 命中/计数不符即响亮失败
+* ② 同族：`compare-faildiff` 的 `audit-regression-R361-failraw.txt` 计数断言（一次修正覆盖同类三行）
+* ③ 同族：探针的 `gap-conc-inwindow-R361.txt` 计数断言
+* ④ **修法 v1 把合成夹具段插在 `wr()` 之前**，而 `_mine_st/_rel/_delta` 定义在其后 ⇒ `NameError` 崩溃、`probes.log` 成半截输出（由 chain 的 `CHAIN_ARTIFACT_TRUNCATED` 判据当场抓到）⇒ 顺序改为「先定义后使用」（**崩溃远好于把空证据写进文件**，历史 175/243-①）
+* ⑤ 「回修正前对照」行的 `lines.append()` 落在 `wr()` **之后** ⇒ 该行会**静默丢失**（自查发现并前置修正，历史 84 同族）
+* ⑥ 执行器归档非幂等（真发现 ③）⇒ 本轮**实际跑了两次执行器**（首次归档 java 50 -> 100）
+* ⑦ 收尾修正脚本重写被工具拦下（stale write）⇒ 整文件重写为 `postfix-r361-v2.py`（历史 102：宁可整文件重写，不留同名残骸）
+* ⑧ **状态文件 R361 段的「自述形态」写错**（写成「本轮返工 N 处」，缺 A 形态 `本轮返工真值 = N 处`；且该段**无 B 形态**）⇒ 第 31 类守卫把本轮**排除在 A↔B 比对之外**（A3 的轮次集合里没有 R361）—— 由**本轮收尾脚本的尾断言**当场响亮抓到；修法 = 按**单一事实源常量**重写两形态并复跑守卫（历史 201/204/206 的文案侧）
+* ⑨ **收尾修正脚本自身的核对断言范围过宽**（按**全文件**判「旧真值不得残留」，而历史段（如在册 R30x）天然含同值 `权威数字 = 返工 7 处`）⇒ **有效的守卫被判失败**；修法 = 全部核对断言**限定在本轮段 / 本轮行内**（历史 81/202/204-①：判据范围必须与语义一致）
+
+另 1 处**期望值**在运行前自查修正（合成非真值的日偏移取「真值 +1 日」会被「同一时刻」反例判成真值 ⇒ 改取 ±1 日两个方向 + 合成样本与真值无包含关系，历史 220/221），未计入返工。
+
+**权威数字 = 返工 9 处**；权威文本 = 台账描述列。
+
+**逐条据实说明**：真发现 ①②③④ 与返工 ①–⑨ 全部为**判据/脚本/派生侧**，**交付代码与测试面零改动**；本轮为校验轮，未新增端点、未新增用例（`missing == 0`）。
+
+**待拍板**：本轮**新增 0 项**（真发现 ①–④ 均已按判据侧修法落地并复跑验证）；沿用上一轮在册项 —— 其中**与工具链载体相关的两项本轮据实加强**：① 「**只读事实探针 / 执行器是否收进仓库**」—— 本轮真发现 ③④ 再次证明它们在仓库外（临时目录）时缺陷只能靠每轮复跑偶然暴露；② 「**命令表 ROOT 口径**」（63/80 条不读 driver 的 ROOT）。其余在册项见本文件「待拍板」段与 R357–R360 台账描述列；R357 的「`evidence-secrets` 8 条命中处置」已于 R358 完成、可销项。
+
+**证据**：evidence/round-R361-analysis.txt；evidence/green-verify-R361-tested-state.txt；evidence/green-verify-R361-testcount.txt；evidence/green-verify-R361-full-run1.txt；evidence/green-verify-R361-full-run2.txt；evidence/green-verify-R361-coverage-fields.txt；evidence/audit-regression-R361.txt；evidence/audit-regression-R361-rcseq.txt；evidence/audit-regression-R361-failraw.txt；evidence/audit-regression-R361-faildiff.txt；evidence/gap-conc-inwindow-R361.txt；evidence/gap-conc-inwindow-R361-prefix.txt；evidence/gap-ledger-vs-tree-R361.txt；evidence/gap-window-writes-R361.txt；evidence/gap-window-writes-R361-prefix.txt；evidence/gap-probes-crash-R361.txt；evidence/coverage-history.txt（追加 R361 行）
