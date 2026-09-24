@@ -1,36 +1,33 @@
 == R369 第 38 类只读不变量：台账证据清单 ⇔ 磁盘 ⇔ git 跟踪 ⇔ HEAD 树（phase=post） ==
-  台账行 = R369（描述列 4581 字 / 证据列 869 字 / 提交列 = '074d0fc5'）＝ 与单一事实源逐字符相等
-  git ls-files = 7467 条；清单条目 = 24 条
-[PASS] A0 git ls-files 解析到 > 0 条（正向对照；判据失效则集合恒空） | n=7467
+  台账行 = R369（描述列 4646 字 / 证据列 869 字 / 提交列 = '074d0fc5'）＝ 与单一事实源逐字符相等
+  git ls-files = 7472 条；清单条目 = 24 条
+[PASS] A0 git ls-files 解析到 > 0 条（正向对照；判据失效则集合恒空） | n=7472
 [PASS] A0b 清单条目数 > 0（正向对照；空清单不得判 PASS，历史 98/141） | n=24
 [PASS] A0c 清单条目全部归一到 .agents/state/ 下 | n=24
   清单分类：{'evidence类': 24}
 [PASS] A0d evidence 类条目 > 0（本类的主对象） | n=24
 
 == post 段：已产出条目的一致性 ==
-  已产出 = 21 / 24；未产出 = 3（带解释的 3：本阶段稍后产出 3 / 收尾期白名单 5 / 落盘时产生 1）
-    - 未产出：gap-evlist-post-R369.txt
-    - 未产出：correction-R369.txt
-    - 未产出：verify-R369-postcheck.txt
+  已产出 = 24 / 24；未产出 = 0（带解释的 0：本阶段稍后产出 3 / 收尾期白名单 5 / 落盘时产生 0）
 [INFO] 本阶段自身产物 `gap-evlist-post-R369.txt` 标注为「落盘时产生」：它在**本文件落盘之后**才存在（历史 222：本文件不得被判成缺失）
 [PASS] B1 未产出条目**全部**有解释（本阶段稍后产出 ∪ 收尾期白名单 ∪ 本文件自身）—— 无法解释的未产出即转红 | 未解释 = 无
-[FAIL] B2post 已产出条目 → 全部被 git 跟踪（未跟踪 = 0；历史 16） | 未跟踪 = ['evidence/verify-R369-post.txt', 'evidence/closeout-R369.txt']
+[PASS] B2post 已产出条目 → 全部被 git 跟踪（未跟踪 = 0；历史 16） | 未跟踪 = 无
 
 == post 段：HEAD 树内 + 引入提交归属 + 反向孤儿 ==
-[FAIL] F1 声明条目**全部**在 HEAD 树内 | 不在 HEAD = ['gap-evlist-post-R369.txt', 'verify-R369-post.txt', 'closeout-R369.txt', 'correction-R369.txt', 'verify-R369-postcheck.txt']
-  F3 引入提交分组（3 组 / 24 条）：(未入库) ×5; 074d0fc5 ×18; db98c6a0 ×1
-[PASS] F3a 归属覆盖：主提交 18 + 他方 1 + 未入库 5 = 清单 24（不得只查主提交，历史 198/236） | 合计 24
-[PASS] F3b 未入库条目**全部**落在收尾期白名单内 | 未入库 = ['gap-evlist-post-R369.txt', 'verify-R369-post.txt', 'closeout-R369.txt', 'correction-R369.txt', 'verify-R369-postcheck.txt']
+[PASS] F1 声明条目**全部**在 HEAD 树内 | 不在 HEAD = 无
+  F3 引入提交分组（4 组 / 24 条）：04666218 ×1; 074d0fc5 ×18; 0a0ec713 ×4; db98c6a0 ×1
+[PASS] F3a 归属覆盖：主提交 18 + 他方 6 + 未入库 0 = 清单 24（不得只查主提交，历史 198/236） | 合计 24
+[PASS] F3b 未入库条目**全部**落在收尾期白名单内 | 未入库 = 无
 [PASS] F3c 主提交确实携带 ≥ 1 条本轮证据（正向对照；0 会与「主提交存在」自相矛盾） | 主提交携带 18 条
-  R1 反向：本轮形态（R369）被跟踪证据文件 18 份；未声明 = 0
+  R1 反向：本轮形态（R369）被跟踪证据文件 23 份；未声明 = 0
 [PASS] R1-R2 反向方向「有产物、无声明」孤儿 = 0（R368 的返工 ⑨ 正是这类的手工发现） | 未声明 = 无
-[PASS] R1-R2b 反向方向的候选集合 > 0（正向对照；0 会让 R1 空转，历史 75/98） | n=18
+[PASS] R1-R2b 反向方向的候选集合 > 0（正向对照；0 会让 R1 空转，历史 75/98） | n=23
 
 == 轮次形态孤儿读数（窗口 = R369/R368/R367；有界扫描 + 显式声明范围） ==
-[PASS] R2c 窗口内被跟踪证据文件 > 0（正向对照） | n=61
-  本轮（R369）被跟踪证据文件 18 份；**完全无引用** = 0 份 
-[PASS] R2d 孤儿读数候选集合 > 0（正向对照；0 会让分类空转，历史 75/98） | n=18
-[INFO] 窗口读数（信息项，不判红）：18 份中完全无引用 0 份 / 有引用 18 份
+[PASS] R2c 窗口内被跟踪证据文件 > 0（正向对照） | n=66
+  本轮（R369）被跟踪证据文件 23 份；**完全无引用** = 0 份 
+[PASS] R2d 孤儿读数候选集合 > 0（正向对照；0 会让分类空转，历史 75/98） | n=23
+[INFO] 窗口读数（信息项，不判红）：23 份中完全无引用 0 份 / 有引用 23 份
 
 == H 判别力实测（每支结论可区分；判据函数与主判据**同一份**） ==
   H1 合成「清单含不存在文件」→ 白名单外未产出 = ['__synthetic-absent-R369.txt']（须恰好点名 1 条）
@@ -45,11 +42,11 @@
 [PASS] H5 判别力：孤儿分类可区分「完全无引用」与「有引用」 | (['_a'], ['_b'])
 
 == I 零写副作用（before = 进程起点 / after = 全部 git 调用之后） ==
-  受核 4 份：aap-server-feature-status.csv=(3004581,a73e8314); coverage-report.json=(1031,eaeb9ea9); gap-stalereport-R369.txt=(4766,6265bf01); endpoints.json=(38830,0bf07228)
+  受核 4 份：aap-server-feature-status.csv=(3004682,2e24fd1b); coverage-report.json=(1031,eaeb9ea9); gap-stalereport-R369.txt=(4766,6265bf01); endpoints.json=(38830,0bf07228)
 [PASS] I0 受核文件数 > 0 且起点读数非空（正向对照） | n=4 非空 4
 [PASS] I1 受核文件运行前后 (size, md5) 全等 = 0 变化（本脚本零写仓库） | 变化 = []
 [INFO] changed=0 条（本脚本唯一写点 = 本类自身的证据文件 EV/gap-evlist-*.txt；受核文件零改写）
 
-SUMMARY PASS=19 FAIL=2 INFO=3 TOTAL=21
+SUMMARY PASS=21 FAIL=0 INFO=3 TOTAL=21
 EVIDENCE_TARGET=gap-evlist-post-R369.txt（本脚本唯一写点：本类自身的证据文件；受核文件见 I 段）
 EVLIST_POST_END=1
