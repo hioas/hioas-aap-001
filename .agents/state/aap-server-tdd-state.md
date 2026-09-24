@@ -10951,8 +10951,15 @@ R106 的 `fix-guards-r106.py` 把 `verify-final.py` / `final-check.py` 的返工
 - **绿**：同 11 例 `Tests run: 11, Failures: 0, Errors: 0`（`.agents/state/evidence/green-Settlement.txt`）。
   期间修 2 处自身缺陷：`Line` 视图字段与收紧后的 DDL 不一致；`EndpointCoverageTest` 只改了文案与
   `@DisplayName` 而**漏改数值** `hasSize(102)` —— 门禁当场转红，正是它该有的样子。
-- **全量回归**：`Tests run: 263, Failures: 0, Errors: 0`（`.agents/state/evidence/green-full-20260925.txt`），
-  即既有 252 + 新增 11，零回归。
+- **全量回归**：`Tests run: 263, Failures: 0, Errors: 0` / `BUILD SUCCESS`（05:36:17）
+  （`.agents/state/evidence/green-full-20260925.txt`，即既有 252 + 新增 11，零回归）。
+  ⚠️ 该文件同样被**两轮跑批**覆盖（末次为绿），据实登记前一轮读数：
+  ① 第 1 轮（05:31:01）：`Tests run: 263, Failures: 1` —— 唯一红 =
+     `EndpointCoverageTest.everyListedEndpointIsRegistered:93 [清单接口数与冻结清单(108)不一致]`，
+     根因是我改冻结清单时**只改了文案与 `@DisplayName`、漏改数值断言 `hasSize(102)`**；
+  ② 第 2 轮（05:36:17）：修数值后 `263 / 0 failures` 全绿。
+  **这正是门禁该有的样子** —— 清单从 102 推到 108 而代码没跟上时，它当场转红而不是放行；
+  也说明「只改文案不改数值」这类半拉子修改，在测试面一定会被抓住。
 
 **端到端（后端直连 HTTP，`tools/biz-closure-e2e.py`）**：新增 P10 段 6 步 →
 **33/33 全绿**（原 27 + 6）：生成 `ST2026090002` `total=61.7` / `fee=6.17`（合同费率 10%，端到端覆盖
