@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "sync-task-create",
+  "required": [
+    "provider_id"
+  ],
+  "properties": {
+    "provider_id": {
+      "type": "string",
+      "pattern": "^[0-9]{1,19}$"
+    },
+    "compilation_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失；可空）"
+    },
+    "channel_name": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 64
+    },
+    "mode": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "REVIEW_THEN_APPLY",
+        "DRY_RUN",
+        null
+      ]
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

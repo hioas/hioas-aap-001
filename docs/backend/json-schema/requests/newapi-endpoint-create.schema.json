@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "newapi-endpoint-create",
+  "required": [
+    "name",
+    "base_url",
+    "api_key"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "base_url": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "api_key": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "readonly": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "remark": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 255
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

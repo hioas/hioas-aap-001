@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "newapi-endpoint",
+  "required": [
+    "id",
+    "name",
+    "base_url"
+  ],
+  "properties": {
+    "id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失；可空）"
+    },
+    "name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "base_url": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "readonly": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "status": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "ACTIVE",
+        "DISABLED",
+        null
+      ]
+    },
+    "api_key_mask": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "updated_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}
