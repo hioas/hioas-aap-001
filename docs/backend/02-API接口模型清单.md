@@ -7,7 +7,7 @@
 > + `docs/api/接口字段级schema.md`（供应商端字段级补充）+ `17-零歧义执行规格spec.md`（错误码/状态机）。
 > 模型定义：请求/响应体的 JSON Schema 见 `json-schema/**`，OpenAPI 见 `openapi.yaml`。
 
-**版本** v1.0 · 2026-09-17 · 共 **99 条**端点（供应商端 49 · 管理端 50，与 `openapi.yaml` 生成器逐条同源）。
+**版本** v1.1 · 2026-09-24 · 共 **102 条**端点（供应商端 49 · 管理端 53，与 `openapi.yaml` 生成器逐条同源）。
 
 **标注规则**
 
@@ -203,6 +203,9 @@
 | ADM-S04 | GET | `/admin/channel-bindings` | TECH_OPS | q：分页 → 分页 `ChannelBinding` | | T14 |
 | ADM-S05 | POST | `/admin/channel-bindings/{bindingId}/status` | TECH_OPS | body `{target_status:ENABLED\|DISABLED}` → `ChannelBinding` | E-1505 | T14 |
 | ADM-S06 | GET | `/admin/sync/models/upstream` | TECH_OPS | → `{models:[ModelInfo]}` | E-1505 | T14 |
+| ADM-S07 | POST | `/admin/newapi-endpoints` | SUPER_ADMIN | body `{name,base_url,api_key,readonly?,remark?}` → `NewApiEndpoint`（**登记同步上游端点**：`aap_newapi_endpoint` 的写入侧；响应**永不回明文 api_key**，只回 `api_key_mask`） | E-1001 E-1601 | 新增 |
+| ADM-S08 | POST | `/admin/sync/tasks` | TECH_OPS | body `{provider_id,compilation_id?,channel_name?,mode?}` → `SyncTask`（**发起上架同步**：建渠道 + 写价；幂等键 `sha256(provider_id\|ADD_CHANNEL\|channel_name)`，重复发起返回既有任务；编译产物未 CONFIRMED → E-1407） | E-1001 E-1406 E-1407 E-1601 | 新增 |
+| ADM-S09 | POST | `/admin/sync/tasks/{taskId}/execute` | TECH_OPS | body `{dry_run?}` → `SyncTask`（**执行上架**：读前写后三段式 + 回读一致，成功置 `aap_channel_binding.status=ENABLED` 并推进 `aap_provider.status=PUBLISHED`；`dry_run=true` 只回预演载荷且零写入；回读不一致 → E-1501 **不谎报成功**） | E-1406 E-1501 E-1505 E-1601 | 新增 |
 | ADM-U01 | GET | `/admin/usage/hourly` | TECH_OPS BIZ_OPERATOR | q：`from` `to` `providerId?` `channelId?` `model?` `page` `pageSize` → 分页 | E-1801 | T12 |
 | ADM-U02 | POST | `/admin/usage/refresh` | TECH_OPS | body `{from?,to?}` → `{batch_id,inserted,updated,cache_parse_status}`（UPSERT 幂等） | E-1801 | T12 |
 | ADM-CFG01 | GET | `/admin/detection-configs` | TECH_OPS | q：分页 → 分页 `DetectionConfig` | | T14 |
@@ -337,7 +340,8 @@
 | 2026-09-23 | 登记 **D-SETTLE-01**（待产品拍板）：结算单无生成路径 | 全仓 `aap_settlement_statement`/`aap_settlement_line` **零写入路径**（只有读），PRD 10 §M9 定义本期「只记录打款状态与凭证、资金走线下对公」，但**未定义结算单生成口径**（出账周期 / `platform_fee` 计费基数 / 用量归档取数范围）→ 自造算法会直接影响真实对账金额，**不自造**；已在管理端「合同与结算」页把空态原因与待拍板三项写明（`data-testid=statement-gap`）。现状可用路径：ADM-PAY04/05 记录·作废打款 + `POST /admin/payments/{id}/confirm` 确认 |
 | 2026-09-23 | 新增 **`ADM-DET01`**（`GET /admin/detection-jobs`，管理端检测任务列表）；`detection-job` 模型 +2 个**可选**字段 `provider_name`/`credential_alias`；冻结清单 98 → **99**（管理端 49 → 50） | 运行态实测：管理端无任务列表端点 → 「检测中心」KPI/表格全空、人工放行需手输任务 ID（运营无从得知）→ **放行实际不可用**，而它是 PASS 的唯一路径 → 偏差 **D-ADM-05** | 
 | 2026-09-23 | 新增 **`ADM-Q03`**（`GET /admin/quotes/{id}/items`，管理端跨供应商只读报价明细）；冻结清单 97 → **98**（管理端 48 → 49） | 运行态实测：报价审核页调供应商端点 `GET /quotes/{id}/items` → 管理端令牌 403 → **审核员看不到价格只能盲审** → 偏差 **D-ADM-04** | 
-| 2026-09-23 | 新增 **`ADM-PAY04`**（`POST /admin/payments` 记录打款）与 **`ADM-PAY05`**（`POST /admin/payments/{id}/void` 作废打款）；审计动作枚举 +`PAYMENT_RECORD`/`PAYMENT_VOID`；冻结清单 91 → **93**（管理端 42 → 44） | 运行态实测：`aap_payment_record` 全仓无 insert 路径 → `ADM-PAY02` 无对象可确认（total=0），合同签完后链路断开；真源 10-报价与合同结算PRD §4.3/§5.3（记录打款需凭证、VOID 作废后重录） → 偏差 **D-PAY-01** | 
+| 2026-09-23 | 新增 **`ADM-PAY04`**（`POST /admin/payments` 记录打款）与 **`ADM-PAY05`**（`POST /admin/payments/{id}/void` 作废打款）；审计动作枚举 +`PAYMENT_RECORD`/`PAYMENT_VOID`；冻结清单 91 → **93**（管理端 42 → 44） | 运行态实测：`aap_payment_record` 全仓无 insert 路径 → `ADM-PAY02` 无对象可确认（total=0），合同签完后链路断开；真源 10-报价与合同结算PRD §4.3/§5.3（记录打款需凭证、VOID 作废后重录） → 偏差 **D-PAY-01** |
+| 2026-09-24 | 新增 **`ADM-S07`**（`POST /admin/newapi-endpoints` 登记同步上游端点）/ **`ADM-S08`**（`POST /admin/sync/tasks` 发起上架同步）/ **`ADM-S09`**（`POST /admin/sync/tasks/{taskId}/execute` 执行上架）；新模型 `newapi-endpoint`；冻结清单 99 → **102**（管理端 50 → 53） | 运行态实测（dev 库 + 源码）：`aap_newapi_endpoint`/`aap_sync_task`/`aap_channel_binding`/`aap_sync_log` **全部 0 行**，且全仓零 `insert into` 这三张表 → M11 只有查/重试/启停/读上游（S01–S06），**没有写入侧**，「编译确认 → 建渠道 → 写价 → 回读 → 上架」断在最后一步（业务闭环缺口）；拍板 **D-SYNC-03**（2026-09-24）：按 PRD 11 §3 渠道字段映射 + 幂等键 + 读前写后三段式补齐写入侧 | 
 
 - 2026-09-17 v1.0 首版：从 `18-API设计OpenAPI.md` + `aap-client` 调用点反推，冻结 90 条端点 ID
   （供应商端 49 = 客户端已消费 30 条 + 补齐 `CRED-02/06/07`、`DET-01/04/05/06`、`QT-02/05/07/11/12`、`CON-01`、`PAY-01`、`NTF-01/02`、`AUTH-04/05`；管理端 41）。

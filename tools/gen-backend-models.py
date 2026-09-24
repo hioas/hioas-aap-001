@@ -352,6 +352,12 @@ MODELS: dict[str, dict] = {
                                                "items": {"$ref": "sync-operation.schema.json"}},
         "created_at": TS, "updated_at": TS}),
     "model-info": dict(properties={"model_name": STR, "vendor": STR, "owned_by": STR, "enabled": BOOL}),
+    # ADM-S07 登记 new-api 端点（2026-09-24 新增）：`aap_newapi_endpoint` 此前全仓零 INSERT →
+    # 端点只能手工 SQL 灌入，同步链路在真实环境里没有可用端点。响应**永不回明文 api_key**。
+    "newapi-endpoint": dict(required=["id", "name", "base_url"], properties={
+        "id": ID, "name": STR, "base_url": STR, "readonly": BOOL,
+        "status": {"type": ["string", "null"], "enum": ["ACTIVE", "DISABLED", None]},
+        "api_key_mask": STR, "created_at": TS, "updated_at": TS}),
     "detection-config-probe": dict(properties={
         "probe_code": STR, "probe_name": STR, "enabled": BOOL, "weight": NUM,
         "timeout_seconds": INT, "params": {"type": ["object", "null"]}}),
@@ -505,6 +511,22 @@ REQUESTS: dict[str, dict] = {
         "suspend_reason": {"type": "string", "minLength": 2, "maxLength": 500}}),
     "binding-status": dict(required=["target_status"], properties={
         "target_status": {"type": "string", "enum": ["ENABLED", "DISABLED"]}}),
+    # ADM-S07 登记 new-api 端点（SUPER_ADMIN：同步账号凭据属敏感配置，普通运营不得登记/替换）
+    "newapi-endpoint-create": dict(required=["name", "base_url", "api_key"], properties={
+        "name": {"type": "string", "minLength": 1, "maxLength": 64},
+        "base_url": {"type": "string", "minLength": 1, "maxLength": 255},
+        "api_key": {"type": "string", "minLength": 1, "maxLength": 512},
+        "readonly": BOOL,
+        "remark": {"type": ["string", "null"], "maxLength": 255}}),
+    # ADM-S08 发起上架同步（PRD 11 §3「建渠道 + 写价」）。provider_id 必填；channel_name 缺省
+    # 由后端按 `AAP-{简称}-{序号}` 生成（PRD §3.1 渠道字段映射，不臆造命名口径）。
+    "sync-task-create": dict(required=["provider_id"], properties={
+        "provider_id": {"type": "string", "pattern": "^[0-9]{1,19}$"},
+        "compilation_id": ID,
+        "channel_name": {"type": ["string", "null"], "maxLength": 64},
+        "mode": {"type": ["string", "null"], "enum": ["REVIEW_THEN_APPLY", "DRY_RUN", None]}}),
+    # ADM-S09 执行同步任务（DRY_RUN 预演：只回将与上游交互的载荷，不产生任何写入）
+    "sync-task-execute": dict(properties={"dry_run": BOOL}),
     "usage-refresh": dict(properties={"from": TS, "to": TS, "batch_id": ID}),
     "detection-config-save": dict(required=["name"], properties={
         "name": {"type": "string", "maxLength": 64},
@@ -613,6 +635,13 @@ PATHS: list[tuple] = [
     ("ADM-S04", "get", "/admin/channel-bindings", "Admin", "TECH_OPS,SUPER_ADMIN", None, "channel-binding", ["page", "pageSize"], [], "推断"),
     ("ADM-S05", "post", "/admin/channel-bindings/{bindingId}/status", "Admin", "TECH_OPS,SUPER_ADMIN", "binding-status", "channel-binding", [], ["E-1505"], "真源"),
     ("ADM-S06", "get", "/admin/sync/models/upstream", "Admin", "TECH_OPS,SUPER_ADMIN", None, "model-info", [], ["E-1505"], "真源"),
+    # 上架同步闭环（2026-09-24 新增）：M11 此前只有 S01…S06（查/重试/启停/读上游）——
+    # 全仓**零** `insert into aap_sync_task|aap_channel_binding|aap_newapi_endpoint`，实测三表 0 行
+    # ⇒「编译确认 → 建渠道 → 写价 → 回读 → 上架」没有写入侧，链路断在最后一步（D-SYNC-03 拍板）。
+    # 权限对齐既有运维端点（S01–S06 为 TECH_OPS,SUPER_ADMIN）；端点登记含同步账号密钥，仅超管。
+    ("ADM-S07", "post", "/admin/newapi-endpoints", "Admin", "SUPER_ADMIN", "newapi-endpoint-create", "newapi-endpoint", [], ["E-1001", "E-1601"], "新增"),
+    ("ADM-S08", "post", "/admin/sync/tasks", "Admin", "TECH_OPS,SUPER_ADMIN", "sync-task-create", "sync-task", [], ["E-1001", "E-1406", "E-1407", "E-1601"], "新增"),
+    ("ADM-S09", "post", "/admin/sync/tasks/{taskId}/execute", "Admin", "TECH_OPS,SUPER_ADMIN", "sync-task-execute", "sync-task", [], ["E-1406", "E-1501", "E-1505", "E-1601"], "新增"),
     ("ADM-U01", "get", "/admin/usage/hourly", "Admin", "TECH_OPS,BIZ_OPERATOR,SUPER_ADMIN", None, "usage-hourly-bucket", ["from", "to", "providerId", "channelId", "model", "page", "pageSize"], ["E-1801"], "真源"),
     ("ADM-U02", "post", "/admin/usage/refresh", "Admin", "TECH_OPS,SUPER_ADMIN", "usage-refresh", "usage-refresh-result", [], ["E-1801"], "真源"),
     ("ADM-CFG01", "get", "/admin/detection-configs", "Admin", "TECH_OPS,SUPER_ADMIN", None, "detection-config", ["page", "pageSize"], [], "推断"),

@@ -1,0 +1,13 @@
+=== 编译 source_hash 唯一性口径修复：红 → 绿 ===
+命令：export PATH="$HOME/bin:$PATH"; cd aap-server && ../tools/with-env.sh aap-server env DB_TEST_NAME=aap_server_test_java mvn -B -ntp test -Dtest=CompilationContractTest
+
+—— 红基线（修复前）——
+[ERROR] Tests run: 9, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 21.66 s <<< FAILURE! -- in com.hioas.aap.compile.CompilationContractTest
+[ERROR]   CompilationContractTest.compileIsolatesIdenticalContentAcrossProviders:229 [另一供应商同内容不得 500：{"code":"E-2001","message":"内部错误","data":null,"traceId":"bccf95ebe63e430fa71d41d4a3ea3f7f","details":null}] 
+[ERROR]   CompilationContractTest.compileReusesArtifactAcrossQuotesOfSameProvider:214 [相同 source_hash 的第二张报价单不得 500：{"code":"E-2001","message":"内部错误","data":null,"traceId":"ad5d1793ccdd4df784bc76783fec8aa2","details":null}] 
+[ERROR] Tests run: 9, Failures: 2, Errors: 0, Skipped: 0
+
+—— 绿灯（修复后：V13 迁移 + 幂等查询口径收敛到 provider_id）——
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.49 s -- in com.hioas.aap.compile.CompilationContractTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS

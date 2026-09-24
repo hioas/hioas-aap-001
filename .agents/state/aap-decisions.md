@@ -519,3 +519,80 @@
 说明当初抓取时截图通道没拿到图）。图层树能对字段/文案/颜色做逐项对账，
 但**整体视觉观感**（间距节奏、圆角、阴影、字号层级）建议以截图为准。
 → 请把原型截图与当前页面截图各发一张，我按逐区块对账改。
+
+---
+
+## D-SYNC-03 · new-api 同步「写入侧」补齐 —— `已拍板并实施 2026-09-24`（自主决策）
+
+> 触发：用户指令「自己思考自己创新完成整个业务的闭环」。本条原为`待拍板`（状态文件 D-SYNC-03：
+> 「本批次只做运维接口，不含同步任务执行器与调度，需人拍板后再动」），本次**按 PRD 11 §3 自行拍板并实施**。
+
+**背景（运行态实测，非推断）**：dev 库 `aap_newapi_endpoint` / `aap_sync_task` / `aap_channel_binding` /
+`aap_sync_log` **四表全部 0 行**，且全仓零 `insert into` 上述表 ⇒ M11 只有 S01–S06（查/重试/启停/读上游），
+是作用在「永远为空的表」上的运维接口。「编译确认 → 建渠道 → 写价 → 回读 → 上架」**没有写入侧**
+⇒ 供应商进件流水线断在最后一步（业务闭环缺口）。
+
+**生效结论（依据 PRD，不自造口径）**：
+
+1. **`ADM-S07` `POST /admin/newapi-endpoints`**（SUPER_ADMIN）—— 登记同步上游端点（`aap_newapi_endpoint` 的写入侧）；
+   `api_key` 用既有 `CryptoService` 加密落 `api_key_cipher`，**响应永不回明文**（与凭证脱敏同一条红线）。
+2. **`ADM-S08` `POST /admin/sync/tasks`**（TECH_OPS/SUPER_ADMIN）—— 发起上架同步：要求存在 **CONFIRMED** 编译产物
+   （闸门③，未确认 → `E-1407`）；幂等键 `sha256(provider_id|ADD_CHANNEL|channel_name)`（PRD §3.2），
+   重复发起**复用既有任务**不新增行。
+3. **`ADM-S09` `POST /admin/sync/tasks/{taskId}/execute`**（TECH_OPS/SUPER_ADMIN）—— 执行上架：
+   **读前写后三段式**（读现值 → `POST /api/channel/` 建渠道 → `PUT /api/option/` 写 `billing_setting.billing_expr`
+   → `GET /api/channel/{id}` 回读比对）；回读不一致 → `E-1501` 且**不把库内状态改成成功**（PRD §5）；
+   上游 401/403 → `E-1505` 且任务转 `MANUAL`（不重试）；端点 `readonly=true` 时写操作 → `E-1505`；
+   `dry_run=true` 只回预演载荷、零写入。成功后：`aap_channel_binding.status=ENABLED` +
+   `aap_provider.status=PUBLISHED` + `published_at`（PRD 01 §4 生命周期末态；表内 `published_at` 字段即为此设计）。
+4. **渠道字段映射**沿用 PRD §3.1：`name=AAP-{简称}-{序号}`、`key`=凭证 api_key（解密后写入、日志脱敏）、
+   `base_url`、`models` 逗号分隔、`group`、`tag=aap-provider-{id}`、`status=1`。
+5. **本地联调上游**：`tools/newapi-stub.py`（最小 new-api 桩，仅联调工具，非交付代码路径）——
+   让「建渠道/写价/回读」在无真实 new-api 的机器上可端到端验证。
+
+**验证**：`SyncPublishContractTest`（真实 HTTP + 进程内上游桩）覆盖上述每条硬口径；端到端联调见仓库
+`.agents/state/evidence/` 下 `biz-closure-*` 证据。
+
+---
+
+## D-COMP-01 · 编译产物 `source_hash` 唯一性口径修复 —— `已实施 2026-09-24`（闭环联调中实测发现）
+
+> 发现方式：`tools/biz-closure-e2e.py` **第二次**跑端到端闭环（第一次因为库里已有同内容产物）
+> 时，`POST /admin/quotes/{id}/compile` 返回 `E-2001 内部错误`。这不是脚本问题，是真实缺陷。
+
+**现象（可复现）**：同一供应商的**第二张报价单**（内容与第一张完全相同）、以及**两个不同供应商**
+报出相同价格时，编译均失败：
+
+```
+org.springframework.dao.DuplicateKeyException:
+  ERROR: duplicate key value violates unique constraint "uq_compilation_source_hash"
+  Key (source_hash)=(32329e3dcfb064c54a98bad6bcb156d655604f2081a4bb1980aa0dcc6cd0f4c2) already exists
+  at com.hioas.aap.compile.CompiledExpressionMapper.insert
+```
+
+**根因（两处口径不一致）**：
+
+| 位置 | 口径 |
+| --- | --- |
+| 唯一索引 `uq_compilation_source_hash`（V1 baseline:863） | **全表唯一**（`where deleted = false`，**不含** provider 维度） |
+| `BillingCompiler.sourceHash(items)` | 只由**计价规则内容**构成（模型名/价格/档位/时段），**不含** provider_id |
+| `CompilationService.compile` 的幂等查询 | `(quote_id, source_hash)` 粒度 |
+
+⇒ 内容相同 ⇒ hash 相同 ⇒ insert 必撞全表唯一索引；而幂等查询的 `quote_id` 粒度**命中不到**那条记录，
+于是绕过幂等直接 insert → 500。业务上这很常见：供应商改一版再报、或两个供应商报同一个热门模型同价。
+
+**修法（已实施）**：
+
+1. `V13__compilation_source_hash_provider_scoped.sql`：删除全表唯一索引，改为
+   **`(provider_id, source_hash)` 唯一**（`uq_compilation_provider_source_hash`）——
+   编译产物本就按供应商维度组织（`previous_expr` / `confirmed_by` 都是供应商语义）。
+2. `CompilationService.compile` 幂等查询同步改为 `provider_id + source_hash`：
+   既避免漏命中撞索引，也避免**跨供应商误复用**（供应商 B 免费拿到 A 已确认的产物）——那是越权。
+
+**验证**：`CompilationContractTest` 新增两例回归（红 → 绿）：
+
+* `compileReusesArtifactAcrossQuotesOfSameProvider` —— 同供应商换报价单、内容相同 → 复用既有产物，HTTP 200；
+* `compileIsolatesIdenticalContentAcrossProviders` —— 两个供应商同内容 → 各自独立产物，互不复用。
+
+红基线：`Tests run: 9, Failures: 2`（两例均为 `E-2001`）；修复后：`Tests run: 9, Failures: 0`。
+证据：`.agents/state/evidence/red-compilation.txt` / `green-compilation.txt`。

@@ -1,0 +1,48 @@
+=== 红基线：上架同步闭环（ADM-S07/S08/S09）—— 实现落盘前 ===
+命令：export PATH="$HOME/bin:$PATH"; cd aap-server && ../tools/with-env.sh aap-server env DB_TEST_NAME=aap_server_test_java mvn -B -ntp test -Dtest=SyncPublishContractTest
+时间：2026-09-24 21:49–21:53（命令启动于实现代码落盘之前，测试 JVM 类路径不含 ADM-S07/08/09）
+
+[ERROR] Tests run: 7, Failures: 7, Errors: 0, Skipped: 0, Time elapsed: 34.78 s <<< FAILURE! -- in com.hioas.aap.sync.SyncPublishContractTest
+[ERROR] com.hioas.aap.sync.SyncPublishContractTest.executePublishesChannelAndProvider -- Time elapsed: 7.133 s <<< FAILURE!
+[ERROR] com.hioas.aap.sync.SyncPublishContractTest.executeMarksManualOnUpstreamDenied -- Time elapsed: 0.482 s <<< FAILURE!
+[ERROR] com.hioas.aap.sync.SyncPublishContractTest.registerEndpointStoresCipherOnly -- Time elapsed: 0.110 s <<< FAILURE!
+[ERROR] com.hioas.aap.sync.SyncPublishContractTest.createTaskIsIdempotentAndListsOperations -- Time elapsed: 0.474 s <<< FAILURE!
+[ERROR] com.hioas.aap.sync.SyncPublishContractTest.executeRespectsReadonlyAndDryRun -- Time elapsed: 0.415 s <<< FAILURE!
+[ERROR] com.hioas.aap.sync.SyncPublishContractTest.executeDoesNotLieWhenReadbackDiffers -- Time elapsed: 0.494 s <<< FAILURE!
+[ERROR] com.hioas.aap.sync.SyncPublishContractTest.createTaskGuardsUnconfirmedCompilation -- Time elapsed: 0.170 s <<< FAILURE!
+[ERROR] Tests run: 7, Failures: 7, Errors: 0, Skipped: 0
+[INFO] BUILD FAILURE
+
+失败原因（逐例）：HTTP 404 + code=E-1406「接口或资源不存在」——即三个端点尚未注册（功能缺失型红，非夹具/环境问题）。
+
+--- 失败明细摘录 ---
+[ERROR] com.hioas.aap.sync.SyncPublishContractTest.executePublishesChannelAndProvider -- Time elapsed: 7.133 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[{"code":"E-1406","message":"接口或资源不存在","data":null,"traceId":"d98e8fa25d874a1c91a7e1ecdba0c471","details":null}] 
+expected: 200
+ but was: 404
+	at com.hioas.aap.sync.SyncPublishContractTest.registerEndpoint(SyncPublishContractTest.java:237)
+--
+[ERROR] com.hioas.aap.sync.SyncPublishContractTest.executeMarksManualOnUpstreamDenied -- Time elapsed: 0.482 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[{"code":"E-1406","message":"接口或资源不存在","data":null,"traceId":"8cadbda5a1f545c1a10e1aabfc1f46b4","details":null}] 
+expected: 200
+ but was: 404
+	at com.hioas.aap.sync.SyncPublishContractTest.registerEndpoint(SyncPublishContractTest.java:237)
+--
+[ERROR] com.hioas.aap.sync.SyncPublishContractTest.registerEndpointStoresCipherOnly -- Time elapsed: 0.110 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[{"code":"E-1406","message":"接口或资源不存在","data":null,"traceId":"f32c87831f8141dc8e25247e3bc4f887","details":null}] 
+expected: 200
+ but was: 404
+	at com.hioas.aap.sync.SyncPublishContractTest.registerEndpointStoresCipherOnly(SyncPublishContractTest.java:252)
+--
+[ERROR] com.hioas.aap.sync.SyncPublishContractTest.createTaskIsIdempotentAndListsOperations -- Time elapsed: 0.474 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[{"code":"E-1406","message":"接口或资源不存在","data":null,"traceId":"14da759ab3884e41b21d5664b417f048","details":null}] 
+expected: 200
+ but was: 404
+	at com.hioas.aap.sync.SyncPublishContractTest.registerEndpoint(SyncPublishContractTest.java:237)
+--
+[ERROR] com.hioas.aap.sync.SyncPublishContractTest.executeRespectsReadonlyAndDryRun -- Time elapsed: 0.415 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 

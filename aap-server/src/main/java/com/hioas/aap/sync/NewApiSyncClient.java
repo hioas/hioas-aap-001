@@ -88,6 +88,24 @@ public class NewApiSyncClient {
         return send(builder.build());
     }
 
+    /**
+     * 写侧：建渠道 / 写价（PRD 11 §3 集成路径）。
+     *
+     * <p>为什么现在才加：S01–S06 只有「改状态」这一种写（{@link #put}），建渠道与写价属于
+     * 上架同步闭环的**写入侧**（此前缺失，见 aap-decisions.md D-SYNC-03）。路径与 body 由调用方
+     * 按 PRD §3.1 渠道字段映射拼装；本类不理解业务语义，只负责「出站守卫 + 鉴权头 + 超时 + 截断」。
+     */
+    public Probe post(String baseUrl, String apiKey, String path, String jsonBody) {
+        outboundUrlGuard.verify(baseUrl);
+        HttpRequest.Builder builder = HttpRequest.newBuilder(resolve(baseUrl, path))
+                .timeout(REQUEST_TIMEOUT)
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8));
+        authorize(builder, apiKey);
+        return send(builder.build());
+    }
+
     private static boolean authorize(HttpRequest.Builder builder, String apiKey) {
         if (apiKey != null && !apiKey.isBlank()) {
             builder.header("Authorization", "Bearer " + apiKey);

@@ -94,8 +94,13 @@ public class CompilationService {
         requireBoundaryOk(items);
 
         String sourceHash = BillingCompiler.sourceHash(items);
+        // 幂等口径必须与唯一索引 `uq_compilation_provider_source_hash` 一致：唯一性是
+        // **(provider_id, source_hash)**。`BillingCompiler.sourceHash(items)` 只由计价规则内容构成
+        // （不含 provider_id），所以这里必须按 provider_id 收口：
+        //   * 只看 quote_id → 同一供应商换一张报价单但内容相同时漏命中，insert 撞索引 → E-2001（实测复现）；
+        //   * 不看 provider_id → 不同供应商报出相同价格时误复用别人的产物（越权）。
         CompiledExpressionEntity existing = compilationMapper.selectOneByQuery(QueryWrapper.create()
-                .where("quote_id = ?", quoteId)
+                .where("provider_id = ?", quote.getProviderId())
                 .and("source_hash = ?", sourceHash)
                 .and("deleted = false")
                 .orderBy("id desc")

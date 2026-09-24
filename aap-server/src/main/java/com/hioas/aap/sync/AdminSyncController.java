@@ -7,7 +7,11 @@ import com.hioas.aap.common.PageResult;
 import com.hioas.aap.iam.AuthPrincipal;
 import com.hioas.aap.sync.SyncViews.BindingStatusRequest;
 import com.hioas.aap.sync.SyncViews.ChannelBinding;
+import com.hioas.aap.sync.SyncViews.NewApiEndpoint;
+import com.hioas.aap.sync.SyncViews.NewApiEndpointRequest;
 import com.hioas.aap.sync.SyncViews.SyncTask;
+import com.hioas.aap.sync.SyncViews.SyncTaskCreateRequest;
+import com.hioas.aap.sync.SyncViews.SyncTaskExecuteRequest;
 import com.hioas.aap.sync.SyncViews.UpstreamModels;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,9 +37,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminSyncController {
 
     private final SyncAdminService syncAdminService;
+    private final SyncPublishService syncPublishService;
 
-    public AdminSyncController(SyncAdminService syncAdminService) {
+    public AdminSyncController(SyncAdminService syncAdminService, SyncPublishService syncPublishService) {
         this.syncAdminService = syncAdminService;
+        this.syncPublishService = syncPublishService;
     }
 
     /** ADM-S01 同步任务列表（`status`/`bindingId` 可选过滤）。 */
@@ -80,6 +86,39 @@ public class AdminSyncController {
     @GetMapping("/sync/models/upstream")
     public ApiEnvelope<UpstreamModels> upstreamModels() {
         return ApiEnvelope.ok(syncAdminService.upstreamModels());
+    }
+
+    // ---------------------------------------------------- 上架同步写入侧（D-SYNC-03）
+
+    /**
+     * ADM-S07 登记 new-api 端点 —— `aap_newapi_endpoint` 的**写入侧**。
+     *
+     * <p>仅超管：`api_key` 是同步账号凭据（可建渠道/改价），属敏感配置；
+     * 普通技术运营只能使用已登记端点，不能替换它。
+     */
+    @PostMapping("/newapi-endpoints")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ApiEnvelope<NewApiEndpoint> registerEndpoint(@AuthenticationPrincipal AuthPrincipal principal,
+                                                       @RequestBody(required = false) NewApiEndpointRequest request) {
+        return ApiEnvelope.ok(syncPublishService.registerEndpoint(principal,
+                request == null ? new NewApiEndpointRequest(null, null, null, null) : request));
+    }
+
+    /** ADM-S08 发起上架同步（建渠道 + 写价；要求编译产物已人工确认，否则 `E-1407`）。 */
+    @PostMapping("/sync/tasks")
+    public ApiEnvelope<SyncTask> createTask(@AuthenticationPrincipal AuthPrincipal principal,
+                                            @RequestBody(required = false) SyncTaskCreateRequest request) {
+        return ApiEnvelope.ok(syncPublishService.createTask(principal,
+                request == null ? new SyncTaskCreateRequest(null, null, null, null) : request));
+    }
+
+    /** ADM-S09 执行上架（读前写后三段式 + 回读一致；`dry_run=true` 只回预演）。 */
+    @PostMapping("/sync/tasks/{taskId}/execute")
+    public ApiEnvelope<SyncTask> executeTask(@AuthenticationPrincipal AuthPrincipal principal,
+                                             @PathVariable String taskId,
+                                             @RequestBody(required = false) SyncTaskExecuteRequest request) {
+        return ApiEnvelope.ok(syncPublishService.execute(principal, parseId(taskId, "taskId"),
+                request != null && Boolean.TRUE.equals(request.dryRun())));
     }
 
     /** 非法 ID 一律 E-1001（不静默当 null）。 */

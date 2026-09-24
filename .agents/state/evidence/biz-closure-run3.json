@@ -1,0 +1,203 @@
+{
+  "generated_at": "2026-09-24T14:07:12Z",
+  "api_base": "http://127.0.0.1:8084/api/v1",
+  "provider_id": "458589638116450304",
+  "quote_id": "460732429042909184",
+  "compilation_id": "460730980586139648",
+  "sync_task_id": "3",
+  "channel_id": 1002,
+  "steps_total": 27,
+  "steps_passed": 27,
+  "steps_failed": 0,
+  "results": [
+    {
+      "phase": "P0",
+      "name": "供应商短信登录（AUTH-01/02）",
+      "ok": true,
+      "detail": "{'token': 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0NTg1ODk2Mzc5MTUxMjM3MTIiLCJyb2xlIjoiU1VQUExJRVIiLCJzdWJqZWN0VHlwZSI6IlBST1ZJREVSIiwicHJvdmlkZXJJZCI6NDU4NTg5NjM4MTE2NDUwMzA0LCJqdGkiOiI4NDc0ZmRhYTc0M2Y0NDJmOWFkNTM1NmEyYmM4MDhiNSIsImlhdCI6MTc5MDI1ODgxNSwiZXhwIjoxNzkwMjY2MDE1fQ.KR6YUE4eMxOFTjLPHYJQ1h3DYPcuwr7QeEzaN9eUHew', 'refresh_token': '_UYB1fLJSs5vNItxMHGaGcfytjVxChG3En3xI8eeqGg', 'role': 'SUPPLIER', 'providerId': '458589638116450304', 'providerCode': 'AAP-P-000003', 'status': 'DETECTING', 'expires_in': 7200, 'provider_code': 'AAP-P-000003', 'provider_id': '458589638116450304', 'refreshToken': '_UYB1fLJSs5vNItxMHGaGcfytjVxChG3En3xI8eeqGg'}",
+      "ms": 348
+    },
+    {
+      "phase": "P0",
+      "name": "管理端短信登录（ADM-AUTH01）",
+      "ok": true,
+      "detail": "{'token': 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI5OTkwMDMiLCJyb2xlIjoiU1VQRVJfQURNSU4iLCJzdWJqZWN0VHlwZSI6IkFETUlOIiwianRpIjoiMmRkYWU2ZGUwNWYwNDQzZjk0YzU5MGZhNzNmYzMzYjUiLCJpYXQiOjE3OTAyNTg4MTUsImV4cCI6MTc5MDI2NjAxNX0.QlcFWykTl1G311k0fS09EezHqW0q4peSxzLmnlWcnfQ', 'refresh_token': None, 'role': 'SUPER_ADMIN', 'providerId': None, 'providerCode': None, 'status': 'ACTIVE', 'expires_in': 7200, 'provider_code': None, 'provider_id': None, 'refreshToken': None}",
+      "ms": 73
+    },
+    {
+      "phase": "P1",
+      "name": "PUT /provider/profile（唯一 USCC，脚本可重跑）",
+      "ok": true,
+      "detail": "{'provider_id': '458589638116450304', 'provider_no': 'AAP-P-2026-0003', 'provider_code': 'AAP-P-000003', 'short_name': '闭环供应商', 'short_code': 'AAP-P-000003', 'company_name': '闭环验收科技有限公司', 'uscc': '91110108MA13DVNTK0', 'industry_category': 'ORIGINAL', 'province': '广东省', 'city': '深圳市', 'address': None, 'website': None, 'contact_name': '闭环联系人', 'contact_title': None, 'contact_phone_masked': '138****8000', 'contact_email': None, 'company_intro': '业务闭环验收脚本写入', 'completeness': 82, 'qualification_files': [], 'status': 'DETECTING', 'recheck_interval_days': 30, 'manual_override': False, 'override_reason': None, 'contact': {'name': '闭环联系人', 'phone_masked': '138****8000', 'email': None, 'title': None}, 'account': {'phone_masked': '138****8000', 'role': 'SUPPLIER', 'wx_bound': False}, 'created_at': '2026-09-18T16:12:29Z', 'updated_at': '2026-09-24T14:06:55Z', 'version': 20, 'companyName': '闭环验收科技有限公司', 'contact_phone': '138****8000', 'etag': '20', 'id': '458589638116450304', 'providerCode': 'AAP-P-000003', 'unified_social_credit_code': '91110108MA13DVNTK0'}",
+      "ms": 231
+    },
+    {
+      "phase": "P2",
+      "name": "POST /credentials（上游=http://127.0.0.1:9911/v1）",
+      "ok": true,
+      "detail": "credential_id=460732364698091520",
+      "ms": 57
+    },
+    {
+      "phase": "P3",
+      "name": "POST /credentials/{id}/precheck（CRED-05）",
+      "ok": true,
+      "detail": "job_id=460732365331431424 status=ACTIVE",
+      "ms": 148
+    },
+    {
+      "phase": "P3",
+      "name": "轮询 /detection-jobs/{jobId} 至终态（DET-02）",
+      "ok": true,
+      "detail": "job 终态=COMPLETED（1 次轮询）",
+      "ms": 15088
+    },
+    {
+      "phase": "P3",
+      "name": "检测状态归位（PASS，否则 DET-06 放行）",
+      "ok": true,
+      "detail": "DET-06 人工放行后 detection_status=PASS",
+      "ms": 58
+    },
+    {
+      "phase": "P4",
+      "name": "POST /quotes + 明细（QT-02/QT-05）",
+      "ok": true,
+      "detail": "quote_id=460732429042909184",
+      "ms": 99
+    },
+    {
+      "phase": "P4",
+      "name": "PUT /quotes/items/{id} 定价（QT-08）",
+      "ok": true,
+      "detail": "item_id=460732429227458560 已定价",
+      "ms": 74
+    },
+    {
+      "phase": "P4",
+      "name": "POST /quotes/{id}/submit（QT-09）",
+      "ok": true,
+      "detail": "SUBMITTED",
+      "ms": 70
+    },
+    {
+      "phase": "P5",
+      "name": "[ADMIN] 领取并审核通过（ADM-R02/R03）",
+      "ok": true,
+      "detail": "review_id=460732429864992768 已审核通过",
+      "ms": 120
+    },
+    {
+      "phase": "P5",
+      "name": "[ADMIN] 合同签发（ADM-CT02，带真实文件）",
+      "ok": true,
+      "detail": "contract_id=460732430397669376 已签发（file_id=460732431014232064）",
+      "ms": 196
+    },
+    {
+      "phase": "P5",
+      "name": "POST /contracts/{id}/sign（CON-04，SEAL）",
+      "ok": true,
+      "detail": "供应商签署完成 status=SUPPLIER_SIGNED",
+      "ms": 51
+    },
+    {
+      "phase": "P5",
+      "name": "[ADMIN] 确认签署（ADM-CT03）→ 合同生效",
+      "ok": true,
+      "detail": "合同生效 status=SIGNED",
+      "ms": 73
+    },
+    {
+      "phase": "P6",
+      "name": "[ADMIN] 记录打款（ADM-PAY04，带凭证文件）",
+      "ok": true,
+      "detail": "payment_id=460732432121528320 status=PAYMENT_RECORDED",
+      "ms": 87
+    },
+    {
+      "phase": "P6",
+      "name": "[ADMIN] 确认打款（ADM-PAY02）",
+      "ok": true,
+      "detail": "打款已确认 CONFIRMED",
+      "ms": 28
+    },
+    {
+      "phase": "P7",
+      "name": "[ADMIN] POST /admin/quotes/{id}/compile（ADM-Q01）",
+      "ok": true,
+      "detail": "compilation_id=460730980586139648 gate_status=CONFIRMED",
+      "ms": 73
+    },
+    {
+      "phase": "P7",
+      "name": "[ADMIN] 模拟验证（ADM-CP03）",
+      "ok": true,
+      "detail": "验证通过 3/3 用例",
+      "ms": 52
+    },
+    {
+      "phase": "P7",
+      "name": "[ADMIN] 人工确认（ADM-CP04）",
+      "ok": true,
+      "detail": "gate_status=CONFIRMED publish_blocked=false",
+      "ms": 33
+    },
+    {
+      "phase": "P8",
+      "name": "[ADMIN] 登记 new-api 端点（ADM-S07）",
+      "ok": true,
+      "detail": "endpoint_id=3 api_key_mask=stub***-key（无明文）",
+      "ms": 58
+    },
+    {
+      "phase": "P8",
+      "name": "[ADMIN] 发起上架同步（ADM-S08）",
+      "ok": true,
+      "detail": "task_id=3 task_no=SY202609240004 status=PENDING",
+      "ms": 95
+    },
+    {
+      "phase": "P8",
+      "name": "[ADMIN] 执行上架（ADM-S09，读前写后三段式）",
+      "ok": true,
+      "detail": "任务 SYNCED，回读一致",
+      "ms": 97
+    },
+    {
+      "phase": "P8",
+      "name": "库内终态核对（ADM-S04 + ADM-P01）",
+      "ok": true,
+      "detail": "binding=2 channel_id=1002 ENABLED；provider=PUBLISHED",
+      "ms": 64
+    },
+    {
+      "phase": "P9",
+      "name": "写 mock 用量日志源",
+      "ok": true,
+      "detail": "mock 日志已写 C:/Users/laitz/AppData/Local/Temp/biz-closure-usage-log.json（stat_hour=2026-09-24T13:00:00Z）",
+      "ms": 0
+    },
+    {
+      "phase": "P9",
+      "name": "[ADMIN] POST /admin/usage/refresh（ADM-U02）",
+      "ok": true,
+      "detail": "batch_total=1 inserted=1 batch_id=4",
+      "ms": 64
+    },
+    {
+      "phase": "P9",
+      "name": "供应商端读用量（USE-01）",
+      "ok": true,
+      "detail": "供应商可见 total_tokens=36000",
+      "ms": 50
+    },
+    {
+      "phase": "P9",
+      "name": "[ADMIN] 管理端读用量（ADM-U01）",
+      "ok": true,
+      "detail": "管理端可见 2 条该供应商桶",
+      "ms": 18
+    }
+  ]
+}

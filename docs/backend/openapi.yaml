@@ -3505,6 +3505,50 @@ paths:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/SyncTask"
+    post:
+      operationId: ADM-S08
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-S08`（依据：新增）"
+      x-aap-id: ADM-S08
+      x-aap-source: 新增
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestSyncTaskCreate"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              items:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/SyncTask"
+        4XX:
+          description: 业务失败：E-1001,E-1406,E-1407,E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /admin/sync/tasks/{taskId}:
     get:
       operationId: ADM-S02
@@ -3727,6 +3771,94 @@ paths:
                                   $ref: "#/components/schemas/ModelInfo"
         4XX:
           description: 业务失败：E-1505
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/newapi-endpoints:
+    post:
+      operationId: ADM-S07
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-S07`（依据：新增）"
+      x-aap-id: ADM-S07
+      x-aap-source: 新增
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - SUPER_ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestNewapiEndpointCreate"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/NewapiEndpoint"
+        4XX:
+          description: 业务失败：E-1001,E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/sync/tasks/{taskId}/execute:
+    post:
+      operationId: ADM-S09
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-S09`（依据：新增）"
+      x-aap-id: ADM-S09
+      x-aap-source: 新增
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestSyncTaskExecute"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PageMeta"
+                          - type: object
+                            properties:
+                              items:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/SyncTask"
+        4XX:
+          description: 业务失败：E-1406,E-1501,E-1505,E-1601
           content:
             application/json:
               schema:
@@ -4533,6 +4665,8 @@ components:
       $ref: ./json-schema/models/sync-task.schema.json
     ModelInfo:
       $ref: ./json-schema/models/model-info.schema.json
+    NewapiEndpoint:
+      $ref: ./json-schema/models/newapi-endpoint.schema.json
     DetectionConfigProbe:
       $ref: ./json-schema/models/detection-config-probe.schema.json
     DetectionConfig:
@@ -4607,6 +4741,12 @@ components:
       $ref: ./json-schema/requests/provider-suspend.schema.json
     RequestBindingStatus:
       $ref: ./json-schema/requests/binding-status.schema.json
+    RequestNewapiEndpointCreate:
+      $ref: ./json-schema/requests/newapi-endpoint-create.schema.json
+    RequestSyncTaskCreate:
+      $ref: ./json-schema/requests/sync-task-create.schema.json
+    RequestSyncTaskExecute:
+      $ref: ./json-schema/requests/sync-task-execute.schema.json
     RequestUsageRefresh:
       $ref: ./json-schema/requests/usage-refresh.schema.json
     RequestDetectionConfigSave:

@@ -1,5 +1,5 @@
 {
-  "total": 99,
+  "total": 102,
   "endpoints": [
     {
       "id": "AUTH-01",
@@ -1367,6 +1367,58 @@
       ],
       "source": "真源",
       "task": "T14"
+    },
+    {
+      "id": "ADM-S07",
+      "method": "POST",
+      "path": "/api/v1/admin/newapi-endpoints",
+      "tag": "Admin",
+      "auth": "SUPER_ADMIN",
+      "request_model": "newapi-endpoint-create",
+      "response_model": "newapi-endpoint",
+      "query_params": [],
+      "error_codes": [
+        "E-1001",
+        "E-1601"
+      ],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "ADM-S08",
+      "method": "POST",
+      "path": "/api/v1/admin/sync/tasks",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": "sync-task-create",
+      "response_model": "sync-task",
+      "query_params": [],
+      "error_codes": [
+        "E-1001",
+        "E-1406",
+        "E-1407",
+        "E-1601"
+      ],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "ADM-S09",
+      "method": "POST",
+      "path": "/api/v1/admin/sync/tasks/{taskId}/execute",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": "sync-task-execute",
+      "response_model": "sync-task",
+      "query_params": [],
+      "error_codes": [
+        "E-1406",
+        "E-1501",
+        "E-1505",
+        "E-1601"
+      ],
+      "source": "新增",
+      "task": ""
     },
     {
       "id": "ADM-U01",

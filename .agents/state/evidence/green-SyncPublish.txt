@@ -1,0 +1,15 @@
+=== 绿灯：上架同步闭环（ADM-S07/S08/S09）—— 实现落盘后 ===
+命令：export PATH="$HOME/bin:$PATH"; cd aap-server && ../tools/with-env.sh aap-server env DB_TEST_NAME=aap_server_test_java mvn -B -ntp test -Dtest=SyncPublishContractTest
+
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 16.24 s -- in com.hioas.aap.sync.SyncPublishContractTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+
+覆盖断言（7 例）：
+  1. registerEndpointStoresCipherOnly    —— 端点入库只存密文（api_key_cipher 不含明文），响应只回掩码
+  2. createTaskGuardsUnconfirmedCompilation —— 闸门③：未确认编译产物 → E-1407
+  3. createTaskIsIdempotentAndListsOperations —— 幂等键 sha256(provider|ADD_CHANNEL|channel)，重复调用复用同一任务；明细含 ADD_CHANNEL/WRITE_EXPR
+  4. executePublishesChannelAndProvider  —— 建渠道→写价→回读一致→binding=ENABLED + provider=PUBLISHED
+  5. executeMarksManualOnUpstreamDenied  —— 上游 401 → E-1505 且任务转 MANUAL、不建 binding
+  6. executeDoesNotLieWhenReadbackDiffers —— 回读不一致 → E-1501，**不谎报已上架**（binding 非 ENABLED / provider 非 PUBLISHED）
+  7. executeRespectsReadonlyAndDryRun     —— readonly 端点 → E-1505；dry_run 零上游 POST

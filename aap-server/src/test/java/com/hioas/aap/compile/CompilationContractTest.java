@@ -200,6 +200,39 @@ class CompilationContractTest extends ApiTestBase {
     }
 
     @Test
+    @DisplayName("同一供应商的第二张报价单（内容相同）→ 幂等复用既有产物，不得撞唯一索引（E-2001 回归）")
+    void compileReusesArtifactAcrossQuotesOfSameProvider() throws Exception {
+        String token = token(PHONE);
+        String admin = techOpsToken();
+        String firstQuote = approvedQuote(token);
+        String firstCompilation = post("/admin/quotes/" + firstQuote + "/compile", null, admin)
+                .data().path("compilation_id").asText();
+
+        // 同一供应商、同样的计价规则内容 ⇒ source_hash 相同，但 quote_id 不同
+        String secondQuote = approvedQuote(token);
+        HttpResult second = post("/admin/quotes/" + secondQuote + "/compile", null, admin);
+        assertThat(second.status()).as("相同 source_hash 的第二张报价单不得 500：%s", second.body()).isEqualTo(200);
+        assertThat(second.data().path("compilation_id").asText())
+                .as("相同内容应复用既有编译产物，而不是新建/报错").isEqualTo(firstCompilation);
+    }
+
+    @Test
+    @DisplayName("两个供应商报价内容相同 → 各自独立成产物（不互相冲突、不互相复用）")
+    void compileIsolatesIdenticalContentAcrossProviders() throws Exception {
+        String admin = techOpsToken();
+        String quoteA = approvedQuote(token(PHONE));
+        String compilationA = post("/admin/quotes/" + quoteA + "/compile", null, admin)
+                .data().path("compilation_id").asText();
+
+        String quoteB = approvedQuote(token("13800000061"));
+        HttpResult compiledB = post("/admin/quotes/" + quoteB + "/compile", null, admin);
+        assertThat(compiledB.status()).as("另一供应商同内容不得 500：%s", compiledB.body()).isEqualTo(200);
+        assertThat(compiledB.data().path("compilation_id").asText())
+                .as("不同供应商的编译产物必须彼此独立")
+                .isNotEqualTo(compilationA);
+    }
+
+    @Test
     @DisplayName("编译前边界冲突（4.2）：档位出现空洞直接拒绝（E-1402），不产出表达式")
     void boundaryConflictsBlockCompile() throws Exception {
         String admin = techOpsToken();

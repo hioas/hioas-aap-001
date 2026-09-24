@@ -90,4 +90,44 @@ public final class SyncViews {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record BindingStatusRequest(@JsonProperty("target_status") String targetStatus) {
     }
+
+    /**
+     * ADM-S07 响应：同步上游端点。
+     *
+     * <p>**永不回明文 api_key**，只回脱敏掩码（`sk-****abcd`）——与凭证脱敏同一条红线
+     * （`01-PRD总览` §5「安全-凭证」；`CredentialService` 的 `api_key_mask` 唯一出口同理）。
+     */
+    public record NewApiEndpoint(
+            String id,
+            String name,
+            @JsonProperty("base_url") String baseUrl,
+            Boolean readonly,
+            String status,
+            @JsonProperty("api_key_mask") String apiKeyMask,
+            @JsonProperty("created_at") String createdAt,
+            @JsonProperty("updated_at") String updatedAt) {
+    }
+
+    /** ADM-S07 请求体（`api_key` 只进不出：落库前加密，响应与日志永不含）。 */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record NewApiEndpointRequest(
+            String name,
+            @JsonProperty("base_url") String baseUrl,
+            @JsonProperty("api_key") String apiKey,
+            Boolean readonly) {
+    }
+
+    /** ADM-S08 请求体（`channel_name` 缺省时由服务端按 PRD §3.1 `AAP-{简称}-{序号}` 生成）。 */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record SyncTaskCreateRequest(
+            @JsonProperty("provider_id") String providerId,
+            @JsonProperty("compilation_id") String compilationId,
+            @JsonProperty("channel_name") String channelName,
+            String mode) {
+    }
+
+    /** ADM-S09 请求体（`dry_run=true` 只回预演载荷、零上游写、零库写）。 */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record SyncTaskExecuteRequest(@JsonProperty("dry_run") Boolean dryRun) {
+    }
 }
