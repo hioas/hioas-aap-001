@@ -1,0 +1,9 @@
+第 18 类只读取证的**形态域穷举**（键集合形态 -> 出现处；同族两种写法 = 漂移高发地，历史 44/215）
+
+形态 A（4 键）= {code, message, data, traceId} -> 4 处：md §0 响应包体行、json-schema/common/envelope.schema.json、openapi `Envelope` 组件（$ref 指向同一文件）、aap-client/src/api/http.ts `ApiEnvelope<T>` 接口
+形态 B（5 键）= 形态 A + {details} -> 3 处：json-schema/common/error.schema.json、openapi `Error` 组件（$ref 同文件）、aap-server `ApiEnvelope` record 分量（**同一 record 同时承载成功与失败** ⇒ 成功响应也走形态 B）
+
+机器读数：M=['code', 'data', 'message', 'traceId'] / S_env=['code', 'data', 'message', 'traceId'] / S_err=['code', 'data', 'details', 'message', 'traceId'] / I=['code', 'message', 'data', 'traceId', 'details'] / C=['code', 'data', 'message', 'traceId']；差异键（成功路径）= ['details']
+additionalProperties：envelope=True / error=True ⇒ 额外键被放行的唯一机器依据
+inclusion = 'always'（null 字段仍被输出 ⇒ 「声明键集合」≠「实际输出键集合」，两者分开断言）
+GAP_ENVELOPE_KEYS_FORMS_END=1

@@ -1,0 +1,57 @@
+第 18 类只读取证（R346）：响应包络字段集合 + traceId 出口（包体 / 响应头 / MDC）跨源一致性
+受核文件：docs/backend/02-API接口模型清单.md、docs/backend/json-schema/common/envelope.schema.json、docs/backend/json-schema/common/error.schema.json、docs/backend/openapi.yaml、aap-server/src/main/java/com/hioas/aap/common/ApiEnvelope.java、aap-server/src/main/java/com/hioas/aap/common/TraceIdFilter.java、aap-server/src/main/resources/application.yml、aap-client/src/api/http.ts、aap-server/src/test/java/com/hioas/aap/common/ApiContractTest.java、aap-server/src/test/java/com/hioas/aap/common/ApiEnvelopeTest.java
+
+-- 逐源读数（全部随判据落盘；正向对照须 > 0）--
+M  md §0 响应包体键集合 = ['code', 'data', 'message', 'traceId']；traceId 行头名 = X-Trace-Id
+S  envelope.schema.json 键集合 = ['code', 'data', 'message', 'traceId']；required = ['code', 'message']；additionalProperties = True
+S  error.schema.json    键集合 = ['code', 'data', 'details', 'message', 'traceId']；required = ['code', 'message']
+I  ApiEnvelope record 分量 = ['code', 'message', 'data', 'traceId', 'details']（5 个）；TraceIdFilter.HEADER = X-Trace-Id；MDC_KEY = ApiEnvelope.TRACE_ID；包体字段常数 = traceId；inclusion = 'always'
+O  openapi Envelope 组件 -> ./json-schema/common/envelope.schema.json（存在=True）
+O  openapi Error 组件    -> ./json-schema/common/error.schema.json（存在=True）
+O  openapi `in: header` 声明数 = 0；文件中出现 X-Trace-Id 0 次
+C  客户端 ApiEnvelope 接口键 = ['code', 'data', 'message', 'traceId']；ApiError 字段 = ['code', 'details', 'traceId']
+C  客户端 ApiError 构造点 = 5；其中 details 实参非 undefined = 0；从包体读取的键 = ['code', 'data', 'message', 'traceId']；客户端 X-Trace-Id 出现 0 次
+T  测试背书分档：schema 校验点 envelope=2 / error=3；traceId 断言 = 5；X-Trace-Id 断言 = 4；**键集合断言 = 0**
+
+-- 判定 --
+成功路径差异键集合（实现出口 - 成功 schema）= ['details']
+失败路径差异键集合（实现出口 - 错误 schema）= []
+
+[PASS] A0a md 键集合解析     M_KEYS=['code', 'data', 'message', 'traceId']
+[PASS] A0b envelope schema 属性 S_ENV=['code', 'data', 'message', 'traceId']
+[PASS] A0c error schema 属性 S_ERR=['code', 'data', 'details', 'message', 'traceId']
+[PASS] A0d 实现 record 分量 I_KEYS=['code', 'message', 'data', 'traceId', 'details']
+[PASS] A0e openapi 组件解析 O_REF={'Envelope': ('docs/backend/json-schema/common/envelope.schema.json', True), 'Error': ('docs/backend/json-schema/common/error.schema.json', True)}
+[PASS] A0f 客户端接口/类解析    C_ENV=['code', 'data', 'message', 'traceId'] C_ERR=['code', 'details', 'traceId']
+[PASS] A0g 客户端构造点 + 读取点 C_CTOR=5 C_READS=['code', 'data', 'message', 'traceId']
+[PASS] A0h 测试源解析        schema=2/3 trace=5 hdr=4 keyset=0
+[PASS] A0i 序列化 inclusion 解析 inclusion='always'
+[PASS] A1 失败路径 schema 键集合 == 实现出口键集合（正面结论：漂移只在成功路径） S_ERR=['code', 'data', 'details', 'message', 'traceId'] I_KEYS=['code', 'data', 'details', 'message', 'traceId']
+[PASS] A2a 成功路径实现独有键集合 == ['details']（漂移事实读数） 差集=['details']
+[PASS] A2b 机器依据：envelope.additionalProperties == true（额外键被放行 ⇒ 契约测试不可见） envelope.additionalProperties=True
+[PASS] A2c md §0 声明键集合 == envelope schema 键集合 M=['code', 'data', 'message', 'traceId'] S=['code', 'data', 'message', 'traceId']
+[PASS] A2d 客户端接口键集合 == envelope schema 键集合 C=['code', 'data', 'message', 'traceId'] S=['code', 'data', 'message', 'traceId']
+[PASS] A2e 分歧侧判定（多方裁判：md/schema/openapi/客户端 四处同侧 4 键 vs 实现 5 键 ⇒ 判实现侧为漂移侧） 4 键侧 = md(4)+schema(4)+openapi($ref 同文件)+客户端(4)；5 键侧 = 实现(5)
+[PASS] A3a 序列化策略使 null 字段仍被输出（inclusion == always） inclusion='always'
+[PASS] A3b ok(...) 以 null 传 details（与 A3a 合取 ⇒ 成功响应含 details:null） ok() 方法体解析到 = True
+[PASS] A4a 头名一致（md == TraceIdFilter.HEADER == X-Trace-Id） md=X-Trace-Id impl=X-Trace-Id
+[PASS] A4b MDC 键为常量引用 ApiEnvelope.TRACE_ID ∧ 包体字段名 == traceId（历史 99：常量引用要回查） MDC_KEY=ApiEnvelope.TRACE_ID body=traceId
+[PASS] A4c 包体字段名 ∈ 实现出口键集合 body=traceId I_KEYS=['code', 'data', 'details', 'message', 'traceId']
+[PASS] A4d 客户端确实从包体读取 traceId C_READS=['code', 'data', 'message', 'traceId']
+[PASS] A5 信息项读数：openapi `in: header` == 0 ∧ X-Trace-Id == 0（响应头在 openapi 零声明） in: header=0 X-Trace-Id=0
+[PASS] A6a 信息项读数：客户端 ApiError 声明 details ∧ 非 undefined 的 details 实参 == 0 处（死字段） C_ERR=['code', 'details', 'traceId'] 构造点=5 非 undefined 实参=0
+[PASS] A6b 信息项读数：客户端请求头 X-Trace-Id == 0 处（承诺在客户端侧无履行方） 客户端 X-Trace-Id 出现 0 次
+[PASS] A7a 信息项读数：成功路径「键集合」断言 == 0 处（额外键零用例背书） 键集合断言 0 处（schema 校验点 2/3、traceId 断言 5、头断言 4）
+[PASS] A8a 注入①（envelope schema 补 details）后 A2a 转绿 ∧ 锚点真的命中文本 锚点命中=True 注入后差集为空=True
+[PASS] A8b 注入②（客户端接口补 details）后 A2d 转绿 ∧ 锚点真的命中文本 锚点命中=True
+[PASS] A9 零写副作用（受核 10 个文件 (size, md5) 前后全等） 变化=无
+[PASS] A9b 受核文件数 > 0（正向对照） 10 个
+
+-- 结论（据实分级）--
+① **真漂移（契约一致性项，交付物侧）**：成功响应**实际输出 5 个键**（code,message,data,traceId,details），而 md §0 / `envelope.schema.json` / openapi `Envelope` 组件 / 客户端 `ApiEnvelope` 接口**四处一致地只声明 4 个键**（code,message,data,traceId）—— 差异键 = `details`（成功路径恒为 `null`）。四处同侧 ⇒ 判**实现侧为漂移侧**（历史 51：用多方裁判定案）。该漂移**对两套门禁完全不可见**：`envelope.schema.json` 的 `additionalProperties = true` 放行额外键 （契约测试仍绿），覆盖门禁只比「方法 + 路径」，openapi 与客户端 TS 不被任何测试读取/执行；且**键集合断言 = 0 处**（成功路径额外键零用例背书）。运行风险低（客户端忽略未声明键），但违反「字段集合」契约，且与「缺字段一律 null / 禁止 0 冒充没有数据」的既有约定的**语义方向相反**（多出一个无语义空字段）。修法面二选一（须人拍板）：① 生成器给成功 schema（+ openapi 组件）补 `details` 声明（改生成物）；② 让成功路径不输出 `details`（改序列化策略或 `ok()` 侧注解 —— 会触碰既有约定与既有用例）。
+② **信息项（同族已在册）**：openapi 的 `in: header` 声明数 = 0 ⇒ 响应头 `X-Trace-Id`（md §0 明写语义）在 openapi 零声明；与在册「幂等头 openapi 零声明」同族。
+③ **信息项（客户端侧）**：`ApiError` 声明 `details` 而构造点 5 处**无一**从包体取值（恒传 undefined）⇒ 死字段；客户端也不设置请求头 `X-Trace-Id`（0 处）⇒ 实现承诺的「客户端已带则沿用（跨服务链路不截断）」在客户端侧无人履行。
+④ **正面结论（机器取证）**：traceId 出口四面一致 —— 头名 `X-Trace-Id`（md == `TraceIdFilter.HEADER`）、MDC 键 == 包体字段名 == `ApiEnvelope.TRACE_ID` == `traceId`、客户端确实从包体读取 traceId（['code', 'data', 'message', 'traceId']）；失败路径 schema 与实现出口**逐键相等**（True）⇒ 漂移**只在成功路径**、非全局。
+⑤ **诚实分级**：本类为**一次性**只读取证（未落盘进 driver，常驻化 = 扩面须人拍板，历史 213-③）；①的严重度为**契约一致性**而非线上故障（无客户端按 `details` 分支，客户端零消费）。
+汇总：PASS 29 / FAIL 0
+GAP_ENVELOPE_KEYS_END=1
