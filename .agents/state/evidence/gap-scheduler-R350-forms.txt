@@ -1,0 +1,9 @@
+形态域表 · 第 22 类（定时任务测试环境关闭机制）· R350
+源 1 实现：@Scheduled 站点 = 2 处；机制形态集合 = ['时间性（超大延迟）', '显式开关']
+源 2 主配置：app.detection.* 键 = ['app.detection.daily-quota', 'app.detection.pass-score', 'app.detection.recheck-cron', 'app.detection.recheck-enabled', 'app.detection.recheck-interval-days', 'app.detection.veto-score']
+源 3 测试配置：app.detection.* 键 = ['app.detection.execute-delay-ms', 'app.detection.execute-initial-delay-ms', 'app.detection.recheck-enabled']；悬空覆盖 = ['app.detection.execute-delay-ms', 'app.detection.execute-initial-delay-ms']
+源 4 测试侧：入口驱动形态 = ['.runOnce()', '.scan()']
+源 5 文档侧：命中 = 0 条
+源 6 回归面：driver 出现键 = 0 处
+判据形态：注释声明正则（key[ =]*=[ ]*(true|false)）命中 = 2 处；矛盾 = 1 处
+GAP_SCHEDULER_FORMS_END=1

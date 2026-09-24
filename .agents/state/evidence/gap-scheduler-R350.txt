@@ -1,0 +1,49 @@
+第 22 类只读取证：定时任务（调度器）的「测试环境关闭机制」一致性 · R350
+==============================================================================
+A0 正向对照：@Scheduled 站点 = 2 处（须 > 0；实现侧解析器必须真的读到输入）
+[PASS] A0 正向对照：@Scheduled 站点解析到 > 0  站点 = 2
+A1 站点 DetectionExecutor.java:60 -> 关闭机制 = 时间性（超大延迟）（紧邻前置注解 = ['@Component']）
+    注解实参 = (fixedDelayString = "${app.detection.execute-delay-ms:15000}",             initialDelayString = "${app.detection.execute-initial-delay-ms:20000}")
+A1 站点 RecheckScheduler.java:27 -> 关闭机制 = 显式开关（紧邻前置注解 = ['@Component', '@ConditionalOnProperty(name = "app.detection.recheck-enabled", havingValue = "true")']）
+    注解实参 = (cron = "${app.detection.recheck-cron:0 15 * * * *}")
+A2 关闭机制分类：显式开关 = 1 处 / 时间性（超大延迟）= 1 处 / 无 = 0 处
+[PASS] A2 关闭机制分类**计数闭合**（三类和 == 站点数）  1 + 1 + 0 = 2 vs 站点 2
+     逐处点名：显式开关 = ['RecheckScheduler.java:27'] / 时间性 = ['DetectionExecutor.java:60'] / 无 = []
+[PASS] A2b 每个调度站点都有**某种**关闭机制（无守卫站点 = 0）  无 = 0 处 []
+[FAIL] A2c 关闭机制**形态唯一**（同族两种承载 = 漂移高发地，历史 44）  显式开关 = 1 / 时间性 = 1
+A3 主配置解析：app.detection.* 键 = ['app.detection.daily-quota', 'app.detection.pass-score', 'app.detection.recheck-cron', 'app.detection.recheck-enabled', 'app.detection.recheck-interval-days', 'app.detection.veto-score']
+A3 测试配置解析：app.detection.* 键 = ['app.detection.execute-delay-ms', 'app.detection.execute-initial-delay-ms', 'app.detection.recheck-enabled']
+[PASS] A3 主配置解析器正向对照（app.detection.* 键 > 0）  主 yml 键 = 6
+[PASS] A3b 测试配置解析器正向对照（app.detection.* 键 > 0）  测试 yml 键 = 3
+A3c **悬空覆盖**（测试配置覆盖、主配置零声明的键）= ['app.detection.execute-delay-ms', 'app.detection.execute-initial-delay-ms']（2 个）
+A4 时间性站点的覆盖值（键, 测试覆盖, 主配置声明）= [('app.detection.execute-delay-ms', '86400000', None), ('app.detection.execute-initial-delay-ms', '86400000', None)]
+[PASS] A4 时间性站点的覆盖值**全部存在**  [('app.detection.execute-delay-ms', '86400000', None), ('app.detection.execute-initial-delay-ms', '86400000', None)]
+[PASS] A4b 覆盖值**阈值量化**（须 >= 3600000 ms = 1h）  实测 = [86400000, 86400000] ms（≈24.0 h）
+[PASS] A4c 覆盖值**不是占位/未解析形态**（须为纯数字）  纯数字命中 = 2 / 2
+A5 注释声明核对 RecheckScheduler.java [app.detection.recheck-enabled]：注释写 false / 主配置 = ${AAP_RECHECK_ENABLED:true} -> 矛盾 = True
+[PASS] A5a 注释声明核对**至少评估过 1 个 -enabled 键**（否则判定不可用，历史 141/98）  评估 = 1 个
+[FAIL] A5 注释 ⇔ 配置 **无取值矛盾**（历史 95：同一事实两种写法）  矛盾 = [('RecheckScheduler.java', 'recheck-enabled', 'false', '${AAP_RECHECK_ENABLED:true}')]
+A6 可直接调用入口 = 3 处 ['DetectionExecutor.java:public void scan()', 'RecheckScheduler.java:public void scan()', 'RecheckService.java:public int runOnce()']
+A6 测试直接驱动点 = 6 处 ['DetectionExecutorTest.java:.scan()', 'RecheckServiceTest.java:.runOnce()']
+[PASS] A6 每个调度逻辑都有**公共可调用入口**  入口 = 3 / 站点 = 2
+[PASS] A6b 测试**直接驱动**入口（逻辑可测、不靠定时器）= > 0  驱动点 = 2
+A7 「测试环境调度已关闭」常驻判据：实现侧出现 = 7 处 / **测试断言 = 0 处** / driver 判据 = 0 处
+[PASS] A7 实现侧承载**确实存在**（口径非空转：键在实现里真的出现）  实现侧 = 7 处
+[FAIL] A7b 「测试环境调度已关闭」有**常驻自动化判据**（测试断言 ∧ driver）  测试断言 = 0 / driver = 0
+A8 文档侧成文纪律声明 = 0 条 （零）
+[FAIL] A8 文档侧有「测试环境须关闭定时器」的成文纪律  命中 = 0 条
+[PASS] A9 判别力实测①：分类器两支结论确实不同（合成带注解 -> 显式开关 / 合成无注解 -> 时间性 / 非 detection 键 -> 无）  显式开关 / 时间性（超大延迟） / 无
+[PASS] A9b 判别力实测②：阈值判据两支结论确实不同（T_LO = 「60000 ms 判**不足**」须 True / T_HI = 「86400000 ms 判**足**」须 True）  T_LO(60000 判不足) = True / T_HI(86400000 判足) = True
+[PASS] A9c 判别力实测③：矛盾检测两支结论确实不同（合成 false vs true -> 判矛盾 / true vs true -> 不判）  ('false', 'true', True) / ('true', 'true', False)
+[PASS] A9d 判别力实测④：注入**真的改到了文本** ∧ 注入后该站点被分类为「显式开关」（⇒ 判据确实锚在源码上，不是空转）  注入改变文本 = True
+[PASS] A10 零写副作用：受核文件 (size, md5) 前后全等  受核文件 = 349 个 / 变化 = 0
+
+真发现（据实）：① **同一「测试环境必须关闭定时器」需求有两种承载形态**（显式开关 1 处 vs 时间性超大延迟 1 处）—— 时间性形态**不创建/销毁 bean**，只靠「延迟远大于测试窗口」保证不触发 ⇒ 延迟被调小或测试变长即静默复现「与用例抢库」的随机失败（Skill 踩坑 4）；② 「测试环境调度已关闭」的**常驻自动化判据 = 0 条**（测试断言 0 / driver 0）⇒ 该耦合对 243 例契约测试与全部审计工具完全不可见；③ 注释 ⇔ 配置的**取值矛盾** [('RecheckScheduler.java', 'recheck-enabled', 'false', '${AAP_RECHECK_ENABLED:true}')]。
+信息项（据实分级，均非缺陷）：悬空覆盖键 = ['app.detection.execute-delay-ms', 'app.detection.execute-initial-delay-ms']（测试配置覆盖、主配置零声明 —— Spring 属性源合并天然支持，但「主配置未声明该键」使默认口径只存在于注解内联值）；文档侧成文纪律 = 0 条。
+
+汇总：PASS 17 / FAIL 4（受判条数 21）
+  [FAIL] A2c 关闭机制**形态唯一**（同族两种承载 = 漂移高发地，历史 44）
+  [FAIL] A5 注释 ⇔ 配置 **无取值矛盾**（历史 95：同一事实两种写法）
+  [FAIL] A7b 「测试环境调度已关闭」有**常驻自动化判据**（测试断言 ∧ driver）
+  [FAIL] A8 文档侧有「测试环境须关闭定时器」的成文纪律
+GAP_SCHEDULER_END=1
