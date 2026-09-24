@@ -5,6 +5,7 @@ import com.hioas.aap.common.ApiException;
 import com.hioas.aap.common.ErrorCode;
 import com.hioas.aap.common.PageResult;
 import com.hioas.aap.iam.AuthPrincipal;
+import com.hioas.aap.settlement.PaymentViews.Detail;
 import com.hioas.aap.settlement.PaymentViews.Payment;
 import com.hioas.aap.settlement.PaymentViews.Statement;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -89,6 +90,59 @@ public class AdminPaymentController {
                                             @PathVariable String id,
                                             @Valid @RequestBody VoidRequest request) {
         return ApiEnvelope.ok(settlementService.voidPayment(principal, parseId(id), request.reason()));
+    }
+
+    /**
+     * ADM-PAY06 生成结算单（D-SETTLE-02 口径：自然月 UTC / `cost_usd` 基数 / 合同费率 + 门槛）。
+     *
+     * <p>无 SIGNED 合同 → 409 `E-1701`；周期内无用量或低于门槛 → 409 `E-1601`；同周期重复生成 → 幂等返回既有单。
+     */
+    @PostMapping("/settlements")
+    public ApiEnvelope<Detail> generate(@AuthenticationPrincipal AuthPrincipal principal,
+                                        @Valid @RequestBody GenerateRequest request) {
+        return ApiEnvelope.ok(settlementService.generate(principal, new SettlementService.GenerateCommand(
+                parseIdOrNull(request.provider_id(), "provider_id"), request.month())));
+    }
+
+    /** ADM-PAY07 结算单详情（含明细行与已关联打款）。 */
+    @GetMapping("/settlements/{id}")
+    public ApiEnvelope<Detail> settlementDetail(@PathVariable String id) {
+        return ApiEnvelope.ok(settlementService.detail(parseStatementId(id)));
+    }
+
+    /** ADM-PAY08 确认出账：`DRAFT → CONFIRMED`（终态，确认后不可改）。 */
+    @PostMapping("/settlements/{id}/confirm")
+    public ApiEnvelope<Detail> confirmSettlement(@AuthenticationPrincipal AuthPrincipal principal,
+                                                 @PathVariable String id) {
+        return ApiEnvelope.ok(settlementService.confirmStatement(principal, parseStatementId(id)));
+    }
+
+    /** ADM-PAY09 作废结算单：`DRAFT → VOID`（理由必填，落审计；作废后可重新生成，历史单保留）。 */
+    @PostMapping("/settlements/{id}/void")
+    public ApiEnvelope<Detail> voidSettlement(@AuthenticationPrincipal AuthPrincipal principal,
+                                              @PathVariable String id,
+                                              @Valid @RequestBody VoidRequest request) {
+        return ApiEnvelope.ok(settlementService.voidStatement(principal, parseStatementId(id), request.reason()));
+    }
+
+    /** ADM-PAY06 请求体（与 `settlement-generate.schema.json` 一致）。 */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record GenerateRequest(
+            @NotBlank(message = "供应商必填") String provider_id,
+            @NotBlank(message = "月份必填")
+            @Pattern(regexp = "[0-9]{4}-(0[1-9]|1[0-2])", message = "月份格式必须为 YYYY-MM") String month) {
+    }
+
+    /** 结算单 ID 解析（文案与打款区分，便于定位报错来源）。 */
+    private static Long parseStatementId(String value) {
+        if (value == null || value.isBlank()) {
+            throw ApiException.field(ErrorCode.E_1001, "id", "结算单 ID 必填");
+        }
+        try {
+            return Long.valueOf(value.trim());
+        } catch (NumberFormatException e) {
+            throw ApiException.field(ErrorCode.E_1001, "id", "不是合法的雪花 ID：" + value);
+        }
     }
 
     /** ADM-PAY04 请求体（与 `payment-record.schema.json` 一致）。 */

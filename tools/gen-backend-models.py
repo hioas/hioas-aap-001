@@ -59,7 +59,8 @@ ENUMS = {
     "AuditAction": ["CREDENTIAL_REVEAL", "QUOTE_CREATE", "QUOTE_SAVE", "QUOTE_SUBMIT", "QUOTE_WITHDRAW", "QUOTE_VOID", "QUOTE_APPROVE", "QUOTE_REJECT", "SYNC_WRITE_PRICE", "PROVIDER_SUSPEND", "PROVIDER_RESUME",
                     "CONTRACT_SIGN", "PAYMENT_RECORD", "PAYMENT_CONFIRM", "PAYMENT_VOID", "DETECTION_RELEASE", "PROFILE_UPDATE", "AUTH_LOGIN",
                     "ADMIN_USER_CREATE", "ADMIN_USER_SUSPEND", "ADMIN_USER_RESUME",
-                    "CONFIG_PUBLISH", "SYNC_EXECUTE"],
+                    "CONFIG_PUBLISH", "SYNC_EXECUTE",
+                    "STATEMENT_GENERATE", "STATEMENT_CONFIRM", "STATEMENT_VOID"],
     "ResultCode": ["0", "E-1001", "E-1101", "E-1102", "E-1104", "E-1201", "E-1301", "E-1302", "E-1303",
                    "E-1304", "E-1305", "E-1401", "E-1402", "E-1403", "E-1404", "E-1405", "E-1406",
                    "E-1407", "E-1501", "E-1505", "E-1601", "E-1602", "E-1701", "E-1801", "E-1901",
@@ -293,6 +294,17 @@ MODELS: dict[str, dict] = {
     "settlement-statement": dict(required=["id"], properties={
         "id": ID, "statement_no": STR, "provider_id": ID, "period_from": TS, "period_to": TS,
         "total_amount": DEC6, "platform_fee": DEC6, "status": STR, "created_at": TS}),
+    # 字段与 aap_settlement_line 的表列一一对应：该表**没有** channel_name / request_count 列，
+    # 故不声明（宁可少一个字段，也不回一个库里存不下的值）。
+    "settlement-line": dict(required=["id"], properties={
+        "id": ID, "statement_id": ID, "channel_id": ID, "model_name": STR,
+        "total_tokens": TOKENS, "quota_raw": DEC6, "amount": DEC6}),
+    "settlement-detail": dict(required=["id", "statement_no", "status"], properties={
+        "id": ID, "statement_no": STR, "provider_id": ID, "provider_name": STR,
+        "period_from": TS, "period_to": TS, "total_amount": DEC6, "platform_fee": DEC6,
+        "net_amount": DEC6, "currency": STR, "status": STR, "created_at": TS,
+        "lines": {"type": ["array", "null"], "items": {"$ref": "settlement-line.schema.json"}},
+        "payments": {"type": ["array", "null"], "items": {"$ref": "payment.schema.json"}}}),
     "notification": dict(required=["id"], properties={
         "id": ID, "title": STR, "content": STR, "created_at": TS, "read_at": TS,
         "read": BOOL, "is_read": BOOL, "event_code": STR, "biz_type": STR, "biz_id": ID,
@@ -422,6 +434,13 @@ REQUESTS: dict[str, dict] = {
         "voucher_file_id": ID, "paid_at": TS, "remark": {"type": ["string", "null"], "maxLength": 255}}),
     # ADM-PAY05 作废打款（PRD 10 §4.3「VOID 作废后重录」，必填理由）
     "payment-void": dict(required=["reason"], properties={
+        "reason": {"type": "string", "minLength": 1, "maxLength": 255}}),
+    # ADM-PAY06 生成结算单（D-SETTLE-02 拍板口径：自然月 UTC + cost_usd 合计 + 合同 platform_fee_rate）
+    # month 用字符类而非 \\d —— 本仓库的生成器写盘对转义层级敏感（见 tdd-state 里「反斜杠计数」类返工）。
+    "settlement-generate": dict(required=["provider_id", "month"], properties={
+        "provider_id": ID, "month": {"type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"}}),
+    # ADM-PAY09 作废结算单（DRAFT 可作废后重生成；理由必填，落审计）
+    "settlement-void": dict(required=["reason"], properties={
         "reason": {"type": "string", "minLength": 1, "maxLength": 255}}),
     # ADM-AUTH03 建运营账号（手机号即登录名：短信登录，故 phone 必填；username 为展示/审计用）
     "admin-user-create": dict(required=["username", "role", "phone"], properties={
@@ -587,6 +606,10 @@ PATHS: list[tuple] = [
     ("CON-03", "get", "/contracts/{id}/file", "Contract", "PROVIDER", None, "report-export", [], ["E-1701"], "真源"),
     ("CON-04", "post", "/contracts/{id}/sign", "Contract", "PROVIDER", "contract-sign", "contract", [], ["E-1701", "E-1601"], "真源"),
     ("PAY-01", "get", "/payments", "Payment", "PROVIDER", None, "payment", ["page", "pageSize"], [], "真源+约定"),
+    # 供应商端对账视图（2026-09-24 新增）：此前供应商侧**零结算端点**，无法看到自己被结算的明细，
+    # 「打款 → 结算单 → 对账单」对供应商不可见（PRD 12-供应商端PRD 为空壳，故按管理端口径对齐实现）。
+    ("SET-01", "get", "/settlements", "Settlement", "PROVIDER", None, "settlement-statement", ["page", "pageSize"], [], "新增"),
+    ("SET-02", "get", "/settlements/{id}", "Settlement", "PROVIDER", None, "settlement-detail", [], ["E-1406"], "新增"),
     ("NTF-01", "get", "/notifications", "Notification", "authenticated", None, "notification", ["page", "pageSize", "unread", "category"], [], "真源+推断"),
     ("NTF-02", "post", "/notifications/{id}/read", "Notification", "authenticated", None, "notification-read", [], ["E-1901"], "真源"),
     ("USE-01", "get", "/usage/summary", "Usage", "PROVIDER", None, "usage-summary", ["startHour", "endHour", "month"], ["E-1801"], "真源"),
@@ -629,6 +652,15 @@ PATHS: list[tuple] = [
     # 此前 aap_payment_record 全仓无任何 insert → ADM-PAY02 无对象可确认（实测 total=0），合同签完后链路断开。
     ("ADM-PAY04", "post", "/admin/payments", "Admin", "BIZ_OPERATOR,SUPER_ADMIN", "payment-record-create", "payment", [], ["E-1001", "E-1406", "E-1601"], "新增"),
     ("ADM-PAY05", "post", "/admin/payments/{id}/void", "Admin", "BIZ_OPERATOR,SUPER_ADMIN", "payment-void", "payment", [], ["E-1001", "E-1406", "E-1601"], "新增"),
+    # 结算单生成与出账闭环（2026-09-24 新增，D-SETTLE-02 自主拍板）：
+    # 真实缺口是「打款确认之后没有下一环」—— aap_settlement_statement / aap_settlement_line 全仓只有读、
+    # 零 INSERT（ADM-PAY03 实测 total=0），而 PRD 对「出账周期 / platform_fee 计费基数 / 金额计算基数」
+    # 三件事零定义（D-SETTLE-01）。本轮按行业惯例 + 仓库既有语义自主拍板，并**全部做成可配置**
+    # （app.settlement.*，见 application.yml），口径变化时不改代码。
+    ("ADM-PAY06", "post", "/admin/settlements", "Admin", "BIZ_OPERATOR,SUPER_ADMIN", "settlement-generate", "settlement-detail", [], ["E-1001", "E-1406", "E-1601", "E-1701"], "新增"),
+    ("ADM-PAY07", "get", "/admin/settlements/{id}", "Admin", "BIZ_OPERATOR,SUPER_ADMIN", None, "settlement-detail", [], ["E-1406"], "新增"),
+    ("ADM-PAY08", "post", "/admin/settlements/{id}/confirm", "Admin", "BIZ_OPERATOR,SUPER_ADMIN", None, "settlement-detail", [], ["E-1406", "E-1601"], "新增"),
+    ("ADM-PAY09", "post", "/admin/settlements/{id}/void", "Admin", "BIZ_OPERATOR,SUPER_ADMIN", "settlement-void", "settlement-detail", [], ["E-1001", "E-1406", "E-1601"], "新增"),
     ("ADM-S01", "get", "/admin/sync/tasks", "Admin", "TECH_OPS,SUPER_ADMIN", None, "sync-task", ["page", "pageSize", "status", "bindingId"], [], "真源"),
     ("ADM-S02", "get", "/admin/sync/tasks/{taskId}", "Admin", "TECH_OPS,SUPER_ADMIN", None, "sync-task", [], ["E-1501"], "真源"),
     ("ADM-S03", "post", "/admin/sync/tasks/{taskId}/retry", "Admin", "TECH_OPS,SUPER_ADMIN", None, "sync-task", [], ["E-1501", "E-1505"], "真源"),

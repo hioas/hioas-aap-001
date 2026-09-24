@@ -21,7 +21,9 @@
  *     （17-spec ProviderStatus 11 态里的发布态）；
  *  4. 各入口右侧计数无汇总接口 → 由各模块列表接口逐项取数（quotes/reports/contracts/credentials/notifications），
  *     计数缺失渲染占位「—」，不冒充 0；
- *  5. 「结算账户 / 已绑定」在 22 份 PRD 零命中、画布也无对应页面 → 无落点（target 空串，记台账阻塞）。
+ *  5. 「结算账户」—— 2026-09-25 起**已有落点**：后端补上 SET-01/02（供应商端读结算单）后
+ *     新增 /pages/settlements/index。此前它在 22 份 PRD 零命中、画布也无对应页 → target 空串（阻塞）。
+ *     右侧「已绑定」文案仍无 PRD 依据，保留原样（不臆造）。
  */
 import { industryLabel } from './profile-model'
 
@@ -36,6 +38,7 @@ import {
   QUOTES_PAGE,
   REPORT_PAGE,
   SETTINGS_PAGE,
+  SETTLEMENT_PAGE,
   USAGE_PAGE,
   WORKBENCH_PAGE
 } from './routes'
@@ -49,6 +52,7 @@ export {
   QUOTES_PAGE,
   REPORT_PAGE,
   SETTINGS_PAGE,
+  SETTLEMENT_PAGE,
   USAGE_PAGE,
   WORKBENCH_PAGE
 }
@@ -310,7 +314,7 @@ const ROW_DEFS: Omit<MineRowView, 'value' | 'valueTone'>[] = [
   // 主体与证照卡（design cd8b4c81）
   { key: 'profile', label: '主体档案', group: 'profile', pill: true, iconBg: '', iconColor: '#94A3B8', glyph: 'profile', target: PROFILE_PAGE },
   { key: 'credentials', label: '接入凭证', group: 'profile', pill: false, iconBg: '', iconColor: '#94A3B8', glyph: 'credential', target: CREDENTIALS_PAGE },
-  { key: 'settlement', label: '结算账户', group: 'profile', pill: false, iconBg: '', iconColor: '#94A3B8', glyph: 'account', target: '' },
+  { key: 'settlement', label: '结算账户', group: 'profile', pill: false, iconBg: '', iconColor: '#94A3B8', glyph: 'account', target: SETTLEMENT_PAGE },
   { key: 'settings', label: '账号与设置', group: 'profile', pill: false, iconBg: '', iconColor: '#94A3B8', glyph: 'settings', target: SETTINGS_PAGE }
 ]
 

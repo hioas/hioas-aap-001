@@ -1,5 +1,5 @@
 {
-  "total": 102,
+  "total": 108,
   "endpoints": [
     {
       "id": "AUTH-01",
@@ -715,6 +715,37 @@
       "task": "T11"
     },
     {
+      "id": "SET-01",
+      "method": "GET",
+      "path": "/api/v1/settlements",
+      "tag": "Settlement",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "settlement-statement",
+      "query_params": [
+        "page",
+        "pageSize"
+      ],
+      "error_codes": [],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "SET-02",
+      "method": "GET",
+      "path": "/api/v1/settlements/{id}",
+      "tag": "Settlement",
+      "auth": "PROVIDER",
+      "request_model": null,
+      "response_model": "settlement-detail",
+      "query_params": [],
+      "error_codes": [
+        "E-1406"
+      ],
+      "source": "新增",
+      "task": ""
+    },
+    {
       "id": "NTF-01",
       "method": "GET",
       "path": "/api/v1/notifications",
@@ -1264,6 +1295,72 @@
       "auth": "BIZ_OPERATOR,SUPER_ADMIN",
       "request_model": "payment-void",
       "response_model": "payment",
+      "query_params": [],
+      "error_codes": [
+        "E-1001",
+        "E-1406",
+        "E-1601"
+      ],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "ADM-PAY06",
+      "method": "POST",
+      "path": "/api/v1/admin/settlements",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,SUPER_ADMIN",
+      "request_model": "settlement-generate",
+      "response_model": "settlement-detail",
+      "query_params": [],
+      "error_codes": [
+        "E-1001",
+        "E-1406",
+        "E-1601",
+        "E-1701"
+      ],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "ADM-PAY07",
+      "method": "GET",
+      "path": "/api/v1/admin/settlements/{id}",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "settlement-detail",
+      "query_params": [],
+      "error_codes": [
+        "E-1406"
+      ],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "ADM-PAY08",
+      "method": "POST",
+      "path": "/api/v1/admin/settlements/{id}/confirm",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "settlement-detail",
+      "query_params": [],
+      "error_codes": [
+        "E-1406",
+        "E-1601"
+      ],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "ADM-PAY09",
+      "method": "POST",
+      "path": "/api/v1/admin/settlements/{id}/void",
+      "tag": "Admin",
+      "auth": "BIZ_OPERATOR,SUPER_ADMIN",
+      "request_model": "settlement-void",
+      "response_model": "settlement-detail",
       "query_params": [],
       "error_codes": [
         "E-1001",

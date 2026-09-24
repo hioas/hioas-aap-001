@@ -7,6 +7,10 @@
  *   GET  /admin/payments?status=&page=&pageSize=      打款记录
  *   POST /admin/payments/{id}/confirm                 确认打款
  *   GET  /admin/settlements?page=&pageSize=           结算台账（按供应商聚合）
+ *   POST /admin/settlements                           生成结算单（ADM-PAY06，口径 D-SETTLE-02）
+ *   GET  /admin/settlements/{id}                      结算单详情（ADM-PAY07）
+ *   POST /admin/settlements/{id}/confirm              确认出账（ADM-PAY08）
+ *   POST /admin/settlements/{id}/void                 作废结算单（ADM-PAY09）
  *
  * ⚠️ PRD 13 §6：「**不做资金流转，仅记录**」。所以这里的「打款」只是记录状态，
  *    前端不得出现任何「转账/支付」措辞或跳转。
@@ -68,12 +72,32 @@ export interface StatementRow {
   id: string;
   statement_no: string | null;
   provider_id: string | null;
+  provider_name?: string | null;
   period_from: string | null;
   period_to: string | null;
   total_amount: number | null;
   platform_fee: number | null;
+  net_amount?: number | null;
+  currency?: string | null;
   status: string;
   created_at: string | null;
+}
+
+/** 结算明细行（维度：渠道 × 模型；字段与 aap_settlement_line 表列一一对应）。 */
+export interface StatementLine {
+  id: string;
+  statement_id: string;
+  channel_id: string | null;
+  model_name: string | null;
+  total_tokens: number | null;
+  quota_raw: number | null;
+  amount: number | null;
+}
+
+/** 结算单详情（ADM-PAY07 / SET-02）：主行 + 明细行 + 已关联打款。 */
+export interface StatementDetail extends StatementRow {
+  lines: StatementLine[];
+  payments: PaymentRow[];
 }
 
 /**
@@ -111,6 +135,19 @@ export const PAYMENT_STATUS: Record<string, { label: string; tone: 'info' | 'war
   VOID: { label: '已作废', tone: 'danger' }
 };
 
+/**
+ * 结算单状态（SettlementService 状态机）：DRAFT --确认--> CONFIRMED（终态）、DRAFT --作废--> VOID
+ * （作废后可重新生成，历史单保留，不物理删除）。
+ *
+ * ⚠️ 表格此前复用 PAYMENT_STATUS 渲染结算状态 → DRAFT 无键、直接显示原始码。
+ *    结算与打款是两套状态机，映射必须分开（2026-09-25 修正）。
+ */
+export const STATEMENT_STATUS: Record<string, { label: string; tone: 'info' | 'warn' | 'success' | 'danger' | 'muted' }> = {
+  DRAFT: { label: '草稿', tone: 'warn' },
+  CONFIRMED: { label: '已出账', tone: 'success' },
+  VOID: { label: '已作废', tone: 'danger' }
+};
+
 export const contractApi = {
   list(status?: string, page = 1, pageSize = 20) {
     return request<PageResult<ContractRow>>('/admin/contracts', { query: { status, page, pageSize } });
@@ -129,6 +166,28 @@ export const contractApi = {
   },
   statements(page = 1, pageSize = 20) {
     return request<PageResult<StatementRow>>('/admin/settlements', { query: { page, pageSize } });
+  },
+  /**
+   * ADM-PAY06 生成结算单。口径（后端 D-SETTLE-02）：
+   * 周期=自然月 UTC；金额基数=`aap_usage_hourly.cost_usd` 合计；平台费=合同 `platform_fee_rate` × 基数；
+   * 明细维度=渠道 × 模型；门槛=合同 `min_settlement_amount`。
+   * 无 SIGNED 合同 → 409 E-1701；周期内无用量或低于门槛 → 409 E-1601（**不生成 0 元单**）；
+   * 同周期重复生成 → 幂等返回既有单。
+   */
+  generateStatement(payload: { provider_id: string; month: string }) {
+    return request<StatementDetail>('/admin/settlements', { method: 'POST', body: payload });
+  },
+  /** ADM-PAY07 结算单详情（含明细行与已关联打款）。 */
+  statementDetail(id: string) {
+    return request<StatementDetail>(`/admin/settlements/${id}`);
+  },
+  /** ADM-PAY08 确认出账：DRAFT → CONFIRMED（终态，确认后不可作废）。 */
+  confirmStatement(id: string) {
+    return request<StatementDetail>(`/admin/settlements/${id}/confirm`, { method: 'POST' });
+  },
+  /** ADM-PAY09 作废结算单：DRAFT → VOID（理由必填，落审计；作废后可重新生成）。 */
+  voidStatement(id: string, reason: string) {
+    return request<StatementDetail>(`/admin/settlements/${id}/void`, { method: 'POST', body: { reason } });
   },
   /**
    * 记录打款（ADM-PAY04，2026-09-23 新增）。运营线下打款后录入：合同须 SIGNED，

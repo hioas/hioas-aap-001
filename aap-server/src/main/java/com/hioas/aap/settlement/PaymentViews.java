@@ -54,6 +54,49 @@ public final class PaymentViews {
             @JsonProperty("total_settled") BigDecimal totalSettled) {
     }
 
+    /**
+     * ADM-PAY07 / SET-02 结算明细行（按「渠道 × 模型」汇总；来源 aap_settlement_line）。
+     *
+     * <p>字段与表列**一一对应**：该表没有 {@code channel_name} / {@code request_count} 列，
+     * 故视图也不声明 —— 宁可少一个字段，也不回一个库里存不下、下次读不出来的值。
+     */
+    public record Line(
+            String id,
+            @JsonProperty("statement_id") String statementId,
+            @JsonProperty("channel_id") String channelId,
+            @JsonProperty("model_name") String modelName,
+            @JsonProperty("total_tokens") Long totalTokens,
+            @JsonProperty("quota_raw") BigDecimal quotaRaw,
+            BigDecimal amount) {
+    }
+
+    /**
+     * ADM-PAY06/07/08/09 + SET-02 结算单详情（含明细行与已关联打款）。
+     *
+     * <p>派生字段（不落库，DDL 无对应列）：
+     * <ul>
+     *   <li>{@code net_amount = total_amount - platform_fee}（供应商实得）</li>
+     *   <li>{@code currency} 取自合同（statement 表无 currency 列）</li>
+     *   <li>{@code provider_name} 供展示（列表不 join 供应商表，详情才 join）</li>
+     * </ul>
+     */
+    public record Detail(
+            String id,
+            @JsonProperty("statement_no") String statementNo,
+            @JsonProperty("provider_id") String providerId,
+            @JsonProperty("provider_name") String providerName,
+            @JsonProperty("period_from") String periodFrom,
+            @JsonProperty("period_to") String periodTo,
+            @JsonProperty("total_amount") BigDecimal totalAmount,
+            @JsonProperty("platform_fee") BigDecimal platformFee,
+            @JsonProperty("net_amount") BigDecimal netAmount,
+            String currency,
+            String status,
+            @JsonProperty("created_at") String createdAt,
+            List<Line> lines,
+            List<Payment> payments) {
+    }
+
     /** ADM-PAY03 结算单视图。 */
     public record Statement(
             String id,

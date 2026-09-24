@@ -631,3 +631,44 @@ org.springframework.dao.DuplicateKeyException:
    非 new-api Log 表 / `SumUsedQuota`（D-USAGE-01）；且缺 T+5min 定时聚合任务。
 3. 真实 new-api 未接入（本轮及 T15 用本地一体桩 `tools/newapi-stub.py`）。
 4. 检测自然通过依赖真实厂商接口；本地走 DET-06 人工放行。
+
+---
+
+## D-SETTLE-02 · 结算单出账口径 —— 自主拍板并实施 2026-09-24
+
+**背景**：D-SETTLE-01 把三件事登记为「待产品拍板」（出账周期 / `platform_fee` 计费基数 / 金额计算基数），
+理由是「自造算法会影响真实对账金额」。但业务闭环缺的正是这一环：`aap_settlement_statement` /
+`aap_settlement_line` 全仓**零写入路径**（ADM-PAY03 实测 `total=0`），供应商看不到任何对账明细 ——
+即「打款确认（CONFIRMED）之后没有下一环」。
+
+**决策（自主拍板；用户口径：「继续自己思考，自己想办法，自己创新，自己解决」）**：
+
+1. **出账周期** = 自然月（UTC）：`[月初 00:00:00Z, 次月初 00:00:00Z)` —— 与用量窗口
+   `month=YYYY-MM`（`UsageService.resolveWindow`）**同口径**，不引入第二套时间定义。
+2. **金额计算基数** = `aap_usage_hourly.cost_usd` 合计 —— 对账视图（USE-01）展示的就是该字段，
+   结算与对账同源才不会对出「两个数」；`quota_raw` 作为伴随字段落在明细行里，保留可追溯性。
+3. **platform_fee** = 合同 `platform_fee_rate` × 金额基数；合同取该供应商**最新 SIGNED**
+   （与 USE-01 的平台费率口径一致）。合同 `min_settlement_amount` 为出账门槛。
+4. **明细维度** = 渠道 × 模型（`aap_settlement_line` 的表列即此维度）。
+5. **状态机** = `DRAFT → CONFIRMED`（确认出账）／`DRAFT → VOID`（作废后重算，历史单保留）。
+6. **幂等** = 同供应商同周期最多一份**有效**单（`status <> 'VOID'` 的部分唯一索引，V14）；
+   重复生成返回既有单，不新增行。
+7. **打款关联** = 生成时把 `paid_at` 落在周期内、状态为 `PAYMENT_RECORDED/CONFIRMED`、
+   且尚未关联的 `aap_payment_record.statement_id` 回填为本单（补上 D-SETTLE-01 里
+   「打款与结算单之间无关联」这条悬空的口径）。
+
+**可配置（关键：口径变化不改代码）**：三项口径读 `app.settlement.*`（`cycle` / `amount-basis` / `fee-basis`），
+**由 `@Value` 带默认值提供**（`MONTHLY` / `COST_USD` / `CONTRACT_RATE`），可用环境变量或启动参数覆盖 ——
+刻意**不写进 `application.yml`**：默认值即当前拍板口径，写进 yml 反而会把口径固化成「看起来是配置、实际是代码」的形态。
+产品口径一旦拍板与本决策不同，改配置即可；若需第三种基数（如按报价单单价复算），再加一个枚举取值 + 一个分支。
+
+**刻意保留的边界（不因「能算」就越界）**：
+
+- **不做税额处理**：金额一律沿用用量表原值（PRD 零定义含税/不含税，不猜）。
+- **不做资金流转**：结算单只是对账凭证（PRD 10 R-42：平台不发起/接收资金）。
+- **不出空单**：周期内无用量 → 409 `E-1601`，不生成 0 元单（避免「0 冒充没有数据」）。
+- **不作废已确认单**：CONFIRMED 为终态；冲正属新业务动作，需另行拍板。
+- **供应商端只读**：`SET-01/02` 仅限本人单，读他人单返回 404（不泄露存在性）。
+
+**验证**：`SettlementContractTest` 11 例（红 → 绿）；端到端 `tools/biz-closure-e2e.py` P10 段
+（生成 → 明细算术 → 打款关联 → 供应商端可见）。

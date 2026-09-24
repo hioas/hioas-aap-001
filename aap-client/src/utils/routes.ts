@@ -23,3 +23,10 @@ export const CREDENTIALS_PAGE = '/pages/credentials/index'
 export const USAGE_PAGE = '/pages/usage/index'
 /** 序号 23（已实现）：我的设置 */
 export const SETTINGS_PAGE = '/pages/settings/index'
+/**
+ * 结算单（工程新增页，画布无对应页）。
+ *
+ * 2026-09-25：后端补上 SET-01/02（供应商端读结算单）后，本页成为「我的 → 结算账户」
+ * 的落点 —— 该入口此前 target 为空串（"无落点，记台账阻塞"）。
+ */
+export const SETTLEMENT_PAGE = '/pages/settlements/index'

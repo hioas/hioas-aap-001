@@ -7,7 +7,7 @@
 > + `docs/api/接口字段级schema.md`（供应商端字段级补充）+ `17-零歧义执行规格spec.md`（错误码/状态机）。
 > 模型定义：请求/响应体的 JSON Schema 见 `json-schema/**`，OpenAPI 见 `openapi.yaml`。
 
-**版本** v1.1 · 2026-09-24 · 共 **102 条**端点（供应商端 49 · 管理端 53，与 `openapi.yaml` 生成器逐条同源）。
+**版本** v1.2 · 2026-09-24 · 共 **108 条**端点（供应商端 51 · 管理端 57，与 `openapi.yaml` 生成器逐条同源）。
 
 **标注规则**
 
@@ -131,6 +131,8 @@
 | CON-03 | GET | `/contracts/{id}/file` | ✅ | — | `{url,file_name}` | E-1701 | | 真源 | T11 |
 | CON-04 | POST | `/contracts/{id}/sign` | ✅ | body `{sign_method?,smsCode?}` | `Contract` | E-1701 E-1601 | `Idempotency-Key` | 真源（路径为推断：卡片 `/sign` 挂到合同下） | T11 |
 | PAY-01 | GET | `/payments` | ✅ | q：`page` `pageSize` | `{items:[Payment],page,pageSize,total,available_balance?,pending_settlement?,total_settled?}` | | | 真源 + 约定（钱包三项无 PRD 依据） | T11 |
+| SET-01 | GET | `/settlements` | ✅ | q：`page` `pageSize` | `{items:[SettlementStatement],page,pageSize,total}` | | | 本供应商结算单列表（新增；此前供应商侧**零结算端点**，对账不可见） | T17 |
+| SET-02 | GET | `/settlements/{id}` | ✅ | — | `SettlementDetail`（含明细行 + 已关联打款） | E-1406 | | 只读本人单；读他人单 → 404 E-1406（不泄露存在性） | T17 |
 | NTF-01 | GET | `/notifications` | ✅ | q：`page` `pageSize` `unread?` `category?` | `{items:[Notification],page,pageSize,total,unread_count}` | | | 真源 + 推断（参数名） | T13 |
 | NTF-02 | POST | `/notifications/{id}/read` | ✅ | — | `{id,read_at}` | E-1901 | | 真源 | T13 |
 
@@ -192,6 +194,10 @@
 | ADM-PAY03 | GET | `/admin/settlements` | BIZ_OPERATOR | q：分页 → 分页 `SettlementStatement` | | T11 |
 | ADM-PAY04 | POST | `/admin/payments` | BIZ_OPERATOR SUPER_ADMIN | body `{contract_id,amount,currency?,voucher_file_id,paid_at?,remark?}` → `Payment`（**记录打款**：UNSETTLED→PAYMENT_RECORDED；C4 金额>0 且币种一致、C5 凭证必填；**不产生资金流水** R-42） | E-1001 E-1406 E-1601 | T11 |
 | ADM-PAY05 | POST | `/admin/payments/{id}/void` | BIZ_OPERATOR SUPER_ADMIN | body `{reason}` → `Payment`（PAYMENT_RECORDED/CONFIRMED→**VOID**；必填理由，作废后可重录） | E-1001 E-1406 E-1601 | T11 |
+| ADM-PAY06 | POST | `/admin/settlements` | BIZ_OPERATOR SUPER_ADMIN | body `{provider_id,month}` → `SettlementDetail`（**生成结算单**：自然月 UTC 窗口；金额基数 = 用量 `cost_usd` 合计、平台费 = 合同 `platform_fee_rate` × 基数、低于 `min_settlement_amount` 不出账；同周期幂等，`VOID` 后可重算） | E-1001 E-1406 E-1601 E-1701 | T17 |
+| ADM-PAY07 | GET | `/admin/settlements/{id}` | BIZ_OPERATOR SUPER_ADMIN | → `SettlementDetail`（含明细行 + 已关联打款） | E-1406 | T17 |
+| ADM-PAY08 | POST | `/admin/settlements/{id}/confirm` | BIZ_OPERATOR SUPER_ADMIN | → `SettlementDetail`（DRAFT→CONFIRMED；确认后不可改） | E-1406 E-1601 | T17 |
+| ADM-PAY09 | POST | `/admin/settlements/{id}/void` | BIZ_OPERATOR SUPER_ADMIN | body `{reason}` → `SettlementDetail`（DRAFT→VOID；理由必填，作废后可重新生成） | E-1001 E-1406 E-1601 | T17 |
 
 ### 2.4 同步 / 用量 / 配置 / 审计
 
@@ -340,6 +346,7 @@
 | 2026-09-23 | 登记 **D-SETTLE-01**（待产品拍板）：结算单无生成路径 | 全仓 `aap_settlement_statement`/`aap_settlement_line` **零写入路径**（只有读），PRD 10 §M9 定义本期「只记录打款状态与凭证、资金走线下对公」，但**未定义结算单生成口径**（出账周期 / `platform_fee` 计费基数 / 用量归档取数范围）→ 自造算法会直接影响真实对账金额，**不自造**；已在管理端「合同与结算」页把空态原因与待拍板三项写明（`data-testid=statement-gap`）。现状可用路径：ADM-PAY04/05 记录·作废打款 + `POST /admin/payments/{id}/confirm` 确认 |
 | 2026-09-23 | 新增 **`ADM-DET01`**（`GET /admin/detection-jobs`，管理端检测任务列表）；`detection-job` 模型 +2 个**可选**字段 `provider_name`/`credential_alias`；冻结清单 98 → **99**（管理端 49 → 50） | 运行态实测：管理端无任务列表端点 → 「检测中心」KPI/表格全空、人工放行需手输任务 ID（运营无从得知）→ **放行实际不可用**，而它是 PASS 的唯一路径 → 偏差 **D-ADM-05** | 
 | 2026-09-23 | 新增 **`ADM-Q03`**（`GET /admin/quotes/{id}/items`，管理端跨供应商只读报价明细）；冻结清单 97 → **98**（管理端 48 → 49） | 运行态实测：报价审核页调供应商端点 `GET /quotes/{id}/items` → 管理端令牌 403 → **审核员看不到价格只能盲审** → 偏差 **D-ADM-04** | 
+| 2026-09-24 | 新增 **`ADM-PAY06/07/08/09`**（结算单生成/详情/确认/作废）与供应商端 **`SET-01/02`**（结算单列表/详情）；审计动作枚举 +`STATEMENT_GENERATE`/`STATEMENT_CONFIRM`/`STATEMENT_VOID`；清单 102 → **108**（供应商端 49 → 51、管理端 53 → 57） | 运行态实测：`aap_settlement_statement`/`aap_settlement_line` 全仓零 INSERT（ADM-PAY03 total=0）→「打款确认之后没有下一环」；**D-SETTLE-01 三项口径自主拍板为 D-SETTLE-02**（自然月 UTC / `cost_usd` 合计 / 合同费率，且全部可配 `app.settlement.*`） |
 | 2026-09-23 | 新增 **`ADM-PAY04`**（`POST /admin/payments` 记录打款）与 **`ADM-PAY05`**（`POST /admin/payments/{id}/void` 作废打款）；审计动作枚举 +`PAYMENT_RECORD`/`PAYMENT_VOID`；冻结清单 91 → **93**（管理端 42 → 44） | 运行态实测：`aap_payment_record` 全仓无 insert 路径 → `ADM-PAY02` 无对象可确认（total=0），合同签完后链路断开；真源 10-报价与合同结算PRD §4.3/§5.3（记录打款需凭证、VOID 作废后重录） → 偏差 **D-PAY-01** |
 | 2026-09-24 | 新增 **`ADM-S07`**（`POST /admin/newapi-endpoints` 登记同步上游端点）/ **`ADM-S08`**（`POST /admin/sync/tasks` 发起上架同步）/ **`ADM-S09`**（`POST /admin/sync/tasks/{taskId}/execute` 执行上架）；新模型 `newapi-endpoint`；冻结清单 99 → **102**（管理端 50 → 53） | 运行态实测（dev 库 + 源码）：`aap_newapi_endpoint`/`aap_sync_task`/`aap_channel_binding`/`aap_sync_log` **全部 0 行**，且全仓零 `insert into` 这三张表 → M11 只有查/重试/启停/读上游（S01–S06），**没有写入侧**，「编译确认 → 建渠道 → 写价 → 回读 → 上架」断在最后一步（业务闭环缺口）；拍板 **D-SYNC-03**（2026-09-24）：按 PRD 11 §3 渠道字段映射 + 幂等键 + 读前写后三段式补齐写入侧 | 
 

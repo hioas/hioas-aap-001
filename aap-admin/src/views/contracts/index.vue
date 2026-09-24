@@ -107,7 +107,13 @@
     <!-- 本月结算明细 + 待打款批次（设计稿右栏两块） -->
     <div class="row-2">
       <div class="aap-card">
-        <div class="aap-card__head"><span class="aap-card__title">结算台账明细</span></div>
+        <div class="aap-card__head">
+          <span class="aap-card__title">结算台账明细</span>
+          <span class="ct__spacer" />
+          <el-button size="small" :disabled="!canWrite" data-testid="btn-gen-statement" @click="openGenerate">
+            生成结算单
+          </el-button>
+        </div>
         <div class="aap-card__body">
           <el-table :data="statements" size="small" data-testid="statement-table" empty-text="暂无结算台账">
             <el-table-column prop="statement_no" label="结算单号" min-width="150" />
@@ -120,24 +126,59 @@
             <el-table-column label="平台服务费" width="120">
               <template #default="{ row }">{{ money(row.platform_fee) }}</template>
             </el-table-column>
+            <el-table-column label="净额" width="110">
+              <template #default="{ row }">{{ money(stNet(row)) }}</template>
+            </el-table-column>
             <el-table-column label="状态" width="100">
               <template #default="{ row }">
-                <span class="aap-badge" :class="`aap-badge--${payTone(row.status)}`">{{ payLabel(row.status) }}</span>
+                <span class="aap-badge" :class="`aap-badge--${stTone(row.status)}`">{{ stLabel(row.status) }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="200">
+              <template #default="{ row }">
+                <el-link
+                  type="primary"
+                  :underline="false"
+                  :data-testid="`act-statement-detail-${row.id}`"
+                  @click="openStatement(row)"
+                >
+                  明细
+                </el-link>
+                <el-link
+                  v-if="canWrite && row.status === 'DRAFT'"
+                  type="primary"
+                  :underline="false"
+                  :data-testid="`act-confirm-statement-${row.id}`"
+                  @click="onConfirmStatement(row)"
+                >
+                  确认出账
+                </el-link>
+                <el-link
+                  v-if="canWrite && row.status === 'DRAFT'"
+                  type="danger"
+                  :underline="false"
+                  :data-testid="`act-void-statement-${row.id}`"
+                  @click="onVoidStatement(row)"
+                >
+                  作废
+                </el-link>
               </template>
             </el-table-column>
           </el-table>
-          <!-- 结算台账为何为空：后端**不生成**结算单（全仓对 aap_settlement_statement/line 只有读），
-               且 PRD 未定义生成口径 —— 自造算法会影响真实对账金额，故不猜。2026-09-23 登记 D-SETTLE-01。 -->
+          <!-- 口径出处：`.agents/state/aap-decisions.md` D-SETTLE-02（2026-09-24 自主拍板并实现）。
+               此前这段文案写的是「系统当前不生成结算单」——写实现后已过时，UI 不能继续这么讲。 -->
           <p v-if="!statements.length" class="ct__note" data-testid="statement-gap">
-            结算台账为空 = <b>系统当前不生成结算单</b>：后端对 <code>aap_settlement_statement</code> /
-            <code>aap_settlement_line</code> <b>只有读取展示、没有任何写入路径</b>，且 PRD 未定义生成口径
-            （出账周期、平台费率 <code>platform_fee</code> 的计算基数、哪些用量计入）——
-            自造算法会直接影响真实对账金额，所以不猜。
+            结算台账为空 = <b>该筛选范围内还没有结算单</b>：点右上角<b>「生成结算单」</b>按供应商 + 月份出账。
             <br />
-            本期口径（PRD 10 §M9、PRD 05）：<b>只记录打款状态与凭证，资金走线下对公</b>
-            —— 运营用上方「记录打款 / 确认打款」留痕即可，无需结算单。
+            出账口径（<b>D-SETTLE-02</b>）：①周期 = <b>自然月（UTC）</b>，与用量窗口 <code>YYYY-MM</code> 同口径
+            ②金额基数 = 用量 <code>cost_usd</code> 合计 ③平台费 = 合同 <code>platform_fee_rate</code> × 基数
+            ④明细维度 = <b>渠道 × 模型</b> ⑤门槛 = 合同 <code>min_settlement_amount</code>（不足不出账）。
+            三项口径在服务端 <code>app.settlement.*</code> 可配，口径变化不需要改代码。
             <br />
-            要启用结算单，需先拍板三件事：①出账周期（自然月？）②平台费率与计费基数 ③用量归档取数范围 → <b>D-SETTLE-01</b>。
+            <b>不出空单</b>：周期内无用量 → 返回 409 <code>E-1601</code>，不生成 0 元单（0 会冒充「有数据」）。
+            确认出账（<code>CONFIRMED</code>）为终态；草稿可作废后重算，历史单保留可追溯。
+            <br />
+            资金仍走线下对公（PRD 10 R-42「不做资金流转」）—— 结算单是<b>对账凭证</b>，不是支付动作。
           </p>
         </div>
       </div>
@@ -170,6 +211,70 @@
         </div>
       </div>
     </div>
+
+    <!-- 生成结算单（ADM-PAY06，口径 D-SETTLE-02） -->
+    <el-dialog v-model="genOpen" title="生成结算单" width="520px">
+      <el-form label-width="96px" data-testid="gen-statement-form">
+        <el-form-item label="供应商">
+          <el-select
+            v-model="genForm.provider_id"
+            placeholder="选择供应商（需有生效合同）"
+            style="width: 100%"
+            data-testid="gen-provider"
+          >
+            <el-option v-for="p in signedProviders" :key="p.id" :label="p.name" :value="p.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="出账月份">
+          <el-input v-model="genForm.month" placeholder="YYYY-MM" data-testid="gen-month" />
+        </el-form-item>
+      </el-form>
+      <p class="ct__note">
+        周期按<b>自然月（UTC）</b>出账（与用量窗口同口径）；金额 = 用量 <code>cost_usd</code> 合计，
+        平台费 = 合同 <code>platform_fee_rate</code> × 金额。周期内无用量或低于合同门槛会返回
+        <code>E-1601</code> —— <b>不生成 0 元单</b>。
+      </p>
+      <p v-if="genErr" class="ct__err" data-testid="gen-error">{{ genErr }}</p>
+      <template #footer>
+        <el-button @click="genOpen = false">取消</el-button>
+        <el-button type="primary" :loading="genLoading" data-testid="gen-submit" @click="onGenerate">
+          生成
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 结算单明细（ADM-PAY07） -->
+    <el-dialog v-model="stOpen" :title="stDetail?.statement_no || '结算单明细'" width="760px">
+      <div v-if="stLoading" class="ct__note">加载中…</div>
+      <template v-else-if="stDetail">
+        <el-descriptions :column="3" border size="small" data-testid="statement-detail">
+          <el-descriptions-item label="供应商">
+            {{ stDetail.provider_name || stDetail.provider_id || '—' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="周期">
+            {{ fmt(stDetail.period_from) }} ~ {{ fmt(stDetail.period_to) }}
+          </el-descriptions-item>
+          <el-descriptions-item label="状态">{{ stLabel(stDetail.status) }}</el-descriptions-item>
+          <el-descriptions-item label="金额合计">{{ money(stDetail.total_amount) }}</el-descriptions-item>
+          <el-descriptions-item label="平台费">{{ money(stDetail.platform_fee) }}</el-descriptions-item>
+          <el-descriptions-item label="净额">{{ money(stNet(stDetail)) }}</el-descriptions-item>
+        </el-descriptions>
+        <el-table :data="stDetail.lines" size="small" data-testid="statement-lines" empty-text="无明细行">
+          <el-table-column prop="channel_id" label="渠道" width="150" />
+          <el-table-column prop="model_name" label="模型" min-width="180" />
+          <el-table-column label="Tokens" width="130">
+            <template #default="{ row }">{{ Number(row.total_tokens ?? 0).toLocaleString('zh-CN') }}</template>
+          </el-table-column>
+          <el-table-column label="金额" width="120">
+            <template #default="{ row }">{{ money(row.amount) }}</template>
+          </el-table-column>
+        </el-table>
+        <p class="ct__note">
+          明细按 <b>渠道 × 模型</b> 汇总；已关联打款 {{ stDetail.payments?.length ?? 0 }} 笔
+          （打款是资金<b>凭证留痕</b>，与结算金额独立）。资金走线下对公，系统不做资金流转。
+        </p>
+      </template>
+    </el-dialog>
 
     <!-- 合同详情抽屉 -->
     <el-drawer v-model="detailOpen" :title="detail?.contract_no || '合同详情'" size="620px">
@@ -239,8 +344,8 @@
 import { computed, onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
-  contractApi, uploadVoucher, CONTRACT_STATUS, PAYMENT_STATUS,
-  type ContractRow, type PaymentRow, type StatementRow
+  contractApi, uploadVoucher, CONTRACT_STATUS, PAYMENT_STATUS, STATEMENT_STATUS,
+  type ContractRow, type PaymentRow, type StatementDetail, type StatementRow
 } from '@/api/admin/contracts';
 import { useSession } from '@/composables/useSession';
 import { can, type AdminRole } from '@/config/nav';
@@ -256,12 +361,36 @@ const loading = ref(false);
 const error = ref('');
 const detailOpen = ref(false);
 const detail = ref<ContractRow | null>(null);
+// 结算出账对话框
+const genOpen = ref(false);
+const genErr = ref('');
+const genLoading = ref(false);
+// 月份默认取**本机 UTC 当月**：后端出账周期就是自然月 UTC，两边必须同一口径
+const genForm = reactive({ provider_id: '', month: new Date().toISOString().slice(0, 7) });
+// 结算明细对话框
+const stOpen = ref(false);
+const stLoading = ref(false);
+const stDetail = ref<StatementDetail | null>(null);
+
+/** 可出账的供应商：由 SIGNED 合同推导（后端要求生效合同，否则 409 E-1701，两边同口径） */
+const signedProviders = computed(() => {
+  const seen = new Map<string, string>();
+  for (const r of rows.value) {
+    if (r.status === 'SIGNED' && r.provider_id) seen.set(r.provider_id, r.supplier_name || r.provider_id);
+  }
+  return [...seen].map(([id, name]) => ({ id, name }));
+});
 const filters = reactive({ keyword: '', status: '' });
 
 const ctLabel = (s: string) => CONTRACT_STATUS[s]?.label ?? s;
 const ctTone = (s: string) => CONTRACT_STATUS[s]?.tone ?? 'muted';
 const payLabel = (s: string) => PAYMENT_STATUS[s]?.label ?? s;
-const payTone = (s: string) => PAYMENT_STATUS[s]?.tone ?? 'muted';
+// 结算状态与打款状态是两套状态机，映射不可复用（否则 DRAFT 显示成原始码）
+const stLabel = (s: string) => STATEMENT_STATUS[s]?.label ?? s;
+const stTone = (s: string) => STATEMENT_STATUS[s]?.tone ?? 'muted';
+/** 净额 = 总额 − 平台费；列表视图若没带 net_amount 就按同口径现算（与后端一致） */
+const stNet = (r: StatementRow) =>
+  r.net_amount ?? Number(r.total_amount ?? 0) - Number(r.platform_fee ?? 0);
 const fmt = (s: string | null | undefined) => (s ? String(s).replace('T', ' ').slice(0, 10) : '—');
 const money = (v: number | null | undefined) =>
   v == null ? '—' : `¥${Number(v).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -338,6 +467,87 @@ async function onConfirmSign(r: ContractRow) {
   try {
     const t = await contractApi.confirmSign(r.id);
     ElMessage.success(`签署确认：${t.contract_no ?? r.id}（status=${t.status}）`);
+    await loadAll();
+  } catch (e) {
+    ElMessage.error((e as Error).message);
+  }
+}
+
+function openGenerate() {
+  genErr.value = '';
+  genForm.provider_id = signedProviders.value[0]?.id ?? '';
+  genForm.month = new Date().toISOString().slice(0, 7);
+  genOpen.value = true;
+}
+
+async function onGenerate() {
+  genErr.value = '';
+  if (!genForm.provider_id) {
+    genErr.value = '请选择供应商 —— 只有「已签署（SIGNED）」合同的供应商可出账';
+    return;
+  }
+  genLoading.value = true;
+  try {
+    const d = await contractApi.generateStatement({ provider_id: genForm.provider_id, month: genForm.month });
+    ElMessage.success(
+      `结算单 ${d.statement_no ?? d.id}：金额 ${money(d.total_amount)}，平台费 ${money(d.platform_fee)}，状态 ${d.status}`
+    );
+    genOpen.value = false;
+    await loadAll();
+  } catch (e) {
+    // 409 E-1601（无用量/低于门槛）、E-1701（无生效合同）的真实原因直接显示——不吞、不假成功
+    genErr.value = (e as Error).message;
+  } finally {
+    genLoading.value = false;
+  }
+}
+
+async function openStatement(r: StatementRow) {
+  stOpen.value = true;
+  stLoading.value = true;
+  stDetail.value = null;
+  try {
+    stDetail.value = await contractApi.statementDetail(r.id);
+  } catch (e) {
+    ElMessage.error((e as Error).message);
+  } finally {
+    stLoading.value = false;
+  }
+}
+
+async function onConfirmStatement(r: StatementRow) {
+  try {
+    await ElMessageBox.confirm(
+      `确认出账 ${r.statement_no ?? r.id}？确认后为终态、不可再作废。`,
+      '确认出账',
+      { type: 'warning' }
+    );
+  } catch {
+    return;
+  }
+  try {
+    const d = await contractApi.confirmStatement(r.id);
+    ElMessage.success(`已出账：${d.statement_no ?? d.id}（${d.status}）`);
+    await loadAll();
+  } catch (e) {
+    ElMessage.error((e as Error).message);
+  }
+}
+
+async function onVoidStatement(r: StatementRow) {
+  let reason = '';
+  try {
+    const res = await ElMessageBox.prompt(`作废 ${r.statement_no ?? r.id} 的理由（必填，落审计）`, '作废结算单', {
+      type: 'warning',
+      inputValidator: (v: string) => (v && v.trim() ? true : '理由必填')
+    });
+    reason = (res.value || '').trim();
+  } catch {
+    return;
+  }
+  try {
+    const d = await contractApi.voidStatement(r.id, reason);
+    ElMessage.success(`已作废：${d.statement_no ?? d.id}（${d.status}）；该周期可重新生成`);
     await loadAll();
   } catch (e) {
     ElMessage.error((e as Error).message);

@@ -329,7 +329,9 @@ describe('序号 21 · buildMineModel（两卡入口行）', () => {
   })
 
   it('结算账户无落点 → target 空串（画布无结算账户页，记台账阻塞）', () => {
-    expect(rowByKey(model(), 'settlement')?.target).toBe('')
+    // 2026-09-25：结算单页（SET-01/02）落地，「结算账户」入口由「无落点」改为真实跳转。
+    // 原先这里断言 target === ''（无落点阻塞）—— 缺口关闭，断言同步收紧。
+    expect(rowByKey(model(), 'settlement')?.target).toBe('/pages/settlements/index')
   })
 
   it('值色：我的合同「待签署 1」= 警示橙、我的消息 = 纯黑、主体档案 = 绿胶囊、其余灰', () => {

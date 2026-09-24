@@ -58,8 +58,30 @@ const CONTENT_GATES = {
     textAny: ['待审核列表', '审核决策']
   },
   '/contracts': {
-    require: ['[data-testid="contract-kpi"]', '[data-testid="contract-table"]'],
-    textAny: ['合同与结算台账', '待打款批次', '结算台账明细']
+    require: [
+      '[data-testid="contract-kpi"]',
+      '[data-testid="contract-table"]',
+      '[data-testid="statement-table"]',
+      // ⚠️ 2026-09-25：结算出账（ADM-PAY06–09）落地后判据收紧 ——
+      //    此前该页只能读台账、无任何生成入口（缺口期这里放行）。
+      //    现在出账入口必须存在，否则「实现了但页面点不到」会被混过去。
+      '[data-testid="btn-gen-statement"]'
+    ],
+    textAny: ['合同与结算台账', '待打款批次', '结算台账明细'],
+    // 反向断言：文案不得再声称「系统当前不生成结算单 / 只有读取没有任何写入路径」——
+    // 实现之后这句话就是**假话**，是本页最容易悄悄回退的一处。
+    mustNotMatch: [/系统当前不生成结算单/, /没有任何写入路径/],
+    drawers: [
+      {
+        open: '[data-testid="btn-gen-statement"]',
+        expect: [
+          '[data-testid="gen-statement-form"]',
+          '[data-testid="gen-provider"]',
+          '[data-testid="gen-month"]',
+          '[data-testid="gen-submit"]'
+        ]
+      }
+    ]
   },
   '/usage': {
     // ⚠️ 2026-09-24：ADM-U02 聚合刷新接线后本页判据收紧 ——

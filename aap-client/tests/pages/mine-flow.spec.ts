@@ -43,17 +43,14 @@ describe('序号 21 · 9 个入口行的落点（navigation）', () => {
     ['row-messages', '/pages/messages/index'],
     ['row-profile', '/pages/profile/index'],
     ['row-credentials', '/pages/credentials/index'],
+    // 2026-09-25：SET-01/02（供应商端读结算单）落地 → 该行由「无落点」改为真实跳转，
+    // 并入本表后 it.each 的「9 个入口行」才名副其实。
+    ['row-settlement', '/pages/settlements/index'],
     ['row-settings', '/pages/settings/index']
   ])('点 %s → navigateTo %s', async (testid, url) => {
     const wrapper = await mountPage()
     await tap(wrapper, testid)
     expect(navUrls()).toEqual([url])
-  })
-
-  it('点「结算账户」不跳转（画布无结算账户页 → 无落点，记台账阻塞）', async () => {
-    const wrapper = await mountPage()
-    await tap(wrapper, 'row-settlement')
-    expect(getCalls('navigateTo').length).toBe(0)
   })
 
   it('单次点击只发一次跳转（不重复导航）', async () => {

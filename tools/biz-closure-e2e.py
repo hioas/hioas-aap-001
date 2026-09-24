@@ -48,6 +48,7 @@ import urllib.error
 import urllib.request
 import uuid
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal
 
 RESULTS: list[dict] = []
 
@@ -381,7 +382,10 @@ def main():
         }) or {}
         file_id = upload.get("file_id") or upload.get("id")
         assert_true(file_id, "文件服务未返回 file_id")
-        admin.call("POST", "/admin/contracts/%s/issue" % contract_id, {"file_id": file_id})
+        # 平台费率 10%：合同签发端点的可选参数（不传则该列为 NULL、平台费算 0）。
+        # 端到端必须走「费率非 0」这条路，否则结算段的乘法逻辑在真实链路里从未被验证过。
+        admin.call("POST", "/admin/contracts/%s/issue" % contract_id,
+                   {"file_id": file_id, "platform_fee_rate": 0.1})
         state["contract_id"] = str(contract_id)
         return "contract_id=%s 已签发（file_id=%s）" % (contract_id, file_id)
 
@@ -572,6 +576,101 @@ def main():
         return "管理端可见 %d 条该供应商桶" % len(mine)
 
     step("P9", "[ADMIN] 管理端读用量（ADM-U01）", admin_usage)
+
+    # ── P10 结算出账（资金结算段；D-SETTLE-02 自主拍板口径）──────────────────
+    print("\nP10 · 结算出账与对账（ADM-PAY06/07/08 + SET-01/02）", flush=True)
+
+    def generate_statement():
+        # 用量桶的 stat_hour 落在「最近一个已结束的整点」，取其所在自然月为出账周期，
+        # 保证与被结算的用量同月（跨月边界也成立：month 直接由用量桶推导，不取 now）。
+        month = state["window_from"][:7]
+        data = admin.call("POST", "/admin/settlements", {
+            "provider_id": str(state["provider_id"]),
+            "month": month,
+        }) or {}
+        statement_id = data.get("id")
+        assert_true(statement_id, "生成结算单响应无 id：%s" % data)
+        statement_no = data.get("statement_no") or ""
+        assert_true(statement_no.startswith("ST"), "单号前缀异常：%s" % statement_no)
+        status = data.get("status")
+        # 复跑时同周期可能已有单 → 幂等复用（CONFIRMED 为终态，V14 部分唯一索引排除 VOID）
+        assert_true(status in ("DRAFT", "CONFIRMED"), "生成响应状态异常：%s" % status)
+        state["statement_reused"] = status == "CONFIRMED"
+        state["statement_id"] = str(statement_id)
+        state["statement_month"] = month
+        state["statement_no"] = statement_no
+        state["statement_total"] = data.get("total_amount")
+        state["statement_fee"] = data.get("platform_fee")
+        state["statement_net"] = data.get("net_amount")
+        return "statement_no=%s total=%s fee=%s net=%s status=DRAFT" % (
+            statement_no, data.get("total_amount"), data.get("platform_fee"), data.get("net_amount"))
+
+    step("P10", "[ADMIN] 生成结算单（ADM-PAY06）", generate_statement)
+
+    def assert_amount_math():
+        total = Decimal(str(state["statement_total"]))
+        fee = Decimal(str(state["statement_fee"]))
+        net = Decimal(str(state["statement_net"]))
+        assert_true(total > 0, "结算总额必须 > 0（用量已归集）")
+        assert_true(net == total - fee, "净额口径不符：net=%s，total-fee=%s" % (net, total - fee))
+        detail = admin.call("GET", "/admin/settlements/%s" % state["statement_id"]) or {}
+        lines = detail.get("lines") or []
+        assert_true(lines, "结算单无明细行")
+        line_sum = sum((Decimal(str(x.get("amount") or 0)) for x in lines), Decimal("0"))
+        assert_true(line_sum == total,
+                    "明细金额合计=%s 与总额=%s 不一致（两套口径）" % (line_sum, total))
+        return "明细 %d 行；Σ明细=%s == 总额=%s；净额=%s" % (len(lines), line_sum, total, net)
+
+    step("P10", "金额算术自洽（总额 = Σ明细、净额 = 总额 - 平台费）", assert_amount_math)
+
+    def payments_linked():
+        page = admin.call("GET", "/admin/payments?pageSize=100") or {}
+        mine = [x for x in _items(page)
+                if str(x.get("provider_id")) == str(state["provider_id"]) and x.get("status") == "CONFIRMED"]
+        assert_true(mine, "未找到该供应商的 CONFIRMED 打款（P6 应已产生）")
+        linked = [x for x in mine if str(x.get("statement_id") or "") == str(state["statement_id"])]
+        assert_true(linked, "期内打款未关联到结算单（statement_id 未回填）：%s"
+                    % [x.get("statement_id") for x in mine])
+        return "期内 CONFIRMED 打款 %d 条已挂到本单（共 %d 条）" % (len(linked), len(mine))
+
+    step("P10", "打款关联（statement_id 回填）", payments_linked)
+
+    def regenerate_idempotent():
+        data = admin.call("POST", "/admin/settlements", {
+            "provider_id": str(state["provider_id"]),
+            "month": state["statement_month"],
+        }) or {}
+        assert_true(str(data.get("id")) == str(state["statement_id"]),
+                    "同周期重复生成未返回既有单（幂等失败）：id=%s" % data.get("id"))
+        assert_true(data.get("statement_no") == state["statement_no"], "重复生成返回了不同单号")
+        return "同周期重复生成 → 同一单 %s（未新增行）" % data.get("statement_no")
+
+    step("P10", "同周期幂等（重复生成返回既有单）", regenerate_idempotent)
+
+    def confirm_statement():
+        if state.get("statement_reused"):
+            return "已确认出账（复跑复用既有单，跳过重复确认）"
+        data = admin.call("POST", "/admin/settlements/%s/confirm" % state["statement_id"], {}) or {}
+        assert_true(data.get("status") == "CONFIRMED", "确认后状态=%s（期望 CONFIRMED）" % data.get("status"))
+        return "status=CONFIRMED（终态，供应商可对账）"
+
+    step("P10", "[ADMIN] 确认出账（ADM-PAY08）", confirm_statement)
+
+    def provider_sees_statement():
+        page = provider.call("GET", "/settlements") or {}
+        items = _items(page)
+        assert_true(items, "供应商端结算单列表为空（对账仍不可见）")
+        mine = [x for x in items if str(x.get("id")) == str(state["statement_id"])]
+        assert_true(mine, "供应商端看不到本供应商的结算单")
+        detail = provider.call("GET", "/settlements/%s" % state["statement_id"]) or {}
+        lines = detail.get("lines") or []
+        assert_true(lines, "供应商端结算单详情无明细行")
+        total = detail.get("total_amount")
+        assert_true(Decimal(str(total)) == Decimal(str(state["statement_total"])),
+                    "两端总额不一致：供应商侧=%s，管理端=%s" % (total, state["statement_total"]))
+        return "供应商端可见 %s（明细 %d 行，总额 %s）" % (detail.get("statement_no"), len(lines), total)
+
+    step("P10", "供应商端读结算单（SET-01/02）", provider_sees_statement)
 
     # ── 汇总 ─────────────────────────────────────────────────────────────────
     passed = sum(1 for r in RESULTS if r["ok"])
