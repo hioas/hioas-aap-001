@@ -1,0 +1,36 @@
+==============================================================================
+R333 只读取证（一次性）：链外只读取证的受核清单 ⇔ 磁盘事实
+==============================================================================
+[PASS] A0 正向对照：修正前快照存在于磁盘 C:\Users\laitz\AppData\Local\Temp\aap-r333-work\wpe-r333-prefix.py
+A0b 修正前快照指纹：sha256[:12] = af55aba26f98 / 60 行
+[PASS] A0c 正向对照：修正前清单解析到条数 > 0 解析到 4 条：['gap-commit-counts-%s.txt', 'gap-probe-snapshot-%s.txt', 'gap-guard-scope-%s.txt', 'gap-guard-scope-%s-prefix.txt']
+A1 修正前清单 = 4 条；**磁盘上存在 = 1 条**；缺失 = 3 条
+       MISSING gap-probe-snapshot-R333.txt
+       MISSING gap-guard-scope-R333.txt
+       MISSING gap-guard-scope-R333-prefix.txt
+[PASS] A1a 修正前清单确有缺失项（本缺陷的机器指纹） 缺失 3 条
+A1b 缺失项归成脚本基名 = 2 个：['gap-guard-scope', 'gap-probe-snapshot']
+[PASS] A1b-2 正向对照：归并出的基名数 > 0 ∧ 每个基名不含轮次号（归并口径正确） 基名 ['gap-guard-scope', 'gap-probe-snapshot']
+A1c 链内调用数（本轮 R333 / 上一轮 R332 / 更早一轮 R331）：[('gap-guard-scope', 0, 0, 1), ('gap-probe-snapshot', 0, 0, 1)]
+[PASS] A1c-1 本轮链内调用数 == 0（该类确已不随链滚动） [('gap-guard-scope', 0, 0, 1), ('gap-probe-snapshot', 0, 0, 1)]
+[PASS] A1c-2 上一轮链内调用数 == 0 ∧ 更早一轮 > 0（**因果**：更早一轮删除了调用，故本轮清单名必过期） [('gap-guard-scope', 0, 0, 1), ('gap-probe-snapshot', 0, 0, 1)]
+[PASS] A1c-3 两轮链执行器均可读（正向对照，0 命中先怀疑判据，历史 46） 字节 4872 / 5063
+
+A2 修正后：类注册表解析到 2 类 / 文件清单解析到 3 条
+[PASS] A2a 正向对照：修正后类数 ≥ 2 ∧ 每条清单名可解析 类数 2 / 文件 3：['gap-commit-counts-R333.txt', 'gap-outchain-evidence-R333.txt', 'gap-outchain-evidence-R333-prefix.txt']
+[PASS] A2b 修正后清单里**非本轮自产**的文件全部在磁盘上（缺陷面清零） 缺失项 无（∪ 本轮自产 = ['gap-outchain-evidence-R333.txt', 'gap-outchain-evidence-R333-prefix.txt']）
+[PASS] A2c 修正后清单**不再含**任何指向『不随链滚动的一次性取证』的陈旧文件名 陈旧基名 ['gap-guard-scope', 'gap-probe-snapshot']
+A4a 旧快照实跑：rc=1 / 报 MISSING 条数（行首锚定）= 3
+[PASS] A4b 旧快照在本轮磁盘上**判红**且点名 3 条缺失项（缺陷可复现） rc=1 MISSING=3
+[PASS] A4c 合成注入的锚点命中数 == 1 ∧ 文本确被改动（注入**真的**改到了源码，历史 66/94） 锚点命中 1 次
+A4d 合成注入实跑：rc=1 / 行首 MISSING 条数 = 4（期望 4，须含合成名 gap-synthetic-nonexistent-R333.txt）
+[PASS] A4e 合成注入**必须判红**且点名合成文件名（守卫有牙齿） rc=1 MISSING=4 含合成名=True
+
+不合规条数（本脚本自身判据，A4f/A4g 由**落盘后**的第二相追加）= 0
+A4f 修正后版本实跑（全部证据落盘后）：rc=0 / 汇总含「FAIL 0」= True
+[PASS] A4f-1 修正后版本 rc == 0（缺陷已清零） rc=0
+[PASS] A4g 两版本结论**确实不同**（同一磁盘事实：旧 rc=%d ≠ 新 rc=%d） old=1 new=0
+
+不合规条数（最终）= 0
+
+GAP_OUTCHAIN_EVIDENCE_END=1

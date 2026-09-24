@@ -1,0 +1,145 @@
+auth-contract | A7 md 的 `免` 行集合 = 清单 anon 集合：不一致 {'ADM-AUTH01': 'PUBLIC_PATHS'}
+auth-contract | A8 md「角色」列 = 清单角色集合（仅逐条列角色的 7 列表头行）：不一致 31 条
+contract-keys | [FAIL] docs/backend/openapi.yaml ADM-DET01：有 pageSize 参数但响应未 PageMeta 包装（分页端点漏包装）
+enum-sets | A2 openapi 内联枚举名全部在 md §5 登记 | 孤儿 5: AuditAction(23), CredentialDetectionStatus(4), IndustryCategory(3), QuoteRejectReason(7), ResultCode(28)
+enum-sets | A5 全部 schema enum 均归属到 md §5 枚举族（未归属的已逐条 FAIL） | 已归属 23 / 37，未归属 13
+enum-sets | A8 实现声明的取值域均在契约中声明 | 未声明 2: ReviewService.java:57=['CLAIMED', 'PENDING']; SyncAdminService.java:73=['FAILED', 'MANUAL']
+enum-sets | [FAIL ] ReviewService.java:57 ['CLAIMED', 'PENDING']：契约(schema/openapi)未声明该取值域，但 ER 文档有据（列 ['status']）→ 契约完备性项
+enum-sets | [FAIL ] SyncAdminService.java:73 ['FAILED', 'MANUAL']：契约(schema/openapi)未声明该取值域，但 ER 文档有据（列 ['status']）→ 契约完备性项
+enum-sets | [FAIL ] common\envelope.schema.json:code 取值 ['0', 'E-1001', 'E-1101', 'E-1102', 'E-1104', 'E-1201', 'E-1301', 'E-1302', 'E-1303', 'E-1304', 'E-1305', 'E-1401', 'E-1402', 'E-1403', 'E-1404', 'E-1405', 'E-1406', 'E-1407', 'E-1501', 'E-1505', 'E-1601', 'E-1602', 'E-1701', 'E-1801', 'E-1901', 'E-1902', 'E-1903', 'E-2001'] 不匹配任何 md §5 族（与 openapi 族 ResultCode 相同 → 疑似 §5 漏登记）
+enum-sets | [FAIL ] common\error.schema.json:code 取值 ['E-1001', 'E-1101', 'E-1102', 'E-1104', 'E-1201', 'E-1301', 'E-1302', 'E-1303', 'E-1304', 'E-1305', 'E-1401', 'E-1402', 'E-1403', 'E-1404', 'E-1405', 'E-1406', 'E-1407', 'E-1501', 'E-1505', 'E-1601', 'E-1602', 'E-1701', 'E-1801', 'E-1901', 'E-1902', 'E-1903', 'E-2001'] 不匹配任何 md §5 族（是 openapi 族 ResultCode 的子集 → 疑似 §5 漏登记）
+enum-sets | [FAIL ] models\admin-user.schema.json:status 取值 ['ACTIVE', 'SUSPENDED'] 不匹配任何 md §5 族
+enum-sets | [FAIL ] models\audit-log.schema.json:action 取值 ['ADMIN_USER_CREATE', 'ADMIN_USER_RESUME', 'ADMIN_USER_SUSPEND', 'AUTH_LOGIN', 'CONFIG_PUBLISH', 'CONTRACT_SIGN', 'CREDENTIAL_REVEAL', 'DETECTION_RELEASE', 'PAYMENT_CONFIRM', 'PAYMENT_RECORD', 'PAYMENT_VOID', 'PROFILE_UPDATE', 'PROVIDER_RESUME', 'PROVIDER_SUSPEND', 'QUOTE_APPROVE', 'QUOTE_CREATE', 'QUOTE_REJECT', 'QUOTE_SAVE', 'QUOTE_SUBMIT', 'QUOTE_VOID', 'QUOTE_WITHDRAW', 'SYNC_EXECUTE', 'SYNC_WRITE_PRICE'] 不匹配任何 md §5 族（与 openapi 族 AuditAction 相同 → 疑似 §5 漏登记）
+enum-sets | [FAIL ] models\credential-detail.schema.json:detection_status 取值 ['FAIL', 'PASS', 'PENDING', 'RUNNING'] 不匹配任何 md §5 族（与 openapi 族 CredentialDetectionStatus 相同 → 疑似 §5 漏登记）
+enum-sets | [FAIL ] models\credential-row.schema.json:detection_status 取值 ['FAIL', 'PASS', 'PENDING', 'RUNNING'] 不匹配任何 md §5 族（与 openapi 族 CredentialDetectionStatus 相同 → 疑似 §5 漏登记）
+enum-sets | [FAIL ] models\review-task.schema.json:reject_reason_code 取值 ['CACHE_PRICE_MISSING', 'MISSING_INFO', 'OTHER', 'PRICE_STRUCTURE_INVALID', 'PRICE_TOO_HIGH', 'TECH_RISK', 'VALIDITY_ISSUE'] 不匹配任何 md §5 族（与 openapi 族 QuoteRejectReason 相同 → 疑似 §5 漏登记）
+enum-sets | [FAIL ] requests\contract-sign.schema.json:sign_method 取值 ['SEAL', 'SMS'] 不匹配任何 md §5 族
+enum-sets | [FAIL ] requests\payment-record.schema.json:currency 取值 ['USD'] 不匹配任何 md §5 族
+enum-sets | [FAIL ] requests\provider-profile-update.schema.json:industry_category 取值 ['AGGREGATOR', 'ORIGINAL', 'RESELLER'] 不匹配任何 md §5 族（与 openapi 族 IndustryCategory 相同 → 疑似 §5 漏登记）
+enum-sets | [FAIL ] requests\qualification-create.schema.json:category 取值 ['AUTHORIZATION', 'BUSINESS_LICENSE', 'OTHER'] 不匹配任何 md §5 族
+enum-sets | [FAIL ] requests\quote-create.schema.json:currency 取值 ['USD'] 不匹配任何 md §5 族
+enum-sets | [FAIL ] requests\review-reject.schema.json:reason_code 取值 ['CACHE_PRICE_MISSING', 'MISSING_INFO', 'OTHER', 'PRICE_STRUCTURE_INVALID', 'PRICE_TOO_HIGH', 'TECH_RISK', 'VALIDITY_ISSUE'] 不匹配任何 md §5 族（与 openapi 族 QuoteRejectReason 相同 → 疑似 §5 漏登记）
+enum-sets-selftest | 真实仓库：解析到 16 个族 / 34 个 schema enum / 21 个 openapi enum | rc=1
+error-codes | A4 目录里的码都被至少一个端点声明（无孤儿码）：孤儿=['E-1102', 'E-1404']
+error-codes | A9 md 每行错误码列 = 清单：不一致 11 条
+gap-audit-log | [FAIL ] A6 契约目录的 action 全部有实现调用点 | 孤儿 action 1 个：['SYNC_WRITE_PRICE']
+gap-audit-log | [FAIL ] A7 写入路径覆盖全部非自动列 | 声明但写入路径从不填充的列 1 个：['user_agent']
+gap-logical-fk | A3    请求体引用了 4 个未在 ER 声明为 FK* 的字段：batch_id, file_id, logo_file_id, voucher_file_id
+gap-logical-fk | A4    3/11 处请求体引用字段**已消费但无同域存在性校验**（可写入指向不存在父行的引用）：PROV-04(file_id), ADM-CFG07(logo_file_id), ADM-CFG09(logo_file_id)
+gap-pagination-defaults | [FAIL] A1 openapi 每个 page/pageSize 参数都声明 default：缺失 50/50（样例 PROV-03(page)、PROV-03(pageSize)、CRED-01(page)、CRED-01(pageSize)、RPT-01(page)）
+gap-pagination-defaults | [FAIL] A2 openapi 每个 pageSize 参数都声明 maximum：缺失 25/25
+gap-pagination-defaults-selftest | [FAIL] T1 注入修法锚点命中 46 处（= page+pageSize 参数数）  — hits=50
+gap-pagination-order | P3 分页 SQL 的 ORDER BY 必须含完整唯一键（tie-breaker）：aap-server/src/main/java/com/hioas/aap/usage/UsageService.java:167 表=aap_usage_hourly order by(['stat_hour', 'model_name', 'group_name']) 不含任何完整唯一键；最接近的唯一键=['channel_id', 'group_name', 'model_name', 'stat_hour']（缺 ['channel_id']）
+gap-pagination-order | P3 汇总：分页 SQL 排序确定性：PASS 13 / FAIL 1 / 未能静态判定 0
+gap-paging-range | A4: openapi 声明 pageSize 上限 200 的 operation：0/25
+gap-paging-range | A5: openapi 声明 pageSize 默认值 20 的 operation：0/25
+gap-paging-range | A5b: openapi 声明 page 默认值 1 的 operation：0/25
+gap-param-reach | [FAIL ] A2 ADM-R05 查询参数 `pageSize`：契约(endpoints.json/openapi)声明，但实现控制器**未接收**（生成物侧多声明；与 audit-query-params 的 A1/A3b 同源）
+gap-param-reach | [FAIL ] A2 ADM-R05 查询参数 `page`：契约(endpoints.json/openapi)声明，但实现控制器**未接收**（生成物侧多声明；与 audit-query-params 的 A1/A3b 同源）
+gap-param-reach | [FAIL ] A2 QT-06 查询参数 `pageSize`：契约(endpoints.json/openapi)声明，但实现控制器**未接收**（生成物侧多声明；与 audit-query-params 的 A1/A3b 同源）
+gap-param-reach | [FAIL ] A2 QT-06 查询参数 `page`：契约(endpoints.json/openapi)声明，但实现控制器**未接收**（生成物侧多声明；与 audit-query-params 的 A1/A3b 同源）
+gap-param-reach | [FAIL ] A2 契约声明的查询参数控制器侧都接收（@RequestParam 集合) | 未接收 4 条
+gap-param-reach-selftest | [FAIL ] B8 定位率 25/25
+gap-sensitive-fields | A1 客户端读取的契约形态键 ⊆ 服务端出口键 契约形态键 11 个，未在服务端出口集合中：['contact_phone_mask']
+gap-sensitive-fields | A2 服务端出口的敏感键 ⊆ 契约声明键 出口 25 键，契约未声明：['mobile']
+gap-sensitive-fields | A2c 逐端点响应 DTO 敏感键 ⇔ response_model schema（已定位的端点全部一致） 已定位 39 个端点（跳过 60：AUTH-01: 无键; AUTH-05: 未定位控制器; PROV-03: 返回 Map（键在 Service 里拼装，静态不可判定）; PROV-04: 返回 Map（键在 Service 里拼装，静态不可判定））；契约声明未出口 3 条、实现出口未声明 2 条
+gap-sensitive-fields | [FAIL] A1 键 `contact_phone_mask` 客户端读取点：['aap-client/src/utils/profile-model.ts:166']
+gap-sensitive-fields | [FAIL] A2 键 `mobile` 出口文件：['aap-server/src/main/java/com/hioas/aap/iam/dto/MeResult.java']（契约从未声明）
+gap-sensitive-fields | [FAIL] A2c 死字段：QT-02(quote-detail) 契约声明未出口=['credential_id']
+gap-sensitive-fields | [FAIL] A2c 死字段：QT-05(quote-detail) 契约声明未出口=['credential_id']
+gap-sensitive-fields | [FAIL] A2c 死字段：RPT-02(report) 契约声明未出口=['api_key_mask']
+gap-sensitive-fields | [FAIL] A2c 超集字段：AUTH-06(me-result) 实现出口未声明=['mobile']
+gap-sensitive-fields | [FAIL] A2c 超集字段：DET-01(job-created) 实现出口未声明=['credential_alias']
+gap-softdelete | A1 uq_challenge_code on aap_provider_challenge：unique index 无 `where deleted = false`（谓词=无）
+gap-softdelete | A1 uq_job_no on aap_detection_job：unique index 无 `where deleted = false`（谓词=无）
+gap-softdelete | A1 uq_quote_no on aap_quote：unique index 无 `where deleted = false`（谓词=无）
+gap-softdelete | A1 uq_sync_idempotency on aap_sync_task：unique index 无 `where deleted = false`（谓词=无）
+gap-softdelete | A1 uq_usage_hourly on aap_usage_hourly：unique index 无 `where deleted = false`（谓词=无）
+gap-softdelete | A1s A1 漂移 5 条 / 白名单 3 条（上限 3）
+gap-softdelete | A3 aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java:640 表 aap_price_time_rule 的查询链上无 `deleted = false`：(select id from aap_price_time_rule where item_id = ?) (select id from aap_price_time_rule where item_id = ?)
+gap-softdelete | A3s A3 漂移 1 条 / 未能判定 3 条
+gap-softdelete | A4 aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:69 join aap_provider p 无 `p.deleted = false`（软删行仍被关联）
+gap-softdelete | A4 aap-server/src/main/java/com/hioas/aap/contract/ContractService.java:69 join aap_quote q 无 `q.deleted = false`（软删行仍被关联）
+gap-softdelete | A4 aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:63 join aap_provider p 无 `p.deleted = false`（软删行仍被关联）
+gap-softdelete | A4 aap-server/src/main/java/com/hioas/aap/review/ReviewService.java:63 join aap_quote q 无 `q.deleted = false`（软删行仍被关联）
+gap-softdelete | A4 aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:339 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+gap-softdelete | A4 aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:50 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+gap-softdelete | A4s A4 漂移 12 条
+gap-status-machine | A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/compile/CompilationService.java aap_compiled_expression.gate_status 写入=['FAILED', 'VERIFIED'] 越界=['FAILED']（ER=['COMPILED', 'CONFIRMED', 'REJECTED', 'VERIFIED']）[ORM]
+gap-status-machine | A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/compile/CompilationService.java aap_compiled_expression.status 写入=['FAILED', 'VERIFIED'] 越界=['FAILED']（ER=['COMPILED', 'CONFIRMED', 'DRAFT', 'PUBLISHED', 'SUPERSEDED', 'VERIFIED', 'VERIFY_FAILED']）[ORM]
+gap-status-machine | A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java aap_detection_job.status 写入=['CANCELLED'] 越界=['CANCELLED']（ER=['COMPLETED', 'FAILED', 'PARTIAL_DONE', 'QUEUED', 'REPORT_GENERATED', 'RUNNING']）[ORM]
+gap-status-machine | A1 实现写入状态越出 ER 声明取值域：aap-server/src/main/java/com/hioas/aap/review/ReviewService.java aap_quote.status 写入=['REVIEWING'] 越界=['REVIEWING']（ER=['APPROVED', 'CONTRACT_CREATED', 'CONVERTED', 'DRAFT', 'IN_REVIEW', 'REJECTED', 'SUBMITTED', 'VOID']）[ORM]
+gap-status-machine | A1b 实现写入的状态不在生成器声明域内：aap_detection_job.status 写入=['CANCELLED', 'COMPLETED', 'QUEUED'] 越界=['CANCELLED']（最匹配目录 DetectionJobStatus=['COMPLETED', 'FAILED', 'PARTIAL_DONE', 'QUEUED', 'REPORT_GENERATED', 'RUNNING']）
+gap-status-machine | A1b 实现写入的状态不在生成器声明域内：aap_quote.status 写入=['APPROVED', 'DRAFT', 'REJECTED', 'REVIEWING', 'SUBMITTED', 'VOID'] 越界=['REVIEWING']（最匹配目录 QuoteStatus=['APPROVED', 'CONTRACT_CREATED', 'CONVERTED', 'DRAFT', 'IN_REVIEW', 'REJECTED', 'SUBMITTED', 'VOID']）
+gap-status-machine | A3 md L193 UNSETTLED→PAYMENT_RECORDED 缺 from 守卫：实现写 PAYMENT_RECORDED 但无 UNSETTLED 约束（aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java aap_payment_record）
+gap-status-machine | A3g md 迁移声明定位率 5/6（要求全部定位且 > 0）
+gap-status-machine | A6 真孤儿状态：ER 声明 aap_compiled_expression.status 含 VERIFY_FAILED，全仓库零出现且非 DDL 默认值
+gap-status-machine | A7 schema admin-user.schema.json 的 status enum 比 ER aap_provider_account 少声明：缺 ['DISABLED']（客户端类型/运行时校验会判为非法值）
+gap-time-bucket | A5 服务端月桶按 UTC 计算（取证点 5 处），而客户端把**本机当前月**当 month 查询参数传给该端点（aap-client/src/pages/usage/index.vue:207 `month.value` ← `currentMonth()`）→ 东八区每月 1 日 00:00–08:00 请求的月份在 UTC 口径下刚起头、桶为空；跨源桶口径不一致（两套门禁都看不见）
+gen-selftest | [FAIL] 输出声明 84/84 个产物一致  (check ok: 89/89 个生成物与生成器完全一致、孤儿 0（只读，仓库未被改写）)
+id-types | A6 同名 ID 字段在所有模型里对外类型一致：不一致 1 个字段名：{'channel_id': ['integer', 'string']}
+query-params | A1 md 逐行 `q：…` = endpoints.json query_params：不一致 3 条
+query-params | A3b 实现 @RequestParam 集合 = 清单 query_params：不一致 5 条
+request-body | A1b 孤儿请求模型 schema 文件 = 0（仓库里有、清单无端点引用）：孤儿 1 个：['payment-record']
+request-body | A2c md 说「无请求体」而清单声明 request_model = 0：不一致 3 条：['ADM-CFG04', 'ADM-CFG09', 'QT-09']
+request-body | A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）：不一致 9 条：{'ADM-CFG07': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-CFG09': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-U02': "usage-refresh schema-not-in-dto=['batch_id'] dto-not-in-schema=[]", 'CRED-02': "credential-create schema-not-in-dto=['is_primary'] dto-not-in-schema=[]", 'CRED-04': "credential-create schema-not-in-dto=['is_primary'] dto-not-in-schema=[]", 'PROV-02': "provider-profile-update schema-not-in-dto=[] dto-not-in-schema=['manual_override', 'override_reason']", 'PROV-04': "qualification-create schema-not-in-dto=['company_name', 'contact_name', 'contact_phone', 'remark', 'uscc'] dto-not-in-schema=[]", 'QT-08': "quote-item-save schema-not-in-dto=['tier_rule', 'time_rule'] dto-not-in-schema=['price_tier_rule', 'price_time_rule']"}
+response-shape | A2 openapi 声明分页 ⇔ 实现返回分页形状 DTO（items+page+pageSize+total）：不一致 43 条（openapi 与实现至少一侧错）
+response-shape | A3 openapi 分页响应 ⇒ 该端点声明 page+pageSize 查询参数：自相矛盾 40 条
+response-shape | A4 实现分页形状 DTO ⇒ openapi 分页：不一致 1 条
+routes | A4 客户端每个调用点都在冻结清单内且方法一致：越界调用 2 个
+spotcheck-audit-cols | A1 手写 insert 未填充审计列 3 条：SyncAttemptRecorder.java:42 insert into aap_sync_operation 缺 created_by+updated_by（无 ORM 实体） | UsageService.java:246 insert into aap_usage_hourly 缺 created_by+updated_by（无 ORM 实体） | UsageService.java:287 insert into aap_usage_sync_cursor 缺 created_by+updated_by（无 ORM 实体）
+spotcheck-audit-cols | A2 手写 update / upsert 分支未刷新 updated_by 6 处：DetectionConfigService.java:207 update aap_detection_config 的 set 缺 updated_by（无 ORM 实体） | ReportTemplateService.java:173 update aap_report_template 的 set 缺 updated_by（无 ORM 实体） | NotificationService.java:131 update aap_notification 的 set 缺 updated_by（有 ORM 实体（手写路径绕过监听器）） | SyncAttemptRecorder.java:34 update aap_sync_task 的 set 缺 updated_by（无 ORM 实体） | UsageService.java:246 upsert aap_usage_hourly 的 do-update 分支缺 updated_by（已刷 updated_at 却不刷 updated_by） | UsageService.java:280 update aap_usage_sync_cursor 的 set 缺 updated_by（无 ORM 实体）
+spotcheck-audit-cols | A3 AuditListeners.Update 的 updated_by 赋值被 `actorId != null` 守卫：SYSTEM 触发的更新会**保留上一次操作者**（留痕误导，非 NULL）
+spotcheck-config | A1b 读取点键未在任一 yml 声明、仅靠内联默认 = 1 条（运维在 yml 里找不到锚点，与其它键处理不一致）：app.detection.probe-timeout-seconds (aap-server/src/main/java/com/hioas/aap/credential/CredentialService.java:72，内联默认 '10')
+spotcheck-config | A2 孤儿配置键（yml 声明但实现零读取）= 1 条：app.detection.execute-initial-delay-ms
+spotcheck-config | A5 存在「有配置项但代码另写同值字面量」的参数 = 3 个：通过线(app.detection.pass-score=70)、否决线(app.detection.veto-score=40)、复测间隔(天)(app.detection.recheck-interval-days=30)
+spotcheck-http-method | A3 实现方法分布与清单不一致（方法语义漂移）：DELETE 实现 3 / 清单 2
+spotcheck-http-method | A3 实现方法分布与清单不一致（方法语义漂移）：GET 实现 54 / 清单 48
+spotcheck-http-method | A3 实现方法分布与清单不一致（方法语义漂移）：POST 实现 47 / 清单 44
+spotcheck-http-method | A3 实现方法分布与清单不一致（方法语义漂移）：PUT 实现 7 / 清单 5
+spotcheck-idempotency | A1b  O openapi 逐 operation 声明 `in: header`（Idempotency-Key）的条数=0，而 M 声明该头的端点数=10 → 生成物侧漏声明（第三处真源缺失；契约测试只读 JSON Schema，头不在 schema 里，204 例全绿也看不见）
+spotcheck-idempotency | A2b  I 重放查询 find() 只按 `idempotency_key` 过滤、**不按 `expire_at`** → M/实体 javadoc 声明的 「24h 有效」在**重放路径上失效**：过期记录仍会被重放（首次响应体无限期返回）
+spotcheck-idempotency | A2c  I 零清理路径（含 DDL 表名或 IdempotencyRecordMapper 且带 @Scheduled + 删除的文件数=0） + 表无 TTL 清理 → 过期记录**永久留存**并被永久重放（与 A2b 同源，A2b/A2c 任一为真即构成语义缺口）
+spotcheck-idempotency | A5b  M 声明的 10 条端点中仅 2 条有幂等重放用例背书（['CON-04', 'PROV-02']），8 条零背书：['CRED-02', 'CRED-05', 'DET-01', 'PROV-04', 'QT-02', 'QT-05', 'QT-09', 'QT-12'] → 「幂等重放」语义在其余端点**只靠全局过滤器实现，无任何真实 HTTP 用例**（门禁只要求「有真实 HTTP 用例」，不要求覆盖幂等语义）
+spotcheck-idempotency | A6a  M「错误码」列漏声明 E-1001 的声明端点=4 条：['CON-04', 'CRED-05', 'DET-01', 'QT-12']（实现为全局过滤器，这些端点同键不同体同样抛 400 E-1001 → md 少声明了实现真会抛的码；门禁与契约测试都看不见）
+spotcheck-lock | A10 O openapi 逐 operation 声明该头：声明端点数=3 / openapi 声明数=0（in:header 总点数=0）→ 生成物侧漏声明（契约测试只读 JSON Schema，头不在 schema 里，204 例全绿也看不见）
+spotcheck-lock | A2 失配语义在实现内部即分叉：['E-1104', 'E-1601']（同一「乐观锁失配」语义用了两种码；逐站点 [('CredentialService.java#update', None), ('ProviderService.java#updateProfile', 'E-1601'), ('QuoteService.java#saveItem', 'E-1104')]）
+spotcheck-lock | A2b M 逐端点「错误码」列声明 §0 的失配码 'E-1601'：未声明 3 条 [('CRED-04', ['E-1001', 'E-1104']), ('PROV-02', ['E-1001', 'E-1104']), ('QT-08', ['E-1001', 'E-1104', 'E-1401', 'E-1402', 'E-1403', 'E-1404'])]（§0 与逐端点行冲突 → 调用方按码分支会分叉）
+spotcheck-lock | A4 M「错误码」列声明实现真会抛的失配码：漏声明 1 条 [('PROV-02', 'E-1601', ['E-1001', 'E-1104'])]
+spotcheck-lock | A5 失配码的语义描述覆盖「乐观锁/并发」：不覆盖 [('E-1601', '状态非法流转')]（§0 声明='E-1601'）
+spotcheck-lock | A7 C 客户端真的发送该头的调用点 = 0 处 [] → 措辞为「支持」（`required = false` + 「若提供则校验」），客户端不带该头 = 并发保护**静默失效**（风险项，待拍板；坑 88）
+spotcheck-lock | A9 测试背书：M 声明的 3 条端点中 2 条有失配用例（['PROV-02', 'QT-08']），零背书 1 条 ['CRED-04']
+spotcheck-numeric-range | A4 孤儿请求模型 `payment-record`：生成器注册表有、endpoints.json 零端点引用 → 契约产物不可达（死产物；补端点或删注册项都属契约变更，待拍板）
+spotcheck-outbound | A1 出站调用点未发现 SSRF 守卫证据 = 1 处：DetectionProbeRunner.java:283 upstreamProbe.probe(（调用者 discoverModels）
+spotcheck-outbound | A4b 响应体上限**在读入之后**才生效：NewApiSyncClient, UpstreamProbe 用 BodyHandlers.ofByteArray() 先全量读入内存再截断 → PRD 声明「响应体≤10MB」的防护在超大响应下不成立（应先按 Content-Length/限流流式读取）
+spotcheck-outbound | A5 重定向次数无显式上限：UpstreamProbe.Redirect.NORMAL, NewApiSyncClient.Redirect.NORMAL，PRD 声明「重定向≤3」未落地（依赖 JDK 内部默认上限，且不可配置为 3）
+spotcheck-outbound | A5b 重定向目标不过 SSRF 守卫：UpstreamProbe, NewApiSyncClient 跟随重定向（NORMAL），而 OutboundUrlGuard 只校验初始 base_url，重定向由 JDK 客户端内部完成 → 上游可用 302 把请求引向内网/环回/元数据地址，PRD 声明「禁内网/环回/元数据」在重定向路径上不成立
+spotcheck-outbound | A7 UpstreamProbe.probe 用 catch(Exception) 兜底且其中含 httpClient.send（可抛 InterruptedException），但全类无 Thread.currentThread().interrupt() → 中断/优雅停机信号被吞（同类 NewApiSyncClient 已正确处理）
+spotcheck-pagination | A6c aap-server\src\main\java\com\hioas\aap\report\ReportController.java#list 的 total 来自 reportService.count(principal)，但 items 来自 reportService.list(principal, result) → count 缺少筛选实参 ['result']（total 与 items 不同源）
+spotcheck-required | A2 无「必填同时可空」的自相矛盾属性：矛盾模型 5 个：{'contract-issue': ['file_id'], 'detection-job-create': ['credential_id'], 'payment-record': ['contract_id', 'provider_id'], 'payment-record-create': ['contract_id', 'voucher_file_id'], 'quote-create': ['credential_id']}
+spotcheck-required | A3 每个 schema.required 字段都能找到实现侧强制证据（注解 / 守卫 / 别名守卫）：无强制证据 3 个：[('CRED-02', 'api_key', []), ('CRED-04', 'api_key', []), ('PROV-04', 'category', ['aap_notification', 'aap_provider_qualification'])]
+spotcheck-state-machine | A1 手写 SQL 状态变更**缺 from 守卫** 3 条（非法流转会被静默接受）：aap-server/src/main/java/com/hioas/aap/sync/SyncAdminService.java:328 update aap_channel_binding set status = ?, last_synced_a（表 aap_channel_binding，to=?，参数化目标状态） | aap-server/src/main/java/com/hioas/aap/sync/SyncAttemptRecorder.java:33 update aap_sync_task set status = ?, attempt_count = ?, （表 aap_sync_task，to=?，参数化目标状态） | aap-server/src/main/java/com/hioas/aap/usage/UsageService.java:279 update aap_usage_sync_cursor set cursor_hour = ?, last_r（表 aap_usage_sync_cursor，to=?，参数化目标状态）
+spotcheck-state-machine | A2 ORM 状态流转点无守卫证据 1 个：aap-server/src/main/java/com/hioas/aap/detection/DetectionExecutor.java:94 job.setStatus("RUNNING") 无任何守卫证据
+spotcheck-state-machine | A3b 实现自述与守卫集合不一致 1 条：aap-server/src/main/java/com/hioas/aap/detection/DetectionService.java:35 自述 QUEUED→RUNNING，但实现里写向 RUNNING 的写点**全部无守卫**
+spotcheck-string-length | A3b qualification-create.file_name 声明 maxLength=255 但实现侧零强制，且 DDL 同名列是 varchar(255) → 超长(>255) 撞库为 **500 E-2001**，而契约承诺 400 E-1001（端点 PROV-04）
+spotcheck-string-length | A3c detection-release.override_reason 声明 maxLength=500 但实现侧零强制，DDL 侧为 text（无长度上限）→ 超长输入被**静默接受**，契约声明的上限无效（端点 DET-06）
+spotcheck-string-length | A3c review-approve.comment 声明 maxLength=500 但实现侧零强制，DDL 侧为 text（无长度上限）→ 超长输入被**静默接受**，契约声明的上限无效（端点 ADM-R03）
+spotcheck-string-length | A3c review-reject.reason_text 声明 maxLength=500 但实现侧零强制，DDL 侧为 无同名列（无长度上限）→ 超长输入被**静默接受**，契约声明的上限无效（端点 ADM-R04）
+spotcheck-string-length | A5b credential-create.alias 声明 minLength=2 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+spotcheck-string-length | A5b credential-create.api_key 声明 minLength=8 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+spotcheck-string-length | A5b detection-release.override_reason 声明 minLength=2 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+spotcheck-string-length | A5b quote-create.name 声明 minLength=1 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+spotcheck-string-length | A5b review-reject.reason_text 声明 minLength=2 但实现侧零下限校验 → 过短输入被接受（契约与实现不一致）
+spotcheck-success-shape | A2b openapi 成功响应 media type 与实现不一致 1 条（生成物侧漂移，两套门禁都看不见）：GET /reports/{}/html：openapi 声明 application/json，实现 produces=text/html
+spotcheck-success-shape-selftest | T16 真实仓库正向对照：控制器定位 90/90 且解析到 90 个 operation rc=1
+spotcheck-throttle | A1 短信阈值不一致：md=[('ttl(秒)', 300, 300), ('频控窗口(秒)', 60, 60), ('锁定次数', 5, 5), ('锁定时长(分钟)', 15, None)] yml={'ttl-seconds': 300, 'resend-interval-seconds': 60, 'max-attempts': 5, 'lock-minutes': None, 'daily-quota': 5} 偏差=[('锁定时长(分钟)', 15, None)]
+spotcheck-throttle | A3a 退避档序列 md ⇔ 实现不一致：md=[30, 120, 480, 1800, 7200]（5 档）实现=[30, 120, 480, 1800]（4 档，MAX_ATTEMPTS=5，语义=1 次立即 + 4 次退避）→ 声明的最长退避在实现中不存在
+spotcheck-throttle | A3b 退避档序列 md ⇔ PRD R-40 不一致：md=[30, 120, 480, 1800, 7200] PRD=[30, 120, 600, 1800, 7200]（第三方裁判：PRD）
+spotcheck-throttle | A4a ttl=300 只有结构背书（schema 校验 ttl 存在），数值零断言 → 阈值可被改成任意值而全量用例仍绿
+spotcheck-throttle | A4b 60s 频控窗口只有「重复发码 → 429」的码断言，窗口时长数值零断言（测试无法证明是 60s）
+spotcheck-throttle | A4c 15 分钟锁定时长只有「locked_until 非空」的断言，时长数值零断言（无法证明是 15 分钟）
+spotcheck-throttle | A5 用户可见文案硬编码时长 2 处（15 分钟），与 config.lockMinutes() 脱钩 → 配置改值后提示失真（同值硬编码副本，坑 122 的阈值版）
+spotcheck-throttle | A6 客户端对 429 / 频控码零专门处置（仅 401 分支）→ 频控提示只能靠服务端 message 透传（风险项，待拍板）
+spotcheck-throttle-selftest | 真实仓库 FAIL 集合 = {A3a,A3b,A4a,A4b,A4c,A5,A6} | 实际=['A1', 'A3a', 'A3b', 'A4a', 'A4b', 'A4c', 'A5', 'A6']
+spotcheck-tx-boundary | A4 端点调用链上累计 2 次写但**链上无任何事务边界**（部分失败会留半截数据）：AdminSyncController.changeBindingStatus:74
+spotcheck-unique | A2 「仅靠强预查（查重后插入）、无捕获、无 upsert」且唯一列名命中契约表面 6 条 —— 预查与写入之间无锁，并发重复提交撞唯一索引 → 500 E-2001，而契约承诺 409 业务码：uq_admin_username,uq_provider_uscc,uq_credential_primary,uq_credential_fingerprint,uq_job_active,uq_quote_item_model
