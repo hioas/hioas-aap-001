@@ -1,0 +1,19 @@
+[PASS] P0 取到主提交号与主题 | c1629e5b | chore(aap-server): R367 巡检轮取证（两轮 252 例全绿 · missing=0 · 第 36 类只读不变量 17 PASS/0 FAI
+[PASS] P1a 台账本轮行在 HEAD 内恰好 1 条 | 命中 1
+[PASS] P1b 工作区本轮行恰好 1 条 | 命中 1
+[PASS] P1c 提交列仍为空（收尾前） | HEAD='' 工作区=''
+[PASS] P1d HEAD 内本轮行与工作区行**逐列相等** | 不等列 []
+[PASS] P2a 豁免清单条数受夹（<= 2） | n=2
+[PASS] P2 缺的**恰好**是自身/后续产出文件，其余全部在 HEAD 树内 | 缺 ['verify-R367-post.txt', 'verify-R367-postcheck.txt']（豁免清单 ['verify-R367-post.txt', 'verify-R367-postcheck.txt']）
+[PASS] P2b 正向对照：受判证据数 > 0 | 受判 17 份
+[PASS] P3 逐条登记引入提交归属 | 登记 19/19，引入提交 = ['(未找到新增记录；按设计为既有文件的改写，如 coverage-history)', 'c1629e5b']
+  归属明细：{'audit-regression-R367-faildiff.txt': 'c1629e5b', 'audit-regression-R367-failraw.txt': 'c1629e5b', 'audit-regression-R367-rcseq.txt': 'c1629e5b', 'audit-regression-R367.txt': 'c1629e5b', 'closeout-R367.txt': 'c1629e5b', 'gap-byteform-R367.txt': 'c1629e5b', 'gap-byteform-appendum-R367.txt': 'c1629e5b', 'gap-conc-inwindow-R367.txt': 'c1629e5b', 'gap-ledger-vs-tree-R367.txt': 'c1629e5b', 'gap-rework-R367.txt': 'c1629e5b', 'gap-window-writes-R367.txt': 'c1629e5b', 'green-verify-R367-coverage-fields.txt': 'c1629e5b', 'green-verify-R367-full-run1.txt': 'c1629e5b', 'green-verify-R367-full-run2.txt': 'c1629e5b', 'green-verify-R367-testcount.txt': 'c1629e5b', 'green-verify-R367-tested-state.txt': 'c1629e5b', 'round-R367-analysis.txt': 'c1629e5b', 'verify-R367-post.txt': '(未找到新增记录；按设计为既有文件的改写，如 coverage-history)', 'verify-R367-postcheck.txt': '(未找到新增记录；按设计为既有文件的改写，如 coverage-history)'}
+[PASS] P4 本轮提交只碰 .agents/state/**（交付面越界 = 0） | 越界 0 []
+[PASS] P4b 正向对照：提交文件数 > 0 | n=21
+[PASS] P5 主提交 message 含规范返工真值形态 |  36 类只读不变量 17 PASS/0 FAIL · 返工真值 = 14 处）
+[PASS] P6 HEAD 内描述列 == 落盘单一事实源 | len=3899 vs 3899
+[PASS] P7a HEAD 内 coverage-history 末行 = 本轮行 | 2026-09-25 03:09 R367 巡检轮 | 清单 102/102（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 c4e6cd1d**，工
+[PASS] P7b HEAD 树内本轮产物 CR=0 ∧ 末字节换行 | 违规 []
+MAIN_COMMIT=c1629e5b
+SUM PASS=15 FAIL=0
+VERIFY_POST_R367_END=1
