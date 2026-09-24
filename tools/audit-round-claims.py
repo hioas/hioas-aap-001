@@ -24,6 +24,11 @@ from pathlib import Path
 
 RE_A = re.compile(r"本轮返工真值\s*=\s*\**\s*(\d+)\s*处")
 RE_B = re.compile(r"权威数字\s*=\s*返工\s*(\d+)\s*处")
+# 引用/例示区（「…」『…』`…`）不是**本轮自述**：段内常引用更早轮的缺陷原文当例示
+# （形状 = 判据范围必须与「本轮自述」语义一致；否则把历史引用当成本轮自述 -> 假 FAIL）。
+RE_QUOTE = re.compile(r"「[^」]*」|『[^』]*』|`[^`]*`")
+def norm_self(s):
+    return RE_QUOTE.sub(" ", s)
 # 段标题：`## R360 …` / `### R360（…）` / `【收尾 R360（据实）】` / `【更正 R360】` / `【R360 …】`
 RE_HEAD = re.compile(r"(?:^#{2,4}\s*R(\d{2,3})\b)|(?:【\s*(?:收尾\s*|更正\s*)?R(\d{2,3})[^】]*】)")
 RE_ROWID = re.compile(r"^R(\d{2,3})$")
@@ -41,9 +46,10 @@ def parse_state(text):
         if m:
             cur = "R" + (m.group(1) or m.group(2))
             segs.add(cur)
-        for mm in RE_A.finditer(ln):
+        ln_self = norm_self(ln)
+        for mm in RE_A.finditer(ln_self):
             a.append((cur, int(mm.group(1)), i))
-        for mm in RE_B.finditer(ln):
+        for mm in RE_B.finditer(ln_self):
             b.append((cur, int(mm.group(1)), i))
     return a, b, segs
 
@@ -54,7 +60,7 @@ def parse_csv(text):
     for r in rows[1:]:
         if not r or not RE_ROWID.match(r[0].strip()):
             continue
-        blob = " | ".join(r)
+        blob = norm_self(" | ".join(r))
         for mm in RE_B.finditer(blob):
             b.append(("R" + RE_ROWID.match(r[0].strip()).group(1), int(mm.group(1)), 0))
     return hdr, b
@@ -195,6 +201,16 @@ def selftest(root):
               "权威数字 = 返工 4 处；权威文本 = 台账描述列。\n")
     got = fixture(state5, ok_csv)
     expect("S5 归属反例（段内引用 R359）-> rc=0", got, 0, (), ["[FAIL]"])
+
+    # S7 引用区豁免：段内把**更早轮的缺陷原文**当例示引用（「…」`…`）时不得当成本轮自述
+    #（真实返工：R360 段引用了 R359 的 `本轮返工真值 = 4 处` / `权威数字 = 返工 3 处` 当例示 -> 被当成本轮自述 -> 假 FAIL）
+    state7 = ("## R360 段\n① 状态文件 R359 收尾段自相矛盾（同一句内 `本轮返工真值 = 4 处` vs `权威数字 = 返工 3 处`）。\n"
+              "本轮返工真值 = **13 处**（判据侧）。\n\n## R359 段\n【收尾 R360（据实）】权威数字 = 返工 13 处。\n")
+    csv7 = ["R360,,,,desc,,\"权威数字 = 返工 13 处\",abc\n"]
+    expect("S7 引用区豁免（引号内的他轮原文不参与 A/B 判定）-> rc=0", fixture(state7, csv7), 0, (), ("[FAIL] A1",))
+    # S7b 判别力：同一串**去掉引号**写进正文 -> 必须被认作本轮自述并转红（引用豁免不得把规则架空）
+    got = fixture(state7.replace("`本轮返工真值 = 4 处`", "本轮返工真值 = 4 处"), csv7)
+    expect("S7b 去引号后必须转红（豁免不架空，历史 57/68/190）", got, 1, ("[FAIL] A1",), ())
 
     # S6 零写副作用：审计本体（非夹具构造）不得改动被读文件（历史 39：mtime 变了而 md5 没变也算写副作用）
     fixture(ok_state, ok_csv)
