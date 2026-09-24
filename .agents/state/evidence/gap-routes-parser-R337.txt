@@ -1,0 +1,32 @@
+==============================================================================
+R337 只读取证：audit-routes 解析器的「裸映射注解」缺陷 ⇔ 真实清单外端点
+==============================================================================
+[PASS] A1 正向对照（三源均非空） 现解析路由=111 / 清单端点=99 / 控制器文件=28 / 解析备注=0
+A2 方法级映射注解：带实参 90 处 / **裸注解** 21 处 -> ['AdminDetectionConfigController.java:41 @GetMapping', 'AdminDetectionConfigController.java:49 @PostMapping', 'AdminReportTemplateController.java:43 @GetMapping', 'AdminReportTemplateController.java:51 @PostMapping', 'AdminContractController.java:42 @GetMapping', 'ContractController.java:39 @GetMapping', 'CredentialController.java:58 @GetMapping', 'CredentialController.java:81 @PostMapping', 'AdminDetectionController.java:34 @GetMapping', 'DetectionController.java:44 @PostMapping', 'FileController.java:47 @PostMapping', 'AdminUserController.java:41 @GetMapping', 'AdminUserController.java:51 @PostMapping', 'AdminProviderController.java:46 @GetMapping', 'QuoteController.java:131 @GetMapping', 'QuoteController.java:140 @PostMapping', 'ReportController.java:52 @GetMapping', 'AdminReviewController.java:38 @GetMapping', 'PaymentController.java:31 @GetMapping', 'AuditLogController.java:31 @GetMapping', 'NotificationController.java:37 @GetMapping']
+A2b 裸注解中**路径被改写**者 = 1 处 -> ['FileController.java:47 @PostMapping -> 现判据 /api/v1/filesfile / 修正判据 /api/v1/files']（其余裸注解在注解与首个 `)` 之间无字符串字面量 -> 与修正判据同值）
+[PASS] A2 存在裸映射注解（> 0）∧ FileController 类级前缀 = /api/v1/files ∧ 真正被改写的 = 1 处 裸注解 21 处 / 受损 1 处
+A3 幻影路径 ('POST', '/api/v1/filesfile') 在现解析集合内 = True；源码/文档/工具内 `filesfile` 命中 = 0 处 （无）
+[PASS] A3 幻影存在 ∧ 源码零命中（⇒ 幻影是解析产物，不是真实路由） in_buggy=True grep=0
+[PASS] A4 幻影**占据了**真实路由的位置（真实路由不在现解析集合内） REAL in buggy=False
+A5 R336 routes.log 信息项：声明 12 条 / 只列举前 8 条（截断）
+[PASS] A5 信息项声称的条数 > 列举条数（清单不可全见） declared=12 shown=8
+A6 夹具实测：裸注解夹具产出 = [('POST', '/syn/barefile')] / 带实参夹具产出 = [('POST', '/syn/arg/up')]
+[PASS] A6 判别力实测：裸注解必产幻影 ∧ 带实参必不产幻影（两分支结论不同） rb=[('POST', '/syn/barefile')] ra=[('POST', '/syn/arg/up')]
+B1 清单外端点：现判据 12 条 -> 修正判据 12 条（对称差集 = [('POST', '/api/v1/files'), ('POST', '/api/v1/filesfile')]）
+[PASS] B1 修正后：**条数不变**（12 -> 12）∧ 幻影不在其中 ∧ 真实路由在其中 ∧ 对称差集恰为 {幻影, 真实路由} ex_fix=12 幻影在其中=False 真实路由在其中=True 对称差=[('POST', '/api/v1/files'), ('POST', '/api/v1/filesfile')]
+修正后清单外端点（据实，按路径排序）：
+      DELETE /api/v1/credentials/{}
+      GET    /api/v1/admin/catalog/models
+      GET    /api/v1/admin/catalog/models/grouped
+      GET    /api/v1/admin/catalog/vendors
+      GET    /api/v1/catalog/models
+      GET    /api/v1/detection-jobs/{}/digest
+      GET    /api/v1/files/{}
+      POST   /api/v1/admin/catalog/models
+      POST   /api/v1/admin/catalog/vendors
+      POST   /api/v1/files
+      PUT    /api/v1/admin/catalog/models/{}
+      PUT    /api/v1/quotes/{}
+
+汇总：PASS 7 / FAIL 0 
+GAP_ROUTES_PARSER_END=1

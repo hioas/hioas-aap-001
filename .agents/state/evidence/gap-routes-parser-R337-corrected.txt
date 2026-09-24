@@ -1,0 +1,21 @@
+R337 修法落地核对：按**修正判据**（括号配对判定注解是否真有实参；无实参 → 路径 = 类级前缀）重算
+
+现判据清单外端点 = 12 条；修正判据 = 12 条（**条数不变**）；对称差集 = [('POST', '/api/v1/files'), ('POST', '/api/v1/filesfile')]
+
+修正后清单外端点（12 条，含真实的 POST /api/v1/files；不含幻影 /api/v1/filesfile）：
+  DELETE /api/v1/credentials/{}
+  GET    /api/v1/admin/catalog/models
+  GET    /api/v1/admin/catalog/models/grouped
+  GET    /api/v1/admin/catalog/vendors
+  GET    /api/v1/catalog/models
+  GET    /api/v1/detection-jobs/{}/digest
+  GET    /api/v1/files/{}
+  POST   /api/v1/admin/catalog/models
+  POST   /api/v1/admin/catalog/vendors
+  POST   /api/v1/files
+  PUT    /api/v1/admin/catalog/models/{}
+  PUT    /api/v1/quotes/{}
+
+裸映射注解合计 21 处（其中**路径被改写**者 1 处：['FileController.java:47 @PostMapping -> 现判据 /api/v1/filesfile / 修正判据 /api/v1/files']）
+
+GAP_ROUTES_PARSER_CORRECTED_END=1
