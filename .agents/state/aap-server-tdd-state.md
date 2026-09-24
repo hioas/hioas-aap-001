@@ -10937,9 +10937,17 @@ R106 的 `fix-guards-r106.py` 把 `verify-final.py` / `final-check.py` 的返工
 
 **TDD 证据链**：
 
-- **红**：`SettlementContractTest` 11 例 → 10 失败 + 1 错误，失败点 = **405 Method Allowed / 端点不存在**
-  （`.agents/state/evidence/red-Settlement.txt`）。⚠️ 首轮红灯其实是**夹具缺陷**（uscc 位数不足），
-  修正夹具后重跑才得到「红在目标行为缺失」的干净基线 —— 红基线的失败点必须核对，否则红灯会骗人。
+- **红**：`SettlementContractTest` 11 例 → **10 失败 + 1 错误**，失败点 = **405 Method Not Allowed / 端点不存在**
+  （`.agents/state/evidence/red-Settlement.txt`，落盘内容为第 3 次跑批）。
+  ⚠️ 红基线在此段**实际跑过 3 次**，前两次都不是有效红灯。因证据文件用固定名 + `tee` 被后续跑批覆盖，
+  此处据实登记三次读数（末次文件仅存③，①② 由跑批完成通知留存）：
+  ① 第 1 次：**编译失败** —— `String noReason = post(...)` 笔误，`3 errors` / `BUILD FAILURE`，测试压根没跑起来；
+  ② 第 2 次：`Tests run: 11, Failures: 11`，但**红在夹具** —— 每条都报 `E-1001 统一社会信用代码需为 18 位大写字母或数字`
+     （**我造的 uscc 只有 17 位**，与目标行为无关）；
+  ③ 第 3 次：修夹具后得到干净基线（10F+1E，11 处 `but was: 405`）。
+  **教训（两条，都吃过）**：a) 红灯的失败点必须逐条核对 —— 编译失败与夹具失败都会伪装成「红在行为缺失」，
+  否则红基线只是「测试跑不动」的证据；b) 证据文件用固定名 + `tee` 会被后续跑批静默覆盖，
+  中间态需要留档时应给文件名加阶段后缀（本次已按此教训在会话中修正做法）。
 - **绿**：同 11 例 `Tests run: 11, Failures: 0, Errors: 0`（`.agents/state/evidence/green-Settlement.txt`）。
   期间修 2 处自身缺陷：`Line` 视图字段与收紧后的 DDL 不一致；`EndpointCoverageTest` 只改了文案与
   `@DisplayName` 而**漏改数值** `hasSize(102)` —— 门禁当场转红，正是它该有的样子。
