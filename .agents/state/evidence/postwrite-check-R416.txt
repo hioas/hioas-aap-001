@@ -34,12 +34,12 @@ R416 写入期核对（提交后）
 [PASS] A3b 本轮行存在且 DESC 逐字符等于单一事实源
 [PASS] A3c 本轮行证据列 == 单一事实源 EV_LIST
 [PASS] A3d 本轮行提交列为空或主提交（写入期应为空） | 提交列 = ''
-[PASS] A4 HEAD 内本轮行与工作区行除提交列外逐列相等 | HEAD[:7]==WS[:7] -> True
+[FAIL] A4 HEAD 内本轮行与工作区行除提交列外逐列相等 | HEAD[:7]==WS[:7] -> False
 [PASS] A5 返工逐条证据存在且条数 == REWORK 条数
 [PASS] A5b HEAD 内状态文件含本轮段且含真值形态
 tools/audit-round-claims.py rc = 0
    判据：PASS 11 / FAIL 0 / rc=0
 [PASS] A6 轮次自述真值审计 rc=0（同轮 A==B ∧ 跨文件 B==B）
 [PASS] A7 零写副作用：生成物 97 个 size+md5 运行前后全等 | 变化 = []
-POSTWRITE_PASS=15 POSTWRITE_FAIL=0
+POSTWRITE_PASS=14 POSTWRITE_FAIL=1
 POSTWRITE_END=1
