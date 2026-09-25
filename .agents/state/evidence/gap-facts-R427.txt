@@ -1,0 +1,39 @@
+==============================================================================
+R427 只读事实探针（不写任何交付面文件）
+==============================================================================
+台账：物理行数 = 509 / CSV 记录数 = 508 / 表头列数 = 8 / 轮次行数 = 400
+列数 != 表头列数的轮次行 = 0 条 （须 0，坑 80/155/467）
+台账末行 = R426（列数 8）
+  末行「提交」列 = '17996bba'；证据列长度 = 497；描述相关列长度 = [0, 0, 0, 5056, 0]
+台账 CR 字节数 = 0（须 0；坑 69/70/467）
+coverage-history：CR = 0 / 物理行 = 809 / 轮次行 = 118
+
+-- 在途改动归属（git status；只登记、未触碰）--
+   M .agents/state/evidence/coverage-report.json                    mtime=2026-09-25 05:34:37
+   M .agents/state/evidence/endpoint-test-audit.json                mtime=2026-09-26 06:02:59
+   M .agents/state/evidence/endpoint-test-audit.txt                 mtime=2026-09-26 06:02:59
+   M README.md                                                      mtime=2026-09-24 07:51:14
+   M aap-server/pom.xml                                             mtime=2026-09-24 08:07:37
+   M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.j mtime=2026-09-24 19:12:39
+   M aap-server/src/main/resources/application.yml                  mtime=2026-09-25 05:13:53
+   ?? .agents/state/evidence/audit-regression-R427-faildiff.txt     mtime=2026-09-26 06:07:11
+   ?? .agents/state/evidence/audit-regression-R427-failraw.txt      mtime=2026-09-26 06:07:05
+   ?? .agents/state/evidence/audit-regression-R427-rcseq.txt        mtime=2026-09-26 06:07:05
+   ?? .agents/state/evidence/audit-regression-R427.txt              mtime=2026-09-26 06:07:05
+   ?? .agents/state/evidence/green-verify-R427-coverage-fields.txt  mtime=2026-09-26 06:02:51
+   ?? .agents/state/evidence/green-verify-R427-full-run1.txt        mtime=2026-09-26 06:02:51
+   ?? .agents/state/evidence/green-verify-R427-full-run2.txt        mtime=2026-09-26 06:02:51
+   ?? .agents/state/evidence/green-verify-R427-testcount.txt        mtime=2026-09-26 06:02:51
+   ?? .agents/state/evidence/green-verify-R427-tested-state.txt     mtime=2026-09-26 06:02:51
+   ?? .agents/state/evidence/round-R427-analysis.txt                mtime=2026-09-26 06:02:51
+   ?? aap-server/src/main/webapp/                                   mtime=2026-09-24 08:07:43
+
+-- endpoint-test-audit.{json,txt}：工作区内容 vs HEAD 树 --
+   endpoint-test-audit.json     工作区 raw md5=717f158a / 归一(LF) md5=e1a40bbe / HEAD md5=7419563a / 归一后内容相同=False
+      （注：raw md5 是「跨轮内容是否变化」的判据；与 HEAD 不同 = HEAD 版本陈旧，属已登记项）
+   endpoint-test-audit.txt      工作区 raw md5=6676f755 / 归一(LF) md5=f336694e / HEAD md5=1644a2fa / 归一后内容相同=False
+      （注：raw md5 是「跨轮内容是否变化」的判据；与 HEAD 不同 = HEAD 版本陈旧，属已登记项）
+
+本轮既有证据文件存在性：10 条 / 缺失 0 （正向对照 > 0）
+  本文件（SELF = gap-facts-R427.txt）在落盘时产生、故不参与自身 exists 断言（历史 222）
+PROBE_END=1
