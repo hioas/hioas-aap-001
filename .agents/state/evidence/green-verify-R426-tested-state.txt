@@ -1,0 +1,18 @@
+R426 校验轮（missing==0 -> 交付代码零改动）；全部读数由 analyze-r426.py 从 facts-run.log / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 6309045e
+被测提交全 SHA = 6309045e5ecc4eba201af7a4924bb397dd23bbb7
+被测提交主题 = chore(evidence): R425 终读复核（提交之后复跑：22/0 PASS，含台账 399 行 8 列 CR=0、HEAD 内本轮行 ⇔ 工作区、三枚提交均为 HEAD 祖先、证据 14 条齐备）
+run1 = 05:37:03 -> 05:39:24 rc=0 / run2 = 05:39:24 -> 05:41:32 rc=0（串行，run1_end <= run2_start）
+窗口 = 05:36:46 -> 05:41:36；HEAD 起点 = 6309045e / 终点 = 6309045e
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 8 条
+   M .agents/state/evidence/coverage-report.json                          mtime=2026-09-25 05:34:37
+   M .agents/state/evidence/endpoint-test-audit.json                      mtime=2026-09-26 05:12:58
+   M .agents/state/evidence/endpoint-test-audit.txt                       mtime=2026-09-26 05:12:58
+   M README.md                                                            mtime=2026-09-24 07:51:14
+   M aap-server/pom.xml                                                   mtime=2026-09-24 08:07:37
+   M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java    mtime=2026-09-24 19:12:39
+   M aap-server/src/main/resources/application.yml                        mtime=2026-09-25 05:13:53
+   ?? aap-server/src/main/webapp/                                         mtime=2026-09-24 08:07:43
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0
