@@ -12432,3 +12432,27 @@ wisemapping 的 `spring-boot:run`）**均未被误判为测试 JVM**（这正是
 * **待拍板 / 观察项（本轮登记，含沿用）** —— ① **回归面元守卫是否常驻**（沿用）：本轮已明确声明未机械派生派生链（见口径声明），下一轮是否恢复「临时目录派生链」需拍板；若恢复，应先修 **轮次纯数字盲区**（轮次计数 / 返工计数 / 坑号文件名 —— 这三类机械替换碰不到）。② `endpoint-test-audit.{json,txt}` 的处置（沿用）：HEAD 版本陈旧、每轮被审计重写同一内容 ⇒ 该文件**永远**显示已修改；选项 ① 纳入提交 ② 审计支持输出到临时目录 ③ 保持现状。③ 两个陈旧 detached worktree（沿用）。④ 台账「提交」列是否统一为 SHA（沿用）。⑤ `coverage-report.json` 的 `by_task` 是陈旧副本且文件同时是他方在途 ⇒ 按纪律不改（沿用；权威读数取 `green-verify-R422-coverage-fields.txt`）。⑥ 常驻红收口：`gap-coverage-gap` 及其负向自测（沿用；本轮 rc 读数见回归报告）。⑦ 「管理端零接线端点 / 客户端越界调用」处置（沿用）。
 
 * 证据清单（14 条）：evidence/round-R422-analysis.txt；evidence/round-scope-R422.txt；evidence/green-verify-R422-tested-state.txt；evidence/green-verify-R422-testcount.txt；evidence/green-verify-R422-full-run1.txt；evidence/green-verify-R422-full-run2.txt；evidence/green-verify-R422-coverage-fields.txt；evidence/audit-regression-R422.txt；evidence/audit-regression-R422-rcseq.txt；evidence/audit-regression-R422-failraw.txt；evidence/audit-regression-R422-faildiff.txt；evidence/postwrite-check-R422.txt；evidence/verify-R422-post.txt；evidence/verify-R422-postcheck.txt；coverage-history.txt（追加 R422 行）
+
+### R423 巡检轮（校验轮：missing=0 ⇒ 交付面零改动）
+
+- **红/绿证据**：本轮为校验轮，**无红基线**（不新增端点、不改代码）。绿证据 =
+  `evidence/green-verify-R423-tested-state.txt`、`evidence/green-verify-R423-testcount.txt`、
+  `evidence/green-verify-R423-full-run1.txt`、`evidence/green-verify-R423-full-run2.txt`、
+  `evidence/green-verify-R423-coverage-fields.txt`；汇总 = `evidence/round-R423-analysis.txt`。
+- **两轮全量**：在 **HEAD（6aec6b39）的临时 detached worktree** 内**串行**复跑（run1 04:21:31–04:23:48 / run2 04:23:49–04:25:52），
+  各 **263 例 / 45 类**、rc=0/0、Failures-Errors-Skipped 0-0-0、逐类 diff=0；`@Test` 词边界 263 == surefire 263；禁用扫描 0。
+- **覆盖**：清单 **108/108**、missing=0、registered_routes=125、not_registered=[] ⇒ 连续第 **405** 轮全绿。
+- **回归面**：复跑 **84** 条（tag 集合与上一轮逐条一致、rc 变化 0、新增 0、未复跑 0）；FAIL 明细 42 个脚本 / 161 行；
+  跨轮 faildiff 新增 0 / 消失 0；零写副作用 97 个生成物 size+md5 全等。证据 = `evidence/audit-regression-R423*.txt`。
+- **事实探针**：`evidence/gap-facts-R423.txt`（台账结构 8 列 / 396→397 轮次行 / CR=0；在途改动逐条归属；
+  `endpoint-test-audit` 的 **raw md5 跨轮未变**（717f158a…）而与 HEAD 不同 = HEAD 版本陈旧，属已登记项）。
+- **本轮返工 3 处（判据 / 工具侧，零交付面影响）**：
+  ① 无人值守下 `powershell -Command/-File` 形式被安全策略拦下（**已知纪律复犯**，历史 37 族）→ 改用 `jps -lvm` / `ps -W` 只读探测（被拦即中止、零副作用）；
+  ② 后台执行器用 `nohup ... &` 被运行时拦下（要求以**受管**后台进程启动）→ 改用受管后台 + 有界轮询到退出（历史 158 的调用形态纪律）；
+  ③ 事实探针比对 `endpoint-test-audit` 时**只报归一化后的 md5** ⇒ 会把「raw md5 跨轮未变但工作区为 CRLF」误读成「内容变了」
+     （历史 218/251：显示层 ≠ 文件字节）；修法 = 同时输出 **raw md5 与归一 md5** 并标注「raw md5 才是跨轮内容判据」。
+- **真发现 0 处**；**口径声明**：本轮未机械派生上一轮的临时目录派生链，而是新写执行器 / 分析器 / 回归 runner / 跨轮比对器 / 事实探针；
+  回归面命令表从**静态命令表源码**解析并**与上一轮 rcseq 的 tag 集合逐条对齐**（不缩面、不灌水）。
+- **待拍板（沿用 + 本轮登记）**：① 作业的「待办真值」尚未基线化 —— 交付面已 108 条零缺口，是否还有下一批端点需人拍板；
+  ② `endpoint-test-audit.{json,txt}` 处置；③ `gap-coverage-gap` 常驻红收口；④ 第 30–46 类只读不变量是否进 driver（扩面决定）；
+  ⑤ 两个陈旧 detached worktree；⑥ 台账「提交」列是否统一为 SHA；⑦ `coverage-report.json` by_task 陈旧副本（文件同时是他方在途 ⇒ 不改）。
