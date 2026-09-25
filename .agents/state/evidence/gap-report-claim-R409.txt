@@ -1,0 +1,21 @@
+R409 报告侧不变量取证：交付报告读数 ⇔ 证据文件（跨轮追溯）
+==============================================================================
+[PASS] A0 本轮证据 '按族分布' 行可解析（族数 > 0，正向对照） | 族数=15
+[PASS] A0b 本轮证据 total 可解析（正向对照） | total=108
+[PASS] A0c 各族 total 之和 == 冻结清单 total（108） | 合计=108
+  判据范围：本类留痕文件（按设计含该读数）8 个 = ['gap-report-claim-R401.txt', 'gap-report-claim-R402.txt', 'gap-report-claim-R403.txt', 'gap-report-claim-R404.txt', 'gap-report-claim-R405.txt', 'gap-report-claim-R406.txt', 'gap-report-claim-R407.txt', 'gap-report-claim-R408.txt']；其中非本文件 8 个
+  追溯：含 '空任务号) 15/15' 的证据文件 = ['green-verify-R373-coverage-fields.txt', 'green-verify-R374-coverage-fields.txt', 'green-verify-R375-coverage-fields.txt']（已排除本文件自身 gap-report-claim-R409.txt）
+  上一轮（R408）自身证据的按族分布行 = 按族分布：(空任务号) 9/9 · T03 6/6 · T04 5/5 · T05 7/7 · T06 6/6 · T07 4/4 · T08 11/11 · T09 6/6 · T10 5/5 · T11 11/11 · T12 4/4 · T13 3/3 · T14 22/22 · T15 3/3 · T17 6/6
+[PASS] A1 该陈旧读数的来源文件全部**早于**上一轮（陈旧引用成立） | 来源 = ['green-verify-R373-coverage-fields.txt', 'green-verify-R374-coverage-fields.txt', 'green-verify-R375-coverage-fields.txt']
+[PASS] A1d 本类留痕文件（按设计记录该读数）已**整类排除**且非空（豁免不得被架空，历史 57/68/190） | 排除项 = ['gap-report-claim-R401.txt', 'gap-report-claim-R402.txt', 'gap-report-claim-R403.txt', 'gap-report-claim-R404.txt', 'gap-report-claim-R405.txt', 'gap-report-claim-R406.txt', 'gap-report-claim-R407.txt', 'gap-report-claim-R408.txt']（本文件自身 gap-report-claim-R409.txt 于脚本末尾落盘）
+[PASS] A1b 台账 / 状态文件里该读数**只出现在本发现的留痕叙述**中（游离命中 = 0） | 台账：总 8 / 游离 0；状态：总 8 / 游离 0（留痕命中 = 上一轮对该发现的记录）
+[PASS] A2 上一轮自身证据含的是 空任务号) 9/9（而非交付报告所写的 空任务号) 15/15） | 证据行与交付报告读数不一致
+[PASS] A2b 上一轮证据各族之和 == total（108 口径自洽，故不一致只能来自交付报告侧抄旧值） | 上一轮证据各族之和 = 108
+[PASS] A3 本轮证据行非空且含轮次相关族名（正向对照） | 行=按族分布：(空任务号) 9/9 · T03 6/6 · T04 5/5 · T05 7/7 · T06 6/6 · T0…
+  【交付报告应逐字引用】按族分布：(空任务号) 9/9 · T03 6/6 · T04 5/5 · T05 7/7 · T06 6/6 · T07 4/4 · T08 11/11 · T09 6/6 · T10 5/5 · T11 11/11 · T12 4/4 · T13 3/3 · T14 22/22 · T15 3/3 · T17 6/6
+------------------------------------------------------------------------------
+结论：交付报告的关键读数必须**逐字取自**本方证据文件（该纪律引入于更早轮次）；该发现指出的那一轮交付报告的按族分布属
+      **陈旧引用**（更早轮次的读数被抄进新报告，与其自身证据 9/9 不一致）—— 该缺陷此前**无任何门禁**。
+      修法 = 报告的读数段改为从证据文件抽取（机器核对：本轮报告与本文件 A3 行逐字一致）。
+判据：PASS 9 / FAIL 0
+REPORT_CLAIM_R409_END=1
