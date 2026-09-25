@@ -1,0 +1,18 @@
+R380 校验轮（missing==0 -> 交付代码零改动）；全部读数由 analyze-r380.py 从 facts-run.log / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 9ad9cd3e
+被测提交全 SHA = 9ad9cd3ecf5eb63e658effc953b7699c378d5cfc
+被测提交主题 = chore(state): R379 收尾链证据同步（更正后重跑 postwrite 15/15、verify 7/7、postcheck 7/7；仅记录态读数变化：回填后提交列 35c907dc、HEAD=e2d9c0c4）
+run1 = 09:11:31 -> 09:13:47 rc=0 / run2 = 09:13:47 -> 09:15:52 rc=0（串行，run1_end == run2_start）
+窗口 = 09:11:18 -> 09:15:56；HEAD 起点 = 9ad9cd3e / 终点 = 9ad9cd3e
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 8 条
+   M        .agents/state/evidence/coverage-report.json  mtime=2026-09-25 05:34:37.995978600 +0800 / 2026-09-25 05:34:37.995978600 +0800 
+   M        .agents/state/evidence/endpoint-test-audit.json  mtime=2026-09-25 08:50:42.279126800 +0800 / 2026-09-25 08:50:42.279126800 +0800 
+   M        .agents/state/evidence/endpoint-test-audit.txt  mtime=2026-09-25 08:50:42.280125400 +0800 / 2026-09-25 08:50:42.280125400 +0800 
+   M        README.md  mtime=2026-09-24 07:51:14.626000000 +0800 / 2026-09-24 07:51:14.626000000 +0800 
+   M        aap-server/pom.xml  mtime=2026-09-24 08:07:37.296202200 +0800 / 2026-09-24 08:07:37.296202200 +0800 
+   M        aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39.191402700 +0800 / 2026-09-24 19:12:39.191402700 +0800 
+   M        aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53.863778300 +0800 / 2026-09-25 05:13:53.863778300 +0800 
+   ??       aap-server/src/main/webapp/  mtime=(无 mtime) 
+窗口内他方改动条数 = 0（按 epoch 判定；窗口 2026-09-25 09:11:18 -> 2026-09-25 09:15:56；mtime 命中 7/8 条）
