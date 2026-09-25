@@ -1,0 +1,35 @@
+R424 只读不变量（复跑 第 39 类：证据产物轮次自述一致性；按产物种类分层）
+==============================================================================
+[PASS] A1 NARRATIVE 类解析到 9 条（> 0 正向对照）；RAW 类 2 条（上限 2）
+[PASS] A6 RAW 豁免类条数 = 2 <= 上限 2（历史 57/68）
+[PASS] A5 清单 11 条 + 本文件（SELF = gap-inv39-R424.txt）= 12 条；缺失 0 条 （无）
+[PASS] A2 NARRATIVE：文件名轮次 ⇔ 首行含 R424，不一致 0 条 （无）
+[PASS] A3 NARRATIVE：正文首个轮次号 == R424，不符 0 条 （无）
+[PASS] A4 全部 11 条：不得含上一轮小写目录名 'aap-r423-'，命中 0 条 （无）
+[PASS] A7 RAW 类条数均 > 0：{'audit-regression-R424-rcseq.txt': 84, 'audit-regression-R424-failraw.txt': 161}
+
+-- 逐文件读数（种类 / 首行含轮次 / 正文首个轮次 / 非空行数 / 上一轮小写目录名命中）--
+   round-R424-analysis.txt                        NARRATIVE hdr=True first=R424  lines=50   prev_lower_hits=0
+   green-verify-R424-tested-state.txt             NARRATIVE hdr=True first=R424  lines=18   prev_lower_hits=0
+   green-verify-R424-testcount.txt                NARRATIVE hdr=True first=R424  lines=9    prev_lower_hits=0
+   green-verify-R424-full-run1.txt                NARRATIVE hdr=True first=R424  lines=50   prev_lower_hits=0
+   green-verify-R424-full-run2.txt                NARRATIVE hdr=True first=R424  lines=50   prev_lower_hits=0
+   green-verify-R424-coverage-fields.txt          NARRATIVE hdr=True first=R424  lines=6    prev_lower_hits=0
+   audit-regression-R424.txt                      NARRATIVE hdr=True first=R424  lines=102  prev_lower_hits=0
+   audit-regression-R424-faildiff.txt             NARRATIVE hdr=True first=R424  lines=5    prev_lower_hits=0
+   gap-facts-R424.txt                             NARRATIVE hdr=True first=R424  lines=36   prev_lower_hits=0
+   audit-regression-R424-rcseq.txt                RAW       hdr=False first=-     lines=84   prev_lower_hits=0
+   audit-regression-R424-failraw.txt              RAW       hdr=False first=R05   lines=161  prev_lower_hits=0
+
+口径声明：A2/A3 只作用于 NARRATIVE 类；RAW 类（rcseq / failraw）由 regression 脚本无头部直接落盘，
+          其判据是「条数 > 0」与「不含上一轮小写目录名」，豁免条数被上限 2 夹住。
+
+-- 判别力实测（--selftest；夹具在 aux 目录，零写副作用于仓库）--
+   SELFTEST compliant  PASS=7 FAIL=0 FAIL集合=[]
+   SELFTEST injected   PASS=5 FAIL=2 FAIL集合=['A2', 'A3']
+   SELFTEST empty      PASS=2 FAIL=5 FAIL集合=['A1', 'A5', 'A2', 'A3', 'A7']
+   SELFTEST_OK=4/4（合规 0 FAIL / 注入恰好新增 A2+A3 / 空夹具点名 A1 / 注入真的改到源码）
+   判别力实测 rc = 0（0 = 有牙齿）
+
+判据：PASS 7 / FAIL 0
+INV39_END=1

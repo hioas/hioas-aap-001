@@ -12456,3 +12456,32 @@ wisemapping 的 `spring-boot:run`）**均未被误判为测试 JVM**（这正是
 - **待拍板（沿用 + 本轮登记）**：① 作业的「待办真值」尚未基线化 —— 交付面已 108 条零缺口，是否还有下一批端点需人拍板；
   ② `endpoint-test-audit.{json,txt}` 处置；③ `gap-coverage-gap` 常驻红收口；④ 第 30–46 类只读不变量是否进 driver（扩面决定）；
   ⑤ 两个陈旧 detached worktree；⑥ 台账「提交」列是否统一为 SHA；⑦ `coverage-report.json` by_task 陈旧副本（文件同时是他方在途 ⇒ 不改）。
+
+### R424 巡检轮（校验轮：missing=0 ⇒ 交付面零改动）
+
+- **红/绿证据**：本轮为校验轮，**无红基线**（不新增端点、不改代码）。绿证据 =
+  `evidence/green-verify-R424-tested-state.txt`、`evidence/green-verify-R424-testcount.txt`、
+  `evidence/green-verify-R424-full-run1.txt`、`evidence/green-verify-R424-full-run2.txt`、
+  `evidence/green-verify-R424-coverage-fields.txt`；汇总 = `evidence/round-R424-analysis.txt`。
+- **两轮全量**：在 **HEAD（7d2d00a5）的临时 detached worktree** 内**串行**复跑（run1 04:43:39 起 / run2 04:45:58 起），
+  各 **263 例**、rc=0/0、Failures-Errors-Skipped 0-0-0、逐类 diff=0；`@Test` 词边界 263 == surefire 263；禁用扫描 0。
+- **覆盖**：清单 **108/108**、missing=0、registered_routes=125 ⇒ 连续第 **406** 轮全绿。
+- **回归面**：复跑 **84** 条（tag 集合与上一轮逐条一致、rc 变化 0、新增 0、未复跑 0）；rc=0 40 条 / rc!=0 44 条；
+  FAIL 明细 42 个脚本 / 161 行；跨轮 faildiff 新增 0 / 消失 0；零写副作用 97 个生成物 size+md5 全等。
+- **第 39 类只读不变量（本轮复跑）**：`evidence/gap-inv39-R424.txt` —— 证据产物轮次自述一致性（按产物种类分层）；
+  9 条 NARRATIVE 通过；2 条 RAW（rcseq / failraw，无头部转储）按「条数 > 0」判并设豁免上限 2；判别力实测 4/4。
+- **事实探针**：`evidence/gap-facts-R424.txt`（台账结构 8 列 / 轮次行 397 / CR=0；在途改动逐条归属；
+  `endpoint-test-audit` 的 **raw md5 跨轮未变**（717f158a…）而与 HEAD 不同 = HEAD 版本陈旧，属已登记项）。
+- **本轮返工 2 处（判据 / 工具侧，零交付面影响）**：
+  ① 第 39 类判据**范围与语义不符** —— 把 `rcseq` / `failraw` 两条**无头部原始转储**当自述型产物，
+     报出 2 条**假 FAIL**（历史 81）；修法 = 按**产物种类**分层（NARRATIVE 9 条 / RAW 2 条），
+     RAW 只判「条数 > 0」，且豁免类设**上限 2**（坑 57/68/190：豁免不得把规则架空）。
+  ② 同一脚本的 `evaluate()` 对**缺失文件**直接 `read_text` ⇒ 空夹具下 `FileNotFoundError` **崩溃**，
+     而不是按设计转红（历史 128）：空夹具本该由 A1/A5 点名，崩溃则判据不可用；修法 = 缺失即返回空内容。
+- **真发现 0 处**；**口径声明**：本轮未机械派生上一轮的临时目录派生链，而是**新写执行器 / 分析器 / 回归 runner /
+  跨轮比对器 / 事实探针**，并把 R423 的四个可复用脚本按**计数替换**派生（每步断言命中数，`DERIVE_OK=4`）；
+  回归面命令表从**静态命令表源码**解析并**与上一轮 rcseq 的 tag 集合逐条对齐**（84 → 84，不缩面、不灌水）。
+- **待拍板（沿用 + 本轮登记）**：① 作业的「待办真值」尚未基线化 —— 交付面已 108 条零缺口，是否还有下一批端点需人拍板；
+  ② `endpoint-test-audit.{json,txt}` 处置；③ `gap-coverage-gap` 常驻红收口；④ 第 30–46 类只读不变量是否进 driver（扩面决定）；
+  ⑤ 两个陈旧 detached worktree；⑥ 台账「提交」列是否统一为 SHA；⑦ `coverage-report.json` by_task 陈旧副本（文件同时是他方在途 ⇒ 不改）；
+  ⑧ 本轮新增：**RAW 类豁免**（无头部转储产物）应否写进第 39 类判据的固定口径（否则每轮都要重新论证一次）。
