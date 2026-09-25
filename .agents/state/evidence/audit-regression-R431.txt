@@ -1,0 +1,102 @@
+==============================================================================
+R431 回归面全量复跑（命令表由源 driver 源码解析取得；输出以 R431 命名）
+==============================================================================
+源命令表 docstring 声明 = ('43', '41', '84') / 解析到 43 + 41 = 84（判据可用 = True）
+命令表存在性预检：84 条 → 按 ROOT 解析后磁盘存在 84 条 / 缺失 0 条（缺失 = 无）
+预检正向对照：命令表条数 = 84 > 0 且存在条数 = 84 > 0（PASS）
+R430 rcseq 解析到 84 条（> 0 正向对照，坑 46/98；判据可用 = True）
+tag 集合对齐：本轮 84 条 vs R430 84 条；差异 = 无（须为空；坑 169/177）
+运行前生成物快照 = 97 个（> 0 正向对照）
+  OK round-claims                       rc=0 (R430=0) FAIL行=0
+  OK gen-check                          rc=0 (R430=0) FAIL行=0
+  OK openapi-parses                     rc=0 (R430=0) FAIL行=0
+  OK endpoint-tests                     rc=0 (R430=0) FAIL行=0
+  OK contract-keys                      rc=1 (R430=1) FAIL行=1
+  OK auth-contract                      rc=1 (R430=1) FAIL行=2
+  OK routes                             rc=1 (R430=1) FAIL行=1
+  OK error-codes                        rc=1 (R430=1) FAIL行=2
+  OK query-params                       rc=1 (R430=1) FAIL行=2
+  OK time-format                        rc=0 (R430=0) FAIL行=0
+  OK enum-sets                          rc=1 (R430=1) FAIL行=20
+  OK response-shape                     rc=1 (R430=1) FAIL行=3
+  OK id-types                           rc=1 (R430=1) FAIL行=1
+  OK request-body                       rc=1 (R430=1) FAIL行=3
+  OK secret-leak                        rc=0 (R430=0) FAIL行=0
+  OK evidence-secrets                   rc=0 (R430=0) FAIL行=0
+  OK spotcheck-required                 rc=1 (R430=1) FAIL行=2
+  OK spotcheck-unique                   rc=1 (R430=1) FAIL行=1
+  OK spotcheck-success-shape            rc=1 (R430=1) FAIL行=1
+  OK spotcheck-string-length            rc=1 (R430=1) FAIL行=18
+  OK spotcheck-numeric-range            rc=1 (R430=1) FAIL行=1
+  OK spotcheck-idempotency              rc=1 (R430=1) FAIL行=5
+  OK spotcheck-lock                     rc=1 (R430=1) FAIL行=7
+  OK spotcheck-throttle                 rc=1 (R430=1) FAIL行=8
+  OK spotcheck-audit-cols               rc=1 (R430=1) FAIL行=3
+  OK spotcheck-state-machine            rc=1 (R430=1) FAIL行=3
+  OK spotcheck-tx-boundary              rc=1 (R430=1) FAIL行=1
+  OK spotcheck-http-method              rc=1 (R430=1) FAIL行=4
+  OK spotcheck-pagination               rc=1 (R430=1) FAIL行=1
+  OK spotcheck-entity-ddl               rc=1 (R430=1) FAIL行=1
+  OK spotcheck-config                   rc=1 (R430=1) FAIL行=3
+  OK spotcheck-outbound                 rc=1 (R430=1) FAIL行=5
+  OK gap-pagination-order               rc=1 (R430=1) FAIL行=2
+  OK gap-pagination-defaults            rc=1 (R430=1) FAIL行=2
+  OK gap-softdelete                     rc=1 (R430=1) FAIL行=16
+  OK gap-param-reach                    rc=1 (R430=1) FAIL行=5
+  OK gap-audit-log                      rc=1 (R430=1) FAIL行=1
+  OK gap-status-machine                 rc=1 (R430=1) FAIL行=13
+  OK gap-time-bucket                    rc=1 (R430=1) FAIL行=1
+  OK gap-sensitive-fields               rc=1 (R430=1) FAIL行=10
+  OK gap-logical-fk                     rc=1 (R430=1) FAIL行=2
+  OK gap-paging-range                   rc=1 (R430=1) FAIL行=3
+  OK gap-coverage-gap                   rc=1 (R430=1) FAIL行=0
+  OK round-claims-selftest              rc=0 (R430=0) FAIL行=0
+  OK gen-selftest                       rc=0 (R430=0) FAIL行=0
+  OK endpoint-tests-selftest            rc=0 (R430=0) FAIL行=0
+  OK contract-keys-selftest             rc=0 (R430=0) FAIL行=0
+  OK auth-contract-selftest             rc=0 (R430=0) FAIL行=0
+  OK routes-selftest                    rc=0 (R430=0) FAIL行=0
+  OK error-codes-selftest               rc=0 (R430=0) FAIL行=0
+  OK query-params-selftest              rc=0 (R430=0) FAIL行=0
+  OK time-format-selftest               rc=0 (R430=0) FAIL行=0
+  OK enum-sets-selftest                 rc=1 (R430=1) FAIL行=1
+  OK response-shape-selftest            rc=0 (R430=0) FAIL行=0
+  OK id-types-selftest                  rc=0 (R430=0) FAIL行=0
+  OK request-body-selftest              rc=0 (R430=0) FAIL行=0
+  OK secret-leak-selftest               rc=0 (R430=0) FAIL行=0
+  OK spotcheck-required-selftest        rc=0 (R430=0) FAIL行=0
+  OK spotcheck-unique-selftest          rc=0 (R430=0) FAIL行=0
+  OK spotcheck-success-shape-selftest   rc=1 (R430=1) FAIL行=1
+  OK spotcheck-string-length-selftest   rc=1 (R430=1) FAIL行=1
+  OK spotcheck-numeric-range-selftest   rc=0 (R430=0) FAIL行=0
+  OK spotcheck-idempotency-selftest     rc=0 (R430=0) FAIL行=0
+  OK spotcheck-lock-selftest            rc=0 (R430=0) FAIL行=0
+  OK spotcheck-throttle-selftest        rc=1 (R430=1) FAIL行=1
+  OK spotcheck-audit-cols-selftest      rc=0 (R430=0) FAIL行=0
+  OK spotcheck-state-machine-selftest   rc=0 (R430=0) FAIL行=0
+  OK spotcheck-tx-boundary-selftest     rc=0 (R430=0) FAIL行=0
+  OK spotcheck-http-method-selftest     rc=0 (R430=0) FAIL行=0
+  OK spotcheck-pagination-selftest      rc=0 (R430=0) FAIL行=0
+  OK spotcheck-entity-ddl-selftest      rc=0 (R430=0) FAIL行=0
+  OK spotcheck-config-selftest          rc=0 (R430=0) FAIL行=0
+  OK spotcheck-outbound-selftest        rc=0 (R430=0) FAIL行=0
+  OK gap-pagination-order-selftest      rc=0 (R430=0) FAIL行=0
+  OK gap-pagination-defaults-selftest   rc=1 (R430=1) FAIL行=1
+  OK gap-softdelete-selftest            rc=0 (R430=0) FAIL行=0
+  OK gap-param-reach-selftest           rc=1 (R430=1) FAIL行=1
+  OK gap-audit-log-selftest             rc=1 (R430=1) FAIL行=1
+  OK gap-status-machine-selftest        rc=0 (R430=0) FAIL行=0
+  OK gap-time-bucket-selftest           rc=0 (R430=0) FAIL行=0
+  OK gap-sensitive-fields-selftest      rc=0 (R430=0) FAIL行=0
+  OK gap-logical-fk-selftest            rc=0 (R430=0) FAIL行=0
+  OK gap-paging-range-selftest          rc=0 (R430=0) FAIL行=0
+  OK gap-coverage-gap-selftest          rc=1 (R430=1) FAIL行=0
+-- 零写副作用：生成物 size+md5 运行前后 全等（变化 0 个）--
+回归面：本轮复跑 = 84 条 / 上一轮 R430 = 84 条；rc 变化 0 条、新增 0、未复跑 0
+  rc=0 条数 = 40 / 84；rc!=0 条数 = 44 ['contract-keys', 'auth-contract', 'routes', 'error-codes', 'query-params', 'enum-sets', 'response-shape', 'id-types', 'request-body', 'spotcheck-required', 'spotcheck-unique', 'spotcheck-success-shape', 'spotcheck-string-length', 'spotcheck-numeric-range', 'spotcheck-idempotency', 'spotcheck-lock', 'spotcheck-throttle', 'spotcheck-audit-cols', 'spotcheck-state-machine', 'spotcheck-tx-boundary', 'spotcheck-http-method', 'spotcheck-pagination', 'spotcheck-entity-ddl', 'spotcheck-config', 'spotcheck-outbound', 'gap-pagination-order', 'gap-pagination-defaults', 'gap-softdelete', 'gap-param-reach', 'gap-audit-log', 'gap-status-machine', 'gap-time-bucket', 'gap-sensitive-fields', 'gap-logical-fk', 'gap-paging-range', 'gap-coverage-gap', 'enum-sets-selftest', 'spotcheck-success-shape-selftest', 'spotcheck-string-length-selftest', 'spotcheck-throttle-selftest', 'gap-pagination-defaults-selftest', 'gap-param-reach-selftest', 'gap-audit-log-selftest', 'gap-coverage-gap-selftest']
+FAIL 明细：42 个脚本含 FAIL 行、合计 161 行（> 0 正向对照，坑 97/98）
+-- 崩溃通道：rc!=0 条目 44 条，其中 FAIL 通道不可见（rc!=0 ∧ FAIL 0 行）= 2 条 ['gap-coverage-gap', 'gap-coverage-gap-selftest']
+      gap-coverage-gap               rc=1 理由 = AssertionError: 缺口集合与 R157 留档不一致：仅本轮 ['aap-r172-work/audit-ledger-r172.py', 'aap-r173-work/audit-ledger-r173.py', 'aap-r174-work/audit-ledger-r174.py', 'aap-r17
+      gap-coverage-gap-selftest      rc=1 理由 = AssertionError: T0 基线应当 rc=0，实际 rc=1
+判定：零回归；另有 2 条 rc!=0 但 FAIL 明细 0 行（FAIL 通道不可见，须在上文逐条给出理由）
+REGRESSION_END=1

@@ -1,0 +1,18 @@
+R431 校验轮（missing==0 -> 交付代码零改动）；全部读数由 analyze-r431.py 从 facts-run.log / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 00fb633c
+被测提交全 SHA = 00fb633cf3c911d4489cde5c2b42371be6dd9855
+被测提交主题 = chore(evidence): R430 终读复核（提交之后复跑：20/0 PASS + 落盘后第二段核对 V11b；含台账 404 行 8 列 CR=0、HEAD 内本轮行 ⇔ 工作区逐列相等、12 条证据全在 HEAD 树内、返工真值 5 处单一校验、同族机器判据 1 条自指命中、主提交号读自 main-sha.txt 不写死）
+run1 = 07:38:45 -> 07:41:09 rc=0 / run2 = 07:41:09 -> 07:43:23 rc=0（串行，run1_end <= run2_start）
+窗口 = 07:38:26 -> 07:43:27；HEAD 起点 = 00fb633c / 终点 = 00fb633c
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 8 条
+   M .agents/state/evidence/coverage-report.json                          mtime=2026-09-25 05:34:37
+   M .agents/state/evidence/endpoint-test-audit.json                      mtime=2026-09-26 07:22:09
+   M .agents/state/evidence/endpoint-test-audit.txt                       mtime=2026-09-26 07:22:09
+   M README.md                                                            mtime=2026-09-24 07:51:14
+   M aap-server/pom.xml                                                   mtime=2026-09-24 08:07:37
+   M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java    mtime=2026-09-24 19:12:39
+   M aap-server/src/main/resources/application.yml                        mtime=2026-09-25 05:13:53
+   ?? aap-server/src/main/webapp/                                         mtime=2026-09-24 08:07:43
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0
