@@ -1,0 +1,20 @@
+R478 校验轮（missing==0 -> 交付代码零改动）；全部读数由 analyze-r478.py 从 facts-run.log / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = cfd300c7
+被测提交全 SHA = cfd300c788a4e640027a1313b453df737a597e9e
+被测提交主题 = chore(evidence): R477 收尾据实更正（第 5 次）—— 返工真值 7 -> 8 处（第 ⑧ 项：逐类 key 写成 `t[4][1]` ⇒ 45 行全渲染成 `class=o`，跨轮「逐类 diff」**丢掉类维度**、判别力被削弱（历史 98 空转假绿的相邻形态），由「审查已交付证据的字段内容」发现；修法 = 改 `t[4]` + 落盘前守卫（类名两两不同 ∧ 形如 com.hioas.…）+ 证据打印「类名唯一数 45/45（字符数 32–53）」，逐类证据 3 条已随独立提交 69573a5c 重生成、A4 = 45 唯一 FQCN、diff 0）。同步台账行 / 状态文件 / history 行三处；未 amend 已发布提交 d3e39c63 / 130c96f7 / 86824c84 / b00e9d59 / c9a47d48。
+run1 = 04:59:10 -> 05:01:29 rc=0 / run2 = 05:01:30 -> 05:03:39 rc=0（串行：run1_end <= run2_start = True）
+窗口 = 04:58:53 -> 05:03:43（1790456333 -> 1790456623，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = cfd300c7 / 终点 = cfd300c7；窗口内他方推进提交数 = 0
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 8 条
+    M .agents/state/evidence/coverage-report.json
+    M .agents/state/evidence/endpoint-test-audit.json
+    M .agents/state/evidence/endpoint-test-audit.txt
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+   ?? aap-server/src/main/webapp/
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0 （无）
+环境指纹：bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）
