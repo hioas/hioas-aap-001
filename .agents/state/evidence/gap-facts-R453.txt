@@ -1,0 +1,35 @@
+==============================================================================
+R453 只读事实探针（不写任何交付面文件）
+==============================================================================
+台账：物理行数 = 535 / CSV 记录数 = 534 / 表头列数 = 8 / 轮次行数 = 426
+列数 != 表头列数的轮次行 = 0 条 （须 0，坑 80/155/467）
+台账末行 = R452（列数 8）
+  末行「提交」列 = 'dd4148b0'；证据列长度 = 525；描述相关列长度 = [0, 0, 0, 8744, 0]
+台账 CR 字节数 = 0（须 0；坑 69/70/467）
+coverage-history：CR = 0 / 物理行 = 835 / 轮次行 = 144
+
+-- 在途改动归属（git status；只登记、未触碰）--
+   M .agents/state/evidence/coverage-report.json                    mtime=2026-09-25 05:34:37
+   M .agents/state/evidence/endpoint-test-audit.json                mtime=2026-09-26 17:15:01
+   M .agents/state/evidence/endpoint-test-audit.txt                 mtime=2026-09-26 17:15:01
+   M README.md                                                      mtime=2026-09-24 07:51:14
+   M aap-server/pom.xml                                             mtime=2026-09-24 08:07:37
+   M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.j mtime=2026-09-24 19:12:39
+   M aap-server/src/main/resources/application.yml                  mtime=2026-09-25 05:13:53
+   ?? .agents/state/evidence/green-verify-R453-coverage-fields.txt  mtime=2026-09-26 17:47:29
+   ?? .agents/state/evidence/green-verify-R453-full-run1.txt        mtime=2026-09-26 17:47:29
+   ?? .agents/state/evidence/green-verify-R453-full-run2.txt        mtime=2026-09-26 17:47:29
+   ?? .agents/state/evidence/green-verify-R453-testcount.txt        mtime=2026-09-26 17:47:29
+   ?? .agents/state/evidence/green-verify-R453-tested-state.txt     mtime=2026-09-26 17:47:29
+   ?? .agents/state/evidence/round-R453-analysis.txt                mtime=2026-09-26 17:47:29
+   ?? aap-server/src/main/webapp/                                   mtime=2026-09-24 08:07:43
+
+-- endpoint-test-audit.{json,txt}：工作区内容 vs HEAD 树 --
+   endpoint-test-audit.json     工作区 raw md5=717f158a / 归一(LF) md5=e1a40bbe / HEAD md5=7419563a / 归一后内容相同=False
+      （注：raw md5 是「跨轮内容是否变化」的判据；与 HEAD 不同 = HEAD 版本陈旧，属已登记项）
+   endpoint-test-audit.txt      工作区 raw md5=6676f755 / 归一(LF) md5=f336694e / HEAD md5=1644a2fa / 归一后内容相同=False
+      （注：raw md5 是「跨轮内容是否变化」的判据；与 HEAD 不同 = HEAD 版本陈旧，属已登记项）
+
+本轮既有证据文件存在性：6 条 / 缺失 5 ['audit-regression-R453.txt', 'audit-regression-R453-rcseq.txt', 'audit-regression-R453-failraw.txt', 'audit-regression-R453-faildiff.txt', 'gap-inv47-R453.txt']（正向对照 > 0）
+  本文件（SELF = gap-facts-R453.txt）在落盘时产生、故不参与自身 exists 断言（历史 222）
+PROBE_END=1
