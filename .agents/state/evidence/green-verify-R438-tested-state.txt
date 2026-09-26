@@ -1,0 +1,18 @@
+R438 校验轮（missing==0 -> 交付代码零改动）；全部读数由 analyze-r438.py 从 facts-run.log / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = b0e8f906
+被测提交全 SHA = b0e8f906910df3534d9bcb4995578397a65f5539
+被测提交主题 = chore(evidence): R437 据实更正后复跑（postwrite 6/0 + 终读复核 20/0），返工真值随更正更新到 8 处 说明：第 8 项（终读脚本记录数期望值的派生链只能用一代）在收尾阶段暴露并据实更正（独立提交），本提交把**更正后**的两份自证读数落盘，使 HEAD 内的证据与台账/状态文件口径一致（历史 12/95：证据必须反映真实结论，不得留存过期读数）。
+run1 = 10:27:54 -> 10:30:16 rc=0 / run2 = 10:30:17 -> 10:32:38 rc=0（串行，run1_end <= run2_start）
+窗口 = 10:27:39 -> 10:32:43；HEAD 起点 = b0e8f906 / 终点 = b0e8f906
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 8 条
+   M .agents/state/evidence/coverage-report.json                          mtime=2026-09-25 05:34:37
+   M .agents/state/evidence/endpoint-test-audit.json                      mtime=2026-09-26 10:08:39
+   M .agents/state/evidence/endpoint-test-audit.txt                       mtime=2026-09-26 10:08:39
+   M README.md                                                            mtime=2026-09-24 07:51:14
+   M aap-server/pom.xml                                                   mtime=2026-09-24 08:07:37
+   M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java    mtime=2026-09-24 19:12:39
+   M aap-server/src/main/resources/application.yml                        mtime=2026-09-25 05:13:53
+   ?? aap-server/src/main/webapp/                                         mtime=2026-09-24 08:07:43
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0
