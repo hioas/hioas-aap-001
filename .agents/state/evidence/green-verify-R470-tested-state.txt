@@ -1,0 +1,18 @@
+R470 校验轮（missing==0 -> 交付代码零改动）；全部读数由 analyze-r470.py 从 facts-run.log / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 38f87cfa
+被测提交全 SHA = 38f87cfa457392a5f861da218bcf310af51f64fb
+被测提交主题 = chore(state): R469 收尾据实更正（返工真值 1 -> 2：新增 ② = **真发现，收尾阶段才暴露）；台账行描述列 / 状态文件本轮段 / coverage-history 本轮行同步为单一事实源渲染值 + 收尾更正括注；**未 amend** 已发布主提交 2ab15e52；**溯源**：第 ② 项是收尾阶段才暴露的、故据实更正，权威数字 = 2 处（台账行 / 状态文件 / 本提交 message 三处一致）；这不是「先写错再补正」的修正史 —— 每处更正的触发判据都写在台账行里；台账列数 8 / CR=0 复核通过（承接主提交所记 1 处，本轮据实推进到 2 处 —— 主提交的 message 是**当时**的真实记录，本提交是它的后继，二者不构成矛盾）
+run1 = 01:31:16 -> 01:33:34 rc=0 / run2 = 01:33:34 -> 01:35:41 rc=0（串行，run1_end <= run2_start）
+窗口 = 01:30:59 -> 01:35:44；HEAD 起点 = 38f87cfa / 终点 = 38f87cfa
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 8 条
+   M .agents/state/evidence/coverage-report.json                          mtime=2026-09-25 05:34:37
+   M .agents/state/evidence/endpoint-test-audit.json                      mtime=2026-09-27 01:13:14
+   M .agents/state/evidence/endpoint-test-audit.txt                       mtime=2026-09-27 01:13:14
+   M README.md                                                            mtime=2026-09-24 07:51:14
+   M aap-server/pom.xml                                                   mtime=2026-09-24 08:07:37
+   M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java    mtime=2026-09-24 19:12:39
+   M aap-server/src/main/resources/application.yml                        mtime=2026-09-25 05:13:53
+   ?? aap-server/src/main/webapp/                                         mtime=2026-09-24 08:07:43
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0
