@@ -1,0 +1,40 @@
+R483 校验轮（missing==0 -> 交付代码零改动）；全部读数由 analyze-r483.py 从 facts-run.log / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+[PASS] A0a facts 必填键齐备 缺失 = 无（要求 36 键）
+[PASS] A0b facts 轮次 == R483 读到 'R483'
+[PASS] A1 run1/run2 rc 均为 0 rc=0/0
+[PASS] A2 两轮合计行五元组一致且全 0 失败 run1=('263', '0', '0', '0') run2=('263', '0', '0', '0')
+[PASS] A3 BUILD SUCCESS 两轮均为真 run1 SUCCESS=True FAILURE=False / run2 SUCCESS=True FAILURE=False
+[PASS] A4 逐类结果（已剥 Time elapsed 再排序）两轮一致 逐类行数 45 / 45；diff = 0
+[PASS] A5 串行（run1_end <= run2_start） 07:11:32 -> 07:13:48 / 07:13:48 -> 07:15:53
+[PASS] A6 maven 耗时双写法解析器有牙齿（两形态各 1 条合成对照） 本轮实际形态 run1=134(mm:ss min) run2=123(mm:ss min)
+[PASS] A7 类级行数 > 0（正向对照） 45 类
+[PASS] A8 类级行数与合计口径一致（类级 tests 相加 == 合计） run1 类级和=263 / 合计=263；run2 类级和=263 / 合计=263
+[PASS] A9 归档测试源非空 51 个 .java（facts 声明 51）
+[PASS] A10 @Test 词边界计数 == surefire 合计 @Test=263 vs surefire=263（裸子串 265 作对照，差 2）
+[PASS] A11 禁用扫描 0 条（不得削弱测试） 命中 = 无
+[PASS] A12 覆盖 total/implemented/missing == 108/108/0 total=108 implemented=108 missing=0
+[PASS] A13 按族相加 == total（内容级） 族和 = 108/108（族数 15）
+[PASS] A14 registered_routes / not_registered registered_routes=125 not_registered=[]
+---- 被测状态与窗口 ----
+[PASS] A15 worktree 与 HEAD 差异行数 == 0 WT_DIRTY_LINES=0
+[PASS] A16 worktree 检出提交 == 窗口起点 HEAD tested=be716a06 head_start=be716a06
+[PASS] A17 窗口内他方推进提交数 FACTS_HEAD_ADVANCED_COUNT=0（head_end=be716a06）
+[PASS] A18 并发前置双向对照 pos=2/2 neg=0/2（必须 0） result=CLEAR
+[PASS] A19 环境指纹齐备 bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps_reach=Y
+[PASS] A20 worktree add/remove rc == 0 add=0 remove=0
+[PASS] A21 facts 写入完成标记 == 1 FACTS_WRITTEN=1
+[PASS] A22 上一轮 history 行恰好 1 条 命中 1 条
+连续全绿 = 第 465 轮（由上一轮 history 行推导：prev=R482 记 464）
+主体仓库在途改动（只登记、不触碰）= 8 条
+    M .agents/state/evidence/coverage-report.json                         mtime=2026-09-25 05:34:37
+    M .agents/state/evidence/endpoint-test-audit.json                     mtime=2026-09-27 06:47:47
+    M .agents/state/evidence/endpoint-test-audit.txt                      mtime=2026-09-27 06:47:47
+    M README.md                                                           mtime=2026-09-24 07:51:14
+    M aap-server/pom.xml                                                  mtime=2026-09-24 08:07:37
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java   mtime=2026-09-24 19:12:39
+    M aap-server/src/main/resources/application.yml                       mtime=2026-09-25 05:13:53
+   ?? aap-server/src/main/webapp/                                         mtime=2026-09-24 08:07:43
+[PASS] A23 在途改动中 mtime 落在本轮窗口内的条数 0 条 （无）
+==============================================================================
+判据：PASS 25 / FAIL 0

@@ -1,0 +1,20 @@
+R483 校验轮（missing==0 -> 交付代码零改动）；全部读数由 analyze-r483.py 从 facts-run.log / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = be716a06
+被测提交全 SHA = be716a069db9bf0127fb4898a6e714355cd2922f
+被测提交主题 = chore(evidence): R482 终读复核证据按**终态**刷新（提交之后复跑：8/0 PASS + 证据目录本轮文件 = 13 条；返工真值 = 8 处（读自台账行））。 本文件由收尾链在**它自己被提交之前**运行 ⇒ 其 V7 一行原为「首跑形态（本文件尚未落盘）」；提交后按历史 219-③ 复跑一次，该行变为「终态形态（文件已在 HEAD 树内）」⇒ 据实刷新并单独提交，使证据与终态一致（R481 先例同形）。仅此一枚证据文件；**未 amend** 任何已发布提交（历史 209/227）。
+run1 = 07:11:32 -> 07:13:48 rc=0 / run2 = 07:13:48 -> 07:15:53 rc=0（串行：run1_end <= run2_start = True）
+窗口 = 07:11:12 -> 07:15:57（1790464272 -> 1790464557，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = be716a06 / 终点 = be716a06；窗口内他方推进提交数 = 0
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 8 条
+    M .agents/state/evidence/coverage-report.json
+    M .agents/state/evidence/endpoint-test-audit.json
+    M .agents/state/evidence/endpoint-test-audit.txt
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+   ?? aap-server/src/main/webapp/
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0 （无）
+环境指纹：bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）
