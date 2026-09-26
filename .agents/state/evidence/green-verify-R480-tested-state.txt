@@ -1,0 +1,20 @@
+R480 校验轮（missing==0 -> 交付代码零改动）；全部读数由 analyze-r480.py 从 facts-run.log / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 88342d10
+被测提交全 SHA = 88342d10b684404f9097e7e5bd9cc67d5592d60a
+被测提交主题 = chore(evidence): R479 终读复核证据按更正后的第二轮形态刷新（返工真值 = 4 处）。更正提交 765b4d92 之后重跑 claims（PASS 11 / FAIL 0 / rc=0）与 verify-final（V1–V7 7/0：台账轮次行 453 / 列数异常 0 / 描述列与证据列逐列等于单一事实源 / 证据文件 13 条齐备）⇒ 本文件按新真值重写。仅此一枚证据文件；未 amend 任何已发布提交（历史 209/227）。
+run1 = 05:51:56 -> 05:54:35 rc=0 / run2 = 05:54:35 -> 05:56:35 rc=0（串行：run1_end <= run2_start = True）
+窗口 = 05:51:41 -> 05:56:39（1790459501 -> 1790459799，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = 88342d10 / 终点 = 88342d10；窗口内他方推进提交数 = 0
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 8 条
+    M .agents/state/evidence/coverage-report.json
+    M .agents/state/evidence/endpoint-test-audit.json
+    M .agents/state/evidence/endpoint-test-audit.txt
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+   ?? aap-server/src/main/webapp/
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0 （无）
+环境指纹：bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）
