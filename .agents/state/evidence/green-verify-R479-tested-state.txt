@@ -1,0 +1,20 @@
+R479 校验轮（missing==0 -> 交付代码零改动）；全部读数由 analyze-r479.py 从 facts-run.log / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 908abf81
+被测提交全 SHA = 908abf81aaa7c885425504d8147455104878e3f6
+被测提交主题 = chore(evidence): R478 终读复核证据按「第二轮形态」刷新（V7 本文件已在 HEAD 树内 ⇒ 13 条 / 缺失 = 无）
+run1 = 05:23:40 -> 05:25:57 rc=0 / run2 = 05:25:58 -> 05:28:02 rc=0（串行：run1_end <= run2_start = True）
+窗口 = 05:23:22 -> 05:28:06（1790457802 -> 1790458086，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = 908abf81 / 终点 = 908abf81；窗口内他方推进提交数 = 0
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 8 条
+    M .agents/state/evidence/coverage-report.json
+    M .agents/state/evidence/endpoint-test-audit.json
+    M .agents/state/evidence/endpoint-test-audit.txt
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+   ?? aap-server/src/main/webapp/
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0 （无）
+环境指纹：bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）
