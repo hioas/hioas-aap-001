@@ -1,0 +1,18 @@
+R459 校验轮（missing==0 -> 交付代码零改动）；全部读数由 analyze-r459.py 从 facts-run.log / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 4bd8a28d
+被测提交全 SHA = 4bd8a28d66503176f738907e5e729bbd280cfb94
+被测提交主题 = chore(state): R458 台账行内一致性（返工条目 ⑥ 的标题计数「七处」->「八处」，与本条正文列举的八处对齐；**返工真值仍为 11 处、条目数 11 不变**，故不触发据实更正链）；**触发判据** = 终读复核 V3 报「HEAD 内本轮行 ⇔ 工作区行 差异列 = [4]」—— 文案级缺陷、非新增返工项；**未 amend** 任何已发布提交；三处承载（台账行 / 状态段 / coverage-history 行）真值仍一致 = 11 处；台账列数 8 / CR=0 复核通过
+run1 = 21:04:20 -> 21:06:44 rc=0 / run2 = 21:06:44 -> 21:08:49 rc=0（串行，run1_end <= run2_start）
+窗口 = 21:04:06 -> 21:08:53；HEAD 起点 = 4bd8a28d / 终点 = 4bd8a28d
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 8 条
+   M .agents/state/evidence/coverage-report.json                          mtime=2026-09-25 05:34:37
+   M .agents/state/evidence/endpoint-test-audit.json                      mtime=2026-09-26 21:09:17
+   M .agents/state/evidence/endpoint-test-audit.txt                       mtime=2026-09-26 21:09:17
+   M README.md                                                            mtime=2026-09-24 07:51:14
+   M aap-server/pom.xml                                                   mtime=2026-09-24 08:07:37
+   M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java    mtime=2026-09-24 19:12:39
+   M aap-server/src/main/resources/application.yml                        mtime=2026-09-25 05:13:53
+   ?? aap-server/src/main/webapp/                                         mtime=2026-09-24 08:07:43
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0
