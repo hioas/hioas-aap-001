@@ -1,0 +1,18 @@
+R468 校验轮（missing==0 -> 交付代码零改动）；全部读数由 analyze-r468.py 从 facts-run.log / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 67913a57
+被测提交全 SHA = 67913a572bc36b8b2c50cbfc0eb13ad8f8ea2288
+被测提交主题 = chore(evidence): R467 终读复核（提交之后复跑：7/0 PASS + 证据目录本轮文件 = 扫描清单 11 + 收尾期自证 2 = 13 条（其中**不计本文件** = 12 条）；V3 形态 = 逐列相等；返工真值 2 处（读自台账行））
+run1 = 00:47:13 -> 00:49:37 rc=0 / run2 = 00:49:37 -> 00:51:41 rc=0（串行，run1_end <= run2_start）
+窗口 = 00:46:55 -> 00:51:45；HEAD 起点 = 67913a57 / 终点 = 67913a57
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 8 条
+   M .agents/state/evidence/coverage-report.json                          mtime=2026-09-25 05:34:37
+   M .agents/state/evidence/endpoint-test-audit.json                      mtime=2026-09-27 00:29:07
+   M .agents/state/evidence/endpoint-test-audit.txt                       mtime=2026-09-27 00:29:07
+   M README.md                                                            mtime=2026-09-24 07:51:14
+   M aap-server/pom.xml                                                   mtime=2026-09-24 08:07:37
+   M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java    mtime=2026-09-24 19:12:39
+   M aap-server/src/main/resources/application.yml                        mtime=2026-09-25 05:13:53
+   ?? aap-server/src/main/webapp/                                         mtime=2026-09-24 08:07:43
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0
