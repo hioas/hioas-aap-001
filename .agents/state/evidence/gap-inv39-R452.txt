@@ -1,0 +1,50 @@
+R452 只读不变量（复跑 第 39 类：证据产物轮次自述一致性；按产物种类分层）
+==============================================================================
+[PASS] A1 NARRATIVE 类解析到 10 条（> 0 正向对照）；RAW 类 2 条（上限 2）
+[PASS] A6 RAW 豁免类条数 = 2 <= 上限 2（历史 57/68）
+[PASS] A5 清单 12 条 + 本文件（SELF = gap-inv39-R452.txt）= 13 条；缺失 0 条 （无）
+[PASS] A2 NARRATIVE：文件名轮次 ⇔ 首行含 R452，不一致 0 条 （无）
+[PASS] A3 NARRATIVE：正文首个轮次号 == R452，不符 0 条 （无）
+[PASS] A4 全部 12 条：不得含上一轮小写目录名 'aap-r451-'，命中 0 条 （无）
+[PASS] A7 RAW 类条数均 > 0：{'audit-regression-R452-rcseq.txt': 84, 'audit-regression-R452-failraw.txt': 161}
+[PASS] A8 写入期单一事实源 REWORKS 非机械滚动（历史 199/249）：本轮 REWORKS 块 != 上一轮滚动结果（903 字节 vs 1028）∧ 条目数 3 == 标记串 3 ∧ 判别力实测=对修正前原文命中（PASS）
+[PASS] A9 产物渲染完整性：扫描 14 个文件（> 0 正向对照）；未渲染残留 0 处（须 0）（无）；说明性引用 7 处 <= 上限 12
+
+-- A9 说明性引用（合法：反引号 span 内 ∨ 同行含说明词；共 7 处 <= 上限 12）--
+   aap-server-feature-status.csv                  L151    @PREV@
+   aap-server-feature-status.csv                  L228    @KEY@
+   aap-server-feature-status.csv                  L332    @BS@
+   aap-server-feature-status.csv                  L531    @FDN@
+   aap-server-tdd-state.md                        L4369   @PREV@
+   aap-server-tdd-state.md                        L9518   @BS@
+   aap-server-tdd-state.md                        L13182  @FDN@
+
+-- 逐文件读数（种类 / 首行含轮次 / 正文首个轮次 / 非空行数 / 上一轮小写目录名命中）--
+   round-R452-analysis.txt                        NARRATIVE hdr=True first=R452  lines=50   prev_lower_hits=0
+   green-verify-R452-tested-state.txt             NARRATIVE hdr=True first=R452  lines=18   prev_lower_hits=0
+   green-verify-R452-testcount.txt                NARRATIVE hdr=True first=R452  lines=9    prev_lower_hits=0
+   green-verify-R452-full-run1.txt                NARRATIVE hdr=True first=R452  lines=50   prev_lower_hits=0
+   green-verify-R452-full-run2.txt                NARRATIVE hdr=True first=R452  lines=50   prev_lower_hits=0
+   green-verify-R452-coverage-fields.txt          NARRATIVE hdr=True first=R452  lines=6    prev_lower_hits=0
+   audit-regression-R452.txt                      NARRATIVE hdr=True first=R452  lines=102  prev_lower_hits=0
+   audit-regression-R452-faildiff.txt             NARRATIVE hdr=True first=R452  lines=5    prev_lower_hits=0
+   gap-facts-R452.txt                             NARRATIVE hdr=True first=R452  lines=38   prev_lower_hits=0
+   gap-inv47-R452.txt                             NARRATIVE hdr=True first=R452  lines=13   prev_lower_hits=0
+   audit-regression-R452-rcseq.txt                RAW       hdr=False first=-     lines=84   prev_lower_hits=0
+   audit-regression-R452-failraw.txt              RAW       hdr=False first=R05   lines=161  prev_lower_hits=0
+
+口径声明：A2/A3 只作用于 NARRATIVE 类；RAW 类（rcseq / failraw）由 regression 脚本无头部直接落盘，
+          其判据是「条数 > 0」与「不含上一轮小写目录名」，豁免条数被上限 2 夹住。
+          A9（引入于更早轮次）范围 = 本轮证据文件 ∪ 台账 CSV ∪ 状态文件；豁免判据 = 反引号 span 内 ∨ 同行含说明词，
+          豁免条数被上限 12 夹住；非本轮历史证据文件不纳入 A9 范围（其中 1 处「注解名@文件名」分隔符形态
+          已在台账散文登记为观察项 —— 该形态不是未渲染占位符）。
+
+-- 判别力实测（--selftest；夹具在 aux 目录，零写副作用于仓库）--
+   SELFTEST compliant  PASS=9 FAIL=0 FAIL集合=[]
+   SELFTEST injected   PASS=6 FAIL=3 FAIL集合=['A2', 'A3', 'A9']
+   SELFTEST empty      PASS=3 FAIL=6 FAIL集合=['A1', 'A5', 'A2', 'A3', 'A7', 'A9']
+   SELFTEST_OK=5/5（合规 0 FAIL / 注入恰好新增 A2+A3+A9 / 空夹具点名 A1 / 注入真的改到源码 / A9 合成残留被点名）
+   判别力实测 rc = 0（0 = 有牙齿）
+
+判据：PASS 9 / FAIL 0
+INV39_END=1
