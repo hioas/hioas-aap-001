@@ -1,0 +1,53 @@
+R476 校验轮（missing==0 -> 交付代码零改动）；全部读数由 analyze-r476.py 从 facts-run.log / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+判据：PASS 37 / FAIL 0
+
+=== 证据文件 ===
+  green-verify-R476-tested-state.txt           lines~18 exists=True
+  green-verify-R476-testcount.txt              lines~9 exists=True
+  green-verify-R476-full-run1.txt              lines~50 exists=True
+  green-verify-R476-full-run2.txt              lines~50 exists=True
+  green-verify-R476-coverage-fields.txt        lines~6 exists=True
+
+[PASS] P0 解析器正向对照 RE_TOTAL/[INFO]
+[PASS] P0 解析器正向对照 RE_TOTAL/[ERROR]（历史 228：有失败时前缀变化）
+[PASS] P0 解析器正向对照 RE_TOTAL/多行文本拆行后（真实用法 = 逐行 match）
+[PASS] P0 解析器正向对照 RE_CLS_RAW
+[PASS] P0 解析器正向对照 RE_TT_MIN
+[PASS] P0 解析器正向对照 RE_TT_SEC（历史 175）
+[PASS] P0 解析器正向对照 RE_CLASS
+[PASS] P0 反向对照：逐类行必须带 `-- in <类>`（免得把合计行算成逐类行）
+[PASS] H0 窗口 epoch 事实被解析（1790452791 -> 1790453076，历史 243-③）
+[PASS] H0 facts 轮次号 = R476（须 R476）
+[PASS] A1 run1 合计行解析到恰好 1 条（实测 1）
+[PASS] A1 run1 逐类结果解析到 > 0 条（实测 45）
+[PASS] A1 run1 耗时被解析到（双写法）：02:19 min
+[PASS] A1 run1 rc = 0（须 0）
+[PASS] B1 run1 Tests run/Failures/Errors/Skipped = 263/0/0/0 全绿
+[PASS] B1 run1 BUILD SUCCESS = True / BUILD FAILURE = False
+[PASS] A2 run2 合计行解析到恰好 1 条（实测 1）
+[PASS] A2 run2 逐类结果解析到 > 0 条（实测 45）
+[PASS] A2 run2 耗时被解析到（双写法）：02:00 min
+[PASS] A2 run2 rc = 0（须 0）
+[PASS] B2 run2 Tests run/Failures/Errors/Skipped = 263/0/0/0 全绿
+[PASS] B2 run2 BUILD SUCCESS = True / BUILD FAILURE = False
+[PASS] B3 两轮**串行**：run1_end = 04:02:29 <= run2_start = 04:02:29
+[PASS] B4 逐类结果 run1=45 行 / run2=45 行；diff = 0（须 0）
+[PASS] B5 @Test 词边界计数 = 263 == surefire 合计 = 263（子串计数 = 265 作对照，差 = 2）
+[PASS] B6 禁用扫描（@Disabled/@Ignore/@DisabledIf/assumeTrue）= 0 条（须 0）
+[PASS] B7 归档测试源码文件数 = 51（> 0）
+[PASS] C1 total=108 implemented=108 missing=0 registered_routes=125 not_registered=[]
+[PASS] C2 按族分布相加 = 108/108 == total/implemented（108/108）
+[PASS] C3 上一轮 history 行 = R475（须 R475）
+[PASS] C4 连续全绿 = 第 458 轮（由上一轮行推导：prev=R475）
+[PASS] C5 上一轮行用例数 = 263；本轮两轮用例数 = 263 / 263
+[PASS] D1 被测提交 = 窗口起点 HEAD = 6f074973（须相等）
+[PASS] D2 worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+[PASS] D3 并发前置 = CLEAR（正向 2/2 / 反向 0/2（必须 0），判据有牙齿）
+[PASS] E1 主体仓库在途改动（只登记、不触碰）= 8 条
+  [INFO] 在途改动中 mtime 落在本轮窗口内的 = 0 条（mtime 读取于分析时刻；> 0 需人工确认归属）
+[PASS] F1 证据文件 5 条齐备（缺失 = 无）
+
+=== 覆盖与用例 ===
+  连续全绿 = 第 458 轮；两轮用例 263 / 263（Failures-Errors-Skipped 0-0-0）
+  被测提交 = 6f074973；窗口 03:59:51 -> 04:04:35
