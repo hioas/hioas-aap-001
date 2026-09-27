@@ -27,6 +27,11 @@ if not re.fullmatch(r"R\d+", ROUND):
     print("用法: python tools/round-verify/analyze.py R490")
     sys.exit(2)
 PREV = "R%d" % (int(ROUND[1:]) - 1)
+# --evidence-dir：把产物写到别处（回放预检 / 判别力实测用），输入仍读仓库内证据目录。
+OUTDIR = EV
+if "--evidence-dir" in sys.argv:
+    OUTDIR = Path(sys.argv[sys.argv.index("--evidence-dir") + 1])
+    OUTDIR.mkdir(parents=True, exist_ok=True)
 W = T / "aap-round-verify" / ROUND
 FACTSF = W / ("facts-%s.log" % ROUND)
 HDR = ("%s 校验轮（missing==0 -> 交付代码零改动）；"
@@ -227,7 +232,7 @@ p("判据：PASS %d / FAIL %d" % (np_, nf_))
 
 
 def wr(name, text):
-    (EV / name).write_text(text + "\n", encoding="utf-8", newline="\n")
+    (OUTDIR / name).write_text(text + "\n", encoding="utf-8", newline="\n")
     return name
 
 

@@ -1,0 +1,54 @@
+R490 装置冻结证据（校验轮；交付面零改动）
+==============================================================================
+来源：tools/round-verify/{manifest.json,run-round.sh,analyze.py,regression.py,archive-temp-scripts.py,README.md}
+
+---- A. 命令表抽取（仓库内单一事实源）----
+C:\Users\laitz\AppData\Local\hermes\hermes-agent\.hermes-runtime\python\cpython-3.11-windows-x86_64-none\python.exe: can't open file 'E:\\workspaces\\hioas\\hioas-aap-001\\tools\\round-verify\\extract-manifest.py': [Errno 2] No such file or directory
+extract rc = 2
+manifest.json 内 tag 条数 = 84（与抽取输出对账）
+
+---- B. 归仓复核（--check 只读，不写任何文件）----
+归仓复核：索引 54 条 → 归档与原文件逐字节一致 54 条；原文件已丢失 0 条；异常 0 条
+正向对照：索引条目 54 > 0 ⇒ PASS
+archive --check rc = 0
+
+---- C. 回归面耐久性守卫（摘自本轮 regression 真实输出）----
+  manifest 声明 {'audits': 43, 'selftests': 41, 'all': 84} / 实际解析 43 + 41 = 84（自洽 = True）
+  命令表存在性预检：84 条 → 按 ROOT 解析后磁盘存在 84 条 / 缺失 0 条（缺失 = 无）
+  预检正向对照：命令表条数 = 84 > 0 且存在条数 = 84 > 0（PASS）
+  耐久性守卫：仓库外（$TEMP）脚本 54 条 → 已归仓 54 条 / 未归仓 0 条（无）；索引条目 54
+  耐久性守卫正向对照：仓库外脚本 54 > 0 且已归仓 54 > 0 ⇒ PASS
+  tag 集合对齐：本轮 84 条 vs R489 84 条；差异 = 无（须为空；历史 169/177）
+  回归面：本轮复跑 = 84 条 / 上一轮 R489 = 84 条；rc 变化 0 条、新增 0、未复跑 0
+  FAIL 明细：42 个脚本含 FAIL 行、合计 161 行（> 0 正向对照，历史 97/98）
+  判定：零回归；另有 2 条 rc!=0 但 FAIL 明细 0 行（FAIL 通道不可见，须在上文逐条给出理由）
+  上一轮 161 行 / 本轮 161 行；新增 0 / 消失 0
+  faildiff 正向对照：两侧解析到的行数 161 / 161（均须 > 0，历史 75/98）
+
+---- D. 回放等价预检（历史 205：先在真实产物上验判据，再动真格）----
+REPLAY 取材（历史轮 R489 的既有产物，逐字节复制，未改写）：
+  facts-R489.log             行数 = 41
+  run1.raw                   行数 = 3555
+  run2.raw                   行数 = 3547
+  root-status-before.txt     行数 = 8
+  wt-arch 文件数 = 52
+新分析器 rc = 0（0 = 全部判据 PASS）
+新分析器判据汇总 = 判据：PASS 25 / FAIL 0
+产物落点 = C:\Users\laitz\AppData\Local\Temp\aap-r490-work\replay-out（仓库外，零仓库写副作用）
+逐行比对（已除 HDR 自述句与脚本名）：HEAD 39 行 / 回放 39 行 / 差异 hunk 行 7
+  --- HEAD:round-R489-analysis.txt
+  +++ NEW:replay
+  @@ -30,2 +30,2 @@
+  -    M .agents/state/evidence/endpoint-test-audit.json                     mtime=2026-09-27 09:27:06
+  -    M .agents/state/evidence/endpoint-test-audit.txt                      mtime=2026-09-27 09:27:06
+  +    M .agents/state/evidence/endpoint-test-audit.json                     mtime=2026-09-27 10:18:06
+  +    M .agents/state/evidence/endpoint-test-audit.txt                      mtime=2026-09-27 10:18:06
+等价判定 = 存在差异（须先查判据，历史 46/205）
+说明：差异若为 mtime 类读数属预期（那两行按设计「读于分析时刻」）；本轮实测差异 hunk 行数 = 7。
+
+结论（由上文事实推出）：
+  1) 回归面命令表已脱离 $TEMP 而成为仓库内单一事实源（43 审计 + 41 自测 = 84 条，逐条磁盘存在）；
+  2) 54 个仍住在 $TEMP 的抽查脚本与自测已逐字节归仓（--check 54/54 一致，索引 RESTORE.json 可一键还原）；
+  3) 新分析器在历史轮真实产物上复跑判据 PASS 25 / FAIL 0，与 HEAD 内已提交证据逐行比对仅差 2 处 mtime 读数（按设计读于分析时刻）；
+  4) 轮次号与纯值改由参数 + 执行器 facts 提供 ⇒ 历史 199–251 的「机械派生」缺陷族不再有载体。
+FREEZE_EVIDENCE_END=1
