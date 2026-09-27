@@ -88,19 +88,29 @@ EVLIST = sorted(x.name for x in EV.iterdir() if x.is_file() and ROUND in x.name)
 assert len(EVLIST) >= 8, "本轮证据文件数 %d 过少（判据失效）" % len(EVLIST)
 # 装置面改动申报（**双向**机器核对）：申报了就必须真有改动、没申报就必须真的零改动 ——
 # 自述与事实不一致在两个方向上都要响亮失败（历史 12/95/249：产物不得对本轮作不实自述）。
+# 判定「本轮改过装置」= 工作区未提交改动 **或** 「窗口起点 HEAD → 当前 HEAD」之间已提交的 tools/ 改动；
+# 只认前者会让**收尾更正相位**（装置改动已提交）无法如实申报 —— 那是判据把合法的第二轮挡住（历史 81/243-①）。
 DEVCHANGES = [args[i + 1] for i, a in enumerate(args) if a == "--device-change"]
 _g = subprocess.run(["git", "-C", str(ROOT), "status", "--porcelain", "--", "tools/"],
                     capture_output=True)
 assert _g.returncode == 0, "git status 读 tools/ 失败（判据不可用）"
 TOOLS_DIRTY = [ln for ln in _g.stdout.decode("utf-8", "replace").splitlines() if ln.strip()]
+_gc = subprocess.run(["git", "-C", str(ROOT), "rev-list", facts["FACTS_TESTED_COMMIT"] + "..HEAD",
+                      "--", "tools/"], capture_output=True)
+assert _gc.returncode == 0, "git rev-list 读 tools/ 提交链失败（判据不可用）"
+TOOLS_COMMITTED = [ln for ln in _gc.stdout.decode("utf-8", "replace").splitlines() if ln.strip()]
 if DEVCHANGES:
-    assert TOOLS_DIRTY, ("--device-change 已申报 %s 但 tools/ 无未提交改动（自述不实 / 判据失效）"
-                         % DEVCHANGES)
-    DEVLINE = "本轮另含**装置侧改动**（%s —— 轮次无关的只读校验装置，不触碰交付面）" % "、".join(DEVCHANGES)
+    assert TOOLS_DIRTY or TOOLS_COMMITTED, (
+        "--device-change 已申报 %s 但工作区与「被测提交..HEAD」的提交链都没有 tools/ 改动（自述不实 / 判据失效）"
+        % DEVCHANGES)
+    DEVLINE = ("本轮另含**装置侧改动**（%s —— 轮次无关的只读校验装置，不触碰交付面；证据：工作区未提交 %d 条 / "
+               "提交链自 %s 起 %d 枚提交触及 tools/）"
+               % ("、".join(DEVCHANGES), len(TOOLS_DIRTY), facts["FACTS_TESTED_COMMIT"], len(TOOLS_COMMITTED)))
 else:
-    assert not TOOLS_DIRTY, ("tools/ 存在未申报的改动 %s（请显式 --device-change，否则描述列会说假话）"
-                             % TOOLS_DIRTY)
-    DEVLINE = "本轮**装置面与交付面均零改动**（`git status -- tools/` 输出空）"
+    assert not TOOLS_DIRTY and not TOOLS_COMMITTED, (
+        "tools/ 存在未申报的改动（工作区 %s / 提交链 %s）—— 请显式 --device-change，否则描述列会说假话"
+        % (TOOLS_DIRTY, TOOLS_COMMITTED))
+    DEVLINE = "本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交）"
 DEVEV = "device-round-%s.txt" % ROUND
 assert (EV / DEVEV).exists() or not DEVCHANGES, \
     "本轮申报了装置侧改动，但装置侧证据 %s 缺失（证据必须与自述同源，历史 12）" % DEVEV
