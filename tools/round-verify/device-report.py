@@ -130,8 +130,16 @@ def selftest(round_str):
     synth = "历史示例 R" + digits + " 与超串 R" + digits + "0"
     h1, n1 = scan_round_ref(synth, digits)
     chk("S8 守卫对合成串命中 1 次（证明它非空转，历史 75/98）", n1 == 1, "命中 %d：%s" % (n1, h1))
-    h2, n2 = scan_round_ref("历史示例 R" + digits[:-1] + "0 与 R" + digits + "0", digits)
-    chk("S9 守卫对「超串 / 相邻轮次号」不命中（词边界生效）", n2 == 0, "命中 %d：%s" % (n2, h2))
+    # 历史 220/573（合成非真值必须**参数化** + 前置断言「合成值 != 真值」）：
+    # 旧写法 `digits[:-1] + "0"`（「相邻轮次号」）在**轮次号以 0 结尾**时退化为真值本身，
+    # 于是这条「必须 0 命中」的负向对照里混进了真值 ⇒ 每 10 轮必 FAIL 一次
+    # （历史 12/95：成对断言在某一轮把真值形态与合成形态指向同一个串，判据自相矛盾）。
+    # 改为「末位在 0/1 之间翻转」（与真值同长、同形、无包含关系且**必不相等**），
+    # 并把「合成值 != 真值」并入本判据 —— 判据与合成值由不同来源推出，不再可能在某轮相等。
+    synth_adj = digits[:-1] + ("1" if digits.endswith("0") else "0")
+    h2, n2 = scan_round_ref("历史示例 R" + synth_adj + " 与 R" + digits + "0", digits)
+    chk("S9 守卫对「超串 / 相邻轮次号」不命中（词边界生效；合成值须 != 真值）",
+        n2 == 0 and synth_adj != digits, "命中 %d：%s（合成相邻轮次号 R%s）" % (n2, h2, synth_adj))
     h3, n3 = scan_round_ref("", digits)
     chk("S10 空文本命中 0（反向对照）", n3 == 0, "命中 %d" % n3)
 
