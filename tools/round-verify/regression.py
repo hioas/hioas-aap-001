@@ -12,6 +12,11 @@
   * tag 集合与上一轮 rcseq 逐条对齐（历史 169/177/182）；
   * 零写副作用 = 冻结清单生成物 size+md5 前后全等（历史 39/40）；
   * 跨轮 FAIL 明细先过同一归一函数、比对键只剥行首来源前缀（历史 57/109/135/177）；
+  * **崩溃通道的完整理由行集参与跨轮比对**（sha256）：rc 逐条比对只能看见「rc 变了」这一维，
+    而「常驻红通道**内容**变了、rc 没变」此前完全不可见（历史 98/187/219——「必须为空/不得变化」型
+    判据的口径失效反而更「合规」；本仓活例 = 覆盖缺口通道把新增缺口吃进去而零告警）。
+    判据口径：上一轮证据里 `CRASHCHAN tag=… sha256=…` 段与本轮逐通道比对，
+    **理由行集必须完整**（不截断、不只取末行，历史 218/230）；上一轮无该段 ⇒ 判据不可用，**不得判绿**（历史 141）；
   * 「$TEMP 脚本已被归仓」这条耐久性守卫必须有 > 0 正向对照，否则「0 异常」无法区分「真干净」与「解析失效」；
   * 归仓守卫的判据是**逐字节**（sha256 三方一致：索引 ⇔ 归档 ⇔ 原文件），**不是**「归档文件存在」——
     原文件在归仓之后被就地改写过时，存在性判据照样判绿，而「归档 = 仍在使用的那份脚本」这个前提已不成立
@@ -48,6 +53,48 @@ ARCH_KEY = "tools/regression/archive"
 
 def sha256_of(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+# ---------- 崩溃/诊断行 + 路径归一：**定义在 --selftest 之前**，自测与生产路径共用同一判据（历史 230） ----------
+CRASH_RE = re.compile(r"^[A-Za-z_.]*(?:Error|Exception)\b")
+DIAG_RE = re.compile(r"^(生成物与生成器不一致:|孤儿产物|check FAILED:|[A-Za-z_]+ FAILED:|FAIL:)")
+PATHFIX = [(r"[A-Za-z]:[/\\]workspaces[/\\]hioas[/\\]hioas-aap-001[/\\]", ""),
+           (r"[A-Za-z]:[/\\]Users[/\\]laitz[/\\]AppData[/\\]Local[/\\]Temp[/\\]", "<T>/")]
+
+
+def normpath(s):
+    """路径归一（**唯一一份**，历史 191：同一口径两处副本 = 只改一处的半条规则）。"""
+    for a, b in PATHFIX:
+        s = re.sub(a, b, s)
+    return s.replace("\\", "/")
+
+
+def crash_reason(txt):
+    """崩溃通道的**完整**理由 → (sha256, 行数, 首行前 160 字)。
+
+    为什么要完整行集：只取末行 + 截断 160 字（旧写法）时，超长理由（本仓实测 4000+ 字符的缺口清单）
+    在**中间**插入一条新条目而末行不变 ⇒ 比对判绿（历史 218 的同族：取证/判据的取值形态）。
+    """
+    ls = [ln.strip() for ln in txt.splitlines() if CRASH_RE.match(ln.strip()) or DIAG_RE.match(ln.strip())]
+    if not ls:
+        return "", 0, ""
+    full = "\n".join(normpath(x) for x in ls)
+    return hashlib.sha256(full.encode("utf-8")).hexdigest(), len(ls), ls[0][:160]
+
+
+def crash_diff(prev, cur):
+    """跨轮比对（**纯函数**，`--selftest` 与生产路径同源；历史 230）。
+
+    返回 (changed, added, gone, usable)：`changed` = 两侧同现但理由 sha256 不同 —— 这正是
+    rc 逐条比对看不见、faildiff 也看不见（FAIL 明细为 0）的那一维（历史 98/187/219）。
+    两侧都空是**期望态**（无崩溃通道）；上一轮无留档而本轮有 ⇒ usable=False（历史 141：不得判绿）。
+    """
+    common = sorted(set(prev) & set(cur))
+    changed = sorted(t for t in common if prev[t] != cur[t])
+    added = sorted(set(cur) - set(prev))
+    gone = sorted(set(prev) - set(cur))
+    usable = bool(prev) or not cur
+    return changed, added, gone, usable
 
 
 def durability(allx, arch_dir, index_path):
@@ -179,8 +226,37 @@ def run_selftest():
          not (len(D8["external"]) > 0 and D8["ok"] > 0), "external=%d" % len(D8["external"]))
     case("S9 夹具只写仓库外（零写副作用）", ROOT != fx and ROOT not in fx.parents, str(fx))
 
+    # ---- 崩溃通道跨轮比对（纯函数 crash_reason / crash_diff，判据与生产路径同源） ----
+    # 合成理由刻意做成「超长且只在**中段**变化」：这正是旧写法（只取末行 + 截断 160 字）判绿的形态。
+    base_txt = "".join("    at frame %d\n" % i for i in range(200)) + \
+        "AssertionError: 缺口集合不一致：%s\n" % ", ".join("aap-r%d-work/audit-x-%d.py" % (i, i) for i in range(1, 40))
+    h0, n0, head0 = crash_reason(base_txt)
+    ch, ad, go, us = crash_diff({"A": h0}, {"A": h0})
+    case("S10 基线：两侧同现且理由一致 → changed/added/gone 皆空 ∧ usable=True",
+         (ch, ad, go, us) == ([], [], [], True), "changed=%s added=%s gone=%s usable=%s" % (ch, ad, go, us))
+    case("S10p 正向对照：理由行集解析到 %d 行 > 0 ∧ 首行非空" % n0, n0 > 0 and bool(head0),
+         "nlines=%d head=%r" % (n0, head0[:40]))
+    txt2 = base_txt.replace("aap-r20-work", "aap-r20-work-新增缺口")
+    h1, n1, head1 = crash_reason(txt2)
+    ch2 = crash_diff({"A": h0}, {"A": h1})[0]
+    case("S11 注入「常驻红通道的理由在中段变化」→ 恰好点名 A（rc 未变 ⇒ rc 通道与 FAIL 明细都看不见）",
+         ch2 == ["A"], "sha %s -> %s" % (h0[:12], h1[:12]))
+    case("S11m 注入锚点真的改到了源码（理由 sha256 逐字节变化）", h1 != h0)
+    case("S11t 旧写法（只取末行 + 截断 160 字）在该注入下判绿 ⇒ 证明新判据的取值形态是必需的",
+         head0 == head1 and h0 != h1, "head 相同 = %s" % (head0 == head1))
+    case("S12 判别力：changed 相对基线**恰好新增** {A}", set(ch2) - set(ch) == {"A"},
+         "delta=%s" % (set(ch2) - set(ch)))
+    case("S13 A 转绿（本轮不再 rc!=0）→ gone 点名 ∧ changed 为空（不得报成变化）",
+         crash_diff({"A": h0}, {})[:3] == ([], [], ["A"]))
+    case("S14 上一轮无留档而本轮有 → usable=False（历史 141：判据不可用时不得判绿）",
+         crash_diff({}, {"A": h0})[3] is False)
+    case("S15 两侧同时为空（本就不存在崩溃通道）→ usable=True ∧ 三集合皆空",
+         crash_diff({}, {}) == ([], [], [], True))
+    case("S16 新增通道 → added 点名（rc 通道已覆盖该转移，此处只作信息档）",
+         crash_diff({"A": h0}, {"A": h0, "B": h1})[1] == ["B"])
+
     print("=" * 78)
-    print("%s 归仓耐久性守卫判别力实测（合成夹具；判据与生产路径同源 = durability()）" % ROUND)
+    print("%s 装置判据判别力实测（合成夹具；判据与生产路径同源 = durability() / crash_reason() / crash_diff()）" % ROUND)
     print("=" * 78)
     for st, name, info in rep:
         print("%s %s%s" % (st, name, (" ｜ " + info) if info else ""))
@@ -336,25 +412,44 @@ p("  rc=0 条数 = %d / %d；rc!=0 条数 = %d %s"
 p("FAIL 明细：%d 个脚本含 FAIL 行、合计 %d 行（> 0 正向对照，历史 97/98）"
   % (sum(1 for v in failmap.values() if v), sum(len(v) for v in failmap.values())))
 
-CRASH_RE = re.compile(r"^[A-Za-z_.]*(?:Error|Exception)\b")
-DIAG_RE = re.compile(r"^(生成物与生成器不一致:|孤儿产物|check FAILED:|[A-Za-z_]+ FAILED:|FAIL:)")
-
-
-def reason_of(tag):
-    txt = (W / (tag + ".log")).read_text(encoding="utf-8", errors="replace")
-    ls = [ln.strip() for ln in txt.splitlines() if CRASH_RE.match(ln.strip()) or DIAG_RE.match(ln.strip())]
-    return ls[-1][:160] if ls else ""
-
-
 rc_of = dict((x.split(" rc=")[0], int(x.split(" rc=")[1])) for x in rcseq)
 silent_red = sorted(t for t in ran if rc_of[t] != 0 and not failmap.get(t))
 p("-- 崩溃通道：rc!=0 条目 %d 条，其中 FAIL 通道不可见（rc!=0 ∧ FAIL 0 行）= %d 条 %s"
   % (len(nonzero), len(silent_red), silent_red))
+CURCRASH = {}
 for t in silent_red:
-    p("      %-30s rc=%d 理由 = %s" % (t, rc_of[t], reason_of(t) or "（无！）"))
+    h, n, head = crash_reason((W / (t + ".log")).read_text(encoding="utf-8", errors="replace"))
+    CURCRASH[t] = h
+    p("      %-30s rc=%d 理由 = %s" % (t, rc_of[t], head or "（无！）"))
+    # 机器可读行（下一轮据此比对**内容**，不只比 rc）—— 唯一入口，展示行也从同一函数取值。
+    p("      CRASHCHAN tag=%s rc=%d sha256=%s nlines=%d head=%s"
+      % (t, rc_of[t], h or "none", n, head or "（无！）"))
+
+# ---------- 崩溃通道跨轮比对（历史 98/187/219：rc 不变而**内容变了**的通道此前完全不可见） ----------
+CH_RE = re.compile(r"^\s*CRASHCHAN tag=(\S+) rc=(-?\d+) sha256=(\S+) nlines=(\d+) head=(.*)$", re.M)
+PREVREG = EV / ("audit-regression-%s.txt" % PREVR)
+PREVCRASH = {}
+if PREVREG.exists():
+    for m in CH_RE.finditer(PREVREG.read_text(encoding="utf-8", errors="replace")):
+        PREVCRASH[m.group(1)] = m.group(3)
+CRASH_CHANGED, CRASH_ADDED, CRASH_GONE, CRASH_USABLE = crash_diff(PREVCRASH, CURCRASH)
+p("-- 崩溃通道跨轮比对（判据：上一轮同处「rc!=0 ∧ FAIL 0 行」的通道，其**完整理由行集** sha256 必须不变；"
+  "rc 逐条比对只能看见「rc 变了」，FAIL 明细又为 0 ⇒ 内容变化此前零可见性）--")
+p("上一轮 %s 证据里的 CRASHCHAN 段解析到 %d 条 / 本轮 %d 条（正向对照：两侧都 > 0，或两侧同时为 0）"
+  % (PREVR, len(PREVCRASH), len(CURCRASH)))
+p("可比通道（两侧同现）= %d 条；理由变化 = %d 条 %s；本轮新增通道 = %s；本轮转绿（消失）= %s"
+  % (len(set(PREVCRASH) & set(CURCRASH)), len(CRASH_CHANGED), CRASH_CHANGED or "无",
+     CRASH_ADDED or "无", CRASH_GONE or "无"))
+if not CRASH_USABLE:
+    p("[FAIL] 崩溃通道内容比对判据不可用：上一轮证据 %s 无 CRASHCHAN 段（本判据自本轮建立，"
+      "按历史 141/98 判据不可用时不得判绿 ⇒ 本轮计入非零退出，下一轮起自动生效）" % PREVREG.name)
+for t in CRASH_CHANGED:
+    p("[FAIL] 崩溃通道内容变化（rc 未变，故 rc 通道与 FAIL 明细都看不见）: %s  sha256 %s -> %s"
+      % (t, PREVCRASH[t][:12], CURCRASH[t][:12]))
 
 VERDICT = ("判据不可用（上一轮 rcseq 解析到 0 条，不得判绿）" if RCSEQ_EMPTY else
-           ("零回归" if not (mism or changed or gone or TAGDIFF or arch_bad or DUR["orphan"]) else "存在差异"))
+           ("零回归" if not (mism or changed or gone or TAGDIFF or arch_bad or DUR["orphan"]
+                             or CRASH_CHANGED or not CRASH_USABLE) else "存在差异"))
 if changed:
     VERDICT += "（生成物被改写）"
 if mism:
@@ -371,6 +466,10 @@ if DUR["lost"]:
     VERDICT += "（原文件已丢失 %d 条，可用 --restore 还原）" % len(DUR["lost"])
 if silent_red:
     VERDICT += "；另有 %d 条 rc!=0 但 FAIL 明细 0 行（FAIL 通道不可见，须在上文逐条给出理由）" % len(silent_red)
+if not CRASH_USABLE:
+    VERDICT += "（崩溃通道内容比对：上一轮无留档 ⇒ 判据本轮建立）"
+if CRASH_CHANGED:
+    VERDICT += "（崩溃通道内容变化 %d 条：rc 通道与 FAIL 明细均看不见）" % len(CRASH_CHANGED)
 p("判定：%s" % VERDICT)
 p("REGRESSION_END=1")
 
@@ -382,14 +481,10 @@ p("FAIL 明细行数 = %d（写入 audit-regression-%s-failraw.txt）" % (len(fd
 
 # ---------- 跨轮 FAIL 明细归一比对（历史 109/135/177/192/219） ----------
 CURFAIL = fd[:]
-PATHFIX = [(r"[A-Za-z]:[/\\]workspaces[/\\]hioas[/\\]hioas-aap-001[/\\]", ""),
-           (r"[A-Za-z]:[/\\]Users[/\\]laitz[/\\]AppData[/\\]Local[/\\]Temp[/\\]", "<T>/")]
 
 
-def norm1(s):
-    for a, b in PATHFIX:
-        s = re.sub(a, b, s)
-    return s.replace("\\", "/")
+# 路径归一**唯一一份**（历史 191：同一口径两处副本 ⇒ 只改一处的半条规则）——崩溃通道与 faildiff 共用。
+norm1 = normpath
 
 
 def pref_off(s):
@@ -414,4 +509,4 @@ p("faildiff 正向对照：两侧解析到的行数 %d / %d（均须 > 0，历�
 ] + ["  新增: %s" % x for x in added] + ["  消失: %s" % x for x in removed]) + "\n",
     encoding="utf-8", newline="\n")
 sys.exit(1 if (mism or gone or changed or RCSEQ_EMPTY or not MANOK or TAGDIFF or silent_red
-               or arch_bad or DUR["orphan"] or DUR["lost"]) else 0)
+               or arch_bad or DUR["orphan"] or DUR["lost"] or CRASH_CHANGED or not CRASH_USABLE) else 0)
