@@ -1,0 +1,29 @@
+==============================================================================
+R539 装置判据判别力实测（合成夹具；判据与生产路径同源 = durability() / crash_reason() / crash_diff()）
+==============================================================================
+[PASS] S1 基线三方一致 → ok=2 / bad=0 / lost=0 / orphan=0 ｜ ok=2 bad=[] lost=[] orphan=[]
+[PASS] S1p 正向对照：仓库外脚本 2 > 0 ∧ ok 2 > 0
+[PASS] S2 注入「归档后原文件被就地改写」→ 恰好点名 A（分支③ 原文件 ≠ 归档） ｜ bad=['A'] why=['A（原文件与归档分叉：在用脚本已被就地改写，归档退化为陈旧快照）']
+[PASS] S2m 注入锚点真的改到了源码（逐字节变化）
+[PASS] S2d 判别力：FAIL 集合相对基线恰好新增 {A}
+[PASS] S2l 原文件仍在 → 不得误记为 lost ｜ lost=[]
+[PASS] S3 注入「归档内容被就地改写」→ 恰好点名 A（分支② 归档 ≠ 索引） ｜ bad=['A'] why=['A（归档内容与索引 sha256 不一致）']
+[PASS] S4 B 的归档文件缺失（索引条目仍在）→ 恰好点名 B ｜ bad=['B'] why=['B（归档缺失）']
+[PASS] S5 原文件已丢失 → lost=[A] ∧ bad=[]（两档分开，不混计） ｜ lost=['A'] bad=[]
+[PASS] S6 索引为空 → 两条全 bad（判据不可用时不得判绿） ｜ bad=['A', 'B']
+[PASS] S7 索引里有本轮命令表之外的归档 → orphan 点名 ｜ orphan=['tools/regression/archive/Z/z.py']
+[PASS] S8 空夹具（仓库外脚本 0 条）→ 正向对照必须转红（防空转判绿） ｜ external=0
+[PASS] S9 夹具只写仓库外（零写副作用） ｜ C:\Users\laitz\AppData\Local\Temp\aap-round-verify\R539\selftest
+[PASS] S10 基线：两侧同现且理由一致 → changed/added/gone 皆空 ∧ usable=True ｜ changed=[] added=[] gone=[] usable=True
+[PASS] S10p 正向对照：理由行集解析到 1 行 > 0 ∧ 首行非空 ｜ nlines=1 head='AssertionError: 缺口集合不一致：aap-r1-work/audi'
+[PASS] S11 注入「常驻红通道的理由在中段变化」→ 恰好点名 A（rc 未变 ⇒ rc 通道与 FAIL 明细都看不见） ｜ sha b6e1de3f1db4 -> 308000afbebb
+[PASS] S11m 注入锚点真的改到了源码（理由 sha256 逐字节变化）
+[PASS] S11t 旧写法（只取末行 + 截断 160 字）在该注入下判绿 ⇒ 证明新判据的取值形态是必需的 ｜ head 相同 = True
+[PASS] S12 判别力：changed 相对基线**恰好新增** {A} ｜ delta={'A'}
+[PASS] S13 A 转绿（本轮不再 rc!=0）→ gone 点名 ∧ changed 为空（不得报成变化）
+[PASS] S14 上一轮无留档而本轮有 → usable=False（历史 141：判据不可用时不得判绿）
+[PASS] S15 两侧同时为空（本就不存在崩溃通道）→ usable=True ∧ 三集合皆空
+[PASS] S16 新增通道 → added 点名（rc 通道已覆盖该转移，此处只作信息档）
+------------------------------------------------------------------------------
+自测：23 PASS / 0 FAIL（共 23 例）
+SELFTEST_END=1
