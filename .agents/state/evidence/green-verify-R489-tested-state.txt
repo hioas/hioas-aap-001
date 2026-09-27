@@ -1,0 +1,20 @@
+R489 校验轮（missing==0 -> 交付代码零改动）；全部读数由 analyze-r489.py 从 facts-run.log / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = cddd3075
+被测提交全 SHA = cddd307558f23835f5e7fb3922c3c7cf6bc6cf8e
+被测提交主题 = chore(evidence): R488 终读复核证据（**单跑即终态**：收尾之一/之二/之三全部提交之后运行；9/0 PASS + 证据目录本轮文件 = 14 条；返工真值 = 7 处（读自台账行）；终态哈希 = 台账 1dd689eb / 状态文件 adcf3737 / history e853e8ca（更正相位刷新：取代收尾之三（78b6d950）所记的旧值，以本条为准））。 **本轮为单跑即终态**：终读复核排在收尾之一/之二/之三**全部提交之后**运行（历史 243-①/219-③ 的顺序修法**于早前轮次落地**、本轮沿用）⇒ 其 V7 一行本就记录「本文件 SELF 未落盘 / 落盘后 HEAD 内 = 清单 + 1」，两侧自洽、**无需「首跑 → 刷新」两枚提交**（早前轮次的 refresh 相位即为修正该顺序而设）。纪律：一个返工条目的修法可含**多面**（如「判据方向」+「模型容错」），多面同属该条目、不单列。
+run1 = 09:44:44 -> 09:47:07 rc=0 / run2 = 09:47:08 -> 09:49:13 rc=0（串行：run1_end <= run2_start = True）
+窗口 = 09:44:28 -> 09:49:17（1790473468 -> 1790473758，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = cddd3075 / 终点 = cddd3075；窗口内他方推进提交数 = 0
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 8 条
+    M .agents/state/evidence/coverage-report.json
+    M .agents/state/evidence/endpoint-test-audit.json
+    M .agents/state/evidence/endpoint-test-audit.txt
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+   ?? aap-server/src/main/webapp/
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0 （无）
+环境指纹：bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）
