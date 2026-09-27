@@ -28,13 +28,13 @@ R492 装置侧交付与返工（补第 ⑥ 步工具 + 既有装置三处判据/
 ④（既有装置·判据同源解析）`postwrite.py` 的 HEAD 侧用 `head_csv.splitlines()` 再交给 `csv.reader` —— `splitlines()`
    会吃掉**引号字段内的内嵌换行**（list 输入不会补回）⇒ 描述列含多段的轮次必然报出「差异列 = ['依据']」的**假 FAIL**
    （两侧必须同源解析，历史 57/155/245）。本轮**收尾阶段**才暴露：被 `postwrite` 本身响亮拦下（第 ⑥ 项返工）。
-   机器证据（同一份 HEAD 台账、两种解析的当轮行长度）：splitlines 侧 2275 字符 vs 同源侧 2287 字符（差 12 = 被吃掉的换行数）；
+   机器证据（同一份 HEAD 台账、两种解析的当轮行长度）：splitlines 侧 3160 字符 vs 同源侧 3174 字符（差 14 = 被吃掉的换行数）；
    修正后同源解析 → 新增「解析保真：含内嵌换行的记录 HEAD N / 工作区 N」判据并 PASS。
    历史对照（机读）：R491 的主提交 82ba70d1 里当轮描述是**单行**（974 字符、含换行 = False）故侥幸 PASS；
    其收尾提交 156c4937 把该行**重写为多段**（1907 字符、含换行 = True）之后，该判据的缺陷才开始会命中 —— 而 postwrite 已在前一步跑完，
    故该缺陷一路潜伏到本轮（**收尾阶段才暴露**，历史 205/209 的同族形态）。
 
-二、本轮装置/脚本侧**返工真值 = 7 处**（零交付面影响，逐条）
+二、本轮装置/脚本侧**返工真值 = 11 处**（零交付面影响，逐条）
    ① （交付脚本侧·自审发现）新工具首版把「本轮行 c7 已非空」当成**允许**的工作区⇔基准差异 ⇒ 重复回填会被静默覆盖
       （判据范围与语义不符，历史 81）。修法：预检改为「须零差异」+ 单列一条「工作区本轮行 c7 必须为空」的专属失败信息。
    ② （交付脚本侧·自测拦下）自测夹具的「其它轮次行」少一个空列（7 列而非 8 列）⇒ 基准列数自检转红，
@@ -59,7 +59,10 @@ R492 装置侧交付与返工（补第 ⑥ 步工具 + 既有装置三处判据/
       修法：新增 `git3()` 统一返回 (rc, out, err) 三元组 + `--precheck` 只读模式（跑完 git 交互与前置判据即退出），
       并把「生产路径的 git 交互形态」纳入自测（G1–G4：三元组形态 / merge-base 形态 / show 输出可解析 / 祖先判据正反两向）；
       本节第五节给出修正后的首轮真实使用原始输出（c7 = 主提交短号、差异集合恰为 {(轮次, 提交)}、记录与物理行守恒、CR=0）。
-   说明：①③④ 由自审在**跑之前**发现、②⑤ 由脚本断言/崩溃**响亮拦下**、⑥⑦ 由收尾阶段的首轮真实使用/落地核对拦下 ⇒ 错误数字未进产物（历史 175 正例）。
+   ⑧⑨⑩⑪ （收尾**核对相位**·核对脚本自身暴露/复核发现）见第「三c」节：`git log --name-only` 缺 `--no-walk` 报 9718 越界 /
+      台账「证据」列按 `+` 切分致存在性判据空转假绿 / 新增证据未单列 SELF 且两处计数硬编码 / 路径字面量里的零宽空格。
+   说明：①③④ 由自审在**跑之前**发现、②⑤ 由脚本断言/崩溃**响亮拦下**、⑥⑦ 由收尾阶段的首轮真实使用/落地核对拦下、
+      ⑧⑨⑩⑪ 由收尾核对脚本自身（假 FAIL/空转假绿/零宽空格）暴露 ⇒ 错误数字未进产物（历史 175 正例）。
 
 三、新工具判据的负向自测（`--selftest`，合成夹具，零接触仓库台账）—— 原始输出：
 ------------------------------------------------------------------------------
@@ -117,21 +120,49 @@ R492 装置侧交付与返工（补第 ⑥ 步工具 + 既有装置三处判据/
    注入态响亮失败并点名「依据」（2 条 FAIL，其中 1 条来自本轮新增的解析保真判据）；修正态 0 FAIL；注入锚点命中数被断言
    （历史 66/94：注入必须**真的**改到源码）；两个方向都是机器可读结论。
 
+三c、收尾**核对相位**（收尾提交之后复跑只读核对脚本）暴露的 4 处返工 ⑧⑨⑩⑪（全部在本机 aux 脚本内，不进仓库产物）
+------------------------------------------------------------------------------
+   ⑧ 「本轮提交改了哪些文件」用 `git log --name-only <sha>` ⇒ 连带列出该提交的**全部祖先**的改动文件，
+      判据报出 **9718 个越界文件**（= 全历史文件数，真值 0），同一次假 FAIL 把证据写成 **193,977 字节**（含 9718 条路径）
+      ⇒ 修法：`--no-walk`（限定为给定提交本身）＋ 判据信息行截断（前 8 项 + 总数）。
+      可机检痕迹：「越界 0 个 / 文件 20 个」与同轮「全历史 name-only 去重 = 9718」并列（历史 46/98/168：
+      为零型判据报出与全仓库同量级的数字，先怀疑判据；历史 12/142：信息行不截断会把证据写成巨物）。
+   ⑨ 台账「证据」列按 `+` 切分（真实分隔符是全角「；」、末项带「（追加 …）」注解）⇒ 存在性判据**空转假绿**：
+      输出「列 1 项 / 缺 []」却显示 PASS ⇒ 修法：先归一分隔符 + 剥注解 + 两条正向对照（列项数 > 0 / 条数由 glob 推出）。
+   ⑩ 新增证据文件（本轮的 `verify-final-R492.txt`）落在检查之后 ⇒ 未跟踪判据必假红；而两处判据硬编码「12 条」
+      也在文件数变 13 后过期 ⇒ 修法：SELF 单列豁免 + **精确等式**（tracked == 其余 N-1 + 1）＋ 计数由 glob 推出，
+      使同一份只读判据在**提交前/提交后都能通过**（历史 222/98：豁免不得退化成「只判 > 0」）。
+   ⑪ aux 脚本被写入零宽空格（U+200B，落在路径字面量内）⇒ 路径判据恒失效风险（读取工具与肉眼均不可见）
+      ⇒ 修法：整文件重写并复核字节（历史 218：文本片段当锚点/判据前先做字节级核对）。
+   修正后判据的机器证据（提交后复跑，14 条全 PASS）—— 原始输出：
+------------------------------------------------------------------------------
+  本次核对实际检出的提交 HEAD = 8936b4cd（历史 198：证据必须写明被测状态）
+  [PASS] V1 HEAD 内本轮行恰好 1 条 条数 1
+  [PASS] V2 HEAD 行 与 工作区行 逐列相等（提交携带的就是写入时校验过的那行） 差异列 = []
+  [PASS] V3 提交列 = 主提交短号 0e030b59 c8='0e030b59'
+  [PASS] V4 主提交存在且是 HEAD 的祖先 
+  [PASS] V5 本轮提交数 >= 2（主提交 + 至少一枚收尾提交） 标题：8936b4cd chore(evidence): R492 收尾提交落地核对证据入仓（证据 13 条 + coverage-history；返工真值 7 处不变） | 0abde808 chore(evidence): R492 收尾更正（返工真值 5 → 7 处；postwrite 同源解析 + backfill 
+  [PASS] V5b 本轮全部提交的改动文件都落在留痕目录 / 装置目录（= 交付面零改动、未碰他方文件） 文件 20 个：['.agents/state/aap-server-feature-status.csv', '.agents/state/aap-server-tdd-state.md', '.agents/state/evidence/audit-regression-R492-faildiff.txt', '.agents/state/evidence/audit-regression-R492-failraw.txt', '.agents/state/evidence/audit-regression-R492-rcseq.txt', '.agents/state/evidence/audit-regression-R492.txt', '.agents/state/evidence/coverage-history.txt', '.agents/state/evidence/device-round-R492.txt'] … / 越界 0 个
+  [PASS] V5c 越界集合中不含交付面路径（aap-server/ · docs/ · aap-client/） 命中 0 个
+  [PASS] V6 本轮证据文件条数由 glob 推出（不硬编码）；本文件单列 SELF（落盘时产生，历史 222） 条数 13（含 SELF）: audit-regression-R492-faildiff.txt, audit-regression-R492-failraw.txt, audit-regression-R492-rcseq.txt, audit-regression-R492.txt, device-round-R492.txt, green-verify-R492-coverage-fields.txt, green-verify-R492-full-run1.txt, green-verify-R492-full-run2.txt, green-verify-R492-testcount.txt, green-verify-R492-tested-state.txt, postwrite-check-R492.txt, round-R492-analysis.txt, verify-final-R492.txt
+  [PASS] V7 本轮除本文件外的证据全部在 HEAD 树内（N-1 条 + coverage-history） 跟踪 13 条 / 其余证据 12 条
+  [PASS] V8 台账证据列：非空、所列文件全部存在（正向对照：列项数 > 0） 列 14 项 / 缺 []
+  [PASS] V8b 台账证据列所列文件都在 HEAD 树内（本文件 SELF 豁免） 未跟踪 []
+  [PASS] V9 device 证据：返工真值 7 / 含首轮真实使用输出 / CR=0 行 160
+  [PASS] V10 状态文件本轮小节含返工真值 7 
+  [PASS] V11 台账描述含三处一致性锚点 
+  [PASS] V12 自述标记唯一（「本轮返工 7 处（」在描述里恰好 1 处，历史 217-④） 计数 1
+  FAIL 总计 = 0
+  VERIFY_FINAL_END=1
+------------------------------------------------------------------------------
+
 四、交付面零改动（三条可机检判据，避免把他方在途算作本轮改动）
    ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，0 才说明两轮测的是提交态）。
-   ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 6 条（他方在途，只登记不触碰）/ 窗口起点后且路径属本轮装置·留痕目录 10 条
+   ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 6 条（他方在途，只登记不触碰）/ 窗口起点后且路径属本轮装置·留痕目录 2 条
       （= 本轮自己的产物）/ 其余（归属未定）0 条（**须为 0**）。
       窗口起点后的本轮条目：
-         M .agents/state/aap-server-feature-status.csv  mtime=2026-09-27 11:29:59
-         M .agents/state/aap-server-tdd-state.md  mtime=2026-09-27 11:29:59
-         M .agents/state/evidence/coverage-history.txt  mtime=2026-09-27 11:29:59
-         M .agents/state/evidence/device-round-R492.txt  mtime=2026-09-27 11:29:06
          M .agents/state/evidence/endpoint-test-audit.json  mtime=2026-09-27 11:11:49
          M .agents/state/evidence/endpoint-test-audit.txt  mtime=2026-09-27 11:11:49
-         M tools/round-verify/README.md  mtime=2026-09-27 11:26:52
-         M tools/round-verify/backfill-c7.py  mtime=2026-09-27 11:27:23
-         M tools/round-verify/postwrite.py  mtime=2026-09-27 11:24:49
-        ?? .agents/state/evidence/postwrite-check-R492.txt  mtime=2026-09-27 11:24:53
       其中位于 `aap-server/` 或 `docs/` 的条目 = 0 条（**须为 0** ＝ 交付面零改动）。
       窗口前条目（他方在途）：6 条
          M .agents/state/evidence/coverage-report.json  mtime=2026-09-25 05:34:37
