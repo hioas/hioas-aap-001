@@ -1,0 +1,17 @@
+R514 校验轮（missing==0 -> 交付代码零改动）；全部读数由 tools/round-verify/analyze.py 从 facts / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 63a1cb2b
+被测提交全 SHA = 63a1cb2b5720812891392029ca73130014d597d4
+被测提交主题 = chore(evidence): R513 收尾更正（据实更正返工真值 0 -> 1 处 · 权威数字 = 返工 1 处） 第①项（收尾阶段才暴露）：final-check.py 自己落盘证据，首跑误加 shell 重定向 -> fd 偏移 0 写回覆盖标题行， 坏件随主提交 dec6ea18 落盘；本条不是「先写错再补正」的修正史，而是收尾阶段复跑时暴露后的据实更正。 不 amend 已发布提交（cc720abe/dec6ea18 可能已被同机他方引用）；修法已补进 README 用法 ⑧ 防复发。 同步三处：台账描述列 / 状态文件小节 / 本提交 message。证据列按磁盘实得 15 文件 + history = 16 条。
+run1 = 19:44:08 -> 19:46:28 rc=0 / run2 = 19:46:28 -> 19:48:35 rc=0（串行：run1_end <= run2_start = True）
+窗口 = 19:43:51 -> 19:48:39（1790509431 -> 1790509719，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = 63a1cb2b / 终点 = 63a1cb2b；窗口内他方推进提交数 = 0
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 5 条
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+   ?? aap-server/src/main/webapp/
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0 （无）
+环境指纹：bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）
