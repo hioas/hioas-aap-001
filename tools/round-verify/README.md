@@ -24,6 +24,9 @@ python tools/round-verify/analyze.py R491
 
 # ③ 回归面全量复跑（命令表 = manifest.json；4 条证据 + 跨轮比对）
 python tools/round-verify/regression.py R491
+#    另须**落盘该工具的负向自测证据** —— 它是 `independent.py` J7a 的必需核心证据（11 条之一）；
+#    漏这一步会让 J7a 报「缺失=['regression-selftest-R491.txt']」（文档缺步，非产物缺陷）：
+python tools/round-verify/regression.py R491 --selftest > .agents/state/evidence/regression-selftest-R491.txt
 
 # ④ 装置侧证据（装置面改动 + 返工真值 + 交付面零改动三判据；**收尾的前置**：closeout 申报装置侧改动时要求它已存在）
 #    注意：该工具**自己落盘**证据文件（`newline="\n"`），stdout 只是状态回显 —— **不要再加 `>` 重定向**，
