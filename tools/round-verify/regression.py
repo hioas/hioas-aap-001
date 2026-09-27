@@ -12,7 +12,10 @@
   * tag 集合与上一轮 rcseq 逐条对齐（历史 169/177/182）；
   * 零写副作用 = 冻结清单生成物 size+md5 前后全等（历史 39/40）；
   * 跨轮 FAIL 明细先过同一归一函数、比对键只剥行首来源前缀（历史 57/109/135/177）；
-  * 「$TEMP 脚本已被归仓」这条耐久性守卫必须有 > 0 正向对照，否则「0 异常」无法区分「真干净」与「解析失效」。
+  * 「$TEMP 脚本已被归仓」这条耐久性守卫必须有 > 0 正向对照，否则「0 异常」无法区分「真干净」与「解析失效」；
+  * 归仓守卫的判据是**逐字节**（sha256 三方一致：索引 ⇔ 归档 ⇔ 原文件），**不是**「归档文件存在」——
+    原文件在归仓之后被就地改写过时，存在性判据照样判绿，而「归档 = 仍在使用的那份脚本」这个前提已不成立
+    （归档退化成陈旧快照 ⇒ `--restore` 还原出过期脚本，历史 180 的留档侧）。`--selftest` 逐分支给判别力实测。
 只写 .agents/state/evidence/ 下 4 个证据文件 + 仓库外工作目录。
 """
 import hashlib
@@ -28,14 +31,169 @@ T = Path("C:/Users/laitz/AppData/Local/Temp")
 MANIFEST = ROOT / "tools/round-verify/manifest.json"
 ARCH = ROOT / "tools/regression/archive"
 
-ROUND = (sys.argv[1] if len(sys.argv) > 1 else "").upper()
+ROUND_ARGV = [a for a in sys.argv[1:]]
+SELFTEST = "--selftest" in ROUND_ARGV
+_p = [a for a in ROUND_ARGV if a != "--selftest"]
+ROUND = ((_p[0] if _p else ("R0" if SELFTEST else ""))).upper()
 if not re.fullmatch(r"R\d+", ROUND):
-    print("用法: python tools/round-verify/regression.py R490")
+    print("用法: python tools/round-verify/regression.py R490 [--selftest]")
     sys.exit(2)
 PREVR = "R%d" % (int(ROUND[1:]) - 1)
 W = T / "aap-round-verify" / ROUND / "regression"
-W.mkdir(parents=True, exist_ok=True)
+if not SELFTEST:
+    W.mkdir(parents=True, exist_ok=True)
 PY = sys.executable
+ARCH_KEY = "tools/regression/archive"
+
+
+def sha256_of(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def durability(allx, arch_dir, index_path):
+    """归仓耐久性守卫（**纯函数**：`--selftest` 用合成夹具调用，判据与生产路径同源）。
+
+    三档判据：① 索引里有该 tag 的条目；② 归档文件存在且 sha256 == 索引值；
+    ③ **原文件存在且 sha256 == 索引值**（逐字节三方一致）。
+    ②③ 任一不成立 = bad（归档与在用脚本分叉 ⇒ `--restore` 还原出陈旧脚本，历史 180）；
+    原文件缺失 = lost（可用 `--restore` 还原，单独成档，不与 bad 混计）。
+    另查**双向覆盖**：索引里存在、却不在本轮命令表里的归档 = orphan（历史 57/68：索引必须被夹住）。
+    """
+    items = json.loads(index_path.read_text(encoding="utf-8")).get("items", {}) if index_path.exists() else {}
+    external = [(t, c) for t, c in allx if not c[1].startswith("tools/")]
+    ok, bad, lost, why = 0, [], [], []
+    keys = set()
+    for tag, cmd in external:
+        key = "%s/%s/%s" % (ARCH_KEY, tag, Path(cmd[1]).name)
+        keys.add(key)
+        meta = items.get(key)
+        a = arch_dir / tag / Path(cmd[1]).name
+        o = Path(cmd[1])
+        if not meta:
+            bad.append(tag)
+            why.append("%s（索引无条目）" % tag)
+            continue
+        if not a.exists():
+            bad.append(tag)
+            why.append("%s（归档缺失）" % tag)
+            continue
+        if sha256_of(a) != meta.get("sha256"):
+            bad.append(tag)
+            why.append("%s（归档内容与索引 sha256 不一致）" % tag)
+            continue
+        if not o.exists():
+            lost.append(tag)
+            continue
+        if sha256_of(o) != meta.get("sha256"):
+            bad.append(tag)
+            why.append("%s（原文件与归档分叉：在用脚本已被就地改写，归档退化为陈旧快照）" % tag)
+            continue
+        ok += 1
+    orphan = sorted(k for k in items if k not in keys)
+    return {"external": external, "ok": ok, "bad": bad, "why": why, "lost": lost,
+            "orphan": orphan, "index_n": len(items)}
+
+
+def run_selftest():
+    """归仓守卫的判别力实测：每分支一条反例 + 基线正向对照 + 注入必须真的改到源码（历史 46/66/75/94/98）。
+
+    只写仓库外工作目录（`$TEMP/aap-round-verify/R0/selftest/`），每个用例独立子目录、不删任何既有目录。
+    """
+    rep, rc = [], 0
+    fx = T / "aap-round-verify" / ROUND / "selftest"
+
+    def case(name, cond, info=""):
+        rep.append(("[PASS]" if cond else "[FAIL]", name, info))
+        return bool(cond)
+
+    def build(sub, live=b"A", archived=None, arch_file=None,
+              entries=(("A", "a.py"), ("B", "b.py")), index=True, extra=None):
+        """夹具构造：`live` = 原文件当前内容；`archived` = 索引记录的在归档时的校验和来源；
+        `arch_file` = 归档文件当前内容（默认 = archived）。三者分开才能分别打中 ②/③ 两个分支。"""
+        d = fx / sub
+        arch_d, live_d = d / "archive", d / "live"
+        (arch_d / "A").mkdir(parents=True, exist_ok=True)
+        (arch_d / "B").mkdir(parents=True, exist_ok=True)
+        live_d.mkdir(parents=True, exist_ok=True)
+        arch_a = archived if archived is not None else live
+        file_a = arch_file if arch_file is not None else arch_a
+        (live_d / "a.py").write_bytes(live)
+        (live_d / "b.py").write_bytes(b"B")
+        for t, n in entries:
+            (arch_d / t / n).write_bytes(file_a if t == "A" else b"B")
+        items = {}
+        if index:
+            items["%s/A/a.py" % ARCH_KEY] = {"original": str(live_d / "a.py"),
+                                             "sha256": hashlib.sha256(arch_a).hexdigest()}
+            items["%s/B/b.py" % ARCH_KEY] = {"original": str(live_d / "b.py"),
+                                             "sha256": hashlib.sha256(b"B").hexdigest()}
+        if extra:
+            items.update(extra)
+        (d / "RESTORE.json").write_text(json.dumps({"items": items}, sort_keys=True) + "\n",
+                                        encoding="utf-8", newline="\n")
+        allx = [("A", [PY, str(live_d / "a.py")]), ("B", [PY, str(live_d / "b.py")])]
+        return durability(allx, arch_d, d / "RESTORE.json"), live_d
+
+    def redo(sub):
+        """对同一夹具目录重跑判据（夹具被就地改动后必须**重新调用** durability —— 历史 230：
+        不拿「刚写下去的字节」当裁判，也不复用改动前的读数）。"""
+        d = fx / sub
+        allx = [("A", [PY, str(d / "live" / "a.py")]), ("B", [PY, str(d / "live" / "b.py")])]
+        return durability(allx, d / "archive", d / "RESTORE.json")
+
+    D, _ = build("c1-baseline")
+    case("S1 基线三方一致 → ok=2 / bad=0 / lost=0 / orphan=0",
+         D["ok"] == 2 and D["bad"] == [] and D["lost"] == [] and D["orphan"] == [],
+         "ok=%d bad=%s lost=%s orphan=%s" % (D["ok"], D["bad"], D["lost"], D["orphan"]))
+    case("S1p 正向对照：仓库外脚本 %d > 0 ∧ ok %d > 0" % (len(D["external"]), D["ok"]),
+         len(D["external"]) > 0 and D["ok"] > 0)
+    D2, live2 = build("c2-orig-drift", live=b"A2", archived=b"A")
+    mut2 = hashlib.sha256((live2 / "a.py").read_bytes()).hexdigest() != hashlib.sha256(b"A").hexdigest()
+    case("S2 注入「归档后原文件被就地改写」→ 恰好点名 A（分支③ 原文件 ≠ 归档）", D2["bad"] == ["A"],
+         "bad=%s why=%s" % (D2["bad"], D2["why"]))
+    case("S2m 注入锚点真的改到了源码（逐字节变化）", mut2)
+    case("S2d 判别力：FAIL 集合相对基线恰好新增 {A}", set(D2["bad"]) - set(D["bad"]) == {"A"})
+    case("S2l 原文件仍在 → 不得误记为 lost", D2["lost"] == [], "lost=%s" % D2["lost"])
+    D3, _ = build("c3-arch-drift", arch_file=b"A2")
+    case("S3 注入「归档内容被就地改写」→ 恰好点名 A（分支② 归档 ≠ 索引）", D3["bad"] == ["A"],
+         "bad=%s why=%s" % (D3["bad"], D3["why"]))
+    _d4, _ = build("c4-arch-missing")
+    (fx / "c4-arch-missing" / "archive" / "B" / "b.py").unlink()
+    D4 = redo("c4-arch-missing")
+    case("S4 B 的归档文件缺失（索引条目仍在）→ 恰好点名 B", D4["bad"] == ["B"],
+         "bad=%s why=%s" % (D4["bad"], D4["why"]))
+    _d5, _ = build("c5-orig-lost")
+    (fx / "c5-orig-lost" / "live" / "a.py").unlink()
+    D5 = redo("c5-orig-lost")
+    case("S5 原文件已丢失 → lost=[A] ∧ bad=[]（两档分开，不混计）",
+         D5["lost"] == ["A"] and D5["bad"] == [], "lost=%s bad=%s" % (D5["lost"], D5["bad"]))
+    D6, _ = build("c6-index-empty", index=False)
+    case("S6 索引为空 → 两条全 bad（判据不可用时不得判绿）", sorted(D6["bad"]) == ["A", "B"],
+         "bad=%s" % D6["bad"])
+    D7, _ = build("c7-index-orphan", extra={"%s/Z/z.py" % ARCH_KEY: {"original": "x", "sha256": "0" * 64}})
+    case("S7 索引里有本轮命令表之外的归档 → orphan 点名",
+         D7["orphan"] == ["%s/Z/z.py" % ARCH_KEY] and D7["bad"] == [],
+         "orphan=%s" % D7["orphan"])
+    D8 = durability([("X", [PY, "tools/x.py"])], fx / "c8" / "archive", fx / "c8" / "RESTORE.json")
+    case("S8 空夹具（仓库外脚本 0 条）→ 正向对照必须转红（防空转判绿）",
+         not (len(D8["external"]) > 0 and D8["ok"] > 0), "external=%d" % len(D8["external"]))
+    case("S9 夹具只写仓库外（零写副作用）", ROOT != fx and ROOT not in fx.parents, str(fx))
+
+    print("=" * 78)
+    print("%s 归仓耐久性守卫判别力实测（合成夹具；判据与生产路径同源 = durability()）" % ROUND)
+    print("=" * 78)
+    for st, name, info in rep:
+        print("%s %s%s" % (st, name, (" ｜ " + info) if info else ""))
+    npass = sum(1 for s, _, _ in rep if s == "[PASS]")
+    print("-" * 78)
+    print("自测：%d PASS / %d FAIL（共 %d 例）" % (npass, len(rep) - npass, len(rep)))
+    rc = 0 if npass == len(rep) else 1
+    print("SELFTEST_END=%d" % (1 if rc == 0 else 0))
+    return rc
+
+
+if SELFTEST:
+    sys.exit(run_selftest())
 
 man = json.loads(MANIFEST.read_text(encoding="utf-8"))
 ALL = [(x["tag"], x["cmd"]) for x in (man["audits"] + man["selftests"])]
@@ -75,23 +233,22 @@ p("命令表存在性预检：%d 条 → 按 ROOT 解析后磁盘存在 %d 条 /
 p("预检正向对照：命令表条数 = %d > 0 且存在条数 = %d > 0（%s）"
   % (len(ALL), pre_ok, "PASS" if (len(ALL) > 0 and pre_ok > 0) else "FAIL"))
 
-# ---------- 耐久性守卫：$TEMP 脚本是否都已归仓（历史 169/177 的机器化） ----------
+# ---------- 耐久性守卫：$TEMP 脚本是否都已归仓（历史 169/177 的机器化；判据 = 逐字节三方一致） ----------
 IDX = ARCH / "RESTORE.json"
-items = json.loads(IDX.read_text(encoding="utf-8")).get("items", {}) if IDX.exists() else {}
-external = [(t, c) for t, c in ALL if not c[1].startswith("tools/")]
-arch_ok, arch_bad = 0, []
-for tag, cmd in external:
-    meta = items.get("tools/regression/archive/%s/%s" % (tag, Path(cmd[1]).name))
-    if meta and (ROOT / ("tools/regression/archive/%s/%s" % (tag, Path(cmd[1]).name))).exists():
-        arch_ok += 1
-    else:
-        arch_bad.append(tag)
-p("耐久性守卫：仓库外（$TEMP）脚本 %d 条 → 已归仓 %d 条 / 未归仓 %d 条（%s）；索引条目 %d"
-  % (len(external), arch_ok, len(arch_bad), arch_bad if arch_bad else "无", len(items)))
-p("耐久性守卫正向对照：仓库外脚本 %d > 0 且已归仓 %d > 0 ⇒ %s"
-  % (len(external), arch_ok, "PASS" if (len(external) > 0 and arch_ok > 0) else "FAIL"))
+DUR = durability(ALL, ARCH, IDX)
+arch_ok, arch_bad = DUR["ok"], DUR["bad"]
+p("耐久性守卫（三方逐字节：索引 ⇔ 归档 ⇔ 原文件）：仓库外（$TEMP）脚本 %d 条 → 一致 %d 条 / 异常 %d 条（%s）"
+  % (len(DUR["external"]), arch_ok, len(arch_bad), DUR["why"] if DUR["why"] else "无"))
+p("  另查：原文件已丢失 %d 条（%s；可用 tools/round-verify/archive-temp-scripts.py --restore 还原）；"
+  "索引条目 %d / 索引孤儿 %d（%s）"
+  % (len(DUR["lost"]), DUR["lost"] if DUR["lost"] else "无", DUR["index_n"],
+     len(DUR["orphan"]), DUR["orphan"] if DUR["orphan"] else "无"))
+p("耐久性守卫正向对照：仓库外脚本 %d > 0 且三方一致 %d > 0 ⇒ %s"
+  % (len(DUR["external"]), arch_ok, "PASS" if (len(DUR["external"]) > 0 and arch_ok > 0) else "FAIL"))
 if arch_bad:
-    p("[FAIL] 仓库外脚本未归仓（$TEMP 被清理即永久退场）：%s" % arch_bad)
+    p("[FAIL] 归仓守卫异常（$TEMP 被清理即永久退场 / 归档与在用脚本分叉）：%s" % arch_bad)
+if DUR["orphan"]:
+    p("[FAIL] 归仓索引含本轮命令表之外的归档（索引膨胀或 tag 被改名，历史 169/177/182）：%s" % DUR["orphan"])
 
 PREV = {}
 PREVF = EV / ("audit-regression-%s-rcseq.txt" % PREVR)
@@ -197,7 +354,7 @@ for t in silent_red:
     p("      %-30s rc=%d 理由 = %s" % (t, rc_of[t], reason_of(t) or "（无！）"))
 
 VERDICT = ("判据不可用（上一轮 rcseq 解析到 0 条，不得判绿）" if RCSEQ_EMPTY else
-           ("零回归" if not (mism or changed or gone or TAGDIFF or arch_bad) else "存在差异"))
+           ("零回归" if not (mism or changed or gone or TAGDIFF or arch_bad or DUR["orphan"]) else "存在差异"))
 if changed:
     VERDICT += "（生成物被改写）"
 if mism:
@@ -207,7 +364,11 @@ if gone:
 if TAGDIFF:
     VERDICT += "（tag 集合不一致）"
 if arch_bad:
-    VERDICT += "（%d 条 $TEMP 脚本未归仓）" % len(arch_bad)
+    VERDICT += "（%d 条归仓守卫异常：归档与在用脚本分叉或缺失）" % len(arch_bad)
+if DUR["orphan"]:
+    VERDICT += "（索引孤儿 %d 条）" % len(DUR["orphan"])
+if DUR["lost"]:
+    VERDICT += "（原文件已丢失 %d 条，可用 --restore 还原）" % len(DUR["lost"])
 if silent_red:
     VERDICT += "；另有 %d 条 rc!=0 但 FAIL 明细 0 行（FAIL 通道不可见，须在上文逐条给出理由）" % len(silent_red)
 p("判定：%s" % VERDICT)
@@ -252,4 +413,5 @@ p("faildiff 正向对照：两侧解析到的行数 %d / %d（均须 > 0，历�
     "上一轮 %d 行 / 本轮 %d 行；新增 %d / 消失 %d" % (len(pset), len(cset), len(added), len(removed)),
 ] + ["  新增: %s" % x for x in added] + ["  消失: %s" % x for x in removed]) + "\n",
     encoding="utf-8", newline="\n")
-sys.exit(1 if (mism or gone or changed or RCSEQ_EMPTY or not MANOK or TAGDIFF or silent_red or arch_bad) else 0)
+sys.exit(1 if (mism or gone or changed or RCSEQ_EMPTY or not MANOK or TAGDIFF or silent_red
+               or arch_bad or DUR["orphan"] or DUR["lost"]) else 0)

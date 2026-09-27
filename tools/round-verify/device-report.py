@@ -222,7 +222,10 @@ def main():
     dev_commits = [ln for ln in log_out.splitlines() if ln.strip()]
     _rc, st_out, _ = sh("status", "--porcelain", "--", "tools/")
     dev_dirty = [ln for ln in st_out.splitlines() if ln.strip()]
-    _rc, ns_out, _ = sh("diff", "--numstat", "--", "tools/")
+    # `git diff HEAD --numstat`（**不是** `git diff --numstat`）：后者比的是「工作区 vs 索引」，
+    # 一旦装置改动已被 `git add`，它输出「无」而同段的 `status --porcelain` 仍列出 N 条 → 同一份证据自相矛盾
+    # （历史 12/95 的自述侧，实测可复现：「工作区未提交 2 条」与「numstat 无」并存）。
+    _rc, ns_out, _ = sh("diff", "HEAD", "--numstat", "--", "tools/")
     numstat = [ln for ln in ns_out.splitlines() if ln.strip()]
 
     # 轮次无关性守卫：本轮次号不得出现在**任何**装置脚本源码里（含本文件自身）。
