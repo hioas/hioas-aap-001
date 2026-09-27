@@ -1,0 +1,648 @@
+{
+  "_note": "回归面（不变量审计 + 其负向自测）命令表：仓库内单一事实源，免于 $TEMP 清理而永久退场。tag 是跨轮比对键，禁止改名或删除（历史 169/177/182）。",
+  "_source": "tools/round-verify/extract-manifest.py 由历史源 driver 抽取；抽取时 43 审计 + 41 自测 = 84 条。",
+  "_counts": {
+    "audits": 43,
+    "selftests": 41,
+    "all": 84
+  },
+  "audits": [
+    {
+      "tag": "round-claims",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-round-claims.py"
+      ]
+    },
+    {
+      "tag": "gen-check",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/gen-backend-models.py",
+        "--check"
+      ]
+    },
+    {
+      "tag": "openapi-parses",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/check-openapi-parses.py"
+      ]
+    },
+    {
+      "tag": "endpoint-tests",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-endpoint-tests.py"
+      ]
+    },
+    {
+      "tag": "contract-keys",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-contract-keys.py"
+      ]
+    },
+    {
+      "tag": "auth-contract",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-auth-contract.py"
+      ]
+    },
+    {
+      "tag": "routes",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-routes.py"
+      ]
+    },
+    {
+      "tag": "error-codes",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-error-codes.py"
+      ]
+    },
+    {
+      "tag": "query-params",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-query-params.py"
+      ]
+    },
+    {
+      "tag": "time-format",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-time-format.py"
+      ]
+    },
+    {
+      "tag": "enum-sets",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-enum-sets.py"
+      ]
+    },
+    {
+      "tag": "response-shape",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-response-shape.py"
+      ]
+    },
+    {
+      "tag": "id-types",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-id-types.py"
+      ]
+    },
+    {
+      "tag": "request-body",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-request-body.py"
+      ]
+    },
+    {
+      "tag": "secret-leak",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-secret-leak.py"
+      ]
+    },
+    {
+      "tag": "evidence-secrets",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/evidence-secrets.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-required",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r57-spotcheck\\spotcheck-required-R57.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-unique",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r58-spotcheck\\spotcheck-unique-R58.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-success-shape",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r59-spotcheck\\spotcheck-success-shape-R59.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-string-length",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r60-spotcheck\\spotcheck-string-length-R60-v6.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-numeric-range",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r61-spotcheck\\spotcheck-numeric-range-R61.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-idempotency",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r62-spotcheck\\spotcheck-idempotency-R62.py",
+        "--root",
+        "E:\\workspaces\\hioas\\hioas-aap-001"
+      ]
+    },
+    {
+      "tag": "spotcheck-lock",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r63-work\\spotcheck-lock-R63.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-throttle",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r64-spotcheck\\spotcheck-throttle-R64.py",
+        "--root",
+        "E:\\workspaces\\hioas\\hioas-aap-001"
+      ]
+    },
+    {
+      "tag": "spotcheck-audit-cols",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r65-spotcheck\\spotcheck-audit-cols-R65.py",
+        "--root",
+        "E:\\workspaces\\hioas\\hioas-aap-001"
+      ]
+    },
+    {
+      "tag": "spotcheck-state-machine",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r66-spotcheck\\spotcheck-state-machine-R66-v2.py",
+        "--root",
+        "E:\\workspaces\\hioas\\hioas-aap-001"
+      ]
+    },
+    {
+      "tag": "spotcheck-tx-boundary",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r67-spotcheck\\spotcheck-tx-boundary-R67.py",
+        "--root",
+        "E:\\workspaces\\hioas\\hioas-aap-001"
+      ]
+    },
+    {
+      "tag": "spotcheck-http-method",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r68-spotcheck\\spotcheck-http-method-R68.py",
+        "--root",
+        "E:\\workspaces\\hioas\\hioas-aap-001"
+      ]
+    },
+    {
+      "tag": "spotcheck-pagination",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r69-spotcheck\\spotcheck-pagination-R69.py",
+        "--root",
+        "E:\\workspaces\\hioas\\hioas-aap-001"
+      ]
+    },
+    {
+      "tag": "spotcheck-entity-ddl",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r70-spotcheck\\spotcheck-entity-ddl-R70.py",
+        "--root",
+        "E:\\workspaces\\hioas\\hioas-aap-001"
+      ]
+    },
+    {
+      "tag": "spotcheck-config",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r54-spotcheck\\spotcheck-config.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-outbound",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r72-spotcheck\\spotcheck-outbound-R72.py",
+        "--root",
+        "E:\\workspaces\\hioas\\hioas-aap-001"
+      ]
+    },
+    {
+      "tag": "gap-pagination-order",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r45-spotcheck\\spotcheck-pagination-order-v2.py",
+        "--repo",
+        "E:\\workspaces\\hioas\\hioas-aap-001"
+      ]
+    },
+    {
+      "tag": "gap-pagination-defaults",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r46-spotcheck\\audit-pagination-defaults.py",
+        "--root",
+        "E:\\workspaces\\hioas\\hioas-aap-001"
+      ]
+    },
+    {
+      "tag": "gap-softdelete",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r48-spotcheck\\spotcheck-softdelete-R48.py",
+        "--root",
+        "E:\\workspaces\\hioas\\hioas-aap-001"
+      ]
+    },
+    {
+      "tag": "gap-param-reach",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r49-spotcheck\\aap-r49-param-reach.py",
+        "--src-root",
+        "E:\\workspaces\\hioas\\hioas-aap-001\\aap-server\\src\\main\\java",
+        "--endpoints",
+        "E:\\workspaces\\hioas\\hioas-aap-001\\docs\\backend\\endpoints.json"
+      ]
+    },
+    {
+      "tag": "gap-audit-log",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r50-spotcheck\\aap-r50-audit-log.py",
+        "--root",
+        "E:\\workspaces\\hioas\\hioas-aap-001"
+      ]
+    },
+    {
+      "tag": "gap-status-machine",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r51-spotcheck\\aap-r51-status-machine.py",
+        "--root",
+        "E:\\workspaces\\hioas\\hioas-aap-001"
+      ]
+    },
+    {
+      "tag": "gap-time-bucket",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r52-spotcheck\\spotcheck-time-bucket-v2.py",
+        "--root",
+        "E:\\workspaces\\hioas\\hioas-aap-001"
+      ]
+    },
+    {
+      "tag": "gap-sensitive-fields",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r53-spotcheck\\spotcheck-sensitive-fields-v2.py",
+        "--root",
+        "E:\\workspaces\\hioas\\hioas-aap-001"
+      ]
+    },
+    {
+      "tag": "gap-logical-fk",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r55-spotcheck\\spotcheck-logical-fk-R55.py",
+        "--root",
+        "E:\\workspaces\\hioas\\hioas-aap-001"
+      ]
+    },
+    {
+      "tag": "gap-paging-range",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r56-spotcheck\\spotcheck-paging.py",
+        "--root",
+        "E:\\workspaces\\hioas\\hioas-aap-001"
+      ]
+    },
+    {
+      "tag": "gap-coverage-gap",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r158-work\\gap-verify-R158-v2.py"
+      ]
+    }
+  ],
+  "selftests": [
+    {
+      "tag": "round-claims-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-round-claims.py",
+        "--selftest"
+      ]
+    },
+    {
+      "tag": "gen-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/gen-backend-models-selftest.py"
+      ]
+    },
+    {
+      "tag": "endpoint-tests-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-endpoint-tests-selftest.py"
+      ]
+    },
+    {
+      "tag": "contract-keys-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-contract-keys-selftest.py"
+      ]
+    },
+    {
+      "tag": "auth-contract-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-auth-contract-selftest.py"
+      ]
+    },
+    {
+      "tag": "routes-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-routes-selftest.py"
+      ]
+    },
+    {
+      "tag": "error-codes-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-error-codes-selftest.py"
+      ]
+    },
+    {
+      "tag": "query-params-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-query-params-selftest.py"
+      ]
+    },
+    {
+      "tag": "time-format-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-time-format-selftest.py"
+      ]
+    },
+    {
+      "tag": "enum-sets-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-enum-sets-selftest.py"
+      ]
+    },
+    {
+      "tag": "response-shape-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-response-shape-selftest.py"
+      ]
+    },
+    {
+      "tag": "id-types-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-id-types-selftest.py"
+      ]
+    },
+    {
+      "tag": "request-body-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-request-body-selftest.py"
+      ]
+    },
+    {
+      "tag": "secret-leak-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "tools/audit-secret-leak.py",
+        "--selftest"
+      ]
+    },
+    {
+      "tag": "spotcheck-required-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r57-spotcheck\\spotcheck-required-R57-selftest.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-unique-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r58-spotcheck\\spotcheck-unique-R58-selftest.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-success-shape-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r59-spotcheck\\spotcheck-success-shape-R59-selftest.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-string-length-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r60-spotcheck\\spotcheck-string-length-R60-selftest.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-numeric-range-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r61-spotcheck\\spotcheck-numeric-range-R61-selftest.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-idempotency-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r62-spotcheck\\spotcheck-idempotency-R62-selftest.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-lock-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r63-work\\spotcheck-lock-R63-selftest.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-throttle-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r64-spotcheck\\spotcheck-throttle-R64-selftest.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-audit-cols-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r65-spotcheck\\spotcheck-audit-cols-R65-selftest.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-state-machine-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r66-spotcheck\\spotcheck-state-machine-R66-selftest.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-tx-boundary-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r67-spotcheck\\spotcheck-tx-boundary-R67-selftest.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-http-method-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r68-spotcheck\\spotcheck-http-method-R68-selftest.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-pagination-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r69-spotcheck\\spotcheck-pagination-R69-selftest.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-entity-ddl-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r70-spotcheck\\spotcheck-entity-ddl-R70-selftest.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-config-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r54-spotcheck\\spotcheck-config-selftest.py"
+      ]
+    },
+    {
+      "tag": "spotcheck-outbound-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r72-spotcheck\\spotcheck-outbound-R72-selftest.py"
+      ]
+    },
+    {
+      "tag": "gap-pagination-order-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r45-spotcheck\\spotcheck-pagination-order-selftest.py"
+      ]
+    },
+    {
+      "tag": "gap-pagination-defaults-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r46-spotcheck\\audit-pagination-defaults-selftest.py"
+      ]
+    },
+    {
+      "tag": "gap-softdelete-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r48-spotcheck\\spotcheck-softdelete-R48.py",
+        "--selftest"
+      ]
+    },
+    {
+      "tag": "gap-param-reach-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r49-spotcheck\\aap-r49-param-reach-selftest.py"
+      ]
+    },
+    {
+      "tag": "gap-audit-log-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r50-spotcheck\\aap-r50-audit-log-selftest.py"
+      ]
+    },
+    {
+      "tag": "gap-status-machine-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r51-spotcheck\\aap-r51-status-machine-selftest.py"
+      ]
+    },
+    {
+      "tag": "gap-time-bucket-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r52-spotcheck\\spotcheck-time-bucket-selftest.py"
+      ]
+    },
+    {
+      "tag": "gap-sensitive-fields-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r53-spotcheck\\spotcheck-sensitive-fields-selftest.py"
+      ]
+    },
+    {
+      "tag": "gap-logical-fk-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r55-spotcheck\\spotcheck-logical-fk-R55.py",
+        "--root",
+        "C:/Users/laitz/AppData/Local/Temp/aap-r55-spotcheck-fixtures",
+        "--selftest"
+      ]
+    },
+    {
+      "tag": "gap-paging-range-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r56-spotcheck\\spotcheck-paging-selftest.py"
+      ]
+    },
+    {
+      "tag": "gap-coverage-gap-selftest",
+      "cmd": [
+        "C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+        "C:\\Users\\laitz\\AppData\\Local\\Temp\\aap-r158-work\\gap-verify-R158-selftest-v2.py"
+      ]
+    }
+  ]
+}
