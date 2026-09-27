@@ -1,0 +1,17 @@
+R541 校验轮（missing==0 -> 交付代码零改动）；全部读数由 tools/round-verify/analyze.py 从 facts / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 81dcca5e
+被测提交全 SHA = 81dcca5e3ec82401e1a102c94ef06183560c1408
+被测提交主题 = chore(evidence): R540 收尾更正（返工真值 0 处 → 2 处：两处均为本轮新写的「收尾后只读核对」aux 探针 postcheck.py 的**判据侧**缺陷 —— ① 台账证据列路径须相对 .agents/state/ 解析（首版按仓库根解析 ⇒ 17 条假「文件缺失」）② 同一探针 V1b/V1c 在判定集合为空时空转假绿（历史 98/141，已补 V0c 正向对照）；**修的是判据**，未改被测对象一行、未改期望值、未放宽判据；四处同源（台账 / history / 状态文件 / 装置证据）已同步为 2 处 + final-check 复核 PASS 19/0；不 amend 任何已发布提交，权威数字 = 返工 2 处）
+run1 = 05:31:13 -> 05:33:38 rc=0 / run2 = 05:33:38 -> 05:35:41 rc=0（串行：run1_end <= run2_start = True，按绝对时刻解算）
+窗口 = 05:30:57 -> 05:35:45（1790544657 -> 1790544945，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = 81dcca5e / 终点 = 81dcca5e；窗口内他方推进提交数 = 0
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 5 条
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+   ?? aap-server/src/main/webapp/
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0 （无）
+环境指纹：bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）
