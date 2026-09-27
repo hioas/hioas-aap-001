@@ -14188,3 +14188,35 @@ R491 巡检轮收尾要点（返工真值 = 9 处，据实更正；全部装置/
 - **返工真值**：本轮返工真值 = **9 处**（装置/脚本侧，零交付面影响；逐条见上文要点）。
 - **权威数字**：权威数字 = 返工 9 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
 
+
+### R500 巡检轮（校验轮：missing=0 ⇒ 交付面零改动）
+
+- **性质**：`missing=0` ⇒ **交付面零改动**（未改 `aap-server` / `docs` 任何一行）；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交）；本轮新增写入 = 台账 / 状态 / 证据。
+- **两轮全量（串行）**：被测提交 = 83ec58b0（独立 detached worktree 内）；run1 14:44:08→14:46:32、run2 14:46:32→14:48:38；各 **263 例 / 45 类**、rc=0/0、Failures-Errors-Skipped = 0-0-0；`@Test` 词边界计数与 surefire 合计一致；禁用扫描 0 条。
+- **覆盖**：total=108 implemented=108 **missing=0**、registered_routes=125、not_registered=[]；连续第 **482** 轮全绿。
+- **回归面**：复跑 84 条（tag 集合与上一轮 R499 一致）；rc 变化 0 条、新增 0、未复跑 0；FAIL 明细 42 脚本 161 行（跨轮 faildiff 新增 0 / 消失 0）；零写副作用（冻结清单生成物 size+md5 全等）；命令表已由仓库内 `tools/round-verify/manifest.json` 提供，$TEMP 抽查脚本 54 条全部归仓（由 manifest 的 $TEMP 条目数与归仓目录数**双源互证**推出）。
+- **本轮要点（单一事实源 = round-note.md）**：
+**性质**：覆盖 `missing=0` ⇒ **纯校验轮**（交付面零改动：未改 `aap-server` / `docs` / 测试面 / 冻结清单生成物一行）；**装置面同样零改动** —— `git status --porcelain -- tools/` 为空、「被测提交..HEAD」零枚提交触及 `tools/`。冻结的 `tools/round-verify/` 在**不改一行**的前提下完整承载七步（run-round → analyze → regression → device-report → closeout → postwrite → backfill），零新增脚本、零判据修改、零脚本修改。
+
+**两轮全量（串行，真实输出）**：被测提交 = 窗口起点 HEAD `83ec58b0`（独立 detached worktree 内检出，与 HEAD 差异 0 行）；run1 `14:44:08→14:46:32`、run2 `14:46:32→14:48:38`（串行：run1_end ≤ run2_start）；各 **263 例 / 45 类**、rc **0/0**、Failures-Errors-Skipped **0-0-0**、两轮 `BUILD SUCCESS` 为真且 `BUILD FAILURE` 为 0；`@Test` 词边界计数 **263 == 263**（裸子串 265 作对照）；逐类结果（剥 `Time elapsed` 再排序）diff **0**；禁用扫描 **0 条**；类级用例数之和 == 合计 **263**（口径自洽）；maven 耗时两轮均为 `mm:ss min` 写法（解析器双写法自检在位）。
+
+**覆盖（独立读数三处一致）**：total **108** / implemented **108** / **missing = 0**、`registered_routes` = **125**、`not_registered` = []；按族相加 == total（15 族 108/108）；`endpoints.json` 端点数（108）＝其顶层 `total`（108）＝覆盖报告 `total`（108）；仓库内被跟踪的 `coverage-report.json` 与 worktree 归档副本**投影后逐字段相等**（total/implemented/missing/registered_routes/not_registered/by_task）。连续第 **482** 轮全绿。
+
+**回归面（84 条全量复跑）**：`tag` 集合 84 ↔ 84 对齐、差异 0；rc 逐条变化 **0** / 新增 **0** / 未复跑 **0**（rc=0 共 40 条、rc≠0 共 44 条，与上一轮逐条同值）；FAIL 明细 42 脚本 **161 行**，跨轮 faildiff 新增 **0** / 消失 **0**；**零写副作用**（97 个冻结清单生成物 size+md5 运行前后全等）；归仓耐久性守卫 **54** 条仓库外脚本「索引 ⇔ 归档 ⇔ 原文件」**三方逐字节一致**（异常 0 / 原文件已丢失 0 / 索引孤儿 0）；分析器 **25 PASS / 0 FAIL**；装置侧判别力自测 **23 PASS / 0 FAIL**（`regression-selftest-R500.txt`）。
+
+**崩溃通道（第三类通道）**：`rc!=0 ∧ FAIL 0 行` 共 **2** 条（`gap-coverage-gap`、`gap-coverage-gap-selftest`），完整理由行集 sha256 与上一轮逐字节相同（`977222fe…` / `14235db0…`）⇒ 理由变化 **0**、新增通道 0、转绿消失 0。即两条常驻红通道本轮没有把任何新缺口吃进理由（历史 98/187 的「口径失效反而更合规」本轮不存在）。
+
+**窗口与在途（只登记、不触碰）**：窗口 `14:43:51 → 14:48:43`（facts 落盘）；窗口内他方推进提交 **0**；主仓库在途改动 **5** 条（`README.md`、`aap-server/pom.xml`、`SecurityConfig.java`、`application.yml`、`aap-server/src/main/webapp/`），mtime 全部**早于**窗口起点（2026-09-24 ~ 09-25）；本轮未暂存、未修改、未回退其中任何一条，窗口前后 `root-status` 快照逐字节相等。并发前置门槛本轮**真的执行**（`PREFLIGHT_OK=1` / `PREFLIGHT_RESULT=CLEAR` / 命令可达性体检 `ENV_JPS_REACHABLE=Y`，历史 238/251）。
+
+**独立复核（只读，不采信装置自身的判定行）**：主探针 **31/31 PASS**（I1–I6 六组：facts 完整性与窗口单调 / 两轮结果独立解析 / 用例与禁用扫描 / 覆盖三处一致 / 交付面零改动五判据 / 证据齐备与 CR 归零）＋ 探针解析器自测 **19/19 PASS**（含「只认 `mm:ss min` 的旧写法在 `s` 输入上判失效」与「裸子串会误计 `@TestConfiguration`」两条反证、以及 `mutate` 未命中必须被记录的注入有效性判据）。探针落在 `$TEMP/aap-round-verify/R500/aux/`（独立 aux 目录：不进产物目录、不入仓，历史 216），所有解析器都是**纯函数（入参 = 文本）**（历史 499①②的接口纪律）。判据按语义收窄（历史 81/248）：① 「交付面零改动」的正解 = `rev-list --count <被测提交>..HEAD -- aap-server/ docs/ aap-client/` == 0 ＋ 窗口前后快照逐字节相等（**不能**写成「工作区相对 HEAD 无差异」——工作区天然携带他方在途改动）；② 「在途 mtime 全早于窗口」的判据对象 = **窗口起点快照**（`root-status-before.txt`）而不是 live 工作区（后者含本轮自己刚落下的证据文件 → 假 FAIL，历史 499④）。
+
+**返工 2 处**（**全部落在我自己的临时 aux 探针与证据落盘方式上**：装置侧 0 处、交付面 0 行；每处都是**断言响亮失败 / 硬崩**当场抓到，不是事后自查）：
+① 自测 `S6a` 用 `TOT_RE.finditer(...)` 的结果去取 `len()` → `TypeError: object of type 'callable_iterator' has no len()`，自测硬崩。修法 = 改用 `findall()`（**改的是判据写法，不是期望值**；`finditer` 是迭代器，`len()` 恒不可用）。
+② `regression-selftest-R500.txt` 由 shell 重定向 `>` 落盘 → Windows 下 Python stdout 把 `\n` 翻译成 `\r\n`（实测 **29 行 / 29 个 CR**），而上一轮同文件 CR=0、`.gitattributes` 为 `text=auto eol=lf`。修法 = 字节级归一（`tr -d '\r'`）后验收 **CR=0 / 29 行 / 末行 `SELFTEST_END=1`**。这是装置纪律「证据一律 `newline="\n"`」在**重定向路径**上的漏点（历史 69/84/146 同族：证据落盘必须走同一出口，别一半 LF 一半 CRLF）。
+
+**下一族**：无（清单 108/108、missing=0）。**红基线：无**（本轮为校验轮）。**飞书通知：未发送（非失败）** —— 本轮完成端点 0 条、无新批次落地，批通知条件不成立；cron 运行时亦按设计不由巡检代理自行投递（最终回复即投递到同一目标），`feishu-notify-failures.txt` 未新增。
+
+**待拍板（沿用，未变）**：① `regression.py --selftest`（现 **23** 例）是否纳入每轮回归面（84 → 85，须级联同步「回归面条数」这一纯数字盲区）；② 常驻红 2 条的理由比对基线仍是 R157 快照（与当前磁盘缺口集合天然不等 ⇒ 恒红）—— 是否重定位为「自推进基线 + 非回合级形态硬判据」属**改判据口径**，历史 216 禁止未经拍板收窄判据，故本轮不动、仅登记；③ 远端 `origin/main` 仍停旧轮次（HTTPS 直连不可用，须 SSH URL）。
+- **返工真值**：本轮返工真值 = **2 处**（装置/脚本侧，零交付面影响；逐条见上文要点）。
+- **权威数字**：权威数字 = 返工 2 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
+
