@@ -11,7 +11,7 @@ R507 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
   轮次无关性守卫：装置脚本（10 个 .py/.sh）内当前轮次号命中 = **0**（须 0
     = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
 
-二、本轮返工真值 = **0 处**（零交付面影响；条目文本来自单一事实源 `round-note.md`，与台账描述列 / 状态文件小节共用）
+二、本轮返工真值 = **1 处**（零交付面影响；条目文本来自单一事实源 `round-note-v2.md`，与台账描述列 / 状态文件小节共用）
 ------------------------------------------------------------------------------
 **性质**：覆盖 `missing=0` ⇒ **纯校验轮**（交付面零改动：未改 `aap-server` / `docs` / 测试面 / 冻结清单生成物**一行**）；**装置面改动 0 项**（本轮为**零改动轮**：未改任何工具、未改装置文档）。`--device-change` 不申报 ⇒ 由收尾与独立复核**双向**机器核对「未申报必须真零改动」。
 
@@ -25,7 +25,7 @@ R507 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 **收尾顺序（历史返工项的回归验证，不计本轮返工）**：上一轮 R506 的返工真值为 **0 处** ⇒ 本轮**无上一轮返工项**待回归验证；R504 的顺序型返工项（收尾核对首跑落在独立复核证据尚未纳入提交的相位 ⇒ F9 报 1 条）已在 R505 完成回归验证（首跑 19/19 PASS），本轮沿用同一顺序纪律：**先把独立复核证据纳入提交、再跑收尾一致性核对**，故 F8/F9 无相位假红。
 
-**装置文档计数的实跑取证（沿用待拍板⑤的当场取证，非扩面）**：本轮实跑五个自测的汇总行，逐条与 `tools/round-verify/README.md` 现值比对 —— `regression.py --selftest` **23 PASS / 0 FAIL**、`backfill-c7.py --selftest` **20 PASS / 0 FAIL**、`final-check.py R507 --selftest` **20 PASS / 0 FAIL**、`independent.py --selftest` **38 PASS / 0 FAIL**、`device-report.py --selftest` **10 PASS / 0 FAIL**：五处**全部相符、无漂移**。加常驻核对器属**扩面**，仍停在待拍板。
+**装置文档计数的实跑取证（沿用待拍板⑤的当场取证，非扩面）**：本轮实跑五个自测的汇总行 —— `regression.py --selftest` **23 PASS / 0 FAIL**、`backfill-c7.py --selftest` **20 PASS / 0 FAIL**、`final-check.py R507 --selftest` **20 PASS / 0 FAIL**、`independent.py --selftest` **38 PASS / 0 FAIL**、`device-report.py --selftest` **10 PASS / 0 FAIL**；其中 `tools/round-verify/README.md` **只记数四处**（23 / 20 / 20 / 38），**四处逐条相符、无漂移**；第五处（`device-report.py` 的 **10**）README **未记数** ⇒ **无对应文档值可比**，仅登记为读数，**不构成文档漂移**、也不计入「文档计数」这一待拍板项的口径。
 
 **窗口与在途（只登记、不触碰）**：窗口 `17:16:58 → 17:21:43`（facts 落盘）；窗口内他方推进提交 **0**；主仓库他方在途改动 **5** 条（`README.md`、`aap-server/pom.xml`、`SecurityConfig.java`、`application.yml`、`aap-server/src/main/webapp/`），mtime 全部**早于**窗口起点、落在窗口内的 **0** 条；本轮未暂存、未修改、未回退其中任何一条。并发前置门槛本轮**真的执行**（`PREFLIGHT_OK=1` / `PREFLIGHT_RESULT=CLEAR` / 双向对照 `pos=2/2`、`neg=0/2` / 环境体检 `ENV_JPS_REACHABLE=Y`）。
 
@@ -33,7 +33,11 @@ R507 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 **过程诚实性说明（不计返工，未进入任何落盘产物）**：本轮主探针**首跑 39/40** —— 唯一红项 `J7a 本轮核心证据齐备` 点名缺 `regression-selftest-R507.txt`；根因是**我的工序漏了一步**：③ 回归面阶段只把 `regression.py R507 --selftest` 的输出 tee 到仓库外工作目录，**未**按装置文档落成 `.agents/state/evidence/` 下的证据文件（该文件正是「装置侧判别力自测 23/0」这句结论的唯一凭据）。修法 = 用 LF 归一写入器落盘该证据（29 行、`CR == 0`）后复跑探针 → **40/40 一次通过**。按本轮口径（只计「产物**首次落盘 / 提交之后**才暴露的缺陷」）它**不计返工**：探针是 `--no-write` 只回显相位，红项**未进入任何落盘产物、未进入任何提交**；且这正是装置守卫按设计工作的形态（守卫有牙齿 → 响亮报出，而不是让结论句失去凭据）。
 
-**返工 0 处**（口径：产物**首次落盘 / 提交之后**才暴露的缺陷）：本轮 ①–⑧ 全链**一次通过** —— 分析器 25/0、回归面零回归、装置证据与轮次无关性守卫、收尾三处写入（内容级验收）、主提交落地核对、c7 回填、独立复核、收尾一致性核对均无首跑失败，故真值 = **0 处**（上一轮真值为 **0 处**、再上一轮 R504 为 **1 处**）。
+**返工 1 处**（口径：产物**首次落盘 / 提交之后**才暴露的缺陷）：装置链 ①–⑧ 本身**一次通过**（分析器 25/0、回归面零回归、装置证据与轮次无关性守卫、收尾三处写入内容级验收、主提交落地核对、c7 回填、独立复核 40/40、收尾一致性核对 19/19 首跑即通过）；真值 = **1 处**，条目如下 ——
+
+- ① **措辞超出证据型（收尾后复核发现）**：主提交 `409f91c0` 的描述列原写「五个自测读数**逐条与 README 现值比对**、**五处全部相符、无漂移**」，而 `tools/round-verify/README.md` **只记数四处**（23 / 20 / 20 / 38），第五处 `device-report.py --selftest`（**10**）**无对应文档值可比** ⇒ 该句对第五处属**无凭据断言**（历史 12/95：结论句必须有单一事实源支撑，不得夸大）。**主提交之后**的逐句复核中被抓出 ⇒ 按口径计 **1 处**；修法 = 把该句改写为「README **只记数四处** ⇒ 四处逐条相符、第五处仅登记、不构成文档漂移」，并同步四处同源产物。
+
+**据实更正与溯源说明（不 amend 已发布提交）**：上述 1 处在**主提交之后**才暴露，故按历史 209 的处理方式**不改写主提交 message**（同机他方可能已基于它提交），改为以**独立的收尾提交**留溯源说明，并同步四处同源产物：台账描述列（由 `closeout.py --rewrite` 重写、**保留 c7 = 409f91c0**）/ `coverage-history.txt` 行 / 状态文件小节 / 本装置证据文件（由 `device-report.py --rework 1` 重新生成）。**权威数字 = 1 处**；主提交 message 记的 0 处即**该提交时刻的真值**（0 处 → 1 处是**时间顺序**，不是同一时刻的两套说法）。**这不是「先写错再补正」的修正史**：本轮不虚构修正史，只按事实先后据实记录（上一轮真值为 **0 处**、再上一轮 R504 为 **1 处**）。
 
 **下一族**：无（清单 108/108、missing=0）。**红基线：无**（本轮为校验轮，未产新端点 / 新用例）。**飞书通知：未发送（非失败）** —— 本轮完成端点 0 条、无新批次落地，批通知条件不成立；cron 运行时按设计由本次回复投递到同一目标，`feishu-notify-failures.txt` 未新增。
 
@@ -48,25 +52,14 @@ R507 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
-  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 11 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 16 == `git status` 条目 16
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 0 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 5 == `git status` 条目 5
       M README.md  mtime=2026-09-24 07:51:14
       M aap-server/pom.xml  mtime=2026-09-24 08:07:37
       M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
       M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
       ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
-      （本轮产物）?? .agents/state/evidence/audit-regression-R507-faildiff.txt  mtime=2026-09-27 17:26:13
-      （本轮产物）?? .agents/state/evidence/audit-regression-R507-failraw.txt  mtime=2026-09-27 17:26:13
-      （本轮产物）?? .agents/state/evidence/audit-regression-R507-rcseq.txt  mtime=2026-09-27 17:26:13
-      （本轮产物）?? .agents/state/evidence/audit-regression-R507.txt  mtime=2026-09-27 17:26:13
-      （本轮产物）?? .agents/state/evidence/green-verify-R507-coverage-fields.txt  mtime=2026-09-27 17:21:51
-      （本轮产物）?? .agents/state/evidence/green-verify-R507-full-run1.txt  mtime=2026-09-27 17:21:51
-      （本轮产物）?? .agents/state/evidence/green-verify-R507-full-run2.txt  mtime=2026-09-27 17:21:51
-      （本轮产物）?? .agents/state/evidence/green-verify-R507-testcount.txt  mtime=2026-09-27 17:21:51
-      （本轮产物）?? .agents/state/evidence/green-verify-R507-tested-state.txt  mtime=2026-09-27 17:21:51
-      （本轮产物）?? .agents/state/evidence/regression-selftest-R507.txt  mtime=2026-09-27 17:26:37
-      （本轮产物）?? .agents/state/evidence/round-R507-analysis.txt  mtime=2026-09-27 17:21:51
       其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
-  ③ 本轮提交（0ea9c5df..HEAD）改动文件 = 0 个，其中位于交付面前缀的 = 0 个（**须 0**）
+  ③ 本轮提交（0ea9c5df..HEAD）改动文件 = 18 个，其中位于交付面前缀的 = 0 个（**须 0**）
 
 五、下一族
   **无**（清单 108/108、missing=0）—— 本轮完成端点 0 条 / 新增用例 0 条、无红基线。
