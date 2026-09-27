@@ -7,10 +7,12 @@
   2. 这些文件**在 HEAD 树内**（`git ls-files` / `git cat-file -e`；他方 `git add -A` 会带走一部分，
      故判据 = 主提交携带 ∪ 他方提交携带 == 证据清单，历史 198/236）；
   3. HEAD 内的本轮台账行 ⇔ 工作区该行**逐列相等**（收尾回填**之前**运行，历史 243-①；本工具因此允许
-     c7（提交列）差异并显式报告，其余列必须逐列相等）；
+     c7（提交列）差异并显式报告，其余列必须逐列相等）；两侧 CSV **同源解析**（`io.StringIO(..., newline="")`）
+     —— 单侧用 `splitlines()` 会吃掉引号字段内的内嵌换行，描述列多段的轮次就得到假 FAIL（历史 155/245）；
   4. 台账结构（列数 = 表头列数、描述列长度下限、CR = 0，历史 80/155/200）。
 """
 import csv
+import io
 import subprocess
 import sys
 from pathlib import Path
@@ -53,13 +55,23 @@ for n in sorted(carried):
             fails.append("%s 不在 HEAD 树内（历史 16/198）" % n)
 
 # ---- 台账：HEAD 内本轮行 ⇔ 工作区行 ----
-_, head_csv, _ = sh("show", "HEAD:" + CSV_REL)
-_, work_csv = None, None
-rows_h = list(csv.reader(head_csv.splitlines()))
+# 两侧必须**同源解析**（历史 57/155/245）：早先 HEAD 侧写 `head_csv.splitlines()` 再交给 csv.reader，
+# 而 `splitlines()` 会吃掉**引号字段内的内嵌换行**（list 输入不会补回）⇒ 描述列含多段的轮次会得到
+# 「HEAD 侧少 N 字符」的**假 FAIL**（真实返工：R492 收尾阶段才暴露；R491 只因当轮描述是单行而侥幸 PASS）。
+def _embedded(rows):
+    return sum(1 for r in rows if any(("\n" in c or "\r" in c) for c in r))
+
+
 with (ROOT / CSV_REL).open(encoding="utf-8", newline="") as fh:
     rows_w = list(csv.reader(fh))
+_, head_csv, _ = sh("show", "HEAD:" + CSV_REL)
+rows_h = list(csv.reader(io.StringIO(head_csv, newline="")))
 HDR = rows_h[0]
 print("台账：HEAD %d 行 / 工作区 %d 行；表头 = %s" % (len(rows_h), len(rows_w), HDR))
+E_H, E_W = _embedded(rows_h), _embedded(rows_w)
+print("解析保真：含内嵌换行的记录 HEAD %d / 工作区 %d（两侧同源解析，须相等）" % (E_H, E_W))
+if E_H != E_W:
+    fails.append("两侧解析的含内嵌换行记录数不等（%d vs %d）—— 解析保真度不同（历史 155/245）" % (E_H, E_W))
 if any(len(r) != len(HDR) for r in rows_w):
     fails.append("工作区台账存在列数异常行（历史 80/155/200）")
 if (ROOT / CSV_REL).read_bytes().count(b"\r"):

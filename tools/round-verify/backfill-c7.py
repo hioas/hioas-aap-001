@@ -144,22 +144,37 @@ def git(*a):
     return subprocess.run(["git", "-C", str(ROOT)] + list(a), capture_output=True)
 
 
-def run_production(round_, sha):
-    rc, out, err = git("cat-file", "-e", sha + "^{commit}")
+def git3(*a):
+    """(rc, stdout, stderr)：**统一形态**，避免调用方按元组解包得到 CompletedProcess
+    （真实返工：首版 run_production 写 `rc, out, err = git(...)` —— 生产路径零覆盖、首轮真实使用即崩）。"""
+    r = git(*a)
+    return r.returncode, r.stdout.decode("utf-8", "replace"), r.stderr.decode("utf-8", "replace")
+
+
+def run_production(round_, sha, write=True):
+    rc, out, err = git3("cat-file", "-e", sha + "^{commit}")
     if rc != 0:
-        print("[FAIL] 提交号不存在：%s（%s）" % (sha, err.decode("utf-8", "replace").strip()))
+        print("[FAIL] 提交号不存在：%s（%s）" % (sha, err.strip()))
         return 2
-    anc = git("merge-base", "--is-ancestor", sha, "HEAD")
-    if anc.returncode != 0:
+    if git3("rev-parse", "--verify", "--quiet", sha + "^{commit}")[0] != 0:
+        print("[FAIL] 提交号无法解析：%s" % sha)
+        return 2
+    rc, out, err = git3("merge-base", "--is-ancestor", sha, "HEAD")
+    if rc != 0:
         print("[FAIL] %s 不是 HEAD 的祖先 —— 传错号（勿传收尾提交号，历史 200-②）" % sha)
         return 2
-    base = git("show", "HEAD:" + CSV_REL)
-    assert base.returncode == 0, "取 HEAD 内台账失败：%s" % base.stderr.decode("utf-8", "replace")
-    rc, msgs, res = apply(round_, sha, ROOT / CSV_REL, base.stdout, write=True)
+    rc, base, err = git3("show", "HEAD:" + CSV_REL)
+    if rc != 0:
+        print("[FAIL] 取 HEAD 内台账失败：%s" % err.strip())
+        return 2
+    rc, msgs, res = apply(round_, sha, ROOT / CSV_REL, base.encode("utf-8"), write=write)
     for m in msgs:
         print(m)
     if rc:
         return rc
+    if not write:
+        print("PRECHECK_ONLY=%s（未写盘：生产路径的 git 交互与前置判据均已执行）" % round_)
+        return 0
     print("STATE=已回填 c7=%s（只动本轮行的提交列；其余行逐列不变）" % sha)
     print("记录守恒 / 物理行 %d -> %d / 含内嵌换行记录 %d -> %d / CR %d / 差异集合 [(%s, 提交)] / 台账 sha256=%s"
           % (res["base_lines"], res["new_lines"], res["base_embedded"], res["new_embedded"],
@@ -253,6 +268,19 @@ def run_selftest():
     f.write_bytes(w)
     apply(R, SHA, f, b, write=True)
     chk("F1 其它轮次行逐列不变", [r for r in parse_bytes(f.read_bytes()) if r[0] == "R998"][0][7] == "deadbee")
+    # G 生产路径的 **git 交互形态**（只读 git，不写盘）：首版 run_production 按元组解包 CompletedProcess，
+    # 而 `--selftest` 只覆盖 apply() ⇒ 缺陷躲过自测、首轮真实使用即崩（真实返工，历史 205 同族）。
+    g1 = git3("cat-file", "-e", "HEAD^{commit}")
+    chk("G1 git3 返回 (rc, out, err) 三元组且 rc == 0", isinstance(g1, tuple) and len(g1) == 3 and g1[0] == 0,
+        "rc=%s" % (g1[0],))
+    g2 = git3("merge-base", "--is-ancestor", "HEAD", "HEAD")
+    chk("G2 git3 的 merge-base 形态可用（rc == 0）", g2[0] == 0, "rc=%s" % (g2[0],))
+    g3 = git3("show", "HEAD:" + CSV_REL)
+    _n3 = len(parse_bytes(g3[1].encode("utf-8"))) if g3[0] == 0 else 0
+    chk("G3 git3 的 show 输出可解析为记录（> 0）", g3[0] == 0 and _n3 > 0, "记录 = %d" % _n3)
+    g4 = git3("merge-base", "--is-ancestor", "HEAD~1", "HEAD")
+    chk("G4 祖先判据对真祖先成立、对自身成立", g4[0] == 0 and git3("merge-base", "--is-ancestor", "HEAD", "HEAD~1")[0] != 0,
+        "anc(HEAD~1)=%s anc(反向)=%s" % (g4[0], git3("merge-base", "--is-ancestor", "HEAD", "HEAD~1")[0]))
     print("判据：PASS %d / FAIL %d" % (len(passes), len(fails)))
     print("SELFTEST_END=1" if not fails else "SELFTEST_FAIL=%s" % fails)
     return 1 if fails else 0
@@ -263,9 +291,9 @@ def main():
     if "--selftest" in args:
         return run_selftest()
     if len(args) < 2 or not args[0].upper().startswith("R"):
-        print("用法: python tools/round-verify/backfill-c7.py <轮次> <主提交短号> | --selftest")
+        print("用法: python tools/round-verify/backfill-c7.py <轮次> <主提交短号> [--precheck] | --selftest")
         return 2
-    return run_production(args[0].upper(), args[1])
+    return run_production(args[0].upper(), args[1], write="--precheck" not in args)
 
 
 if __name__ == "__main__":
