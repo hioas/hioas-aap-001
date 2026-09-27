@@ -43,6 +43,12 @@ git add <本轮证据 + 台账 + 状态文件 + 工具改动> && git commit   # 
 python tools/round-verify/postwrite.py R491 <主提交短号> > .agents/state/evidence/postwrite-check-R491.txt
 # ⑦ 台账「提交」列回填主提交短号（独立小提交；写盘前先与 HEAD 逐记录逐列比对，只允许本轮行 c7 一处差异）
 python tools/round-verify/backfill-c7.py R491 <主提交短号>
+
+# ⑧ 收尾一致性核对（F0–F18，四处同源 + 证据齐备）
+#    ⚠ **本工具自己落盘证据文件**（报告首行亦自述「由工具直接落盘，不依赖 shell 重定向」）——
+#    **切勿再加 `>` 重定向**：重定向的 fd 从**偏移 0** 写回，会把工具刚写好的标题行
+#    覆盖成状态回显行（症状 = 首行是「收尾核对：PASS …；证据 = …」，且分隔线少几个字符）。
+python tools/round-verify/final-check.py R491 <主提交短号>
 ```
 
 **独立复核（与 ①–⑦ 并行的一条只读通道，不进装置链）**：`independent.py` 是「不采信装置自身判定行」的
