@@ -30,6 +30,17 @@ import subprocess
 import sys
 from pathlib import Path
 
+# 证据落盘一律 LF（历史 69/84/146）：Windows 上 `python … > evidence.txt` 的 stdout 默认把 "\n" 翻成 CRLF，
+# 而同族证据（本工具的生产路径、analyze / device-report）都用 `write_text(newline="\n")` 是 LF ⇒
+# 同一目录一半 LF 一半 CRLF（本仓实测：`regression.py <ROUND> --selftest > evidence/…txt` 产出 29 行 / 29 个 CR，
+# 每轮靠一个现写的 `$TEMP` 包装脚本做字节归一兜底 —— 该兜底本身随时会随临时目录丢失，历史 169/177）。
+# 与 `postwrite.py` / `final-check.py` 同源做法：**由工具自己保证输出行尾**，调用方怎样重定向都不影响。
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(newline="\n")
+    except (ValueError, OSError):
+        pass
+
 ROOT = Path("E:/workspaces/hioas/hioas-aap-001")
 EV = ROOT / ".agents/state/evidence"
 T = Path("C:/Users/laitz/AppData/Local/Temp")
