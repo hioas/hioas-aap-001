@@ -1,14 +1,14 @@
 R491 装置侧修正与 `--device-change` 判据的负向对照实测（装置冻结后**首个真实使用轮**）
 ==============================================================================
-生成方式：本文件由脚本从 git / facts / 探针的真实输出取值（零手写值）。
+生成方式：本文件由脚本从 git / facts / 探针的真实输出取值（**数字零手写值**；标注「实测」的个别读数为本轮当场观测记录）。
 轮次 = R491；被测提交（HEAD 的独立 worktree 内检出）= 08bac712
 被测对象 = tools/round-verify/closeout.py（R490 冻结轮产物；本轮是装置冻结后第一次真实使用）
 
-一、本轮装置/取证侧修正共 3 处（前 2 处在装置内、第 3 处在取证脚本内；均零交付面影响）
+一、本轮装置/取证·更正脚本侧修正共 9 处（①②⑧ 在装置内、③④⑤⑦⑨ 在取证脚本内、⑥ 在更正脚本内；零交付面影响）
 ①（装置侧）`closeout.py` 断言 `freeze-device-<轮次>.txt` 存在 —— 装置自称「轮次无关」，却把 R490 冻结轮那一次的
    产物名当**常驻判据**：R491 起该断言永不成立（判据失效，装置在下一轮就自崩）。
-   机器证据（同一口径在 HEAD 原文与修正后工作区的命中行数）：
-     `git show HEAD:tools/round-verify/closeout.py` 含 `freeze-device` 的行数 = 2
+   机器证据（同一口径在**修正前（= 被测提交）**原文与修正后工作区的命中行数）：
+     `git show <被测提交>:tools/round-verify/closeout.py` 含 `freeze-device` 的行数 = 2
      工作区（修正后）同口径命中行数 = 0
    修法：改为「仅当本轮**申报了**装置侧改动时才要求装置侧证据 `device-round-<轮次>.txt` 存在」
    （本文件即该证据；断言与自述同源，历史 12）。
@@ -16,48 +16,83 @@ R491 装置侧修正与 `--device-change` 判据的负向对照实测（装置�
    该句只对 R490（冻结轮）为真；对「本轮装置面零改动」的轮次是**假自述**（坑 12/95/249）。
    修法：改为由 `--device-change` 双向机器核对推出的 DEVLINE。
 ③（取证脚本侧）本文件的生成脚本把一节文案拆成两个列表元素、百分号格式化只作用于第一个元素 → 产物里
-   残留字面**未解析占位符**（百分号后跟 `s`/`d`；**产物看起来完整、内容却是半成品**，坑 232 的相邻面）。
+   残留字面**未解析占位符**（**产物看起来完整、内容却是半成品**，坑 232 的相邻面）。
    修法：合并为单一表达式，并新增常驻守卫「产物不得含未解析占位符」（本节文案因此**不写占位符字面量**，
    否则守卫会自指命中 —— 坑 47 的文档自指形态）；本条即被该守卫拦下。
+④（取证脚本侧）第四节首版用 `git diff --stat HEAD -- aap-server docs` 当「交付面零改动」的证据 ——
+   它把**他方在途改动**算进来（实测输出 3 files changed / 123 insertions），与同节「零改动」的结论**自相矛盾**
+   （判据范围与语义不符，坑 81/193/198）。修法：改为「按窗口起点 + 路径归属」分类，并断言「归属未定 = 0」。
+⑤（取证脚本侧）同处第二版把「窗口之后自己产生的证据文件」（分析器/回归面/收尾的产物）误标成「他方在途」——
+   归属判据按「落在跑测窗口内」而窗口只覆盖两轮跑测（坑 12/95：结论句的每个计数都要与事实一致）。
+   修法：改为「mtime >= 窗口起点 ∧ 路径属本轮装置·留痕目录」= 本轮条目，保留「窗口前」为他方在途，
+   并与执行器落盘的窗口起点在途清单做**守恒对账**（8 = 窗口前 6 + 被本轮工具链重写 2）。
+⑥（更正脚本侧）台账「提交」列回填 v1 用 `raw.decode().splitlines()` 取行再交给 `csv.reader` ——
+   **字段内的内嵌换行会被吃掉**（splitlines 去掉行终止符，list 输入不会补回）⇒ 实测把**历史行** R254 / R454 的
+   内嵌换行删掉，numstat 报 3 插入 / 5 删除（正常应为 1 / 1）—— 改动落到**非本轮行**上（坑 80/155/169 的反例）。
+   机器证据：本轮最终版回填的 numstat = 1 / 1，且与 HEAD 的**逐记录逐列**差异集合恰为 `{(R491, 提交)}`、
+   内嵌换行记录数守恒 = 2、物理行数守恒 = 575。
+   修法：改用**文件对象迭代**（`open(newline="")`）解析 + 内容级验收（差异集合/守恒量/CR 三连）。
+⑦（取证脚本侧）分支 B 追加脚本把百分号格式化写在列表**末元素**上 ⇒ `TypeError: not all arguments converted`，
+   在写盘前当场崩（**零副作用**，坑 232 的又一次实例）。修法：整串括号化后再套 `%`。
+⑧（装置侧）新增判据的语义过窄：`--device-change` 只接受「**工作区未提交**的 tools/ 改动」⇒ 装置改动一旦提交，
+   收尾更正相位就无法如实申报（判据把**合法的第二轮**挡住，坑 81/243-①）。
+   修法：判定改为「工作区未提交改动 **∪** 被测提交..HEAD 之间触及 tools/ 的提交」，DEVLINE 同时打印两个计数。
+   机器证据（判据落地）：`--device-change` 口径在修正前原文命中 0 行 → 修正后工作区命中 3 行。
+⑨（取证脚本侧）本文件**自身**的缺陷取证锚点随修正而失效：① 的读数原本取 `HEAD:` 的源码，而装置修正
+   一旦提交，`HEAD` 就变成**修正后**的版本 ⇒ 正向对照断言当场响亮失败（**缺陷取证必须锚在修正前的产物**，
+   坑 214）。修法：锚点改为 `git show <被测提交>:…`（被测提交 = 窗口起点 HEAD = 本轮全部改动之前的提交态）。
 
 二、`--device-change` 双向机器核对（本轮新增判据）
-   申报了 → 必须真有未提交改动（否则报「自述不实」）；未申报 → 必须真的零改动（否则点名「未申报的改动」）。
+   申报了 → 必须真有改动（工作区未提交改动 **或** 被测提交..HEAD 之间触及 `tools/` 的提交，否则报「自述不实」）；
+   未申报 → 两个来源都必须为空（否则点名「未申报的改动」）。
    机器证据（判据落地）：`--device-change` 口径在 HEAD 原文命中 0 行 → 修正后工作区命中 3 行。
    为什么必须双向：单向判据在「描述列说假话」与「守卫被架空（空转绿）」两种失效方向上各留一半静默空间
    （坑 57/68/98）。
 
-三、负向对照实测（判别力；两条都发生在**任何写盘之前**）
-   分支 A（漏申报：`tools/` 脏 + 不传 `--device-change`）—— 本轮实测原始输出：
-     前置：git status --porcelain -- tools/ = 1 条 -> [' M tools/round-verify/closeout.py']
+三、判别力实测（三个方向的原始输出；控制组全部止步于**写盘之前**）
+   方向 A（漏申报：`tools/` 非空 + 不传 `--device-change`）—— 本轮实测原始输出：
+     前置：被测提交(窗口起点 HEAD) = 08bac712
+     前置：git status --porcelain -- tools/ = 0 条 []
+     前置：被测提交..HEAD 触及 tools/ 的提交 = 2 枚
      前置：三处目标文件指纹已取（3 个）
-     前置正向对照：分支 A 要求 tools/ **脏**；实际 1 条（须 > 0，否则本分支没被测到）
-     A/B 被测分支 = A
-     [PASS] B1 closeout rc != 0（应响亮失败） rc=1
-     [PASS] B2 失败信息点名判据（须含 '未申报的改动'） 行 = AssertionError: tools/ 存在未申报的改动 [' M tools/round-verify/closeout.py']（请显式 --device-change，否则描述列会说假话）
-     [PASS] B3 零写副作用（三处目标文件 (mtime_ns,size,md5) 全等） 变化 = 无
+     前置正向对照：分支 A 要求 tools/ 非空；实际 1 条 ['?? tools/round-verify/.device-probe-marker']（须 > 0）
+     被测方向 = A（漏申报）
+     [PASS] B1 closeout rc != 0（响亮失败） rc=1
+     [PASS] B2 失败点符合预期（须含 '未申报的改动'） AssertionError: tools/ 存在未申报的改动（工作区 ['?? tools/round-verify/.device-probe-marker'] / 提交链 ['79837533cb2bc1fab282d1315dc35efbb5d5ed3f', '82ba70d18b8955d1c3b0d4f2a3f558c63445f7d8']）—— 请显式 --device-change，否则描述列会说假话
+     [PASS] B3 反向对照：失败信息**不得**含 '自述不实' 
+     [PASS] B4 零写副作用（三处目标文件 (mtime_ns,size,md5) 全等） 变化 = 无
      PROBE_A_END=1
-   分支 B（误申报：`tools/` 干净 + 传 `--device-change`）—— 该分支**只在 `tools/` 干净时可测**
-   （主提交之后），故其原始输出由**收尾提交**补充在本文件末尾并写明溯源；主提交携带的版本里
-   分支 B 段标为「待补充」——这是**顺序约束**（不是先写错再补正，历史 209）。
+   方向 B（误申报：**两个来源都为空** + 传 `--device-change`）—— 本轮**未实测**（据实登记，不冒充覆盖，历史 176）：
+     前置：被测提交(窗口起点 HEAD) = 08bac712
+     前置：git status --porcelain -- tools/ = 0 条 []
+     前置：被测提交..HEAD 触及 tools/ 的提交 = 2 枚
+     前置：三处目标文件指纹已取（3 个）
+     BRANCH_B_NOT_EXERCISED=1（本轮 2 枚提交触及 tools/ ⇒ 「两个来源都为空」的被测状态不存在；据实登记为未实测，不冒充覆盖，历史 176）
+   方向 C（申报且**已提交**：`tools/` 空 + 提交链里有触及 `tools/` 的提交）—— 本轮实测原始输出：
+     前置：被测提交(窗口起点 HEAD) = 08bac712
+     前置：git status --porcelain -- tools/ = 0 条 []
+     前置：被测提交..HEAD 触及 tools/ 的提交 = 2 枚
+     前置：三处目标文件指纹已取（3 个）
+     前置正向对照：分支 C 要求 tools/ 为空；实际 0 条（须 == 0）
+     被测方向 = C（申报且已提交）
+     [PASS] B1 closeout rc != 0（响亮失败） rc=1
+     [PASS] B2 失败点符合预期（须含 '本轮行已存在'） AssertionError: 本轮行已存在（幂等：请勿重复追加；如为据实更正请显式加 --rewrite）
+     [PASS] B3 反向对照：失败信息**不得**含 '自述不实' 
+     [PASS] B4 零写副作用（三处目标文件 (mtime_ns,size,md5) 全等） 变化 = 无
+     PROBE_C_END=1
+   溯源：主提交携带的本文件版本里 B 段标为「待补充」（**顺序约束**：装置改动在主提交时尚未提交、`tools/` 非空，
+   故「两个来源都为空」的被测状态当时不存在）；本版本由收尾提交补入三个方向的实测输出 —— 同名文件**内容补充**、
+   清单与证据条数不变（不是先写错再补正，历史 209）。
 
 四、交付面零改动（三条可机检判据，避免把他方在途算作本轮改动）
    ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，0 才说明两轮测的是提交态）。
-   ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 6 条（他方在途，只登记不触碰）/ 窗口起点后且路径属本轮装置·留痕目录 14 条（= 本轮自己的产物）/ 其余 0 条（须为 0；非 0 即「归属未定」，判据不成立）。
+   ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 6 条（他方在途，只登记不触碰）/ 窗口起点后且路径属本轮装置·留痕目录 5 条（= 本轮自己的产物）/ 其余 0 条（须为 0；非 0 即「归属未定」，判据不成立）。
       窗口起点后的本轮条目（判据：`tools/round-verify/` 或 `.agents/state/` 前缀，且 mtime >= 窗口起点）：
+         M .agents/state/aap-server-feature-status.csv  mtime=2026-09-27 10:53:52
+         M .agents/state/evidence/device-round-R491.txt  mtime=2026-09-27 10:55:34
          M .agents/state/evidence/endpoint-test-audit.json  mtime=2026-09-27 10:43:08
          M .agents/state/evidence/endpoint-test-audit.txt  mtime=2026-09-27 10:43:08
-         M tools/round-verify/closeout.py  mtime=2026-09-27 10:40:07
-        ?? .agents/state/evidence/audit-regression-R491-faildiff.txt  mtime=2026-09-27 10:47:26
-        ?? .agents/state/evidence/audit-regression-R491-failraw.txt  mtime=2026-09-27 10:47:26
-        ?? .agents/state/evidence/audit-regression-R491-rcseq.txt  mtime=2026-09-27 10:47:26
-        ?? .agents/state/evidence/audit-regression-R491.txt  mtime=2026-09-27 10:47:26
-        ?? .agents/state/evidence/device-round-R491.txt  mtime=2026-09-27 10:51:32
-        ?? .agents/state/evidence/green-verify-R491-coverage-fields.txt  mtime=2026-09-27 10:43:02
-        ?? .agents/state/evidence/green-verify-R491-full-run1.txt  mtime=2026-09-27 10:43:02
-        ?? .agents/state/evidence/green-verify-R491-full-run2.txt  mtime=2026-09-27 10:43:02
-        ?? .agents/state/evidence/green-verify-R491-testcount.txt  mtime=2026-09-27 10:43:02
-        ?? .agents/state/evidence/green-verify-R491-tested-state.txt  mtime=2026-09-27 10:43:02
-        ?? .agents/state/evidence/round-R491-analysis.txt  mtime=2026-09-27 10:43:02
+        ?? .agents/state/evidence/postwrite-check-R491.txt  mtime=2026-09-27 10:52:38
       其中位于 `aap-server/` 或 `docs/` 的条目 = 0 条（**须为 0** ＝ 交付面零改动）。
       窗口前条目（他方在途）：6 条
          M .agents/state/evidence/coverage-report.json  mtime=2026-09-25 05:34:37
