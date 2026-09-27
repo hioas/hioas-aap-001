@@ -340,7 +340,7 @@ def build_ctx(ROUND, MAIN):
     if m:
         rework = m.group(1)
 
-    return {
+    out = {
         "round": ROUND, "main": MAIN, "tested": tested,
         "facts_round": facts.get("FACTS_ROUND", ""), "facts_written": facts.get("FACTS_WRITTEN", ""),
         "csv_bytes": raw, "csv_rows": rows,
@@ -355,7 +355,15 @@ def build_ctx(ROUND, MAIN):
         "orphans": orphans, "orphan_whitelist": ORPHAN_WHITELIST, "scan_roots": scan_roots,
         "n_csv": n_csv, "n_hist": len(hist_lines), "n_state": n_state,
         "streak_src": streak, "rework_src": rework,
+        "cov_repo": cov_repo, "cov_run": cov_run,
     }
+    # 真实上下文与合成上下文的**键集必须相等**：新增 ctx 键时只在合成侧补齐，
+    # 会让自测全绿而真实运行 KeyError（历史 44/82：同一事实两处写法是漂移高发地）。
+    _ref = synth_ctx()
+    if set(out) != set(_ref):
+        raise SystemExit("[FAIL] 真实上下文与合成上下文键集不同：真实缺 %s / 真实多 %s"
+                         % (sorted(set(_ref) - set(out)), sorted(set(out) - set(_ref))))
+    return out
 
 
 # ---------------------------------------------------------------- 自测
