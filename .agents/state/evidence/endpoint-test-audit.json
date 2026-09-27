@@ -1,12 +1,12 @@
 {
-  "total": 102,
-  "exact": 102,
+  "total": 108,
+  "exact": 108,
   "prefix": 0,
   "none": 0,
-  "id_traceable": 102,
-  "id_traceable_literal_only": 83,
+  "id_traceable": 108,
+  "id_traceable_literal_only": 89,
   "id_grouped_only": 19,
-  "id_traceable_same_file_as_call": 101,
+  "id_traceable_same_file_as_call": 107,
   "id_not_traceable": [],
   "id_not_traceable_same_file_as_call": [
     "ADM-AUTH01"
@@ -31,7 +31,7 @@
         "aap-server/src/test/java/com/hioas/aap/iam/AuthContractTest.java"
       ],
       "id_grouped_only": false,
-      "exact_sites": 38,
+      "exact_sites": 39,
       "prefix_sites": 0,
       "exact_sample": [
         {
@@ -62,7 +62,7 @@
       ],
       "id_refs_literal": [],
       "id_grouped_only": true,
-      "exact_sites": 33,
+      "exact_sites": 34,
       "prefix_sites": 0,
       "exact_sample": [
         {
@@ -219,7 +219,7 @@
       ],
       "id_grouped_only": false,
       "exact_sites": 2,
-      "prefix_sites": 7,
+      "prefix_sites": 8,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java",
@@ -262,7 +262,7 @@
         "aap-server/src/test/java/com/hioas/aap/provider/ProviderContractTest.java"
       ],
       "id_grouped_only": false,
-      "exact_sites": 7,
+      "exact_sites": 8,
       "prefix_sites": 2,
       "exact_sample": [
         {
@@ -1840,6 +1840,89 @@
       ]
     },
     {
+      "id": "SET-01",
+      "method": "GET",
+      "path": "/api/v1/settlements",
+      "task": "T17",
+      "tag": "Settlement",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
+      ],
+      "id_grouped_only": false,
+      "exact_sites": 5,
+      "prefix_sites": 1,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "HttpResult list = get(\"/admin/settlements?page=1&pageSize=1\", admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "assertThat(get(\"/admin/settlements\", supplier).status()).isEqualTo(403);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java",
+          "line": "return post(\"/admin/settlements\", \"\"\"",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "SET-02",
+      "method": "GET",
+      "path": "/api/v1/settlements/{id}",
+      "task": "T17",
+      "tag": "Settlement",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
+      ],
+      "id_grouped_only": false,
+      "exact_sites": 4,
+      "prefix_sites": 14,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/settlements/\" + id, biz);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java",
+          "line": "HttpResult missing = get(\"/admin/settlements/999999999999\", biz);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java",
+          "line": "HttpResult confirmed = post(\"/admin/settlements/\" + firstId + \"/confirm\", null, biz);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java",
+          "line": "HttpResult again = post(\"/admin/settlements/\" + firstId + \"/confirm\", null, biz);",
+          "helper": "post"
+        }
+      ]
+    },
+    {
       "id": "NTF-01",
       "method": "GET",
       "path": "/api/v1/notifications",
@@ -3093,17 +3176,19 @@
       "tag": "Admin",
       "evidence": "exact",
       "id_refs": [
-        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java"
+        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
       ],
       "id_refs_with_call": [
         "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java"
       ],
       "id_refs_literal": [
-        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java"
+        "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
       ],
       "id_grouped_only": false,
       "exact_sites": 3,
-      "prefix_sites": 0,
+      "prefix_sites": 1,
       "exact_sample": [
         {
           "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
@@ -3116,7 +3201,13 @@
           "helper": "get"
         }
       ],
-      "prefix_sample": []
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java",
+          "line": "return post(\"/admin/settlements\", \"\"\"",
+          "helper": "post"
+        }
+      ]
     },
     {
       "id": "ADM-PAY04",
@@ -3202,6 +3293,177 @@
         {
           "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
           "line": "HttpResult ok = post(\"/admin/payments/\" + paymentId + \"/confirm\", null, admin);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "ADM-PAY06",
+      "method": "POST",
+      "path": "/api/v1/admin/settlements",
+      "task": "T17",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
+      ],
+      "id_grouped_only": false,
+      "exact_sites": 1,
+      "prefix_sites": 3,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java",
+          "line": "return post(\"/admin/settlements\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "HttpResult list = get(\"/admin/settlements?page=1&pageSize=1\", admin);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/PaymentContractTest.java",
+          "line": "assertThat(get(\"/admin/settlements\", supplier).status()).isEqualTo(403);",
+          "helper": "get"
+        }
+      ]
+    },
+    {
+      "id": "ADM-PAY07",
+      "method": "GET",
+      "path": "/api/v1/admin/settlements/{id}",
+      "task": "T17",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
+      ],
+      "id_grouped_only": false,
+      "exact_sites": 2,
+      "prefix_sites": 12,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/settlements/\" + id, biz);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java",
+          "line": "HttpResult missing = get(\"/admin/settlements/999999999999\", biz);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java",
+          "line": "HttpResult confirmed = post(\"/admin/settlements/\" + firstId + \"/confirm\", null, biz);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java",
+          "line": "HttpResult again = post(\"/admin/settlements/\" + firstId + \"/confirm\", null, biz);",
+          "helper": "post"
+        }
+      ]
+    },
+    {
+      "id": "ADM-PAY08",
+      "method": "POST",
+      "path": "/api/v1/admin/settlements/{id}/confirm",
+      "task": "T17",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
+      ],
+      "id_grouped_only": false,
+      "exact_sites": 2,
+      "prefix_sites": 7,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java",
+          "line": "HttpResult confirmed = post(\"/admin/settlements/\" + firstId + \"/confirm\", null, biz);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java",
+          "line": "HttpResult again = post(\"/admin/settlements/\" + firstId + \"/confirm\", null, biz);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java",
+          "line": "HttpResult confirmed = post(\"/admin/settlements/\" + firstId + \"/confirm\", null, biz);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java",
+          "line": "HttpResult again = post(\"/admin/settlements/\" + firstId + \"/confirm\", null, biz);",
+          "helper": null
+        }
+      ]
+    },
+    {
+      "id": "ADM-PAY09",
+      "method": "POST",
+      "path": "/api/v1/admin/settlements/{id}/void",
+      "task": "T17",
+      "tag": "Admin",
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java"
+      ],
+      "id_grouped_only": false,
+      "exact_sites": 3,
+      "prefix_sites": 7,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java",
+          "line": "HttpResult voidConfirmed = post(\"/admin/settlements/\" + firstId + \"/void\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java",
+          "line": "HttpResult noReason = post(\"/admin/settlements/\" + firstId + \"/void\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java",
+          "line": "HttpResult confirmed = post(\"/admin/settlements/\" + firstId + \"/confirm\", null, biz);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/settlement/SettlementContractTest.java",
+          "line": "HttpResult again = post(\"/admin/settlements/\" + firstId + \"/confirm\", null, biz);",
           "helper": null
         }
       ]
