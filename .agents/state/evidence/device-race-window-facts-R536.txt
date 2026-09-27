@@ -1,0 +1,56 @@
+R536 装置竞态取证（窗口 facts 三值不同源 → 消费方判据报红 → 已结构性修复）
+==============================================================================
+生成方式：读数由 `window-facts-probe.sh` 在**执行器所用的同一个 bash**（/usr/bin/bash / MINGW64_NT-10.0-26100）内产出，
+          本文件由 aux 消费步读取原始输出、逐条断言关键读数后以 LF 落盘（不依赖 shell 重定向）。
+
+一、缺陷（本轮真实触发，非推测）
+  `run-round.sh` 原先用**三次独立 `date` 调用**写窗口起止的 HH:MM:SS / epoch / ISO 三值：
+      log "FACTS_WINDOW_START=$(date +%H:%M:%S)"
+      log "FACTS_WINDOW_START_TS=$(date +%s)"
+      log "FACTS_WINDOW_START_ISO=$(date '+%Y-%m-%d %H:%M:%S')"
+  三次调用之间若跨过一个秒界，三值即**自相矛盾**（HH:MM:SS 早于 ISO 一秒）。本轮 facts 实测即为此形态
+  （见下文「四、真实见证」）：`FACTS_WINDOW_START=03:34:49` 而 `FACTS_WINDOW_START_ISO=2026-09-28 03:34:50`。
+  后果：消费方 `windowtime.resolve_window_seq`（被 `analyze.py A5` / `independent.py J1g` 共用）要求
+  「任一 HH:MM:SS 在窗口 [ISO_start, ISO_end] 内**恰好 1 个合法落位**」⇒ 03:34:49 落在窗口起点之前
+  ⇒ 报 `J1g 窗口单调且两轮串行 … 03:34:49 在窗口内合法落位 0 个`。**判据是对的、被测量是错的**
+  （facts 不得自相矛盾），故修**生产侧**、不放宽判据。
+
+二、修复（结构性消除，不是「这次改对了」）
+  窗口起止各改为**单次时钟读取 + 由同一 epoch 派生三值**：
+      WS=$(date +%s)                                  # 唯一时钟读取
+      FACTS_WINDOW_START=$(date -d "@$WS" +%H:%M:%S)      # 派生
+      FACTS_WINDOW_START_TS=$WS                              # 派生（就是那个 epoch）
+      FACTS_WINDOW_START_ISO=$(date -d "@$WS" '…')           # 派生
+  同一事实只有**一个来源** ⇒ 「跨秒不同源」在原理上不可能出现（历史 201/206/243-③ 的结构性消除范式）。
+  常驻守卫 = 消费侧 `J1g`（本轮正是它抓住的）；本探针的 ① 结构判据另作源码级回归守卫（退回旧写法即转红）。
+
+三、探针读数（原始输出逐条，含应取值）
+  PROBE_BASH=/usr/bin/bash
+  PROBE_UNAME=MINGW64_NT-10.0-26100
+  --- ① 结构判据（源码级；可失败，故非空转）---
+  SRC_START_SINGLE_READ=1（须 1）
+  SRC_END_SINGLE_READ=1（须 1）
+  SRC_DERIVED_VALUES=4（须 4：起点 2 + 终点 2）
+  SRC_LEGACY_MULTI_CALL=0（须 0；>0 说明退回了多次独立 date 调用）
+  --- ② 修复形态一致性（同一 epoch 派生 3 值，逐条比对）---
+  DERIVED_CONSISTENT=100/100（须 100/100）
+  --- ③ 旧形态竞态（多次独立 date 调用 + 人为跨秒 ⇒ 必然不同源）---
+  LEGACY_FORM_RACY=Y（须 Y：证明旧形态结构性不可靠）
+  LEGACY_SAMPLE_A=03:54:25 / LEGACY_SAMPLE_B=2026-09-28 03:54:26
+  --- ④ 本轮真实见证（facts 文件里那条自相矛盾的读数，只读引用）---
+  PROBE_END=1
+四、真实见证（本轮 facts 文件只读引用；`C:\Users\laitz\AppData\Local\Temp\aap-round-verify\R536\window-facts-probe.raw`）
+  WITNESS FACTS_WINDOW_START=03:34:49
+  WITNESS FACTS_WINDOW_START_TS=1790537689
+  WITNESS FACTS_WINDOW_START_ISO=2026-09-28 03:34:50
+  WITNESS FACTS_WINDOW_END=03:39:36
+  WITNESS FACTS_WINDOW_END_TS=1790537976
+  WITNESS FACTS_WINDOW_END_ISO=2026-09-28 03:39:37
+五、诚实边界
+  · 旧形态的**竞态概率** ≈ 三次 `date` 调用总耗时 / 1000ms（实测量级 10ms/1s）；本轮为真实命中，
+    非人为构造 ⇒ 「修复前确有缺陷」有实测背书。
+  · 修复后**不再需要**「等下一次真实触发」来证明有效：一致性由**同一 epoch 派生**在构造上保证，
+    并由 ② 的 100/100 条派生对照与 ① 的源码级结构判据机器核对（历史 176：不得用「这次没触发」当证据）。
+  · 本轮 facts 由**修复前**的执行器产生（facts 是不可回改的原始记录，手改即为伪造），
+    因此本轮 `independent.py` 的 J1g 仍**合法报红**（39/40）；下一轮起 facts 由修复后形态产生。
+EVIDENCE_END=1

@@ -45,9 +45,14 @@ JPS="$(dirname "$(type -p java 2>/dev/null)")/jps"
 log "ENV_JPS=$JPS"
 if [ -x "$JPS" ]; then log "ENV_JPS_REACHABLE=Y"; else log "ENV_JPS_REACHABLE=N"; fi
 log "FACTS_ROUND=$ROUND"
-log "FACTS_WINDOW_START=$(date +%H:%M:%S)"
-log "FACTS_WINDOW_START_TS=$(date +%s)"
-log "FACTS_WINDOW_START_ISO=$(date '+%Y-%m-%d %H:%M:%S')"
+# 窗口起止三值必须**同源**（单次时钟读取后派生）：写成多次独立 `date` 调用时，两次调用之间跨过一个秒界
+# 会让 `FACTS_WINDOW_START`（HH:MM:SS）早于 `FACTS_WINDOW_START_ISO` 一秒 ⇒ facts **自相矛盾**，
+# 消费方（windowtime.resolve_window_seq → analyze A5 / independent J1g）会把合法的 HH:MM:SS 判成
+# 「窗口内合法落位 0 个」而报失败。该竞态是真实触发过的（概率约 10ms/1s 每次跑测），故改为单次读取。
+WS=$(date +%s)
+log "FACTS_WINDOW_START=$(date -d "@$WS" +%H:%M:%S)"
+log "FACTS_WINDOW_START_TS=$WS"
+log "FACTS_WINDOW_START_ISO=$(date -d "@$WS" '+%Y-%m-%d %H:%M:%S')"
 log "FACTS_HEAD_AT_START=$(git -C "$ROOT" rev-parse --short HEAD)"
 H0=$(git -C "$ROOT" rev-parse HEAD)
 log "FACTS_HEAD_AT_START_FULL=$H0"
@@ -131,9 +136,11 @@ git -C "$ROOT" status --porcelain > "$W/root-status-after.txt" 2>&1
 
 git -C "$ROOT" worktree remove --force "$WT" >>"$W/wt.log" 2>&1
 log "WORKTREE_REMOVE_RC=$?"
-log "FACTS_WINDOW_END=$(date +%H:%M:%S)"
-log "FACTS_WINDOW_END_TS=$(date +%s)"
-log "FACTS_WINDOW_END_ISO=$(date '+%Y-%m-%d %H:%M:%S')"
+# 窗口尾三值同上：**同源派生**（理由见窗口起点处的注释）。
+WE=$(date +%s)
+log "FACTS_WINDOW_END=$(date -d "@$WE" +%H:%M:%S)"
+log "FACTS_WINDOW_END_TS=$WE"
+log "FACTS_WINDOW_END_ISO=$(date -d "@$WE" '+%Y-%m-%d %H:%M:%S')"
 log "FACTS_HEAD_AT_END=$(git -C "$ROOT" rev-parse --short HEAD)"
 H1=$(git -C "$ROOT" rev-parse HEAD)
 log "FACTS_HEAD_AT_END_FULL=$H1"
