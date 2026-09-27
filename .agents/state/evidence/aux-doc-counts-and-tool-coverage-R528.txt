@@ -1,0 +1,39 @@
+R528 aux 探针（只读、一次性）：文档声明数字 ⇔ 实跑 / 单一事实源 两组机器核对
+==============================================================================
+工具：probe-r528-doc-counts.py（非装置件；未进仓库 tools/、未进回归面 —— 扩面须人拍板，历史 213-③/216）
+只读：不写任何仓库文件；`--selftest` 分支零落盘。报告由本脚本直接落盘（newline=\n，历史 69/84/146）。
+解释器来源 = manifest.json 的 audits[0].cmd[0]（与回归面同一事实源）：python.exe
+
+---------- 一、A 组：装置 README 声明的自测例数 ⇔ 实跑汇总行 ----------
+A0a README 表格行解析到 5 / 5 个工具（> 0 正向对照）
+A0b DECL_BOLD 命中 3 条 / DECL_EQ 命中 2 条 / DECL_SUM 命中 2 条（三形态都须 > 0）
+A0c regression     rc=0 汇总行=(23, 0, 23)
+A0c backfill-c7    rc=0 汇总行=(20, 0, 20)
+A0c final-check    rc=0 汇总行=(20, 0, 20)
+A0c independent    rc=0 汇总行=(39, 0, 39)
+A0c device-report  rc=0 汇总行=(10, 0, 10)
+
+A1 regression     声明 {'粗体 N 例/条': [23], '反引号汇总行': [23]} ⇔ 实跑 (23, 0, 23)
+A1 backfill-c7    声明 {'= N 条': [20], '反引号汇总行': [20]} ⇔ 实跑 (20, 0, 20)
+A1 final-check    声明 {'粗体 N 例/条': [20]} ⇔ 实跑 (20, 0, 20)
+A1 independent    声明 {'粗体 N 例/条': [39]} ⇔ 实跑 (39, 0, 39)
+A2 device-report  声明 = 未声明（信息项，非 FAIL）⇔ 实跑 (10, 0, 10)
+A3 失配条数 = 0（须 0）
+
+---------- 二、B 组：tools/ 脚本覆盖分类（候选缺口只报不判） ----------
+B0a tools/ 顶层脚本 35 个（> 0 正向对照）
+B0b manifest 引用名 90 个 / 装置链 11 个（均须 > 0）
+B0c 首个 docstring 首行解析到 35 / 35 个（> 0 正向对照）
+B1 已覆盖（回归面 ∪ 装置链）= 28；未覆盖 = 7
+   biz-closure-e2e.py         自称门禁=N 被别处引用=Y  doc1=业务闭环端到端验收（供应商端 → 管理端 → 上架 → 用量），真实 HTTP，非 mock。
+   calicat-admin-capture.sh   自称门禁=N 被别处引用=N  doc1=抓管理端 11 页的 design / interaction / screenshot（逐页，不一次性拉全画布）
+   dev-db-query.sh            自称门禁=N 被别处引用=N  doc1=查 aap_server_dev 的账号与角色（凭据从 /mnt/e/env/aap-server.env 注入，不落盘、不回显）
+   newapi-stub.py             自称门禁=N 被别处引用=Y  doc1=本地一体上下游桩（联调用，非交付代码路径）：同时扮演「模型厂商」与「new-api 管理端」。
+   round-archive-clean.py     自称门禁=N 被别处引用=Y  doc1=归档目录幂等化助手（受控清理；`rm -rf` 在 cron 下被安全策略拦下 -> 用 Python 的 rmtree）。
+   run-dev-server.sh          自称门禁=N 被别处引用=N  doc1=本地 dev 后端启动器（闭环验收用）。
+   with-env.sh                自称门禁=N 被别处引用=Y  doc1=按 SOUL 约定载入 E:\env\<name>.env 后执行命令：
+B2 未覆盖脚本里**自称门禁/审计**的候选缺口 = 0 条：无（只报不判；判据扩面须人拍板，历史 213-③）
+B2b 未被引用（连工具/README/manifest/执行器都不提及）的未覆盖脚本 = 3 条：['calicat-admin-capture.sh', 'dev-db-query.sh', 'run-dev-server.sh']
+   （判据 = 首个 docstring 首行是否自称门禁/审计；取「全文任意关键词」会报出 stub 注释里的「审计」这类假候选 —— 本轮实测 2 条，历史 81）
+
+汇总：A 失配 0 条（须 0） / B 门禁类候选缺口 0 条（信息项）

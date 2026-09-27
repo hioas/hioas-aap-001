@@ -1,0 +1,83 @@
+R528 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动三判据）
+==============================================================================
+生成方式：本文件由 `tools/round-verify/device-report.py` 从 git / facts / 证据的**真实输出**取值（数字零手写值），不接触交付面。
+轮次 = R528；被测提交（HEAD 的独立 worktree 内检出）= a911fa5c；窗口 = 2026-09-28 00:25:53 -> 2026-09-28 00:30:48（facts 落盘）
+
+一、装置面改动（机器推导，零手写）
+  被测提交的 `tools/round-verify` 文件 = 13 个 / 工作区同名文件 = 13 个（新增 0 / 删除 0）
+  工作区未提交的 tools/ 条目 = 2 条： M tools/round-verify/backfill-c7.py |  M tools/round-verify/device-report.py
+  「被测提交..HEAD」触及 tools/ 的提交 = 0 枚（本文件生成于主提交之前）
+  逐文件 numstat（工作区 vs HEAD，`插入/删除/路径`）：11	0	tools/round-verify/backfill-c7.py; 10	0	tools/round-verify/device-report.py
+  轮次无关性守卫：装置脚本（11 个 .py/.sh）内当前轮次号命中 = **0**（须 0
+    = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
+
+二、本轮返工真值 = **6 处**（零交付面影响；条目文本来自单一事实源 `round-note.md`，与台账描述列 / 状态文件小节共用）
+------------------------------------------------------------------------------
+**性质**：覆盖 `missing=0` ⇒ **纯校验轮**（交付面零改动：未改 `aap-server` / `docs` / 测试面 / 冻结清单生成物**一行**）。本轮**装置面有改动**（2 个 `tools/round-verify/` 文件，见下文「装置侧改动」段，均为**工具自身输出行尾一致性**修正，不触碰交付面、不改变任何判据口径）。
+
+**两轮全量（串行，真实输出）**：被测提交 = 窗口起点 HEAD `a911fa5c`（独立 detached worktree 内检出，与 HEAD 差异 **0** 行）；run1 `00:26:13→00:28:39`（maven `Total time:  02:24 min`）、run2 `00:28:39→00:30:44`（`02:02 min`）（**串行**：run1_end ≤ run2_start；窗口 `00:25:53→00:30:48`）；各 **263 例 / 45 类**、rc **0/0**、Failures-Errors-Skipped **0-0-0**、两轮 `BUILD SUCCESS` 为真且 `BUILD FAILURE` = 0；`@Test` 词边界计数 **263 == 263**（裸子串 265 作对照，差 2）；逐类结果（剥 `Time elapsed` 再排序）diff **0**；类级用例数之和 == 合计 **263**；禁用扫描 **0 条**；归档测试源 **51** 个 `.java` == facts 声明；maven 耗时两轮写法均为 `mm:ss min` ⇒ 另一写法本轮**未复现**（按历史 176 只报「未复现」、不报「修复有效」）。并发前置门槛**真的执行**：`PREFLIGHT_OK=1` / `PREFLIGHT_RESULT=CLEAR` / 双向对照 `pos=2/2`、`neg=0/2`（必须 0）/ 环境体检 `jps_reach=Y`。
+
+**覆盖（三处独立读数一致）**：total **108** / implemented **108** / **missing = 0**、`registered_routes` = **125**、`not_registered` = []；按族相加 == total（15 族 108/108）；`endpoints.json` 端点数（108）＝其顶层 `total`（108）＝覆盖报告 `total`（108）；仓库跟踪副本 == worktree 归档副本（投影后逐字段相等）。连续第 **510** 轮全绿。
+
+**回归面（84 条全量复跑）**：`tag` 集合 84 ↔ 84 对齐、差异 0；rc 逐条变化 **0** / 新增 **0** / 未复跑 **0**；FAIL 明细 42 脚本 **161 行**，跨轮 faildiff 上一轮 161 行 / 本轮 161 行、新增 **0** / 消失 **0**；**零写副作用**（97 个冻结清单生成物 size+md5 运行前后全等）；归仓耐久性守卫 **54 条**「索引 ⇔ 归档 ⇔ 原文件」**三方逐字节一致**（原文件已丢失 0 条、索引孤儿 0 条）；分析器 **25 PASS / 0 FAIL**。
+
+**崩溃通道（第三类通道）**：`rc!=0 ∧ FAIL 0 行` 共 **2** 条（`gap-coverage-gap`、`gap-coverage-gap-selftest`），完整理由行集 sha256 与上一轮**逐字节相同**（`977222fe…` / `14235db0…`）⇒ 理由变化 **0**、本轮新增通道 0、转绿消失 0。
+
+**装置工具自测汇总行的实跑读数（本轮实跑，非沿用）**：`regression.py <轮次> --selftest` = **23 PASS / 0 FAIL**（落盘为 `regression-selftest-R528.txt`，是 `independent.py` J7a 的核心证据之一）、`backfill-c7.py --selftest` = **20 PASS / 0 FAIL**、`final-check.py <轮次> --selftest` = **20 PASS / 0 FAIL**、`independent.py --selftest` = **39 PASS / 0 FAIL**、`device-report.py <轮次> --selftest` = **10 PASS / 0 FAIL**。以上五个读数**不是手抄**：由本轮 aux 探针按**同一解释器**（`manifest.json` 的 `audits[0].cmd[0]`）逐个实跑并解析汇总行得到，见下段与 `aux-doc-counts-and-tool-coverage-R528.txt`。
+
+**本轮实质动作：文档声明数字 ⇔ 实跑 / 单一事实源 两组只读机器核对（承接上一轮待拍板 ⑤）**。aux 探针 `probe-r528-doc-counts.py`（一次性、只读、未进仓库 `tools/`、未进回归面 —— 扩面须人拍板，历史 213-③/216；另有 **14 例判别力自测**，每类注入各点名 1 条）：
+- **A 组（装置 README 声明的自测例数 ⇔ 实跑汇总行）**：README 的**四处**人工维护计数（`regression` 23 / `backfill-c7` 20 / `final-check` 20 / `independent` 39）与实跑**逐项相等**，失配 **0 条**；`device-report` 的 10 例在 README 里**未声明**（记为信息项、不判 FAIL）；同一事实在 README 里的**多种写法**（粗体 N 例/条、`= N 条`、反引号内的汇总行原文）彼此一致，无分叉（历史 215）。结论：待拍板 ⑤ 所担心的「人工计数漂移」**本轮实测为 0**，但该核对目前**仍是每轮现写的一次性探针**。
+- **B 组（`tools/` 脚本覆盖分类）**：顶层脚本 **35** 个，其中被「回归面 manifest ∪ 装置链」覆盖 **28** 个；未覆盖 7 个逐个按**首个 docstring 首行**分类，**自称门禁/审计者 0 条**（`biz-closure-e2e.py` 业务闭环验收 / `newapi-stub.py` 联调桩 / `round-archive-clean.py` 归档助手 / `with-env.sh` 密钥注入 / `run-dev-server.sh` dev 启动器 / `dev-db-query.sh` 只读查库 / `calicat-admin-capture.sh` 抓设计稿），其中**未被任何工具/README/manifest 引用**的 3 个均为 dev 侧工具。结论：**本轮无门禁类覆盖缺口**（R109 补入 `evidence-secrets.py` 后未再出现新缺口）。
+
+**装置侧改动 = 2 个文件**（工作区未提交条目；「被测提交..HEAD」触及 `tools/` 的提交数仍 **0**，因本文件生成于主提交之前）：`tools/round-verify/backfill-c7.py`、`tools/round-verify/device-report.py`。改动性质 = **工具自身 stdout 行尾一致性**修正（与 `regression.py` / `postwrite.py` / `final-check.py` / `independent.py` 同源做法：`sys.stdout.reconfigure(newline="\n")`），**不改变任何判据、不削弱任何守卫**（两者的自测仍为 20/0 与 10/0，逐条不变）。
+
+**本轮返工 6 处（全部为 aux 探针 / 装置工具侧，零交付面影响；无一处削弱守卫或放宽期望值）**：① **同一根因被重复报告**：`compare_a` 对「某工具实跑汇总行未解析到」在两个分支各报一次 ⇒ 「恰好 1 条」判据失效（由本探针自测 T3 当场抓到，改为「已声明工具的空值只报一次」）。② **行尾未归一**：探针解码后未剥 `\r`，而 **2 个装置工具的 stdout 是 CRLF**（`backfill-c7.py --selftest` CR=22 / `device-report.py <轮次> --selftest` CR=12，同族另 3 个为 LF）⇒ 报出 2 条假「未解析到」；**两侧同修**（探针侧归一行尾 = 消费者纪律；工具侧补 stdout LF 归一 = 生产者纪律，即「同一口径多处副本只修一处 = 半条规则」，历史 69/146/191）。③ **汇总行正则未容忍行首缩进**：真实写法是 `␠␠判据：PASS 20 / FAIL 0`，只写 `^判据：` ⇒ 4 条假「未解析到」（历史 168/228；先怀疑判据再怀疑被测对象）。④ **B 组判据取「全文任意关键词」**：把联调桩 dict 注释里的「审计」当成门禁 ⇒ 2 条假候选缺口（历史 81：判据范围须与语义一致），收窄为「首个 docstring 首行**自称**门禁/审计」。⑤ **收窄后的漏报侧**：`.sh` 没有三引号 docstring ⇒ 补「首个非 shebang 的 `#` 注释行」分支 + 1 例正向对照（T10），避免「判据过窄 = 漏报」（历史 81 的另一侧）；首行解析覆盖 31/35 → **35/35**。⑥ **补丁把函数切断**：改 `first_docline` 时插入位置错误致 `IndentationError`，被 lint **当场抓到**（响亮失败优于静默产出），重排函数顺序修复。
+
+**权威数字 = 返工 6 处**（读自本行返工条目数 = 显式列举条目数，历史 201/206/217-③/250；本行即本轮描述列的**权威文本**）。
+
+**窗口与在途（只登记、不触碰）**：窗口 `00:25:53 → 00:30:48`（facts 落盘）；窗口内他方推进提交 **0**（`head_start = head_end = a911fa5c`）；分析时刻主仓库在途改动 **5** 条**全部为他方**（`README.md`、`aap-server/pom.xml`、`SecurityConfig.java`、`application.yml`、`aap-server/src/main/webapp/`；mtime 分别为 2026-09-24 07:51 / 09-24 08:07 / 09-24 19:12 / 09-25 05:13 / 09-24 08:07，**全部早于**本轮窗口起点，落在窗口内的 **0** 条）；本轮未暂存、未修改、未回退他方任何一条；本轮临时 worktree 已回收（`exists=False` / `listed=False`）。
+
+**独立复核（只读，不采信装置自身的判定行）**：前置探针相位 = **提交前（工作区未提交）**、申报装置改动 **2** 个 ⇒ J6a `实得 == 申报` 逐文件点名相等、J7a 核心证据齐备、J7b 逐字节 CR=0、J8 装置目录轮次无关性。落盘相位探针在提交后按**同一申报**复跑（`independent-R528.txt`）。装置链自身的读数由装置工具独立落盘，与本探针**互不采信**。
+
+**下一族**：无（清单 108/108、missing=0）。**红基线：无**（本轮为校验轮，未产新端点 / 新用例）。**飞书通知：未发送（非失败）** —— 本轮完成端点 0 条、无新批次落地，批通知条件不成立；cron 按设计把本回复投递到同一目标，`feishu-notify-failures.txt` 未新增。
+
+**待拍板 ①–⑬**（沿用 ①–⑫，⑬ 本轮新增）：① `regression.py --selftest`（现 **23** 例）是否纳入每轮回归面（84 → 85，须级联同步「回归面条数」这一纯数字盲区）；② 常驻红 2 条的理由比对基线仍是 R157 快照（与当前磁盘缺口集合天然不等 ⇒ 恒红）—— 是否重定位为「自推进基线」属**改判据口径**，未拍板前不动、仅登记；③ 远端 `origin/main` 仍停旧轮次（R330；HTTPS 直连不可用，须 SSH URL 推送）—— 本轮**未推送**；④ `independent.py --selftest`（现 **39** 例）是否与 ① 一并以同一条目纳入每轮回归面（当前**不进** manifest）；⑤ 装置 README 的自测例数仍为**人工维护的纯数字**（本轮已用 aux 探针机器核对、四处全对、`device-report` 未声明）—— 是否把该核对**常驻化**；⑥ 探针相位标签「工作区未提交」与既往措辞「提交后相位」不同义 —— 改标签还是改措辞；⑦ R515 已落实的 README「顺序纪律」补步，本轮**如实照做**且首跑即过，待你确认；⑧ 是否给 `closeout.py` 加一条**跨轮清单对齐**判据（本轮行证据列文件集合与上一轮形态逐项对齐）—— **未拍板前不予实施**；⑨ **顺序性覆盖缺口**：回归面里的 `round-claims`（消费台账行）与 `evidence-secrets`（消费证据文件）在 ③ 跑，而本轮台账行 / 证据在 ⑤ 才落盘 ⇒ 两条门禁在 ③ 时刻看不到本轮新产物；本轮仍按同一处置**在收尾后只读补跑**（从最终交付态取数），是否固化为常驻第 ⑨ 步属改装置口径；⑩ **A3b 覆盖冻结**：选项① 已于 R525 实施并经复核继续生效；**选项②**（改为「覆盖至最后一轮」的自推进判据）属改判据口径，未实施、待拍板；⑪ 把「返工真值**全形态**」判据并入 `audit-round-claims.py`（现只比 B 形态 ⇒ 138 轮里仅 104 轮被覆盖）—— 属改判据口径，**未拍板前不予实施**；⑫ `windowtime.py` 共享模块与 J1g/J2g/A5 的绝对时刻解算（判据正确性修正，牙齿保留）是否保留、以及是否把「判据不可用不得判绿」推广到其余按字符串比时刻的判据；**⑬ 本轮新增**：aux 探针的两组判据（A 组「文档声明 ⇔ 实跑」、B 组「`tools/` 脚本覆盖分类」）是否**常驻化**（并入 manifest 回归面需级联同步 84 → 85/86 等纯数字盲区，且 B 组判据属**扩面**），以及「`device-report` 的 10 例是否补进 README 声明」—— 两者均属改装置口径/文档口径，**未拍板前不予实施**。
+------------------------------------------------------------------------------
+
+三、本轮关键读数（读自 analyze / regression 证据，零手写值）
+  分析器判据 PASS 25 / FAIL 0；覆盖 total=108 implemented=108 **missing=0** registered_routes=125；连续第 510 轮全绿
+  回归面：复跑 84 条（上一轮 R527 = 84 条）；rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 42 脚本 161 行
+  零写副作用：生成物 size+md5 变化 0 个（须 0）；跨轮 faildiff 上一轮 161 行 / 本轮 161 行、新增 0 / 消失 0
+  崩溃通道：rc!=0 条目 44 条，其中 FAIL 通道不可见（rc!=0 ∧ FAIL 0 行）= 2 条
+
+四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
+  ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 14 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 19 == `git status` 条目 19
+      M README.md  mtime=2026-09-24 07:51:14
+      M aap-server/pom.xml  mtime=2026-09-24 08:07:37
+      M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
+      M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
+      ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
+      （本轮产物）M tools/round-verify/backfill-c7.py  mtime=2026-09-28 00:39:25
+      （本轮产物）M tools/round-verify/device-report.py  mtime=2026-09-28 00:39:20
+      （本轮产物）?? .agents/state/evidence/audit-regression-R528-faildiff.txt  mtime=2026-09-28 00:35:18
+      （本轮产物）?? .agents/state/evidence/audit-regression-R528-failraw.txt  mtime=2026-09-28 00:35:18
+      （本轮产物）?? .agents/state/evidence/audit-regression-R528-rcseq.txt  mtime=2026-09-28 00:35:18
+      （本轮产物）?? .agents/state/evidence/audit-regression-R528.txt  mtime=2026-09-28 00:35:18
+      （本轮产物）?? .agents/state/evidence/aux-doc-counts-and-tool-coverage-R528.txt  mtime=2026-09-28 00:40:09
+      （本轮产物）?? .agents/state/evidence/green-verify-R528-coverage-fields.txt  mtime=2026-09-28 00:30:51
+      （本轮产物）?? .agents/state/evidence/green-verify-R528-full-run1.txt  mtime=2026-09-28 00:30:51
+      （本轮产物）?? .agents/state/evidence/green-verify-R528-full-run2.txt  mtime=2026-09-28 00:30:51
+      （本轮产物）?? .agents/state/evidence/green-verify-R528-testcount.txt  mtime=2026-09-28 00:30:51
+      （本轮产物）?? .agents/state/evidence/green-verify-R528-tested-state.txt  mtime=2026-09-28 00:30:51
+      （本轮产物）?? .agents/state/evidence/regression-selftest-R528.txt  mtime=2026-09-28 00:35:21
+      （本轮产物）?? .agents/state/evidence/round-R528-analysis.txt  mtime=2026-09-28 00:30:51
+      其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
+  ③ 本轮提交（a911fa5c..HEAD）改动文件 = 0 个，其中位于交付面前缀的 = 0 个（**须 0**）
+
+五、下一族
+  **无**（清单 108/108、missing=0）—— 本轮完成端点 0 条 / 新增用例 0 条、无红基线。
+
+六、留痕
+  本文件 = .agents/state/evidence/device-round-R528.txt（由本工具直接落盘，`newline="\n"`；文件名与 closeout.py 的消费名机器核对一致；行数下限判据与 CR=0 判据见下）
+DEVICE_REPORT_END=1

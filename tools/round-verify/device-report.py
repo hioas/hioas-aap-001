@@ -26,6 +26,16 @@ import sys
 import time
 from pathlib import Path
 
+# 证据落盘一律 LF（历史 69/84/146）：Windows 上 `python … > evidence.txt` 的 stdout 默认把 "\n" 翻成 CRLF。
+# 本工具此前**漏了**这一条（实测 `device-report.py <轮次> --selftest` 产出 CR=12 / 12 行，而 `regression.py` /
+# `final-check.py` / `independent.py` 的同类输出 CR=0）；证据文件本身走 `write_text(newline="\n")` 不受影响，
+# 但 stdout 回显（以及任何按行解析它的消费者）会被 `\r` 破坏锚定。与同族工具同源做法。
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(newline="\n")
+    except (ValueError, OSError):
+        pass
+
 ROOT = Path("E:/workspaces/hioas/hioas-aap-001")
 EV = ROOT / ".agents/state/evidence"
 T = Path("C:/Users/laitz/AppData/Local/Temp")

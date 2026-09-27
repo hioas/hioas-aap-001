@@ -34,6 +34,17 @@ import sys
 import tempfile
 from pathlib import Path
 
+# 证据落盘一律 LF（历史 69/84/146）：Windows 上 `python … > evidence.txt` 的 stdout 默认把 "\n" 翻成 CRLF。
+# 本工具此前**漏了**这一条（实测 `backfill-c7.py --selftest` 产出 CR=22 / 22 行，而 `regression.py` /
+# `final-check.py` / `independent.py` 的同类输出 CR=0）⇒ 任何按行解析本工具输出的消费者会被紧跟的 `\r`
+# 破坏行首/行尾锚定（本仓实测：某轮 aux 探针据此报出 2 条假「未解析到」）。
+# 与 `regression.py` / `postwrite.py` / `final-check.py` 同源做法：**由工具自己保证输出行尾**。
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(newline="\n")
+    except (ValueError, OSError):
+        pass
+
 HERE = Path(__file__).resolve()
 ROOT = HERE.parents[2]
 CSV_REL = ".agents/state/aap-server-feature-status.csv"
