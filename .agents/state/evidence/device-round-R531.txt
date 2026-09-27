@@ -11,7 +11,7 @@ R531 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
   轮次无关性守卫：装置脚本（11 个 .py/.sh）内当前轮次号命中 = **0**（须 0
     = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
 
-二、本轮返工真值 = **0 处**（零交付面影响；条目文本来自单一事实源 `round-note.md`，与台账描述列 / 状态文件小节共用）
+二、本轮返工真值 = **1 处**（零交付面影响；条目文本来自单一事实源 `round-note.md`，与台账描述列 / 状态文件小节共用）
 ------------------------------------------------------------------------------
 **性质**：覆盖 `missing=0` ⇒ **纯校验轮**（交付面零改动：未改 `aap-server` / `docs` / 测试面 / 冻结清单生成物**一行**）。本轮**装置面亦零改动**（`git status --porcelain -- tools/` 空 ∧「被测提交..HEAD」无触及 `tools/` 的提交）—— 本轮不含任何装置 / 脚本修改，全部动作均为既有**轮次无关**装置（`tools/round-verify/`）的复跑与只读核对。
 
@@ -29,9 +29,9 @@ R531 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 **装置侧改动 = 0 个文件**：`git status --porcelain -- tools/` 空、「被测提交..HEAD」触及 `tools/` 的提交数 = 0 ⇒ 本轮**不申报**装置改动（`closeout.py` 未带 `--device-change`，其**双向**判据在本轮取「未申报 ⇒ 必须真零改动」分支）。
 
-**本轮返工真值 = 0 处**：两轮全量、84 条回归面复跑、装置链 ①–⑧、全部负向自测（`regression` 23/0、`device-report` 10/0、`independent` 39/0、`final-check` 20/0）**全部首跑即过**，无判据失效、无锚点 0 命中、无自述与事实不符；上一轮暴露的「要点文本漏写 B 形态 ⇒ 跨文件判据静默跳过」（历史 217-③）在本轮已按结构性纪律**直接沿用既有的两形态写法**（要点文本同时承载 A/B 两形态），故本轮**无同类返工**。
+**本轮返工真值 = 1 处（收尾阶段才暴露，一次性辅助复核脚本侧，零交付面影响）**：① **只读辅助复核脚本自身两处判据缺陷**（该脚本为**一次性**、落在 `$TEMP`、**非交付物、不在装置目录 / 不在回归面**）：(a) 「证据列文件名数 == 16」的期望写错 —— 实测 17，因为证据列同时登记了 16 个文件与 `evidence/coverage-history.txt（追加 R531 行）` 这一条 history 行登记，**判据口径与语义不符**（历史 81）；(b) 用 `git rev-list 1ba5b40a..HEAD --name-only` 取「本轮改动文件集合」，而 `--name-only` **在本机 git 版本里不是 `rev-list` 的合法选项**（它是 `log`/`diff` 的选项）→ git 打印 usage 到 stdout、**静默返回空集合** ⇒ 判据算出「本轮改动文件数 = 0」并在同一次输出里报 FAIL，**由脚本自身的 FAIL 行当场拦下**（这正是「0 发现先怀疑判据」的正确落地，历史 46/75/98 的正面案例）。两处**修的都是判据**（期望值按事实改为 17 = 16 文件 + history 行；取文件集合改用 `git diff --name-only <基线> HEAD`），**未放宽任何断言、未修改任何产物、未改实现**；修好后同一只读复核 **PASS 37 / FAIL 0**（交付态 16 条证据 / 台账行 c7 / 描述锚点 / 提交链 / 覆盖三处读数 / 飞书留痕 全部逐条复核通过）。其余动作（两轮全量、84 条回归面复跑、装置链 ①–⑧、全部负向自测 `regression` 23/0 · `device-report` 10/0 · `independent` 39/0 · `final-check` 20/0）**全部首跑即过**，无锚点 0 命中、无自述与事实不符；上一轮暴露的「要点文本漏写 B 形态 ⇒ 跨文件判据静默跳过」（历史 217-③）在本轮已按结构性纪律**直接沿用既有的两形态写法**（要点文本同时承载 A/B 两形态），该门禁本轮**实测覆盖到 R531**（`A3b` n=108→109）。
 
-**权威数字 = 返工 0 处**（读自本行返工条目数 = 显式列举条目数；本行即本轮描述列的**权威文本**。溯源：本轮主提交与最终真值**同为 0 处**、无二次更正 ⇒ 无溯源说明；三处同步 = 台账描述列 / 状态文件小节 / 本节自身，历史 250 的机器可查形态）。
+**权威数字 = 返工 1 处**（读自本行返工条目数 = 显式列举条目数；本行即本轮描述列的**权威文本**。溯源：主提交 `a53daf32` 记 0 处 → 收尾阶段据实更正为 **1 处**，按历史 209 **不 amend 已发布提交**，以独立收尾提交留溯源说明；三处同步 = 台账描述列 / 状态文件小节 / 收尾提交 message；**这不是「先写错再补正」的虚构修正史**，而是收尾阶段才暴露的辅助脚本侧缺陷）。
 
 **窗口与在途（只登记、不触碰）**：窗口 `01:40:03 → 01:44:47`（facts 落盘）；窗口内他方推进提交 **0**（`head_start = head_end = 1ba5b40a`）；分析时刻主仓库在途改动 **5** 条**全部为他方**（`README.md`、`aap-server/pom.xml`、`SecurityConfig.java`、`application.yml`、`aap-server/src/main/webapp/`；mtime 分别为 2026-09-24 07:51:14 / 09-24 08:07:37 / 09-24 19:12:39 / 09-25 05:13:53 / 09-24 08:07:43，**全部早于**本轮窗口起点，落在窗口内的 **0** 条）；本轮未暂存、未修改、未回退他方任何一条；本轮临时 worktree 已回收（`exists=False` / `listed=False`）。
 
@@ -50,25 +50,14 @@ R531 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
-  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 11 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 16 == `git status` 条目 16
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 0 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 5 == `git status` 条目 5
       M README.md  mtime=2026-09-24 07:51:14
       M aap-server/pom.xml  mtime=2026-09-24 08:07:37
       M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
       M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
       ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
-      （本轮产物）?? .agents/state/evidence/audit-regression-R531-faildiff.txt  mtime=2026-09-28 01:49:10
-      （本轮产物）?? .agents/state/evidence/audit-regression-R531-failraw.txt  mtime=2026-09-28 01:49:10
-      （本轮产物）?? .agents/state/evidence/audit-regression-R531-rcseq.txt  mtime=2026-09-28 01:49:10
-      （本轮产物）?? .agents/state/evidence/audit-regression-R531.txt  mtime=2026-09-28 01:49:10
-      （本轮产物）?? .agents/state/evidence/green-verify-R531-coverage-fields.txt  mtime=2026-09-28 01:44:50
-      （本轮产物）?? .agents/state/evidence/green-verify-R531-full-run1.txt  mtime=2026-09-28 01:44:50
-      （本轮产物）?? .agents/state/evidence/green-verify-R531-full-run2.txt  mtime=2026-09-28 01:44:50
-      （本轮产物）?? .agents/state/evidence/green-verify-R531-testcount.txt  mtime=2026-09-28 01:44:50
-      （本轮产物）?? .agents/state/evidence/green-verify-R531-tested-state.txt  mtime=2026-09-28 01:44:50
-      （本轮产物）?? .agents/state/evidence/regression-selftest-R531.txt  mtime=2026-09-28 01:49:13
-      （本轮产物）?? .agents/state/evidence/round-R531-analysis.txt  mtime=2026-09-28 01:44:50
       其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
-  ③ 本轮提交（1ba5b40a..HEAD）改动文件 = 0 个，其中位于交付面前缀的 = 0 个（**须 0**）
+  ③ 本轮提交（1ba5b40a..HEAD）改动文件 = 19 个，其中位于交付面前缀的 = 0 个（**须 0**）
 
 五、下一族
   **无**（清单 108/108、missing=0）—— 本轮完成端点 0 条 / 新增用例 0 条、无红基线。
