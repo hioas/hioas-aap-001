@@ -1,0 +1,78 @@
+R491 装置侧修正与 `--device-change` 判据的负向对照实测（装置冻结后**首个真实使用轮**）
+==============================================================================
+生成方式：本文件由脚本从 git / facts / 探针的真实输出取值（零手写值）。
+轮次 = R491；被测提交（HEAD 的独立 worktree 内检出）= 08bac712
+被测对象 = tools/round-verify/closeout.py（R490 冻结轮产物；本轮是装置冻结后第一次真实使用）
+
+一、本轮装置/取证侧修正共 3 处（前 2 处在装置内、第 3 处在取证脚本内；均零交付面影响）
+①（装置侧）`closeout.py` 断言 `freeze-device-<轮次>.txt` 存在 —— 装置自称「轮次无关」，却把 R490 冻结轮那一次的
+   产物名当**常驻判据**：R491 起该断言永不成立（判据失效，装置在下一轮就自崩）。
+   机器证据（同一口径在 HEAD 原文与修正后工作区的命中行数）：
+     `git show HEAD:tools/round-verify/closeout.py` 含 `freeze-device` 的行数 = 2
+     工作区（修正后）同口径命中行数 = 0
+   修法：改为「仅当本轮**申报了**装置侧改动时才要求装置侧证据 `device-round-<轮次>.txt` 存在」
+   （本文件即该证据；断言与自述同源，历史 12）。
+②（装置侧）同文件描述列（PREFIX）与状态文件小节硬编码「`tools/` 本轮新增**只读校验装置**，不触碰交付面」。
+   该句只对 R490（冻结轮）为真；对「本轮装置面零改动」的轮次是**假自述**（坑 12/95/249）。
+   修法：改为由 `--device-change` 双向机器核对推出的 DEVLINE。
+③（取证脚本侧）本文件的生成脚本把一节文案拆成两个列表元素、百分号格式化只作用于第一个元素 → 产物里
+   残留字面**未解析占位符**（百分号后跟 `s`/`d`；**产物看起来完整、内容却是半成品**，坑 232 的相邻面）。
+   修法：合并为单一表达式，并新增常驻守卫「产物不得含未解析占位符」（本节文案因此**不写占位符字面量**，
+   否则守卫会自指命中 —— 坑 47 的文档自指形态）；本条即被该守卫拦下。
+
+二、`--device-change` 双向机器核对（本轮新增判据）
+   申报了 → 必须真有未提交改动（否则报「自述不实」）；未申报 → 必须真的零改动（否则点名「未申报的改动」）。
+   机器证据（判据落地）：`--device-change` 口径在 HEAD 原文命中 0 行 → 修正后工作区命中 3 行。
+   为什么必须双向：单向判据在「描述列说假话」与「守卫被架空（空转绿）」两种失效方向上各留一半静默空间
+   （坑 57/68/98）。
+
+三、负向对照实测（判别力；两条都发生在**任何写盘之前**）
+   分支 A（漏申报：`tools/` 脏 + 不传 `--device-change`）—— 本轮实测原始输出：
+     前置：git status --porcelain -- tools/ = 1 条 -> [' M tools/round-verify/closeout.py']
+     前置：三处目标文件指纹已取（3 个）
+     前置正向对照：分支 A 要求 tools/ **脏**；实际 1 条（须 > 0，否则本分支没被测到）
+     A/B 被测分支 = A
+     [PASS] B1 closeout rc != 0（应响亮失败） rc=1
+     [PASS] B2 失败信息点名判据（须含 '未申报的改动'） 行 = AssertionError: tools/ 存在未申报的改动 [' M tools/round-verify/closeout.py']（请显式 --device-change，否则描述列会说假话）
+     [PASS] B3 零写副作用（三处目标文件 (mtime_ns,size,md5) 全等） 变化 = 无
+     PROBE_A_END=1
+   分支 B（误申报：`tools/` 干净 + 传 `--device-change`）—— 该分支**只在 `tools/` 干净时可测**
+   （主提交之后），故其原始输出由**收尾提交**补充在本文件末尾并写明溯源；主提交携带的版本里
+   分支 B 段标为「待补充」——这是**顺序约束**（不是先写错再补正，历史 209）。
+
+四、交付面零改动（三条可机检判据，避免把他方在途算作本轮改动）
+   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，0 才说明两轮测的是提交态）。
+   ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 6 条（他方在途，只登记不触碰）/ 窗口起点后且路径属本轮装置·留痕目录 14 条（= 本轮自己的产物）/ 其余 0 条（须为 0；非 0 即「归属未定」，判据不成立）。
+      窗口起点后的本轮条目（判据：`tools/round-verify/` 或 `.agents/state/` 前缀，且 mtime >= 窗口起点）：
+         M .agents/state/evidence/endpoint-test-audit.json  mtime=2026-09-27 10:43:08
+         M .agents/state/evidence/endpoint-test-audit.txt  mtime=2026-09-27 10:43:08
+         M tools/round-verify/closeout.py  mtime=2026-09-27 10:40:07
+        ?? .agents/state/evidence/audit-regression-R491-faildiff.txt  mtime=2026-09-27 10:47:26
+        ?? .agents/state/evidence/audit-regression-R491-failraw.txt  mtime=2026-09-27 10:47:26
+        ?? .agents/state/evidence/audit-regression-R491-rcseq.txt  mtime=2026-09-27 10:47:26
+        ?? .agents/state/evidence/audit-regression-R491.txt  mtime=2026-09-27 10:47:26
+        ?? .agents/state/evidence/device-round-R491.txt  mtime=2026-09-27 10:51:32
+        ?? .agents/state/evidence/green-verify-R491-coverage-fields.txt  mtime=2026-09-27 10:43:02
+        ?? .agents/state/evidence/green-verify-R491-full-run1.txt  mtime=2026-09-27 10:43:02
+        ?? .agents/state/evidence/green-verify-R491-full-run2.txt  mtime=2026-09-27 10:43:02
+        ?? .agents/state/evidence/green-verify-R491-testcount.txt  mtime=2026-09-27 10:43:02
+        ?? .agents/state/evidence/green-verify-R491-tested-state.txt  mtime=2026-09-27 10:43:02
+        ?? .agents/state/evidence/round-R491-analysis.txt  mtime=2026-09-27 10:43:02
+      其中位于 `aap-server/` 或 `docs/` 的条目 = 0 条（**须为 0** ＝ 交付面零改动）。
+      窗口前条目（他方在途）：6 条
+         M .agents/state/evidence/coverage-report.json  mtime=2026-09-25 05:34:37
+         M README.md  mtime=2026-09-24 07:51:14
+         M aap-server/pom.xml  mtime=2026-09-24 08:07:37
+         M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
+         M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
+        ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
+      ⚠ 与窗口起点采集的在途清单（executor 落盘 `root-status-before.txt`，8 条）的对账：
+        6 条 mtime 早于窗口起点（他方在途，只登记不触碰）＋ 2 条被本轮工具链**重写**而 mtime 前移、
+       故归入「本轮条目」：[' M .agents/state/evidence/endpoint-test-audit.json', ' M .agents/state/evidence/endpoint-test-audit.txt']。
+       （本轮回归面复跑 `endpoint-tests` 审计会把 `endpoint-test-audit.json/.txt` 就地重写 —— 这是复跑的
+        既有副作用，非本轮新引入；如实归入本轮条目而不是藏进「他方在途」，历史 12/95。）
+   ③ 窗口 = 10:36:12 -> 10:41:02（1790476572 -> 1790476862，由执行器落盘、消费方只读，历史 243-③；窗口**只覆盖两轮跑测**，窗口之后由分析器/回归面/收尾产生的证据文件同样属本轮，故②用「窗口起点后 + 路径归属」而不是「落在窗口内」）。
+   说明：直接看 `git diff --stat HEAD -- aap-server` 会把**他方在途改动**算作本轮改动（实测会报 3 文件 123 行）
+   —— 判据范围必须与「本轮自己改了什么」的语义一致（历史 81/193/198）。
+
+DEVICE_ROUND_END=1

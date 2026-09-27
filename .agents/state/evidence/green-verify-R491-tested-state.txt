@@ -1,0 +1,20 @@
+R491 校验轮（missing==0 -> 交付代码零改动）；全部读数由 tools/round-verify/analyze.py 从 facts / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 08bac712
+被测提交全 SHA = 08bac7125cad70f7924aeee454b9f206693de019
+被测提交主题 = chore(evidence): R490 据实更正（第 2 / 2 步；返工真值 9 -> 10 处）—— 技能留档追加脚本的唯一性判据把**既有**重复编号当新缺陷
+run1 = 10:36:28 -> 10:38:51 rc=0 / run2 = 10:38:51 -> 10:40:57 rc=0（串行：run1_end <= run2_start = True）
+窗口 = 10:36:12 -> 10:41:02（1790476572 -> 1790476862，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = 08bac712 / 终点 = 08bac712；窗口内他方推进提交数 = 0
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 8 条
+    M .agents/state/evidence/coverage-report.json
+    M .agents/state/evidence/endpoint-test-audit.json
+    M .agents/state/evidence/endpoint-test-audit.txt
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+   ?? aap-server/src/main/webapp/
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0 （无）
+环境指纹：bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）

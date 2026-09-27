@@ -17,6 +17,7 @@
 import csv
 import hashlib
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -85,7 +86,24 @@ RAN = int(M_NONZ.group(2))
 assert (int(RCCH), int(RCADD), int(RCGONE)) == (0, 0, 0), "回归面存在差异：rc 变化 %s / 新增 %s / 未复跑 %s" % (RCCH, RCADD, RCGONE)
 EVLIST = sorted(x.name for x in EV.iterdir() if x.is_file() and ROUND in x.name)
 assert len(EVLIST) >= 8, "本轮证据文件数 %d 过少（判据失效）" % len(EVLIST)
-assert (EV / ("freeze-device-%s.txt" % ROUND)).exists(), "冻结证据缺失（判据失效）"
+# 装置面改动申报（**双向**机器核对）：申报了就必须真有改动、没申报就必须真的零改动 ——
+# 自述与事实不一致在两个方向上都要响亮失败（历史 12/95/249：产物不得对本轮作不实自述）。
+DEVCHANGES = [args[i + 1] for i, a in enumerate(args) if a == "--device-change"]
+_g = subprocess.run(["git", "-C", str(ROOT), "status", "--porcelain", "--", "tools/"],
+                    capture_output=True)
+assert _g.returncode == 0, "git status 读 tools/ 失败（判据不可用）"
+TOOLS_DIRTY = [ln for ln in _g.stdout.decode("utf-8", "replace").splitlines() if ln.strip()]
+if DEVCHANGES:
+    assert TOOLS_DIRTY, ("--device-change 已申报 %s 但 tools/ 无未提交改动（自述不实 / 判据失效）"
+                         % DEVCHANGES)
+    DEVLINE = "本轮另含**装置侧改动**（%s —— 轮次无关的只读校验装置，不触碰交付面）" % "、".join(DEVCHANGES)
+else:
+    assert not TOOLS_DIRTY, ("tools/ 存在未申报的改动 %s（请显式 --device-change，否则描述列会说假话）"
+                             % TOOLS_DIRTY)
+    DEVLINE = "本轮**装置面与交付面均零改动**（`git status -- tools/` 输出空）"
+DEVEV = "device-round-%s.txt" % ROUND
+assert (EV / DEVEV).exists() or not DEVCHANGES, \
+    "本轮申报了装置侧改动，但装置侧证据 %s 缺失（证据必须与自述同源，历史 12）" % DEVEV
 # 追加证据：收尾之后才产生的证据文件（如 postwrite-check-<ROUND>.txt）必须**先登记**再计数，
 # 否则计数天然少 1（历史 201/206 的纯数字盲区在证据条数上的形态）。
 EXTRA = [args[i + 1] for i, a in enumerate(args) if a == "--extra"]
@@ -98,11 +116,11 @@ CFG = "%s / %s" % (facts["FACTS_RUN1_START"], facts["FACTS_RUN1_END"])
 
 # ---------- 描述列（前缀由证据推出 + 本轮要点来自单一事实源） ----------
 PREFIX = ("%s 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；"
-          "`tools/` 本轮新增**只读校验装置**，不触碰交付面）） · 清单 **%s/%s**（作业目标「90 条全部落地」已含于 total 之中；"
+          "%s）） · 清单 **%s/%s**（作业目标「90 条全部落地」已含于 total 之中；"
           "**基线 = 被测提交 %s**）连续第 **%d** 轮全绿 · 两轮 **%d 例 / %d 类** rc=0/0（串行 %s→%s，逐类 diff=0） · "
           "回归面 **%d 条** rc 变化 %s / 新增 %s / 未复跑 %s；FAIL 明细 %s 脚本 %s 行（= 上一轮，跨轮 faildiff 新增 0） · "
           "分析器 PASS %d / FAIL %d · registered_routes=%s · 本轮返工 **%s 处**（装置侧） · 证据 %d 条"
-          % (ROUND, IMPL, TOT, facts["FACTS_TESTED_COMMIT"], STREAK, N_CASES, N_CLS,
+          % (ROUND, DEVLINE, IMPL, TOT, facts["FACTS_TESTED_COMMIT"], STREAK, N_CASES, N_CLS,
              facts["FACTS_RUN1_START"], facts["FACTS_RUN2_END"], RAN, RCCH, RCADD, RCGONE,
              FSCR, FLIN, NP, NF, ROUTES, REWORK, N_EV + 1))
 DESC = PREFIX + " · " + note
@@ -188,8 +206,8 @@ print("history：写入 %s 行 OK（%d 字符）" % (ROUND, len(hl)))
 
 # ---------- 状态文件 ----------
 sec = ["", "### %s 巡检轮（校验轮：missing=0 ⇒ 交付面零改动）" % ROUND, "",
-       "- **性质**：`missing=0` ⇒ **交付面零改动**（未改 `aap-server` / `docs` 任何一行）；本轮新增写入 = "
-       "`tools/round-verify/`（轮次无关的只读校验装置）+ 台账/状态/证据。",
+       "- **性质**：`missing=0` ⇒ **交付面零改动**（未改 `aap-server` / `docs` 任何一行）；%s；"
+       "本轮新增写入 = 台账 / 状态 / 证据。" % DEVLINE,
        "- **两轮全量（串行）**：被测提交 = %s（独立 detached worktree 内）；run1 %s→%s、run2 %s→%s；"
        "各 **%d 例 / %d 类**、rc=%s/%s、Failures-Errors-Skipped = 0-0-0；`@Test` 词边界计数与 surefire 合计一致；禁用扫描 0 条。"
        % (facts["FACTS_TESTED_COMMIT"], facts["FACTS_RUN1_START"], facts["FACTS_RUN1_END"],
@@ -202,7 +220,8 @@ sec = ["", "### %s 巡检轮（校验轮：missing=0 ⇒ 交付面零改动）" 
        "命令表已由仓库内 `tools/round-verify/manifest.json` 提供，$TEMP 抽查脚本 54 条全部归仓。" % (RAN, prev_round, RCCH, RCADD, RCGONE, FSCR, FLIN),
        "- **本轮要点（单一事实源 = %s）**：" % Path(NOTE).name,
        note,
-       "- **返工真值**：本轮返工真值 = **%s 处**（装置/脚本侧，零交付面影响；逐条见上文要点与 `freeze-device-%s.txt`）。" % (REWORK, ROUND),
+       "- **返工真值**：本轮返工真值 = **%s 处**（装置/脚本侧，零交付面影响；逐条见上文要点%s）。"
+       % (REWORK, ("与 `%s`" % DEVEV) if DEVCHANGES else ""),
        "- **权威数字**：权威数字 = 返工 %s 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。" % REWORK,
        ""]
 sb = STATE.read_bytes()
