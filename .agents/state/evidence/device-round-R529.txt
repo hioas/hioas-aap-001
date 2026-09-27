@@ -11,7 +11,7 @@ R529 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
   轮次无关性守卫：装置脚本（11 个 .py/.sh）内当前轮次号命中 = **0**（须 0
     = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
 
-二、本轮返工真值 = **0 处**（零交付面影响；条目文本来自单一事实源 `round-note.md`，与台账描述列 / 状态文件小节共用）
+二、本轮返工真值 = **1 处**（零交付面影响；条目文本来自单一事实源 `round-note.md`，与台账描述列 / 状态文件小节共用）
 ------------------------------------------------------------------------------
 **性质**：覆盖 `missing=0` ⇒ **纯校验轮**（交付面零改动：未改 `aap-server` / `docs` / 测试面 / 冻结清单生成物**一行**）。本轮**装置面亦零改动**（`git status --porcelain -- tools/` 空 ∧「被测提交..HEAD」无触及 `tools/` 的提交）—— 本轮不含任何装置 / 脚本修改，全部动作均为既有**轮次无关**装置（`tools/round-verify/`）的复跑与只读核对。
 
@@ -25,13 +25,13 @@ R529 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 **交付验收核心判据的读数复核（只读，取自本轮回归面归档日志，非新增判据）**：`endpoint-tests` —— 「路径骨架 + HTTP 方法都吻合的真实 HTTP 调用点」**exact 108 / prefix 0 / none 0**（⇒ 清单 108 条**每条都有真实 HTTP 用例**，不是只断言路由存在）、端点 ID 可追溯 **108/108**（其中靠组合引用展开命中 19）、ID 引用与真实 HTTP 调用点**同文件** 107/108（唯一弱项 `ADM-AUTH01`）；`routes` —— 实现里注册但清单未声明的路由 12 条（信息项）、客户端未接线的清单端点 66 条（信息项，适配层按页面逐步接线）；`id-types` —— 例外登记仅 `channel_id` 一条（new-api 渠道号，非雪花 ID）。本轮**未新增 / 未修改任何用例、清单或实现**。
 
-**装置工具自测汇总行的实跑读数**：`regression.py R529 --selftest` = **23 PASS / 0 FAIL**（落盘为 `regression-selftest-R529.txt`，是 `independent.py` J7a 的核心证据之一）；回归面 manifest 内的 41 条负向自测本轮逐条 `rc=0` 且 FAIL 行 = 0。
+**装置工具自测汇总行的实跑读数（仅指装置链自身的自测；与回归面 manifest 内的**审计自测**不是同一批）**：`regression.py R529 --selftest` = **23 PASS / 0 FAIL**（落盘为 `regression-selftest-R529.txt`，是 `independent.py` J7a 的核心证据之一）、`device-report.py R529 --selftest` = **10 PASS / 0 FAIL**。回归面 **84** 条本轮逐条复跑，rc 与上一轮**逐条一致**：`rc=0` **40** 条 / `rc=1` **44** 条（上一轮同为 40/44）；44 条 `rc!=0` 里 8 条为负向自测（7 条含 FAIL 行，来自其**内置的「真实仓库期望集合」快照**判据，与待拍板 ② 同族；另 1 条 `gap-coverage-gap-selftest` `rc=1` 而 FAIL 行 = 0，属崩溃通道），其余 36 条为审计 / 抽查类常驻红（其 FAIL 得分的已逐条登记，跨轮 faildiff **新增 0 / 消失 0**）。
 
-**装置侧改动 = 0 个文件**：`git status --porcelain -- tools/` 空、「被测提交..HEAD」触及 `tools/` 的提交数 = 0 ⇒ 本轮**不申报**装置改动（`closeout.py` 未带 `--device-change`，其**双向**判据在本轮取「未申报 ⇒ 必须真零改动」分支）。**证据条数较上一轮少 1 条且原因可核**：上一轮的 `aux-doc-counts-and-tool-coverage-R528.txt` 来自**一次性** aux 探针，本轮**无对应产出**（该探针脚本已随 `$TEMP` 清理消失，见待拍板 ⑭）；本轮收尾时刻证据集合 = 装置链 11 条 + 装置侧证据 1 条（收尾之后才产生的 `postwrite-check` / `independent` / `postcloseout-gates` / `final-check` 4 条不列入台账证据列，与上一轮同一口径）。
+**装置侧改动 = 0 个文件**：`git status --porcelain -- tools/` 空、「被测提交..HEAD」触及 `tools/` 的提交数 = 0 ⇒ 本轮**不申报**装置改动（`closeout.py` 未带 `--device-change`，其**双向**判据在本轮取「未申报 ⇒ 必须真零改动」分支）。**证据集合口径**：更正相位落盘时，台账证据列由工具按磁盘**实得**推出 —— 装置链 11 条 + 装置侧证据 1 条 + 收尾相位证据 4 条（`postwrite-check` / `independent` / `postcloseout-gates` / `final-check`，均已进入提交链）⇒ 本轮证据列 **16** 项；上一轮同口径落盘时为 13 项（其收尾相位证据未登记，且其 aux 探针证据本轮**无对应产出** —— 该探针脚本已随 `$TEMP` 清理消失，见待拍板 ⑭）。属**登记口径差异**，非产出增减。
 
-**本轮返工 0 处（交付面与装置面全零：两轮全量 + 84 条回归面 + 全部自测均首跑即过，未发现任何判据 / 脚本缺陷，无一处需要重跑或修正；不削弱任何守卫、未改任何期望值、未放宽任何断言）**。依硬约束不虚构返工条目：本条即「返工真值 = 0」的权威文本。
+**本轮返工 1 处（收尾阶段才暴露，全部装置 / 证据文本侧，零交付面影响；未削弱任何守卫、未改任何期望值、未放宽任何断言）**：① **证据里的一句自述与事实不符** —— 原稿写「回归面 manifest 内的 41 条负向自测本轮逐条 `rc=0` 且 FAIL 行 = 0」，实得为 `rc=0` **40** 条 / `rc=1` **44** 条（其中负向自测 8 条）。根因：把「装置链自身自测全绿」错推成「回归面内负向自测全绿」—— **两套自测不是同一批**（前者 = `tools/round-verify/` 的 5 个自测，后者 = `tools/*-selftest.py` 经 `manifest.json` 驱动的审计自测），属历史 12/95 的**自述侧**缺陷。处置：收尾阶段**据实更正**（按历史 209 用**独立收尾提交**更正台账 / 状态文件 / 收尾提交 message **三处**，**不 amend 已发布的主提交** `0a5d4a42`）；返工真值 0 → 1 处。其余动作（两轮全量、84 条回归面、装置链全部自测）均**首跑即过**，此 1 处**不影响任何判据结论**（只改自述文本，未改任何判据与产物）。
 
-**权威数字 = 返工 0 处**（读自本行返工条目数 = 显式列举条目数；本行即本轮描述列的**权威文本**）。
+**权威数字 = 返工 1 处**（读自本行返工条目数 = 显式列举条目数；本行即本轮描述列的**权威文本**。溯源：主提交 `0a5d4a42` 记 0 处 → 收尾阶段据实更正为 **1 处**，按历史 209 **不 amend 已发布提交**，以独立收尾提交留溯源说明；三处同步 = 台账描述列 / 状态文件小节 / 收尾提交 message；**这不是「先写错再补正」的虚构修正史**，而是收尾阶段才暴露的自述侧缺陷）。
 
 **窗口与在途（只登记、不触碰）**：窗口 `00:50:13 → 00:54:56`（facts 落盘）；窗口内他方推进提交 **0**（`head_start = head_end = bbe21ebb`）；分析时刻主仓库在途改动 **5** 条**全部为他方**（`README.md`、`aap-server/pom.xml`、`SecurityConfig.java`、`application.yml`、`aap-server/src/main/webapp/`；mtime 分别为 2026-09-24 07:51:14 / 09-24 08:07:37 / 09-24 19:12:39 / 09-25 05:13:53 / 09-24 08:07:43，**全部早于**本轮窗口起点，落在窗口内的 **0** 条）；本轮未暂存、未修改、未回退他方任何一条；本轮临时 worktree 已回收（`exists=False` / `listed=False`）。
 
@@ -50,26 +50,14 @@ R529 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
-  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 12 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 17 == `git status` 条目 17
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 0 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 5 == `git status` 条目 5
       M README.md  mtime=2026-09-24 07:51:14
       M aap-server/pom.xml  mtime=2026-09-24 08:07:37
       M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
       M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
       ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
-      （本轮产物）?? .agents/state/evidence/audit-regression-R529-faildiff.txt  mtime=2026-09-28 00:59:24
-      （本轮产物）?? .agents/state/evidence/audit-regression-R529-failraw.txt  mtime=2026-09-28 00:59:24
-      （本轮产物）?? .agents/state/evidence/audit-regression-R529-rcseq.txt  mtime=2026-09-28 00:59:24
-      （本轮产物）?? .agents/state/evidence/audit-regression-R529.txt  mtime=2026-09-28 00:59:24
-      （本轮产物）?? .agents/state/evidence/device-round-R529.txt  mtime=2026-09-28 01:07:46
-      （本轮产物）?? .agents/state/evidence/green-verify-R529-coverage-fields.txt  mtime=2026-09-28 00:55:00
-      （本轮产物）?? .agents/state/evidence/green-verify-R529-full-run1.txt  mtime=2026-09-28 00:55:00
-      （本轮产物）?? .agents/state/evidence/green-verify-R529-full-run2.txt  mtime=2026-09-28 00:55:00
-      （本轮产物）?? .agents/state/evidence/green-verify-R529-testcount.txt  mtime=2026-09-28 00:55:00
-      （本轮产物）?? .agents/state/evidence/green-verify-R529-tested-state.txt  mtime=2026-09-28 00:55:00
-      （本轮产物）?? .agents/state/evidence/regression-selftest-R529.txt  mtime=2026-09-28 00:59:27
-      （本轮产物）?? .agents/state/evidence/round-R529-analysis.txt  mtime=2026-09-28 00:55:00
       其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
-  ③ 本轮提交（bbe21ebb..HEAD）改动文件 = 0 个，其中位于交付面前缀的 = 0 个（**须 0**）
+  ③ 本轮提交（bbe21ebb..HEAD）改动文件 = 19 个，其中位于交付面前缀的 = 0 个（**须 0**）
 
 五、下一族
   **无**（清单 108/108、missing=0）—— 本轮完成端点 0 条 / 新增用例 0 条、无红基线。
