@@ -1,0 +1,111 @@
+==============================================================================
+R535 回归面全量复跑（命令表 = 仓库内单一事实源 tools/round-verify/manifest.json）
+==============================================================================
+manifest 声明 {'audits': 43, 'selftests': 41, 'all': 84} / 实际解析 43 + 41 = 84（自洽 = True）
+命令表存在性预检：84 条 → 按 ROOT 解析后磁盘存在 84 条 / 缺失 0 条（缺失 = 无）
+预检正向对照：命令表条数 = 84 > 0 且存在条数 = 84 > 0（PASS）
+耐久性守卫（三方逐字节：索引 ⇔ 归档 ⇔ 原文件）：仓库外（$TEMP）脚本 54 条 → 一致 54 条 / 异常 0 条（无）
+  另查：原文件已丢失 0 条（无；可用 tools/round-verify/archive-temp-scripts.py --restore 还原）；索引条目 54 / 索引孤儿 0（无）
+耐久性守卫正向对照：仓库外脚本 54 > 0 且三方一致 54 > 0 ⇒ PASS
+R534 rcseq 解析到 84 条（> 0 正向对照，历史 46/98；判据可用 = True）
+tag 集合对齐：本轮 84 条 vs R534 84 条；差异 = 无（须为空；历史 169/177）
+R534 failraw 解析到 161 行（> 0 正向对照）
+运行前生成物快照 = 97 个（> 0 正向对照）
+  OK round-claims                       rc=0 (R534=0) FAIL行=0
+  OK gen-check                          rc=0 (R534=0) FAIL行=0
+  OK openapi-parses                     rc=0 (R534=0) FAIL行=0
+  OK endpoint-tests                     rc=0 (R534=0) FAIL行=0
+  OK contract-keys                      rc=1 (R534=1) FAIL行=1
+  OK auth-contract                      rc=1 (R534=1) FAIL行=2
+  OK routes                             rc=1 (R534=1) FAIL行=1
+  OK error-codes                        rc=1 (R534=1) FAIL行=2
+  OK query-params                       rc=1 (R534=1) FAIL行=2
+  OK time-format                        rc=0 (R534=0) FAIL行=0
+  OK enum-sets                          rc=1 (R534=1) FAIL行=20
+  OK response-shape                     rc=1 (R534=1) FAIL行=3
+  OK id-types                           rc=1 (R534=1) FAIL行=1
+  OK request-body                       rc=1 (R534=1) FAIL行=3
+  OK secret-leak                        rc=0 (R534=0) FAIL行=0
+  OK evidence-secrets                   rc=0 (R534=0) FAIL行=0
+  OK spotcheck-required                 rc=1 (R534=1) FAIL行=2
+  OK spotcheck-unique                   rc=1 (R534=1) FAIL行=1
+  OK spotcheck-success-shape            rc=1 (R534=1) FAIL行=1
+  OK spotcheck-string-length            rc=1 (R534=1) FAIL行=18
+  OK spotcheck-numeric-range            rc=1 (R534=1) FAIL行=1
+  OK spotcheck-idempotency              rc=1 (R534=1) FAIL行=5
+  OK spotcheck-lock                     rc=1 (R534=1) FAIL行=7
+  OK spotcheck-throttle                 rc=1 (R534=1) FAIL行=8
+  OK spotcheck-audit-cols               rc=1 (R534=1) FAIL行=3
+  OK spotcheck-state-machine            rc=1 (R534=1) FAIL行=3
+  OK spotcheck-tx-boundary              rc=1 (R534=1) FAIL行=1
+  OK spotcheck-http-method              rc=1 (R534=1) FAIL行=4
+  OK spotcheck-pagination               rc=1 (R534=1) FAIL行=1
+  OK spotcheck-entity-ddl               rc=1 (R534=1) FAIL行=1
+  OK spotcheck-config                   rc=1 (R534=1) FAIL行=3
+  OK spotcheck-outbound                 rc=1 (R534=1) FAIL行=5
+  OK gap-pagination-order               rc=1 (R534=1) FAIL行=2
+  OK gap-pagination-defaults            rc=1 (R534=1) FAIL行=2
+  OK gap-softdelete                     rc=1 (R534=1) FAIL行=16
+  OK gap-param-reach                    rc=1 (R534=1) FAIL行=5
+  OK gap-audit-log                      rc=1 (R534=1) FAIL行=1
+  OK gap-status-machine                 rc=1 (R534=1) FAIL行=13
+  OK gap-time-bucket                    rc=1 (R534=1) FAIL行=1
+  OK gap-sensitive-fields               rc=1 (R534=1) FAIL行=10
+  OK gap-logical-fk                     rc=1 (R534=1) FAIL行=2
+  OK gap-paging-range                   rc=1 (R534=1) FAIL行=3
+  OK gap-coverage-gap                   rc=1 (R534=1) FAIL行=0
+  OK round-claims-selftest              rc=0 (R534=0) FAIL行=0
+  OK gen-selftest                       rc=0 (R534=0) FAIL行=0
+  OK endpoint-tests-selftest            rc=0 (R534=0) FAIL行=0
+  OK contract-keys-selftest             rc=0 (R534=0) FAIL行=0
+  OK auth-contract-selftest             rc=0 (R534=0) FAIL行=0
+  OK routes-selftest                    rc=0 (R534=0) FAIL行=0
+  OK error-codes-selftest               rc=0 (R534=0) FAIL行=0
+  OK query-params-selftest              rc=0 (R534=0) FAIL行=0
+  OK time-format-selftest               rc=0 (R534=0) FAIL行=0
+  OK enum-sets-selftest                 rc=1 (R534=1) FAIL行=1
+  OK response-shape-selftest            rc=0 (R534=0) FAIL行=0
+  OK id-types-selftest                  rc=0 (R534=0) FAIL行=0
+  OK request-body-selftest              rc=0 (R534=0) FAIL行=0
+  OK secret-leak-selftest               rc=0 (R534=0) FAIL行=0
+  OK spotcheck-required-selftest        rc=0 (R534=0) FAIL行=0
+  OK spotcheck-unique-selftest          rc=0 (R534=0) FAIL行=0
+  OK spotcheck-success-shape-selftest   rc=1 (R534=1) FAIL行=1
+  OK spotcheck-string-length-selftest   rc=1 (R534=1) FAIL行=1
+  OK spotcheck-numeric-range-selftest   rc=0 (R534=0) FAIL行=0
+  OK spotcheck-idempotency-selftest     rc=0 (R534=0) FAIL行=0
+  OK spotcheck-lock-selftest            rc=0 (R534=0) FAIL行=0
+  OK spotcheck-throttle-selftest        rc=1 (R534=1) FAIL行=1
+  OK spotcheck-audit-cols-selftest      rc=0 (R534=0) FAIL行=0
+  OK spotcheck-state-machine-selftest   rc=0 (R534=0) FAIL行=0
+  OK spotcheck-tx-boundary-selftest     rc=0 (R534=0) FAIL行=0
+  OK spotcheck-http-method-selftest     rc=0 (R534=0) FAIL行=0
+  OK spotcheck-pagination-selftest      rc=0 (R534=0) FAIL行=0
+  OK spotcheck-entity-ddl-selftest      rc=0 (R534=0) FAIL行=0
+  OK spotcheck-config-selftest          rc=0 (R534=0) FAIL行=0
+  OK spotcheck-outbound-selftest        rc=0 (R534=0) FAIL行=0
+  OK gap-pagination-order-selftest      rc=0 (R534=0) FAIL行=0
+  OK gap-pagination-defaults-selftest   rc=1 (R534=1) FAIL行=1
+  OK gap-softdelete-selftest            rc=0 (R534=0) FAIL行=0
+  OK gap-param-reach-selftest           rc=1 (R534=1) FAIL行=1
+  OK gap-audit-log-selftest             rc=1 (R534=1) FAIL行=1
+  OK gap-status-machine-selftest        rc=0 (R534=0) FAIL行=0
+  OK gap-time-bucket-selftest           rc=0 (R534=0) FAIL行=0
+  OK gap-sensitive-fields-selftest      rc=0 (R534=0) FAIL行=0
+  OK gap-logical-fk-selftest            rc=0 (R534=0) FAIL行=0
+  OK gap-paging-range-selftest          rc=0 (R534=0) FAIL行=0
+  OK gap-coverage-gap-selftest          rc=1 (R534=1) FAIL行=0
+-- 零写副作用：生成物 size+md5 运行前后 全等（变化 0 个）--
+回归面：本轮复跑 = 84 条 / 上一轮 R534 = 84 条；rc 变化 0 条、新增 0、未复跑 0
+  rc=0 条数 = 40 / 84；rc!=0 条数 = 44 ['contract-keys', 'auth-contract', 'routes', 'error-codes', 'query-params', 'enum-sets', 'response-shape', 'id-types', 'request-body', 'spotcheck-required', 'spotcheck-unique', 'spotcheck-success-shape', 'spotcheck-string-length', 'spotcheck-numeric-range', 'spotcheck-idempotency', 'spotcheck-lock', 'spotcheck-throttle', 'spotcheck-audit-cols', 'spotcheck-state-machine', 'spotcheck-tx-boundary', 'spotcheck-http-method', 'spotcheck-pagination', 'spotcheck-entity-ddl', 'spotcheck-config', 'spotcheck-outbound', 'gap-pagination-order', 'gap-pagination-defaults', 'gap-softdelete', 'gap-param-reach', 'gap-audit-log', 'gap-status-machine', 'gap-time-bucket', 'gap-sensitive-fields', 'gap-logical-fk', 'gap-paging-range', 'gap-coverage-gap', 'enum-sets-selftest', 'spotcheck-success-shape-selftest', 'spotcheck-string-length-selftest', 'spotcheck-throttle-selftest', 'gap-pagination-defaults-selftest', 'gap-param-reach-selftest', 'gap-audit-log-selftest', 'gap-coverage-gap-selftest']
+FAIL 明细：42 个脚本含 FAIL 行、合计 161 行（> 0 正向对照，历史 97/98）
+-- 崩溃通道：rc!=0 条目 44 条，其中 FAIL 通道不可见（rc!=0 ∧ FAIL 0 行）= 2 条 ['gap-coverage-gap', 'gap-coverage-gap-selftest']
+      gap-coverage-gap               rc=1 理由 = AssertionError: 缺口集合与 R157 留档不一致：仅本轮 ['aap-r172-work/audit-ledger-r172.py', 'aap-r173-work/audit-ledger-r173.py', 'aap-r174-work/audit-ledger-r174.py', 'aap-r17
+      CRASHCHAN tag=gap-coverage-gap rc=1 sha256=977222fecd717b64bc7b4612f764d4444277c315cecc21391e56bda16b8c9eba nlines=1 head=AssertionError: 缺口集合与 R157 留档不一致：仅本轮 ['aap-r172-work/audit-ledger-r172.py', 'aap-r173-work/audit-ledger-r173.py', 'aap-r174-work/audit-ledger-r174.py', 'aap-r17
+      gap-coverage-gap-selftest      rc=1 理由 = AssertionError: T0 基线应当 rc=0，实际 rc=1
+      CRASHCHAN tag=gap-coverage-gap-selftest rc=1 sha256=14235db00683cbe6e2dea518b4cb5702ac19e2a36c6b2a0b02964be54c100b60 nlines=1 head=AssertionError: T0 基线应当 rc=0，实际 rc=1
+-- 崩溃通道跨轮比对（判据：上一轮同处「rc!=0 ∧ FAIL 0 行」的通道，其**完整理由行集** sha256 必须不变；rc 逐条比对只能看见「rc 变了」，FAIL 明细又为 0 ⇒ 内容变化此前零可见性）--
+上一轮 R534 证据里的 CRASHCHAN 段解析到 2 条 / 本轮 2 条（正向对照：两侧都 > 0，或两侧同时为 0）
+可比通道（两侧同现）= 2 条；理由变化 = 0 条 无；本轮新增通道 = 无；本轮转绿（消失）= 无
+判定：零回归；另有 2 条 rc!=0 但 FAIL 明细 0 行（FAIL 通道不可见，须在上文逐条给出理由）
+REGRESSION_END=1
