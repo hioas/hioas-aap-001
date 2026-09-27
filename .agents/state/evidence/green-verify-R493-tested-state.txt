@@ -1,0 +1,20 @@
+R493 校验轮（missing==0 -> 交付代码零改动）；全部读数由 tools/round-verify/analyze.py 从 facts / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 3430f338
+被测提交全 SHA = 3430f338be20a9c5a6d2cabf6316d0ce96e06b08
+被测提交主题 = chore(evidence): R492 收尾提交落地核对证据刷新（HEAD=24116d2b；返工真值 11；14 条判据全 PASS）
+run1 = 11:45:16 -> 11:47:44 rc=0 / run2 = 11:47:44 -> 11:50:02 rc=0（串行：run1_end <= run2_start = True）
+窗口 = 11:45:01 -> 11:50:07（1790480702 -> 1790481007，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = 3430f338 / 终点 = 3430f338；窗口内他方推进提交数 = 0
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 8 条
+    M .agents/state/evidence/coverage-report.json
+    M .agents/state/evidence/endpoint-test-audit.json
+    M .agents/state/evidence/endpoint-test-audit.txt
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+   ?? aap-server/src/main/webapp/
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0 （无）
+环境指纹：bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）

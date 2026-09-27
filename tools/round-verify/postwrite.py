@@ -35,6 +35,17 @@ rc, out, err = sh("diff-tree", "--no-commit-id", "--name-only", "-r", SHA)
 assert rc == 0, "提交号不存在或 git 失败：%s" % err.strip()
 carried = [x for x in out.splitlines() if x.strip()]
 head_files = set(sh("ls-files")[1].splitlines())
+# 本次核对时的 **HEAD** 必须写进证据（历史 198：证据必须写明被测状态；历史 219-③：核对类脚本读 `HEAD:` 的，
+# 必须在提交之后才跑）—— 否则「postwrite-check-*.txt 到底核对了哪个提交」只能靠人回忆（R492 观察项 ②）。
+_hc, _hs, _he = sh("rev-parse", "--short", "HEAD")
+assert _hc == 0, "读 HEAD 失败：%s" % _he.strip()
+HEAD_SHORT = _hs.strip()
+_anc, _, _ = sh("merge-base", "--is-ancestor", SHA, "HEAD")
+print("本次核对时的 HEAD = %s（主提交 %s 是 HEAD 的祖先 / 与 HEAD 相同 = %s）"
+      % (HEAD_SHORT, SHA, "是" if _anc == 0 else "否"))
+if _anc != 0:
+    fails.append("主提交 %s 不是 HEAD(%s) 的祖先 —— 提交号或核对时机不对（历史 200-②/219-③）"
+                 % (SHA, HEAD_SHORT))
 print("主提交 %s 携带文件 %d 条" % (SHA, len(carried)))
 for x in sorted(carried):
     print("   %s" % x)
