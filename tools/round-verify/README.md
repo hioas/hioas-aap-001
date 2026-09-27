@@ -78,8 +78,8 @@ python tools/round-verify/independent.py --selftest
 | `closeout.py <ROUND> --rework N --note <file>` | 收尾：写台账行 / `coverage-history.txt` 行 / 状态文件小节；数字全部由证据推出，内容级验收（8 列 + 描述逐字符相等 + 锚点 + 幂等）；`--device-change` 双向机器核对装置改动申报（申报了必须真有 / 未申报必须真零改动） |
 | `postwrite.py <ROUND> <主提交短号>` | 主提交落地核对：携带文件 / HEAD 树内 / 台账行逐列相等（c7 例外） |
 | `backfill-c7.py <ROUND> <主提交短号>` | 台账「提交」列回填（第 ⑦ 步）：写盘前与 `HEAD:` 逐记录逐列比对（只允许本轮行 c7 一处差异，其余差异响亮失败且零副作用），写盘后内容级验收（差异集合 / 记录数 / 物理行数 / 内嵌换行记录数 / CR 五连）+ 短号须是 HEAD 的祖先；`--selftest` = 20 条合成夹具判据（**不进 manifest 回归面**：它是写盘器；条数取自该自测的汇总行 `判据：PASS 20 / FAIL 0`，据实更正，勿再写旧口径）|
-| `final-check.py <ROUND> <主提交短号>` | 收尾一致性核对（F0–F18）：描述列 / history 行 / 状态小节 / 装置证据**四处同源**逐组相等 + 自述标记唯一 + 证据文件齐备（带 `--selftest` 合成夹具判别力实测） |
-| `independent.py <ROUND> [--device-change <路径>]... [--no-write]` | **独立复核探针**（只读、轮次无关；**不采信装置自身判定行**）：J1 facts/窗口 → J2 两轮**原始 maven 日志**独立解析 → J3 测试面（`@Test\b` 对账 ∧ 禁用扫描 0）→ J4 覆盖三处独立读数 → J5 交付面零改动（**相位感知**）+ 在途 mtime + worktree 回收 → J6 装置改动 == **申报集合**（双向逐文件点名）→ J7 证据齐备 ∧ 字节级 CR==0 → J8 装置目录轮次无关性 → J9 自证；落盘 `independent-<轮次>.txt`（收尾须 `--extra` 先登记）。`--selftest` = **36** 例（合成 ctx + 注入缺陷，断言「恰好新增目标判据」）。**不进 manifest 回归面**（与 `regression.py --selftest` 同档：扩面须人拍板） |
+| `final-check.py <ROUND> <主提交短号>` | 收尾一致性核对（F0–F18）：描述列 / history 行 / 状态小节 / 装置证据**四处同源**逐组相等 + 自述标记唯一 + 证据文件齐备（`--selftest` = **20** 例合成夹具判别力实测；该参数**仍需轮次实参**，用法 `python tools/round-verify/final-check.py <轮次> --selftest`） |
+| `independent.py <ROUND> [--device-change <路径>]... [--no-write]` | **独立复核探针**（只读、轮次无关；**不采信装置自身判定行**）：J1 facts/窗口 → J2 两轮**原始 maven 日志**独立解析 → J3 测试面（`@Test\b` 对账 ∧ 禁用扫描 0）→ J4 覆盖三处独立读数 → J5 交付面零改动（**相位感知**）+ 在途 mtime + worktree 回收 → J6 装置改动 == **申报集合**（双向逐文件点名）→ J7 证据齐备 ∧ 字节级 CR==0 → J8 装置目录轮次无关性 → J9 自证；落盘 `independent-<轮次>.txt`（收尾须 `--extra` 先登记）。`--selftest` = **38** 例（合成 ctx + 注入缺陷，断言「恰好新增目标判据」，用法 `python tools/round-verify/independent.py --selftest`）。**不进 manifest 回归面**（与 `regression.py --selftest` 同档：扩面须人拍板） |
 | `archive-temp-scripts.py` | 归仓：把仍住在 `$TEMP` 的抽查脚本逐字节存档进 `tools/regression/archive/`（`--check` 只读复核 / `--restore` 一键还原） |
 
 ## 纪律（踩过的坑，别再犯）
