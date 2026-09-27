@@ -1,0 +1,25 @@
+R492 提交后核对（收尾提交落地核对；只读）
+==============================================================================
+被测对象 = 台账 / 状态文件 / 本轮证据目录（**非交付代码**）；主提交 = 0e030b59；本次核对实际检出的 HEAD = 0abde808
+工作区未提交条目 = 9 条（他方在途，本轮只登记不触碰）；台账 sha256[:12] = e4350c666a90
+判据全部为**内容级**/自锚式（不硬编码「本次提交的文件集合」，可重跑；历史 12/231/243）。
+--- 原始输出 ---
+本次核对实际检出的提交 HEAD = 0abde808（历史 198：证据必须写明被测状态）
+[PASS] V1 HEAD 内本轮行恰好 1 条 条数 1
+[PASS] V2 HEAD 行 与 工作区行 逐列相等（提交携带的就是写入时校验过的那行） 差异列 = []
+[PASS] V3 提交列 = 主提交短号 0e030b59 c8='0e030b59'
+[PASS] V4 主提交存在且是 HEAD 的祖先 
+[PASS] V5 本轮提交数 >= 2（主提交 + 至少一枚收尾提交） 标题：0abde808 chore(evidence): R492 收尾更正（返工真值 5 → 7 处；postwrite 同源解析 + backfill 生产路径两处装置修正） | 0e030b59 chore(evidence): R492 巡检轮（装置冻结后第 2 次真实使用：交付面零改动；两轮 263 例全绿、覆盖 
+[PASS] V5b 本轮全部提交的改动文件都落在留痕目录 / 装置目录（= 交付面零改动、未碰他方文件） 文件 19 个：['.agents/state/aap-server-feature-status.csv', '.agents/state/aap-server-tdd-state.md', '.agents/state/evidence/audit-regression-R492-faildiff.txt', '.agents/state/evidence/audit-regression-R492-failraw.txt', '.agents/state/evidence/audit-regression-R492-rcseq.txt', '.agents/state/evidence/audit-regression-R492.txt', '.agents/state/evidence/coverage-history.txt', '.agents/state/evidence/device-round-R492.txt'] … / 越界 0 个
+[PASS] V5c 越界集合中不含交付面路径（aap-server/ · docs/ · aap-client/） 命中 0 个
+[PASS] V6 本轮证据文件条数由 glob 推出（不硬编码）；本文件单列 SELF（落盘时产生，历史 222） 条数 13（含 SELF）: audit-regression-R492-faildiff.txt, audit-regression-R492-failraw.txt, audit-regression-R492-rcseq.txt, audit-regression-R492.txt, device-round-R492.txt, green-verify-R492-coverage-fields.txt, green-verify-R492-full-run1.txt, green-verify-R492-full-run2.txt, green-verify-R492-testcount.txt, green-verify-R492-tested-state.txt, postwrite-check-R492.txt, round-R492-analysis.txt, verify-final-R492.txt
+[PASS] V7 本轮除本文件外的证据全部在 HEAD 树内（N-1 条 + coverage-history） 跟踪 13 条 / 其余证据 12 条
+[PASS] V8 台账证据列：非空、所列文件全部存在（正向对照：列项数 > 0） 列 13 项 / 缺 []
+[PASS] V8b 台账证据列所列文件都在 HEAD 树内（本文件 SELF 豁免） 未跟踪 []
+[PASS] V9 device 证据：返工真值 7 / 含首轮真实使用输出 / CR=0 行 160
+[PASS] V10 状态文件本轮小节含返工真值 7 
+[PASS] V11 台账描述含三处一致性锚点 
+[PASS] V12 自述标记唯一（「本轮返工 7 处（」在描述里恰好 1 处，历史 217-④） 计数 1
+FAIL 总计 = 0
+VERIFY_FINAL_END=1
+WITNESS_END=1

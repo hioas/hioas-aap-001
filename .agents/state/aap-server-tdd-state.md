@@ -13964,7 +13964,7 @@ R491 巡检轮收尾要点（返工真值 = 9 处，据实更正；全部装置/
 
 ### R492 巡检轮（校验轮：missing=0 ⇒ 交付面零改动）
 
-- **性质**：`missing=0` ⇒ **交付面零改动**（未改 `aap-server` / `docs` 任何一行）；本轮另含**装置侧改动**（backfill-c7.py / closeout.py / README.md / postwrite.py —— 轮次无关的轮次校验装置（只读审计 + 留痕写入器），不触碰交付面；证据：工作区未提交 3 条 / 提交链自 156c4937 起 1 枚提交触及 tools/）；本轮新增写入 = 台账 / 状态 / 证据。
+- **性质**：`missing=0` ⇒ **交付面零改动**（未改 `aap-server` / `docs` 任何一行）；本轮另含**装置侧改动**（backfill-c7.py / closeout.py / README.md / postwrite.py —— 轮次无关的轮次校验装置（只读审计 + 留痕写入器），不触碰交付面；证据：工作区未提交 0 条 / 提交链自 156c4937 起 2 枚提交触及 tools/）；本轮新增写入 = 台账 / 状态 / 证据。
 - **两轮全量（串行）**：被测提交 = 156c4937（独立 detached worktree 内）；run1 11:07:12→11:09:32、run2 11:09:32→11:11:35；各 **263 例 / 45 类**、rc=0/0、Failures-Errors-Skipped = 0-0-0；`@Test` 词边界计数与 surefire 合计一致；禁用扫描 0 条。
 - **覆盖**：total=108 implemented=108 **missing=0**、registered_routes=125、not_registered=[]；连续第 **474** 轮全绿。
 - **回归面**：复跑 84 条（tag 集合与上一轮 R491 一致）；rc 变化 0 条、新增 0、未复跑 0；FAIL 明细 42 脚本 161 行（跨轮 faildiff 新增 0 / 消失 0）；零写副作用（冻结清单生成物 size+md5 全等）；命令表已由仓库内 `tools/round-verify/manifest.json` 提供，$TEMP 抽查脚本 54 条全部归仓（由 manifest 的 $TEMP 条目数与归仓目录数**双源互证**推出）。
