@@ -17,6 +17,15 @@ import subprocess
 import sys
 from pathlib import Path
 
+# 证据落盘一律 LF（历史 69/84/146）：Windows 上 `python … > evidence.txt` 的 stdout 默认是 CRLF，
+# 而同族证据（analyze / regression 用 `write_text(newline="\n")`）是 LF ⇒ 同一目录一半 LF 一半 CRLF。
+# 本工具因此**自己保证**输出行尾：调用方怎样重定向都不影响（上一轮靠每轮现写的 `$TEMP` 包装脚本兜底）。
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(newline="\n")
+    except (ValueError, OSError):
+        pass
+
 ROOT = Path("E:/workspaces/hioas/hioas-aap-001")
 CSV_REL = ".agents/state/aap-server-feature-status.csv"
 EV_REL = ".agents/state/evidence"
