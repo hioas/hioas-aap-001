@@ -1,0 +1,112 @@
+R492 装置侧交付与返工（补第 ⑥ 步工具 + 既有装置两处自述/硬编码修正；装置冻结后第 2 次真实使用）
+==============================================================================
+生成方式：本文件由脚本从 git / facts / 探针的**真实输出**取值（数字零手写值），不接触交付面。
+轮次 = R492；被测提交（HEAD 的独立 worktree 内检出）= 156c4937；窗口 = 2026-09-27 11:06:56 -> 2026-09-27 11:11:40（facts 落盘）
+
+一、装置侧交付 3 项（零交付面影响）
+①（新增工具）`backfill-c7.py` —— README 巡检轮流程第 ⑥ 步「台账提交列回填」此前**没有工具**：
+   每轮现写一份脚本、只活在 `$TEMP`。本轮实测：R491 的同类脚本在**仓库外**有 2 个（backfill-c7-v2.py、backfill-c7.py），
+   而被测提交的 `tools/` 树内名字含 backfill 的文件 = 0 个 —— 与装置「进仓库、可重跑」相悖，
+   且随系统清理即永久退场（历史 169/177）。
+   该步首版临时脚本的真实返工：`splitlines()` 取行再交给 `csv.reader` ⇒ 字段内嵌换行被吃掉，实测把两条**历史记录**
+   的换行删掉（`numstat` 3 插入 / 5 删除，正常应为 1 / 1）= 改动落到**非本轮行**（历史 80/155/169）。
+   新工具把该纪律固化：写盘前「工作区 ⇔ `HEAD:`」逐记录逐列比对须**零差异**（本轮行 c7 在回填前必须为空；
+   任何差异都响亮失败且**零副作用**）；写盘后差异集合必须恰好是「本轮行 c7」，外加记录数 / 物理行数 /
+   内嵌换行记录数 / CR 四连守恒；短号须**真的存在且是 HEAD 的祖先**（历史 200-②）。
+   机器证据（装置文件数 + 轮次无关性）：
+     `git ls-tree 156c4937:tools/round-verify` = 8 个文件（无 backfill 工具）：README.md、analyze.py、archive-temp-scripts.py、closeout.py、manifest.json、postwrite.py、regression.py、run-round.sh
+     工作区同目录 = 9 个文件（新增 1 个）
+     工具内轮次号形态 `R\d{3}` 命中 = 5 处，其中落在**自测代码块之外**的 = 0 处（要求 0；自测块内的合成轮次号属故意假轮次）
+②（既有装置·自述措辞）`closeout.py` 的 DEVLINE 模板固定写「轮次无关的**只读**校验装置」—— 本轮新增的是**写盘器**，
+   该措辞随即失真（自述与事实不符，历史 12/95/249）。改为「轮次无关的轮次校验装置（只读审计 + 留痕写入器）」。
+   机器证据：被测提交的 `closeout.py` 命中「只读校验装置」= 1 行 → 工作区 = 0 行。
+③（既有装置·纯数字盲区）同文件状态文件小节把归仓条数**手写**为 54 —— 违反装置自身纪律「消费脚本源码里零硬编码纯值」，
+   一旦归仓数变化该行立刻成为假自述（历史 201/206/12）。改为**双源互证**推出：manifest 里指向 `$TEMP` 的条目数
+   ⇔ `tools/regression/archive/` 归仓目录数（须相等）。本轮真值 = 54 / 54（相等）。
+   机器证据：被测提交命中「抽查脚本 54 条」= 1 行 → 工作区 = 0 行；工作区「双源互证」判据 = 1 处。
+   README：命中 backfill = 0 行 → 2 行；第 ⑥ 步说明行「台账「提交」列回填」= 1 → 2（用法 + 文件表两处）。
+
+二、本轮装置/脚本侧**返工真值 = 5 处**（零交付面影响，逐条）
+   ① （交付脚本侧·自审发现）新工具首版把「本轮行 c7 已非空」当成**允许**的工作区⇔基准差异 ⇒ 重复回填会被静默覆盖
+      （判据范围与语义不符，历史 81）。修法：预检改为「须零差异」+ 单列一条「工作区本轮行 c7 必须为空」的专属失败信息。
+   ② （交付脚本侧·自测拦下）自测夹具的「其它轮次行」少一个空列（7 列而非 8 列）⇒ 基准列数自检转红，
+      连带 4 条断言假失败 + F1 取 c7 时 `IndexError`（夹具写错会伪装成实现 bug，历史 19/136）。
+      修法：补齐空列后 16/16 PASS（原始输出见第三节）。
+   ③ （既有装置·自审发现）DEVLINE 的「只读」措辞随新增写盘器失真（见一②）。
+   ④ （既有装置·自审发现）状态文件小节手写归仓条数 54（见一③）。
+   ⑤ （本文件生成脚本·断言拦下）「轮次无关性」判据的**范围**过宽：`负向自测（合成夹具` 在工具里命中 2 处
+      （自测段注释 + docstring 用法行）⇒ 自审脚本自崩（`AssertionError: 自测段起点定位 2 处`）。
+      修法：限定为**注释行**开头再匹配（判据范围与语义一致，历史 81/218）。
+   说明：①③④ 由自审在**跑之前**发现、②⑤ 由脚本断言/崩溃**响亮拦下** ⇒ 错误数字未进产物（历史 175 正例）。
+
+三、新工具判据的负向自测（`--selftest`，合成夹具，零接触仓库台账）—— 原始输出：
+------------------------------------------------------------------------------
+  [PASS] A0a 夹具含内嵌换行记录数 >= 1（正向对照） 实测 1
+  [PASS] A1 正常回填 rc == 0 rc=0 []
+  [PASS] A2 回填后 c7 == 提交短号 
+  [PASS] A3 差异集合恰为 {(轮次, 提交)} 
+  [PASS] A4 内嵌换行守恒 1 -> 1
+  [PASS] A5 物理行数守恒 4 -> 4
+  [PASS] B1 非本轮差异 rc != 0 rc=1
+  [PASS] B2 失败信息点名该行 [FAIL] 工作区与本轮基准存在差异 [('R998', '提交')] —— 拒绝改写（非本轮行不得被动，历史 81/198）
+  [PASS] B3 零副作用（文件字节不变） 
+  [PASS] C1 c7 非空 rc != 0 rc=1
+  [PASS] C2 失败信息指 c7 [FAIL] 工作区 R999 行 c7 非空（'9999999'）—— 回填顺序不对 / 疑似重复回填（历史 200-②）
+  [PASS] C3 零副作用（文件字节不变） 
+  [PASS] D1 记录数不一致 rc != 0 rc=1
+  [PASS] D2 零副作用（文件字节不变） [FAIL] 记录数 基准 3 -> 工作区 2（判定：splitlines 类截断，历史 80/155）
+  [PASS] E1 本轮行缺失 rc == 2（判据失效） rc=2
+  [PASS] F1 其它轮次行逐列不变 
+  判据：PASS 16 / FAIL 0
+  SELFTEST_END=1
+------------------------------------------------------------------------------
+   [PASS] 行 16 条 / [FAIL] 行 0 条 —— 判据：PASS 16 / FAIL 0
+   分支语义：A 正常路径（差异集合恰为 {(轮次, 提交)} + 守恒三连）；B 工作区有**非本轮**差异 → 响亮失败；
+   C 本轮行 c7 非空（重复回填/顺序错）→ 响亮失败；D 记录数塌陷（`splitlines` 类损坏的等效形态）→ 响亮失败；
+   E 本轮行缺失 → rc=2（判据失效而不是「无事可做」）；B/C/D 三条同时断言**文件字节不变**（零副作用）。
+   A0a 是「夹具真的含内嵌换行」的正向对照（否则守恒判据空转，历史 75/98）；F1 是「其它轮次行逐列不变」的反向对照。
+   为什么不进 manifest 回归面：它是**写盘器**（改 `aap-server-feature-status.csv`），而回归面复跑必须在零写副作用前提下只读
+   （`regression.py` 有冻结清单生成物 size+md5 全等判据）；回归面扩面（84 → 85）按历史 213-③ 属**需人拍板**事项，不本轮顺手做。
+
+四、交付面零改动（三条可机检判据，避免把他方在途算作本轮改动）
+   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，0 才说明两轮测的是提交态）。
+   ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 6 条（他方在途，只登记不触碰）/ 窗口起点后且路径属本轮装置·留痕目录 16 条
+      （= 本轮自己的产物）/ 其余（归属未定）0 条（**须为 0**）。
+      窗口起点后的本轮条目：
+         M .agents/state/evidence/endpoint-test-audit.json  mtime=2026-09-27 11:11:49
+         M .agents/state/evidence/endpoint-test-audit.txt  mtime=2026-09-27 11:11:49
+         M tools/round-verify/README.md  mtime=2026-09-27 11:19:33
+         M tools/round-verify/closeout.py  mtime=2026-09-27 11:19:22
+        ?? .agents/state/evidence/audit-regression-R492-faildiff.txt  mtime=2026-09-27 11:16:04
+        ?? .agents/state/evidence/audit-regression-R492-failraw.txt  mtime=2026-09-27 11:16:04
+        ?? .agents/state/evidence/audit-regression-R492-rcseq.txt  mtime=2026-09-27 11:16:04
+        ?? .agents/state/evidence/audit-regression-R492.txt  mtime=2026-09-27 11:16:04
+        ?? .agents/state/evidence/device-round-R492.txt  mtime=2026-09-27 11:21:06
+        ?? .agents/state/evidence/green-verify-R492-coverage-fields.txt  mtime=2026-09-27 11:11:43
+        ?? .agents/state/evidence/green-verify-R492-full-run1.txt  mtime=2026-09-27 11:11:43
+        ?? .agents/state/evidence/green-verify-R492-full-run2.txt  mtime=2026-09-27 11:11:43
+        ?? .agents/state/evidence/green-verify-R492-testcount.txt  mtime=2026-09-27 11:11:43
+        ?? .agents/state/evidence/green-verify-R492-tested-state.txt  mtime=2026-09-27 11:11:43
+        ?? .agents/state/evidence/round-R492-analysis.txt  mtime=2026-09-27 11:11:43
+        ?? tools/round-verify/backfill-c7.py  mtime=2026-09-27 11:18:32
+      其中位于 `aap-server/` 或 `docs/` 的条目 = 0 条（**须为 0** ＝ 交付面零改动）。
+      窗口前条目（他方在途）：6 条
+         M .agents/state/evidence/coverage-report.json  mtime=2026-09-25 05:34:37
+         M README.md  mtime=2026-09-24 07:51:14
+         M aap-server/pom.xml  mtime=2026-09-24 08:07:37
+         M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
+         M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
+        ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
+      ⚠ 与窗口起点采集的在途清单（执行器落盘 `root-status-before.txt`，8 条）的对账：
+        窗口前 6 条 ＋ 被本轮回归面复跑**就地重写**而 mtime 前移的条目 2 条
+        （`endpoint-tests` 审计复跑会重写 `endpoint-test-audit.json/.txt` —— 复跑的既有副作用，非本轮新引入；
+        如实归入本轮条目而不是藏进「他方在途」，历史 12/95。）
+   说明：直接看 `git diff --stat HEAD -- aap-server` 会把**他方在途改动**算作本轮改动 —— 判据范围必须与「本轮自己改了什么」
+   的语义一致（历史 81/193/198）。
+
+五、顺序约束与首轮真实使用
+   本工具在装置改动**提交之前**无法走生产路径（回填的基准 = `HEAD:` 内已含本轮行的台账，且短号须是 HEAD 的祖先），
+   故本文件由**主提交**携带时只到本节为止；第 ⑥ 步的首轮真实使用输出由**收尾提交**补入同名文件
+   （内容补充、文件名与清单条数不变，历史 209：不是「先写错再补正」的修正史）。
+
+DEVICE_ROUND_END=1

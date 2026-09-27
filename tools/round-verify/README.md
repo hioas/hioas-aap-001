@@ -32,7 +32,8 @@ git add <本轮证据 + 台账 + 状态文件 + 工具改动> && git commit   # 
 
 # ⑤ 主提交落地核对（携带文件 / HEAD 树内 / 台账行逐列相等）→ 落盘 postwrite-check-<轮次>.txt
 python tools/round-verify/postwrite.py R491 <主提交短号> > .agents/state/evidence/postwrite-check-R491.txt
-# ⑥ 台账「提交」列回填主提交短号（独立小提交）
+# ⑥ 台账「提交」列回填主提交短号（独立小提交；写盘前先与 HEAD 逐记录逐列比对，只允许本轮行 c7 一处差异）
+python tools/round-verify/backfill-c7.py R491 <主提交短号>
 ```
 
 顺序纪律：**④ 收尾在 ⑤ 之前**、**⑤ 在回填之前**（历史 243-①/219-③）；`--extra` 先登记后产出，
@@ -50,6 +51,7 @@ python tools/round-verify/postwrite.py R491 <主提交短号> > .agents/state/ev
 | `regression.py <ROUND>` | 回归面复跑：命令表存在性预检、rc 逐条比对、tag 集合对齐、零写副作用、跨轮 FAIL 归一比对、崩溃通道、**归仓耐久性守卫** |
 | `closeout.py <ROUND> --rework N --note <file>` | 收尾：写台账行 / `coverage-history.txt` 行 / 状态文件小节；数字全部由证据推出，内容级验收（8 列 + 描述逐字符相等 + 锚点 + 幂等） |
 | `postwrite.py <ROUND> <主提交短号>` | 主提交落地核对：携带文件 / HEAD 树内 / 台账行逐列相等（c7 例外） |
+| `backfill-c7.py <ROUND> <主提交短号>` | 台账「提交」列回填（第 ⑥ 步）：写盘前与 `HEAD:` 逐记录逐列比对（只允许本轮行 c7 一处差异，其余差异响亮失败且零副作用），写盘后内容级验收（差异集合 / 记录数 / 物理行数 / 内嵌换行记录数 / CR 五连）+ 短号须是 HEAD 的祖先；`--selftest` = 16 条合成夹具判据（**不进 manifest 回归面**：它是写盘器） |
 | `archive-temp-scripts.py` | 归仓：把仍住在 `$TEMP` 的抽查脚本逐字节存档进 `tools/regression/archive/`（`--check` 只读复核 / `--restore` 一键还原） |
 
 ## 纪律（踩过的坑，别再犯）

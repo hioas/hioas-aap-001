@@ -16,6 +16,7 @@
 """
 import csv
 import hashlib
+import json
 import re
 import subprocess
 import sys
@@ -103,7 +104,7 @@ if DEVCHANGES:
     assert TOOLS_DIRTY or TOOLS_COMMITTED, (
         "--device-change 已申报 %s 但工作区与「被测提交..HEAD」的提交链都没有 tools/ 改动（自述不实 / 判据失效）"
         % DEVCHANGES)
-    DEVLINE = ("本轮另含**装置侧改动**（%s —— 轮次无关的只读校验装置，不触碰交付面；证据：工作区未提交 %d 条 / "
+    DEVLINE = ("本轮另含**装置侧改动**（%s —— 轮次无关的轮次校验装置（只读审计 + 留痕写入器），不触碰交付面；证据：工作区未提交 %d 条 / "
                "提交链自 %s 起 %d 枚提交触及 tools/）"
                % ("、".join(DEVCHANGES), len(TOOLS_DIRTY), facts["FACTS_TESTED_COMMIT"], len(TOOLS_COMMITTED)))
 else:
@@ -123,6 +124,16 @@ for nm in EXTRA:
     EVLIST = sorted(EVLIST + [nm])
 N_EV = len(EVLIST)
 CFG = "%s / %s" % (facts["FACTS_RUN1_START"], facts["FACTS_RUN1_END"])
+# 归仓条数**不手写**（装置纪律「消费脚本源码里零硬编码纯值」；手写计数一旦过期就是假自述，历史 201/206/12）。
+# 两个来源互相印证：manifest 里指向 $TEMP 的条目数 ⇔ `tools/regression/archive/` 下的归仓目录数。
+MAN = json.loads((ROOT / "tools/round-verify/manifest.json").read_text(encoding="utf-8"))
+TMP_ENTRIES = [e for _sec in ("audits", "selftests") for e in MAN.get(_sec, [])
+               if any(("Local\\Temp" in str(x)) or ("/Temp/" in str(x)) for x in e.get("cmd", []))]
+ARCH_DIRS = sorted(d.name for d in (ROOT / "tools/regression/archive").iterdir() if d.is_dir())
+assert TMP_ENTRIES and ARCH_DIRS, "判据失效：$TEMP 条目或归仓目录解析为 0（历史 46/75）"
+assert len(TMP_ENTRIES) == len(ARCH_DIRS), \
+    "$TEMP 条目 %d 与归仓目录 %d 不一致（跨源比对须相等，历史 236）" % (len(TMP_ENTRIES), len(ARCH_DIRS))
+N_ARCH = len(ARCH_DIRS)
 
 # ---------- 描述列（前缀由证据推出 + 本轮要点来自单一事实源） ----------
 PREFIX = ("%s 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；"
@@ -227,7 +238,7 @@ sec = ["", "### %s 巡检轮（校验轮：missing=0 ⇒ 交付面零改动）" 
        % (TOT, IMPL, MISS, ROUTES, STREAK),
        "- **回归面**：复跑 %d 条（tag 集合与上一轮 %s 一致）；rc 变化 %s 条、新增 %s、未复跑 %s；"
        "FAIL 明细 %s 脚本 %s 行（跨轮 faildiff 新增 0 / 消失 0）；零写副作用（冻结清单生成物 size+md5 全等）；"
-       "命令表已由仓库内 `tools/round-verify/manifest.json` 提供，$TEMP 抽查脚本 54 条全部归仓。" % (RAN, prev_round, RCCH, RCADD, RCGONE, FSCR, FLIN),
+       "命令表已由仓库内 `tools/round-verify/manifest.json` 提供，$TEMP 抽查脚本 %d 条全部归仓（由 manifest 的 $TEMP 条目数与归仓目录数**双源互证**推出）。" % (RAN, prev_round, RCCH, RCADD, RCGONE, FSCR, FLIN, N_ARCH),
        "- **本轮要点（单一事实源 = %s）**：" % Path(NOTE).name,
        note,
        "- **返工真值**：本轮返工真值 = **%s 处**（装置/脚本侧，零交付面影响；逐条见上文要点%s）。"
