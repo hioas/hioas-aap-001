@@ -1,0 +1,417 @@
+R546 收尾相位门禁补跑（从**最终交付态**只读复核；待拍板 ⑨ 的既定处置）
+==============================================================================
+为什么补跑：回归面阶段（主提交之前）跑 `round-claims` 时本轮台账行**尚未落盘**、跑 `evidence-secrets` 时
+本轮证据文件**尚未落盘** ⇒ 那两次读数看不到本轮新产物。故在收尾后（台账 c7 已回填 = bbc10de0、证据已提交）
+从最终态再跑一次，作为本轮这两条门禁的**真读数**。两条命令**取 manifest 单一事实源**（不是抄写在本文里），
+未改参数、未改判据、零写副作用。
+「最终交付态」的机器证据：台账 R546 行 c7 = bbc10de0（与本脚本实参一致）∧ 证据列项数 = 18 ≥ 8。
+
+关键读数：round-claims rc=0 / evidence-secrets rc=0；[FAIL] 行 = 0；evidence-secrets 自述：命中 0 条（无：证据文件里没有真实令牌）（本轮证据列项数 = 18）
+
+原始输出（逐行）：
+------------------------------------------------------------------------------
+  == round-claims ==
+     命令（自 manifest 单一事实源）= ["C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe", "tools/audit-round-claims.py"]
+  ==========================================================================
+  ==============================================================================
+  轮次自述真值一致性审计（数值形态：本轮自述 A ⇔ 权威数字 B；同轮 A==B ∧ 跨文件 B==B）
+  ROOT = E:\workspaces\hioas\hioas-aap-001 | SELFTEST = False
+  ==============================================================================
+    · 状态文件 A 形态：165 条
+        round=R359 val=4 line=11105
+        round=R360 val=16 line=11181
+        round=R361 val=9 line=11216
+        round=R362 val=3 line=11279
+        round=R363 val=4 line=11336
+        round=R364 val=13 line=11394
+        round=R365 val=11 line=11431
+        round=R366 val=23 line=11441
+        round=R367 val=20 line=11450
+        round=R368 val=14 line=11461
+        round=R369 val=4 line=11473
+        round=R370 val=11 line=11485
+        round=R371 val=10 line=11499
+        round=R372 val=7 line=11511
+        round=R373 val=3 line=11532
+        round=R374 val=4 line=11549
+        round=R375 val=4 line=11567
+        round=R376 val=2 line=11585
+        round=R377 val=5 line=11601
+        round=R378 val=1 line=11620
+        round=R379 val=4 line=11635
+        round=R380 val=6 line=11653
+        round=R381 val=3 line=11673
+        round=R382 val=3 line=11690
+        round=R383 val=2 line=11707
+        round=R384 val=3 line=11723
+        round=R385 val=6 line=11740
+        round=R386 val=6 line=11760
+        round=R387 val=3 line=11780
+        round=R388 val=2 line=11797
+        round=R389 val=1 line=11813
+        round=R390 val=1 line=11828
+        round=R391 val=2 line=11843
+        round=R392 val=1 line=11859
+        round=R393 val=4 line=11874
+        round=R394 val=2 line=11892
+        round=R395 val=7 line=11908
+        round=R396 val=8 line=11930
+        round=R397 val=11 line=11952
+        round=R398 val=5 line=11977
+        round=R399 val=5 line=11996
+        round=R400 val=5 line=12015
+        round=R401 val=6 line=12034
+        round=R402 val=2 line=12054
+        round=R403 val=1 line=12070
+        round=R404 val=4 line=12085
+        round=R405 val=7 line=12103
+        round=R406 val=4 line=12124
+        round=R407 val=4 line=12142
+        round=R408 val=4 line=12160
+        round=R409 val=1 line=12178
+        round=R410 val=5 line=12193
+        round=R411 val=6 line=12212
+        round=R412 val=3 line=12232
+        round=R413 val=5 line=12249
+        round=R414 val=4 line=12268
+        round=R415 val=3 line=12286
+        round=R416 val=9 line=12303
+        round=R417 val=6 line=12326
+        round=R418 val=5 line=12346
+        round=R419 val=5 line=12365
+        round=R420 val=6 line=12384
+        round=R421 val=3 line=12404
+        round=R456 val=6 line=13468
+        round=R457 val=9 line=13478
+        round=R458 val=11 line=13488
+        round=R459 val=8 line=13498
+        round=R460 val=8 line=13508
+        round=R461 val=4 line=13518
+        round=R462 val=2 line=13528
+        round=R463 val=7 line=13538
+        round=R464 val=3 line=13548
+        round=R465 val=4 line=13558
+        round=R466 val=3 line=13568
+        round=R467 val=2 line=13578
+        round=R468 val=2 line=13588
+        round=R469 val=2 line=13598
+        round=R470 val=7 line=13608
+        round=R471 val=4 line=13618
+        round=R472 val=2 line=13628
+        round=R473 val=2 line=13638
+        round=R474 val=3 line=13648
+        round=R475 val=4 line=13658
+        round=R476 val=4 line=13668
+        round=R477 val=8 line=13678
+        round=R478 val=4 line=13704
+        round=R479 val=4 line=13720
+        round=R480 val=3 line=13735
+        round=R481 val=2 line=13751
+        round=R482 val=8 line=13766
+        round=R483 val=1 line=13787
+        round=R484 val=3 line=13802
+        round=R485 val=7 line=13819
+        round=R486 val=5 line=13840
+        round=R487 val=5 line=13859
+        round=R488 val=7 line=13878
+        round=R489 val=9 line=13899
+        round=R490 val=10 line=13924
+        round=R491 val=9 line=13961
+        round=R492 val=11 line=13987
+        round=R493 val=4 line=14013
+        round=R494 val=6 line=14033
+        round=R495 val=3 line=14059
+        round=R496 val=4 line=14083
+        round=R497 val=5 line=14105
+        round=R498 val=9 line=14146
+        round=R499 val=9 line=14188
+        round=R500 val=5 line=14225
+        round=R501 val=1 line=14261
+        round=R502 val=3 line=14297
+        round=R503 val=0 line=14329
+        round=R504 val=1 line=14363
+        round=R505 val=0 line=14397
+        round=R506 val=0 line=14431
+        round=R507 val=1 line=14471
+        round=R508 val=2 line=14512
+        round=R509 val=1 line=14552
+        round=R510 val=2 line=14598
+        round=R511 val=0 line=14641
+        round=R512 val=0 line=14680
+        round=R513 val=1 line=14725
+        round=R514 val=0 line=14764
+        round=R515 val=1 line=14805
+        round=R516 val=0 line=14844
+        round=R517 val=0 line=14883
+        round=R518 val=0 line=14924
+        round=R519 val=0 line=14965
+        round=R520 val=0 line=15006
+        round=R521 val=0 line=15047
+        round=R522 val=0 line=15088
+        round=R523 val=0 line=15129
+        round=R524 val=0 line=15170
+        round=R525 val=0 line=15215
+        round=R526 val=3 line=15266
+        round=R527 val=6 line=15311
+        round=R528 val=6 line=15351
+        round=R529 val=1 line=15389
+        round=R530 val=1 line=15427
+        round=R531 val=1 line=15454
+        round=R531 val=1 line=15467
+        round=R532 val=2 line=15494
+        round=R532 val=2 line=15507
+        round=R533 val=3 line=15534
+        round=R533 val=3 line=15547
+        round=R534 val=3 line=15558
+        round=R534 val=3 line=15559
+        round=R535 val=1 line=15582
+        round=R535 val=1 line=15593
+        round=R536 val=3 line=15616
+        round=R536 val=3 line=15636
+        round=R537 val=5 line=15679
+        round=R538 val=1 line=15714
+        round=R539 val=2 line=15750
+        round=R540 val=2 line=15784
+        round=R541 val=2 line=15818
+        round=R542 val=3 line=15852
+        round=R543 val=1 line=15886
+        round=R544 val=0 line=15911
+        round=R544 val=0 line=15911
+        round=R544 val=0 line=15920
+        round=R545 val=2 line=15947
+        round=R545 val=2 line=15947
+        round=R545 val=2 line=15956
+        round=R546 val=2 line=15981
+        round=R546 val=2 line=15990
+    · 状态文件 B 形态：206 条
+        round=R239 val=6 line=9188
+        round=R251 val=19 line=9370
+        round=R307 val=7 line=10125
+        round=R308 val=11 line=10142
+        round=R349 val=9 line=10736
+        round=R359 val=4 line=11105
+        round=R360 val=16 line=11184
+        round=R361 val=9 line=11230
+        round=R361 val=9 line=11242
+        round=R362 val=3 line=11287
+        round=R362 val=3 line=11297
+        round=R362 val=3 line=11299
+        round=R363 val=4 line=11345
+        round=R363 val=4 line=11355
+        round=R363 val=4 line=11357
+        round=R364 val=13 line=11412
+        round=R365 val=11 line=11431
+        round=R366 val=23 line=11441
+        round=R367 val=20 line=11450
+        round=R368 val=14 line=11461
+        round=R369 val=4 line=11473
+        round=R370 val=11 line=11485
+        round=R371 val=10 line=11499
+        round=R372 val=7 line=11511
+        round=R372 val=7 line=11513
+        round=R373 val=3 line=11532
+        round=R373 val=3 line=11534
+        round=R374 val=4 line=11549
+        round=R374 val=4 line=11551
+        round=R375 val=4 line=11567
+        round=R376 val=2 line=11585
+        round=R377 val=5 line=11601
+        round=R377 val=5 line=11603
+        round=R378 val=1 line=11620
+        round=R379 val=4 line=11635
+        round=R379 val=4 line=11637
+        round=R380 val=6 line=11653
+        round=R381 val=3 line=11673
+        round=R382 val=3 line=11690
+        round=R382 val=3 line=11692
+        round=R383 val=2 line=11707
+        round=R383 val=2 line=11709
+        round=R384 val=3 line=11723
+        round=R384 val=3 line=11725
+        round=R385 val=6 line=11740
+        round=R385 val=6 line=11742
+        round=R386 val=6 line=11760
+        round=R386 val=6 line=11762
+        round=R387 val=3 line=11780
+        round=R388 val=2 line=11797
+        round=R389 val=1 line=11813
+        round=R390 val=1 line=11828
+        round=R391 val=2 line=11843
+        round=R392 val=1 line=11859
+        round=R393 val=4 line=11874
+        round=R394 val=2 line=11892
+        round=R395 val=7 line=11908
+        round=R395 val=7 line=11910
+        round=R396 val=8 line=11930
+        round=R396 val=8 line=11932
+        round=R397 val=11 line=11952
+        round=R398 val=5 line=11977
+        round=R398 val=5 line=11979
+        round=R399 val=5 line=11996
+        round=R400 val=5 line=12015
+        round=R401 val=6 line=12034
+        round=R402 val=2 line=12054
+        round=R402 val=2 line=12056
+        round=R403 val=1 line=12070
+        round=R404 val=4 line=12085
+        round=R405 val=7 line=12103
+        round=R406 val=4 line=12124
+        round=R406 val=4 line=12126
+        round=R407 val=4 line=12142
+        round=R408 val=4 line=12160
+        round=R409 val=1 line=12178
+        round=R410 val=5 line=12193
+        round=R410 val=5 line=12195
+        round=R411 val=6 line=12212
+        round=R412 val=3 line=12232
+        round=R413 val=5 line=12249
+        round=R414 val=4 line=12268
+        round=R415 val=3 line=12286
+        round=R415 val=3 line=12288
+        round=R416 val=9 line=12303
+        round=R416 val=9 line=12305
+        round=R417 val=6 line=12326
+        round=R417 val=6 line=12328
+        round=R418 val=5 line=12346
+        round=R418 val=5 line=12348
+        round=R419 val=5 line=12365
+        round=R420 val=6 line=12384
+        round=R420 val=6 line=12386
+        round=R421 val=3 line=12404
+        round=R421 val=3 line=12406
+        round=R456 val=6 line=13468
+        round=R457 val=9 line=13478
+        round=R458 val=11 line=13488
+        round=R459 val=8 line=13498
+        round=R460 val=8 line=13508
+        round=R461 val=4 line=13518
+        round=R462 val=2 line=13528
+        round=R463 val=7 line=13538
+        round=R464 val=3 line=13548
+        round=R465 val=4 line=13558
+        round=R466 val=3 line=13568
+        round=R467 val=2 line=13578
+        round=R468 val=2 line=13588
+        round=R469 val=2 line=13598
+        round=R470 val=7 line=13608
+        round=R471 val=4 line=13618
+        round=R472 val=2 line=13628
+        round=R473 val=2 line=13638
+        round=R474 val=3 line=13648
+        round=R475 val=4 line=13658
+        round=R476 val=4 line=13668
+        round=R478 val=4 line=13709
+        round=R479 val=4 line=13724
+        round=R480 val=3 line=13740
+        round=R481 val=2 line=13755
+        round=R482 val=8 line=13776
+        round=R483 val=1 line=13790
+        round=R484 val=3 line=13807
+        round=R485 val=7 line=13828
+        round=R486 val=5 line=13847
+        round=R487 val=5 line=13866
+        round=R488 val=7 line=13887
+        round=R489 val=9 line=13910
+        round=R490 val=10 line=13925
+        round=R491 val=9 line=13962
+        round=R492 val=11 line=13986
+        round=R492 val=11 line=13988
+        round=R493 val=4 line=14014
+        round=R494 val=6 line=14034
+        round=R495 val=3 line=14060
+        round=R496 val=4 line=14084
+        round=R497 val=5 line=14106
+        round=R498 val=9 line=14147
+        round=R499 val=9 line=14189
+        round=R500 val=5 line=14226
+        round=R501 val=1 line=14262
+        round=R502 val=3 line=14298
+        round=R503 val=0 line=14330
+        round=R504 val=1 line=14364
+        round=R505 val=0 line=14398
+        round=R506 val=0 line=14432
+        round=R507 val=1 line=14472
+        round=R508 val=2 line=14513
+        round=R509 val=1 line=14553
+        round=R510 val=2 line=14599
+        round=R511 val=0 line=14642
+        round=R512 val=0 line=14681
+        round=R513 val=1 line=14726
+        round=R514 val=0 line=14765
+        round=R515 val=1 line=14806
+        round=R516 val=0 line=14845
+        round=R517 val=0 line=14884
+        round=R518 val=0 line=14925
+        round=R519 val=0 line=14966
+        round=R520 val=0 line=15007
+        round=R521 val=0 line=15048
+        round=R522 val=0 line=15089
+        round=R523 val=0 line=15130
+        round=R524 val=0 line=15171
+        round=R525 val=0 line=15204
+        round=R525 val=0 line=15216
+        round=R526 val=3 line=15251
+        round=R526 val=3 line=15267
+        round=R527 val=6 line=15302
+        round=R527 val=6 line=15312
+        round=R528 val=6 line=15342
+        round=R528 val=6 line=15352
+        round=R529 val=1 line=15380
+        round=R529 val=1 line=15390
+        round=R530 val=1 line=15418
+        round=R530 val=1 line=15428
+        round=R531 val=1 line=15458
+        round=R531 val=1 line=15468
+        round=R532 val=2 line=15498
+        round=R532 val=2 line=15508
+        round=R533 val=3 line=15538
+        round=R533 val=3 line=15548
+        round=R534 val=3 line=15558
+        round=R534 val=3 line=15560
+        round=R535 val=1 line=15590
+        round=R535 val=1 line=15594
+        round=R536 val=3 line=15631
+        round=R536 val=3 line=15637
+        round=R537 val=5 line=15668
+        round=R537 val=5 line=15674
+        round=R537 val=5 line=15680
+        round=R538 val=1 line=15705
+        round=R538 val=1 line=15715
+        round=R539 val=2 line=15741
+        round=R539 val=2 line=15743
+        round=R539 val=2 line=15751
+        round=R540 val=2 line=15775
+        round=R540 val=2 line=15785
+        round=R541 val=2 line=15819
+        round=R542 val=3 line=15853
+        round=R543 val=1 line=15887
+        round=R544 val=0 line=15911
+        round=R544 val=0 line=15921
+        round=R545 val=2 line=15947
+        round=R545 val=2 line=15957
+        round=R546 val=2 line=15991
+    · 台账 B 形态：148 条
+  [PASS] A0a 状态文件 A 形态（本轮自述）解析到 > 0 条 | n=165
+  [PASS] A0b 状态文件 B 形态（权威声明）解析到 > 0 条 | n=206
+  [PASS] A0c 台账描述列 B 形态解析到 > 0 条 | n=148
+  [PASS] A0d 状态文件段标题归属锚点解析到 > 0 段 | n=540
+  [PASS] A0e 台账表头列数 = 8 | cols=8
+  [PASS] A3 可做「A↔B 同轮比对」的轮次数 > 0 | n=153 ['R359', 'R360', 'R361', 'R362', 'R363', 'R364', 'R365', 'R366', 'R367', 'R368', 'R369', 'R370', 'R371', 'R372', 'R373', 'R374', 'R375', 'R376', 'R377', 'R378', 'R379', 'R380', 'R381', 'R382', 'R383', 'R384', 'R385', 'R386', 'R387', 'R388', 'R389', 'R390', 'R391', 'R392', 'R393', 'R394', 'R395', 'R396', 'R397', 'R398', 'R399', 'R400', 'R401', 'R402', 'R403', 'R404', 'R405', 'R406', 'R407', 'R408', 'R409', 'R410', 'R411', 'R412', 'R413', 'R414', 'R415', 'R416', 'R417', 'R418', 'R419', 'R420', 'R421', 'R456', 'R457', 'R458', 'R459', 'R460', 'R461', 'R462', 'R463', 'R464', 'R465', 'R466', 'R467', 'R468', 'R469', 'R470', 'R471', 'R472', 'R473', 'R474', 'R475', 'R476', 'R478', 'R479', 'R480', 'R481', 'R482', 'R483', 'R484', 'R485', 'R486', 'R487', 'R488', 'R489', 'R490', 'R491', 'R492', 'R493', 'R494', 'R495', 'R496', 'R497', 'R498', 'R499', 'R500', 'R501', 'R502', 'R503', 'R504', 'R505', 'R506', 'R507', 'R508', 'R509', 'R510', 'R511', 'R512', 'R513', 'R514', 'R515', 'R516', 'R517', 'R518', 'R519', 'R520', 'R521', 'R522', 'R523', 'R524', 'R525', 'R526', 'R527', 'R528', 'R529', 'R530', 'R531', 'R532', 'R533', 'R534', 'R535', 'R536', 'R537', 'R538', 'R539', 'R540', 'R541', 'R542', 'R543', 'R544', 'R545', 'R546']
+  [PASS] A1 同轮「本轮自述」与「权威数字」相等 | 违规 0:
+  [PASS] A3b 可做「跨文件（状态↔台账）比对」的轮次数 > 0 | n=120 ['R239', 'R251', 'R307', 'R308', 'R349', 'R359', 'R360', 'R361', 'R362', 'R363', 'R364', 'R365', 'R366', 'R367', 'R368', 'R369', 'R370', 'R371', 'R372', 'R373', 'R374', 'R375', 'R376', 'R377', 'R378', 'R379', 'R380', 'R381', 'R382', 'R383', 'R384', 'R385', 'R386', 'R387', 'R388', 'R389', 'R390', 'R391', 'R392', 'R393', 'R394', 'R395', 'R396', 'R397', 'R398', 'R399', 'R400', 'R401', 'R402', 'R403', 'R404', 'R405', 'R406', 'R407', 'R408', 'R409', 'R410', 'R411', 'R412', 'R413', 'R414', 'R415', 'R416', 'R417', 'R418', 'R419', 'R420', 'R421', 'R456', 'R457', 'R458', 'R459', 'R460', 'R461', 'R462', 'R463', 'R464', 'R465', 'R466', 'R467', 'R468', 'R469', 'R470', 'R471', 'R472', 'R473', 'R474', 'R475', 'R476', 'R478', 'R479', 'R480', 'R481', 'R482', 'R483', 'R484', 'R485', 'R486', 'R487', 'R488', 'R489', 'R492', 'R525', 'R526', 'R527', 'R528', 'R529', 'R530', 'R531', 'R532', 'R533', 'R534', 'R535', 'R536', 'R537', 'R538', 'R539', 'R540', 'R544', 'R545']
+  [PASS] A2 同轮「状态文件权威数字」与「台账描述列权威数字」相等 | 违规 0:
+  [PASS] A4 归属锚点=段标题（段内引用他轮 R 号不得改变归属） | A=['R360'] B=['R360']
+  [PASS] A4b 合成行两形态各恰 1 条 | A=1 B=1
+  判据：PASS 11 / FAIL 0 / rc=0
+
+  --------------------------------------------------------------------------
+  == evidence-secrets ==
+     命令（自 manifest 单一事实源）= ["C:\\Users\\laitz\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe", "tools/evidence-secrets.py"]
+  ==========================================================================
+  文件                                                             字段             长度     sha256[:12]
+
+  命中 0 条（无：证据文件里没有真实令牌）
+
+  --------------------------------------------------------------------------
+------------------------------------------------------------------------------
+POSTCLOSEOUT_GATES_END=1
