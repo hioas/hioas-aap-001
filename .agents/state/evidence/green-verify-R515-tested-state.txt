@@ -1,0 +1,17 @@
+R515 校验轮（missing==0 -> 交付代码零改动）；全部读数由 tools/round-verify/analyze.py 从 facts / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 0731d9df
+被测提交全 SHA = 0731d9dff985c994b6bfba27ffe4cb44c08625d6
+被测提交主题 = chore(evidence): R514 收尾一致性核对证据（19/19 PASS · 首跑即通过）
+run1 = 20:03:07 -> 20:05:33 rc=0 / run2 = 20:05:33 -> 20:07:45 rc=0（串行：run1_end <= run2_start = True）
+窗口 = 20:02:52 -> 20:07:49（1790510572 -> 1790510869，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = 0731d9df / 终点 = 0731d9df；窗口内他方推进提交数 = 0
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 5 条
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+   ?? aap-server/src/main/webapp/
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0 （无）
+环境指纹：bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）
