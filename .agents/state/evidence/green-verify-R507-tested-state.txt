@@ -1,0 +1,17 @@
+R507 校验轮（missing==0 -> 交付代码零改动）；全部读数由 tools/round-verify/analyze.py 从 facts / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 0ea9c5df
+被测提交全 SHA = 0ea9c5df11744fdc755ccae4c705480d6aa3c8ce
+被测提交主题 = chore(evidence): R506 收尾一致性核对落盘（19/19 PASS 首跑即通过；独立复核证据已先纳入提交 ⇒ F9 无相位假红）
+run1 = 17:17:14 -> 17:19:33 rc=0 / run2 = 17:19:33 -> 17:21:38 rc=0（串行：run1_end <= run2_start = True）
+窗口 = 17:16:58 -> 17:21:43（1790500618 -> 1790500903，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = 0ea9c5df / 终点 = 0ea9c5df；窗口内他方推进提交数 = 0
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 5 条
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+   ?? aap-server/src/main/webapp/
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0 （无）
+环境指纹：bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）
