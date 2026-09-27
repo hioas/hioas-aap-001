@@ -1,0 +1,28 @@
+R489 收尾终读复核（只读；收尾提交之后运行）
+==============================================================================
+[PASS] V1 证据清单 12 条：不在 HEAD 树内 = 0 （无） / 磁盘缺失或空 = 0 （无）（历史 198/211） 
+[PASS] V2 CR 字节：异常 0 条 （无） / **文件缺失 0 条 （无）**（须全 0；缺失非 0 ⇒ 顺序跑早或证据丢失，历史 69/146/128） 
+[PASS] V3 HEAD 内本轮行 1 条 / 工作区 1 条；逐列相等 = True（差异列 = []） 
+[PASS] V4 台账轮次行 463（期望 463 = 轮前 462 + 1）/ 列数异常 0 / 描述列 == 单一事实源 True / 证据列 == 单一事实源 True 
+[PASS] V5 coverage-history 本轮行 = 1 条（须 1） 
+[PASS] V6 audit-round-claims rc=0 / PASS 11 / FAIL 0（格式形态，历史 97） 
+[PASS] V7 证据目录内命名含 R489 的文件 = 14 条（本文件 SELF=verify-R489-post.txt：首跑未落盘 / 重跑已存在，均不计入缺陷）；与「清单 12 + 收尾期自证 2 = 14 条」比对：缺失 = 无（只允许为空或本文件）/ 多出 = 无（须空） 
+      audit-ledger-history-R489.txt
+      audit-regression-R489-faildiff.txt
+      audit-regression-R489-failraw.txt
+      audit-regression-R489-rcseq.txt
+      audit-regression-R489.txt
+      gap-facts-R489.txt
+      green-verify-R489-coverage-fields.txt
+      green-verify-R489-full-run1.txt
+      green-verify-R489-full-run2.txt
+      green-verify-R489-testcount.txt
+      green-verify-R489-tested-state.txt
+      postwrite-check-R489.txt
+      round-R489-analysis.txt
+      verify-R489-post.txt
+[PASS] V8 gap-facts 落盘的终态哈希 ⇔ 当前树（工作区解析 3 项 / HEAD 树解析 3 项 / 当前 3 项）：工作区失配 = 无 / **HEAD 副本失配 = 无**（coverage-history=253e87d1 / 台账=cb9f936a / 状态文件=2073877a） 
+[PASS] V9 台账「有无更正」⇔ 提交链（主提交 2cfab164 → HEAD：存在「据实更正」提交 = False）；DESC 含更正段 = False（二者须同真同假）/ 解析器正向对照 = 1/1 更正提交 = 无（不记枚数：自指计数每提交一次即过期，见本段注释）
+
+判据：PASS 9 / FAIL 0
+VERIFY_END=1
