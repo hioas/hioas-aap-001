@@ -1,0 +1,17 @@
+R534 校验轮（missing==0 -> 交付代码零改动）；全部读数由 tools/round-verify/analyze.py 从 facts / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 6d1478be
+被测提交全 SHA = 6d1478bed417015a47ab8f7523faeb8dc72406bc
+被测提交主题 = chore(evidence): R533 收尾登记待拍板 ⑱（「收尾更正相位必须一并重跑装置侧证据」这条顺序纪律未写进装置 README ⇒ 本轮按现有文档执行即漏 device-report 重跑、直到 final-check F11/F12 才暴露；修法方向登记待拍板，未拍板前不改装置）+ 四处同源复核（final-check 复跑 PASS 19/19 · 内容级 17/17）
+run1 = 02:48:07 -> 02:50:30 rc=0 / run2 = 02:50:30 -> 02:52:37 rc=0（串行：run1_end <= run2_start = True，按绝对时刻解算）
+窗口 = 02:47:51 -> 02:52:42（1790534871 -> 1790535162，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = 6d1478be / 终点 = 6d1478be；窗口内他方推进提交数 = 0
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 5 条
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+   ?? aap-server/src/main/webapp/
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0 （无）
+环境指纹：bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）
