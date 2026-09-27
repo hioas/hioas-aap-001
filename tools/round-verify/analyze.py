@@ -19,6 +19,11 @@ from datetime import datetime
 from pathlib import Path
 
 ROOT = Path("E:/workspaces/hioas/hioas-aap-001")
+# 窗口时刻解算 = 与 `independent.py` **共享**的纯函数（`windowtime.py`，单一事实源）：
+# 轮次会跨午夜，两轮之间实测也存在 1 秒间隙（39 轮里 9 轮如此），按 HH:MM:SS 字符串比
+# 「串行」会把合法窗口判成非串行（假失败，历史 12/244）；同一口径两处副本必须同源（历史 44/191）。
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from windowtime import serial_ok  # noqa: E402
 EV = ROOT / ".agents/state/evidence"
 T = Path("C:/Users/laitz/AppData/Local/Temp")
 
@@ -138,9 +143,9 @@ rec("A3 BUILD SUCCESS 两轮均为真", R1["build_ok"] and R2["build_ok"] and no
     "run1 SUCCESS=%s FAILURE=%s / run2 SUCCESS=%s FAILURE=%s" % (R1["build_ok"], R1["build_bad"], R2["build_ok"], R2["build_bad"]))
 rec("A4 逐类结果（已剥 Time elapsed 再排序）两轮一致",
     R1["key"] == R2["key"], "逐类行数 %d / %d；diff = %d" % (len(R1["key"]), len(R2["key"]), len(set(R1["key"]) ^ set(R2["key"]))))
-rec("A5 串行（run1_end <= run2_start）",
-    FACTS["FACTS_RUN1_END"] <= FACTS["FACTS_RUN2_START"],
-    "%s -> %s / %s -> %s" % (FACTS["FACTS_RUN1_START"], FACTS["FACTS_RUN1_END"], FACTS["FACTS_RUN2_START"], FACTS["FACTS_RUN2_END"]))
+_ser_ok, _ser_det = serial_ok(FACTS)
+rec("A5 串行（run1_end <= run2_start；按绝对时刻解算，跨午夜不假失败）",
+    _ser_ok, _ser_det)
 rec("A6 maven 耗时双写法解析器有牙齿（两形态各 1 条合成对照）",
     maven_time("[INFO] Total time:  01:00 min")[0] == 60 and maven_time("[INFO] Total time:  58.698 s")[0] == 58,
     "本轮实际形态 run1=%s(%s) run2=%s(%s)" % (t1, k1, t2, k2))
@@ -242,10 +247,10 @@ wr("green-verify-%s-tested-state.txt" % ROUND, "\n".join([
     "被测状态（worktree 实际检出） = %s" % FACTS["FACTS_TESTED_COMMIT"],
     "被测提交全 SHA = %s" % FACTS["FACTS_TESTED_COMMIT_FULL"],
     "被测提交主题 = %s" % FACTS["FACTS_TESTED_SUBJECT"],
-    "run1 = %s -> %s rc=%s / run2 = %s -> %s rc=%s（串行：run1_end <= run2_start = %s）"
+    "run1 = %s -> %s rc=%s / run2 = %s -> %s rc=%s（串行：run1_end <= run2_start = %s，按绝对时刻解算）"
     % (FACTS["FACTS_RUN1_START"], FACTS["FACTS_RUN1_END"], FACTS["FACTS_RUN1_RC"],
        FACTS["FACTS_RUN2_START"], FACTS["FACTS_RUN2_END"], FACTS["FACTS_RUN2_RC"],
-       FACTS["FACTS_RUN1_END"] <= FACTS["FACTS_RUN2_START"]),
+       _ser_ok),
     "窗口 = %s -> %s（%s -> %s，由执行器落盘、消费方只读，历史 243-3）"
     % (FACTS["FACTS_WINDOW_START"], FACTS["FACTS_WINDOW_END"], FACTS["FACTS_WINDOW_START_TS"], FACTS["FACTS_WINDOW_END_TS"]),
     "HEAD 起点 = %s / 终点 = %s；窗口内他方推进提交数 = %s"

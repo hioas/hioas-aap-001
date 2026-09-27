@@ -90,7 +90,7 @@ python tools/round-verify/independent.py --selftest
 | `postwrite.py <ROUND> <主提交短号>` | 主提交落地核对：携带文件 / HEAD 树内 / 台账行逐列相等（c7 例外） |
 | `backfill-c7.py <ROUND> <主提交短号>` | 台账「提交」列回填（第 ⑦ 步）：写盘前与 `HEAD:` 逐记录逐列比对（只允许本轮行 c7 一处差异，其余差异响亮失败且零副作用），写盘后内容级验收（差异集合 / 记录数 / 物理行数 / 内嵌换行记录数 / CR 五连）+ 短号须是 HEAD 的祖先；`--selftest` = 20 条合成夹具判据（**不进 manifest 回归面**：它是写盘器；条数取自该自测的汇总行 `判据：PASS 20 / FAIL 0`，据实更正，勿再写旧口径）|
 | `final-check.py <ROUND> <主提交短号>` | 收尾一致性核对（F0–F18）：描述列 / history 行 / 状态小节 / 装置证据**四处同源**逐组相等 + 自述标记唯一 + 证据文件齐备（`--selftest` = **20** 例合成夹具判别力实测；该参数**仍需轮次实参**，用法 `python tools/round-verify/final-check.py <轮次> --selftest`） |
-| `independent.py <ROUND> [--device-change <路径>]... [--no-write]` | **独立复核探针**（只读、轮次无关；**不采信装置自身判定行**）：J1 facts/窗口 → J2 两轮**原始 maven 日志**独立解析 → J3 测试面（`@Test\b` 对账 ∧ 禁用扫描 0）→ J4 覆盖三处独立读数 → J5 交付面零改动（**相位感知**）+ 在途 mtime + worktree 回收 → J6 装置改动 == **申报集合**（双向逐文件点名）→ J7 证据齐备 ∧ 字节级 CR==0 → J8 装置目录轮次无关性 → J9 自证；落盘 `independent-<轮次>.txt`（收尾须 `--extra` 先登记）。`--selftest` = **38** 例（合成 ctx + 注入缺陷，断言「恰好新增目标判据」，用法 `python tools/round-verify/independent.py --selftest`）。**不进 manifest 回归面**（与 `regression.py --selftest` 同档：扩面须人拍板） |
+| `independent.py <ROUND> [--device-change <路径>]... [--no-write]` | **独立复核探针**（只读、轮次无关；**不采信装置自身判定行**）：J1 facts/窗口 → J2 两轮**原始 maven 日志**独立解析 → J3 测试面（`@Test\b` 对账 ∧ 禁用扫描 0）→ J4 覆盖三处独立读数 → J5 交付面零改动（**相位感知**）+ 在途 mtime + worktree 回收 → J6 装置改动 == **申报集合**（双向逐文件点名）→ J7 证据齐备 ∧ 字节级 CR==0 → J8 装置目录轮次无关性 → J9 自证；落盘 `independent-<轮次>.txt`（收尾须 `--extra` 先登记）。`--selftest` = **39** 例（合成 ctx + 注入缺陷，断言「恰好新增目标判据」；含「窗口跨午夜（合法）必须不假失败」一条，用法 `python tools/round-verify/independent.py --selftest`）。**不进 manifest 回归面**（与 `regression.py --selftest` 同档：扩面须人拍板） |
 | `archive-temp-scripts.py` | 归仓：把仍住在 `$TEMP` 的抽查脚本逐字节存档进 `tools/regression/archive/`（`--check` 只读复核 / `--restore` 一键还原） |
 
 ## 纪律（踩过的坑，别再犯）
@@ -105,4 +105,7 @@ python tools/round-verify/independent.py --selftest
   常驻红通道的 FAIL 明细恒为 0 ⇒ 「rc 没变、理由变了」只有第三类看得见；理由取**完整行集**（不截断、不只取末行，
   本仓实测该理由 4000+ 字符且变化落在中段），并配「旧写法在该注入下判绿」的反证（历史 98/187/218/219）。
 - 证据文件一律 `newline="\n"` 落盘（历史 69/84/146）。
+- 轮次会**跨午夜**（实测窗口 `23:56:59 → 00:02:04`）：facts 里 run 的起止只有 `HH:MM:SS`，**不要**按字符串比单调/串行 ——
+  用 `resolve_window_seq()` 按窗口 ISO 边界解算**绝对时刻**（窗口 ≤6h ⇒ 合法落位唯一），并在窗口不可用/跨度异常时判**判据不可用**
+  （不得判绿）。合法窗口被判「非单调」是**假失败**（历史 12/244）。
 - 多项目共存：不按镜像名杀进程、不 attach 别人的 CDP、只碰自己的 worktree。

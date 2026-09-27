@@ -196,6 +196,12 @@ def prev_round(round_str):
     return "R%d" % (int(round_str[1:]) - 1)
 
 
+# 窗口时刻解算 = 装置内**共享**纯函数（`windowtime.py`）：轮次会跨午夜，按 HH:MM:SS 字符串比单调/串行
+# 会把合法窗口判成「非单调」（假失败，历史 12/244）。单一事实源，`analyze.py` A5 共用同一份（历史 44/191）。
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from windowtime import resolve_window_seq  # noqa: E402
+
+
 # ============================ 主判定区（只读 ctx） ============================
 def evaluate(ctx):
     """返回 [(判据名, 是否通过, 说明)]；纯函数（入参 = ctx）。"""
@@ -231,10 +237,9 @@ def evaluate(ctx):
         and facts.get("ENV_JPS_REACHABLE") == "Y",
         "ok=%s result=%s jps_reachable=%s" % (facts.get("PREFLIGHT_OK"), facts.get("PREFLIGHT_RESULT"),
                                               facts.get("ENV_JPS_REACHABLE")))
-    seq = [facts.get(k) for k in ("FACTS_WINDOW_START", "FACTS_RUN1_START", "FACTS_RUN1_END",
-                                  "FACTS_RUN2_START", "FACTS_RUN2_END", "FACTS_WINDOW_END")]
-    ok_seq = all(isinstance(x, str) and re.fullmatch(r"\d{2}:\d{2}:\d{2}", x) for x in seq) and seq == sorted(seq)
-    add("J1g 窗口单调且两轮串行（同量纲 HH:MM:SS）", ok_seq, " → ".join(str(x) for x in seq))
+    ok_seq, det_seq = resolve_window_seq(facts, ("FACTS_WINDOW_START", "FACTS_RUN1_START", "FACTS_RUN1_END",
+                                                 "FACTS_RUN2_START", "FACTS_RUN2_END", "FACTS_WINDOW_END"))
+    add("J1g 窗口单调且两轮串行（按绝对时刻解算：轮次可跨午夜，HH:MM:SS 字符串比会假失败）", ok_seq, det_seq)
 
     # ---------- J2 两轮 ----------
     r1, r2 = ctx["run1"], ctx["run2"]
@@ -257,8 +262,8 @@ def evaluate(ctx):
     add("J2f 类级用例数之和 == 合计（口径自洽）",
         bool(r1["totals"]) and bool(r2["totals"]) and s1 == t1t and s2 == t2t,
         "run1 %d vs %s ｜ run2 %d vs %s" % (s1, t1t, s2, t2t))
-    add("J2g run1_end <= run2_start（串行）", facts.get("FACTS_RUN1_END", "9") <= facts.get("FACTS_RUN2_START", "0"),
-        "%s <= %s" % (facts.get("FACTS_RUN1_END"), facts.get("FACTS_RUN2_START")))
+    ok_ser, det_ser = resolve_window_seq(facts, ("FACTS_RUN1_END", "FACTS_RUN2_START"))
+    add("J2g run1_end <= run2_start（串行；同一解算：跨午夜不假失败）", ok_ser, det_ser)
     e1, e2 = ctx["elapsed"]
     add("J2h maven 耗时双写法解析（两种形态都要收，历史 175）",
         e1[0] in ("min", "s") and e2[0] in ("min", "s") and e1[2] > 0 and e2[2] > 0,
@@ -555,6 +560,16 @@ def selftest():
     m_facts("WORKTREE_REMOVE_RC", "1", "worktree 回收失败", ["J1e"])
     m_facts("PREFLIGHT_RESULT", "CONC_BUSY_ABORT", "并发前置门槛未通过", ["J1f"])
     m_facts("FACTS_RUN1_END", "13:00:00", "窗口乱序（run1_end > run2_start）", ["J1g", "J2g"])
+    # 跨午夜（合法）判别力对照：窗口 23:58:00 → 次日 00:04:00，run1 结束 23:59:50、run2 起跑 00:00:05。
+    # 按 HH:MM:SS **字符串**比会把 23:59:50 > 00:00:05 判成「非串行」（假失败）；按绝对时刻解算后必须**不新增 FAIL**。
+    # 该对照同时证明修法没把牙齿拔掉：上面那条「注入到窗口之外」的用例仍必须照旧点名 J1g/J2g。
+    mutate("窗口跨午夜（合法）：按绝对时刻解算必须不假失败",
+           lambda c: c.update(facts=dict(c["facts"], **{
+               "FACTS_WINDOW_START": "23:58:00", "FACTS_WINDOW_START_ISO": "2026-01-01 23:58:00",
+               "FACTS_RUN1_START": "23:58:10", "FACTS_RUN1_END": "23:59:50",
+               "FACTS_RUN2_START": "00:00:05", "FACTS_RUN2_END": "00:03:50",
+               "FACTS_WINDOW_END": "00:04:00", "FACTS_WINDOW_END_ISO": "2026-01-02 00:04:00"})),
+           [])
     bad_run = parse_run(SYNTH_RUN.replace("[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0",
                                           "[ERROR] Tests run: 3, Failures: 2, Errors: 1, Skipped: 0")
                         .replace("[INFO] BUILD SUCCESS", "[INFO] BUILD FAILURE"))
