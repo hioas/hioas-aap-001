@@ -3534,7 +3534,7 @@ Tier A 模式集 17 个（名字含口令/密钥/令牌/凭据语义的变量）
 **当前配置审计读数不受影响**（它读工作区而非 HEAD）——属工作区/HEAD 相位差，非缺陷，**待其落库后重跑口径**。
 
 九、下一族：清单已 100% 注册 ⇒ 推进方向仍是：① **上游执行器 `T-M4-08~11`**（限速 / 写后回读 / 单模型隔离与回滚的实际写入）；② **端到端联调**（`aap-client` / `aap-admin` 指向本服务取数）。本轮为校验轮，不推进。",,evidence/audit-regression-R587-faildiff.txt；evidence/audit-regression-R587-failraw.txt；evidence/audit-regression-R587-rcseq.txt；evidence/audit-regression-R587.txt；evidence/device-round-R587.txt；evidence/device-selftest-counts-R587.txt；evidence/final-check-R587.txt；evidence/green-verify-R587-coverage-fields.txt；evidence/green-verify-R587-full-run1.txt；evidence/green-verify-R587-full-run2.txt；evidence/green-verify-R587-testcount.txt；evidence/green-verify-R587-tested-state.txt；evidence/independent-R587.txt；evidence/postwrite-check-R587.txt；evidence/regression-selftest-R587.txt；evidence/round-R587-analysis.txt；evidence/coverage-history.txt（追加 R587 行）,8724a775
-R588,,,,"R588 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交））） · 清单 **117/117**（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 1daf0ac3**）连续第 **26** 轮全绿 · 两轮 **316 例 / 51 类** rc=0/0（串行 01:47:10→01:51:51，逐类 diff=0） · 回归面 **84 条** rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167，新增 0 / 消失 0） · 分析器 PASS 27 / FAIL 0 · registered_routes=134 · 本轮返工 **0 处**（装置侧） · 证据 17 条 · 一、性质与覆盖：本轮为**校验轮**（`missing == 0` ⇒ 按作业第 4 步「不改代码，只校验并报告」；被测提交 = 窗口起点 HEAD = 终点 HEAD = `1daf0ac3`，
+R588,,,,"R588 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交））） · 清单 **117/117**（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 1daf0ac3**）连续第 **26** 轮全绿 · 两轮 **316 例 / 51 类** rc=0/0（串行 01:47:10→01:51:51，逐类 diff=0） · 回归面 **84 条** rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167，新增 0 / 消失 0） · 分析器 PASS 27 / FAIL 0 · registered_routes=134 · 本轮返工 **1 处**（装置侧） · 证据 17 条 · 一、性质与覆盖：本轮为**校验轮**（`missing == 0` ⇒ 按作业第 4 步「不改代码，只校验并报告」；被测提交 = 窗口起点 HEAD = 终点 HEAD = `1daf0ac3`，
 故 `git rev-list 1daf0ac3..HEAD -- aap-server docs aap-client` = **0 枚**；对 R587 轮 5 枚提交 `8724a775~1..HEAD` 取交付面同为 **0 枚**、`-- tools/` 亦为 **0 枚**）。
 本轮**装置面与交付面均零改动**（`git status --porcelain -- tools/` 空 0 条；被测提交..HEAD 无触及 `tools/` 的提交）。
 覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；按族 15 族全齐：
@@ -3556,9 +3556,12 @@ run1 01:47:10→01:49:37（maven 耗时 `02:24 min`）、run2 01:49:38→01:51:5
 `closeout` 台账 / history / 状态三处各 1 条；`postwrite`、`final-check`（F0–F18）、`independent`（J1–J9）读数见对应证据文件。
 A6 maven 耗时解析器两形态各 1 条合成对照（本轮实际形态 run1/run2 均为 `mm:ss min`）；A22 上一轮 history 行恰好 1 条且相位 = 绿相位。
 
-五、本轮返工 0 处（**范围 = 装置链六个步骤（① 执行器 → ② 分析器 → ③ 回归面 → ③b 自测条数 → ④ 装置证据 → ⑤ 收尾）＋ 收尾四步（⑥ 主提交核对 → ⑦ 回填 → ⑧ 一致性核对 → 独立复核）**）：
-本轮六个步骤与收尾四步**逐步骤一次通过**，无脚本崩溃、无锚点 0 命中、无计数不符；`analyze` 27/0、`regression` rc 变化 0、`regression --selftest` 26/0、
-`selftest-counts` 更正 0 处、`closeout` 三处写入验收通过（装置链返工真值 = **0 处**，据实登记，不虚报也不瞒报）。
+五、本轮返工 1 处（**范围 = 装置链六个步骤（① 执行器 → ② 分析器 → ③ 回归面 → ③b 自测条数 → ④ 装置证据 → ⑤ 收尾）＋ 收尾四步（⑥ 主提交核对 → ⑦ 回填 → ⑧ 一致性核对 → 独立复核）**）：
+①–⑦ 与独立复核**逐步骤一次通过**（无脚本崩溃、无锚点 0 命中、无计数不符）：`analyze` 27/0、`regression` rc 变化 0、`regression --selftest` 26/0、
+`selftest-counts` 更正 0 处、`closeout` 三处写入验收通过、`postwrite` PASS、`independent` 40/0。
+**第 ⑧ 步 `final-check` 在收尾阶段暴露 1 处**：要点文本把真值标记形态（描述列前缀里承载的那一个）在正文中又写了一遍 ⇒ 同一形态在描述列出现 2 次，触发 F6「自述标记恰好 1 次」（守卫为**真阳性**，判据无误）；
+据实更正要点文本（引用处不再重复该标记形态），随后按收尾更正相位重跑 `closeout --rewrite`（保留 c7）与 ⑧ ⇒ 全绿。
+**返工真值 = 返工 1 处**（装置/脚本侧文案，零交付代码影响；据实登记、不瞒报；历史 209/250：收尾阶段才暴露的返工以**独立收尾提交**更正，不 amend 已发布提交）。
 A24 相位与判据结果自洽（绿相位 ⇒ 已判 FAIL 条数 == 0）；A23 在途改动中 mtime 落在本轮窗口内的条数 = **0**。
 
 六、本轮主动核对（只读；改由**轮次无关**的常驻 aux 探针 `$TEMP/aap-aux/ledger-audit.py <轮次> <上一轮>` 执行 —— 该脚本**不含任何轮次字面量**，
@@ -3591,5 +3594,5 @@ A24 相位与判据结果自洽（绿相位 ⇒ 已判 FAIL 条数 == 0）；A23
 
 九、下一族：清单已 100% 注册 ⇒ 推进方向仍是：① **上游执行器 `T-M4-08~11`**（限速 / 写后回读 / 单模型隔离与回滚的实际写入）；② **端到端联调**（`aap-client` / `aap-admin` 指向本服务取数）。本轮为校验轮，不推进。
 
-十、装置链零返工的机器证据：`analyze` 27/0 · `regression --selftest` 26/0 · `selftest-counts` 更正 0 处 · `device-report` 三判据 · `closeout` 内容级验收 · `postwrite` 落地核对 · `final-check` F0–F18 · `independent` J1–J9，
-各读数见 `evidence/` 下对应文件；本轮返工 **0 处**（装置链范围）由上述九处读数共同支撑，无一处需要人工返工。",,evidence/audit-regression-R588-faildiff.txt；evidence/audit-regression-R588-failraw.txt；evidence/audit-regression-R588-rcseq.txt；evidence/audit-regression-R588.txt；evidence/device-round-R588.txt；evidence/device-selftest-counts-R588.txt；evidence/final-check-R588.txt；evidence/green-verify-R588-coverage-fields.txt；evidence/green-verify-R588-full-run1.txt；evidence/green-verify-R588-full-run2.txt；evidence/green-verify-R588-testcount.txt；evidence/green-verify-R588-tested-state.txt；evidence/independent-R588.txt；evidence/postwrite-check-R588.txt；evidence/regression-selftest-R588.txt；evidence/round-R588-analysis.txt；evidence/coverage-history.txt（追加 R588 行）,8f9f1c42
+十、装置链与收尾链的机器证据：`analyze` 27/0 · `regression --selftest` 26/0 · `selftest-counts` 更正 0 处 · `device-report` 三判据 · `closeout` 内容级验收 · `postwrite` 落地核对 · `independent` J1–J9（40/0）· `final-check` F0–F18（更正后全绿），
+各读数见 `evidence/` 下对应文件；本节**不再重复**由描述列前缀承载的返工标记形态（历史 226/250：该形态在整条描述列内恰好出现 1 次）。",,evidence/audit-regression-R588-faildiff.txt；evidence/audit-regression-R588-failraw.txt；evidence/audit-regression-R588-rcseq.txt；evidence/audit-regression-R588.txt；evidence/device-round-R588.txt；evidence/device-selftest-counts-R588.txt；evidence/final-check-R588.txt；evidence/green-verify-R588-coverage-fields.txt；evidence/green-verify-R588-full-run1.txt；evidence/green-verify-R588-full-run2.txt；evidence/green-verify-R588-testcount.txt；evidence/green-verify-R588-tested-state.txt；evidence/independent-R588.txt；evidence/postwrite-check-R588.txt；evidence/regression-selftest-R588.txt；evidence/round-R588-analysis.txt；evidence/coverage-history.txt（追加 R588 行）,8f9f1c42
