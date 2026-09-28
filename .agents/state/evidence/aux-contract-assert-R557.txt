@@ -1,0 +1,77 @@
+R557 辅助（aux）证据②：逐端点「响应契约（JSON Schema）背书」覆盖体检
+==============================================================================
+脚本绝对路径 = C:/Users/laitz/AppData/Local/Temp/aap-r557-aux/contract-assert-coverage-v3.py（一次性**只读**探针；未纳入仓库、未进回归面 —— 扩面须人拍板，历史 169/177/216）
+要回答的问题 = 作业硬要求「每个端点至少要有一个真实 HTTP 用例（不要只断言路由存在）」的**下半句**：
+        `tools/audit-endpoint-tests.py` 只证明「有调用点」，**不证明用例验了响应语义**。
+        本仓的契约手段 = `SchemaAssert.assertModel("<模型>", json(res.data()))`（用 `docs/backend/json-schema/models/*.schema.json`
+        校验**真实响应体**）⇒ 若某端点的用例只断状态码/字段，则「契约测试」对该端点空转。
+分档 = M(assertModel 与清单 response_model **同名**) / m(别名·元素模型) / p(仅包络·分页) / e(仅错误) / -(无任何 SchemaAssert)
+判据（v1→v3 四处真实返工，全部由「定位率」正向对照抓出 —— 历史 30/33/46/75/87）：
+        ① 必须带 **HTTP 方法**（同路径 GET 列表 + POST 新建会互抢）
+        ② 必须**只匹配实参**（括号配对），不能用「调用行→下一个 `;`」或 ±N 字符窗口
+        ③ 必须**左右都有边界**（`/credentials/{id}` 曾命中 `get("/admin/credentials/860001")`）
+        ④ 归一到「骨架串」后**锚定整串相等**（部分匹配不算）
+        ⑤ `send("GET", <path>, …)` 的路径在**第 2 个**实参
+        ⑥ 分档体 = 所在方法 ∪ **同文件一跳调用者**（断言常写在调用者体内，历史 111）
+落盘 = 本文件（newline="\n"，零 CR，由 emit-aux-evidence.py 单一出口落盘）
+------------------------------------------------------------------------------
+[探针输出]
+R557 aux 探针②（v3）：逐端点「响应契约（JSON Schema）背书」覆盖体检（只读）
+==================================================================================
+脚本 = C:/Users/laitz/AppData/Local/Temp/aap-r557-aux/contract-assert-coverage-v3.py（一次性只读探针；未纳入仓库/回归面 —— 扩面须人拍板，历史 169/177/216）
+落盘 = 无（证据由调用方 write_text(newline='\n') 落盘）
+契约手段 = SchemaAssert.assertModel/assertPageMeta/assertEnvelope/assertError（校验**真实响应体**）
+----------------------------------------------------------------------------------
+清单 = E:/workspaces/hioas/hioas-aap-001/docs/backend/endpoints.json（117 条）
+测试源 = 55 个 .java 文件
+
+[PASS] A0a 解析到 HTTP 调用点 927 个（> 0 正向对照）
+[PASS] A0b 解析到测试方法 621 个（> 0 正向对照）
+[PASS] A0c 已定位端点 108 / 117（定位率 92.3%；> 0 正向对照）
+[INFO] A0d 未定位调用点：实参无法静态判定 150 / 方法未定 10 / 无匹配端点 123 / 方法体未定位 0
+
+== 断言强度分档（逐端点取最强；分档体 = 所在方法 ∪ 同文件一跳调用者）==
+   M = assertModel(同名 response_model) 强 / m = 别名或元素模型 / p = 仅包络分页 / e = 仅错误 / - = 无 schema
+  M           87  ADM-A01, ADM-AUTH01, ADM-AUTH02, ADM-AUTH03, ADM-C01, ADM-C02, ADM-CFG01, ADM-CFG03, ADM-CFG04, ADM-CFG05, ADM-CFG06, ADM-CFG07, ADM-CFG08, ADM-CFG09, ADM-CFG10, ADM-CP01 …
+  m           10  ADM-CP04, AUTH-01, CRED-01, PROV-03, PROV-05, QT-04, QT-09, QT-10, RPT-03, SET-01
+  p            0  
+  e            0  
+  -           11  ADM-AUTH04, ADM-AUTH05, ADM-CFG02, ADM-PAY05, ADM-PAY08, ADM-PAY09, ADM-R04, AUTH-05, CRED-04, DET-06, QT-12
+  (无调用点)       9  ADM-CB01, ADM-CB02, ADM-CB03, ADM-CB04, ADM-CB05, ADM-SU01, ADM-SU02, ADM-SU03, ADM-SU04
+
+== 无「同名 response_model」强背书的端点（p/e/-）共 11 条 ==
+  ADM-AUTH04   POST   /api/v1/admin/admin-users/{id}/suspend       tier=-  sites=6  实际断言=[] response_model=admin-user
+  ADM-AUTH05   POST   /api/v1/admin/admin-users/{id}/resume        tier=-  sites=3  实际断言=[] response_model=admin-user
+  ADM-CFG02    POST   /api/v1/admin/detection-configs              tier=-  sites=1  实际断言=[] response_model=detection-config
+  ADM-PAY05    POST   /api/v1/admin/payments/{id}/void             tier=-  sites=5  实际断言=[] response_model=payment
+  ADM-PAY08    POST   /api/v1/admin/settlements/{id}/confirm       tier=-  sites=2  实际断言=[] response_model=settlement-detail
+  ADM-PAY09    POST   /api/v1/admin/settlements/{id}/void          tier=-  sites=3  实际断言=[] response_model=settlement-detail
+  ADM-R04      POST   /api/v1/admin/reviews/{id}/reject            tier=-  sites=7  实际断言=[] response_model=review-task
+  AUTH-05      POST   /api/v1/auth/logout                          tier=-  sites=1  实际断言=[] response_model=None
+  CRED-04      PUT    /api/v1/credentials/{id}                     tier=-  sites=1  实际断言=[] response_model=credential-detail
+  DET-06       POST   /api/v1/detection-jobs/{jobId}/release       tier=-  sites=3  实际断言=[] response_model=detection-job
+  QT-12        POST   /api/v1/quotes/{quoteId}/compile-preview     tier=-  sites=1  实际断言=[] response_model=compilation-result
+
+== 「别名/元素模型」档（10 条）==
+  ADM-CP04     response_model=compilation-result         实际断言=['sync-task', 'verify-case', 'verify-report']
+  AUTH-01      response_model=sms-send-result            实际断言=['admin-user', 'audit-log', 'compilation-result', 'contract', 'credential-detail', 'credential-precheck', 'detection-job', 'detection-result', 'job-created', 'login-result', 'me-result', 'payment', 'precheck-result', 'price-tier-rule', 'price-time-rule', 'provider-profile', 'qualification-created', 'quote-detail', 'quote-item', 'quote-row', 'quote-version', 'report', 'report-export', 'report-summary', 'reveal-result', 'review-record', 'review-task', 'settlement-detail', 'settlement-statement', 'sync-task', 'usage-cost', 'usage-daily', 'usage-hourly-bucket', 'usage-model', 'usage-refresh-result', 'usage-summary', 'verify-case', 'verify-report']
+  CRED-01      response_model=credential-row             实际断言=['credential-detail']
+  PROV-03      response_model=provider-qualification     实际断言=['qualification-created']
+  PROV-05      response_model=None                       实际断言=['qualification-created']
+  QT-04        response_model=quote-detail               实际断言=['quote-row']
+  QT-09        response_model=quote-detail               实际断言=['quote-row', 'quote-version', 'review-record', 'review-task']
+  QT-10        response_model=quote-detail               实际断言=['quote-row']
+  RPT-03       response_model=None                       实际断言=['report-export']
+  SET-01       response_model=settlement-statement       实际断言=['settlement-detail']
+
+== 判别力实测（合成夹具）==
+[PASS] S1 带 assertModel(同名) 的用例判 M 实测 tier=M（期望 M）
+[PASS] S2 不带 SchemaAssert 的用例判 - 实测 tier=-（期望 -）
+[PASS] S3 同路径不同方法各自定位（不互抢；实测 ['SYN-G', 'SYN-P']） 期望 ['SYN-G','SYN-P']
+[PASS] S4 中段子串不冒充（`/credentials/{id}` 不得命中 `/admin/credentials/860001`；`/contracts/{id}` 不得部分命中 `"/contracts/"+id+"/file"`） 实测 ['SYN-LONG', 'SYN-SEG']（期望 ['SYN-LONG','SYN-SEG']）
+[PASS] S5 `send("GET", <path>, …)` 的路径取第 2 个实参（实测 ['SYN-SEND']） 期望 ['SYN-SEND']
+[PASS] S6 断言写在调用者体内 ⇒ 归属到该调用点（实测档位 ['-', 'M']，须含 M） 期望含 M
+
+== 结论 ==
+  已定位端点 108 / 117（定位率 92.3%）
+  强背书(M) 87；别名/元素模型(m) 10；弱(p/e) 0；无 schema(-) 11；无调用点 9

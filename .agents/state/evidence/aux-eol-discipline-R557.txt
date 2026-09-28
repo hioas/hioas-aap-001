@@ -1,0 +1,253 @@
+R557 辅助（aux）证据①：行尾（LF）纪律盲区体检 —— 活体产物污染 + 写入点定位
+==============================================================================
+脚本绝对路径 = C:/Users/laitz/AppData/Local/Temp/aap-r557-aux/eol-discipline.py（一次性**只读**探针；未纳入仓库、未进回归面 —— 扩面须人拍板，历史 169/177/216）
+方法 = ① `git ls-files --eol -z` 全仓行尾分布（索引侧 i/* vs 工作区侧 w/*）
+       ② 逐文件 **CR 字节**计数（`tr -dc '\r' | wc -c` 的脚本内等价物，历史 70）
+       ③ 「每轮被工具重写」的活体产物定位（= 污染源；历史留痕不算）
+       ④ 工具链里**缺 `newline=`** 的 `write_text` 写入点枚举
+       ⑤ 判别力实测：CRLF 夹具必须被判有 CR、纯 LF 夹具必须不被判（历史 46/75/98）
+落盘 = 本文件（newline="\n"，零 CR，由 emit-aux-evidence.py 单一出口落盘）
+修正前快照（12:29:44 采集，**早于本轮工具改动**；来源：`git ls-files --eol`）：
+  i/lf w/crlf  .agents/state/evidence/coverage-report.json        ← Java 覆盖门禁写盘（交付面）
+  i/lf w/crlf  .agents/state/evidence/endpoint-test-audit.json    ← tools/audit-endpoint-tests.py
+  i/lf w/crlf  .agents/state/evidence/endpoint-test-audit.txt     ← 同上
+  i/lf w/mixed .agents/state/aap-tdd-state.md                     ← 历史遗留（无当前写入方）
+  `tr -dc '\r' < .agents/state/evidence/endpoint-test-audit.txt | wc -c` → **29**（= 逐行 CRLF）
+本轮装置改动（1 处脚本 / 2 个写入点）：`tools/audit-endpoint-tests.py` 两处 `write_text` 补 `newline="\n"`
+------------------------------------------------------------------------------
+[修正后复跑输出（本轮回归面已跑过该工具 ⇒ 两个产物应已归一为 w/lf）]
+R557 aux 探针：行尾（LF）纪律盲区体检（只读）
+==============================================================================
+仓库 = E:/workspaces/hioas/hioas-aap-001
+脚本 = C:/Users/laitz/AppData/Local/Temp/aap-r557-aux/eol-discipline.py（一次性只读探针；未纳入仓库/回归面，扩面须人拍板，历史 169/177/216）
+落盘 = 无（本脚本零写副作用；证据由调用方 write_text(newline='\n') 落盘）
+------------------------------------------------------------------------------
+`.gitattributes` 的 eol 声明行：
+  * text=auto eol=lf
+  *.sh text eol=lf
+  *.bat text eol=crlf
+  *.cmd text eol=crlf
+  *.ps1 text eol=crlf
+
+== E1 行尾分布（索引侧 / 工作区侧，全仓）==
+  w/w/lf     9351
+  w/w/crlf   679
+  w/w/-text  383
+  w/w/mixed  241
+  w/w/none   26
+
+== E2 「索引 LF 但工作区非 LF」的文件 920 个（按顶层目录分组）==
+   817  .agents/state
+    10  aap-client/evidence
+     9  aap-client/src
+     7  aap-client/tests
+     5  aap-server/src
+     4  aap-admin/tools
+     1  aap-admin/package.json
+     1  docs/evidence
+     1  evidence/cmp-序号1-设计PNGvs实现截图-结构带.txt
+     1  evidence/cmp-序号12-v3-两轮.txt
+     1  evidence/cmp-序号12v3-分区并排对账.txt
+     1  evidence/cmp-序号12v3-文本叶子行盒-逐类带.txt
+     1  evidence/cmp-序号21-设计PNGvs实现截图-结构带.txt
+     1  evidence/cmp-序号4v1-文本叶子-逐类带.txt
+     1  evidence/cmp-序号5-文本叶子行盒-逐类带.txt
+     1  evidence/cmp-序号7-文本叶子行盒-逐类带.txt
+     1  evidence/cmp-序号7-设计PNGvs实现截图-结构带.txt
+     1  evidence/green-序号12v3-textleaf-待判读0.txt
+     1  evidence/green-序号4v1-textleaf-待判读0.txt
+     1  evidence/green-序号5-textleaf-待判读0.txt
+     1  evidence/green-序号7-textleaf-待判读0.txt
+     1  evidence/measure-序号12-v2-run1.json
+     1  evidence/measure-序号12-v2-run2.json
+     1  evidence/measure-序号12-v2-run3.json
+     1  evidence/measure-序号12-v2-run4.json
+     1  evidence/measure-序号12-v2-run5.json
+     1  evidence/measure-序号12-v2-run6.json
+     1  evidence/measure-序号12-v2-run7.json
+     1  evidence/measure-序号12-v2-run8.json
+     1  evidence/measure-序号12-v3-back.json
+     1  evidence/measure-序号12-v3-close.json
+     1  evidence/measure-序号12-v3-copy.json
+     1  evidence/measure-序号12-v3-primary.json
+     1  evidence/measure-序号12-v3-run1.json
+     1  evidence/measure-序号12-v3-run2.json
+     1  evidence/measure-序号12-v3-run3.json
+     1  evidence/measure-序号12-v3-secondary.json
+     1  evidence/measure-序号15-back.json
+     1  evidence/measure-序号15-pdf.json
+     1  evidence/measure-序号15-run1.json
+     1  evidence/measure-序号15-run2.json
+     1  evidence/measure-序号15-run3.json
+     1  evidence/measure-序号15-sign.json
+     1  evidence/measure-序号20-card.json
+     1  evidence/measure-序号20-filter.json
+     1  evidence/measure-序号20-readall.json
+     1  evidence/measure-序号20-run1.json
+     1  evidence/measure-序号20-run2.json
+     1  evidence/measure-序号20-run3.json
+     1  evidence/measure-序号20-tab.json
+     1  evidence/measure-序号21-row-quotes.json
+     1  evidence/measure-序号21-run1.json
+     1  evidence/measure-序号21-run2.json
+     1  evidence/measure-序号21-tab-mine.json
+     1  evidence/measure-序号21-tab-workbench.json
+     1  evidence/measure-序号21-withdraw.json
+     1  evidence/red-序号10.1-textleaf-待判读.txt
+     1  evidence/red-序号12v3-textleaf-待判读11.txt
+     1  evidence/red-序号22-trendchecks-变异测试.txt
+     1  evidence/red-序号4v1-textleaf-待判读.txt
+     1  evidence/red-序号5-textleaf-待判读.txt
+     1  evidence/red-序号5-tlchecks-变异测试.txt
+     1  evidence/red-序号7-textleaf-待判读.txt
+     1  evidence/show-序号12-v3-run2.txt
+     1  evidence/textleaf-audit-12v3-20260916-2005.txt
+     1  evidence/textleaf-audit-20260916-1915.txt
+     1  evidence/textleaf-audit-20260916-1920-6.txt
+     1  evidence/textleaf-audit-20260916-1935-6.txt
+     1  evidence/textleaf-audit-20260916-2030-22.txt
+     1  evidence/textleaf-audit-20260916-2047.txt
+     1  evidence/textleaf-audit-20260916-2115.txt
+     1  evidence/textleaf-audit-20260916-2120.txt
+     1  evidence/typecheck-序号12-v3.txt
+     1  tools/regression
+  ---- 其中**不在** .agents/state/ 下的：103 个 ----
+    w/crlf aap-admin/package.json
+    w/crlf aap-admin/tools/edrawmind-export.mjs
+    w/crlf aap-admin/tools/edrawmind-probe-export.mjs
+    w/crlf aap-admin/tools/measure-widths.mjs
+    w/crlf aap-admin/tools/verify-pager.mjs
+    w/mixed aap-client/evidence/cmp-序号12-两轮.txt
+    w/mixed aap-client/evidence/cmp-序号12-修前vs修后.txt
+    w/crlf aap-client/evidence/measure-序号12-run1.json
+    w/crlf aap-client/evidence/measure-序号12-run2.json
+    w/crlf aap-client/evidence/measure-序号12-run3.json
+    w/crlf aap-client/evidence/measure-序号12-v1-noaction.json
+    w/crlf aap-client/evidence/measure-序号12-v1-run1.json
+    w/crlf aap-client/evidence/measure-序号12-v1-run2.json
+    w/crlf aap-client/evidence/measure-序号12-v1-run3.json
+    w/crlf aap-client/evidence/measure-序号12-v1-run4.json
+    w/crlf aap-client/src/App.vue
+    w/crlf aap-client/src/api/credential.ts
+    w/crlf aap-client/src/main.ts
+    w/crlf aap-client/src/pages.json
+    w/crlf aap-client/src/pages/credential-submit/index.vue
+    w/mixed aap-client/src/pages/credentials/index.vue
+    w/crlf aap-client/src/uni.scss
+    w/crlf aap-client/src/utils/credential-form-model.ts
+    w/crlf aap-client/src/utils/credentials-model.ts
+    w/crlf aap-client/tests/pages/credential-create-wiring.spec.ts
+    w/crlf aap-client/tests/pages/credential-submit.spec.ts
+    w/crlf aap-client/tests/pages/credentials.spec.ts
+    w/crlf aap-client/tests/pages/login.spec.ts
+    w/crlf aap-client/tests/pages/quotes.spec.ts
+    w/crlf aap-client/tests/setup.ts
+    w/crlf aap-client/tests/unit/credential-form-model.spec.ts
+    w/crlf aap-server/src/main/java/com/hioas/aap/credential/CredentialController.java
+    w/crlf aap-server/src/main/java/com/hioas/aap/credential/CredentialPrecheckRecorder.java
+    w/crlf aap-server/src/main/java/com/hioas/aap/credential/CredentialService.java
+    w/crlf aap-server/src/main/java/com/hioas/aap/detection/DetectionJobEntity.java
+    w/crlf aap-server/src/test/java/com/hioas/aap/credential/CredentialDeleteContractTest.java
+    w/crlf docs/evidence/序号01-布局实测-dump.html
+    w/crlf evidence/cmp-序号1-设计PNGvs实现截图-结构带.txt
+    w/mixed evidence/cmp-序号12-v3-两轮.txt
+    w/mixed evidence/cmp-序号12v3-分区并排对账.txt
+    …（其余 63 个略）
+
+== E3 「每轮被工具重写」的活体产物（真正的污染源，非历史留痕）==
+  文件                                                         git w/   CR 字节数
+  .agents/state/evidence/coverage-report.json                w/crlf   113      ← 违反 LF 纪律
+  .agents/state/evidence/endpoint-test-audit.json            w/lf     0     
+  .agents/state/evidence/endpoint-test-audit.txt             w/lf     0     
+  .agents/state/evidence/coverage-history.txt                w/lf     0     
+  .agents/state/aap-server-feature-status.csv                w/lf     0     
+  .agents/state/aap-server-tdd-state.md                      w/lf     0     
+  docs/backend/endpoints.json                                w/lf     0     
+  docs/backend/openapi.yaml                                  w/lf     0     
+== E4 历史遗留（当前无写入方；只作信息项，非本轮修复目标）==
+  .agents/state/aap-tdd-state.md                             w/mixed  1598  
+
+== E5 写入点定位：当前工具里**缺 `newline=`** 的 `write_text` 调用 ==
+  tools/audit-auth-contract-selftest.py:224  (root / "docs/backend/endpoints.json").write_text(
+  tools/audit-auth-contract-selftest.py:228  (root / "docs/backend/openapi.yaml").write_text(openapi(eps, openapi_anon_ids), encoding="utf-8")
+  tools/audit-auth-contract-selftest.py:233  (root / "docs/backend/02-API接口模型清单.md").write_text("\n".join(md), encoding="utf-8")
+  tools/audit-auth-contract-selftest.py:236  (root / "aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java").write_text(
+  tools/audit-auth-contract-selftest.py:241  (root / "aap-server/src/main/java/com/hioas/aap/syn" / name).write_text(text, encoding="utf-8")
+  tools/audit-endpoint-tests-selftest.py:81  (tests_dir / "SyntheticFixture.java").write_text(FAKE_SOURCE, encoding="utf-8")
+  tools/audit-endpoint-tests-selftest.py:83  manifest.write_text(json.dumps({"endpoints": FIXTURE_ENDPOINTS}, ensure_ascii=False),
+  tools/audit-endpoint-tests.py:232  (EVIDENCE_DIR / "endpoint-test-audit.json").write_text(
+  tools/audit-enum-sets-selftest.py:58  (root / "docs/backend/02-API接口模型清单.md").write_text("\n".join(md) + "\n", encoding="utf-8")
+  tools/audit-enum-sets-selftest.py:67  (root / "docs/backend/openapi.yaml").write_text("\n".join(oa) + "\n", encoding="utf-8")
+  tools/audit-enum-sets-selftest.py:69  (root / "docs/backend/json-schema/models/model01.schema.json").write_text(
+  tools/audit-enum-sets-selftest.py:72  (root / "docs/backend/json-schema/requests/req01.schema.json").write_text(
+  tools/audit-enum-sets-selftest.py:75  (root / "client/types.ts").write_text(
+  tools/audit-enum-sets-selftest.py:77  (root / "java/Svc.java").write_text(
+  tools/audit-enum-sets-selftest.py:85  (root / "docs/backend/01-ER数据模型.md").write_text(
+  tools/audit-enum-sets-selftest.py:112  path.write_text(text.replace(old, new, 1), encoding="utf-8")
+  tools/audit-error-codes-selftest.py:61  (root / "docs/backend/endpoints.json").write_text(
+  tools/audit-error-codes-selftest.py:72  (root / "aap-server/src/main/java/com/hioas/aap/common/ErrorCode.java").write_text(
+  tools/audit-error-codes-selftest.py:75  (root / "docs/backend/json-schema/common/error.schema.json").write_text(
+  tools/audit-error-codes-selftest.py:95  (root / "docs/backend/openapi.yaml").write_text("\n".join(out) + "\n", encoding="utf-8")
+  tools/audit-error-codes-selftest.py:103  (root / "docs/backend/02-API接口模型清单.md").write_text("\n".join(md) + "\n", encoding="utf-8")
+  tools/audit-id-types-selftest.py:100  p.write_text(content, encoding="utf-8")
+  tools/audit-id-types-selftest.py:128  dst.write_text(src.replace(old, new), encoding="utf-8")
+  tools/audit-id-types-selftest.py:232  target.write_text(injected, encoding="utf-8")
+  tools/audit-query-params-selftest.py:243  (docs / "endpoints.json").write_text(
+  tools/audit-query-params-selftest.py:247  (docs / "openapi.yaml").write_text(oa if oa is not None else openapi_text(eps),
+  tools/audit-query-params-selftest.py:250  (docs / "02-API接口模型清单.md").write_text(md_text(rows10, rows7), encoding="utf-8")
+  tools/audit-query-params-selftest.py:256  (cdir / name).write_text(text, encoding="utf-8")
+  tools/audit-query-params-selftest.py:260  (cdir / "syn.ts").write_text(client if client is not None else CLIENT_TS, encoding="utf-8")
+  tools/audit-query-params-selftest.py:360  dst.write_text(text, encoding="utf-8")
+  tools/audit-request-body-selftest.py:174  (dst / "docs/backend/02-API接口模型清单.md").write_text(MD, encoding="utf-8")
+  tools/audit-request-body-selftest.py:198  (dst / "docs/backend/json-schema/requests/syn-a.schema.json").write_text(
+  tools/audit-request-body-selftest.py:200  (dst / "docs/backend/json-schema/requests/syn-b.schema.json").write_text(
+  tools/audit-request-body-selftest.py:203  (dst / "docs/backend/json-schema/requests/syn-f.schema.json").write_text(
+  tools/audit-request-body-selftest.py:206  (dst / "docs/backend/json-schema/requests/syn-orphan.schema.json").write_text(
+  tools/audit-request-body-selftest.py:208  (dst / "docs/backend/endpoints.json").write_text(
+  tools/audit-request-body-selftest.py:247  (dst / "docs/backend/openapi.yaml").write_text(oa, encoding="utf-8")
+  tools/audit-request-body-selftest.py:251  (dst / "aap-server/src/main/java/com/hioas/aap/syn/SynController.java").write_text(
+  tools/audit-request-body-selftest.py:302  (dst / "aap-client/src/api/syn.ts").write_text(
+  tools/audit-request-body-selftest.py:393  tgt.write_text(mutated, encoding="utf-8")
+  tools/audit-response-shape-selftest.py:184  p.write_text(content, encoding="utf-8")
+  tools/audit-response-shape-selftest.py:328  dst.write_text(src.replace(old, new, 1), encoding="utf-8")
+  tools/audit-routes-selftest.py:220  (docs / "endpoints.json").write_text(
+  tools/audit-routes-selftest.py:224  (docs / "openapi.yaml").write_text(oa if oa is not None else openapi_text(eps),
+  tools/audit-routes-selftest.py:227  (docs / "02-API接口模型清单.md").write_text(md_text(rows10, rows7), encoding="utf-8")
+  tools/audit-routes-selftest.py:233  (cdir / name).write_text(text, encoding="utf-8")
+  tools/audit-routes-selftest.py:237  (cdir / "syn.ts").write_text(client if client is not None else CLIENT_TS, encoding="utf-8")
+  tools/audit-time-format-selftest.py:109  p.write_text(body, encoding="utf-8")
+  tools/audit-time-format-selftest.py:122  p.write_text(text, encoding="utf-8")
+  tools/regression/archive/spotcheck-config-selftest/spotcheck-config-selftest.py:55  path.write_text(txt.replace(old, new) if count < 0 else txt.replace(old, new, count), encoding="utf-8")
+  tools/regression/archive/spotcheck-config-selftest/spotcheck-config-selftest.py:106  (empty / "aap-server/src/main/resources/application.yml").write_text("", encoding="utf-8")
+  tools/regression/archive/spotcheck-config-selftest/spotcheck-config-selftest.py:107  (empty / "aap-server/src/test/resources/application-test.yml").write_text("", encoding="utf-8")
+  tools/regression/archive/spotcheck-lock-selftest/spotcheck-lock-R63-selftest.py:259  (d / "docs/backend/endpoints.json").write_text(
+  tools/regression/archive/spotcheck-lock-selftest/spotcheck-lock-R63-selftest.py:263  (d / ("docs/backend/json-schema/models/%s-detail.schema.json" % name)).write_text(
+  tools/regression/archive/spotcheck-lock-selftest/spotcheck-lock-R63-selftest.py:283  (admin / "AdminXController.java").write_text(
+  tools/regression/archive/spotcheck-lock-selftest/spotcheck-lock-R63-selftest.py:290  (delta / "DeltaController.java").write_text(
+  tools/regression/archive/spotcheck-required-selftest/spotcheck-required-R57-selftest.py:125  (base / "docs/backend/endpoints.json").write_text(json.dumps(ENDPOINTS_OK, ensure_ascii=False, indent=2),
+  tools/regression/archive/spotcheck-required-selftest/spotcheck-required-R57-selftest.py:127  (base / "docs/backend/json-schema/requests/demo-create.schema.json").write_text(
+  tools/regression/archive/spotcheck-string-length-selftest/spotcheck-string-length-R60-selftest.py:139  (root / "aap-server/src/main/resources/db/migration/V1__baseline.sql").write_text(DDL, encoding="utf-8")
+  tools/regression/archive/spotcheck-string-length-selftest/spotcheck-string-length-R60-selftest.py:140  (root / "aap-server/src/main/java/com/hioas/aap/demo/DemoController.java").write_text(CTRL, encoding="utf-8")
+  tools/regression/archive/spotcheck-string-length-selftest/spotcheck-string-length-R60-selftest.py:141  (root / "aap-server/src/main/java/com/hioas/aap/demo/DemoService.java").write_text(SVC, encoding="utf-8")
+  tools/regression/archive/spotcheck-string-length-selftest/spotcheck-string-length-R60-selftest.py:142  (root / "aap-server/src/test/java/com/hioas/aap/demo/DemoContractTest.java").write_text(TEST, encoding="utf-8"
+  tools/regression/archive/spotcheck-string-length-selftest/spotcheck-string-length-R60-selftest.py:143  (root / "docs/backend/json-schema/requests/demo-create.schema.json").write_text(REQ, encoding="utf-8")
+  tools/regression/archive/spotcheck-string-length-selftest/spotcheck-string-length-R60-selftest.py:144  (root / "docs/backend/json-schema/models/demo.schema.json").write_text(MODEL, encoding="utf-8")
+  tools/regression/archive/spotcheck-string-length-selftest/spotcheck-string-length-R60-selftest.py:145  (root / "docs/backend/endpoints.json").write_text(EP, encoding="utf-8")
+  tools/regression/archive/spotcheck-string-length-selftest/spotcheck-string-length-R60-selftest.py:146  (root / "docs/backend/02-API接口模型清单.md").write_text(MD, encoding="utf-8")
+  tools/regression/archive/spotcheck-string-length-selftest/spotcheck-string-length-R60-selftest.py:159  p.write_text(s, encoding="utf-8")
+  tools/regression/archive/spotcheck-unique-selftest/spotcheck-unique-R58-selftest.py:141  (root / "docs/backend/json-schema/requests/syn-create.schema.json").write_text(
+  tools/regression/archive/spotcheck-unique-selftest/spotcheck-unique-R58-selftest.py:143  (root / "docs/backend/endpoints.json").write_text(
+  tools/regression/archive/spotcheck-unique-selftest/spotcheck-unique-R58-selftest.py:153  (root / "aap-server/src/main/java/syn/GlobalExceptionHandler.java").write_text(
+  tools/round-archive-clean.py:100  p.write_text("\n".join("@Test void t%d() {}" % i for i in range(n)) + "\n", encoding="utf-8")
+  tools/round-verify/archive-temp-scripts.py:73  INDEX.write_text(json.dumps(idx, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+  tools/round-verify/regression.py:207  (d / "RESTORE.json").write_text(json.dumps({"items": items}, sort_keys=True) + "\n",
+  tools/round-verify/regression.py:548  (EV / ("audit-regression-%s-faildiff.txt" % ROUND)).write_text("\n".join([
+  合计 74 处
+
+== 判别力实测 ==
+
+== 结论 ==
+  索引 LF 但工作区非 LF：920 个（其中 .agents/state 外 103 个）
+  活体产物违反 LF 纪律：1 条 ['.agents/state/evidence/coverage-report.json']
+  缺 newline= 的 write_text 调用点：74 处
+断言 6 条：PASS 6，FAIL 0

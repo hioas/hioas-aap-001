@@ -226,8 +226,11 @@ def main() -> int:
 
     EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
     if WRITE_EVIDENCE:
+        # `newline="\n"`：Windows 上 `Path.write_text` 默认按平台行尾落盘（CRLF），
+        # 而本仓 `.gitattributes` 声明 `text=auto eol=lf` ⇒ 产物在工作区变成 `w/crlf`，
+        # 违反「证据文件一律 LF」纪律（历史 69/84/146），且对 git 完全不可见（归一化后 status 干净）。
         (EVIDENCE_DIR / "endpoint-test-audit.json").write_text(
-            json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
 
     lines = [
         "端点「真实 HTTP 用例」可追溯性审计（只读）",
@@ -265,7 +268,7 @@ def main() -> int:
 
     text = "\n".join(lines) + "\n"
     if WRITE_EVIDENCE:
-        (EVIDENCE_DIR / "endpoint-test-audit.txt").write_text(text, encoding="utf-8")
+        (EVIDENCE_DIR / "endpoint-test-audit.txt").write_text(text, encoding="utf-8", newline="\n")
     print(text)
     return 1 if none_rows else 0
 
