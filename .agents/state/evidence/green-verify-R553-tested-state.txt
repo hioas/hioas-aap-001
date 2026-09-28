@@ -1,0 +1,17 @@
+R553 校验轮（missing==0 -> 交付代码零改动）；全部读数由 tools/round-verify/analyze.py 从 facts / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 7bd37a9b
+被测提交全 SHA = 7bd37a9b77045330302a235422e4021558853b14
+被测提交主题 = chore(evidence): R552 final-check 证据（F0–F18 PASS 19/0；四处同源：返工真值 0 处 / 连续第 534 轮 / 263 例 45 类 / 回归面 84 条；证据列 18 项全部在 HEAD 树内）
+run1 = 09:40:18 -> 09:42:34 rc=0 / run2 = 09:42:34 -> 09:44:39 rc=0（串行：run1_end <= run2_start = True，按绝对时刻解算）
+窗口 = 09:39:58 -> 09:44:44（1790559598 -> 1790559884，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = 7bd37a9b / 终点 = 7bd37a9b；窗口内他方推进提交数 = 0
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 5 条
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+   ?? aap-server/src/main/webapp/
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0 （无）
+环境指纹：bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）
