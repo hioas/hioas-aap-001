@@ -1,0 +1,65 @@
+R559 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动三判据）
+==============================================================================
+生成方式：本文件由 `tools/round-verify/device-report.py` 从 git / facts / 证据的**真实输出**取值（数字零手写值），不接触交付面。
+轮次 = R559；被测提交（HEAD 的独立 worktree 内检出）= a2c8e196；窗口 = 2026-09-28 13:32:06 -> 2026-09-28 13:36:56（facts 落盘）
+
+一、装置面改动（机器推导，零手写）
+  被测提交的 `tools/round-verify` 文件 = 14 个 / 工作区同名文件 = 14 个（新增 0 / 删除 0）
+  工作区未提交的 tools/ 条目 = 0 条（无）
+  「被测提交..HEAD」触及 tools/ 的提交 = 0 枚（本文件生成于主提交之前）
+  逐文件 numstat（工作区 vs HEAD，`插入/删除/路径`）：无
+  轮次无关性守卫：装置脚本（12 个 .py/.sh）内当前轮次号命中 = **0**（须 0
+    = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
+
+二、本轮返工真值 = **5 处**（零交付面影响；条目文本来自单一事实源 `round-note.md`，与台账描述列 / 状态文件小节共用）
+------------------------------------------------------------------------------
+本轮返工 5 处（**全部在 aux 探针侧**；零交付面影响 —— 未改 `aap-server` / `docs` / `aap-client` / `aap-admin` 任何一行；探针本体绝对路径见对应证据文件表头）：
+① aux（超发路由档案）把「D 清单**解析器能力**」与「端点守恒」混成一条判据 ⇒ md 冻结清单缺 9 行时误报「解析器失效」（判据范围与语义不符，历史 81/46）→ 拆成 A0b（解析到行数 > 0 的正向对照）+ 一条说明行。
+② 同一探针的「测试源调用点」判据拿**归一后的 `{}` 路径**去匹配，而骨架正则的路径变量模式要求花括号内至少 1 个字符 ⇒ 带路径变量的端点在源码里被解析成字面量 `{}`、定位率塌到 48/117（历史 46：偏低/0 一律先怀疑判据）→ 改用**原始路径**并复用常驻审计 `audit-endpoint-tests` 的同一判据。
+③ 同族第二处：能力对照 D1 的循环里同样用了归一路径 ⇒ 修好 B 段后 D1 仍为 48/108（同一口径的**两处副本只改一处**，历史 191）→ 两处一并改；修后本探针的 exact 集合与常驻审计 **108 == 108 逐条相等**，这才是「真无覆盖」与「匹配器失效」的分界证据。
+④ 结论句把「0 条有强测试调用点」**写死**，而修好匹配器后实际是 2 条 ⇒ 自述与事实不符（历史 222：条数一律由计数变量推出）→ 改为由 `strong_n` / `len(client_consumed)` 推出。
+⑤ admin 端契约 ID 的裸模式把**决策编号** `D-JSON-01` / `D-SETTLE-02` 从中间截出 `JSON-01` / `SETTLE-02`；第一版用「前一位不是 D-」排除，反而造出 `SON-01` / `ETTLE-02`（**排除法自身造新假命中**）→ 改为左边界「非字母数字且非连字符」；修后未命中集合恰好 = `ADM-M01`…`ADM-M06` 六条，与 F1 的 7 条越界调用同源。
+（另有一处**写前自查**修正、不计入返工真值：探针汇总行首版用「输出行数 − 标记行数」算 PASS 数，逻辑自相矛盾 ⇒ 落盘前改为独立 PASS 计数器，历史 222 同族。）
+本轮发现（**非返工**，登记项；逐条见 aux 证据文件）：
+ⓐ **12 条「实现超发」路由不再是「疑似内部调试路由」：9 条被前端真实消费** —— `aap-client` 2 条（`DELETE /credentials/{id}`、`PUT /quotes/{id}`，且各自已有真实 HTTP 契约测试 `CredentialDeleteContractTest` / `QuoteHeaderUpdateTest`）、`aap-admin` 7 条（6 条 catalog 读写 + `POST /files`，调用点 `catalog.ts:123/126/129/131/134/137`、`contracts.ts:224`）；另 3 条（`GET /catalog/models`、`GET /detection-jobs/{id}/digest`、`GET /files/{id}`）零消费、零强测试调用点。⇒ 待拍板 ㉕ 的处置口径应**按消费方分档**，而不是一律「登记为内部路由台账」。
+ⓑ **管理端客户端面从未被任何路由审计扫描（装置侧盲区）**：`tools/` 里 5 个脚本的**客户端扫描根常量**全部指向 `aap-client`，指向 `aap-admin` 的 **0 个**（机器判据 F3b；正向对照 F3a = 16 个脚本提到 aap-client，F3c = 仅 2 个脚本在非扫描根语境提到 aap-admin）。后果：`aap-admin/src/api` 的 **53 个调用点**里有 **7 条不在冻结清单内**（F1 逐条列出），而「客户端 ⊆ 清单」这条边界判据此前**只覆盖一半客户端**。附：admin 端引用的 50 个契约 ID 里 `ADM-M01`…`ADM-M06` 在后端冻结清单 **0 命中**（F2）—— catalog 模块在管理端已被文档化为契约，后端清单却从未登记。
+ⓒ **`registered_routes=125` 的分解在「消费方」维度闭合**（R558 已分解为 108+12+5；本轮补上 12 的内部构成）：12 = 9（前端消费）+ 3（零消费零调用点）。
+ⓓ 沿用 R556–R558 的他方在途风险（`exec-maven-plugin` 无 skip 开关、交付态 yml 缺 `app.settlement.*` 声明、`coverage-report.json` 走 CRLF）—— 只登记、不代改。
+------------------------------------------------------------------------------
+
+三、本轮关键读数（读自 analyze / regression 证据，零手写值）
+  相位 = red（两轮 rc=1/1 ∧ missing=9 的合取，判据见 tools/round-verify/phase.py）
+  分析器判据 PASS 22 / FAIL 5；覆盖 total=117 implemented=108 **missing=9** registered_routes=125；连续全绿计数 = 0（**红相位**清零）
+  回归面：复跑 84 条（上一轮 R558 = 84 条）；rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 183 行
+  零写副作用：生成物 size+md5 变化 0 个（须 0）；跨轮 faildiff 上一轮 183 行 / 本轮 183 行、新增 0 / 消失 0
+  崩溃通道：rc!=0 条目 46 条，其中 FAIL 通道不可见（rc!=0 ∧ FAIL 0 行）= 3 条
+
+四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
+  ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 12 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 17 == `git status` 条目 17
+      M README.md  mtime=2026-09-24 07:51:14
+      M aap-server/pom.xml  mtime=2026-09-24 08:07:37
+      M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
+      M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
+      ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
+      （本轮产物）?? .agents/state/evidence/audit-regression-R559-faildiff.txt  mtime=2026-09-28 13:41:33
+      （本轮产物）?? .agents/state/evidence/audit-regression-R559-failraw.txt  mtime=2026-09-28 13:41:33
+      （本轮产物）?? .agents/state/evidence/audit-regression-R559-rcseq.txt  mtime=2026-09-28 13:41:33
+      （本轮产物）?? .agents/state/evidence/audit-regression-R559.txt  mtime=2026-09-28 13:41:33
+      （本轮产物）?? .agents/state/evidence/aux-surplus-routes-R559.txt  mtime=2026-09-28 13:47:26
+      （本轮产物）?? .agents/state/evidence/red-verify-R559-coverage-fields.txt  mtime=2026-09-28 13:37:01
+      （本轮产物）?? .agents/state/evidence/red-verify-R559-full-run1.txt  mtime=2026-09-28 13:37:01
+      （本轮产物）?? .agents/state/evidence/red-verify-R559-full-run2.txt  mtime=2026-09-28 13:37:01
+      （本轮产物）?? .agents/state/evidence/red-verify-R559-testcount.txt  mtime=2026-09-28 13:37:01
+      （本轮产物）?? .agents/state/evidence/red-verify-R559-tested-state.txt  mtime=2026-09-28 13:37:01
+      （本轮产物）?? .agents/state/evidence/regression-selftest-R559.txt  mtime=2026-09-28 13:41:44
+      （本轮产物）?? .agents/state/evidence/round-R559-analysis.txt  mtime=2026-09-28 13:37:01
+      其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
+  ③ 本轮提交（a2c8e196..HEAD）改动文件 = 0 个，其中位于交付面前缀的 = 0 个（**须 0**）
+
+五、下一族
+  missing=9 > 0：按 docs/backend 的任务顺序推进下一族（本轮完成端点 0 条 / 新增用例 0 条）。
+
+六、留痕
+  本文件 = .agents/state/evidence/device-round-R559.txt（由本工具直接落盘，`newline="\n"`；文件名与 closeout.py 的消费名机器核对一致；行数下限判据与 CR=0 判据见下）
+DEVICE_REPORT_END=1

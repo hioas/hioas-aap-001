@@ -1,0 +1,72 @@
+R559 aux 探针：实现「超发路由」逐条档案（**只读**；根 = E:/workspaces/hioas/hioas-aap-001）
+======================================================================================================================
+--- A 正向对照（解析器真的解析到了，skill 46/75/98）---
+[PASS] A0a M 端点数 = total total=117 parsed=117
+[PASS] A0b D 清单解析到行数 > 0（**解析器**正向对照） parsed=108 行
+[PASS] A0c O operation 数 = total parsed=117 期望=117
+[PASS] A0d I 解析到控制器路由（> 0） parsed=120 条
+[PASS] A0e I 解析无异常 无
+[PASS] A0f C 解析到客户端调用点（> 0） parsed=44 个（13 文件）；未能静态判定 0 处
+[PASS] A0g 测试源解析到文件数 > 0 55 个 .java
+     · 说明：`D 行数 108 ≠ total 117` 是**真实缺口**（md 冻结清单缺 ADM-SU01~04 / ADM-CB01~05 九行），不是解析器失效 —— 故把「解析器能力」与「端点守恒」拆成两条判据（skill 46：先看解析到几条，再看是否全等）。
+[PASS] A0h 控制器明细条数 == 方法级映射注解条数（> 0） 明细 120 / 路由集合 120
+[PASS] A1 超发路由条数（实现有、清单无）> 0 12 条（第三方对照：audit-routes 的信息项同为 12 条）
+[PASS] A2 src/test 测试专用控制器路由条数 > 0 5 条
+
+--- B：src/main 实现超发逐条档案（12 条）---
+第三方读数（覆盖门禁写的 coverage-report.json）：registered_routes=125 / not_registered=9 条
+
+方法     路径（归一）                                     控制器文件                          Java 方法            角色    md    oapi   aap-client aap-admin 测试源调用点
+----------------------------------------------------------------------------------------------------------------------
+DELETE /credentials/{}                            CredentialController.java      delete             有     无     无      有        无        强×3 CredentialDeleteContractTest.java
+GET    /admin/catalog/models                      AdminCatalogController.java    models             有     无     无      无        有        无
+GET    /admin/catalog/models/grouped              AdminCatalogController.java    grouped            有     无     无      无        有        无
+GET    /admin/catalog/vendors                     AdminCatalogController.java    vendors            有     无     无      无        有        无
+GET    /catalog/models                            CatalogQueryController.java    availableModels    有     无     无      无        无        无
+GET    /detection-jobs/{}/digest                  DetectionController.java       digest             有     无     无      无        无        弱×12 DetectionContractTest.java
+GET    /files/{}                                  FileController.java            download           无     无     无      无        无        无
+POST   /admin/catalog/models                      AdminCatalogController.java    createModel        有     无     无      无        有        无
+POST   /admin/catalog/vendors                     AdminCatalogController.java    createVendor       有     无     无      无        有        无
+POST   /files                                     FileController.java            upload             无     无     无      无        有        无
+PUT    /admin/catalog/models/{}                   AdminCatalogController.java    updateModel        有     无     无      无        有        无
+PUT    /quotes/{}                                 QuoteController.java           updateHeader       有     无     无      有        无        强×1 QuoteHeaderUpdateTest.java
+----------------------------------------------------------------------------------------------------------------------
+[FAIL] B1 超发路由里「客户端真实消费」的条数 == 0（预期 FAIL：这是待拍板 ㉕ 的**升级依据**） 2 条：['DELETE /credentials/{}', 'PUT /quotes/{}']
+[FAIL] B2 超发路由里「有强测试调用点」的条数 == 0 2 条（逐条见上表末列）
+
+解读（供拍板用，非漂移判定）：这 12 条**不能一律当「内部调试路由」处理** —— 前端真实消费 9 条（aap-client 2 条 / aap-admin 7 条，去重后 9 条）；其中 2 条同时**已有强测试调用点**。
+       ⇒ 建议拍板口径：按**消费方**分档处置 —— 有前端消费的必须在冻结清单补行（或从客户端撤线）；零消费、零调用点的判内部路由并登记台账。逐条归属见上表 `aap-client` / `aap-admin` 两列。
+
+--- C：src/test 测试专用控制器（5 条；不计入「超发」口径）---
+    GET    /__test/boom                               TestErrorController.java
+    GET    /__test/business-error                     TestErrorController.java
+    GET    /__test/echo                               TestErrorController.java
+    GET    /__test/empty                              TestErrorController.java
+    POST   /__test/validate                           TestErrorController.java
+
+--- D 能力对照（同一匹配器跑清单端点；用于区分「真无覆盖」与「匹配器失效」）---
+[PASS] D1 本探针 exact 集合 == 常驻审计 endpoint-test-audit.json 的 exact 集合（逐条相等） 本探针 108 / 审计 108；仅我有 无 / 仅有审计 无
+[PASS] D2 审计读数 exact > 0（正向对照：防两侧同时为空的假一致） exact=108 / none=9
+
+--- F 管理端客户端面（aap-admin/src/api）—— 既有审计的**扫描根之外** ---
+[PASS] F0 解析到 admin 端 request/fetch 调用点 > 0（正向对照） 53 个调用点行 / 53 个 distinct (方法, 归一路径)
+[PASS] F1 admin 端调用路径中**不在冻结清单内**的条数（> 0 ⇒ 第二个客户端的契约边界从未被审计） 7 / 53：['GET /admin/catalog/models', 'GET /admin/catalog/models/grouped', 'GET /admin/catalog/vendors', 'POST /admin/catalog/models', 'POST /admin/catalog/vendors', 'POST /files', 'PUT /admin/catalog/models/{}']
+     逐条（含调用点位置）：
+       · GET    /admin/catalog/models                        catalog.ts:129
+       · GET    /admin/catalog/models/grouped                catalog.ts:131
+       · GET    /admin/catalog/vendors                       catalog.ts:123
+       · POST   /admin/catalog/models                        catalog.ts:134
+       · POST   /admin/catalog/vendors                       catalog.ts:126
+       · POST   /files                                       contracts.ts:224
+       · PUT    /admin/catalog/models/{}                     catalog.ts:137
+[PASS] F2 admin 端引用的契约 ID 里「后端冻结清单 0 命中」的条数（> 0 ⇒ 前端自有一套契约 ID 词表） 6 / 50：['ADM-M01', 'ADM-M02', 'ADM-M03', 'ADM-M04', 'ADM-M05', 'ADM-M06']
+     admin 端引用到的 ID 全集（50 个）：['ADM-AUTH01', 'ADM-AUTH02', 'ADM-AUTH03', 'ADM-AUTH04', 'ADM-AUTH05', 'ADM-CFG01', 'ADM-CFG02', 'ADM-CFG04', 'ADM-CFG05', 'ADM-CP01', 'ADM-CP02', 'ADM-CP03', 'ADM-CP04', 'ADM-DET01', 'ADM-M01', 'ADM-M02', 'ADM-M03', 'ADM-M04', 'ADM-M05', 'ADM-M06', 'ADM-P01', 'ADM-P02', 'ADM-P03', 'ADM-PAY04', 'ADM-PAY05', 'ADM-PAY06', 'ADM-PAY07', 'ADM-PAY08', 'ADM-PAY09', 'ADM-Q01', 'ADM-R01', 'ADM-R02', 'ADM-R03', 'ADM-R04', 'ADM-R05', 'ADM-S01', 'ADM-S02', 'ADM-S03', 'ADM-S04', 'ADM-S05', 'ADM-S06', 'ADM-S07', 'ADM-S08', 'ADM-S09', 'ADM-U01', 'ADM-U02', 'DET-01', 'DET-02', 'DET-06', 'SET-02']
+[PASS] F3a 正向对照：tools/ 里提到 aap-client 的脚本 > 0 16 个
+[PASS] F3b admin 端出现在**客户端扫描根常量**里 = 0 条（装置侧盲区：路由审计只扫 aap-client） admin 扫描根 0 个 无 / client 扫描根 5 个 ['audit-id-types.py', 'audit-query-params.py', 'audit-request-body.py', 'audit-routes.py', 'audit-time-format.py']
+[PASS] F3c 仅「提到 aap-admin」的脚本（非扫描根，属证据/生成器语境）= 已知 1–2 条 2 个：['evidence-secrets.py', 'gen-backend-models.py']
+
+--- E 只读保证 ---
+[PASS] E1 被读文件指纹零变化（零写副作用） 变化 0 个 无
+
+判据：PASS 19 / FAIL 2（FAIL 名单：['B1 超发路由里「客户端真实消费」的条数 == 0（预期 FAIL：这是待拍板 ㉕ 的**升级依据**）', 'B2 超发路由里「有强测试调用点」的条数 == 0']）
+SUPPLUS_DOSSIER_END=1
