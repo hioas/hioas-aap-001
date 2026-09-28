@@ -1,0 +1,17 @@
+R550 校验轮（missing==0 -> 交付代码零改动）；全部读数由 tools/round-verify/analyze.py 从 facts / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = b30cb312
+被测提交全 SHA = b30cb312be0a0fb9d371b705337047c24e318d9d
+被测提交主题 = chore(evidence): R549 收尾更正（返工真值据实更正 0 → 1 处：唯一返工 = 技能留档写盘器的行尾形态 —— 新增 7 行落成裸 LF 而目标文件主导行尾为 CRLF，已全额归一 CR=428/LF=428；收尾之后才暴露；重跑装置侧证据 --rework 1 + closeout --rewrite 保留 c7=67ddad83 + aux 终相位复跑 40/0 + final-check 复跑 PASS 19/0 + 门禁复跑 rc=0；未 amend 任何已发布提交）
+run1 = 08:38:25 -> 08:40:42 rc=0 / run2 = 08:40:42 -> 08:43:06 rc=0（串行：run1_end <= run2_start = True，按绝对时刻解算）
+窗口 = 08:38:06 -> 08:43:16（1790555886 -> 1790556196，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = b30cb312 / 终点 = b30cb312；窗口内他方推进提交数 = 0
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 5 条
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+   ?? aap-server/src/main/webapp/
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0 （无）
+环境指纹：bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）
