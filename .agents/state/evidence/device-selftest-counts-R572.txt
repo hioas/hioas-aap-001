@@ -1,0 +1,34 @@
+R572 装置 README 自测条数取证（自述 ⇔ 工具汇总行；轮次无关工具 tools/round-verify/selftest-counts.py）
+==============================================================================
+生成方式：本工具逐个执行装置工具的 `--selftest`（`sys.executable` + `cwd=仓库根`，不经 shell），
+从**汇总行**解析条数（零手写值），再与 `tools/round-verify/README.md` 的自述值逐工具比对；
+本文件即勘误留痕；上一轮同项留痕 device-selftest-counts-R571.txt（磁盘上存在 = True）。
+
+一、原始输出与汇总行（每项断言结束标记存在 = 完整结论，非半截输出，历史 240）
+  regression.py      rc=0 结束标记 SELFTEST_END=1      汇总行「自测：26 PASS / 0 FAIL」→ 条数 = 26
+  final-check.py     rc=0 结束标记 FINAL_CHECK_END=1   汇总行「判据：PASS 23 / FAIL 0」→ 条数 = 23
+  independent.py     rc=0 结束标记 SELFTEST_END=1      汇总行「判据：PASS 47 / FAIL 0」→ 条数 = 47
+  backfill-c7.py     rc=0 结束标记 SELFTEST_END=1      汇总行「判据：PASS 20 / FAIL 0」→ 条数 = 20
+  device-report.py   rc=0 结束标记 SELFTEST_END=1      汇总行「判据：PASS 10 / FAIL 0」→ 条数 = 10
+  selftest-counts.py rc=0 结束标记 SELFTEST_END=1      汇总行「判据：PASS 15 / FAIL 0」→ 条数 = 15
+  正向对照：6 项条数均 > 0（[10, 15, 20, 23, 26, 47]）；FAIL 均 = 0。
+
+二、README 自述 ⇔ 汇总行（逐工具，模式须各命中 1 次；不等即据实更正，历史 201/206/12）
+  regression.py      自述 26 ⇔ 汇总行 26 ⇒ 一致（已一致）
+  final-check.py     自述 23 ⇔ 汇总行 23 ⇒ 一致（已一致）
+  independent.py     自述 47 ⇔ 汇总行 47 ⇒ 一致（已一致）
+  backfill-c7.py     自述 20 ⇔ 汇总行 20 ⇒ 一致（已一致）
+  device-report.py   自述 10 ⇔ 汇总行 10 ⇒ 一致（已一致）
+  selftest-counts.py 自述 15 ⇔ 汇总行 15 ⇒ 一致（已一致）
+  更正条数 = 0（本轮 README 自述与工具汇总行本已一致，**未写回**：README 运行期逐字节未动）。
+  README sha256(前 12) = e8f163611e42（= 本工具运行**前**的 README 字节指纹）
+  README md5 = ea8802931baf363eefe9e2a0be10353c
+
+三、只读守卫（装置自测不得有写副作用）
+  全部 6 个 `--selftest` 运行前后 `git status --porcelain` 逐行相同 = True（行数 16 ⇒ 16）
+
+四、为什么值得常驻
+  装置 README 的条数是**纯数字自述**：机械轮次替换（只认轮次号形态）与 84 条回归面（只跑工具不读文档）
+  都碰不到它 ⇒ 手工维护必然过期，而六个装置步骤全程零报警。本工具把「每轮核对 + 据实更正 + 幂等复核」
+  固化成轮次无关实现，取代此前只活在 $TEMP 的 aux 脚本（历史 169/177/216：系统清理即永久退场）。
+SELFTEST_COUNTS_END=1
