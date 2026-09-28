@@ -87,7 +87,13 @@ STREAK = int(re.search(r"连续全绿 = 第 (\d+) 轮", ana).group(1))
 prev_hist = [ln for ln in HIST.read_text(encoding="utf-8", errors="replace").splitlines() if (" %s " % prev_round) in ln]
 if PHASE == GREEN:
     assert len(prev_hist) == 1, "上一轮 history 行命中 %d 条（判据失效，历史 46）" % len(prev_hist)
-    assert int(re.search(r"连续第 (\d+) 轮", prev_hist[0]).group(1)) + 1 == STREAK, "连续轮次与上一轮不连续"
+    # 上一轮的连续计数有两种**合法**承载形态：绿相位写「连续第 N 轮」，红相位写「连续全绿计数 = 0（红相位清零）」。
+    # 只认第一种时，从红相位转入绿相位的第一轮会 AttributeError（装置冻结以来首次遇到，历史 176/145：先怀疑判据）。
+    _mp = (re.search(r"连续第 (\d+) 轮", prev_hist[0])
+           or re.search(r"连续全绿计数 = (\d+)", prev_hist[0]))
+    assert _mp, "上一轮 history 行的连续计数未解析到（两种承载形态都不匹配 ⇒ 判据失效，历史 46）—— 读自 %r" % prev_hist[0][:120]
+    assert int(_mp.group(1)) + 1 == STREAK, \
+        "连续轮次与上一轮不连续（上一轮 %s + 1 ≠ 本轮 %d）" % (_mp.group(1), STREAK)
 else:
     # ---- 红相位三不变量（历史 554 / 待拍板 ⑳）：① 计数清零 ② 分析证据含红相位标记
     #      ③ 上一轮「1 条 history 行」或「0 条 + 状态小节含红」二者必居其一（否则判据失效）。
@@ -109,7 +115,17 @@ RCCH, RCADD, RCGONE = M_RCCH.groups()
 FSCR, FLIN = M_FAIL.groups()
 RAN = int(M_NONZ.group(2))
 if PHASE == GREEN:
-    assert (int(RCCH), int(RCADD), int(RCGONE)) == (0, 0, 0), "回归面存在差异：rc 变化 %s / 新增 %s / 未复跑 %s" % (RCCH, RCADD, RCGONE)
+    # rc 变化**不要求恒为 0**：交付轮把某条红审计修成绿（红→绿）是**正当改善**，要求 0 会把「本轮交付闭环」
+    # 判成「回归面差异」而整轮记账失败（装置冻结以来首次遇到；历史 176/145：先怀疑判据）。
+    # 判据收紧为：新增/未复跑必须 0，且**每一条** rc 变化都必须是「旧 rc != 0 → 新 rc == 0」的转绿方向；
+    # 反向（转红）或其它方向仍然响亮失败。正向对照 = 明细行数 == 报告声明的 rc 变化条数（否则判据失效）。
+    rcch_lines = re.findall(r"^\s+rc 变化：(\S+) R\d+=(\d+) -> R\d+=(\d+)$", reg, re.M)
+    assert int(RCCH) == len(rcch_lines), \
+        "rc 变化条数 %s ≠ 明细行数 %d（判据失效，历史 46）" % (RCCH, len(rcch_lines))
+    assert (int(RCADD), int(RCGONE)) == (0, 0), \
+        "回归面存在差异：新增 %s / 未复跑 %s" % (RCADD, RCGONE)
+    _notgreen = [t for (t, a, b) in rcch_lines if not (a != "0" and b == "0")]
+    assert not _notgreen, "回归面 rc 变化非「转绿」方向 %d 条：%s" % (len(_notgreen), _notgreen[:5])
 else:
     # 红相位：回归面差异**如实登记**（本相位不要求 0 —— 要求 0 正是「红轮无法记账」的成因，历史 554）；
     # 但读数必须可解析且复跑条数 > 0（上面已断言 M_* 命中），空转不得判绿（历史 98）。

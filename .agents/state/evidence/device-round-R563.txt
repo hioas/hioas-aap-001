@@ -1,0 +1,118 @@
+R563 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动三判据）
+==============================================================================
+生成方式：本文件由 `tools/round-verify/device-report.py` 从 git / facts / 证据的**真实输出**取值（数字零手写值），不接触交付面。
+轮次 = R563；被测提交（HEAD 的独立 worktree 内检出）= e1c9aeb1；窗口 = 2026-09-28 17:00:42 -> 2026-09-28 17:05:37（facts 落盘）
+
+一、装置面改动（机器推导，零手写）
+  被测提交的 `tools/round-verify` 文件 = 14 个 / 工作区同名文件 = 14 个（新增 0 / 删除 0）
+  工作区未提交的 tools/ 条目 = 1 条： M tools/round-verify/closeout.py
+  「被测提交..HEAD」触及 tools/ 的提交 = 0 枚（本文件生成于主提交之前）
+  逐文件 numstat（工作区 vs HEAD，`插入/删除/路径`）：18	2	tools/round-verify/closeout.py
+  轮次无关性守卫：装置脚本（12 个 .py/.sh）内当前轮次号命中 = **0**（须 0
+    = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
+
+二、本轮返工真值 = **8 处**（零交付面影响；条目文本来自单一事实源 `note-R563.md`，与台账描述列 / 状态文件小节共用）
+------------------------------------------------------------------------------
+R563 推进轮（交付轮）· ADM-CB01~05 批量配置批次交付 —— **覆盖门禁首次全绿：117/117 注册、missing 0**
+
+结论：把冻结清单里最后 5 条未实现端点（`ADM-CB01` 创建 / `ADM-CB02` 分页列表 / `ADM-CB03` 详情 /
+`ADM-CB04` 单模型重试 / `ADM-CB05` 单模型回滚）从「清单声明」推进到「实现 + 6 例真实 HTTP 用例」，
+`implemented` 112 → **117**、`missing` 5 → **0**、`registered_routes` 129 → **134**，
+`EndpointCoverageTest` 由红转绿 ⇒ 本仓第一次达到「冻结清单 100% 注册」。
+
+一、覆盖进度：total **117** / implemented **117** / missing **0** / registered_routes **134**（按族：15 族全齐）。
+
+二、本批交付端点 + 新增用例（6 例，全部打真实 HTTP，走 `ApiTestBase`、每例前 `truncateAll`）：
+* `ADM-CB01` 创建：**201** + 独立 schema 校验（`config-batch` / `config-batch-item`）+ 批次号 `CFG-B<yyyymm>-<4位>` +
+  `DRY_RUN` 生产零写入（`aap_channel_binding` / `aap_sync_task` 0 行、明细全 `SKIPPED`）+ 响应与库同源 +
+  `APPLY` 只登记 `PENDING`（不谎报已执行，R-58）+ `scope` 四维度（`supplyUnitIds`/`providerIds`/`modelNames` 大小写不敏感/`tags`，
+  标签挂在渠道绑定上）+ 省略 `scope` = 全量未下线单元 + 命中 0 ⇒ 空批次 + 20 个恰好可行（AC-10）+ 21 个 ⇒ **409 E-1601**（R-57）+
+  校验 **400 E-1001**（缺 `batch_type` / 未知 `batch_type` / 未知 `mode` / `rate_limit_per_sec` > 5）。
+* `ADM-CB02` 列表：分页元信息 + `created_at desc, id desc` + `status` 过滤（大小写不敏感）+ `page`/`pageSize` 边界 + 逻辑删除行不出现。
+* `ADM-CB03` 详情：明细数组（断言钉**响应体** `items.size()=2`，历史 22）+ `mismatch` 清单 + 不存在/已删除 ⇒ **404 E-1406** + 非数字 id ⇒ 400。
+* `ADM-CB04` 重试：**202** + `FAILED`→`PENDING` + `attempt_count`+1 + **兄弟项逐列不动**（R-59 单模型隔离）+ 批次回 `RUNNING` 且计数重算 +
+  留痕列刷新 + **幂等键复用**（换键会让上游重复建渠道）+ 非 `FAILED`/`MISMATCH` ⇒ 409 E-1601 + 跨批次明细 ⇒ 404。
+* `ADM-CB05` 回滚：**202** + `SUCCEEDED`→`ROLLED_BACK` + `reason` 留痕 + 批次转 `PARTIAL` + 非 `SUCCEEDED` ⇒ 409 E-1601 +
+  `reason` 省略/空白 ⇒ 400 E-1001（契约 `required`）+ 跨批次 ⇒ 404。
+* 权限矩阵：TECH_OPS/SUPER_ADMIN 200·201·202 · BIZ_OPERATOR 403 E-1901 · 供应商 403 · 匿名 401 E-1902。
+
+三、红/绿证据（任务级）：`evidence/red-ADM-CB-R563.txt`（实现前 6/6 红，**全为 404 E-1406 缺路由型红**，非实现缺陷，历史 23）/
+`evidence/green-ADM-CB-R563.txt`（同命令 6/6 绿 + 全量 **316 例全绿** + 覆盖读数 total 117 / implemented 117 / missing 0 / registered_routes 134）。
+红绿在**同一个 HEAD worktree** 内跑（`git worktree add --detach`，历史 27/28）：红基线只放测试、绿基线只加实现，命令逐字相同。
+
+四、生成物收口（单一事实源 `tools/gen-backend-models.py`，先改生成器再改代码 = 硬约束 1/2）：
+① 端点级分页白名单 `PAGEABLE`（同一模型既被列表端点也被单对象端点复用时模型级判据无法表达，历史 78）；
+② 端点级成功状态码 `SUCCESS_STATUS`（`ADM-SU03`=202、`ADM-CB01`=201、`ADM-CB04/05`=202）—— 修正「生成器对全部端点硬编码 200」
+与规格契约、清单逐行、控制器 `@ResponseStatus` 三处冲突的漂移（上一轮登记的待拍板 ㉞）；
+③ 批次状态口径回正：`COMPLETED`（枚举外取值）→ `SUCCEEDED`（`data-model.md` §9），同一列不再两种写法。
+
+五、本轮返工 8 处（据实登记，全部由断言/测试当场拦下）：
+① 生成器按端点收口成功码后，`tools/audit-response-shape.py` 的成功段判据**硬编码 `"        200:"`** ⇒ 非 200 端点会退化成
+「整段（含 4XX）」，判据改为 `2\d\d:`（修判据，不是放宽期望）；
+② `ConfigBatchAdminService.create()` 在 `scope` 命不中单元时发出 `id in ()` ⇒ SQL 语法错、HTTP 只见 **500 E-2001**（用例抓到）⇒
+实现补判空 + `placeholders()` 加「空列表即编程错误」自检；
+③ 用例期望写错：模型名大小写不敏感例期望 2，而夹具只有 1 个 `gpt-4o` ⇒ 修**期望值**（并在断言消息里写明判据）；
+④ 标签维度夹具插入 1 条渠道绑定后，`APPLY` 的「上游零写入」绝对断言把夹具算成「已写上游」⇒ 改为与**发请求前基线**比对
+（并避免把基线读在请求之后 —— 那是恒真的空转判据，历史 230）；
+⑤ 只读审计 `spotcheck-required` A3 看不到「字段 → 判空 → 拒绝」链（原实现用字符串字面量取值）⇒ 实现里补**显式必填判空**
+（行为不变，判据可见：无强制证据 6 → 4，回到仓库既有基数）；
+⑥ `audit-error-codes` A9 报 `ADM-CB04` md 漏 `E-1001`（我改了 `PATHS` 未同步 md 行）⇒ 补 md（与 CB01/03/05 一致）；
+⑦ `spotcheck-success-shape` A6b 的判据是**全局**「成功必须 200」，与「按端点声明成功码」的真修复冲突 ⇒ 改判据为
+**逐端点**（与同文件 A1c 的 `declared_n200` 同源），其自测 T15 随之恢复「真实仓库 FAIL 集合恰好 = {A2b}」；
+⑧ 编辑失误 2 处：写错路径（`hioas-aap-aap-001`，当场 `rm` 收尾）；无实参 `patch` 把两行 Java 粘连成一行（当场修回）。
+
+六、装置链：被测提交 `0e9adbb8`（交付）+ `e1c9aeb1`（偏差/回归留痕）；装置面改动 = `tools/audit-response-shape.py`
+（与生成器改动**同轮同因**，已随交付提交落盘，故不进「工作区 / 被测提交..HEAD」的 `--device-change` 判据，据实申报）；
+回归面 84 条复跑 **rc 变化 1 条**（`endpoint-tests` R562=1 → R563=**0 转绿**，因最后 5 条端点已有真实用例），
+FAIL 明细 172 → 169（**逐条同键 ⇒ 0 真新增 FAIL**）；计数型文本差异 5 处（`超发路由 59/55 → 61/58`、`已定位端点 42 → 46`、
+分页 ORDER BY 汇总 `PASS 15 → 16`、`request-body 不一致 12 → 10`、`error-codes A9 12 → 11`）逐条核对为**改善或轮次算术漂移**，
+其中 4 处已判定为「新写/新定位导致的计数变化」，1 处为既有 12 条超发路由的分布随新增 5 条路由移动（待拍板 ㉕ 沿用）。
+
+七、本批新发现（机器取证）：逐端点「成功状态码」是**又一型两套门禁都看不见的契约不变量** —— 契约测试只读 JSON Schema、
+覆盖门禁只比「方法+路径」，而 `openapi.yaml` 的成功码被生成器硬编码 200 ⇒ 客户端 codegen 拿到错误的成功码；
+本轮已在生成物侧收口（与规格/清单/实现三处一致），并把审计判据同步到逐端点口径。
+
+八、诚实边界：`mode=APPLY` 只把批次与明细登记为 `PENDING`（**不写上游、不谎报成功**，R-58）—— 上游执行器
+`T-M4-08~11`（限速 / 写后回读 / 单模型隔离与回滚的实际写入）尚未落地，故本批交付的是「受理 + 差异清单 + 台账」这一半，
+已在清单 §2.6 现状说明与偏差表 D-ADM-09 写明，不用假计数冒充「已执行」。
+
+九、安全：敏感值自检 0 命中；未使用浏览器、未按镜像名杀进程、未触碰他方 worktree/CDP；
+无密钥、令牌或完整连接串进入代码、证据或报告。
+------------------------------------------------------------------------------
+
+三、本轮关键读数（读自 analyze / regression 证据，零手写值）
+  相位 = green（两轮 rc=0/0 ∧ missing=0 的合取，判据见 tools/round-verify/phase.py）
+  分析器判据 PASS 27 / FAIL 0；覆盖 total=117 implemented=117 **missing=0** registered_routes=134；连续第 1 轮全绿
+  回归面：复跑 84 条（上一轮 R562 = 84 条）；rc 变化 1 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行
+  零写副作用：生成物 size+md5 变化 0 个（须 0）；跨轮 faildiff 上一轮 172 行 / 本轮 167 行、新增 6 / 消失 11
+  崩溃通道：rc!=0 条目 45 条，其中 FAIL 通道不可见（rc!=0 ∧ FAIL 0 行）= 2 条
+
+四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
+  ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 12 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 17 == `git status` 条目 17
+      M README.md  mtime=2026-09-24 07:51:14
+      M aap-server/pom.xml  mtime=2026-09-24 08:07:37
+      M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
+      M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
+      ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
+      （本轮产物）M .agents/state/evidence/audit-regression-R563-faildiff.txt  mtime=2026-09-28 17:11:30
+      （本轮产物）M .agents/state/evidence/audit-regression-R563-failraw.txt  mtime=2026-09-28 17:11:30
+      （本轮产物）M .agents/state/evidence/audit-regression-R563.txt  mtime=2026-09-28 17:11:30
+      （本轮产物）M tools/round-verify/closeout.py  mtime=2026-09-28 17:12:27
+      （本轮产物）?? .agents/state/evidence/device-round-R563.txt  mtime=2026-09-28 17:12:15
+      （本轮产物）?? .agents/state/evidence/green-verify-R563-coverage-fields.txt  mtime=2026-09-28 17:05:58
+      （本轮产物）?? .agents/state/evidence/green-verify-R563-full-run1.txt  mtime=2026-09-28 17:05:58
+      （本轮产物）?? .agents/state/evidence/green-verify-R563-full-run2.txt  mtime=2026-09-28 17:05:58
+      （本轮产物）?? .agents/state/evidence/green-verify-R563-testcount.txt  mtime=2026-09-28 17:05:58
+      （本轮产物）?? .agents/state/evidence/green-verify-R563-tested-state.txt  mtime=2026-09-28 17:05:58
+      （本轮产物）?? .agents/state/evidence/regression-selftest-R563.txt  mtime=2026-09-28 17:11:30
+      （本轮产物）?? .agents/state/evidence/round-R563-analysis.txt  mtime=2026-09-28 17:05:58
+      其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
+  ③ 本轮提交（e1c9aeb1..HEAD）改动文件 = 0 个，其中位于交付面前缀的 = 0 个（**须 0**）
+
+五、下一族
+  **无**（清单 117/117、missing=0）—— 本轮完成端点 0 条 / 新增用例 0 条、无红基线。
+
+六、留痕
+  本文件 = .agents/state/evidence/device-round-R563.txt（由本工具直接落盘，`newline="\n"`；文件名与 closeout.py 的消费名机器核对一致；行数下限判据与 CR=0 判据见下）
+DEVICE_REPORT_END=1
