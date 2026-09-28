@@ -16262,12 +16262,12 @@ R491 巡检轮收尾要点（返工真值 = 9 处，据实更正；全部装置/
 
 ### R555 巡检轮（**红相位**：missing=9 ≠ 0 或两轮 rc=1/1 ≠ 0/0 ⇒ **未达成两轮全绿**，据实记红）
 
-- **性质**：**本轮为红相位**（红相位）—— 三处记录（描述列 / history / 本节）**不含任何绿相位措辞**；但**交付面零改动**（未改 `aap-server` / `docs` / 冻结清单生成物任何一行）；本轮另含**装置侧改动**（tools/round-verify/phase.py、tools/round-verify/analyze.py、tools/round-verify/closeout.py、tools/round-verify/device-report.py、tools/round-verify/final-check.py、tools/round-verify/independent.py、tools/round-verify/regression.py —— 轮次无关的轮次校验装置（只读审计 + 留痕写入器），不触碰交付面；证据：工作区未提交 7 条 / 提交链自 ca7b032d 起 0 枚提交触及 tools/）；本轮新增写入 = 台账 / 状态 / 证据。
+- **性质**：**本轮为红相位**（红相位）—— 三处记录（描述列 / history / 本节）**不含任何绿相位措辞**；但**交付面零改动**（未改 `aap-server` / `docs` / 冻结清单生成物任何一行）；本轮另含**装置侧改动**（tools/round-verify/phase.py、tools/round-verify/analyze.py、tools/round-verify/closeout.py、tools/round-verify/device-report.py、tools/round-verify/final-check.py、tools/round-verify/independent.py、tools/round-verify/regression.py —— 轮次无关的轮次校验装置（只读审计 + 留痕写入器），不触碰交付面；证据：工作区未提交 2 条 / 提交链自 ca7b032d 起 1 枚提交触及 tools/）；本轮新增写入 = 台账 / 状态 / 证据。
 - **两轮全量（串行）**：被测提交 = ca7b032d（独立 detached worktree 内）；run1 11:22:47→11:25:19、run2 11:25:19→11:27:28；各 **305 例 / 49 类**、rc=1/1、Failures-Errors-Skipped = 1-0-0；`@Test` 词边界计数与 surefire 合计一致；禁用扫描 0 条。
 - **覆盖**：total=117 implemented=108 **missing=9**、registered_routes=125、not_registered=[{'id':；连续全绿计数 = **0**（红相位**计数清零**，下次全绿从第 1 轮起算）。
 - **回归面**：复跑 84 条（tag 集合与上一轮 R554 一致）；rc 变化 0 条、新增 0、未复跑 0；FAIL 明细 43 脚本 183 行（跨轮 faildiff 183→183：新增 0 / 消失 0）；零写副作用（冻结清单生成物 size+md5 全等，变化 0 个）；命令表已由仓库内 `tools/round-verify/manifest.json` 提供，$TEMP 抽查脚本 54 条全部归仓（由 manifest 的 $TEMP 条目数与归仓目录数**双源互证**推出）。
 - **本轮要点（单一事实源 = round-note.md）**：
-本轮返工 12 处（装置/脚本侧，**零交付面影响**：未改 `aap-server` / `docs` / `aap-client` 任何一行）：
+本轮返工 18 处（装置/脚本侧，**零交付面影响**：未改 `aap-server` / `docs` / `aap-client` 任何一行）：
 ① 新建 `tools/round-verify/phase.py` —— 相位（green/red）的**单一事实源**（`phase_of(两轮 rc, missing)`、`RED_MARK`、`ev_prefix`、`cases_pat`、`streak_pat/streak_marker`、`find_verify`、`state_section_mark`），带 `--selftest`（17 例 PASS），并把「空/畸形输入必须响亮失败」写成 P7a（判据不可用 ≠ 绿，历史 98/141）；
 ② `analyze.py` 相位感知：⓪ 相位段（两轮 rc ∧ missing 的合取，**缺键一律取红侧默认值**）、④ 复用 ⓪ 的读数（避免同一输入两处副本分叉，历史 44/191）、⑥ 连续轮次**三态**（绿=连续第 N 轮 / 红=计数清零 / 上一轮红相位未记账）、⑦b 相位自洽、产物前缀由 `PFX` 推出、`HDR` 去掉绿相位措辞；
 ③ `closeout.py` 相位感知：**红相位可记账**（历史 554 的死锁根因）、校验证据两种前缀都认、红相位不要求「回归面 rc 变化 0」、上一轮红相位未记账按机器判据豁免（与 analyze A22 同源）、描述列 / history / 状态小节三处按相位分支、跨轮 faildiff **如实登记**（删掉硬编码「新增 0」这条未经验证的自述，历史 12/95）、零写副作用读数解析；并清掉残留的绿相位锚点块（历史 102：同名/残留会让红相位必然假红）；
@@ -16280,6 +16280,13 @@ R491 巡检轮收尾要点（返工真值 = 9 处，据实更正；全部装置/
 ⑩ `regression.py` 崩溃通道跨轮比对**归一**：证据文本里「空理由行集」写作 `sha256=none`，内存态是空串 ⇒ 同一状态两种写法被判「内容变化」的**假 FAIL**（本仓生产实测，历史 57/131/200 族）；修法是写入与解析两侧共用 `_norm_sha()` + `parse_crash_channels()` 单一入口，并补 3 条判别力自测（S17 / S17p / S17n），夹具形态取**真实证据文本**而非 Python 字典 —— 旧夹具两侧都是空串，**测不出**该缺陷（历史 82/93/136）。自测 26/26 PASS；
 ⑪ `device-report.py` 覆盖字段行解析：`not_registered=(\S+)` 在未注册清单**非空**（含空格）时整行匹配失败 ⇒ 改 `(.*)`（红相位首次非空即暴露，历史 46：读数解析失败先怀疑判据）；
 ⑫ 装置脚本**轮次无关性**去化：新增注释里写入了当前轮次号被我自己的守卫当场拦下（`装置脚本内当前轮次号命中 = 2（须 0）`）⇒ 改写成不含轮次号的等义表述（历史 199/249：历史事实一律去化轮次号，机械派生改不到）。
-- **返工真值**：本轮返工真值 = **12 处**（装置/脚本侧，零交付面影响；逐条见上文要点与 `device-round-R555.txt`）。
-- **权威数字**：权威数字 = 返工 12 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
+以下⑬–⑯为**收尾阶段**（独立复核）才暴露的装置缺陷，据实补登（历史 209：不 amend 已发布提交，以独立收尾提交留溯源说明，并同步「台账行 / 状态文件 / 收尾提交 message」三处）：
+⑬ `independent.py` 类级用例行解析：失败类的行形如 `… Time elapsed: 0.1 s <<< FAILURE! -- in <类>` ⇒ 原判据（`Time elapsed: … s -- in`）**整行漏收**，类级求和比合计少 1（实测 304 vs 305）；改法是加 `(?: <<< [A-Z]+!)?` 容忍 + 自测 T18 正向对照（历史 228/81 族）；
+⑭ `independent.py` BUILD FAILURE 前缀：有失败的那一轮 maven 写 `[ERROR] BUILD FAILURE`，原判据只认 `[INFO]` ⇒ **红轮 `bad` 恒假，而绿轮的该判据只用「非 bad」⇒ 缺陷在绿轮完全不可见**（历史 228 族：前缀随成败变化）；改法 `^\[(?:INFO|ERROR)\] BUILD FAILURE$`；
+⑮ `independent.py` 相位分支：J2b / J2c / J4a / J4c 原为**绿相位判据**，红相位下必然报 4 条**结构性假 FAIL**（判据范围与语义不符，历史 81/195）⇒ 按 `phase_of()` 分相位分支（红相位判据 = 两轮逐条一致 ∧ Errors=Skipped=0 ∧ Failures≥1 ∧ 失败类点名；覆盖读数自洽：implemented+missing==total ∧ 未注册条数==missing），并新增**红相位合成夹具** `synth_ctx_red()` + 3 条判别力实测（历史 32/75/98：有几个分支就要有几条反例）；
+⑯ `independent.py` J5f 判据范围：「在途改动 mtime 全部早于窗口起点」把**本轮已申报的装置改动**也算进在途（本作业自己在窗口内改了装置脚本 ⇒ 假 FAIL）⇒ 改判 `inflight_late_eff`（= 落在窗口内且**未被申报**的条目），豁免 = 申报集合的子集（机器核对，不是人列举）；自测 44/44 PASS。
+⑰ `final-check.py` F9 的**收尾证据豁免清单**漏项：清单原本只有 `postwrite-check` / `final-check` 两项，而收尾链还会产出 `independent-R555.txt` ⇒ 复跑报「未跟踪 / 不在 HEAD 树」，看起来像「证据丢了」，其实磁盘与 git 里都在（历史 211 族：清单必须跟上收尾链的实际产出）；修法是补齐清单（**不删条目、不削弱判据**）；final-check 自测 23/23 PASS、实跑 19/0 PASS。
+⑱ **收尾链留痕纪律**（操作侧整改，非脚本缺陷）：`postwrite.py` 只打印不落盘，其结论必须**重定向**写入 `postwrite-check-<轮次>.txt`，且**必须在收尾写入之前**跑 —— 本轮首次执行时未重定向（证据缺失），收尾后复跑又必然报「c7 之外的列存在差异」（依据 / 证据列被 `closeout --rewrite` 改写，属收尾的预期产物，历史 243-①）；两次都不产出有效证据 ⇒ 按既有约定把收尾链重做一遍（先 `git checkout HEAD --` 台账恢复到提交态 → 核对落盘 PASS → 回填 → 装置证据 → 收尾重写），`postwrite-check-R555.txt` 现为 PASS（差异列 = 无）。
+- **返工真值**：本轮返工真值 = **18 处**（装置/脚本侧，零交付面影响；逐条见上文要点与 `device-round-R555.txt`）。
+- **权威数字**：权威数字 = 返工 18 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
 

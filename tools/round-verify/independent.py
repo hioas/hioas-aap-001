@@ -46,7 +46,7 @@ T = Path("C:/Users/laitz/AppData/Local/Temp")
 DEV_DIR = ROOT / "tools/round-verify"
 # 相位（green/red）单一事实源：校验证据的前缀由它推出（历史 12/554）
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from phase import GREEN, RED, ev_prefix  # noqa: E402
+from phase import GREEN, RED, ev_prefix, phase_of  # noqa: E402
 END_MARK = "INDEPENDENT_END"
 DELIVERY_PREFIXES = ("aap-server/", "docs/", "aap-client/")
 # 本轮**自己的**写入前缀（留痕目录 + 装置目录）：窗口内新增的条目必须全部落在这两类里（判据 J5d）。
@@ -80,8 +80,11 @@ REQ_KEYS = ["FACTS_ROUND", "FACTS_WINDOW_START", "FACTS_WINDOW_START_TS", "FACTS
             "WORKTREE_REMOVE_RC", "WORKTREE_PATH"]
 
 TOT_RE = re.compile(r"^\[(?:INFO|ERROR)\] Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)$", re.M)
-CLS_RE = re.compile(r"^\[INFO\] Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+), "
-                    r"Time elapsed: [\d.]+ s -- in (\S+)$", re.M)
+CLS_RE = re.compile(r"^\[(?:INFO|ERROR)\] Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+), "
+                    r"Time elapsed: [\d.]+ s(?: <<< [A-Z]+!)? -- in (\S+)$", re.M)
+# `(?: <<< FAILURE!)?` 必须有：**失败**的类级行形如 `… Time elapsed: 0.1 s <<< FAILURE! -- in <类>`，
+# 不带该可选组时整行漏收 ⇒ 类级求和比合计少 1（本仓实测红相位 304 vs 305，历史 228 族/81：判据形态必须与实际一致）。
+# 与之配套的正向对照见自测 S18：合成 `[ERROR] … <<< FAILURE! -- in` 行必须被解析到。
 # maven 耗时**双写法**（历史 175：>=1 分钟写 `mm:ss min`，<1 分钟写 `NN.NNN s`）
 ELAPSED_RE = re.compile(r"^\[INFO\] Total time:  (?:(?P<mm>\d+):(?P<ss>\d+) min|(?P<s>[\d.]+) s)$", re.M)
 TEST_RE = re.compile(r"@Test\b")
@@ -131,7 +134,10 @@ def parse_run(text):
     cls = {m.group(5): tuple(int(m.group(i)) for i in range(1, 5)) for m in CLS_RE.finditer(text)}
     return {"totals": tot, "classes": cls, "n_class": len(cls),
             "ok": bool(re.search(r"^\[INFO\] BUILD SUCCESS$", text, re.M)),
-            "bad": bool(re.search(r"^\[INFO\] BUILD FAILURE$", text, re.M))}
+            # 有失败的那一轮 maven 写的是 `[ERROR] BUILD FAILURE`（绿轮才写 `[INFO] BUILD SUCCESS`）——
+            # 只认 `[INFO]` 前缀时「红轮的 bad 恒假」，而绿轮的 J2c 只用 `not bad` ⇒ **缺陷在绿轮完全不可见**
+            # （历史 228 同族：前缀随成败变化，恰恰红轮才是采集器最该工作的时刻）。
+            "bad": bool(re.search(r"^\[(?:INFO|ERROR)\] BUILD FAILURE$", text, re.M))}
 
 
 def parse_elapsed(text):
@@ -251,14 +257,34 @@ def evaluate(ctx):
 
     # ---------- J2 两轮 ----------
     r1, r2 = ctx["run1"], ctx["run2"]
+    # 相位（green/red）由**同一事实源**推出（与 analyze / closeout 共用 `phase_of`）：红相位下
+    # 「两轮全 0 失败 / BUILD SUCCESS / missing==0」不是可成立的属性 ⇒ 判据必须按相位分支，
+    # 否则独立复核会在红相位下报 4~5 条**结构性假 FAIL**（判据范围与语义不符，历史 81/195）。
+    _ca0 = ctx["cov_run"] or {}
+    try:
+        PH2 = phase_of(str(facts.get("FACTS_RUN1_RC", "")), str(facts.get("FACTS_RUN2_RC", "")),
+                       str(_ca0.get("missing", "")))
+    except ValueError:
+        PH2 = RED  # 判据不可用 ≠ 绿（历史 98/141）
     add("J2a 合计行解析正向对照（每轮恰好 1 条）", len(r1["totals"]) == 1 and len(r2["totals"]) == 1,
         "run1=%d run2=%d 条" % (len(r1["totals"]), len(r2["totals"])))
-    add("J2b 两轮合计五元组全 0 失败且两轮一致",
-        bool(r1["totals"]) and r1["totals"] == r2["totals"] and r1["totals"][0][1:] == (0, 0, 0),
-        "run1=%s run2=%s" % (r1["totals"][:1], r2["totals"][:1]))
-    add("J2c 两轮 BUILD SUCCESS 真 / BUILD FAILURE 假",
-        r1["ok"] and r2["ok"] and not r1["bad"] and not r2["bad"],
-        "run1 ok=%s bad=%s run2 ok=%s bad=%s" % (r1["ok"], r1["bad"], r2["ok"], r2["bad"]))
+    _t1 = r1["totals"][0] if r1["totals"] else None
+    _t2 = r2["totals"][0] if r2["totals"] else None
+    _failcls = sorted(k for k, v in r1["classes"].items() if v and v[1])  # 类名 → 失败数 > 0
+    if PH2 == GREEN:
+        add("J2b 两轮合计五元组全 0 失败且两轮一致",
+            bool(_t1) and _t1 == _t2 and _t1[1:] == (0, 0, 0),
+            "run1=%s run2=%s" % (r1["totals"][:1], r2["totals"][:1]))
+        add("J2c 两轮 BUILD SUCCESS 真 / BUILD FAILURE 假",
+            r1["ok"] and r2["ok"] and not r1["bad"] and not r2["bad"],
+            "run1 ok=%s bad=%s run2 ok=%s bad=%s" % (r1["ok"], r1["bad"], r2["ok"], r2["bad"]))
+    else:
+        add("J2b 红相位：两轮合计逐条一致 ∧ Errors=0 ∧ Skipped=0 ∧ Failures≥1（失败可归因，点名失败类）",
+            bool(_t1) and _t1 == _t2 and _t1[2] == 0 and _t1[3] == 0 and _t1[1] >= 1 and bool(_failcls),
+            "run1=%s run2=%s 失败类=%s" % (r1["totals"][:1], r2["totals"][:1], _failcls or "（无！判据失效）"))
+        add("J2c 红相位：两轮 BUILD FAILURE 真 / BUILD SUCCESS 假",
+            r1["bad"] and r2["bad"] and not r1["ok"] and not r2["ok"],
+            "run1 ok=%s bad=%s run2 ok=%s bad=%s" % (r1["ok"], r1["bad"], r2["ok"], r2["bad"]))
     add("J2d 逐类行数 > 0 且两轮相等（正向对照）", r1["n_class"] > 0 and r1["n_class"] == r2["n_class"],
         "%d / %d 类" % (r1["n_class"], r2["n_class"]))
     add("J2e 逐类五元组两轮逐条相等（耗时本就不入键，历史 79）", bool(r1["classes"]) and r1["classes"] == r2["classes"],
@@ -295,17 +321,31 @@ def evaluate(ctx):
     if not ca:
         add("J4a 覆盖读数可用（worktree 归档副本）", False, "归档副本缺失/不可解析（判据不可用）")
     else:
-        add("J4a missing == 0 ∧ implemented == total（正向对照 total > 0）",
-            ca["missing"] == 0 and ca["implemented"] == ca["total"] and (ca["total"] or 0) > 0,
-            "total=%s implemented=%s missing=%s" % (ca["total"], ca["implemented"], ca["missing"]))
+        if PH2 == GREEN:
+            add("J4a missing == 0 ∧ implemented == total（正向对照 total > 0）",
+                ca["missing"] == 0 and ca["implemented"] == ca["total"] and (ca["total"] or 0) > 0,
+                "total=%s implemented=%s missing=%s" % (ca["total"], ca["implemented"], ca["missing"]))
+        else:
+            add("J4a 红相位：读数自洽（implemented + missing == total ∧ total>0 ∧ missing>0 ∧ 未注册条数 == missing）",
+                (ca["implemented"] + ca["missing"] == ca["total"] and (ca["total"] or 0) > 0 and ca["missing"] > 0
+                 and len(ca["not_registered"]) == ca["missing"]),
+                "total=%s implemented=%s missing=%s 未注册 %d 条"
+                % (ca["total"], ca["implemented"], ca["missing"], len(ca["not_registered"])))
         fsum = sum(v[0] for v in ca["by_task"].values())
         fimp = sum(v[1] for v in ca["by_task"].values())
         add("J4b 按族相加 == total（族数 > 0 正向对照）",
             len(ca["by_task"]) > 0 and fsum == ca["total"] and fimp == ca["implemented"],
             "族数=%d 族和 %d/%d" % (len(ca["by_task"]), fsum, fimp))
-        add("J4c registered_routes > 0 ∧ not_registered == []",
-            (ca["registered_routes"] or 0) > 0 and ca["not_registered"] == [],
-            "routes=%s not_registered=%s" % (ca["registered_routes"], ca["not_registered"]))
+        if PH2 == GREEN:
+            add("J4c registered_routes > 0 ∧ not_registered == []",
+                (ca["registered_routes"] or 0) > 0 and ca["not_registered"] == [],
+                "routes=%s not_registered=%s" % (ca["registered_routes"], ca["not_registered"]))
+        else:
+            add("J4c 红相位：registered_routes > 0 ∧ 未注册清单非空且逐条给出 ID（与 missing 同源）",
+                (ca["registered_routes"] or 0) > 0 and len(ca["not_registered"]) > 0
+                and all("id" in (d or {}) for d in ca["not_registered"]),
+                "routes=%s 未注册 ID=%s" % (ca["registered_routes"],
+                                            [d.get("id") for d in ca["not_registered"]]))
         add("J4d endpoints.json 端点数 == 顶层 total == 覆盖 total（三处一致）",
             isinstance(ep, dict) and isinstance(ep.get("endpoints"), list)
             and ep.get("total") == len(ep["endpoints"]) == ca["total"],
@@ -337,9 +377,10 @@ def evaluate(ctx):
                                       "本判据不适用（由 J5c/J5d 给出双向归属核对）"
                                       if ctx["declared"] else "快照相等 = %s"
                                       % (ctx["status_before"] == ctx["status_after"])))
-    add("J5f 在途改动 mtime 全部早于窗口起点（对象 = 窗口起点快照）",
-        ctx["window_start_ts"] > 0 and len(ctx["inflight"]) > 0 and not ctx["inflight_late"],
-        "在途 %d 条 / 落在窗口内 %s" % (len(ctx["inflight"]), ctx["inflight_late"] or "0 条"))
+    add("J5f 在途改动 mtime 全部早于窗口起点（对象 = 窗口起点快照；**本轮已申报的装置改动除外**）",
+        ctx["window_start_ts"] > 0 and len(ctx["inflight"]) > 0 and not ctx["inflight_late_eff"],
+        "在途 %d 条 / 落在窗口内（已剔除本轮申报的装置改动 %d 条）%s"
+        % (len(ctx["inflight"]), len(ctx["inflight_late_exempt"]), ctx["inflight_late_eff"] or "0 条"))
     add("J5g 本轮临时 worktree 已回收（磁盘不存在 ∧ git 未登记）",
         ctx["wt_path"] != "" and not ctx["wt_exists"] and ctx["wt_path"] not in ctx["wt_list"],
         "path=%s exists=%s listed=%s" % (ctx["wt_path"], ctx["wt_exists"], ctx["wt_path"] in ctx["wt_list"]))
@@ -443,6 +484,10 @@ def build_ctx(ROUND, declared):
         "cov_repo": proj_cov(json_or_none(EV / "coverage-report.json")),
         "ep": json_or_none(ROOT / "docs/backend/endpoints.json"),
         "status_before": sb, "status_after": sa, "inflight": inflight, "inflight_late": late,
+        # J5f 的**判据范围**：本轮**已申报**的装置改动按定义会在窗口内落地，不能与他方在途混谈
+        # （判据范围必须与语义一致，历史 81/193/195）；豁免 = 申报集合的子集（机器核对，不是人列举）。
+        "inflight_late_eff": [p for p in late if p not in set(declared)],
+        "inflight_late_exempt": [p for p in late if p in set(declared)],
         "status_paths_after": after_paths, "inflight_gone": gone, "inflight_added": added,
         "inflight_foreign": foreign,
         "window_start_ts": ws_ts,
@@ -500,6 +545,14 @@ SYNTH_RUN = """[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time ela
 SYNTH_JAVA = ["package com.x;\npublic class ATest {\n  @Test\n  void a(){}\n  @Test\n  void b(){}\n}\n",
               "package com.x;\npublic class BTest {\n  @Test\n  void a(){}\n}\n"]
 
+# 红相位夹具：与 SYNTH_RUN 只差「合计有失败 / 类级失败行 / BUILD FAILURE」，且@测试数仍与合计一致
+SYNTH_RUN_RED = """[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.0 s -- in com.x.ATest
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.1 s <<< FAILURE! -- in com.x.CovTest
+[ERROR] Tests run: 3, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] BUILD FAILURE
+[INFO] Total time:  01:04 min
+"""
+
 
 def synth_ctx():
     facts = parse_facts(SYNTH_FACTS)
@@ -522,6 +575,7 @@ def synth_ctx():
         "status_paths_after": ["README.md", "aap-server/pom.xml", "tools/round-verify/independent.py"],
         "inflight_gone": [], "inflight_added": ["tools/round-verify/independent.py"], "inflight_foreign": [],
         "inflight": ["README.md", "aap-server/pom.xml"], "inflight_late": [], "window_start_ts": 1000,
+        "inflight_late_eff": [], "inflight_late_exempt": [],
         "wt_path": "C:/tmp/合成worktree-%s" % SYNTH_R, "wt_exists": False, "wt_list": "",
         "device_actual": list(dev), "declared": list(dev), "phase": "提交前（工作区未提交）",
         "delivery_commits": 0,
@@ -530,6 +584,28 @@ def synth_ctx():
         "dev_hits": 0, "dev_scanned": 9, "dev_teeth": 1,
         "self_src": "合成源码：不含任何轮次号字面量",
     }
+
+
+def synth_ctx_red():
+    """红相位合成上下文：与 `synth_ctx()` **只差相位相关字段**（两轮 rc / 合计五元组 / 覆盖读数 / 未注册清单）。
+
+    为什么必须有：J2b / J2c / J4a / J4c 都是**相位分支**判据，只有绿夹具时红分支**永不执行**
+    （历史 32/75/98：判定有几个分支就要有几条反例）；本仓实测红相位下这四条曾报结构性假 FAIL。
+    """
+    c = dict(synth_ctx())
+    run = parse_run(SYNTH_RUN_RED)
+    nr = [{"id": "NEW-%02d" % i} for i in range(1, 4)]  # 3 条未注册 == missing == 3
+    c.update(
+        run1=run, run2=run, elapsed=[elapsed_tuple(SYNTH_RUN_RED)] * 2,
+        facts=dict(parse_facts(SYNTH_FACTS), FACTS_RUN1_RC="1", FACTS_RUN2_RC="1"),
+        cov_run=proj_cov({"total": 12, "implemented": 9, "missing": 3, "registered_routes": 12,
+                          "not_registered": nr,
+                          "by_task": {"": {"total": 2, "implemented": 2}, "T1": {"total": 10, "implemented": 7}}}),
+        cov_repo=proj_cov({"by_task": {"T1": {"implemented": 7, "total": 10}, "": {"implemented": 2, "total": 2}},
+                           "missing": 3, "implemented": 9, "total": 12, "registered_routes": 12,
+                           "not_registered": nr}),
+    )
+    return c
 
 
 def fails_of(chk):
@@ -593,12 +669,12 @@ def selftest():
     mutate("注入一条新用例（@Test 计数与 surefire 不符）",
            lambda c: c.update(arch_blobs=[c["arch_blobs"][0] + "  @Test\n  void c(){}\n"] + c["arch_blobs"][1:]),
            ["J3b"])
-    mutate("覆盖 missing 变成 1（按族仍自洽）",
+    mutate("覆盖 missing 变成 1（按族仍自洽 ⇒ 相位翻红、两轮全绿与之自相矛盾）",
            lambda c: c.update(cov_run=proj_cov({"total": 12, "implemented": 11, "missing": 1,
                                                 "registered_routes": 9,
                                                 "by_task": {"": {"total": 2, "implemented": 2},
                                                             "T1": {"total": 10, "implemented": 9}}})),
-           ["J4a", "J4e"])
+           ["J2b", "J2c", "J4a", "J4c", "J4e"])
     mutate("按族相加 != total",
            lambda c: c.update(cov_run=proj_cov({"total": 12, "implemented": 12, "missing": 0,
                                                 "registered_routes": 9,
@@ -628,7 +704,8 @@ def selftest():
                               status_after=" M README.md\n M aap-server/pom.xml\n M tools/round-verify/x.py\n",
                               status_paths_after=["README.md", "aap-server/pom.xml", "tools/round-verify/x.py"]),
            ["J5e"])
-    mutate("在途条目 mtime 落在窗口内", lambda c: c.update(inflight_late=["README.md"]), ["J5f"])
+    mutate("在途条目 mtime 落在窗口内（他方在途，未申报装置改动）",
+           lambda c: c.update(inflight_late_eff=["README.md"], inflight_late=["README.md"]), ["J5f"])
     mutate("临时 worktree 未回收", lambda c: c.update(wt_exists=True), ["J5g"])
     mutate("装置改动未申报（实得多一个文件）",
            lambda c: c.update(device_actual=["tools/round-verify/independent.py", "tools/round-verify/analyze.py"]),
@@ -661,6 +738,33 @@ def selftest():
     _, h2 = scan_round_ref("超串 R" + SYNTH_R[1:] + "0 与相邻 R0", SYNTH_R[1:])
     chk("T-P1 轮次号守卫对合成串命中 1 次 / 对超串命中 0 次（正反各一条）", h1 == 1 and h2 == 0,
         "合成=%d 超串=%d" % (h1, h2))
+
+    # ---- T18/T19：失败类级行的形态 + 红相位分支（本仓生产实测的两处装置缺陷的回归守卫） ----
+    chk("T18 失败类级行（`<<< FAILURE!` 变体）必须被解析到：类级求和 == 合计（历史 228/81）",
+        (lambda rf: rf["n_class"] == 2 and bool(rf["totals"])
+         and sum(v[0] for v in rf["classes"].values()) == rf["totals"][0][0] == 3)(parse_run(SYNTH_RUN_RED)),
+        "旧判据（无 `(?: <<< FAILURE!)?`）会漏收失败类 → 类和 2 ≠ 合计 3")
+    c_red = synth_ctx_red()
+    bad_red = fails_of(evaluate(c_red))
+    chk("T19 红相位合成上下文基线全绿（J2b/J2c/J4a/J4c 的红分支必须真的被执行到）", not bad_red,
+        "FAIL=%s" % bad_red)
+    def mutate_red(label, mut, expect):
+        """红相位基线之上的判别力实测（基线必须另起名：拿绿基线比会让「消失」集合恒空，历史 93）。"""
+        c = synth_ctx_red()
+        mut(c)
+        f = fails_of(evaluate(c))
+        delta = sorted(set(f) - set(bad_red))
+        gone = sorted(set(bad_red) - set(f))
+        chk("T·%s → 恰好新增 %s" % (label, expect), delta == sorted(expect) and not gone,
+            "新增=%s 消失=%s" % (delta, gone))
+
+    mutate_red("红相位：run2 合计与 run1 不一致", lambda c: c.update(run2=parse_run(SYNTH_RUN)),
+               ["J2b", "J2c", "J2e"])
+    mutate_red("红相位：未注册清单比 missing 少一条（读数不自洽）", lambda c: c.update(
+        cov_run=dict(c["cov_run"], not_registered=c["cov_run"]["not_registered"][:2])), ["J4a", "J4e"])
+    mutate_red("红相位：BUILD FAILURE 但合计 0 失败（相位自相矛盾）", lambda c: c.update(
+        run1=parse_run(SYNTH_RUN_RED.replace("Failures: 1, Errors: 0", "Failures: 0, Errors: 0")),
+        run2=parse_run(SYNTH_RUN_RED.replace("Failures: 1, Errors: 0", "Failures: 0, Errors: 0"))), ["J2b"])
 
     ok = sum(1 for _, c, _ in res if c)
     for name, c, info in res:

@@ -71,7 +71,9 @@ ORPHAN_LIMIT = 3
 
 # 收尾相位才产生的证据（本文件自身 + 主提交之后产生的），只报状态、不断言「已跟踪」；
 # 其余证据一律要求「存在 ∧ 已跟踪 ∧ 在 HEAD 树内」（历史 222：本文件不能把自己判成缺失）。
-POST_EVIDENCE = ("postwrite-check-%s.txt", "final-check-%s.txt")
+# 清单必须**跟上收尾链实际产出的证据**（历史 211：清单里的文件名是机械派生的文本盲区，
+# 漏项的表现是「报告说证据未跟踪，而磁盘与 git 里其实都在」；收尾链的独立复核证据即实测漏项）。
+POST_EVIDENCE = ("postwrite-check-%s.txt", "final-check-%s.txt", "independent-%s.txt")
 
 
 def sh(*a):
