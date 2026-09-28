@@ -3234,3 +3234,48 @@ A6 maven 耗时解析器两形态各 1 条合成对照（本轮实际形态 run1
 **当前配置审计读数不受影响**（它读工作区而非 HEAD，故 A1b 仍只报 1 条 `app.detection.probe-timeout-seconds`）——属工作区/HEAD 相位差，非缺陷，**待其落库后重跑口径**。
 
 九、下一族：清单已 100% 注册 ⇒ 推进方向仍是：① **上游执行器 `T-M4-08~11`**（限速 / 写后回读 / 单模型隔离与回滚的实际写入）；② **端到端联调**（`aap-client` / `aap-admin` 指向本服务取数）。本轮为校验轮，不推进。",,evidence/audit-regression-R581-faildiff.txt；evidence/audit-regression-R581-failraw.txt；evidence/audit-regression-R581-rcseq.txt；evidence/audit-regression-R581.txt；evidence/device-round-R581.txt；evidence/device-selftest-counts-R581.txt；evidence/final-check-R581.txt；evidence/green-verify-R581-coverage-fields.txt；evidence/green-verify-R581-full-run1.txt；evidence/green-verify-R581-full-run2.txt；evidence/green-verify-R581-testcount.txt；evidence/green-verify-R581-tested-state.txt；evidence/independent-R581.txt；evidence/postwrite-check-R581.txt；evidence/regression-selftest-R581.txt；evidence/round-R581-analysis.txt；evidence/coverage-history.txt（追加 R581 行）,3e42b187
+R582,,,,"R582 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交））） · 清单 **117/117**（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 3f861351**）连续第 **20** 轮全绿 · 两轮 **316 例 / 51 类** rc=0/0（串行 23:32:21→23:37:07，逐类 diff=0） · 回归面 **84 条** rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167，新增 0 / 消失 0） · 分析器 PASS 27 / FAIL 0 · registered_routes=134 · 本轮返工 **0 处**（装置侧） · 证据 17 条 · 一、性质与覆盖：本轮为**校验轮**（`missing == 0` ⇒ 按作业第 4 步「不改代码，只校验并报告」，交付面 `aap-server` / `docs` / 冻结清单生成物**一行未动**）。
+本轮**装置面与交付面均零改动**（工作区 `tools/` 条目 0 条、`tools/` 未跟踪文件 0 条；对照 `git rev-list 3f861351..HEAD` 触及 `tools/` 的提交 **0 枚**）。
+覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；按族 15 族全齐：
+(空任务号) 18 · T03 6 · T04 5 · T05 7 · T06 6 · T07 4 · T08 11 · T09 6 · T10 5 · T11 11 · T12 4 · T13 3 · T14 22 · T15 3 · T17 6（族和 117 = total，内容级核对）。
+
+二、两轮全量（**串行**，在 HEAD 的独立 detached worktree 内）：被测提交 **3f861351**（R581 飞书通知留痕提交，`WT_DIRTY_LINES=0` ⇒ 跑的是提交态）；
+run1 23:32:21→23:34:55（maven 耗时 `02:30 min`）、run2 23:34:55→23:37:07（`02:09 min`），各 **316 例 / 51 类**、rc=0/0、Failures-Errors-Skipped = 0-0-0、两轮 `BUILD SUCCESS` 均为真、**逐类 diff=0**；
+`@Test` 词边界计数 316 == surefire 合计 316（裸子串 318 作对照，差 2 即 `@TestConfiguration`/`@TestPropertySource`）；归档测试源 57 个 `.java`；禁用扫描 **0 条**（未削弱测试）。
+窗口 23:31:59→23:37:12；窗口内他方推进提交数 **0**（HEAD 起点=终点=3f861351）；并发前置双向对照 pos=2/2、neg=0/2（CLEAR）；环境指纹 bash=/usr/bin/bash / MINGW64_NT-10.0-26100 / jps 可达 Y。
+
+三、回归面（命令表 = 仓库内单一事实源 `tools/round-verify/manifest.json`）：声明 43 审计 + 41 自测 = **84 条**，实际解析 84，自洽；存在性预检 84/84（缺失 0）；
+**rc 变化 0 条 / 新增 0 / 未复跑 0**（rc=0 条数 39/84、rc!=0 45 条，逐条与 R581 相同）；FAIL 明细 43 个脚本 **167 行**；跨轮 faildiff **167→167，新增 0 / 消失 0**；
+零写副作用：冻结清单生成物 size+md5 运行前后全等（变化 **0** 个）。
+崩溃通道 2 条（`gap-coverage-gap`、`gap-coverage-gap-selftest`，均为 `rc!=0 ∧ FAIL 0 行`），其**完整理由行集 sha256 与上一轮逐字节一致**（可比通道 2 条、理由变化 0 条）。
+归仓耐久性守卫（三方逐字节：索引 ⇔ 归档 ⇔ 原文件）：仓库外脚本 54 条 → 一致 52 / **异常 2**（`spotcheck-success-shape`、`gap-pagination-order`，归档副本与在用脚本分叉）——**沿用登记项，非本轮新增**（待办 ㊱/㉝）。
+
+四、装置链读数：`analyze` **PASS 27 / FAIL 0**（A0a–A25）；`regression --selftest` **26 PASS / 0 FAIL**；③b `selftest-counts` 逐工具条数
+`regression 26 / final-check 23 / independent 47 / backfill-c7 20 / device-report 10 / selftest-counts 15` 与 README 自述**逐项一致、更正 0 处**（只读守卫 = True）；
+`closeout` 台账 / history / 状态三处各 1 条；`postwrite`、`final-check`（F0–F18）、`independent`（J1–J9）读数见对应证据文件。
+A6 maven 耗时解析器两形态各 1 条合成对照（本轮实际形态 run1/run2 均为 `mm:ss min`）；A22 上一轮 history 行恰好 1 条且相位 = 绿相位。
+
+五、本轮返工 0 处（**范围 = 装置链六个步骤（① 执行器 → ② 分析器 → ③ 回归面 → ③b 自测条数 → ④ 装置证据 → ⑤ 收尾）＋ 收尾四步（⑥ 主提交核对 → ⑦ 回填 → ⑧ 一致性核对 → 独立复核）**）。
+截至主提交相位，已执行的六步全部**首次通过**（无锚点 0 命中、无判据失效、无计数不符、无顺序返工、无同名遮蔽）；收尾四步的读数见对应证据文件。
+
+六、本轮主动核对（只读；aux 探针落 `$TEMP/aap-r582-aux/`，与交付面分离 —— 历史 216；沿用历轮对账口径，**无新发现**）：
+① 台账轮次连续性（`^R[0-9]+` 抽取）：**554** 条轮次行、首 R27、末 **R581**，末 8 轮 R574…R581 连续；**唯一跳号 = (553, 555)**，即 R554 未记账 —— 与历轮报告同源的历史豁免
+（`aap-server-tdd-state.md` 有专节「R554 红基线轮（未记账）」，取证留档 `evidence/red-baseline-R554.txt`），**非本轮缺口**；列数不符行 **0**。
+② 台账结构（口径按表头精确对位：`任务号/接口ID/方法/路径/依据/状态/证据/提交`）：**csv 记录数 662**（含表头；数据 661）、**物理行数（LF 计数）3236**、CR 字节 0、**含内嵌换行的记录数 91**；
+末行 R581：提交列 `3e42b187`（主提交）；描述列长度 5100；描述列由 **依据(index4) / 状态(index5)** 交替承载（轮次行内口径：依据非空 546 行、状态非空 46 行）—— 与历史要点「两列交替承载」的判据一致。
+③ `coverage-history.txt` 保持单调追加：本轮实测 **非空 897 行 / 总行 963 / CR 0**，带时间戳 127 行、末两行时间戳单调 = True，末行 = R581（本轮追加前），追加后末行 = R582。
+④ 安全：敏感值自检 **0 命中**（暂存差异 0 字节 / 工作区 vs HEAD 8359 字节 / 未跟踪清单 713 字节三处均 0；对照 = 合成样本必须命中 ⇒ 判据有牙齿，实测 1/1 —— 口令类与 sk- 类模式见硬规则 4，本文件不写模式字面量，历史 47/123）；
+`audit-secret-leak`（Tier A = 名字含口令/密钥/令牌/凭据语义的变量**必须 0 命中**：rc=0）/ `evidence-secrets`（证据文件真实令牌 **0 条**：rc=0）/ `secret-leak-selftest`（rc=0，已在回归面第 84 条内）三闸清洁；
+`.gitignore` 覆盖 `.env` / `.env.*` / `target/` / `node_modules/`，被跟踪的 `.env` 类文件只有 `aap-server/.env.example`。
+⑤ 多项目共存：`git status --porcelain` 共 **17** 条 = 他方在途 **5** 条（根 `README.md` / `aap-server/pom.xml` / `SecurityConfig.java` / `application.yml` / `webapp/`，mtime 2026-09-24 ~ 2026-09-25，**全部早于窗口起点** 23:31:59）
+＋ 本轮自己的产物 **12** 条（全在 `.agents/state/evidence/` 下，mtime 落在窗口内）；**归属未定 = 0 条**（三类相加 17 == git status 条数）；`git worktree list` 仅主体仓库（R582 临时 worktree 已回收、rc=0）。未使用浏览器、未按镜像名杀进程、未触碰他方 worktree / CDP；提交一律按显式路径 `git add`。
+
+七、与上一轮（R581）的差异逐条：rc 变化 0 条；FAIL 明细 167→167（新增 0 / 消失 0）；tag 集合 84→84 一致；复跑条数 84→84；用例数 316→316、类数 51→51；覆盖 117→117、registered_routes 134→134；
+崩溃通道理由 sha256 2→2 逐字节不变；连续全绿计数 **19 → 20**（由上一轮 history 行的连续计数形态解析后 +1）。
+
+八、上一轮登记的观察项复核（只读，**结论不变**）：他方在途的 **D-BUILD-02**（`pom.xml` 加 exec-maven-plugin 前端打包进 jar + `SecurityConfig` 放行静态资源/SPA + `webapp/` 占位）与
+**D-SETTLE-02**（`application.yml` 新增 `app.settlement.{cycle,amount-basis,fee-basis}` 三键）**仍未落库**：HEAD 版 yml 里 `settlement` 出现 **0** 次，工作区 **3** 次；
+而 `SettlementService` 有 3 处内联默认 ⇒ 提交态只有内联默认、文档却声明「全部可配 `app.settlement.*`」；他方在途改动正好补上这三个键。
+**当前配置审计读数不受影响**（它读工作区而非 HEAD，故 A1b 仍只报 1 条 `app.detection.probe-timeout-seconds`）——属工作区/HEAD 相位差，非缺陷，**待其落库后重跑口径**。
+
+九、下一族：清单已 100% 注册 ⇒ 推进方向仍是：① **上游执行器 `T-M4-08~11`**（限速 / 写后回读 / 单模型隔离与回滚的实际写入）；② **端到端联调**（`aap-client` / `aap-admin` 指向本服务取数）。本轮为校验轮，不推进。",,evidence/audit-regression-R582-faildiff.txt；evidence/audit-regression-R582-failraw.txt；evidence/audit-regression-R582-rcseq.txt；evidence/audit-regression-R582.txt；evidence/device-round-R582.txt；evidence/device-selftest-counts-R582.txt；evidence/final-check-R582.txt；evidence/green-verify-R582-coverage-fields.txt；evidence/green-verify-R582-full-run1.txt；evidence/green-verify-R582-full-run2.txt；evidence/green-verify-R582-testcount.txt；evidence/green-verify-R582-tested-state.txt；evidence/independent-R582.txt；evidence/postwrite-check-R582.txt；evidence/regression-selftest-R582.txt；evidence/round-R582-analysis.txt；evidence/coverage-history.txt（追加 R582 行）,
