@@ -1,0 +1,373 @@
+# 进件自动化契约规格（新增端点）
+# ⚠️ 本文件是**规格意图**，不是实现真源。
+# 真源 = tools/gen-backend-models.py（宪法 C-04）。实现时须先把端点定义加入生成器，
+# 重生成 docs/backend/endpoints.json 与 openapi.yaml，并同步更新 EndpointCoverageTest 的冻结清单。
+openapi: 3.1.0
+info:
+  title: AAP 进件自动化 · 新增端点规格
+  version: 0.1.0-draft
+  description: |
+    特性 001-intake-automation。端点总数将由 108 增至 137（新增 29 条）。
+    统一响应信封 {"code":"0|E-xxxx","message":"...","data":{}}；错误码沿用既有表。
+servers:
+  - url: /api/v1
+tags:
+  - name: Intake
+    description: 进件流水线（FR-1）
+  - name: SupplyUnit
+    description: 供给单元 = 模型 × 供应商（FR-2）
+  - name: ConfigBatch
+    description: 批量配置批次（FR-2.5 / FR-6.2）
+  - name: ModelPrice
+    description: 模型价格表（FR-3）
+  - name: ChannelPrice
+    description: 渠道价格表（FR-4）
+  - name: Routing
+    description: 模型级调度策略（FR-6.4 / FR-7.1）
+  - name: Guard
+    description: 治理守护：漂移与覆盖（FR-7）
+  - name: ProviderSelf
+    description: 供应商端自助（FR-5）
+
+paths:
+  # ---------- 进件流水线 ----------
+  /admin/intake-runs:
+    get:
+      tags: [Intake]
+      summary: 进件漏斗看板（ADM-INK01）
+      parameters:
+        - { name: stage, in: query, schema: { type: string } }
+        - { name: automationLevel, in: query, schema: { type: string, enum: [L0, L1, L2, L3] } }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+        - { name: pageSize, in: query, schema: { type: integer, default: 20, maximum: 200 } }
+      responses:
+        '200': { description: 分页列表，含各阶段计数与平均停留时长 }
+  /admin/intake-runs/{runId}:
+    get:
+      tags: [Intake]
+      summary: 进件详情与阶段历史（ADM-INK02）
+      parameters: [{ name: runId, in: path, required: true, schema: { type: integer } }]
+      responses:
+        '200': { description: 含 stageHistory、blockedReason、关联单据 id }
+        '404': { description: E-1406 不存在 }
+  /admin/intake-runs/{runId}/resume:
+    post:
+      tags: [Intake]
+      summary: 从卡点断点续跑（ADM-INK03，FR-1.8）
+      parameters: [{ name: runId, in: path, required: true, schema: { type: integer } }]
+      responses:
+        '202': { description: 已受理续跑 }
+        '409': { description: E-1601 当前阶段不允许续跑 }
+
+  # ---------- 供给单元 ----------
+  /admin/supply-units:
+    get:
+      tags: [SupplyUnit]
+      summary: 供给单元列表（ADM-SU01）
+      parameters:
+        - { name: providerId, in: query, schema: { type: integer } }
+        - { name: modelName, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+      responses: { '200': { description: 分页列表 } }
+  /admin/supply-units/{id}:
+    get:
+      tags: [SupplyUnit]
+      summary: 供给单元详情（ADM-SU02，含调度画像与质量分）
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { '200': { description: 详情 } , '404': { description: E-1406 } }
+  /admin/supply-units/{id}/reconfigure:
+    post:
+      tags: [SupplyUnit]
+      summary: 重配置（ADM-SU03，INNOV-7）凭证/价格/策略变更后同步差异
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dryRun: { type: boolean, default: true }
+                reason: { type: string, maxLength: 255 }
+      responses:
+        '202': { description: 已受理，返回 batchId }
+        '409': { description: E-1601 状态不允许（如未上架/已下线） }
+  /admin/supply-units/{id}/offline:
+    post:
+      tags: [SupplyUnit]
+      summary: 下架某供给单元（ADM-SU04，R-65 影响面校验）
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        '200': { description: 已下线 }
+        '409': { description: E-1601 存在未结清账期，禁止操作 }
+
+  # ---------- 批量配置批次 ----------
+  /admin/config-batches:
+    post:
+      tags: [ConfigBatch]
+      summary: 创建批量配置批次（ADM-CFG01；mode=DRY_RUN 产出差异清单，零写入）
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [batchType, mode]
+              properties:
+                batchType:
+                  type: string
+                  enum: [ADD_CHANNEL, UPDATE_CHANNEL, WRITE_PRICE, RECONFIG, OFFLINE, ENABLE, DISABLE]
+                mode: { type: string, enum: [DRY_RUN, APPLY] }
+                scope:
+                  type: object
+                  properties:
+                    providerIds: { type: array, items: { type: integer } }
+                    modelNames: { type: array, items: { type: string } }
+                    supplyUnitIds: { type: array, items: { type: integer } }
+                    tags: { type: array, items: { type: string } }
+                rateLimitPerSec: { type: integer, default: 5, maximum: 5 }
+                reason: { type: string, maxLength: 255 }
+      responses:
+        '201': { description: 批次已创建；dry-run 时返回 diffPayload 摘要 }
+        '409': { description: E-1601 影响面超阈值需二次确认 }
+    get:
+      tags: [ConfigBatch]
+      summary: 批次列表（ADM-CFG02）
+      responses: { '200': { description: 分页列表 } }
+  /admin/config-batches/{batchId}:
+    get:
+      tags: [ConfigBatch]
+      summary: 批次详情与明细（ADM-CFG03，含 mismatch 清单）
+      parameters: [{ name: batchId, in: path, required: true, schema: { type: integer } }]
+      responses: { '200': { description: 批次 + 明细项 } }
+  /admin/config-batches/{batchId}/items/{itemId}/retry:
+    post:
+      tags: [ConfigBatch]
+      summary: 单模型重试（ADM-CFG04，R-59 只影响该项）
+      parameters:
+        - { name: batchId, in: path, required: true, schema: { type: integer } }
+        - { name: itemId, in: path, required: true, schema: { type: integer } }
+      responses: { '202': { description: 已受理 } }
+  /admin/config-batches/{batchId}/items/{itemId}/rollback:
+    post:
+      tags: [ConfigBatch]
+      summary: 单模型回滚（ADM-CFG05）
+      parameters:
+        - { name: batchId, in: path, required: true, schema: { type: integer } }
+        - { name: itemId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties: { reason: { type: string, minLength: 1, maxLength: 255 } }
+      responses: { '200': { description: 已回滚 } }
+
+  # ---------- 模型目录与价格表 ----------
+  /admin/model-catalog:
+    get:
+      tags: [ModelPrice]
+      summary: 模型目录列表（ADM-MDL01）
+      parameters:
+        - { name: vendor, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string, enum: [ACTIVE, DEPRECATED, RETIRED] } }
+      responses: { '200': { description: 分页列表 } }
+    post:
+      tags: [ModelPrice]
+      summary: 维护模型目录（ADM-MDL02；停用需带影响面确认）
+      responses:
+        '201': { description: 已创建 }
+        '409': { description: E-1601 停用存在受影响渠道需确认 }
+  /admin/model-prices:
+    get:
+      tags: [ModelPrice]
+      summary: 模型价格表（ADM-MDL03，含历史版本）
+      parameters:
+        - { name: modelName, in: query, schema: { type: string } }
+        - { name: priceRole, in: query, schema: { type: string, enum: [COST_BENCHMARK, SELLING, REFERENCE] } }
+      responses: { '200': { description: 价格列表（当前生效 + 历史） } }
+    post:
+      tags: [ModelPrice]
+      summary: 调价（ADM-MDL04；支持批量与影响面预览）
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [priceRole, effectiveFrom]
+              properties:
+                priceRole: { type: string, enum: [COST_BENCHMARK, SELLING, REFERENCE] }
+                models: { type: array, items: { type: string } }
+                adjust:
+                  type: object
+                  properties:
+                    type: { type: string, enum: [ABSOLUTE, PERCENT] }
+                    inputPrice: { type: number }
+                    outputPrice: { type: number }
+                    percent: { type: number }
+                effectiveFrom: { type: string, format: date-time }
+                dryRun: { type: boolean, default: true }
+                reason: { type: string, maxLength: 255 }
+      responses:
+        '200': { description: dry-run 返回影响面（渠道数/供应商数/预估金额） }
+        '201': { description: 已生效 }
+  /admin/model-prices/{modelName}/coverage:
+    get:
+      tags: [ModelPrice]
+      summary: 模型供给覆盖（ADM-MDL05，FR-3.5）
+      parameters: [{ name: modelName, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: 供应商数、各自价格与质量分 } }
+
+  # ---------- 渠道价格表 ----------
+  /admin/channel-prices:
+    get:
+      tags: [ChannelPrice]
+      summary: 渠道价格矩阵（ADM-CPR01，模型 × 供应商）
+      parameters:
+        - { name: modelName, in: query, schema: { type: string } }
+        - { name: providerId, in: query, schema: { type: integer } }
+        - { name: sortBy, in: query, schema: { type: string, enum: [PRICE_ASC, PRICE_DESC, QUALITY_DESC, DRIFT_DESC] } }
+      responses: { '200': { description: 矩阵数据（含相对基准价溢价/折价） } }
+  /admin/channel-prices/{id}/history:
+    get:
+      tags: [ChannelPrice]
+      summary: 渠道价格变更历史（ADM-CPR02，FR-4.5）
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { '200': { description: 变更留痕（人/时间/前后值/来源单据） } }
+  /admin/channel-prices/margin:
+    get:
+      tags: [ChannelPrice]
+      summary: 毛利视图（ADM-CPR03，FR-4.4）
+      parameters:
+        - { name: modelName, in: query, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses: { '200': { description: 采购价与对外价之差（按模型/供应商聚合） } }
+
+  # ---------- 调度策略 ----------
+  /admin/routing-policies:
+    get:
+      tags: [Routing]
+      summary: 调度策略列表（ADM-RTP01）
+      responses: { '200': { description: 策略列表 } }
+  /admin/routing-policies/{modelName}:
+    put:
+      tags: [Routing]
+      summary: 维护模型级调度策略（ADM-RTP02，FR-6.4）
+      parameters: [{ name: modelName, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [strategy]
+              properties:
+                strategy: { type: string, enum: [PRIORITY_FIRST, WEIGHTED_RANDOM, COST_FIRST, QUALITY_FIRST] }
+                priorityRule: { type: object }
+                weightRule: { type: object }
+                minAvailableProviders: { type: integer, default: 2 }
+      responses: { '200': { description: 已保存并触发权重重算 } }
+
+  # ---------- 治理守护 ----------
+  /admin/price-drifts:
+    get:
+      tags: [Guard]
+      summary: 价格漂移看板（ADM-DRF01，FR-7.2）
+      parameters:
+        - { name: onlyOpen, in: query, schema: { type: boolean, default: true } }
+        - { name: severity, in: query, schema: { type: string, enum: [WARN, CRITICAL] } }
+      responses: { '200': { description: 漂移记录列表 } }
+  /admin/price-drifts/{id}/resolve:
+    post:
+      tags: [Guard]
+      summary: 处理漂移（ADM-DRF02；动作仅告警/降权，停用需开关开启）
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action, reason]
+              properties:
+                action: { type: string, enum: [ALERT_ONLY, WEIGHT_DOWN, DISABLED] }
+                reason: { type: string, minLength: 1, maxLength: 255 }
+      responses: { '200': { description: 已处理并留痕 } }
+  /admin/quality-feedback:
+    get:
+      tags: [Guard]
+      summary: 质量反馈（ADM-QF01，FR-7.1）
+      parameters:
+        - { name: supplyUnitId, in: query, schema: { type: integer } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+      responses: { '200': { description: 小时级质量反馈 } }
+  /admin/automation-assessments:
+    get:
+      tags: [Guard]
+      summary: 自动化等级判定记录（ADM-AUT01，FR-1.10 / R-60）
+      parameters: [{ name: providerId, in: query, schema: { type: integer } }]
+      responses: { '200': { description: 判定记录（含因子快照与原因） } }
+
+  # ---------- 供应商端自助 ----------
+  /provider/supply-units:
+    get:
+      tags: [ProviderSelf]
+      summary: 我的模型（SET-MDL01，FR-5.5）只读，越权与不存在同为 404
+      responses:
+        '200': { description: 我的供给单元：模型、状态、质量反馈摘要 }
+        '404': { description: E-1406 }
+  /provider/channel-prices:
+    get:
+      tags: [ProviderSelf]
+      summary: 我的生效价（SET-MDL02，FR-5.6）
+      responses: { '200': { description: 我供货的模型当前生效价与来源版本 } }
+  /provider/price-drifts:
+    get:
+      tags: [ProviderSelf]
+      summary: 我的价格漂移提醒（SET-PRC01）
+      responses: { '200': { description: 需我关注的价格偏差 } }
+
+components:
+  schemas:
+    SupplyUnit:
+      type: object
+      properties:
+        id: { type: integer }
+        providerId: { type: integer }
+        modelName: { type: string }
+        modelSlug: { type: string }
+        status: { type: string, enum: [PENDING, CONFIGURING, ONLINE, DEGRADED, SUSPENDED, OFFLINE] }
+        granularity: { type: string, enum: [PER_MODEL, PER_PROVIDER] }
+        detectTotalScore: { type: number }
+        detectConfidence: { type: string, enum: [HIGH, MEDIUM, LOW] }
+        qualityScore: { type: number }
+        routingPriority: { type: integer }
+        routingWeight: { type: integer }
+        bindingId: { type: integer }
+    ConfigBatchItem:
+      type: object
+      properties:
+        id: { type: integer }
+        modelName: { type: string }
+        action: { type: string, enum: [CREATE, UPDATE, SKIP, ENABLE, DISABLE, DELETE] }
+        status: { type: string, enum: [PENDING, RUNNING, SUCCEEDED, FAILED, MISMATCH, ROLLED_BACK] }
+        readbackEqual: { type: boolean }
+        attemptCount: { type: integer }
+        lastError: { type: string, description: 必须脱敏，不得含凭证明文 }
+    ChannelPrice:
+      type: object
+      properties:
+        id: { type: integer }
+        supplyUnitId: { type: integer }
+        bindingId: { type: integer }
+        channelId: { type: integer }
+        modelName: { type: string }
+        inputPrice: { type: number }
+        outputPrice: { type: number }
+        quoteId: { type: integer }
+        quoteVersion: { type: integer }
+        compilationId: { type: integer }
+        sourceHash: { type: string }
+        effectiveFrom: { type: string, format: date-time }
+        effectiveTo: { type: string, format: date-time, nullable: true }
+        syncStatus: { type: string, enum: [PENDING, SYNCED, READBACK_MISMATCH, FAILED] }
