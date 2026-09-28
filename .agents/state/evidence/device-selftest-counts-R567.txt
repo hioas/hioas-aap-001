@@ -7,25 +7,25 @@ R567 装置 README 自测条数取证（自述 ⇔ 工具汇总行；轮次无�
 一、原始输出与汇总行（每项断言结束标记存在 = 完整结论，非半截输出，历史 240）
   regression.py      rc=0 结束标记 SELFTEST_END=1      汇总行「自测：26 PASS / 0 FAIL」→ 条数 = 26
   final-check.py     rc=0 结束标记 FINAL_CHECK_END=1   汇总行「判据：PASS 23 / FAIL 0」→ 条数 = 23
-  independent.py     rc=0 结束标记 SELFTEST_END=1      汇总行「判据：PASS 44 / FAIL 0」→ 条数 = 44
+  independent.py     rc=0 结束标记 SELFTEST_END=1      汇总行「判据：PASS 47 / FAIL 0」→ 条数 = 47
   backfill-c7.py     rc=0 结束标记 SELFTEST_END=1      汇总行「判据：PASS 20 / FAIL 0」→ 条数 = 20
   device-report.py   rc=0 结束标记 SELFTEST_END=1      汇总行「判据：PASS 10 / FAIL 0」→ 条数 = 10
   selftest-counts.py rc=0 结束标记 SELFTEST_END=1      汇总行「判据：PASS 15 / FAIL 0」→ 条数 = 15
-  正向对照：6 项条数均 > 0（[10, 15, 20, 23, 26, 44]）；FAIL 均 = 0。
+  正向对照：6 项条数均 > 0（[10, 15, 20, 23, 26, 47]）；FAIL 均 = 0。
 
 二、README 自述 ⇔ 汇总行（逐工具，模式须各命中 1 次；不等即据实更正，历史 201/206/12）
   regression.py      自述 26 ⇔ 汇总行 26 ⇒ 一致（已一致）
   final-check.py     自述 23 ⇔ 汇总行 23 ⇒ 一致（已一致）
-  independent.py     自述 44 ⇔ 汇总行 44 ⇒ 一致（已一致）
+  independent.py     自述 44 ⇔ 汇总行 47 ⇒ **分叉**：自述 44 → 更正为 47（已更正）
   backfill-c7.py     自述 20 ⇔ 汇总行 20 ⇒ 一致（已一致）
   device-report.py   自述 10 ⇔ 汇总行 10 ⇒ 一致（已一致）
   selftest-counts.py 自述 15 ⇔ 汇总行 15 ⇒ 一致（已一致）
-  更正条数 = 0（本轮 README 自述与工具汇总行本已一致，**未写回**：README 运行期逐字节未动）。
+  更正条数 = 1（据实更正后**已写回**，写回后重读逐工具判「已一致」＝幂等，可重跑）。
   README sha256(前 12) = 43ac5ebdf320（= 本工具运行**前**的 README 字节指纹）
-  README md5 = 70fc71b9986afae6ff8ebe7b6acbde72
+  README md5 = ea8802931baf363eefe9e2a0be10353c
 
 三、只读守卫（装置自测不得有写副作用）
-  全部 6 个 `--selftest` 运行前后 `git status --porcelain` 逐行相同 = True（行数 16 ⇒ 16）
+  全部 6 个 `--selftest` 运行前后 `git status --porcelain` 逐行相同 = True（行数 7 ⇒ 7）
 
 四、为什么值得常驻
   装置 README 的条数是**纯数字自述**：机械轮次替换（只认轮次号形态）与 84 条回归面（只跑工具不读文档）

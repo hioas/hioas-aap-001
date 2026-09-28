@@ -210,6 +210,22 @@ def prev_round(round_str):
     return "R%d" % (int(round_str[1:]) - 1)
 
 
+def phase_and_touched(n_commits, commit_files, worktree_files, inflight):
+    """相位判定 + 「本轮改动集合」（纯函数 ⇒ 可被负向自测覆盖，历史 66/94）。
+
+    语义：判据是「本轮**是否已有提交**」，`n_commits` 必须取 `<被测提交>..HEAD` 的**全部路径**提交数。
+    真实缺陷（本仓实测）：判据范围写成 `rev-list --count <被测>..HEAD -- tools/` ⇒ 零装置改动轮
+    （装置面与交付面均零改动、只提交留痕）在**提交后**仍被判成「提交前」，于是它去读**已清空的工作区**
+    得到空集合，而 J5b 又把空集合判成「判据不可用」⇒ 对合法状态报**假失败**（历史 81/141/175）。
+    提交后相位**仍把工作区残留并入集合**（并集，比只看提交链更严：不会漏掉未提交的交付面改动）。
+    """
+    n = int(n_commits or 0)
+    left = sorted(set(worktree_files) - set(inflight))
+    if n == 0:
+        return "提交前（工作区未提交）", left
+    return "提交后（提交链 %d 枚）" % n, sorted(set(commit_files) | set(left))
+
+
 # 窗口时刻解算 = 装置内**共享**纯函数（`windowtime.py`）：轮次会跨午夜，按 HH:MM:SS 字符串比单调/串行
 # 会把合法窗口判成「非单调」（假失败，历史 12/244）。单一事实源，`analyze.py` A5 共用同一份（历史 44/191）。
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -427,7 +443,10 @@ def build_ctx(ROUND, declared):
     W = T / "aap-round-verify" / ROUND
     facts = parse_facts(rd_text(W / ("facts-%s.log" % ROUND)))
     tested = facts.get("FACTS_TESTED_COMMIT", "HEAD")
-    _, out_c, _ = sh("rev-list", "--count", "%s..HEAD" % tested, "--", "tools/")
+    # 相位判定的**判据范围**：`<被测提交>..HEAD` 的**全部路径**提交数（历史 81/141/175）。
+    # 只看 `-- tools/` 会让「装置面与交付面均零改动」的轮次在**提交后**仍被判成「提交前」，
+    # 于是它去读已清空的工作区得到空集合，而 J5b 把空集合判成「判据不可用」⇒ 对合法状态报假失败。
+    _, out_c, _ = sh("rev-list", "--count", "%s..HEAD" % tested)
     _, files_c, _ = sh("diff", "--name-only", "%s..HEAD" % tested)
     _, files_t, _ = sh("diff", "--name-only", "%s..HEAD" % tested, "--", "tools/")
     _, out_w, _ = sh("status", "--porcelain", "--", "tools/")
@@ -437,15 +456,12 @@ def build_ctx(ROUND, declared):
     sb = rd_text(W / "root-status-before.txt")
     sa = rd_text(W / "root-status-after.txt")
     inflight = status_paths(sb)
-    if ncc == 0:
-        phase = "提交前（工作区未提交）"
-        device_actual = dirty
-        # 本轮改动集合 = 工作区条目 − 窗口起点快照里的他方在途（历史 193/198：别把他方在途算成本轮改动）
-        round_touched = sorted(set(status_paths(sh("status", "--porcelain")[1])) - set(inflight))
-    else:
-        phase = "提交后（提交链 %d 枚）" % ncc
-        device_actual = committed
-        round_touched = [x.strip() for x in files_c.splitlines() if x.strip()]
+    phase, round_touched = phase_and_touched(
+        ncc, [x.strip() for x in files_c.splitlines() if x.strip()],
+        status_paths(sh("status", "--porcelain")[1]), inflight)
+    # 装置面改动取**并集**（工作区未提交 ∪ 提交链），与 `closeout.py` 的同一判据同源 ——
+    # 提交后仍留未提交的 tools/ 改动时不能被静默漏掉（历史 81/195）。
+    device_actual = sorted(set(committed) | set(dirty)) if ncc else dirty
     _rc, out_d, _ = sh("rev-list", "--count", "%s..HEAD" % tested, "--", "aap-server/", "docs/", "aap-client/")
     delivery_commits = int(out_d.strip() or "0") if _rc == 0 else -1
     wtp = facts.get("WORKTREE_PATH", "")
@@ -738,6 +754,25 @@ def selftest():
     _, h2 = scan_round_ref("超串 R" + SYNTH_R[1:] + "0 与相邻 R0", SYNTH_R[1:])
     chk("T-P1 轮次号守卫对合成串命中 1 次 / 对超串命中 0 次（正反各一条）", h1 == 1 and h2 == 0,
         "合成=%d 超串=%d" % (h1, h2))
+
+    # ---- T-P2/T-P3/T-P4：相位判据的**范围**（生产实测的装置缺陷回归守卫，历史 81/141/175/251） ----
+    # 缺陷：`n_commits` 曾取 `rev-list --count <被测>..HEAD -- tools/` ⇒ 零装置改动轮在**提交后**
+    # 被判成「提交前」⇒ 读已清空的工作区得空集合 ⇒ J5b 把空集合判成「判据不可用」⇒ **假失败**。
+    _cf = [".agents/state/aap-server-feature-status.csv",
+           ".agents/state/evidence/round-%s-analysis.txt" % SYNTH_R]
+    _if = ["README.md", "aap-server/pom.xml"]
+    _ph_new, _tc_new = phase_and_touched(3, _cf, [], _if)
+    chk("T-P2 相位判据取**全部路径**提交数：零装置改动轮在提交后判「提交后」且集合非空（历史 81/141）",
+        _ph_new.startswith("提交后") and sorted(_tc_new) == sorted(_cf),
+        "相位=%s / 集合 %d 个" % (_ph_new, len(_tc_new)))
+    _ph_old, _tc_old = phase_and_touched(0, _cf, [], _if)   # 旧口径：只看 tools/ 提交 ⇒ 0 枚
+    _b_old = fails_of(evaluate(dict(synth_ctx(), phase=_ph_old, round_touched=_tc_old)))
+    chk("T-P3 反证：旧口径在同一输入上得**空集合**且 J5b 据此假失败 ⇒ 证明本次修复非空转",
+        _tc_old == [] and "J5b" in _b_old, "旧集合=%s / 旧相位=%s / FAIL=%s" % (_tc_old, _ph_old, _b_old))
+    _ph_pre, _tc_pre = phase_and_touched(0, _cf, ["留痕A", "留痕B"] + _if, _if)
+    chk("T-P4 提交前相位：工作区条目 − 他方在途（须把他方在途剔干净，历史 193/198）",
+        _ph_pre.startswith("提交前") and sorted(_tc_pre) == ["留痕A", "留痕B"] and bool(_tc_pre),
+        "相位=%s / 集合=%s" % (_ph_pre, _tc_pre))
 
     # ---- T18/T19：失败类级行的形态 + 红相位分支（本仓生产实测的两处装置缺陷的回归守卫） ----
     chk("T18 失败类级行（`<<< FAILURE!` 变体）必须被解析到：类级求和 == 合计（历史 228/81）",
