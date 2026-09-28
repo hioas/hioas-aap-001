@@ -1,0 +1,60 @@
+R562 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动三判据）
+==============================================================================
+生成方式：本文件由 `tools/round-verify/device-report.py` 从 git / facts / 证据的**真实输出**取值（数字零手写值），不接触交付面。
+轮次 = R562；被测提交（HEAD 的独立 worktree 内检出）= 0218acef；窗口 = 2026-09-28 15:16:10 -> 2026-09-28 15:20:57（facts 落盘）
+
+一、装置面改动（机器推导，零手写）
+  被测提交的 `tools/round-verify` 文件 = 14 个 / 工作区同名文件 = 14 个（新增 0 / 删除 0）
+  工作区未提交的 tools/ 条目 = 0 条（无）
+  「被测提交..HEAD」触及 tools/ 的提交 = 0 枚（本文件生成于主提交之前）
+  逐文件 numstat（工作区 vs HEAD，`插入/删除/路径`）：无
+  轮次无关性守卫：装置脚本（12 个 .py/.sh）内当前轮次号命中 = **0**（须 0
+    = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
+
+二、本轮返工真值 = **7 处**（零交付面影响；条目文本来自单一事实源 `note.txt`，与台账描述列 / 状态文件小节共用）
+------------------------------------------------------------------------------
+**本轮为推进轮（非纯巡检）：ADM-SU01~04 交付落地** —— 冻结清单 108→117 的 9 条未实现端点中 4 条（供给单元列表/详情/重配置/下架）进实现 + 5 例真实 HTTP 用例；`missing` 9 → **5**、`implemented` 108 → 112、`registered_routes` 125 → 129；余 5 条（`ADM-CB01~05` 批量配置批次）未动 ⇒ 覆盖门禁仍红（红相位据实记红）。两轮全量 rc=1/1、310 例仅 1 例失败（`EndpointCoverageTest.everyListedEndpointIsRegistered` 点名那 5 条）⇒ 除门禁外全绿。
+本轮交付面提交：`e6791ffe`（实现 + 清单 §2.6 补写 9 行 + 生成器端点级分页 + 任务级红/绿证据）/ `0218acef`（控制器依赖字段改名以对齐静态审计的链路解析口径）。交付面改动逐条：`AdminSupplyUnitController`、`SupplyUnitAdminService`（新）、`SupplyUnitViews`（+9 个 snake_case 视图）、`ChannelConfigPlanner.RATE_LIMIT_PER_SEC`、`DocNoGenerator.configBatchNo`（`CFG-B{yyyyMM}-{seq}`）、`AuditService` +2 审计动作、`tools/gen-backend-models.py`（`_enveloped(model, eid)` + 端点级 `PAGEABLE`，修「该不该分页」的端点级语义）、`docs/backend/02-API接口模型清单.md` §2.6 + 变更记录。
+契约一致性：md §2.6 逐行声明（真源 `specs/001-intake-automation`：`'202': 已受理` 等）与实现/openapi/schema/控制器同源；`audit-routes` A0b（md 行数 = 清单）由 FAIL 转 PASS、A1 未定位 9→5，`audit-auth-contract` A8 不一致 42→33，`audit-error-codes` A9 18→11，`audit-response-shape` A2b 15→11，`request-body` A5 13→12，`query-params` A1 5→3 —— 全部为**口径同步后的净改善**：faildiff 16 条「新增」逐条与「消失」同键 ⇒ 纯内容变化、**0 条真新增 FAIL**、净消失 10 条。
+本轮返工 7 处（判据/脚本/夹具侧，据实登记）：① 生成器 `_enveloped` 改了签名后漏改判据行与调用点 ⇒ 首跑 TypeError（响亮失败）；② 权限用例夹具写错（同一个供给单元上先由 SUPER_ADMIN 下架、再断言「越权不改状态」）⇒ 假失败，修夹具而非改期望（历史 19）；③ jsonb 写路径把 `Map` 直接当 JDBC 参数 ⇒ PG 驱动按 hstore 处理报「hstore 扩展尚未安装」500（按服务端「未捕获异常」定位，历史 13/24 族），改为 `JsonCodec.toJson` 写入 + `diff_payload::text` 回读；④ 取证脚本调用参数错（把 `--root` 传给只吃位置参数的脚本）⇒ 0 解析的假「解析器失效」；⑤ 控制器依赖字段名 `service` 与既有审计「接收者名首字母大写 → 类名」的链路解析口径不符 ⇒ 2 条假 FAIL + 6 条自测假失败（改名即消，纯改名零行为变化）；⑥ `spotcheck-success-shape` 的 A1c 只认「成功必须 200」，与清单逐行声明的 `ADM-SU03 → 202` 冲突 ⇒ 判据改为「非 200 成功码必须在该端点 md 行里声明」，并加空作用域守卫（命中非 200 而 md 零声明 ⇒ 直接 FAIL）；⑦ `spotcheck-pagination-order` 的 DDL 扫描范围只含 `V1__baseline.sql` ⇒ 迁移新增表上的分页语句落到「未能静态判定」（扫描范围盲区，历史 213），改为拼接全部 `V*.sql`：P2 15/16 → 16/16、P3 未能静态判定 1 → 0，其自测 rc 0→1 的 rc 变化随之归零。
+遗留观察项（不改判据、留待拍板）：① `spotcheck-state-machine` A1 新增 1 条同族条目 —— 我的 `update aap_supply_unit set status='OFFLINE' … where … and status = ?` 用的是**参数化 from 守卫**（服务层另有 409 前置判定 + 真实 HTTP 用例 5/5 背书），判据目前只认字面量 from 守卫；② `spotcheck-http-method` A3 的 GET 行原始差值 57/55 → 59/55（本批把 2 条**已在清单里**的 GET 落成真实路由，而清单侧另有 2 条 GET 待实现 ⇒ 该审计直接比方法分布、不减「待实现行」，故差值固有非零，POST 行则由 53/55 收敛为一致）。
+装置面：`tools/gen-backend-models.py` 变更已用 `--device-change` 声明；另两处判据修正落在 `$TEMP` 下的既有取证脚本（未进仓库 —— 属待拍板 ㉑「aux 探针收编」范围，本报告标注「判据修正未版本化」的风险）。
+安全：敏感值自检 0 命中、双闸清洁、未使用浏览器、未按镜像名杀进程；无密钥/连接串进入代码、证据或回复。
+------------------------------------------------------------------------------
+
+三、本轮关键读数（读自 analyze / regression 证据，零手写值）
+  相位 = red（两轮 rc=1/1 ∧ missing=5 的合取，判据见 tools/round-verify/phase.py）
+  分析器判据 PASS 22 / FAIL 5；覆盖 total=117 implemented=112 **missing=5** registered_routes=129；连续全绿计数 = 0（**红相位**清零）
+  回归面：复跑 84 条（上一轮 R561 = 84 条）；rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 172 行
+  零写副作用：生成物 size+md5 变化 0 个（须 0）；跨轮 faildiff 上一轮 183 行 / 本轮 172 行、新增 16 / 消失 27
+  崩溃通道：rc!=0 条目 46 条，其中 FAIL 通道不可见（rc!=0 ∧ FAIL 0 行）= 3 条
+
+四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
+  ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 12 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 17 == `git status` 条目 17
+      M README.md  mtime=2026-09-24 07:51:14
+      M aap-server/pom.xml  mtime=2026-09-24 08:07:37
+      M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
+      M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
+      ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
+      （本轮产物）M .agents/state/evidence/endpoint-test-audit.json  mtime=2026-09-28 15:27:33
+      （本轮产物）M .agents/state/evidence/endpoint-test-audit.txt  mtime=2026-09-28 15:27:33
+      （本轮产物）?? .agents/state/evidence/audit-regression-R562-faildiff.txt  mtime=2026-09-28 15:31:14
+      （本轮产物）?? .agents/state/evidence/audit-regression-R562-failraw.txt  mtime=2026-09-28 15:31:14
+      （本轮产物）?? .agents/state/evidence/audit-regression-R562-rcseq.txt  mtime=2026-09-28 15:31:14
+      （本轮产物）?? .agents/state/evidence/audit-regression-R562.txt  mtime=2026-09-28 15:31:14
+      （本轮产物）?? .agents/state/evidence/red-verify-R562-coverage-fields.txt  mtime=2026-09-28 15:21:06
+      （本轮产物）?? .agents/state/evidence/red-verify-R562-full-run1.txt  mtime=2026-09-28 15:21:06
+      （本轮产物）?? .agents/state/evidence/red-verify-R562-full-run2.txt  mtime=2026-09-28 15:21:06
+      （本轮产物）?? .agents/state/evidence/red-verify-R562-testcount.txt  mtime=2026-09-28 15:21:06
+      （本轮产物）?? .agents/state/evidence/red-verify-R562-tested-state.txt  mtime=2026-09-28 15:21:06
+      （本轮产物）?? .agents/state/evidence/round-R562-analysis.txt  mtime=2026-09-28 15:21:06
+      其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
+  ③ 本轮提交（0218acef..HEAD）改动文件 = 0 个，其中位于交付面前缀的 = 0 个（**须 0**）
+
+五、下一族
+  missing=5 > 0：按 docs/backend 的任务顺序推进下一族（本轮完成端点 0 条 / 新增用例 0 条）。
+
+六、留痕
+  本文件 = .agents/state/evidence/device-round-R562.txt（由本工具直接落盘，`newline="\n"`；文件名与 closeout.py 的消费名机器核对一致；行数下限判据与 CR=0 判据见下）
+DEVICE_REPORT_END=1

@@ -16432,3 +16432,21 @@ R491 巡检轮收尾要点（返工真值 = 9 处，据实更正；全部装置/
 - **返工真值**：本轮返工真值 = **3 处**（装置/脚本侧，零交付面影响；逐条见上文要点）。
 - **权威数字**：权威数字 = 返工 3 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
 
+
+### R562 巡检轮（**红相位**：missing=5 ≠ 0 或两轮 rc=1/1 ≠ 0/0 ⇒ **未达成两轮全绿**，据实记红）
+
+- **性质**：**本轮为红相位**（红相位）—— 三处记录（描述列 / history / 本节）**不含任何绿相位措辞**；但**交付面零改动**（未改 `aap-server` / `docs` / 冻结清单生成物任何一行）；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交）；本轮新增写入 = 台账 / 状态 / 证据。
+- **两轮全量（串行）**：被测提交 = 0218acef（独立 detached worktree 内）；run1 15:16:26→15:18:48、run2 15:18:48→15:20:53；各 **310 例 / 50 类**、rc=1/1、Failures-Errors-Skipped = 1-0-0；`@Test` 词边界计数与 surefire 合计一致；禁用扫描 0 条。
+- **覆盖**：total=117 implemented=112 **missing=5**、registered_routes=129、not_registered=[{'id':；连续全绿计数 = **0**（红相位**计数清零**，下次全绿从第 1 轮起算）。
+- **回归面**：复跑 84 条（tag 集合与上一轮 R561 一致）；rc 变化 0 条、新增 0、未复跑 0；FAIL 明细 43 脚本 172 行（跨轮 faildiff 183→172：新增 16 / 消失 27）；零写副作用（冻结清单生成物 size+md5 全等，变化 0 个）；命令表已由仓库内 `tools/round-verify/manifest.json` 提供，$TEMP 抽查脚本 54 条全部归仓（由 manifest 的 $TEMP 条目数与归仓目录数**双源互证**推出）。
+- **本轮要点（单一事实源 = note.txt）**：
+**本轮为推进轮（非纯巡检）：ADM-SU01~04 交付落地** —— 冻结清单 108→117 的 9 条未实现端点中 4 条（供给单元列表/详情/重配置/下架）进实现 + 5 例真实 HTTP 用例；`missing` 9 → **5**、`implemented` 108 → 112、`registered_routes` 125 → 129；余 5 条（`ADM-CB01~05` 批量配置批次）未动 ⇒ 覆盖门禁仍红（红相位据实记红）。两轮全量 rc=1/1、310 例仅 1 例失败（`EndpointCoverageTest.everyListedEndpointIsRegistered` 点名那 5 条）⇒ 除门禁外全绿。
+本轮交付面提交：`e6791ffe`（实现 + 清单 §2.6 补写 9 行 + 生成器端点级分页 + 任务级红/绿证据）/ `0218acef`（控制器依赖字段改名以对齐静态审计的链路解析口径）。交付面改动逐条：`AdminSupplyUnitController`、`SupplyUnitAdminService`（新）、`SupplyUnitViews`（+9 个 snake_case 视图）、`ChannelConfigPlanner.RATE_LIMIT_PER_SEC`、`DocNoGenerator.configBatchNo`（`CFG-B{yyyyMM}-{seq}`）、`AuditService` +2 审计动作、`tools/gen-backend-models.py`（`_enveloped(model, eid)` + 端点级 `PAGEABLE`，修「该不该分页」的端点级语义）、`docs/backend/02-API接口模型清单.md` §2.6 + 变更记录。
+契约一致性：md §2.6 逐行声明（真源 `specs/001-intake-automation`：`'202': 已受理` 等）与实现/openapi/schema/控制器同源；`audit-routes` A0b（md 行数 = 清单）由 FAIL 转 PASS、A1 未定位 9→5，`audit-auth-contract` A8 不一致 42→33，`audit-error-codes` A9 18→11，`audit-response-shape` A2b 15→11，`request-body` A5 13→12，`query-params` A1 5→3 —— 全部为**口径同步后的净改善**：faildiff 16 条「新增」逐条与「消失」同键 ⇒ 纯内容变化、**0 条真新增 FAIL**、净消失 10 条。
+本轮返工 7 处（判据/脚本/夹具侧，据实登记）：① 生成器 `_enveloped` 改了签名后漏改判据行与调用点 ⇒ 首跑 TypeError（响亮失败）；② 权限用例夹具写错（同一个供给单元上先由 SUPER_ADMIN 下架、再断言「越权不改状态」）⇒ 假失败，修夹具而非改期望（历史 19）；③ jsonb 写路径把 `Map` 直接当 JDBC 参数 ⇒ PG 驱动按 hstore 处理报「hstore 扩展尚未安装」500（按服务端「未捕获异常」定位，历史 13/24 族），改为 `JsonCodec.toJson` 写入 + `diff_payload::text` 回读；④ 取证脚本调用参数错（把 `--root` 传给只吃位置参数的脚本）⇒ 0 解析的假「解析器失效」；⑤ 控制器依赖字段名 `service` 与既有审计「接收者名首字母大写 → 类名」的链路解析口径不符 ⇒ 2 条假 FAIL + 6 条自测假失败（改名即消，纯改名零行为变化）；⑥ `spotcheck-success-shape` 的 A1c 只认「成功必须 200」，与清单逐行声明的 `ADM-SU03 → 202` 冲突 ⇒ 判据改为「非 200 成功码必须在该端点 md 行里声明」，并加空作用域守卫（命中非 200 而 md 零声明 ⇒ 直接 FAIL）；⑦ `spotcheck-pagination-order` 的 DDL 扫描范围只含 `V1__baseline.sql` ⇒ 迁移新增表上的分页语句落到「未能静态判定」（扫描范围盲区，历史 213），改为拼接全部 `V*.sql`：P2 15/16 → 16/16、P3 未能静态判定 1 → 0，其自测 rc 0→1 的 rc 变化随之归零。
+遗留观察项（不改判据、留待拍板）：① `spotcheck-state-machine` A1 新增 1 条同族条目 —— 我的 `update aap_supply_unit set status='OFFLINE' … where … and status = ?` 用的是**参数化 from 守卫**（服务层另有 409 前置判定 + 真实 HTTP 用例 5/5 背书），判据目前只认字面量 from 守卫；② `spotcheck-http-method` A3 的 GET 行原始差值 57/55 → 59/55（本批把 2 条**已在清单里**的 GET 落成真实路由，而清单侧另有 2 条 GET 待实现 ⇒ 该审计直接比方法分布、不减「待实现行」，故差值固有非零，POST 行则由 53/55 收敛为一致）。
+装置面：本轮 `tools/gen-backend-models.py` 的改动（`_enveloped(model, eid)` + 端点级 `PAGEABLE`）已随**交付提交 `e6791ffe`** 落在本轮窗口**之前**，故不进 `被测提交..HEAD` 的 `--device-change` 判据（该旗标只认工作区或该提交链内的 tools/ 改动 —— 硬塞会被判「自述不实」并响亮拦下，本轮实测），据实写进本要点文本；另两处判据修正落在 `$TEMP` 下的既有取证脚本（未进仓库 —— 属待拍板 ㉑「aux 探针收编」范围，本报告标注「判据修正未版本化」的风险）。
+安全：敏感值自检 0 命中、双闸清洁、未使用浏览器、未按镜像名杀进程；无密钥/连接串进入代码、证据或回复。
+- **返工真值**：本轮返工真值 = **7 处**（装置/脚本侧，零交付面影响；逐条见上文要点）。
+- **权威数字**：权威数字 = 返工 7 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
+

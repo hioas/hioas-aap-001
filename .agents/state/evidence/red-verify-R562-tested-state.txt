@@ -1,0 +1,29 @@
+R562 红相位轮（两轮红或 missing>0 ⇒ **未达成两轮全绿**，据此如实记账，历史 12/554）；全部读数由 tools/round-verify/analyze.py 从 facts / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 0218acef
+被测提交全 SHA = 0218acefbf8967159b4114d8d7c4f957f174e011
+被测提交主题 = refactor(aap-server): ADM-SU 控制器依赖字段改名以对齐静态审计的链路解析口径
+run1 = 15:16:26 -> 15:18:48 rc=1 / run2 = 15:18:48 -> 15:20:53 rc=1（串行：run1_end <= run2_start = True，按绝对时刻解算）
+窗口 = 15:16:10 -> 15:20:57（1790579770 -> 1790580057，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = 0218acef / 终点 = 0218acef；窗口内他方推进提交数 = 0
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 17 条
+    M .agents/state/evidence/endpoint-test-audit.json
+    M .agents/state/evidence/endpoint-test-audit.txt
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+   ?? .agents/state/evidence/audit-regression-R562-faildiff.txt
+   ?? .agents/state/evidence/audit-regression-R562-failraw.txt
+   ?? .agents/state/evidence/audit-regression-R562-rcseq.txt
+   ?? .agents/state/evidence/audit-regression-R562.txt
+   ?? .agents/state/evidence/red-verify-R562-coverage-fields.txt
+   ?? .agents/state/evidence/red-verify-R562-full-run1.txt
+   ?? .agents/state/evidence/red-verify-R562-full-run2.txt
+   ?? .agents/state/evidence/red-verify-R562-testcount.txt
+   ?? .agents/state/evidence/red-verify-R562-tested-state.txt
+   ?? .agents/state/evidence/round-R562-analysis.txt
+   ?? aap-server/src/main/webapp/
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0 （无）
+环境指纹：bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）
