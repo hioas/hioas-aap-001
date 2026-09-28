@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "config-batch-item",
+  "required": [
+    "id"
+  ],
+  "properties": {
+    "id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失；可空）"
+    },
+    "batch_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失；可空）"
+    },
+    "supply_unit_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失；可空）"
+    },
+    "provider_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失；可空）"
+    },
+    "model_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "action": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "readback_equal": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "attempt_count": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "last_error": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

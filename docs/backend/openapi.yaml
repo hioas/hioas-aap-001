@@ -4809,6 +4809,391 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /admin/supply-units:
+    get:
+      operationId: ADM-SU01
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-SU01`（依据：新增）"
+      x-aap-id: ADM-SU01
+      x-aap-source: 新增
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: providerId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: modelName
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/SupplyUnit"
+  /admin/supply-units/{id}:
+    get:
+      operationId: ADM-SU02
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-SU02`（依据：新增）"
+      x-aap-id: ADM-SU02
+      x-aap-source: 新增
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/SupplyUnit"
+        4XX:
+          description: 业务失败：E-1406
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/supply-units/{id}/reconfigure:
+    post:
+      operationId: ADM-SU03
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-SU03`（依据：新增）"
+      x-aap-id: ADM-SU03
+      x-aap-source: 新增
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestSupplyUnitReconfigure"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ConfigBatch"
+        4XX:
+          description: 业务失败：E-1406,E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/supply-units/{id}/offline:
+    post:
+      operationId: ADM-SU04
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-SU04`（依据：新增）"
+      x-aap-id: ADM-SU04
+      x-aap-source: 新增
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/SupplyUnit"
+        4XX:
+          description: 业务失败：E-1406,E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/config-batches:
+    post:
+      operationId: ADM-CB01
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CB01`（依据：新增）"
+      x-aap-id: ADM-CB01
+      x-aap-source: 新增
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestConfigBatchCreate"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ConfigBatch"
+        4XX:
+          description: 业务失败：E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: ADM-CB02
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CB02`（依据：新增）"
+      x-aap-id: ADM-CB02
+      x-aap-source: 新增
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ConfigBatch"
+  /admin/config-batches/{batchId}:
+    get:
+      operationId: ADM-CB03
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CB03`（依据：新增）"
+      x-aap-id: ADM-CB03
+      x-aap-source: 新增
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ConfigBatch"
+        4XX:
+          description: 业务失败：E-1406
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/config-batches/{batchId}/items/{itemId}/retry:
+    post:
+      operationId: ADM-CB04
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CB04`（依据：新增）"
+      x-aap-id: ADM-CB04
+      x-aap-source: 新增
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ConfigBatchItem"
+        4XX:
+          description: 业务失败：E-1406,E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/config-batches/{batchId}/items/{itemId}/rollback:
+    post:
+      operationId: ADM-CB05
+      tags:
+        - Admin
+      summary: 管理端
+      description: "接口 ID `ADM-CB05`（依据：新增）"
+      x-aap-id: ADM-CB05
+      x-aap-source: 新增
+      security:
+        - bearerAuth: []
+      x-aap-roles:
+        - TECH_OPS
+        - SUPER_ADMIN
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestConfigBatchRollback"
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ConfigBatchItem"
+        4XX:
+          description: 业务失败：E-1406,E-1601
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
   securitySchemes:
     bearerAuth:
@@ -4816,6 +5201,12 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    SupplyUnit:
+      $ref: ./json-schema/models/supply-unit.schema.json
+    ConfigBatch:
+      $ref: ./json-schema/models/config-batch.schema.json
+    ConfigBatchItem:
+      $ref: ./json-schema/models/config-batch-item.schema.json
     PageMeta:
       $ref: ./json-schema/common/page.schema.json
     ModelEntry:
@@ -4934,6 +5325,12 @@ components:
       $ref: ./json-schema/models/precheck-result.schema.json
     RevealResult:
       $ref: ./json-schema/models/reveal-result.schema.json
+    RequestSupplyUnitReconfigure:
+      $ref: ./json-schema/requests/supply-unit-reconfigure.schema.json
+    RequestConfigBatchCreate:
+      $ref: ./json-schema/requests/config-batch-create.schema.json
+    RequestConfigBatchRollback:
+      $ref: ./json-schema/requests/config-batch-rollback.schema.json
     RequestAuthSmsSend:
       $ref: ./json-schema/requests/auth-sms-send.schema.json
     RequestAuthSmsLogin:

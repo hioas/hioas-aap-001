@@ -69,6 +69,23 @@ ENUMS = {
 
 # ---------------------------------------------------------------- models
 MODELS: dict[str, dict] = {
+    # ---- 特性 001-intake-automation（M4）：供给单元 = 模型 × 供应商（一模型一渠道的载体）----
+    "supply-unit": dict(required=["id"], properties={
+        "id": ID, "provider_id": ID, "credential_id": ID, "model_name": STR, "model_slug": STR,
+        "model_uid": STR, "status": STR, "detect_total_score": NUM, "detect_confidence": STR,
+        "quality_score": NUM, "routing_priority": INT, "routing_weight": INT,
+        "auto_ban_enabled": BOOL, "binding_id": ID, "granularity": STR, "created_at": TS}),
+    # 批量配置批次：编排器五步（展开/差异/限速执行/回读/收尾）的可观测载体
+    "config-batch": dict(required=["id"], properties={
+        "id": ID, "batch_no": STR, "batch_type": STR, "mode": STR, "trigger_source": STR,
+        "status": STR, "total_count": INT, "succeeded_count": INT, "failed_count": INT,
+        "mismatch_count": INT, "rate_limit_per_sec": INT,
+        "diff_summary": {"type": ["object", "null"]}, "started_at": TS, "finished_at": TS, "created_at": TS,
+        "items": {"type": ["array", "null"], "items": {"$ref": "config-batch-item.schema.json"}}}),
+    "config-batch-item": dict(required=["id"], properties={
+        "id": ID, "batch_id": ID, "supply_unit_id": ID, "provider_id": ID, "model_name": STR,
+        "action": STR, "status": STR, "readback_equal": BOOL, "attempt_count": INT,
+        "last_error": STR, "created_at": TS}),
     "page-meta": dict(required=["page", "pageSize", "total"], properties={
         "page": {"type": "integer", "minimum": 1},
         "pageSize": {"type": "integer", "minimum": 1, "maximum": 200},
@@ -419,6 +436,14 @@ MODELS: dict[str, dict] = {
 
 # ---------------------------------------------------------------- requests
 REQUESTS: dict[str, dict] = {
+    # ---- 特性 001-intake-automation（M4）----
+    # 重配置：凭证/价格/策略变更后同步差异；dry_run 默认 true（先看差异清单再落盘）
+    "supply-unit-reconfigure": dict(required=[], properties={"dry_run": BOOL, "reason": STR}),
+    # 批量配置：mode=DRY_RUN 只产出差异清单（零写入），APPLY 才落盘
+    "config-batch-create": dict(required=["batch_type", "mode"], properties={
+        "batch_type": STR, "mode": STR, "scope": {"type": ["object", "null"]},
+        "rate_limit_per_sec": INT, "reason": STR}),
+    "config-batch-rollback": dict(required=["reason"], properties={"reason": STR}),
     "auth-sms-send": dict(required=["phone", "captcha"], properties={
         "phone": {"type": "string", "pattern": "^1[3-9]\\d{9}$"}, "captcha": {"type": "string"}}),
     "auth-sms-login": dict(required=["phone", "smsCode"], properties={
@@ -691,6 +716,26 @@ PATHS: list[tuple] = [
     ("ADM-DET01", "get", "/admin/detection-jobs", "Admin", "TECH_OPS,SUPER_ADMIN", None, "detection-job", ["status", "credentialId", "providerId", "page", "pageSize"], [], "新增"),
     ("ADM-A01", "get", "/admin/audit-logs", "Admin", "TECH_OPS,SUPER_ADMIN", None, "audit-log",
      ["page", "pageSize", "actorType", "action", "traceId", "from", "to"], ["E-1901"], "真源"),
+    # 供给单元（模型 × 供应商）—— 特性 001-intake-automation（M4）：一模型一渠道
+    ("ADM-SU01", "get", "/admin/supply-units", "Admin", "TECH_OPS,SUPER_ADMIN", None, "supply-unit",
+     ["providerId", "modelName", "status", "page", "pageSize"], [], "新增"),
+    ("ADM-SU02", "get", "/admin/supply-units/{id}", "Admin", "TECH_OPS,SUPER_ADMIN", None, "supply-unit",
+     [], ["E-1406"], "新增"),
+    ("ADM-SU03", "post", "/admin/supply-units/{id}/reconfigure", "Admin", "TECH_OPS,SUPER_ADMIN",
+     "supply-unit-reconfigure", "config-batch", [], ["E-1406", "E-1601"], "新增"),
+    ("ADM-SU04", "post", "/admin/supply-units/{id}/offline", "Admin", "TECH_OPS,SUPER_ADMIN", None, "supply-unit",
+     [], ["E-1406", "E-1601"], "新增"),
+    # 批量配置批次（dry-run 差异清单 / 单模型重试与回滚）
+    ("ADM-CB01", "post", "/admin/config-batches", "Admin", "TECH_OPS,SUPER_ADMIN", "config-batch-create",
+     "config-batch", [], ["E-1601"], "新增"),
+    ("ADM-CB02", "get", "/admin/config-batches", "Admin", "TECH_OPS,SUPER_ADMIN", None, "config-batch",
+     ["status", "page", "pageSize"], [], "新增"),
+    ("ADM-CB03", "get", "/admin/config-batches/{batchId}", "Admin", "TECH_OPS,SUPER_ADMIN", None, "config-batch",
+     [], ["E-1406"], "新增"),
+    ("ADM-CB04", "post", "/admin/config-batches/{batchId}/items/{itemId}/retry", "Admin", "TECH_OPS,SUPER_ADMIN",
+     None, "config-batch-item", [], ["E-1406", "E-1601"], "新增"),
+    ("ADM-CB05", "post", "/admin/config-batches/{batchId}/items/{itemId}/rollback", "Admin", "TECH_OPS,SUPER_ADMIN",
+     "config-batch-rollback", "config-batch-item", [], ["E-1406", "E-1601"], "新增"),
 ]
 
 LIST_RESPONSE_MODELS = {

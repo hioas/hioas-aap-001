@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "config-batch",
+  "required": [
+    "id"
+  ],
+  "properties": {
+    "id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "雪花 ID（对外 string，避免 JS 精度丢失；可空）"
+    },
+    "batch_no": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "batch_type": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "mode": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "trigger_source": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "total_count": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "succeeded_count": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "failed_count": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "mismatch_count": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "rate_limit_per_sec": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "diff_summary": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "started_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "finished_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "created_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "RFC3339 UTC"
+    },
+    "items": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "config-batch-item.schema.json"
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": true
+}

@@ -1,5 +1,5 @@
 {
-  "total": 108,
+  "total": 117,
   "endpoints": [
     {
       "id": "AUTH-01",
@@ -1748,6 +1748,151 @@
       ],
       "source": "真源",
       "task": "T13"
+    },
+    {
+      "id": "ADM-SU01",
+      "method": "GET",
+      "path": "/api/v1/admin/supply-units",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "supply-unit",
+      "query_params": [
+        "providerId",
+        "modelName",
+        "status",
+        "page",
+        "pageSize"
+      ],
+      "error_codes": [],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "ADM-SU02",
+      "method": "GET",
+      "path": "/api/v1/admin/supply-units/{id}",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "supply-unit",
+      "query_params": [],
+      "error_codes": [
+        "E-1406"
+      ],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "ADM-SU03",
+      "method": "POST",
+      "path": "/api/v1/admin/supply-units/{id}/reconfigure",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": "supply-unit-reconfigure",
+      "response_model": "config-batch",
+      "query_params": [],
+      "error_codes": [
+        "E-1406",
+        "E-1601"
+      ],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "ADM-SU04",
+      "method": "POST",
+      "path": "/api/v1/admin/supply-units/{id}/offline",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "supply-unit",
+      "query_params": [],
+      "error_codes": [
+        "E-1406",
+        "E-1601"
+      ],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "ADM-CB01",
+      "method": "POST",
+      "path": "/api/v1/admin/config-batches",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": "config-batch-create",
+      "response_model": "config-batch",
+      "query_params": [],
+      "error_codes": [
+        "E-1601"
+      ],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "ADM-CB02",
+      "method": "GET",
+      "path": "/api/v1/admin/config-batches",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "config-batch",
+      "query_params": [
+        "status",
+        "page",
+        "pageSize"
+      ],
+      "error_codes": [],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "ADM-CB03",
+      "method": "GET",
+      "path": "/api/v1/admin/config-batches/{batchId}",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "config-batch",
+      "query_params": [],
+      "error_codes": [
+        "E-1406"
+      ],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "ADM-CB04",
+      "method": "POST",
+      "path": "/api/v1/admin/config-batches/{batchId}/items/{itemId}/retry",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": null,
+      "response_model": "config-batch-item",
+      "query_params": [],
+      "error_codes": [
+        "E-1406",
+        "E-1601"
+      ],
+      "source": "新增",
+      "task": ""
+    },
+    {
+      "id": "ADM-CB05",
+      "method": "POST",
+      "path": "/api/v1/admin/config-batches/{batchId}/items/{itemId}/rollback",
+      "tag": "Admin",
+      "auth": "TECH_OPS,SUPER_ADMIN",
+      "request_model": "config-batch-rollback",
+      "response_model": "config-batch-item",
+      "query_params": [],
+      "error_codes": [
+        "E-1406",
+        "E-1601"
+      ],
+      "source": "新增",
+      "task": ""
     }
   ]
 }
