@@ -1,24 +1,24 @@
 R562 独立复核探针（轮次无关装置：tools/round-verify/independent.py；**只读**，不采信装置自身判定行）
 ==============================================================================
-相位 = 提交前（工作区未提交）；被测提交（facts）= 0aee5e72；窗口 = 2026-09-28 15:47:16 -> 2026-09-28 15:52:02；申报的装置改动 = （无）
+相位 = 提交前（工作区未提交）；被测提交（facts）= f60f569a；窗口 = 2026-09-28 15:57:13 -> 2026-09-28 16:02:01；申报的装置改动 = （无）
 生成方式：全部读数由**原始 maven 日志 / facts / 覆盖 JSON / git / 磁盘**独立解析得出，源码内零硬编码纯值；
 每个解析器都是纯函数（入参 = 文本）；判别力自测见 `--selftest`（合成 ctx + 注入缺陷，断言恰好新增目标判据）。
 
 [PASS] J1a facts 必填键齐备（正向对照 >0） 缺失=无 ｜ 读到 41 键
 [PASS] J1b facts 轮次 == 本轮 ∧ 完成标记 ROUND='R562' WRITTEN='1'
-[PASS] J1c 窗口内 HEAD 零推进 advanced=0（0aee5e72 -> 0aee5e72）
-[PASS] J1d 被测提交 == 窗口起点 HEAD ∧ worktree 零脏行 tested=0aee5e72 head=0aee5e72 dirty=0
+[PASS] J1c 窗口内 HEAD 零推进 advanced=0（f60f569a -> f60f569a）
+[PASS] J1d 被测提交 == 窗口起点 HEAD ∧ worktree 零脏行 tested=f60f569a head=f60f569a dirty=0
 [PASS] J1e worktree add/remove rc == 0 add=0 remove=0
 [PASS] J1f 并发前置门槛**真的执行**（历史 238/251） ok=1 result=CLEAR jps_reachable=Y
-[PASS] J1g 窗口单调且两轮串行（按绝对时刻解算：轮次可跨午夜，HH:MM:SS 字符串比会假失败） 2026-09-28 15:47:16 → 2026-09-28 15:47:30 → 2026-09-28 15:49:55 → 2026-09-28 15:49:55 → 2026-09-28 15:51:58 → 2026-09-28 15:52:02
+[PASS] J1g 窗口单调且两轮串行（按绝对时刻解算：轮次可跨午夜，HH:MM:SS 字符串比会假失败） 2026-09-28 15:57:13 → 2026-09-28 15:57:29 → 2026-09-28 15:59:48 → 2026-09-28 15:59:48 → 2026-09-28 16:01:56 → 2026-09-28 16:02:01
 [PASS] J2a 合计行解析正向对照（每轮恰好 1 条） run1=1 run2=1 条
 [PASS] J2b 红相位：两轮合计逐条一致 ∧ Errors=0 ∧ Skipped=0 ∧ Failures≥1（失败可归因，点名失败类） run1=[(310, 1, 0, 0)] run2=[(310, 1, 0, 0)] 失败类=['com.hioas.aap.coverage.EndpointCoverageTest']
 [PASS] J2c 红相位：两轮 BUILD FAILURE 真 / BUILD SUCCESS 假 run1 ok=False bad=True run2 ok=False bad=True
 [PASS] J2d 逐类行数 > 0 且两轮相等（正向对照） 50 / 50 类
 [PASS] J2e 逐类五元组两轮逐条相等（耗时本就不入键，历史 79） 解析到 50 类；差异 0 类
 [PASS] J2f 类级用例数之和 == 合计（口径自洽） run1 310 vs 310 ｜ run2 310 vs 310
-[PASS] J2g run1_end <= run2_start（串行；同一解算：跨午夜不假失败） 2026-09-28 15:49:55 → 2026-09-28 15:49:55
-[PASS] J2h maven 耗时双写法解析（两种形态都要收，历史 175） run1=min(02:22 min, 142.000s) run2=min(02:01 min, 121.000s)
+[PASS] J2g run1_end <= run2_start（串行；同一解算：跨午夜不假失败） 2026-09-28 15:59:48 → 2026-09-28 15:59:48
+[PASS] J2h maven 耗时双写法解析（两种形态都要收，历史 175） run1=min(02:16 min, 136.000s) run2=min(02:06 min, 126.000s)
 [PASS] J3a 归档测试源非空且 == facts 声明 56 个 .java / facts 声明 56
 [PASS] J3b @Test 词边界计数 == surefire 合计（裸子串作对照） @Test\b=310 vs surefire=310（裸子串 312）
 [PASS] J3c 不得削弱测试：禁用扫描 == 0 命中 0 条（0 才合规）
@@ -27,13 +27,13 @@ R562 独立复核探针（轮次无关装置：tools/round-verify/independent.py
 [PASS] J4c 红相位：registered_routes > 0 ∧ 未注册清单非空且逐条给出 ID（与 missing 同源） routes=129 未注册 ID=['ADM-CB01', 'ADM-CB02', 'ADM-CB03', 'ADM-CB04', 'ADM-CB05']
 [PASS] J4d endpoints.json 端点数 == 顶层 total == 覆盖 total（三处一致） endpoints=117 total=117 cov=117
 [PASS] J4e 仓库跟踪副本 == worktree 归档副本（投影后逐字段，历史 56/131） repo=117 arch=117
-[PASS] J5a 被测提交..HEAD 触及交付面的提交 == 0 count=0（被测提交=0aee5e72）
-[FAIL] J5b 本轮改动集合不含交付面前缀（相位 = 提交前（工作区未提交）） 改动 0 个 / 越界 0 个 []
-[PASS] J5c 快照差集方向一：窗口起点快照里的他方在途条目**原样保留**（须 0 条消失；正向对照 在途 > 0） 在途 8 条 / 消失或改动 0 条
+[PASS] J5a 被测提交..HEAD 触及交付面的提交 == 0 count=0（被测提交=f60f569a）
+[PASS] J5b 本轮改动集合不含交付面前缀（相位 = 提交前（工作区未提交）） 改动 2 个 / 越界 0 个 []
+[PASS] J5c 快照差集方向一：窗口起点快照里的他方在途条目**原样保留**（须 0 条消失；正向对照 在途 > 0） 在途 5 条 / 消失或改动 0 条
 [PASS] J5d 快照差集方向二：新增条目**全部**落在本轮自己的前缀（留痕 / 装置）内（须 0 条越界） 新增 0 条 / 越界 0 条
 [PASS] J5e 未申报装置改动时额外要求快照**逐字节相等**（零改动轮的严格形态） 申报装置改动 0 个 ⇒ 快照相等 = True
-[FAIL] J5f 在途改动 mtime 全部早于窗口起点（对象 = 窗口起点快照；**本轮已申报的装置改动除外**） 在途 8 条 / 落在窗口内（已剔除本轮申报的装置改动 0 条）['.agents/state/evidence/final-check-R562.txt', '.agents/state/evidence/postwrite-check-R562.txt']
-[PASS] J5g 本轮临时 worktree 已回收（磁盘不存在 ∧ git 未登记） path=C:/Users/laitz/AppData/Local/Temp/aap-round-wt-R562-154715 exists=False listed=False
+[PASS] J5f 在途改动 mtime 全部早于窗口起点（对象 = 窗口起点快照；**本轮已申报的装置改动除外**） 在途 5 条 / 落在窗口内（已剔除本轮申报的装置改动 0 条）0 条
+[PASS] J5g 本轮临时 worktree 已回收（磁盘不存在 ∧ git 未登记） path=C:/Users/laitz/AppData/Local/Temp/aap-round-wt-R562-155713 exists=False listed=False
 [PASS] J6a 装置面改动 == 申报集合（逐文件点名 · 相位 = 提交前（工作区未提交）） 实得=[] 申报=[]
 [PASS] J6b 申报的装置文件在磁盘上真实存在 缺失=无
 [PASS] J6c 申报的装置文件不落在交付面前缀内 越界=无
@@ -45,5 +45,5 @@ R562 独立复核探针（轮次无关装置：tools/round-verify/independent.py
 [PASS] J8b 该守卫的判别力对照 == 1（非空转，历史 75/98） 判别力对照 = 1（对合成串命中次数，须 1）
 [PASS] J9 本工具源码内零当前轮次号字面量（自证轮次无关） 命中 0 处
 
-独立复核：PASS 38 / FAIL 2（共 40 项判据）
-INDEPENDENT_END=1
+独立复核：PASS 40 / FAIL 0（共 40 项判据）
+INDEPENDENT_END=0
