@@ -1,34 +1,17 @@
 {
   "total": 117,
-  "exact": 112,
+  "exact": 117,
   "prefix": 0,
-  "none": 5,
-  "id_traceable": 112,
-  "id_traceable_literal_only": 93,
+  "none": 0,
+  "id_traceable": 117,
+  "id_traceable_literal_only": 98,
   "id_grouped_only": 19,
-  "id_traceable_same_file_as_call": 111,
-  "id_not_traceable": [
-    "ADM-CB01",
-    "ADM-CB02",
-    "ADM-CB03",
-    "ADM-CB04",
-    "ADM-CB05"
-  ],
+  "id_traceable_same_file_as_call": 116,
+  "id_not_traceable": [],
   "id_not_traceable_same_file_as_call": [
-    "ADM-AUTH01",
-    "ADM-CB01",
-    "ADM-CB02",
-    "ADM-CB03",
-    "ADM-CB04",
-    "ADM-CB05"
+    "ADM-AUTH01"
   ],
-  "none_ids": [
-    "ADM-CB01",
-    "ADM-CB02",
-    "ADM-CB03",
-    "ADM-CB04",
-    "ADM-CB05"
-  ],
+  "none_ids": [],
   "prefix_ids": [],
   "endpoints": [
     {
@@ -48,7 +31,7 @@
         "aap-server/src/test/java/com/hioas/aap/iam/AuthContractTest.java"
       ],
       "id_grouped_only": false,
-      "exact_sites": 40,
+      "exact_sites": 41,
       "prefix_sites": 0,
       "exact_sample": [
         {
@@ -79,7 +62,7 @@
       ],
       "id_refs_literal": [],
       "id_grouped_only": true,
-      "exact_sites": 35,
+      "exact_sites": 36,
       "prefix_sites": 0,
       "exact_sample": [
         {
@@ -4492,12 +4475,14 @@
       "tag": "Admin",
       "evidence": "exact",
       "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
         "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java"
       ],
       "id_refs_with_call": [
         "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java"
       ],
       "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
         "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java"
       ],
       "id_grouped_only": false,
@@ -4578,15 +4563,43 @@
       "path": "/api/v1/admin/config-batches",
       "task": "",
       "tag": "Admin",
-      "evidence": "none",
-      "id_refs": [],
-      "id_refs_with_call": [],
-      "id_refs_literal": [],
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java"
+      ],
       "id_grouped_only": false,
-      "exact_sites": 0,
-      "prefix_sites": 0,
-      "exact_sample": [],
-      "prefix_sample": []
+      "exact_sites": 14,
+      "prefix_sites": 9,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult dry = post(\"/admin/config-batches\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult all = post(\"/admin/config-batches\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult list = get(\"/admin/config-batches\", techOps);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult byStatus = get(\"/admin/config-batches?status=pending\", techOps);",
+          "helper": "get"
+        }
+      ]
     },
     {
       "id": "ADM-CB02",
@@ -4594,15 +4607,43 @@
       "path": "/api/v1/admin/config-batches",
       "task": "",
       "tag": "Admin",
-      "evidence": "none",
-      "id_refs": [],
-      "id_refs_with_call": [],
-      "id_refs_literal": [],
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java"
+      ],
       "id_grouped_only": false,
-      "exact_sites": 0,
-      "prefix_sites": 0,
-      "exact_sample": [],
-      "prefix_sample": []
+      "exact_sites": 9,
+      "prefix_sites": 14,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult list = get(\"/admin/config-batches\", techOps);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult byStatus = get(\"/admin/config-batches?status=pending\", techOps);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult dry = post(\"/admin/config-batches\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult all = post(\"/admin/config-batches\", \"\"\"",
+          "helper": "post"
+        }
+      ]
     },
     {
       "id": "ADM-CB03",
@@ -4610,15 +4651,43 @@
       "path": "/api/v1/admin/config-batches/{batchId}",
       "task": "",
       "tag": "Admin",
-      "evidence": "none",
-      "id_refs": [],
-      "id_refs_with_call": [],
-      "id_refs_literal": [],
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java"
+      ],
       "id_grouped_only": false,
-      "exact_sites": 0,
-      "prefix_sites": 0,
-      "exact_sample": [],
-      "prefix_sample": []
+      "exact_sites": 6,
+      "prefix_sites": 22,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/config-batches/850001\", techOps);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult missing = get(\"/admin/config-batches/999999\", techOps);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/config-batches/850001\", techOps);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult missing = get(\"/admin/config-batches/999999\", techOps);",
+          "helper": null
+        }
+      ]
     },
     {
       "id": "ADM-CB04",
@@ -4626,15 +4695,43 @@
       "path": "/api/v1/admin/config-batches/{batchId}/items/{itemId}/retry",
       "task": "",
       "tag": "Admin",
-      "evidence": "none",
-      "id_refs": [],
-      "id_refs_with_call": [],
-      "id_refs_literal": [],
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java"
+      ],
       "id_grouped_only": false,
-      "exact_sites": 0,
-      "prefix_sites": 0,
-      "exact_sample": [],
-      "prefix_sample": []
+      "exact_sites": 8,
+      "prefix_sites": 22,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult retry = post(\"/admin/config-batches/850001/items/860001/retry\", null, techOps);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult notRetryable = post(\"/admin/config-batches/850001/items/860002/retry\", null, techOps);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/config-batches/850001\", techOps);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult missing = get(\"/admin/config-batches/999999\", techOps);",
+          "helper": null
+        }
+      ]
     },
     {
       "id": "ADM-CB05",
@@ -4642,15 +4739,43 @@
       "path": "/api/v1/admin/config-batches/{batchId}/items/{itemId}/rollback",
       "task": "",
       "tag": "Admin",
-      "evidence": "none",
-      "id_refs": [],
-      "id_refs_with_call": [],
-      "id_refs_literal": [],
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java"
+      ],
       "id_grouped_only": false,
-      "exact_sites": 0,
-      "prefix_sites": 0,
-      "exact_sample": [],
-      "prefix_sample": []
+      "exact_sites": 8,
+      "prefix_sites": 22,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult rollback = post(\"/admin/config-batches/850001/items/860001/rollback\", \"\"\"",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult noReason = post(\"/admin/config-batches/850001/items/860002/rollback\", \"{}\", techOps);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/config-batches/850001\", techOps);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java",
+          "line": "HttpResult missing = get(\"/admin/config-batches/999999\", techOps);",
+          "helper": null
+        }
+      ]
     }
   ]
 }

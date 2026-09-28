@@ -555,13 +555,26 @@
 | D-ADM-03 | ADM-Q02 只放行 `BIZ_OPERATOR` + `SUPER_ADMIN`（不放技术运营） | 冻结清单 ADM-Q02 的角色列只有 `BIZ_OPERATOR,SUPER_ADMIN`；PRD §5.6 的表格把技术运营也勾了「可看」。**冲突取清单**（硬约束 1：清单为冻结真源），已在此显式记录待拍板 |
 | D-ADM-04 | 生成器的 `LIST_RESPONSE_MODELS` 会把**单对象**响应（ADM-P02/P03）也包成 `data:{list:[...]}`，而 ADM-Q02（非分页 `{items:[...]}`）被包成 `data:{page,pageSize,total,list}` | 与实现不符的是**生成器的包装策略**，不是实现：清单 §2.4 明写 `{items:[QuoteCompare]}`，`PageResult` 也是 `items`（客户端真源，D-API-03 同一问题）。实现按**清单**落地（P02/P03 回单对象、Q02 回 `{items}`）；生成器待与 D-API-03 一并收口，避免只为 3 条接口手改 |
 | D-ADM-05 | `PROVIDER_RESUME` 进入审计动作枚举（12→18 累计 18 个），并**先改生成器再改代码**（`tools/gen-backend-models.py` 的 `AuditAction` + 重跑生成 schema/openapi） | 恢复是独立的安全相关动作，复用 `PROVIDER_SUSPEND` 会让审计无法区分「谁暂停 / 谁恢复」；枚举属冻结产物，先改单一事实源（硬约束 1/2）。已同步 `docs/backend/02-API接口模型清单.md` §6 变更记录 |
+| D-ADM-06 | **ADM-CB01 `scope` 的解析口径**（清单只把它标为可选，未定义维度语义）：① 省略/全空 ⇒ 全量**未下线**（`status <> 'OFFLINE'`）供给单元——「全量」不该把被刻意下架的渠道重新拉起来（安全默认）；② 显式维度 ⇒ `supplyUnitIds` ∪ `providerIds` 的全单元 ∪ `modelNames`（忽略大小写）∪ `tags`（命中 `aap_channel_binding.tag`）的**并集**，不额外按状态过滤（显式选择即明确意图）；③ 命中 0 个 ⇒ 登记 `total_count=0` 的**空批次**（不静默报错、不伪造目标）；④ 命中 >20 ⇒ 409 `E-1601`（R-57「每批 ≤20」= 规格「影响面超阈值需二次确认」的同一码）。内层维度键取规格 requestBody 的 **camelCase**（与顶层 snake_case 不一致属规格既有形态） | 真源 `specs/001-intake-automation` 只给了 `providerIds` 示例与 FR-6.5「按供应商/模型/标签批量」，未冻结「省略 scope」「命中 0」「维度并集」的语义；四种口径都按**规格意图 + 安全默认**取最优解并**逐条写进测试**（含标签维度），同时同步 md §2.6 的现状说明，避免口径静默存在 |
+| D-ADM-07 | **生成物 `openapi.yaml` 的逐端点成功状态码**（`tools/gen-backend-models.py` 新增 `SUCCESS_STATUS`：`ADM-SU03`→202、`ADM-CB01`→201、`ADM-CB04/05`→202，其余缺省 200） | 生成器原先把**全部**端点硬编码 `200: 成功`，与 md 逐行声明、规格契约、控制器 `@ResponseStatus` **三处冲突**（上一轮登记的待拍板项 ㉞）；非 200 成功码对客户端 codegen 可见（`201 已创建 / 202 已受理` 是路由与重试分支的依据），而契约测试只读 JSON Schema、覆盖门禁只比「方法+路径」⇒ 全绿也看不见（历史 43/73/85/100 同族）。本轮按端点级白名单收口，并同步把 `audit-response-shape` 的成功段判据从硬编码 `200:` 改为 `2\d\d:` 通配（否则非 200 端点的形状判定会退化成整段、把 4XX 段算进来） |
+| D-ADM-08 | **批次 dry-run 状态由 `COMPLETED` 纠正为 `SUCCEEDED`**（`SupplyUnitAdminService`，ADM-SU03 路径） | `data-model.md` §9 的批次状态枚举是 `PENDING / RUNNING / PARTIAL / SUCCEEDED / FAILED / CANCELLED`，**没有 `COMPLETED`** ⇒ 早期取值属**枚举外**；本轮 ADM-CB01 与该路径共用同一列，若不回正就会出现「同一列两种写法」（历史 44 的漂移高发形态）。已有的 2 处测试断言同步更正并在 tdd-state 记录依据 |
+| D-ADM-09 | **ADM-CB01/04/05 的 `APPLY` 只登记受理**（批次与明细落 `PENDING`，`succeeded_count` 恒 0，不写上游 `aap_channel_binding` / `aap_sync_task`） | 上游**执行器**（T-M4-08~11：限速 / 写后回读 / 单模型隔离与回滚的实际写入）尚未落地；R-58 明写「回读不一致不得静默成功」⇒ 用假计数或假装已执行才是更坏的缺陷。md §2.6 现状说明与测试断言都显式写明「受理 ≠ 已执行」 |
 
 ## 未决与下一步
 
-- 上一轮已完成：**T14 批次四 · 管理端供应商 / 凭证 / 报价对比**（R18，ADM-P01…03、ADM-C01/02、ADM-Q02，
-  **90/90 已注册，missing 0，全量 204 例全绿**）。
-- 下一轮：**T15 端到端验收与交付** —— 冻结清单已 100% 注册，覆盖门禁不再是红项；剩余工作转为
-  端到端联调（`aap-client` 指向本服务跑页面取数）、容器化交付与 `aap-server/README.md` 运行说明。
+- 已完成：**M4 段 · 供给单元 / 批量配置批次**（ADM-SU01~04、ADM-CB01~05）—— 冻结清单 **117/117 已注册，missing 0**；
+  覆盖门禁不再是红项，剩余工作转为端到端联调（`aap-client` / `aap-admin` 指向本服务取数）、
+  **上游执行器**（T-M4-08~11：限速 / 写后回读 / 单模型隔离与回滚）与容器化交付。
+- 下一轮：**上游执行器与端到端联调** —— `APPLY` 目前只登记 `PENDING`（D-ADM-09），真正的写入、限速与回读
+  需要消费 `aap_config_batch_item`（幂等键已落库、可重试/回滚的接口已就绪）。
+
+- **待拍板（R563 交付新增）**
+  1. **D-ADM-07 的后续**：`SUCCESS_STATUS` 目前只列了 4 条已交付的非 200 端点；若其他端点将来改成功码，
+     必须同步改 md 行（`spotcheck-success-shape` 的 A1c 会检查「非 200 成功码须在该端点 md 行声明」）。
+  2. **D-ADM-06 的核定**：`scope` 省略 = 全量未下线（不含 OFFLINE）是否符合运维预期？若产品要求「全量含 OFFLINE」或
+     「必须先显式选维度」，改一处 `resolveTargets` + 一条断言即可（口径已写进 md §2.6 与偏差表，定位无歧义）。
+  3. **执行器落地时的口径**：`PARTIAL` 批次里 `PENDING` 项与 `ROLLED_BACK` 项的重跑顺序、限速档位（R-57 ≤5 req/s）
+     由谁强制（服务端 or 执行器）—— 需与规格 FR-2.5 的「部分失败」语义对齐后再实现。
 
 - **待拍板（本轮新增）**
   1. **D-API-12**：对象存储签名/限时 URL 的接线方式（合同 PDF 与报告 PDF 是同一问题）。
