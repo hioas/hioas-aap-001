@@ -54,8 +54,12 @@ A24 相位与判据结果自洽（绿相位 ⇒ 已判 FAIL 条数 == 0）；A23
 `.gitignore` 覆盖 `.env` / `.env.*` / `target/` / `node_modules/`，被跟踪的 `.env` 类文件只有 `aap-server/.env.example`。
 ⑤ 多项目共存：未使用浏览器、未按镜像名杀进程、未触碰他方 worktree / CDP；提交一律按显式路径 `git add`（不 `git add -A`，历史 198）。
 ⑥ 常驻 aux 探针 `ledger-audit.py` 本轮读数：收尾前相位 **PASS 24 / FAIL 2**（两条 FAIL 均为**预期相位态**：A2b 台账末轮次行仍为 R603、A4d history 末条带戳行仍为 R603）——⑤ 收尾写入后复跑应达 **26/26**（见收尾留痕）。
-⑦ 本轮**未另写任何自撰判据脚本**：全部只读核对一律走**轮次无关常驻工具**（`analyze` / `regression` / `selftest-counts` / `device-report` / `independent` / `ledger-audit`）⇒ R591 那族「自撰探针判据失效」在本轮**不适用**；
-工作区外（`$TEMP`）本轮**未新增任何一次性脚本**（本轮全部读数均来自装置工具与 1 处只读 `jps -l -m` 终端查询，**均不落盘于仓库**，如实登记）。
+⑦ 本轮**装置链的全部只读核对**均走**轮次无关常驻工具**（`analyze` / `regression` / `selftest-counts` / `device-report` / `independent` / `ledger-audit`）；工作区外（Hermes scratch 目录，**不落盘于仓库、不参与任何判据与产物**）另有一次性自撰脚本（1 个飞书落盘追加器 ＋ 1 个要点只读预检 ＋ 若干台账行只读复核探针）。
+其中**3 处判据失效**（同族 = 自撰探针的解析/判读口径 ≠ 守卫口径；R591 那族「自撰探针判据失效」的活实例）：
+(a) 描述列长度读数 **修正前 = 6744 字符**（`str.splitlines()` ＋ `csv.reader` 的**列表式读法**：记录内嵌入换行被当成记录分隔而**静默丢弃**，实测该读法下嵌入换行数 = 0）→ **修正后 = 6805 字符**（规范读法 `csv.reader(io.StringIO(raw))`），与 ⑧ `final-check` 的 F5 读数**逐字符相等**；
+(b) 台账自洽式 **修正前 = False**（把「记录数 ＋ 记录内换行 ＋ 末尾换行」与 `raw.count` 的换行符字节计数相比 —— 后者按定义比前者少 1，两口径混用）→ **修正后 = True**（改用同一事实的规范口径 = 常驻探针的 `len(text.split)` 按换行符切分后的段数：685 ＋ 3877 ＋ 1 == 4563）。
+(c) 要点文本里反斜杠形态 **修正前 = 误判为「双反斜杠」**（按 `patch` 工具的 diff **显示层**判读，把回显里的转义当成文件字节）→ **修正后 = 单反斜杠**（字节级核验：反斜杠字符计数 = 每处 1 个；按显示层写出的修正器在锚点上**响亮失败且零写入**，正是历史 218「读取工具的渲染 ≠ 文件字节」的正例）。
+三处均按历史 74/76/46/218（判读 CSV 与自洽式一律用规范口径；0 命中 / 不一致先怀疑判据）定位到**探针自身**，零交付面与零装置面影响；上述 3 处属**只读自撰探针侧**判据修正 ⇒ 按历轮口径**不计入装置链返工真值**（与 R586–R593 的 aux 侧修正同档；历史 12/95 要求逐条写明「修正前读数 → 修正后读数」，以免自述与事实矛盾）。
 同族纪律留痕：该文件的计数**一律以字节级解析为准**（历史 70 的同族：MSYS grep 的多字节/量词行为不可信）。
 
 七、与上一轮（R603）的差异逐条：rc 变化 0 条；FAIL 明细 167→167（新增 0 / 消失 0）；tag 集合 84→84 一致；复跑条数 84→84；用例数 316→316、类数 51→51；
@@ -74,7 +78,7 @@ A24 相位与判据结果自洽（绿相位 ⇒ 已判 FAIL 条数 == 0）；A23
 
 九、本轮自评（据实登记，不改变返工真值 0 处）：① **收尾链提交切分维持 README 步⑥/⑦ 的「独立小提交」惯例**（R597 曾登记过合并偏离、R598 已恢复，R599–R604 沿用不变：⑥ 主提交落地核对 + 独立复核证据；⑦ 台账 c7 回填各自独立）。
 ② 常驻 aux 探针 `$TEMP/aap-aux/ledger-audit.py`（本轮 26 条判据）**仍不被仓库引用、也未归档**（机器取证：`git grep -rn ledger-audit -- tools/` = 0 条）⇒ `$TEMP` 一旦被清理，这 26 条判据将**静默消失**（历史 169/177/213 家族的活实例）。**沿用待办 ⑬，未擅自扩面**。
-③ 技能参考本轮**无新坑可归仓**（候选均被既有条目覆盖：解析器正向对照 = 46/75/98；证据自述与事实不符 = 12/95/218；跨运行时判可达性 = 240/251）。
+③ 技能参考本轮**无新坑可归仓**（候选逐条核对均被既有条目覆盖：CSV 列表式读法吞掉记录内嵌入换行 = references 74；解析器正向对照 = 46/75/98；证据自述与事实不符 = 12/95/218；跨运行时判可达性 = 240/251）。
 ------------------------------------------------------------------------------
 
 三、本轮关键读数（读自 analyze / regression 证据，零手写值）
@@ -86,26 +90,17 @@ A24 相位与判据结果自洽（绿相位 ⇒ 已判 FAIL 条数 == 0）；A23
 
 四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
-  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 12 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 17 == `git status` 条目 17
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 3 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 8 == `git status` 条目 8
       M README.md  mtime=2026-09-24 07:51:14
       M aap-server/pom.xml  mtime=2026-09-24 08:07:37
       M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
       M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
       ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
-      （本轮产物）?? .agents/state/evidence/audit-regression-R604-faildiff.txt  mtime=2026-09-29 07:06:53
-      （本轮产物）?? .agents/state/evidence/audit-regression-R604-failraw.txt  mtime=2026-09-29 07:06:53
-      （本轮产物）?? .agents/state/evidence/audit-regression-R604-rcseq.txt  mtime=2026-09-29 07:06:53
-      （本轮产物）?? .agents/state/evidence/audit-regression-R604.txt  mtime=2026-09-29 07:06:53
-      （本轮产物）?? .agents/state/evidence/device-selftest-counts-R604.txt  mtime=2026-09-29 07:07:09
-      （本轮产物）?? .agents/state/evidence/green-verify-R604-coverage-fields.txt  mtime=2026-09-29 07:02:04
-      （本轮产物）?? .agents/state/evidence/green-verify-R604-full-run1.txt  mtime=2026-09-29 07:02:04
-      （本轮产物）?? .agents/state/evidence/green-verify-R604-full-run2.txt  mtime=2026-09-29 07:02:04
-      （本轮产物）?? .agents/state/evidence/green-verify-R604-testcount.txt  mtime=2026-09-29 07:02:04
-      （本轮产物）?? .agents/state/evidence/green-verify-R604-tested-state.txt  mtime=2026-09-29 07:02:04
-      （本轮产物）?? .agents/state/evidence/regression-selftest-R604.txt  mtime=2026-09-29 07:07:03
-      （本轮产物）?? .agents/state/evidence/round-R604-analysis.txt  mtime=2026-09-29 07:02:04
+      （本轮产物）M .agents/state/aap-server-feature-status.csv  mtime=2026-09-29 07:10:52
+      （本轮产物）M .agents/state/aap-server-tdd-state.md  mtime=2026-09-29 07:10:52
+      （本轮产物）M .agents/state/evidence/device-round-R604.txt  mtime=2026-09-29 07:10:51
       其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
-  ③ 本轮提交（89fddfdb..HEAD）改动文件 = 0 个，其中位于交付面前缀的 = 0 个（**须 0**）
+  ③ 本轮提交（89fddfdb..HEAD）改动文件 = 20 个，其中位于交付面前缀的 = 0 个（**须 0**）
 
 五、下一族
   **无**（清单 117/117、missing=0）—— 本轮完成端点 0 条 / 新增用例 0 条、无红基线。
