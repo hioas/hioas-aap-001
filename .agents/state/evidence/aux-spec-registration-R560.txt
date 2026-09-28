@@ -1,0 +1,108 @@
+R560 aux 探针 v4：契约「登记滞后面」与控制端点 ID 词表冲突（**只读**；根 = E:\workspaces\hioas\hioas-aap-001）
+探针本体绝对路径 = C:\Users\laitz\AppData\Local\Temp\aap-r560-aux\spec-registration-dossier-v4.py（只存临时目录，未进仓库）
+第六处真源 = E:\workspaces\hioas\hioas-aap-001\specs\001-intake-automation\contracts\intake-automation.openapi.yaml（规格意图层；仓库内无任何审计/门禁读它）
+v1→v4 修正八处**探针侧**缺陷（都不是被测对象缺陷；skill 46/75/98「0/异常值先怀疑判据」）：
+    ① 同名 ID 期望值算错：不是 5 条而是 9 条（ADM-CFG01~05 冲突 + ADM-SU01~04 一致）⇒ spec 独有 24→20；
+    ② 错误码候选长度写死 7 ⇒ 6 字符的 `E-1601` 全被丢弃、报出 9 条 spec=[] 的**假漂移**；
+    ③ 只认 `request(` ⇒ 漏掉 `fetch(`${API_BASE}/files`)`（R559 留档 7 条里含它），调用点 52→53；
+    ④ 「`${` 处截断 + 补 `{}`」丢掉整段后缀（`/admin/contracts/${id}/issue` → `/admin/contracts/{}`）⇒ 27 条**假越界**；
+       改为每个 `${…}` 就地替换成 `{}`；
+    ⑤ 只在同行找 `method:` ⇒ `fetch(url, {` 换行写的 POST 被当成 GET（`POST /files` → `GET /files`）；
+    ⑥ D2 期望值随解析器修好而更正 7→5（v1 的 7 是坏解析器的产物）；
+    ⑦ 固定 ±3 行窗口串到**相邻调用**（`listVendors` 的 GET 被判成 `createVendor` 的 POST，实测 4 条错误归属）⇒ 改为按**括号深度**扫出整条调用（`call_span()`）；
+    ⑧ 含 `?` 的 `${…}` 是**查询片段**（`/admin/catalog/models${vendorId ? '?vendorId=…' : ''}`）⇒ 整段丢弃，不再留 `{}`。
+说明：本文件由探针自身以 newline=LF 落盘；探针本体只存临时目录，未进仓库（扩面须拍板）。
+======================================================================================================================
+--- A 正向对照（skill 46/75/98：先看解析到几条，再看是否全等）---
+[PASS] A0a spec 解析到 operation 数（> 0）：parsed=29
+[PASS] A0b endpoints.json 解析条数 == total：parsed=117 total=117
+[PASS] A0c md 冻结清单解析到行数（> 0）：parsed=109 行
+[PASS] A0d aap-admin 调用点解析到条数（`request` ∪ `fetch`）> 0：parsed=53 个（10 个 .ts；其中 fetch 直调 1 条）
+[PASS] A0e admin 调用点条数 == 53（与 R559 留档读数一致；跨轮第三方对照）：本轮 53 / R559 留档 53
+[PASS] A0f spec 每个 operation 都解析到端点 ID：带 ID 的 op=29 / op 总数=29
+[PASS] A0g spec 路径经同一 strip_prefix 归一后键唯一：keys=29 ops=29
+
+--- B spec（规格意图层）⇔ endpoints.json（登记真源）逐条 ---
+[PASS] B1 spec 的 29 条里已登记条数 == 9（ADM-SU01~04 + ADM-CB01~05）：已登记 9 条
+[PASS] B2 spec 未登记条数 == 20（登记滞后面）：未登记 20 条
+[PASS] B3 自证闭合：已登记 + 未登记 == spec 自述的 29 条：9 + 20 = 29；规格自述 108 → 137（+29），当前清单 total=117（= 108 + 9）
+  已登记逐条（spec ID / 方法 路径 / 清单 ID）：
+    ·  ADM-CFG02  GET /admin/config-batches                                      → 清单 ID ADM-CB02
+    ·  ADM-CFG03  GET /admin/config-batches/{}                                   → 清单 ID ADM-CB03
+    ·   ADM-SU01  GET /admin/supply-units                                        → 清单 ID ADM-SU01
+    ·   ADM-SU02  GET /admin/supply-units/{}                                     → 清单 ID ADM-SU02
+    ·  ADM-CFG01  POST /admin/config-batches                                     → 清单 ID ADM-CB01
+    ·  ADM-CFG04  POST /admin/config-batches/{}/items/{}/retry                   → 清单 ID ADM-CB04
+    ·  ADM-CFG05  POST /admin/config-batches/{}/items/{}/rollback                → 清单 ID ADM-CB05
+    ·   ADM-SU04  POST /admin/supply-units/{}/offline                            → 清单 ID ADM-SU04
+    ·   ADM-SU03  POST /admin/supply-units/{}/reconfigure                        → 清单 ID ADM-SU03
+  未登记逐条（按 tag，共 20 条）：
+    · [ChannelPrice] 3 条：
+        - ADM-CPR01 GET /admin/channel-prices
+        - ADM-CPR03 GET /admin/channel-prices/margin
+        - ADM-CPR02 GET /admin/channel-prices/{}/history
+    · [Guard] 4 条：
+        - ADM-AUT01 GET /admin/automation-assessments
+        - ADM-DRF01 GET /admin/price-drifts
+        - ADM-QF01 GET /admin/quality-feedback
+        - ADM-DRF02 POST /admin/price-drifts/{}/resolve
+    · [Intake] 3 条：
+        - ADM-INK01 GET /admin/intake-runs
+        - ADM-INK02 GET /admin/intake-runs/{}
+        - ADM-INK03 POST /admin/intake-runs/{}/resume
+    · [ModelPrice] 5 条：
+        - ADM-MDL01 GET /admin/model-catalog
+        - ADM-MDL03 GET /admin/model-prices
+        - ADM-MDL05 GET /admin/model-prices/{}/coverage
+        - ADM-MDL02 POST /admin/model-catalog
+        - ADM-MDL04 POST /admin/model-prices
+    · [ProviderSelf] 3 条：
+        - SET-MDL02 GET /provider/channel-prices
+        - SET-PRC01 GET /provider/price-drifts
+        - SET-MDL01 GET /provider/supply-units
+    · [Routing] 2 条：
+        - ADM-RTP01 GET /admin/routing-policies
+        - ADM-RTP02 PUT /admin/routing-policies/{}
+
+--- C 端点 ID 词表：spec ⇔ 冻结清单（同 ID 指向不同端点 = 契约一致性缺陷）---
+[PASS] C1 spec 与清单**同名 ID** 条数 == 9（ADM-CFG01~05 + ADM-SU01~04）：同名 9 条：['ADM-CFG01', 'ADM-CFG02', 'ADM-CFG03', 'ADM-CFG04', 'ADM-CFG05', 'ADM-SU01', 'ADM-SU02', 'ADM-SU03', 'ADM-SU04']
+[PASS] C2 其中「同 ID 指向**不同**端点」条数 == 5（ADM-CFG01~05；契约一致性缺陷，待拍板）：冲突 5 条 / 一致 4 条：['ADM-SU01', 'ADM-SU02', 'ADM-SU03', 'ADM-SU04']
+    · 冲突 ADM-CFG01：spec → POST /admin/config-batches；冻结清单 → GET /admin/detection-configs
+        冻结清单 md 行：GET /admin/detection-configs
+    · 冲突 ADM-CFG02：spec → GET /admin/config-batches；冻结清单 → POST /admin/detection-configs
+        冻结清单 md 行：POST /admin/detection-configs
+    · 冲突 ADM-CFG03：spec → GET /admin/config-batches/{}；冻结清单 → GET /admin/detection-configs/{}
+        冻结清单 md 行：GET /admin/detection-configs/{configId}
+    · 冲突 ADM-CFG04：spec → POST /admin/config-batches/{}/items/{}/retry；冻结清单 → PUT /admin/detection-configs/{}
+        冻结清单 md 行：PUT /admin/detection-configs/{configId}
+    · 冲突 ADM-CFG05：spec → POST /admin/config-batches/{}/items/{}/rollback；冻结清单 → POST /admin/detection-configs/{}/publish
+        冻结清单 md 行：POST /admin/detection-configs/{configId}/publish
+[PASS] C3 spec 独有 ID 条数 == 20（= 29 − 9 个同名）：20 条：['ADM-AUT01', 'ADM-CPR01', 'ADM-CPR02', 'ADM-CPR03', 'ADM-DRF01', 'ADM-DRF02', 'ADM-INK01', 'ADM-INK02', 'ADM-INK03', 'ADM-MDL01', 'ADM-MDL02', 'ADM-MDL03', 'ADM-MDL04', 'ADM-MDL05', 'ADM-QF01', 'ADM-RTP01', 'ADM-RTP02', 'SET-MDL01', 'SET-MDL02', 'SET-PRC01']
+[PASS] C4 清单侧 ADM-CFG01~10 全量存在（10 条，与检测配置/报告模板族绑定）：10 条：['ADM-CFG01', 'ADM-CFG02', 'ADM-CFG03', 'ADM-CFG04', 'ADM-CFG05', 'ADM-CFG06', 'ADM-CFG07', 'ADM-CFG08', 'ADM-CFG09', 'ADM-CFG10']
+[PASS] C5 aap-admin 词表（ADM-M01~M06，绑 /admin/catalog/*）vs spec（ADM-MDL01~05，绑 /admin/model-catalog）为同域两套词表（信息项）：admin 侧 ['ADM-M01', 'ADM-M02', 'ADM-M03', 'ADM-M04', 'ADM-M05', 'ADM-M06']；spec 侧 ['ADM-MDL01', 'ADM-MDL02', 'ADM-MDL03', 'ADM-MDL04', 'ADM-MDL05']
+
+--- D 已登记的 9 条：spec 与清单的**细节**漂移（查询参数 / 错误码）---
+    · ADM-CFG02（清单 ADM-CB02）查询参数漂移：spec=[] 清单=['page', 'pageSize', 'status']
+    · ADM-CFG03（清单 ADM-CB03）错误码漂移：spec=[] 清单=['E-1406']
+    · ADM-SU01（清单 ADM-SU01）查询参数漂移：spec=['providerId', 'modelName', 'status'] 清单=['modelName', 'page', 'pageSize', 'providerId', 'status']
+    · ADM-CFG04（清单 ADM-CB04）错误码漂移：spec=[] 清单=['E-1406', 'E-1601']
+    · ADM-CFG05（清单 ADM-CB05）错误码漂移：spec=[] 清单=['E-1406', 'E-1601']
+    · ADM-SU04（清单 ADM-SU04）错误码漂移：spec=['E-1601'] 清单=['E-1406', 'E-1601']
+    · ADM-SU03（清单 ADM-SU03）错误码漂移：spec=['E-1601'] 清单=['E-1406', 'E-1601']
+[PASS] D0 逐条比对真的执行了（比对条数 == 9）：比对 9 条
+[PASS] D0b spec 侧错误码解析器有牙齿（9 条里解析到码 > 0 条）：spec 侧解析到码的条数 = 4/9（v1 因长度写死 7 而全为 0 ⇒ 假漂移）
+    结论：查询参数漂移 2 条 = ['ADM-CFG02', 'ADM-SU01']；错误码漂移 5 条 = ['ADM-CFG03', 'ADM-CFG04', 'ADM-CFG05', 'ADM-SU04', 'ADM-SU03']
+    方向：两处漂移都是 **spec（意图层）缺、清单（登记真源）有** —— 规格自述「本文件不是实现真源」，故不构成实现缺陷；但「规格声明为分页列表却未声明 page/pageSize」属规格侧文档不完整（信息项）。
+[PASS] D1 查询参数漂移条数 == 2（ADM-SU01 / ADM-CFG02，均为「规格缺分页参数」）：漂移 2 条：['ADM-CFG02', 'ADM-SU01']
+[PASS] D2 错误码漂移条数 == 5（均为「规格未在 operation 块内列出 E-1406」）：漂移 5 条：['ADM-CFG03', 'ADM-CFG04', 'ADM-CFG05', 'ADM-SU04', 'ADM-SU03']
+
+--- E aap-admin 的「清单外」调用点归属（manifest / spec / 都没有）---
+[PASS] E1 admin 端「清单外」调用点条数 == 7（与 R559 F1 读数一致）：7 条：catalog.ts:123 GET /admin/catalog/vendors；catalog.ts:126 POST /admin/catalog/vendors；catalog.ts:129 GET /admin/catalog/models；catalog.ts:131 GET /admin/catalog/models/grouped；catalog.ts:134 POST /admin/catalog/models；catalog.ts:137 PUT /admin/catalog/models/{}；contracts.ts:224 POST /files
+[PASS] E2 其中在 spec（规格意图层）里有依据的条数 == 0（既非登记端点、也非规格端点）：spec 命中 0 条；两侧都没有 7 条
+[PASS] E3 admin 的 /admin/catalog/*（6 条）与 spec 的模型目录端点（/admin/model-catalog）**命名不同形**（信息项：同域两套路径词表）：admin 侧 6 条 catalog 调用点；spec 侧 ['GET /admin/model-catalog', 'POST /admin/model-catalog']
+
+--- F 只读保证 ---
+[PASS] F1 被读文件指纹零变化（零写副作用）：变化 0 个 无
+
+判据：PASS 23 / FAIL 0
+SPEC_REG_DOSSIER_END=1

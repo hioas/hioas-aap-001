@@ -1,0 +1,69 @@
+R560 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动三判据）
+==============================================================================
+生成方式：本文件由 `tools/round-verify/device-report.py` 从 git / facts / 证据的**真实输出**取值（数字零手写值），不接触交付面。
+轮次 = R560；被测提交（HEAD 的独立 worktree 内检出）= 5b5966c0；窗口 = 2026-09-28 14:00:00 -> 2026-09-28 14:05:27（facts 落盘）
+
+一、装置面改动（机器推导，零手写）
+  被测提交的 `tools/round-verify` 文件 = 14 个 / 工作区同名文件 = 14 个（新增 0 / 删除 0）
+  工作区未提交的 tools/ 条目 = 0 条（无）
+  「被测提交..HEAD」触及 tools/ 的提交 = 0 枚（本文件生成于主提交之前）
+  逐文件 numstat（工作区 vs HEAD，`插入/删除/路径`）：无
+  轮次无关性守卫：装置脚本（12 个 .py/.sh）内当前轮次号命中 = **0**（须 0
+    = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
+
+二、本轮返工真值 = **8 处**（零交付面影响；条目文本来自单一事实源 `round-note.md`，与台账描述列 / 状态文件小节共用）
+------------------------------------------------------------------------------
+本轮返工 8 处（**全部在 aux 探针侧**；零交付面改动 —— 未改 `aap-server` / `docs` / `aap-client` / `aap-admin` 任何一行；本轮装置面亦零改动；探针本体只存临时目录，绝对路径见证据文件表头）：
+① 同名 ID 期望值算错：spec 与清单的同名 ID 不是 5 条而是 **9 条**（`ADM-CFG01~05` 冲突 + `ADM-SU01~04` 一致）⇒ spec 独有 ID 由 24 更正为 **20**（历史 204：改的是判据，不是期望值；此处 v1 的期望值本身就是算错的）。
+② 错误码候选长度写死 7 字符 ⇒ 6 字符的 `E-1601` 被全部丢弃，一次报出 **9 条 spec=[] 的假漂移**（历史 46/91：`0 命中 / None` 一律先怀疑判据；修后 spec 侧 4/9 条解析到码）。
+③ 只认 `request(` 调用 ⇒ 漏掉 `fetch(`${API_BASE}/files`, …)`（R559 独立留档的 7 条越界里含它），调用点 52→**53**（历史 58：声明与调用同形、注释与直调都要认）。
+④ `$ {` 处截断 + 尾部补 `{}` 的归一写法会**丢掉 `${id}` 之后的整段路径后缀**（`/admin/contracts/${id}/issue` 被写成 `/admin/contracts/{}`）⇒ 一次报出 **27 条假越界**（历史 57：跨源比对必须走同一个归一函数）；改为把每个 `${…}` 就地替换成 `{}`。
+⑤ 只在**同行**找 `method:` ⇒ `fetch(url, {` 换行写的 POST 被判成 GET（`POST /files` → `GET /files`，历史 111/168：判据要对齐真实写法）。
+⑥ D2 期望值随 ② 的解析器修好而据实更正 7→5（v1 的「7」是坏解析器的产物，不是真值；历史 126：信息项/读数也要写清判据）。
+⑦ 修 ⑤ 时改用**固定 ±3 行窗口**，窗口**串到相邻调用**（`listVendors` 的 GET 被判成下一行 `createVendor` 的 POST，实测 4 条错误归属）⇒ 改为按**括号深度**扫出整条调用（`call_span()`；历史 81：判据范围必须与语义一致）。
+⑧ 含 `?` 的 `${…}` 是**查询片段**（`/admin/catalog/models${vendorId ? '?vendorId=…' : ''}`）⇒ 整段丢弃，不再留下 `{}` 尾巴（历史 44：同一函数内两种写法是漂移高发地）。
+本轮发现（**非返工**，登记项；逐条见 aux 证据文件）：
+ⓐ **契约「登记滞后面」首次量化（第六处真源 = 规格意图层 `specs/001-intake-automation/contracts/intake-automation.openapi.yaml`；仓库内**无任何审计/门禁读它**）**：规格层声明 **29** 条新增 operation，而登记真源 `endpoints.json` 只登记 **9** 条（`ADM-SU01~04` + `ADM-CB01~05`）⇒ **20 条未登记**（按 tag：ModelPrice 5 / Guard 4 / ChannelPrice 3 / Intake 3 / ProviderSelf 3 / Routing 2，逐条见 B 段）。规格自述「108 → 137（新增 29 条）」与现状 `total=117`（108 + 9）自证闭合（9 + 20 = 29）⇒ 契约终局目标是 **137 条**，作业背景里的「90 条」口径已被契约扩张取代（现行 total = 117）。
+ⓑ **端点 ID 词表冲突（契约一致性缺陷，待拍板 ㉗）**：规格层把 `ADM-CFG01`…`ADM-CFG05` 分配给**批量配置批次** 5 条新端点，而**冻结清单 / 生成器 / `aap-admin` 客户端三处**都把同一组 ID 绑在**检测配置** `/admin/detection-configs*`（T14 族，已实现；登记侧实际用的是 `ADM-CB01~05`）⇒ 同一 ID 指向两组不同端点，`@DisplayName("ADM-CFG03")`、ID→端点映射与「端点 ID 可追溯」判据全部二义（C2 五条逐条给出两侧端点）。
+ⓒ R559 的「12 条实现超发路由」**在规格层也无依据**（E2 = 0 条命中）：`aap-admin` 的 7 条清单外调用点在规格层同样零命中；而同域模型目录在规格层叫 `/admin/model-catalog`（`ADM-MDL01/02`）、在 admin 客户端叫 `/admin/catalog/models`（`ADM-M01~M06`）——**同域两套路径词表 + 两套 ID 词表**（C5/E3，信息项）。
+ⓓ 规格侧细节缺口（方向均为「规格缺、清单有」，规格自述非真源 ⇒ 不构成实现缺陷，信息项）：**2 条查询参数漂移**（`ADM-SU01` / `ADM-CFG02` 自述「分页列表」却未声明 `page`/`pageSize`）、**5 条错误码漂移**（`ADM-SU03/04`、`ADM-CFG03/04/05` 未在 operation 块内声明 `E-1406`）。
+ⓔ 探针经**第三方对照**验证：本轮 admin 调用点 53 条、清单外 **7** 条与 R559 **独立留档逐条一致**（6 条 catalog + `POST /files`）——这才是「真无越界」与「匹配器失效」的分界证据（历史 46/87）。
+ⓕ 沿用 R556–R559 的他方在途风险（`exec-maven-plugin` 无 skip 开关、交付态 yml 缺 `app.settlement.*` 声明、`coverage-report.json` 走 CRLF）——只登记、不代改。
+------------------------------------------------------------------------------
+
+三、本轮关键读数（读自 analyze / regression 证据，零手写值）
+  相位 = red（两轮 rc=1/1 ∧ missing=9 的合取，判据见 tools/round-verify/phase.py）
+  分析器判据 PASS 22 / FAIL 5；覆盖 total=117 implemented=108 **missing=9** registered_routes=125；连续全绿计数 = 0（**红相位**清零）
+  回归面：复跑 84 条（上一轮 R559 = 84 条）；rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 183 行
+  零写副作用：生成物 size+md5 变化 0 个（须 0）；跨轮 faildiff 上一轮 183 行 / 本轮 183 行、新增 0 / 消失 0
+  崩溃通道：rc!=0 条目 46 条，其中 FAIL 通道不可见（rc!=0 ∧ FAIL 0 行）= 3 条
+
+四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
+  ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 12 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 17 == `git status` 条目 17
+      M README.md  mtime=2026-09-24 07:51:14
+      M aap-server/pom.xml  mtime=2026-09-24 08:07:37
+      M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
+      M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
+      ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
+      （本轮产物）?? .agents/state/evidence/audit-regression-R560-faildiff.txt  mtime=2026-09-28 14:14:44
+      （本轮产物）?? .agents/state/evidence/audit-regression-R560-failraw.txt  mtime=2026-09-28 14:14:44
+      （本轮产物）?? .agents/state/evidence/audit-regression-R560-rcseq.txt  mtime=2026-09-28 14:14:44
+      （本轮产物）?? .agents/state/evidence/audit-regression-R560.txt  mtime=2026-09-28 14:14:44
+      （本轮产物）?? .agents/state/evidence/aux-spec-registration-R560.txt  mtime=2026-09-28 14:09:53
+      （本轮产物）?? .agents/state/evidence/red-verify-R560-coverage-fields.txt  mtime=2026-09-28 14:07:44
+      （本轮产物）?? .agents/state/evidence/red-verify-R560-full-run1.txt  mtime=2026-09-28 14:07:44
+      （本轮产物）?? .agents/state/evidence/red-verify-R560-full-run2.txt  mtime=2026-09-28 14:07:44
+      （本轮产物）?? .agents/state/evidence/red-verify-R560-testcount.txt  mtime=2026-09-28 14:07:44
+      （本轮产物）?? .agents/state/evidence/red-verify-R560-tested-state.txt  mtime=2026-09-28 14:07:44
+      （本轮产物）?? .agents/state/evidence/regression-selftest-R560.txt  mtime=2026-09-28 14:14:50
+      （本轮产物）?? .agents/state/evidence/round-R560-analysis.txt  mtime=2026-09-28 14:07:44
+      其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
+  ③ 本轮提交（5b5966c0..HEAD）改动文件 = 0 个，其中位于交付面前缀的 = 0 个（**须 0**）
+
+五、下一族
+  missing=9 > 0：按 docs/backend 的任务顺序推进下一族（本轮完成端点 0 条 / 新增用例 0 条）。
+
+六、留痕
+  本文件 = .agents/state/evidence/device-round-R560.txt（由本工具直接落盘，`newline="\n"`；文件名与 closeout.py 的消费名机器核对一致；行数下限判据与 CR=0 判据见下）
+DEVICE_REPORT_END=1
