@@ -1,0 +1,39 @@
+R556 辅助（aux）证据：audit-face-vs-head.py
+==============================================================================
+脚本绝对路径 = C:/Users/laitz/AppData/Local/Temp/aap-r556-aux/audit-face-vs-head.py（**一次性只读探针**：未纳入仓库、未进回归面；扩面/收编须人拍板，历史 169/177/216）
+方法 = 判别力实测：同一常驻审计（spotcheck-config）同一提交，仅换 --root（工作区 vs HEAD 临时检出）即从「0 条」变「3 条」⇒ 机器证明「审计判据面 = 工作区、交付态 = HEAD」的盲区
+落盘 = 本文件（newline=\n，零 CR）；由 closeout 的 EVLIST（目录内文件名含轮次号者）自动纳入证据列。
+------------------------------------------------------------------------------
+R556 aux-2：常驻审计「判据面 = 工作区」vs「交付态 = HEAD」盲区的判别力实测（只读 + 临时 worktree）
+==============================================================================
+工具 = spotcheck-config.py（仓库内归档副本：tools/regression/archive/spotcheck-config/；回归面 $TEMP 同一份）
+审计脚本存在 = True；仓库根 = E:\workspaces\hioas\hioas-aap-001
+机制取证 1：HEAD 的 application.yml 含 `  settlement:` 块 = False（须 False）；工作区含 = True（须 True）
+            HEAD 的 application.yml 字符数 = 2707（> 0 正向对照）
+机制取证 2：SettlementService 读取点 = ['app.settlement.amount-basis', 'app.settlement.cycle', 'app.settlement.fee-basis']（3 条）；javadoc 指向 application.yml = True
+
+A0a 工作区（--root = 仓库工作区）审计 rc = 1，输出 4050 字符（> 0 正向对照）
+A0b 临时 worktree HEAD 检出：rc=0，路径 = C:\Users\laitz\AppData\Local\Temp\aap-r556-headwt-1790569177
+A0c HEAD 检出（--root = 临时 worktree）审计 rc = 1，输出 4363 字符
+
+A1 工作区侧 A1b 里 app.settlement 类键 = []（须空集）
+A2 HEAD 检出侧 A1b 里 app.settlement 类键 = ['app.settlement.amount-basis', 'app.settlement.cycle', 'app.settlement.fee-basis']（须 = 三个读取点）
+A3 差集（HEAD 有 / 工作区无）= ['app.settlement.amount-basis', 'app.settlement.cycle', 'app.settlement.fee-basis']
+    ⇒ 判别力实测成立：同一工具、同一提交，仅换 --root 即从「0 条」变为「3 条」——
+      证明常驻审计的判据面是**工作区**，交付态（HEAD）缺失的配置声明**对它不可见**。
+
+A0d 正向对照：非 settlement 的 A1b 键 工作区 1 个 / HEAD 检出 1 个（须 > 0，证明解析器有效）
+
+A9 临时 worktree 回收 rc=0（须 0）；磁盘仍存在 = False（须 False）；git 登记残留 = False
+
+== 结论（据实） ==
+1) 交付态（HEAD）里 `app.settlement.{cycle,amount-basis,fee-basis}` **没有** yml 声明，只有内联默认；
+   而实现 javadoc 明写「见 application.yml 的 app.settlement.*」⇒ 交付态自述与事实不符（历史 12/95 文档侧）。
+2) 常驻配置审计 spotcheck-config 的 A1b **看不到**该缺失（它读工作区）⇒ 这是**审计面 vs 交付态**的盲区，
+   不是「谁忘了跑审计」。修法二选一（属归属方，本作业不代改他人在途文件）：
+   ① 把工作区那 3 个键补进 application.yml 并提交（与历史提交 7bd4c077「收拢工作区既有配置改动」同族做法）；
+   ② 或删掉 javadoc 里指向 yml 的那句（若确实只靠内联默认）。
+3) 风险分级：功能上无差异（内联默认与该块取值相同：MONTHLY / COST_USD / CONTRACT_RATE）⇒ **文档一致性项 +
+   运维锚点缺失项**，非线上故障级（历史 54 的分级纪律）。
+
+汇总：FAIL 合计 0 条

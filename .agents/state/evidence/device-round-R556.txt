@@ -1,0 +1,65 @@
+R556 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动三判据）
+==============================================================================
+生成方式：本文件由 `tools/round-verify/device-report.py` 从 git / facts / 证据的**真实输出**取值（数字零手写值），不接触交付面。
+轮次 = R556；被测提交（HEAD 的独立 worktree 内检出）= 875a2449；窗口 = 2026-09-28 12:05:29 -> 2026-09-28 12:10:38（facts 落盘）
+
+一、装置面改动（机器推导，零手写）
+  被测提交的 `tools/round-verify` 文件 = 14 个 / 工作区同名文件 = 14 个（新增 0 / 删除 0）
+  工作区未提交的 tools/ 条目 = 0 条（无）
+  「被测提交..HEAD」触及 tools/ 的提交 = 0 枚（本文件生成于主提交之前）
+  逐文件 numstat（工作区 vs HEAD，`插入/删除/路径`）：无
+  轮次无关性守卫：装置脚本（12 个 .py/.sh）内当前轮次号命中 = **0**（须 0
+    = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
+
+二、本轮返工真值 = **4 处**（零交付面影响；条目文本来自单一事实源 `round-note.md`，与台账描述列 / 状态文件小节共用）
+------------------------------------------------------------------------------
+本轮返工 4 处（辅助脚本/判据侧，**零交付面影响**：未改 aap-server / docs / aap-client 任何一行；三项 aux 探针本体的绝对路径见对应证据文件表头）：
+① aux「契约登记自洽性体检」首版**跨源比对未归一** ⇒ 一次性报出 18 条**假 FAIL**（生成器侧是大写 `GET` 且路径无 `/api/v1` 前缀，endpoints.json 侧是小写 `get` 且带前缀 —— 同一条事实两种写法，历史 57/89）。修法：两侧过同一个 `key()`（小写方法 + 剥前缀 + 路径变量折叠成 `{}`）；修后 C1 = 0 条。
+② 同一脚本的 C2 **判据范围与语义不符**（历史 81）：把 operation 块里所有 `- name:` 都当查询参数，而路径变量以 `in: path` 声明（`/admin/supply-units/{id}` → `- name: id`）⇒ 6 条假 FAIL（「生成器声明=[] / openapi=[id]」）。修法：只收 `in: query`；修后 C2 = 0 条。
+③ 同一脚本**脚本自身崩溃**：缺 `import sys` ⇒ 落盘那一步 `NameError`（历史 232/234 族：产物脚本在拼接/落盘行崩溃）。修法：补 import 并复跑；「崩溃是正确行为」（历史 175）—— 它把产物停在未覆盖状态而不是写出半截证据。
+④ 同一脚本的**判别力注入值写了旧值的超串**：`ADM-DET01` → `ADM-DET01X`，子串仍命中 ⇒ 注入「没改变语义」、对照空转（历史 90/94）。修法：注入值改为与旧值无包含关系的 `ADM-ZZZ99`，并断言「基线命中 > 0 ∧ 注入后命中 = 0」；由我自己的判别力断言当场抓出（历史 66 的正例）。
+（另有一处**写前自查**修正、不计入返工真值：aux-2 首版把「读工作区 yml 文本」误写为元组解包 ⇒ 机制取证会假失败，落盘前自查改掉。）
+本轮发现（**非返工**，均为登记项，逐条见 aux 证据文件）：
+ⓐ **契约扩张自洽性**（aux-contract-registration）：并行工作流「契约先红」登记的 9 条端点（ADM-SU01~04 / ADM-CB01~05）在生成器 PATHS / endpoints.json / 生成物 openapi / 规格自带契约**四处齐全且自洽**（C1 方法·路径·请求模型·响应模型 45 项字段 0 不一致；C2 查询参数 0 不一致；C4 security 0 缺失；C5 声明错误码 0 缺失），唯一真缺陷 = **C3 两条**（`ADM-SU01` / `ADM-CB02` 声明 `pageSize` 但响应未分页包装）——与常驻审计 `contract-keys` 的既有 FAIL **独立复现同一结论**（两套解析器同判 ⇒ 不是解析器伪影）。改法建议：改用**端点级** pageable 白名单（历史 78），注意 `supply-unit` / `config-batch` 两个模型同时被**非列表**端点复用（SU02/04、CB01/03/04/05）⇒ 模型级判据会过包。
+ⓑ **交付态配置声明缺失 + 审计面盲区**（aux-audit-face-vs-head）：`SettlementService`（提交 9d659840）三处 `@Value("${app.settlement.…}")` 的 javadoc 明写「见 application.yml 的 app.settlement.*」，而 **HEAD 的 application.yml 里没有该块**（只存在于自 2026-09-25 起未提交的工作区）⇒ 交付态自述与事实不符（历史 12/95）。常驻配置审计 `spotcheck-config` 的 A1b **看不见**它：同一工具、同一提交、仅换 `--root`（工作区 vs HEAD 临时检出）即从 **0 条变 3 条**（判别力实测，含 worktree 回收核验）⇒ **「审计判据面 = 工作区」而「交付态 = HEAD」**是结构性盲区。修法二选一（属归属方，本作业不代改他人在途文件）：把 3 个键补进 application.yml 并提交（同族先例提交 7bd4c077「收拢工作区既有配置改动」），或删掉 javadoc 的指向。风险分级：内联默认与该块取值相同（MONTHLY / COST_USD / CONTRACT_RATE）⇒ **文档一致性项 + 运维锚点缺失项**，非线上故障级（历史 54）。
+ⓒ **崩溃通道内容变化的根因 = 本作业自己的 aux 脚本名**（aux-crashchan-rootcause）：本轮回归面报「崩溃通道内容变化 1 条（`gap-coverage-gap`，sha256 977222fe→4bad9ac9，rc 与 FAIL 明细都看不见）」。机器定位：被审计脚本枚举 `$TEMP/aap-r*` 下文件名含 `spotcheck|audit` 的 .py 作为候选，再与**固定 R157 留档**作差；本轮新增 `aap-r556-aux/audit-face-vs-head.py`（文件名含 `audit`）使差集扩大 ⇒ 断言消息变化（剔除该项后 Δ=1，反向对照成立）。⇒ 两处装置侧结论：**(i)** 该通道判据**工作机制有效**（它看见了 rc 与 FAIL 明细都看不见的变化），但其判据面含 `$TEMP` **即时内容** ⇒ 任何人放一个临时脚本都会改变该 hash（噪声源，建议把「仅本轮 [列表]」归一为「仅本轮计数 = N」并补两条判别力自测）；**(ii)** 该条目是 R158 的**一次性判据**（与固定留档比对），自 R158 起恒红且消息逐轮增长（本轮「仅本轮有」已达 173 条）⇒ 属「一次性判据长期留在回归面」的噪声源，宜改判「相对上一轮的差集增量」或按拍板移除。本轮**不顺手改装置侧判据**（改判据须配判别力自测，历史 32/75/98；且 README 明写扩面/收窄须人拍板）。
+------------------------------------------------------------------------------
+
+三、本轮关键读数（读自 analyze / regression 证据，零手写值）
+  相位 = red（两轮 rc=1/1 ∧ missing=9 的合取，判据见 tools/round-verify/phase.py）
+  分析器判据 PASS 22 / FAIL 5；覆盖 total=117 implemented=108 **missing=9** registered_routes=125；连续全绿计数 = 0（**红相位**清零）
+  回归面：复跑 84 条（上一轮 R555 = 84 条）；rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 183 行
+  零写副作用：生成物 size+md5 变化 0 个（须 0）；跨轮 faildiff 上一轮 183 行 / 本轮 183 行、新增 0 / 消失 0
+  崩溃通道：rc!=0 条目 46 条，其中 FAIL 通道不可见（rc!=0 ∧ FAIL 0 行）= 3 条
+
+四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
+  ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 14 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 19 == `git status` 条目 19
+      M README.md  mtime=2026-09-24 07:51:14
+      M aap-server/pom.xml  mtime=2026-09-24 08:07:37
+      M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
+      M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
+      ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
+      （本轮产物）?? .agents/state/evidence/audit-regression-R556-faildiff.txt  mtime=2026-09-28 12:18:06
+      （本轮产物）?? .agents/state/evidence/audit-regression-R556-failraw.txt  mtime=2026-09-28 12:18:06
+      （本轮产物）?? .agents/state/evidence/audit-regression-R556-rcseq.txt  mtime=2026-09-28 12:18:06
+      （本轮产物）?? .agents/state/evidence/audit-regression-R556.txt  mtime=2026-09-28 12:18:06
+      （本轮产物）?? .agents/state/evidence/aux-audit-face-vs-head-R556.txt  mtime=2026-09-28 12:20:19
+      （本轮产物）?? .agents/state/evidence/aux-contract-registration-R556.txt  mtime=2026-09-28 12:20:19
+      （本轮产物）?? .agents/state/evidence/aux-crashchan-rootcause-R556.txt  mtime=2026-09-28 12:20:19
+      （本轮产物）?? .agents/state/evidence/red-verify-R556-coverage-fields.txt  mtime=2026-09-28 12:13:23
+      （本轮产物）?? .agents/state/evidence/red-verify-R556-full-run1.txt  mtime=2026-09-28 12:13:23
+      （本轮产物）?? .agents/state/evidence/red-verify-R556-full-run2.txt  mtime=2026-09-28 12:13:23
+      （本轮产物）?? .agents/state/evidence/red-verify-R556-testcount.txt  mtime=2026-09-28 12:13:23
+      （本轮产物）?? .agents/state/evidence/red-verify-R556-tested-state.txt  mtime=2026-09-28 12:13:23
+      （本轮产物）?? .agents/state/evidence/regression-selftest-R556.txt  mtime=2026-09-28 12:19:35
+      （本轮产物）?? .agents/state/evidence/round-R556-analysis.txt  mtime=2026-09-28 12:13:23
+      其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
+  ③ 本轮提交（875a2449..HEAD）改动文件 = 0 个，其中位于交付面前缀的 = 0 个（**须 0**）
+
+五、下一族
+  missing=9 > 0：按 docs/backend 的任务顺序推进下一族（本轮完成端点 0 条 / 新增用例 0 条）。
+
+六、留痕
+  本文件 = .agents/state/evidence/device-round-R556.txt（由本工具直接落盘，`newline="\n"`；文件名与 closeout.py 的消费名机器核对一致；行数下限判据与 CR=0 判据见下）
+DEVICE_REPORT_END=1

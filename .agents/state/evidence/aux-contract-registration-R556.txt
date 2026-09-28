@@ -1,0 +1,50 @@
+R556 辅助（aux）证据：contract-registration-check.py
+==============================================================================
+脚本绝对路径 = C:/Users/laitz/AppData/Local/Temp/aap-r556-aux/contract-registration-check.py（**一次性只读探针**：未纳入仓库、未进回归面；扩面/收编须人拍板，历史 169/177/216）
+方法 = 只读跨源比对：并行工作流「契约先红」登记的 9 条端点（ADM-SU01~04 / ADM-CB01~05）在生成器 PATHS / endpoints.json / 生成物 openapi / 规格自带契约 / md 冻结清单五处的自洽性（含 3 条判别力实测与解析器正向对照）
+落盘 = 本文件（newline=\n，零 CR）；由 closeout 的 EVLIST（目录内文件名含轮次号者）自动纳入证据列。
+------------------------------------------------------------------------------
+A0a 生成器 PATHS 解析到 9 / 9 条（> 0 正向对照）
+A0b endpoints.json 共 117 条（顶层 total=117）/ 9 目标命中 9 条（> 0 正向对照）
+A0c openapi.yaml 读取 153940 字符（> 0 正向对照）
+
+ID        | 方法    | 路径                                                 | gen | eps | oapi | spec | md
+ADM-SU01  | get   | /admin/supply-units                                | 有  | 有   | 有    | 有    | 0
+ADM-SU02  | get   | /admin/supply-units/{}                             | 有  | 有   | 有    | 有    | 0
+ADM-SU03  | post  | /admin/supply-units/{}/reconfigure                 | 有  | 有   | 有    | 有    | 0
+ADM-SU04  | post  | /admin/supply-units/{}/offline                     | 有  | 有   | 有    | 有    | 0
+ADM-CB01  | post  | /admin/config-batches                              | 有  | 有   | 有    | 有    | 0
+ADM-CB02  | get   | /admin/config-batches                              | 有  | 有   | 有    | 有    | 0
+ADM-CB03  | get   | /admin/config-batches/{}                           | 有  | 有   | 有    | 有    | 0
+ADM-CB04  | post  | /admin/config-batches/{}/items/{}/retry            | 有  | 有   | 有    | 有    | 0
+ADM-CB05  | post  | /admin/config-batches/{}/items/{}/rollback         | 有  | 有   | 有    | 有    | 0
+
+== 一致性判据 ==
+C1 生成器 PATHS ⇔ endpoints.json（归一后逐字段）：不一致 0 条
+C2 query 参数集合（仅 in: query）：不一致 0 条
+C3 声明 pageSize 的端点必须分页包装：声明 2 条 / 漏包装 2 条
+    [FAIL] C3 ADM-SU01 声明 pageSize 但该 operation 响应块未见分页包装
+    [FAIL] C3 ADM-CB02 声明 pageSize 但该 operation 响应块未见分页包装
+C4 security 声明缺失 0 条
+C5 声明错误码逐条出现在 openapi operation：缺失 0 条
+
+== 判据正向对照（每个解析器都要给出 > 0 / 反向对照） ==
+  C1 逐字段三元组解析到 45 条（> 0）；C2 `in: query` 参数解析到 8 条（> 0，须 > 0 否则判据空转）；
+  C3 解析到声明 pageSize 的端点 2 条（> 0）；C4/C5 解析到 9 条操作块
+  空夹具/异常输入反向对照：不存在的路径 `/admin/__nope` → oapi_block 返回 None（须 None）
+  md 源正向对照：md 全文里已实现端点 ID（如 ADM-DET01）命中 3 次（须 > 0，证明 md 解析器不是空转）
+
+== 判别力实测（注入缺陷 → 断言**恰好**新增目标 FAIL；历史 66/82/90/94） ==
+  [PASS] 注入 1（生成器加虚假查询参数 ghostParam） —— 新增 1 条：["C2 ADM-SU02 生成器声明=['ghostParam'] / openapi(in:query) 实际=[]"]
+  [PASS] 注入 2（把 md 里 ADM-DET01 改成无包含关系的 ADM-ZZZ99） —— 基线命中 3（须 > 0）/ 注入后命中 0（须 0）
+  [PASS] 反向对照（基线与注入值无包含关系） —— 基线 0 条
+
+== 归属与阻断（据实） ==
+1) 9 条端点的契约真源齐全（机器清单 / 生成器 PATHS / 生成物 openapi / specs 自带契约四处同源），
+   但**人类可读冻结清单 md 零命中** ⇒ 硬规则 1「先改清单再改代码」→ 本作业不实现（待拍板 ㉑ 未拍板）。
+2) md ⇔ 机器清单差集 = 9 条，已由常驻审计 error-codes A8 每轮点名（**已登记漂移**，非新发现）。
+3) 归属冲突（机器可查）：`specs/001-intake-automation/tasks.md` 的 T-M4-07~12 明确覆盖
+   「编排器 / 限速 / 回读 / 单模型回滚 / dry-run / 契约端点」，状态 = ⏳ 未开始；
+   本作业抢先实现会让同一路径出现两个控制器 → Spring 启动即 Ambiguous mapping ⇒ 只能由归属方实现。
+
+汇总：一致性 FAIL 合计 2 条
