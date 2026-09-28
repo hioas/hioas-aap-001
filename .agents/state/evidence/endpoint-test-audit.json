@@ -1,17 +1,13 @@
 {
   "total": 117,
-  "exact": 108,
+  "exact": 112,
   "prefix": 0,
-  "none": 9,
-  "id_traceable": 108,
-  "id_traceable_literal_only": 89,
+  "none": 5,
+  "id_traceable": 112,
+  "id_traceable_literal_only": 93,
   "id_grouped_only": 19,
-  "id_traceable_same_file_as_call": 107,
+  "id_traceable_same_file_as_call": 111,
   "id_not_traceable": [
-    "ADM-SU01",
-    "ADM-SU02",
-    "ADM-SU03",
-    "ADM-SU04",
     "ADM-CB01",
     "ADM-CB02",
     "ADM-CB03",
@@ -20,10 +16,6 @@
   ],
   "id_not_traceable_same_file_as_call": [
     "ADM-AUTH01",
-    "ADM-SU01",
-    "ADM-SU02",
-    "ADM-SU03",
-    "ADM-SU04",
     "ADM-CB01",
     "ADM-CB02",
     "ADM-CB03",
@@ -31,10 +23,6 @@
     "ADM-CB05"
   ],
   "none_ids": [
-    "ADM-SU01",
-    "ADM-SU02",
-    "ADM-SU03",
-    "ADM-SU04",
     "ADM-CB01",
     "ADM-CB02",
     "ADM-CB03",
@@ -60,7 +48,7 @@
         "aap-server/src/test/java/com/hioas/aap/iam/AuthContractTest.java"
       ],
       "id_grouped_only": false,
-      "exact_sites": 39,
+      "exact_sites": 40,
       "prefix_sites": 0,
       "exact_sample": [
         {
@@ -91,7 +79,7 @@
       ],
       "id_refs_literal": [],
       "id_grouped_only": true,
-      "exact_sites": 34,
+      "exact_sites": 35,
       "prefix_sites": 0,
       "exact_sample": [
         {
@@ -4403,7 +4391,7 @@
         "aap-server/src/test/java/com/hioas/aap/support/NotificationContractTest.java"
       ],
       "id_grouped_only": false,
-      "exact_sites": 21,
+      "exact_sites": 23,
       "prefix_sites": 0,
       "exact_sample": [
         {
@@ -4425,14 +4413,31 @@
       "path": "/api/v1/admin/supply-units",
       "task": "",
       "tag": "Admin",
-      "evidence": "none",
-      "id_refs": [],
-      "id_refs_with_call": [],
-      "id_refs_literal": [],
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java"
+      ],
       "id_grouped_only": false,
-      "exact_sites": 0,
+      "exact_sites": 12,
       "prefix_sites": 0,
-      "exact_sample": [],
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java",
+          "line": "HttpResult list = get(\"/admin/supply-units\", techOps);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java",
+          "line": "HttpResult byProvider = get(\"/admin/supply-units?providerId=820001\", techOps);",
+          "helper": "get"
+        }
+      ],
       "prefix_sample": []
     },
     {
@@ -4441,15 +4446,43 @@
       "path": "/api/v1/admin/supply-units/{id}",
       "task": "",
       "tag": "Admin",
-      "evidence": "none",
-      "id_refs": [],
-      "id_refs_with_call": [],
-      "id_refs_literal": [],
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java"
+      ],
       "id_grouped_only": false,
-      "exact_sites": 0,
-      "prefix_sites": 0,
-      "exact_sample": [],
-      "prefix_sample": []
+      "exact_sites": 5,
+      "prefix_sites": 20,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/supply-units/830001\", techOps);",
+          "helper": "get"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java",
+          "line": "HttpResult missing = get(\"/admin/supply-units/999999\", techOps);",
+          "helper": "get"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/supply-units/830001\", techOps);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java",
+          "line": "HttpResult missing = get(\"/admin/supply-units/999999\", techOps);",
+          "helper": null
+        }
+      ]
     },
     {
       "id": "ADM-SU03",
@@ -4457,15 +4490,43 @@
       "path": "/api/v1/admin/supply-units/{id}/reconfigure",
       "task": "",
       "tag": "Admin",
-      "evidence": "none",
-      "id_refs": [],
-      "id_refs_with_call": [],
-      "id_refs_literal": [],
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java"
+      ],
       "id_grouped_only": false,
-      "exact_sites": 0,
-      "prefix_sites": 0,
-      "exact_sample": [],
-      "prefix_sample": []
+      "exact_sites": 6,
+      "prefix_sites": 20,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java",
+          "line": "HttpResult dry = post(\"/admin/supply-units/830001/reconfigure\", null, techOps);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java",
+          "line": "HttpResult apply = post(\"/admin/supply-units/830001/reconfigure\", \"\"\"",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/supply-units/830001\", techOps);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java",
+          "line": "HttpResult missing = get(\"/admin/supply-units/999999\", techOps);",
+          "helper": null
+        }
+      ]
     },
     {
       "id": "ADM-SU04",
@@ -4473,15 +4534,43 @@
       "path": "/api/v1/admin/supply-units/{id}/offline",
       "task": "",
       "tag": "Admin",
-      "evidence": "none",
-      "id_refs": [],
-      "id_refs_with_call": [],
-      "id_refs_literal": [],
+      "evidence": "exact",
+      "id_refs": [
+        "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java"
+      ],
+      "id_refs_with_call": [
+        "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java"
+      ],
+      "id_refs_literal": [
+        "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java"
+      ],
       "id_grouped_only": false,
-      "exact_sites": 0,
-      "prefix_sites": 0,
-      "exact_sample": [],
-      "prefix_sample": []
+      "exact_sites": 9,
+      "prefix_sites": 20,
+      "exact_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java",
+          "line": "HttpResult blocked = post(\"/admin/supply-units/830002/offline\", null, techOps);",
+          "helper": "post"
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java",
+          "line": "HttpResult already = post(\"/admin/supply-units/830003/offline\", null, techOps);",
+          "helper": "post"
+        }
+      ],
+      "prefix_sample": [
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java",
+          "line": "HttpResult detail = get(\"/admin/supply-units/830001\", techOps);",
+          "helper": null
+        },
+        {
+          "file": "aap-server/src/test/java/com/hioas/aap/supply/SupplyUnitAdminContractTest.java",
+          "line": "HttpResult missing = get(\"/admin/supply-units/999999\", techOps);",
+          "helper": null
+        }
+      ]
     },
     {
       "id": "ADM-CB01",

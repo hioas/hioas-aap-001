@@ -1,20 +1,16 @@
 端点「真实 HTTP 用例」可追溯性审计（只读）
 清单：docs/backend/endpoints.json（117 条）
-测试源：aap-server/src/test/java（55 个 .java 文件）
+测试源：aap-server/src/test/java（56 个 .java 文件）
 
-exact （路径骨架 + 方法都吻合的真实 HTTP 调用点）：108
+exact （路径骨架 + 方法都吻合的真实 HTTP 调用点）：112
 prefix（路径命中但方法不吻合 / 仅静态前缀，弱证据）：0
-none  （无任何调用点 —— 真发现）            ：9
-端点 ID 在测试源里可追溯（含组合引用展开）  ：108/117
-  其中仅裸字面量可追溯                      ：89/117
+none  （无任何调用点 —— 真发现）            ：5
+端点 ID 在测试源里可追溯（含组合引用展开）  ：112/117
+  其中仅裸字面量可追溯                      ：93/117
   靠组合引用（`A-05/06`、`A-01…05`）才算命中  ：19
-ID 引用与真实 HTTP 调用点同文件（更严一档）  ：107/117
+ID 引用与真实 HTTP 调用点同文件（更严一档）  ：111/117
 
 == none 明细（只有路由注册，未找到真实 HTTP 用例）==
-  ADM-SU01   GET    /api/v1/admin/supply-units                       task= id_refs=0
-  ADM-SU02   GET    /api/v1/admin/supply-units/{id}                  task= id_refs=0
-  ADM-SU03   POST   /api/v1/admin/supply-units/{id}/reconfigure      task= id_refs=0
-  ADM-SU04   POST   /api/v1/admin/supply-units/{id}/offline          task= id_refs=0
   ADM-CB01   POST   /api/v1/admin/config-batches                     task= id_refs=0
   ADM-CB02   GET    /api/v1/admin/config-batches                     task= id_refs=0
   ADM-CB03   GET    /api/v1/admin/config-batches/{batchId}           task= id_refs=0
@@ -22,8 +18,8 @@ ID 引用与真实 HTTP 调用点同文件（更严一档）  ：107/117
   ADM-CB05   POST   /api/v1/admin/config-batches/{batchId}/items/{itemId}/rollback task= id_refs=0
 
 == 测试源里未出现端点 ID 的端点（可追溯性缺口，不影响「有用例」判定）==
-  ADM-SU01, ADM-SU02, ADM-SU03, ADM-SU04, ADM-CB01, ADM-CB02, ADM-CB03, ADM-CB04, ADM-CB05
+  ADM-CB01, ADM-CB02, ADM-CB03, ADM-CB04, ADM-CB05
 
 == ID 引用与真实 HTTP 调用点**不同文件**的端点（弱可追溯）==
-  ADM-AUTH01, ADM-SU01, ADM-SU02, ADM-SU03, ADM-SU04, ADM-CB01, ADM-CB02, ADM-CB03, ADM-CB04, ADM-CB05
+  ADM-AUTH01, ADM-CB01, ADM-CB02, ADM-CB03, ADM-CB04, ADM-CB05
 
