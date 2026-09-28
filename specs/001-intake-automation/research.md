@@ -141,7 +141,7 @@ cache token 字段，在 `Other` JSON 内）。本特性**不推翻**这些结�
 | --- | --- | --- | --- |
 | T-1 | ~~`mode: "batch"` 的请求体确切形状与响应~~ | ~~批量建渠道的实现~~ | ✅ **已完成（源码级）**：`channel` 为单对象；`batch` 按 key 拆分建多条渠道（非按模型）。结论见 §2.5 与 DR-04/DR-04a。**推论**：多渠道创建无原生批接口，必须逐条 + 限速 |
 | T-2 | `/api/option/model_pricing` 与 `billing_setting.billing_expr` 的关系（并存还是替代） | 定价写入路径选择 | 读 `controller/option.go` + 实测 PATCH 后读回 |
-| T-3 | 多 Key 模式下 `multi_key_mode` 的取值与轮询语义；key 更新是否影响已在跑的请求 | DR-06 的可行性 | 源码 `constant.MultiKeyMode` + 实测 |
+| T-3 | ~~多 Key 模式取值与轮询语义~~ | ~~DR-06 可行性~~ | ✅ **已完成（源码级）**：`constant/multi_key_mode.go` 仅两个取值 —— `random`（随机）与 `polling`（轮询）→ **DR-06 可行**：多 key 用 `mode: multi_to_single` + `multi_key_mode: polling\|random` 挂到**同一条渠道**。**遗留**：key 更新对在跑请求的影响未实测（低风险，记入 M4 后续） |
 | T-4 | 渠道 `name` 长度上限与字符集限制（模型名可能很长/含特殊字符） | 命名规则 DR-02 的边界 | 实测超长/特殊字符写入 |
 | T-5 | 单位模型渠道的调度开销（渠道数 M×N 到千级时 new-api 的路由与列表性能） | 是否需要对长尾模型合并（DR-03 阈值） | 压测：造 500/1000 条渠道，测路由 P95 与列表加载 |
 

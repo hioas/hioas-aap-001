@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * T02 · 数据库迁移测试（`docs/backend/01-ER数据模型.md` 的 54 张表必须真的建出来）。
+ * T02 · 数据库迁移测试（`docs/backend/01-ER数据模型.md` §3 的表清单必须真的建出来）。
  */
 class MigrationTest extends DbTestBase {
 
@@ -44,6 +44,8 @@ class MigrationTest extends DbTestBase {
             "aap_newapi_endpoint", "aap_channel_binding", "aap_sync_task", "aap_sync_operation", "aap_sync_log",
             // catalog（V9：模型目录 —— 管理端 page-3/3.1/3.2；H5 凭证页模型下拉的数据源）
             "aap_vendor", "aap_model",
+            // supply（V15：供给单元 = 模型 × 供应商 —— 一模型一渠道的聚合根）
+            "aap_supply_unit",
             // usage
             "aap_usage_hourly", "aap_usage_sync_cursor",
             // support
@@ -53,7 +55,7 @@ class MigrationTest extends DbTestBase {
     private Flyway flyway;
 
     @Test
-    @DisplayName("54 张 ER 表全部存在（与 docs/backend/01-ER数据模型.md §3 逐条一致）")
+    @DisplayName("57 张 ER 表全部存在（与 docs/backend/01-ER数据模型.md §3 逐条一致）")
     void allErTablesExist() {
         // 排除分区子表（如 aap_usage_hourly_default）：那些是分区实现细节，不是业务表
         List<String> actual = jdbc.queryForList("""
@@ -66,7 +68,7 @@ class MigrationTest extends DbTestBase {
         assertThat(actual)
                 .as("ER 文档表清单与迁移结果必须一致（缺表或多余表都要红）")
                 .containsExactlyInAnyOrderElementsOf(EXPECTED_TABLES);
-        assertThat(EXPECTED_TABLES).hasSize(56);
+        assertThat(EXPECTED_TABLES).hasSize(57);
     }
 
     @Test

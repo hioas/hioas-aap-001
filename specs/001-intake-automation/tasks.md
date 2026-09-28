@@ -63,6 +63,30 @@
 
 ---
 
+## 执行状态（2026-09-28 · 第一批）
+
+| 任务 | 状态 | 证据 |
+| --- | --- | --- |
+| T-M4-01 网关批量模式实测 | ✅ 完成（**源码级**） | `controller/channel.go` 710–716 + `switch Mode`：`channel` 是**单对象**，`mode: "batch"` 按 **key** 拆分建多条渠道（不是按模型）→ **DR-04 据实更正**为「逐条 single + 限速」，新增 **DR-04a**（`multi_to_single` 多 key 挂同一渠道）。见 `research.md` §2.5 |
+| T-M4-03 V15 迁移 | ✅ 完成 | test 库 `flyway_schema_history` = `15 \| supply unit and channel granularity \| t`；`aap_supply_unit` 存在；`MigrationTest` 逐条比对通过（57 = 57） |
+| T-M4-04 供给单元状态机 | ✅ 红 9/9 → 绿 9/9 | `evidence/{red,green}-SupplyUnitStatus.txt` |
+| T-M4-05 渠道命名器 | ✅ 红 11/11 → 绿 11/11 | `evidence/{red,green}-ChannelNameGenerator.txt` |
+| T-M4-06 渠道配置校验器 | ✅ 红 11/11 → 绿 11/11 | `evidence/{red,green}-ChannelConfigValidator.txt` |
+| T-M4-02 多 Key 语义 | ⏳ 部分 | 源码已确认 `ChannelInfo.IsMultiKey/MultiKeySize/MultiKeyMode`；`constant.MultiKeyMode` 取值待读 |
+| T-M4-07 ~ T-M4-12 | ⏳ 未开始 | 编排器 / 限速 / 回读 / 单模型回滚 / dry-run / 契约端点 |
+
+**本批新增测试 31 例**（9 + 11 + 11），后端全量由 263 → **294**。
+
+**过程中被门禁拦下一次**（值得记录）：新增 `aap_supply_unit` 后 `MigrationTest` 立刻转红，
+报「ER 文档表清单与迁移结果必须一致」。定位后确认是**双重门禁**：
+`containsExactlyInAnyOrderElementsOf`（内容逐条比对，已通过）**与** `hasSize(56)`（数量锁定）——
+后者需同步为 57。修法是**同步文档与数字**（`01-ER数据模型.md` §3 加表 + 变更记录），
+**不是放宽断言**（宪法 D-04）。
+
+**另一处据实更正**：`MigrationTest` 的 DisplayName 原写「54 张」而清单实为 56 条，
+`01-ER数据模型.md` 标题写「56 张」——历史口径本就不一致；本次按**实际条数**统一为 57，
+并在 ER 文档变更记录中注明未追溯改写历史数字。
+
 ## 统计与纪律
 
 | 里程碑 | 任务数 |
