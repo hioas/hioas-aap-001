@@ -1,0 +1,54 @@
+R558 辅助（aux）证据②：测试源 HTTP 调用点的**反向**覆盖（清单外调用点体检，只读）
+==============================================================================
+脚本绝对路径 = C:/Users/laitz/AppData/Local/Temp/aap-r558-aux/reverse-call-sites.py（一次性**只读**探针；未纳入仓库、未进回归面）
+要回答的问题 = 既有 `audit-endpoint-tests.py` 是**清单 → 测试源**（正向）；**反向**从未审计：
+        测试源里的调用点有多少**不在冻结清单**？（覆盖门禁只读 Spring 注册表、契约测试只读 JSON Schema ⇒ 两套门禁都看不见）
+判据 = 复用**同一个** audit-endpoint-tests 解析器（HTTP_CALL / is_code / skeleton_regex / variants，历史 57：跨源必须走同一归一函数）；
+        分档 unexplained（真发现候选）/ neg-404（有意负向用例：404 断言必须落在**同一调用链的下一句**且出现本调用点的接收变量名）。
+落盘 = 本文件（newline="\n"，零 CR）
+------------------------------------------------------------------------------
+
+[探针自测（判别力实测，合成夹具）]
+------------------------------------------------------------------------------
+[PASS] S1 调用点行定位（注释行不算调用点；实测 3 行）
+[PASS] S2 命中清单的行 = 1（实测 1）
+[PASS] S3 清单外行分档（实测 ['neg-404', 'unexplained']）
+[PASS] S4 unexplained 恰好 1 条（真发现候选不得被 404 档吞掉）
+[PASS] S5 空测试目录 ⇒ 0 调用点（不得空转出条目）
+[PASS] S6 骨架集合非空（正向对照，实测 2 条）
+------------------------------------------------------------------------------
+自测：PASS 6 PASS / 0 FAIL
+
+[探针真实运行（只读）]
+------------------------------------------------------------------------------
+R558 aux 探针②：测试源 HTTP 调用点的「反向」覆盖（清单外调用点体检，只读）
+==============================================================================
+仓库根 = E:\workspaces\hioas\hioas-aap-001
+-- 正向对照（每个解析器都必须真的读到输入，历史 46/75/98）--
+  清单端点 117 条 → 骨架正则 234 条；测试源调用点行 662 行
+  同解析器的**正向**读数：命中清单的端点 108 条（与 audit-endpoint-tests 的 exact 口径交叉验证）
+  命中清单的调用点行 652 行；清单外调用点行 10 行
+-- 清单外调用点（分档：neg-404 = 有意负向用例；unexplained = 真发现候选）--
+  [unexplained] 9 行
+    aap-server/src/test/java/com/hioas/aap/common/ApiContractTest.java:18  HttpResult res = get("/__test/echo");
+    aap-server/src/test/java/com/hioas/aap/common/ApiContractTest.java:31  HttpResult res = get("/__test/empty");
+    aap-server/src/test/java/com/hioas/aap/common/ApiContractTest.java:40  HttpResult bad = get("/__test/business-error?code=E-1001");
+    aap-server/src/test/java/com/hioas/aap/common/ApiContractTest.java:45  HttpResult conflict = get("/__test/business-error?code=E-1301");
+    aap-server/src/test/java/com/hioas/aap/common/ApiContractTest.java:49  HttpResult unauth = get("/__test/business-error?code=E-1902");
+    aap-server/src/test/java/com/hioas/aap/common/ApiContractTest.java:57  HttpResult res = post("/__test/validate", """
+    aap-server/src/test/java/com/hioas/aap/common/ApiContractTest.java:75  HttpResult res = get("/__test/boom");
+    aap-server/src/test/java/com/hioas/aap/common/ApiContractTest.java:88  HttpResult res = post("/__test/validate", "{not-json", null);
+    aap-server/src/test/java/com/hioas/aap/common/ApiContractTest.java:105  HttpResult res = send("GET", "/__test/echo", null, null);
+  [neg-404] 1 行
+    aap-server/src/test/java/com/hioas/aap/common/ApiContractTest.java:96  HttpResult res = get("/__test/not-exists");
+-- 判据 --
+  B1 调用点行 > 0（正向对照）= 662
+  B2 命中清单的端点 > 0（正向对照）= 108
+  B3 清单外调用点：unexplained = 9 / neg-404 = 1（unexplained > 0 ⇒ 逐条人工归类，见报告正文）
+
+[结论]
+------------------------------------------------------------------------------
+662 个调用点行 / 652 命中清单 / 10 条清单外；10 条**全部**落在 `ApiContractTest.java` 打 `/api/v1/__test/*`
+  （测试专用控制器 `TestErrorController`，位于 `src/test`）⇒ **0 条真契约外调用点**；其中 `/__test/not-exists` 1 条
+  在同一调用链断言 404（有意负向，分档正确）。同解析器正向读数 108 == `audit-endpoint-tests` 的 `exact=108`
+  （**一致性**交叉验证；两者同源 ⇒ 不构成独立第二证人，此处如实标注）。

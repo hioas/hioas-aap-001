@@ -1,0 +1,61 @@
+R558 辅助（aux）证据①：活体产物行尾（LF）纪律的**类级全枚举**（只读）
+==============================================================================
+脚本绝对路径 = C:/Users/laitz/AppData/Local/Temp/aap-r558-aux/eol-live-artifacts.py（一次性**只读**探针；未纳入仓库、未进回归面 —— 扩面须人拍板，历史 169/177/216）
+要回答的问题 = R557 修掉的是**一个实例**（`tools/audit-endpoint-tests.py` 的 write_text 缺 `newline`），
+        缺陷**类**在装置侧是否还有剩余成员从未被机器枚举（历史 215：处理项数 == 命中项数只保证不漏**已列举**的形态）。
+判据 = ① `git ls-files --eol` 取「工作区含 CR 的已跟踪文件」；② 解析全部写调用点（.py `write_text`/`open("w")`、.java `Files.writeString`）
+        的**产物基名**与 `newline="\n"` 纪律；③ 交叉 ⇒「活体产物」（工作区含 CR ∧ 有写点 ⇒ 长期违反纪律的那种）。
+        「潜伏」= 写点缺 newline ∧ 目标已跟踪 ∧ 工作区当前 LF（下次重写即变 CRLF）。
+        仓库锚定判据：排除 `*-selftest.py` 与 `tools/regression/archive/`（它们按设计写 $TEMP 夹具根，只看基名会造假发现，历史 81/57）。
+落盘 = 本文件（newline="\n"，零 CR，由 emit-aux-evidence.py 单一出口落盘）
+------------------------------------------------------------------------------
+
+[探针自测（判别力实测，合成夹具）]
+------------------------------------------------------------------------------
+[PASS] S1 活体产物定位（实测 ['a/bad-artifact.txt', 'a/good-artifact.txt']）
+[PASS] S2 缺 newline 的活体产物被点名（实测 ['a/bad-artifact.txt']）
+[PASS] S3 带 newline 的写点不得被点名
+[PASS] S4a 未在已跟踪集合里的目标不得进「潜伏」档（实测 []）
+[PASS] S4b 潜伏档只收「已跟踪 ∧ 缺 newline ∧ 工作区 LF ∧ 仓库锚定」（实测 ['unrelated.txt']）
+[PASS] S4c 非锚定（selftest 夹具）写点不得进「潜伏」档（历史 81/57）
+[PASS] S5 空夹具 ⇒ 0 活体（不得凭空空转出条目）
+[PASS] S6 write_sites 解析纪律判定（实测 [('a.txt', True), ('b.txt', False)]）
+[PASS] S7 write_sites 解析到条目 2 条、异常 0 条
+------------------------------------------------------------------------------
+自测：PASS 9 PASS / 0 FAIL
+
+[探针真实运行（只读）]
+------------------------------------------------------------------------------
+R558 aux 探针①：活体产物行尾（LF）纪律的类级全枚举（只读）
+==============================================================================
+仓库根 = E:\workspaces\hioas\hioas-aap-001
+-- 正向对照（每个解析器都必须真的读到输入，历史 46/75/98）--
+  eol 条目 10697 条（已跟踪文件 10697 个）；工作区含 CR 的已跟踪文件 920 个
+  写调用点 217 个（.py = 213 / .java = 4）
+  其中带产物基名字面量的 106 个；解析异常 0 条
+-- 活体产物（工作区含 CR ∧ 有写调用点）--
+  .agents/state/evidence/coverage-report.json  CR=113  写点=aap-server/src/test/java/com/hioas/aap/coverage/EndpointCoverageTest.java:129 (java, 证据=weak)  newline=**缺**
+-- 判据 --
+  A1 活体产物条数 = 1（信息项，须逐条给出写点）
+  A2 活体产物里写点缺 newline 的条数 = 1：['.agents/state/evidence/coverage-report.json']
+  A4 装置侧（tools/**，排除 `*-selftest`/archive 夹具写点、要求仓库锚定）写点 = 7 条（目标可静态归属 7 条，其余计算型名记「未能静态判定」）；缺 newline = 0 条
+      判据：缺 newline = 0 ⇒ R557 修复的**类级完备性**成立（该类在装置侧已无剩余成员）；合规（历史 215：处理项数 == 命中项数）
+      逐条（装置侧仓库锚定写点全枚举）：
+        endpoint-test-audit.json  ← tools/audit-endpoint-tests.py:232 newline=有
+        endpoint-test-audit.txt  ← tools/audit-endpoint-tests.py:271 newline=有
+        openapi.yaml  ← tools/gen-backend-models.py:1105 newline=有
+        audit-regression-%s.txt  ← tools/round-verify/regression.py:519 newline=有
+        audit-regression-%s-rcseq.txt  ← tools/round-verify/regression.py:520 newline=有
+        audit-regression-%s-failraw.txt  ← tools/round-verify/regression.py:522 newline=有
+        audit-regression-%s-faildiff.txt  ← tools/round-verify/regression.py:548 newline=有
+  A3 「潜伏」写点（缺 newline ∧ 已跟踪基名 ∧ 工作区当前 LF ⇒ 下次重写即变 CRLF）= 1
+      endpoints.json  ← aap-server/src/test/java/com/hioas/aap/coverage/EndpointCoverageTest.java:129 (java, 证据=weak)
+  判别力自测（合成夹具）见 --selftest；本文件零写副作用（只读 git + 读文件）
+
+[结论]
+------------------------------------------------------------------------------
+A4 判据：装置侧（tools/**，排除 selftest/archive 夹具写点、要求仓库锚定）写点 = 7 条，其中缺 newline = 0 条
+  ⇒ R557 修复的**类级完备性成立**（该类在装置侧已无剩余成员），且 7 条逐条枚举（含 R557 修的两条）。
+A1/A2：工作区含 CR 的**活体产物** = 1 条（交付面 `.agents/state/evidence/coverage-report.json`，Java 覆盖门禁写盘、
+  Jackson 默认行分隔符 ⇒ Windows CRLF）—— 属交付面，沿用 R557 只登记、不代改。
+A3（潜伏）= 1 条，与 A1 同源（同一 Java 写点的弱证据镜像），非装置侧成员。

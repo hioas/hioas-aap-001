@@ -241,10 +241,21 @@ def parse_controllers(ctrl_dir: Path) -> tuple[set[tuple[str, str]], list[str]]:
         for m in MAPPING_RE.finditer(text):
             if m.start() < body:
                 continue
-            close = text.find(")", m.end())
-            seg = text[m.end():close + 1] if close >= 0 else ""
-            paths = re.findall(r'"([^"]*)"', seg)
-            sub = paths[0] if paths else ""
+            # 注解实参只能用**括号配对**取：无实参的裸注解（`@PostMapping` 直接跟方法签名）
+            # 绝不能 `find(")")` —— 那会命中签名里第一个 `@RequestParam("file")` 的右括号，
+            # 把 `"file"` 当成子路径 ⇒ 产出 `/api/v1/filesfile` 这种**不存在**的路由，
+            # 同时把真实路由 `POST /api/v1/files` 漏掉（历史 63/124 同族：裸注解回落类级前缀）。
+            after = text[m.end():]
+            lead = len(after) - len(after.lstrip())
+            sub = ""
+            if after.lstrip().startswith("("):
+                open_idx = m.end() + lead
+                close = match_paren(text, open_idx)
+                if close < 0:
+                    problems.append(f"{f.name}: @{m.group(1)}Mapping 实参括号不配对")
+                    continue
+                paths = re.findall(r'"([^"]*)"', text[open_idx + 1:close])
+                sub = paths[0] if paths else ""
             routes.add((m.group(1).upper(), norm_path(prefix + sub)))
             found += 1
         if found == 0:

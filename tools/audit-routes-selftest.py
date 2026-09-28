@@ -176,6 +176,30 @@ public class AdminSynController {
 }
 """
 
+CTRL_BARE = """package com.hioas.aap.syn;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/v1/synfiles")
+public class FileSynController {
+
+    @PostMapping
+    public String upload(@RequestParam("file") String file) {
+        return file;
+    }
+
+    @GetMapping
+    public String list() {
+        return "";
+    }
+}
+"""
+
 CLIENT_TS = """/**
  * 合成客户端适配层。
  * 未接线（本页不调用）：GET /syn/comment-only-missing —— 注释里的路径不是调用点。
@@ -358,6 +382,14 @@ def main() -> int:
     case("case_pathvar_name_drift",
          build("var", rows10=[[r10[2][0], r10[2][1], "`/syn/three/{credId}`"] + r10[2][3:]] + r10[:2] + r10[3:]),
          1, "A5 路径变量名序列逐端点一致（清单 / md / openapi）：不一致 1 条")
+
+    # 8 裸映射注解（无实参）：必须回落**类级前缀**，绝不能把方法签名里的字符串字面量当子路径
+    #   （历史 63/124 同族；真实仓库实测产出过 `/api/v1/filesfile` 这种**不存在**的路由）
+    case("case_bare_mapping_annotation",
+         build("bare", ctrls={"SynController.java": CTRL_SYN,
+                              "AdminSynController.java": CTRL_ADMIN,
+                              "FileSynController.java": CTRL_BARE}),
+         0, "('POST', '/synfiles')", must_not="'/synfilesfile'")
 
     # 7 源文件缺失
     case("case_missing_source", build("nosrc", skip=("endpoints",)), 1, "源文件/目录缺失")

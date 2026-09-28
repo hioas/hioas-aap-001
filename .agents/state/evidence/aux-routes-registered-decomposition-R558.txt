@@ -1,0 +1,88 @@
+R558 辅助（aux）证据③：`coverage-report.json:registered_routes` 的**首次机器分解**（只读）
+==============================================================================
+脚本绝对路径 = C:/Users/laitz/AppData/Local/Temp/aap-r558-aux/routes-extra-decomposition.py（一次性**只读**探针；未纳入仓库、未进回归面）
+要回答的问题 = 覆盖门禁的 `registered_routes=125` 与清单 117 之间的差 **17 条**从来没有产物给出分解；
+        `audit-routes.py` 只输出一条信息项（超发 12 条、且只打印前 8 条），`src/test` 下的**测试专用控制器**不在它的扫描根里。
+判据 = 复用 audit-routes 的解析函数与**同一 `key_of()` 归一**（历史 57）；等式 `清单已注册 + 超发(main) + 测试专用(test) == registered_routes`。
+落盘 = 本文件（newline="\n"，零 CR）
+------------------------------------------------------------------------------
+
+[探针自测（判别力实测，合成夹具）]
+------------------------------------------------------------------------------
+[PASS] S1 真实仓库形态（117-9+12+5 == 125）⇒ 等式可闭合
+[PASS] S2 少算 1 条测试专用路由 ⇒ 等式必须不闭合（判据有牙齿）
+[PASS] S3 missing 报 0 ⇒ 等式必须不闭合（不得靠巧合闭合）
+------------------------------------------------------------------------------
+自测：PASS 3 PASS / 0 FAIL
+
+[探针真实运行 —— 修复后（当前仓库）]
+------------------------------------------------------------------------------
+R558 aux 探针③：coverage-report.json 的 registered_routes 首次机器分解（只读）
+==============================================================================
+仓库根 = E:\workspaces\hioas\hioas-aap-001
+-- 正向对照（每个解析器都必须真的读到输入，历史 46/75/98）--
+  清单端点 117 条 → 归一键 117 个
+  src/main 控制器路由 120 条；src/test 控制器路由 5 条（测试专用）
+  解析异常 0 条
+-- 分解 --
+  覆盖门禁 registered_routes（coverage-report.json）= 125；missing = 9
+  ① 清单端点中**已注册** = 108（= total - missing）
+  ② 实现超发（src/main，清单未声明）= 12 条
+       DELETE /credentials/{}
+       GET    /admin/catalog/models
+       GET    /admin/catalog/models/grouped
+       GET    /admin/catalog/vendors
+       GET    /catalog/models
+       GET    /detection-jobs/{}/digest
+       GET    /files/{}
+       POST   /admin/catalog/models
+       POST   /admin/catalog/vendors
+       POST   /files
+       PUT    /admin/catalog/models/{}
+       PUT    /quotes/{}
+  ③ 测试专用控制器（src/test，清单未声明）= 5 条
+       GET    /__test/boom
+       GET    /__test/business-error
+       GET    /__test/echo
+       GET    /__test/empty
+       POST   /__test/validate
+  等式：① + ② + ③ = 125  vs  registered_routes = 125  ⇒ **闭合**
+
+[探针真实运行 —— 回修复前副本（`git show HEAD:tools/audit-routes.py`，历史 214）]
+------------------------------------------------------------------------------
+R558 aux 探针③：coverage-report.json 的 registered_routes 首次机器分解（只读）
+==============================================================================
+仓库根 = E:\workspaces\hioas\hioas-aap-001
+-- 正向对照（每个解析器都必须真的读到输入，历史 46/75/98）--
+  清单端点 117 条 → 归一键 117 个
+  src/main 控制器路由 120 条；src/test 控制器路由 5 条（测试专用）
+  解析异常 0 条
+-- 分解 --
+  覆盖门禁 registered_routes（coverage-report.json）= 125；missing = 9
+  ① 清单端点中**已注册** = 108（= total - missing）
+  ② 实现超发（src/main，清单未声明）= 12 条
+       DELETE /credentials/{}
+       GET    /admin/catalog/models
+       GET    /admin/catalog/models/grouped
+       GET    /admin/catalog/vendors
+       GET    /catalog/models
+       GET    /detection-jobs/{}/digest
+       GET    /files/{}
+       POST   /admin/catalog/models
+       POST   /admin/catalog/vendors
+       POST   /filesfile
+       PUT    /admin/catalog/models/{}
+       PUT    /quotes/{}
+  ③ 测试专用控制器（src/test，清单未声明）= 5 条
+       GET    /__test/boom
+       GET    /__test/business-error
+       GET    /__test/echo
+       GET    /__test/empty
+       POST   /__test/validate
+  等式：① + ② + ③ = 125  vs  registered_routes = 125  ⇒ **闭合**
+
+[结论]
+------------------------------------------------------------------------------
+等式闭合：108（清单已注册）+ 12（src/main 超发）+ 5（src/test 测试专用控制器 `/api/v1/__test/*`）= 125 = `registered_routes`。
+  那 5 条测试专用路由此前不被任何产物计数（`audit-routes` 扫描根只含 `src/main`）—— 本次是**首次**把 125 的来源闭合。
+  12 条超发逐条见上；修复前后唯一差异：`POST /api/v1/filesfile`（不存在）→ `POST /api/v1/files`（真实），条数不变。
