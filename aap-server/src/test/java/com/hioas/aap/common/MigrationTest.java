@@ -46,6 +46,8 @@ class MigrationTest extends DbTestBase {
             "aap_vendor", "aap_model",
             // supply（V15：供给单元 = 模型 × 供应商 —— 一模型一渠道的聚合根）
             "aap_supply_unit",
+            // supply（V16：批量配置批次 —— 编排器五步的执行记录，逐供给单元可重试/回滚）
+            "aap_config_batch", "aap_config_batch_item",
             // usage
             "aap_usage_hourly", "aap_usage_sync_cursor",
             // support
@@ -55,7 +57,7 @@ class MigrationTest extends DbTestBase {
     private Flyway flyway;
 
     @Test
-    @DisplayName("57 张 ER 表全部存在（与 docs/backend/01-ER数据模型.md §3 逐条一致）")
+    @DisplayName("59 张 ER 表全部存在（与 docs/backend/01-ER数据模型.md §3 逐条一致）")
     void allErTablesExist() {
         // 排除分区子表（如 aap_usage_hourly_default）：那些是分区实现细节，不是业务表
         List<String> actual = jdbc.queryForList("""
@@ -68,7 +70,7 @@ class MigrationTest extends DbTestBase {
         assertThat(actual)
                 .as("ER 文档表清单与迁移结果必须一致（缺表或多余表都要红）")
                 .containsExactlyInAnyOrderElementsOf(EXPECTED_TABLES);
-        assertThat(EXPECTED_TABLES).hasSize(57);
+        assertThat(EXPECTED_TABLES).hasSize(59);
     }
 
     @Test
