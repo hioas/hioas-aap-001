@@ -1,0 +1,14 @@
+R562 推进轮 · 任务级 TDD **绿证据**（ADM-SU01~04）
+
+命令（与红基线同一条，不改参数）：
+  export PATH="$HOME/bin:$PATH"; cd E:/workspaces/hioas/hioas-aap-001/aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test -Dtest=SupplyUnitAdminContractTest
+读数：Tests run: 5, Failures: 0, Errors: 0, Skipped: 0 → rc=0（BUILD SUCCESS）
+
+用例覆盖（每个端点至少一条真实 HTTP 用例；全部走 ApiTestBase 的真实 HTTP，非 MockMvc）：
+  · ADM-SU01 GET /admin/supply-units：分页（page/pageSize）+ 三个过滤（providerId / modelName 模糊不区分大小写 / status）+ 逻辑删除行不入列表 + 排序（created_at desc, id desc）+ 响应体逐元素 schema(supply-unit) 校验 + 响应键 snake_case
+  · ADM-SU02 GET /admin/supply-units/{id}：200 + schema + 字段值；不存在 → 404 E-1406；逻辑删除行 → 404；非数字路径变量 → 400 E-1001
+  · ADM-SU03 POST /admin/supply-units/{id}/reconfigure：202 + 默认 dry_run=true（差异清单 diff_summary.mode=DRY_RUN、明细项 status=SKIPPED）+ 批次/明细**写后回读**（响应与库同源、双钉 batch_no/counts）+ 零上游写入（无 channel-binding/sync-task 新增）+ dry_run=false → mode=APPLY / status=PENDING（不谎报已执行）+ 状态不允许 → 409 E-1601 + 不存在 → 404 E-1406 + 审计 SUPPLY_UNIT_RECONFIGURE 有 1 条
+  · ADM-SU04 POST /admin/supply-units/{id}/offline：200 + status=OFFLINE（**响应与库双钉**，含 version 推进）+ 审计 SUPPLY_UNIT_OFFLINE + 重复下架 → 409 E-1601 + R-65 未结清账期（payment_record 状态 UNSETTLED/PAYMENT_RECORDED）→ 409 E-1601 且**库内状态不变** + 结清后放行 + 不存在 → 404
+  · 权限（同一用例内令牌只取一次，历史「60s 重发」）：TECH_OPS / SUPER_ADMIN 可读可写（200/202）；BIZ_OPERATOR 403 E-1901；供应商主体 403 E-1901（且越权请求不得改动状态 —— 单独夹具单元保证不被前一步合法下架污染，历史 19）；匿名 401
+
+注：本文件只证明**本批用例**转绿；全量两轮（含覆盖门禁）的读数见 red-verify/green-verify 系列（装置产出）。

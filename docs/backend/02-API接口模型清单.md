@@ -256,6 +256,38 @@
 > 手机号必须已存在于 `aap_admin_user` 且 `status=ACTIVE`，否则 `E-1902`。
 > `AUTH-06 (/auth/me)` 对管理端主体返回管理端档案（此前会拿到 `E-1902`）。
 
+### 2.6 供给单元与批量配置批次（`specs/001-intake-automation` M4 段）
+
+| ID | 方法 | 路径 | 角色 | 请求/响应 | 错误码 | 状态 |
+|---|---|---|---|---|---|---|
+| ADM-SU01 | GET | `/admin/supply-units` | TECH_OPS SUPER_ADMIN | q：`providerId?` `modelName?` `status?` `page` `pageSize` → 分页 `SupplyUnit` | | 已实现 |
+| ADM-SU02 | GET | `/admin/supply-units/{id}` | TECH_OPS SUPER_ADMIN | → `SupplyUnit`（含调度画像 `routing_priority`/`routing_weight` 与 `quality_score`） | E-1406 | 已实现 |
+| ADM-SU03 | POST | `/admin/supply-units/{id}/reconfigure` | TECH_OPS SUPER_ADMIN | body `{dry_run?,reason?}`（**`dry_run` 默认 true**）→ **202** `ConfigBatch`（dry-run 出 `diff_summary` 差异清单、生产零写入） | E-1406 E-1601 | 已实现 |
+| ADM-SU04 | POST | `/admin/supply-units/{id}/offline` | TECH_OPS SUPER_ADMIN | → `SupplyUnit`（`status=OFFLINE` 留痕 + 审计；R-65 存在**未结清账期**时禁止） | E-1406 E-1601 | 已实现 |
+| ADM-CB01 | POST | `/admin/config-batches` | TECH_OPS SUPER_ADMIN | body `{batch_type,mode,scope?,rate_limit_per_sec?,reason?}` → **201** `ConfigBatch` | E-1601 | 待实现 |
+| ADM-CB02 | GET | `/admin/config-batches` | TECH_OPS SUPER_ADMIN | q：`status?` `page` `pageSize` → 分页 `ConfigBatch` | | 待实现 |
+| ADM-CB03 | GET | `/admin/config-batches/{batchId}` | TECH_OPS SUPER_ADMIN | → `ConfigBatch`（含明细与 `mismatch` 清单） | E-1406 | 待实现 |
+| ADM-CB04 | POST | `/admin/config-batches/{batchId}/items/{itemId}/retry` | TECH_OPS SUPER_ADMIN | → **202** `ConfigBatchItem`（R-59 只影响该项） | E-1406 E-1601 | 待实现 |
+| ADM-CB05 | POST | `/admin/config-batches/{batchId}/items/{itemId}/rollback` | TECH_OPS SUPER_ADMIN | body `{reason}` → **202** `ConfigBatchItem` | E-1406 E-1601 | 待实现 |
+
+> **为什么新增（ADM-SU / ADM-CB 九条）**：`specs/001-intake-automation`（进件自动化）把渠道粒度从「一供应商一渠道」
+> 改为「**一供给单元（模型 × 供应商）一渠道**」（spec §3.2 / FR-2.1~2.2），于是需要一组管理端运维端点：
+> 观察供给单元（SU01/02）、变更后一键重算差异（SU03，INNOV-7/FR-2.9）、下架并留痕（SU04，FR-2.10 + R-65），
+> 以及承载批量编排可观测性的配置批次（CB01~05：创建/列表/详情/单模型重试/单模型回滚，FR-2.5 与 R-59 单模型隔离）。
+> 真源：`spec.md` FR-2.5/2.9/2.10/6.2 + `data-model.md` §3（`aap_supply_unit`）/§9（`aap_config_batch`）+
+> `contracts/intake-automation.openapi.yaml`（`/admin/supply-units*`、`/admin/config-batches*`）。
+>
+> **ID 口径**：规格层把 `ADM-CFG01…05` 分配给**批量配置批次**，而本清单 §2.4 已把同一组 ID 绑在**检测配置**
+> `/admin/detection-configs*`（T14，已实现）⇒ 按硬规则 1（**清单为准**）批量配置批次改用 `ADM-CB01…05`，
+> 规格层那 5 条 ID 为**词表冲突**，见待拍板项（`ADM-CFG01~05` 一词两义）。
+>
+> **`ADM-SU03` 现状**：差异清单由 `ChannelConfigPlanner`（T-M4-07）计算；上游**执行器**（T-M4-08~11：限速/写后回读/
+> 单模型隔离与回滚/dry-run 空实现）尚未落地 ⇒ `mode=APPLY` 只登记批次（`status=PENDING`）而**不写上游**，
+> 且不用假计数冒充「已执行」（R-58「不得静默成功」的同一纪律）。
+>
+> **键名口径**：`supply-unit` / `config-batch` / `config-batch-item` 三个模型只有 snake_case 键（无 camelCase 别名、
+> `aap-admin` 尚未接线），故响应键名 = schema 键名（`provider_id` / `batch_no` / `rate_limit_per_sec` …）。
+
 ---
 
 ## 3. 客户端 → 接口映射（可追溯）
@@ -349,6 +381,8 @@
 | 2026-09-24 | 新增 **`ADM-PAY06/07/08/09`**（结算单生成/详情/确认/作废）与供应商端 **`SET-01/02`**（结算单列表/详情）；审计动作枚举 +`STATEMENT_GENERATE`/`STATEMENT_CONFIRM`/`STATEMENT_VOID`；清单 102 → **108**（供应商端 49 → 51、管理端 53 → 57） | 运行态实测：`aap_settlement_statement`/`aap_settlement_line` 全仓零 INSERT（ADM-PAY03 total=0）→「打款确认之后没有下一环」；**D-SETTLE-01 三项口径自主拍板为 D-SETTLE-02**（自然月 UTC / `cost_usd` 合计 / 合同费率，且全部可配 `app.settlement.*`） |
 | 2026-09-23 | 新增 **`ADM-PAY04`**（`POST /admin/payments` 记录打款）与 **`ADM-PAY05`**（`POST /admin/payments/{id}/void` 作废打款）；审计动作枚举 +`PAYMENT_RECORD`/`PAYMENT_VOID`；冻结清单 91 → **93**（管理端 42 → 44） | 运行态实测：`aap_payment_record` 全仓无 insert 路径 → `ADM-PAY02` 无对象可确认（total=0），合同签完后链路断开；真源 10-报价与合同结算PRD §4.3/§5.3（记录打款需凭证、VOID 作废后重录） → 偏差 **D-PAY-01** |
 | 2026-09-24 | 新增 **`ADM-S07`**（`POST /admin/newapi-endpoints` 登记同步上游端点）/ **`ADM-S08`**（`POST /admin/sync/tasks` 发起上架同步）/ **`ADM-S09`**（`POST /admin/sync/tasks/{taskId}/execute` 执行上架）；新模型 `newapi-endpoint`；冻结清单 99 → **102**（管理端 50 → 53） | 运行态实测（dev 库 + 源码）：`aap_newapi_endpoint`/`aap_sync_task`/`aap_channel_binding`/`aap_sync_log` **全部 0 行**，且全仓零 `insert into` 这三张表 → M11 只有查/重试/启停/读上游（S01–S06），**没有写入侧**，「编译确认 → 建渠道 → 写价 → 回读 → 上架」断在最后一步（业务闭环缺口）；拍板 **D-SYNC-03**（2026-09-24）：按 PRD 11 §3 渠道字段映射 + 幂等键 + 读前写后三段式补齐写入侧 | 
+
+| 2026-09-28 | 新增 **`ADM-SU01~04`**（供给单元列表/详情/重配置/下架）与 **`ADM-CB01~05`**（批量配置批次创建/列表/详情/单模型重试/回滚）；审计动作枚举 +`SUPPLY_UNIT_RECONFIGURE`/`SUPPLY_UNIT_OFFLINE`；冻结清单 108 → **117**（管理端 57 → 66；其中 SU01~04 已实现、CB01~05 待实现） | 真源 `specs/001-intake-automation`（FR-2.1~2.10 / FR-6.2、`data-model.md` §3 `aap_supply_unit` / §9 `aap_config_batch`、`contracts/intake-automation.openapi.yaml`）：渠道粒度由「一供应商一渠道」改为「**一供给单元（模型 × 供应商）一渠道**」，需管理端运维面 + 批量编排可观测面；`ADM-CFG01~05` 词表冲突按硬规则 1 **取清单**（批次改用 `ADM-CB01~05`）。本轮补写 §2.6：此前生成器 `PATHS` 已登记这 9 条而 md 无行 ⇒ `audit-routes` 的 A0b/A1 持续报 9 条漂移（行为「清单缺行」而非实现缺陷） |
 
 - 2026-09-17 v1.0 首版：从 `18-API设计OpenAPI.md` + `aap-client` 调用点反推，冻结 90 条端点 ID
   （供应商端 49 = 客户端已消费 30 条 + 补齐 `CRED-02/06/07`、`DET-01/04/05/06`、`QT-02/05/07/11/12`、`CON-01`、`PAY-01`、`NTF-01/02`、`AUTH-04/05`；管理端 41）。

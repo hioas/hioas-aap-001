@@ -57,7 +57,11 @@ public class AuditService {
         CONTRACT_SIGN, PAYMENT_RECORD, PAYMENT_CONFIRM, PAYMENT_VOID, DETECTION_RELEASE, PROFILE_UPDATE, AUTH_LOGIN,
         ADMIN_USER_CREATE, ADMIN_USER_SUSPEND, ADMIN_USER_RESUME,
         CONFIG_PUBLISH, SYNC_EXECUTE,
-        STATEMENT_GENERATE, STATEMENT_CONFIRM, STATEMENT_VOID;
+        STATEMENT_GENERATE, STATEMENT_CONFIRM, STATEMENT_VOID,
+        /** 供给单元重配置（ADM-SU03；治理动作，spec §「治理类操作全程审计」）。 */
+        SUPPLY_UNIT_RECONFIGURE,
+        /** 供给单元下架（ADM-SU04；影响面校验通过后的下架必须留痕，spec FR-2.10「并留痕」）。 */
+        SUPPLY_UNIT_OFFLINE;
 
         public String code() {
             return name();

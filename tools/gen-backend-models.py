@@ -60,7 +60,8 @@ ENUMS = {
                     "CONTRACT_SIGN", "PAYMENT_RECORD", "PAYMENT_CONFIRM", "PAYMENT_VOID", "DETECTION_RELEASE", "PROFILE_UPDATE", "AUTH_LOGIN",
                     "ADMIN_USER_CREATE", "ADMIN_USER_SUSPEND", "ADMIN_USER_RESUME",
                     "CONFIG_PUBLISH", "SYNC_EXECUTE",
-                    "STATEMENT_GENERATE", "STATEMENT_CONFIRM", "STATEMENT_VOID"],
+                    "STATEMENT_GENERATE", "STATEMENT_CONFIRM", "STATEMENT_VOID",
+                    "SUPPLY_UNIT_RECONFIGURE", "SUPPLY_UNIT_OFFLINE"],
     "ResultCode": ["0", "E-1001", "E-1101", "E-1102", "E-1104", "E-1201", "E-1301", "E-1302", "E-1303",
                    "E-1304", "E-1305", "E-1401", "E-1402", "E-1403", "E-1404", "E-1405", "E-1406",
                    "E-1407", "E-1501", "E-1505", "E-1601", "E-1602", "E-1701", "E-1801", "E-1901",
@@ -749,7 +750,19 @@ LIST_RESPONSE_MODELS = {
 
 PAGEABLE = {
     "AUTH-06": False,
+    # 端点级覆盖（历史坑 78：「该不该分页」是端点级语义，模型级判据无法表达
+    # 「同一模型既被列表端点也用被单对象端点返回」）。`supply-unit` 被 ADM-SU01（分页列表）
+    # 与 ADM-SU02/04（单对象）共用 ⇒ 只在列表端点上声明分页包装；否则 openapi 会把单对象端点
+    # 也声明成分页集合（「第七处不变量」，契约测试与覆盖门禁都看不见）。
+    "ADM-SU01": True,
 }
+
+
+def _pageable(eid: str | None, model: str | None) -> bool:
+    """端点级分页判定：显式覆盖优先，缺省回落到模型级白名单。"""
+    if eid is not None and eid in PAGEABLE:
+        return PAGEABLE[eid]
+    return model in LIST_RESPONSE_MODELS
 
 
 # --check（只校验）时把所有产物重定向到临时目录，保证校验对仓库**零写副作用**；
@@ -900,7 +913,7 @@ def openapi() -> dict:
         op["responses"] = {
             "200": {
                 "description": "成功",
-                "content": {"application/json": {"schema": _enveloped(res)}},
+                "content": {"application/json": {"schema": _enveloped(res, eid)}},
             }
         }
         if errors:
@@ -947,10 +960,10 @@ def _query_schema(q: str) -> dict:
     return {"type": "string"}
 
 
-def _enveloped(model: str | None) -> dict:
+def _enveloped(model: str | None, eid: str | None = None) -> dict:
     if model is None:
         return {"$ref": "#/components/schemas/Envelope"}
-    if model in LIST_RESPONSE_MODELS:
+    if _pageable(eid, model):
         return {
             "allOf": [
                 {"$ref": "#/components/schemas/Envelope"},

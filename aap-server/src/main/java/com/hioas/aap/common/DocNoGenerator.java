@@ -68,6 +68,17 @@ public class DocNoGenerator {
         return "TPL" + today() + pad(nextVal("seq_report_template_no"), 4);
     }
 
+    /**
+     * 配置批次编号：{@code CFG-B{yyyyMM}-{4位}}（V16 注释声明的格式；ADM-CB01/ADM-SU03 的批次号）。
+     *
+     * <p>为什么带连字符：批次号在 V16 的列注释里就写作 {@code CFG-B{yyyyMM}-{seq}}，
+     * 与 `ST{yyyyMM}{4位}` 的既有编号风格不同属**有意为之** —— 批次号要在运维界面上与结算单号一眼区分开，
+     * 所以格式以 DDL 注释（本列的契约）为准，不强行对齐其它编号器。
+     */
+    public String configBatchNo() {
+        return "CFG-B" + LocalDate.now(ZoneOffset.UTC).format(MONTH) + "-" + pad(nextVal("seq_config_batch"), 4);
+    }
+
     private String today() {
         return LocalDate.now(ZoneOffset.UTC).format(DAY);
     }

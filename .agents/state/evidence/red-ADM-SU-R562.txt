@@ -1,0 +1,32 @@
+R562 推进轮 · 任务级 TDD **红基线**（ADM-SU01~04 交付；缺失 4 条端点中的全部）
+
+命令（唯一规范命令 + 类名过滤，串行；环境注入走 tools/with-env.sh，只回显变量名）：
+  export PATH="$HOME/bin:$PATH"; cd E:/workspaces/hioas/hioas-aap-001/aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test -Dtest=SupplyUnitAdminContractTest
+
+红基线手法：把 AdminSupplyUnitController.java / SupplyUnitAdminService.java **临时移出源码树**（路由未注册 + 服务不存在），跑同一批用例。
+用例数：5（SupplyUnitAdminContractTest：supplyUnitList / supplyUnitDetail / reconfigure / offline / permissions）
+读数：Tests run: 5, Failures: 5, Errors: 0, Skipped: 0（surefire 合计行，前缀 ERROR（有失败时的正确前缀，历史 228））
+逐例失败（全部 5 例）：offline, supplyUnitDetail, supplyUnitList, permissions, reconfigure
+失败报文样例（offline，基类把响应体带进失败信息，历史 17）：
+  org.opentest4j.AssertionFailedError:
+  [{"code":"E-1406","message":"接口或资源不存在","data":null,"traceId":"85fd0064d3b447d0a30f472794c7c089","details":null}]
+  expected: 409
+  org.opentest4j.AssertionFailedError:
+  [{"code":"E-1406","message":"接口或资源不存在","data":null,"traceId":"2422e9597c29492daf856cf23a85532e","details":null}]
+  expected: 200
+  org.opentest4j.AssertionFailedError:
+  [{"code":"E-1406","message":"接口或资源不存在","data":null,"traceId":"b0ae3a5173404b1eba024c790c5dfb10","details":null}]
+  expected: 200
+  org.opentest4j.AssertionFailedError:
+  expected: 200
+  org.opentest4j.AssertionFailedError:
+  [{"code":"E-1406","message":"接口或资源不存在","data":null,"traceId":"0421a0263db842e7bc136d9e425f64a1","details":null}]
+  expected: 202
+  expected: 409
+  expected: 200
+  expected: 202
+  expected: 200
+  expected: 200
+
+判读（历史 23：先读红基线的状态码再动手）：红 = **404 E-1406（接口或资源不存在）**，即「路由未注册」型红，**不是**实现缺陷、也不是 400/409/500 型红；因此本轮要改的是「注册路由 + 实现服务」，而不是去修校验或状态机。
+证据含义：本批 5 例在实现前**确实为红**（红基线可复现、非空转），随后实现落地才转绿 —— 见 green-ADM-SU-R562.txt。

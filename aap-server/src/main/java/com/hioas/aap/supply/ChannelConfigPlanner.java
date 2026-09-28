@@ -29,6 +29,12 @@ public final class ChannelConfigPlanner {
 
     private static final String PER_MODEL = "PER_MODEL";
 
+    /**
+     * 限速默认值（spec R-57：≤5 req/s；契约 `rateLimitPerSec` 的 `default` 与 `maximum` 同为 5 ⇒
+     * 「上限即默认」—— 不接受调用方抬高，故本值既是默认值也是唯一可接受值）。
+     */
+    public static final int RATE_LIMIT_PER_SEC = 5;
+
     private ChannelConfigPlanner() {
     }
 
