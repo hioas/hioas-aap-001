@@ -16903,3 +16903,65 @@ A18 并发前置双向对照 pos=2/2、neg=0/2；A22 上一轮 history 行恰好
 - **返工真值**：本轮返工真值 = **0 处**（装置/脚本侧，零交付面影响；逐条见上文要点）。
 - **权威数字**：权威数字 = 返工 0 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
 
+
+### R570 巡检轮（校验轮：missing=0 ⇒ 交付面零改动）
+
+- **性质**：`missing=0` ⇒ **交付面零改动**（未改 `aap-server` / `docs` 任何一行）；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交）；本轮新增写入 = 台账 / 状态 / 证据。
+- **两轮全量（串行）**：被测提交 = f99baa6d（独立 detached worktree 内）；run1 19:32:13→19:34:45、run2 19:34:45→19:36:59；各 **316 例 / 51 类**、rc=0/0、Failures-Errors-Skipped = 0-0-0；`@Test` 词边界计数与 surefire 合计一致；禁用扫描 0 条。
+- **覆盖**：total=117 implemented=117 **missing=0**、registered_routes=134、not_registered=[]；连续第 **8** 轮全绿。
+- **回归面**：复跑 84 条（tag 集合与上一轮 R569 一致）；rc 变化 0 条、新增 0、未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167：新增 0 / 消失 0）；零写副作用（冻结清单生成物 size+md5 全等，变化 0 个）；命令表已由仓库内 `tools/round-verify/manifest.json` 提供，$TEMP 抽查脚本 54 条全部归仓（由 manifest 的 $TEMP 条目数与归仓目录数**双源互证**推出）。
+- **本轮要点（单一事实源 = note-R570.md）**：
+一、性质与覆盖：本轮为**校验轮**（`missing == 0` ⇒ 按作业第 4 步「不改代码，只校验并报告」，交付面 `aap-server` / `docs` / 冻结清单生成物**一行未动**）。
+本轮**装置面与交付面均零改动**（工作区 `tools/` 条目 0、被测提交..HEAD 触及 `tools/` 的提交 0 枚、`git diff --stat f99baa6d..HEAD -- aap-server/ docs/ aap-client/` 无输出）。
+覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；按族 15 族全齐：
+(空任务号) 18 · T03 6 · T04 5 · T05 7 · T06 6 · T07 4 · T08 11 · T09 6 · T10 5 · T11 11 · T12 4 · T13 3 · T14 22 · T15 3 · T17 6
+（族和 117 = total，内容级核对）。
+
+二、两轮全量（**串行**，在 HEAD 的独立 detached worktree 内）：被测提交 **f99baa6d**（R569 飞书通知留痕提交，`WT_DIRTY_LINES=0` ⇒ 跑的是提交态）；
+run1 19:32:13→19:34:45（maven 耗时 149 s）、run2 19:34:45→19:36:59（131 s），各 **316 例 / 51 类**、rc=0/0、Failures-Errors-Skipped = 0-0-0、两轮 `BUILD SUCCESS` 均为真、**逐类 diff=0**；
+`@Test` 词边界计数 316 == surefire 合计 316（裸子串 318 作对照，差 2 即 `@TestConfiguration`/`@TestPropertySource`）；归档测试源 57 个 `.java`；禁用扫描 **0 条**（未削弱测试）。
+窗口 19:31:54→19:37:03；窗口内他方推进提交数 **0**（HEAD 起点=终点=f99baa6d）。
+
+三、回归面（命令表 = 仓库内单一事实源 `tools/round-verify/manifest.json`）：声明 43 审计 + 41 自测 = **84 条**，实际解析 84，自洽 True；存在性预检 84/84（缺失 0）；
+**rc 变化 0 条 / 新增 0 / 未复跑 0**（rc=0 条数 39/84、rc!=0 45 条，逐条与 R569 相同）；FAIL 明细 43 个脚本 **167 行**；跨轮 faildiff **167→167，新增 0 / 消失 0**；
+零写副作用：冻结清单生成物 size+md5 运行前后全等（变化 **0** 个，103 个生成物快照）。
+崩溃通道 2 条（`gap-coverage-gap`、`gap-coverage-gap-selftest`，均为 `rc!=0 ∧ FAIL 0 行`），其**完整理由行集 sha256 与上一轮逐字节一致**（可比通道 2 条、理由变化 0 条）——第三类通道（rc 不变而理由变）本轮无信号。
+归仓耐久性守卫（三方逐字节：索引 ⇔ 归档 ⇔ 原文件）：仓库外脚本 54 条 → 一致 52 / **异常 2**（`spotcheck-success-shape`、`gap-pagination-order`，归档副本与在用脚本分叉）——**沿用登记项，非本轮新增**（待拍板 ㊱/㉝）。
+
+四、装置链读数：`analyze` **PASS 27 / FAIL 0**（A0a–A25）；`regression --selftest` **26 PASS / 0 FAIL**；③b `selftest-counts` 逐工具条数
+`regression 26 / final-check 23 / independent 47 / backfill-c7 20 / device-report 10 / selftest-counts 15` 与 README 自述**逐项一致、更正 0 处**（只读守卫 = True，README 未被写入）；
+`closeout` 台账 / history / 状态三处各 1 条；`postwrite`、`final-check`（F0–F18）、`independent`（J1–J9）读数见对应证据文件。
+
+五、本轮返工 0 处（装置链六个步骤全部**首次通过**）。支撑读数：A6 maven 耗时解析器两形态各 1 条合成对照（本轮实际形态 run1/run2 均为 `mm:ss min`）；
+A18 并发前置双向对照 pos=2/2、neg=0/2；A22 上一轮 history 行恰好 1 条且相位 = 绿相位；A10 `@Test` 对账 316 == 316。
+
+六、本轮主动核对（沿用轮次一致性对账，**无新发现**）：
+① 台账轮次连续性（`^R\d+` 抽取）：542 条轮次行、首 R27、末 **R569**，末 6 轮 R564…R569 连续；**唯一跳号 = (553, 555)**，即 R554 未记账 —— 与 R569 报告同源的历史豁免（`aap-server-tdd-state.md` 有专节「R554 红基线轮（未记账）」，取证留档 `evidence/red-baseline-R554.txt`），**非本轮缺口**；
+② 台账结构：表头 **8 列**、物理行 650（数据 649）、**列数不符行 = 0**、末行 R569 描述列 **4962 字符**（内容级下限 800）、证据列 654 字符、末行 `c7=2e8a66c6` 与 R569 报告一致；
+③ 安全：敏感值自检 **0 命中**（暂存差异与工作区 vs HEAD 两处均 0）；`audit-secret-leak`（Tier A 17 个密钥语义变量**必须 0 命中** → 0 处；`.gitignore` 覆盖 `.env`/`.env.*`/`target/`/`node_modules/`，被跟踪的 `.env` 类文件只有 `.env.example`）/ `evidence-secrets`（证据文件真实令牌 **0 条**）双闸清洁（rc=0，并在全部写入完成之后重跑）。
+
+七、与上一轮（R569）的差异逐条：rc 变化 0 条；FAIL 明细 167→167（新增 0 / 消失 0）；tag 集合 84→84 一致；复跑条数 84→84；用例数 316→316、类数 51→51；覆盖 117→117、registered_routes 134→134；
+崩溃通道理由 sha256 2→2 逐字节不变；连续全绿计数 **7 → 8**（由上一轮 history 行的连续计数形态解析后 +1）。
+
+八、本轮新增发现：**交付面 0 条**（`missing=0`、两轮全绿、回归面零漂移）；**装置侧 0 条**。
+「无发现」不是「判据空转」的证据，故上文为每个解析器给出了 `> 0` 正向对照（84 条命令表、167 行 FAIL 明细、2 条崩溃通道、6 项自测条数、54 条仓库外脚本、103 个生成物快照、316 例对账）。
+
+九、安全与多项目共存：未使用浏览器、未按镜像名杀进程、未触碰他方 worktree / CDP；主体仓库 5 条他方在途改动（根 `README.md` / `aap-server/pom.xml` / `SecurityConfig.java` / `application.yml` / `webapp/`）**原样未动**，
+其 mtime 全部早于本轮窗口（窗口内新增 0 条）；提交一律按显式路径 `git add`，绝不用 `git add -A`；无密钥、令牌或完整连接串进入代码、证据或回复。
+
+十、溯源说明（历史 209）：主提交 message 与本节同源（返工真值 = 0 处）；若收尾阶段才暴露新项，将按纪律以**独立小提交**据实更正，**不 amend 已发布提交**。
+
+十一、待办（沿用编号清单，本轮无新增、无转出）：
+㊵（沿用）：`selftest-counts.py` 目前**不进 manifest 回归面**（与 `regression.py --selftest` 等同类：扩面须人拍板）—— 是否把「装置 README 自述条数」纳入 84 条回归序列（代价：每轮多 6 次 `--selftest`，约数秒）？
+㊶（沿用）：`$TEMP/aap-r565-aux/` 等历史 aux 脚本是否按 `tools/archive-temp-scripts.py` 归仓留档后清理（与 ㉝/㉑ 同族）。
+㊲（沿用）：`spotcheck-success-shape-selftest` T16 正向对照仍写死「90/90 ∧ 90 operation」（实际 117）—— 与 ㉘ 的作业口径一起拍；该自测因此常驻 rc=1。
+㊱（沿用）：归仓守卫 2 条分叉（`spotcheck-success-shape` / `gap-pagination-order` 归档副本过期）—— 是否授权跑 `tools/archive-temp-scripts.py` 重新归仓？
+㉟（沿用）：`spotcheck-state-machine` A1 的 3 条同族条目是否放宽为「`set status='字面量'` ∧ where 同列参数化等值 ⇒ INFO + 上限」？
+㉘（沿用）：**20 条未登记端点**（规格自述终局 137 条）—— 作业口径是否正式由 `90/117` 更新为 `137`。
+㉗（沿用·阻塞项）：`ADM-CFG01~05` **一词两义**（「批量配置批次」vs「检测配置」）—— 定前缀前两侧都不要实现。
+㉝/㉑（沿用）：`$TEMP` 下未版本化的取证脚本是否收编进 `tools/`（须同步所有引用回归面条数的收尾守卫）。
+㉙/㉚/㉛（沿用）：18 条端点无台账行是否机械派生 / 清单「状态」列 6 条写「新增」无法反查任务号 / `ADM-S07/08/09` 任务号冲突以哪侧为准 / 台账覆盖是否收编为常驻审计。
+㉕㉖㉒㉔㉓（沿用）：12 条超发路由消费方分档 / `aap-admin/src/api` 是否纳入扫描根 / 9 条 md 冻结清单补写授权 / aux 探针收编 + `gap-coverage-gap` 噪声源 / 11 条零 schema 背书端点是否加强测试。
+- **返工真值**：本轮返工真值 = **0 处**（装置/脚本侧，零交付面影响；逐条见上文要点）。
+- **权威数字**：权威数字 = 返工 0 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
+
