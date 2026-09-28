@@ -1,0 +1,66 @@
+R561 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动三判据）
+==============================================================================
+生成方式：本文件由 `tools/round-verify/device-report.py` 从 git / facts / 证据的**真实输出**取值（数字零手写值），不接触交付面。
+轮次 = R561；被测提交（HEAD 的独立 worktree 内检出）= e77a8c0e；窗口 = 2026-09-28 14:25:24 -> 2026-09-28 14:30:19（facts 落盘）
+
+一、装置面改动（机器推导，零手写）
+  被测提交的 `tools/round-verify` 文件 = 14 个 / 工作区同名文件 = 14 个（新增 0 / 删除 0）
+  工作区未提交的 tools/ 条目 = 0 条（无）
+  「被测提交..HEAD」触及 tools/ 的提交 = 0 枚（本文件生成于主提交之前）
+  逐文件 numstat（工作区 vs HEAD，`插入/删除/路径`）：无
+  轮次无关性守卫：装置脚本（12 个 .py/.sh）内当前轮次号命中 = **0**（须 0
+    = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
+
+二、本轮返工真值 = **3 处**（零交付面影响；条目文本来自单一事实源 `round-note.md`，与台账描述列 / 状态文件小节共用）
+------------------------------------------------------------------------------
+本轮返工 3 处（**全部在 aux 探针侧**；零交付面改动 —— 未改 `aap-server` / `docs` / `aap-client` / `aap-admin` 任何一行；本轮装置面亦零改动；探针本体只存临时目录、未进仓库也未进回归面，绝对路径见证据文件表头）：
+① 首版探针的「实现侧可达性」判据取**路径首段**时写成 `path.split("/api/v1/")[-1].split("/")[0]` ⇒ 对 9 条端点**恒得 `admin`**（因为首段就是 `admin`），实测输出「命中 17 个 `*Controller*.java` 文件」——把「9 条端点零实现」显示成「有 17 个控制器命中」，该判据对被测对象**零判别力**（历史 46：异常读数先怀疑判据）。修法：取**第 2 段**（`supply-units` / `config-batches`），与同段 `D0` 的「实现侧命中文件数 `supply-units`=0 / `config-batches`=0」相互印证 → 两条独立读数同判「零路由」。
+② 同一探针的「台账里有没有该端点行」判据首版用**整行文本命中**（`any((v or "").find(k) >= 0 for v in r.values())`）⇒ 命中的是台账**描述列**里 5000+ 字的历史叙述（一次输出 75,098 字符、其中绝大部分与判据无关），最坏的一条 `ADM-DET01` 被报成「44 行命中」——**假「有行」**（历史 81：判据范围必须与语义一致）。修法：改为**逐列全等**（`某列 == 端点 ID`）后结论才成立：9 条端点全部「某列全等 = 0 行」= 真正「无台账行」（`ADM-DET01` 由 44 → 0）。
+③ 最终版探针的 **F2 结论句写成假陈述**：「差值只出现在『md 有行、台账无行』的任务号上」——而同一次输出的 F1 里 `T15 md=0 / 台账=3` 是**反向**差值 ⇒ 结论与自身读数互相打脸（历史 12/95）。修法：按差值**方向分档**（`F2a` md 多/台账少 = `T11`/`T14`；`F2b` 台账多/md 少 = `T15`）+ 补 `F2c`（`ADM-S07/08/09` 逐条列名 + 其 md 状态列取值）与 `F3`（台账「任务级行」第三证人 ⇒ 证明不是「台账凭空造号」）。
+（另有一处**写前自查**修正、不计入返工真值：结论段 `G6` 引用了 `selftest()` 并未返回的 `st_total`/`st_fail` 两个名字 ⇒ 会在**渲染结论段**那一步 `NameError`（历史 232/175 族）；落盘前自查改为 4 元组返回并复核输出，属「崩溃远好于静默产出」的同类正例。）
+本轮发现（**非返工**，登记项；逐条读数见 `aux-ledger-coverage-R561.txt` A–G 段）：
+ⓐ **第四十七类一次性只读取证：端点「台账覆盖 / 任务号可追溯性」**（此前无任何审计或门禁覆盖它）。机器取证的单一事实源：`tools/gen-backend-models.py` 的 `emit_endpoint_manifest()` 用 `task_of[row["接口ID"]] = row.get("任务号","")` 反查台账 `.agents/state/aap-server-feature-status.csv` ⇒ **台账无该 ID 行时 `endpoints.json` 的 `task` 字段恒为空串**。为什么两套门禁看不见：契约测试只把**响应体**与 JSON Schema 比对（台账/task 不在任何 schema 里）∧ 覆盖门禁只比「Spring 路由 ⇔ 清单 方法+路径」∧ 生成器 `--check` 只比**生成物之间**一致（台账→生成物是**单向读**，台账缺行时生成物内部仍自洽）⇒ 三者同时对「无台账行 / 任务号为空 / 生成物过期」不可见。
+ⓑ **覆盖缺口 18 条（机器逐条列名）**：端点 117 条 vs 台账端点行 99 条 ⇒ **18 条无台账行**（自证闭合 99 + 18 = 117）。分档：**已实现（有路由）9 条** = `ADM-AUTH01~05`、`ADM-Q03`、`ADM-PAY04/05`、`ADM-DET01`（**本作业已交付但无台账记录** ⇒ `task` 恒空、`by_task` 把它们归入空键分组，空键分组 18 条中已实现恰 9 条）；**未注册（无路由）9 条** = `ADM-SU01~04` + `ADM-CB01~05`（并行工作流 `specs/001-intake-automation` 的 M4 段在途，本轮按硬规则 1 不实现、不补行）。
+ⓒ **双向不一致（第三证人 = 冻结清单状态列 vs 台账端点行，逐任务计数）**：13 个任务号里 3 个有差值 —— `T11` md=13/台账=11、`T14` md=28/台账=22（方向 = md 有行而台账无行，与 ⓑ 的已实现 9 条**逐条对应**）；`T15` md=0/台账=3（**反向**：台账把 `ADM-S07/08/09` 记为 `T15`，而冻结清单对同一三条端点的「状态」列写的是**来源**标记「新增」，无任务号可反查）。台账侧另有 `T15 = 端到端验收与交付` 的**任务级行**佐证 ⇒ 该任务号在台账里是已登记任务，属**两源口径不一致**、不是「台账凭空造号」。
+ⓓ **冻结清单「状态」列形态异常 4 条**：该列语义为 `待实现` / `Txx`（任务号）/ `已实现`，实测 `ADM-S07`、`ADM-S08`、`ADM-S09`、`ADM-DET01` 四条承载的是**来源**标记「新增」⇒ 这四条无法反查任务号（`ADM-S07/08/09` 与台账的 `T15` 冲突见 ⓒ；`ADM-DET01` 台账亦无行）。
+ⓔ **分级（据实，不夸大）**：三项均为**契约元数据一致性 / 可追溯性**项，**零运行时影响**（`task` 不参与路由、不参与契约测试、不影响任何端点行为）；唯一可观测后果 = `by_task` 分组与硬约束 1 的「任务号」字段失真。
+ⓕ **判别力实测**：13 条判据（干净基线 + 注入「删台账行 / 任务号置空 / 生成物 task 写成空串或写错 / md 状态列写非任务号形态」+ 反向对照 + 空夹具判「缺口 == 全部端点」而非判绿 + 含**转义竖线**的 md 行仍被解析的历史 48 回归守卫）**13 PASS / 0 FAIL**；本取证只读 —— 未改台账、未改生成物、未改交付代码。
+ⓖ 沿用 R556–R560 的他方在途风险（`exec-maven-plugin` 无 skip 开关、交付态 yml 缺 `app.settlement.*` 声明、`coverage-report.json` 走 CRLF）——只登记、不代改。
+------------------------------------------------------------------------------
+
+三、本轮关键读数（读自 analyze / regression 证据，零手写值）
+  相位 = red（两轮 rc=1/1 ∧ missing=9 的合取，判据见 tools/round-verify/phase.py）
+  分析器判据 PASS 22 / FAIL 5；覆盖 total=117 implemented=108 **missing=9** registered_routes=125；连续全绿计数 = 0（**红相位**清零）
+  回归面：复跑 84 条（上一轮 R560 = 84 条）；rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 183 行
+  零写副作用：生成物 size+md5 变化 0 个（须 0）；跨轮 faildiff 上一轮 183 行 / 本轮 183 行、新增 0 / 消失 0
+  崩溃通道：rc!=0 条目 46 条，其中 FAIL 通道不可见（rc!=0 ∧ FAIL 0 行）= 3 条
+
+四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
+  ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 12 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 17 == `git status` 条目 17
+      M README.md  mtime=2026-09-24 07:51:14
+      M aap-server/pom.xml  mtime=2026-09-24 08:07:37
+      M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
+      M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
+      ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
+      （本轮产物）?? .agents/state/evidence/audit-regression-R561-faildiff.txt  mtime=2026-09-28 14:35:13
+      （本轮产物）?? .agents/state/evidence/audit-regression-R561-failraw.txt  mtime=2026-09-28 14:35:13
+      （本轮产物）?? .agents/state/evidence/audit-regression-R561-rcseq.txt  mtime=2026-09-28 14:35:13
+      （本轮产物）?? .agents/state/evidence/audit-regression-R561.txt  mtime=2026-09-28 14:35:13
+      （本轮产物）?? .agents/state/evidence/aux-ledger-coverage-R561.txt  mtime=2026-09-28 14:30:42
+      （本轮产物）?? .agents/state/evidence/red-verify-R561-coverage-fields.txt  mtime=2026-09-28 14:30:34
+      （本轮产物）?? .agents/state/evidence/red-verify-R561-full-run1.txt  mtime=2026-09-28 14:30:34
+      （本轮产物）?? .agents/state/evidence/red-verify-R561-full-run2.txt  mtime=2026-09-28 14:30:34
+      （本轮产物）?? .agents/state/evidence/red-verify-R561-testcount.txt  mtime=2026-09-28 14:30:34
+      （本轮产物）?? .agents/state/evidence/red-verify-R561-tested-state.txt  mtime=2026-09-28 14:30:34
+      （本轮产物）?? .agents/state/evidence/regression-selftest-R561.txt  mtime=2026-09-28 14:35:25
+      （本轮产物）?? .agents/state/evidence/round-R561-analysis.txt  mtime=2026-09-28 14:30:34
+      其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
+  ③ 本轮提交（e77a8c0e..HEAD）改动文件 = 0 个，其中位于交付面前缀的 = 0 个（**须 0**）
+
+五、下一族
+  missing=9 > 0：按 docs/backend 的任务顺序推进下一族（本轮完成端点 0 条 / 新增用例 0 条）。
+
+六、留痕
+  本文件 = .agents/state/evidence/device-round-R561.txt（由本工具直接落盘，`newline="\n"`；文件名与 closeout.py 的消费名机器核对一致；行数下限判据与 CR=0 判据见下）
+DEVICE_REPORT_END=1

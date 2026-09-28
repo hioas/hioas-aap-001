@@ -1,0 +1,97 @@
+R561 aux 取证：**端点台账覆盖 / 任务号可追溯性**（第四十七类一次性只读取证；只读，零写副作用）
+根 = E:/workspaces/hioas/hioas-aap-001；探针绝对路径见落盘器表头（只存 $TEMP，扩面须拍板）
+单一事实源（机器核对）：tools/gen-backend-models.py 的 emit_endpoint_manifest() —— `task_of[row["接口ID"]] = row.get("任务号","")` ⇒ endpoints.json 的 task 字段由**台账反查**，台账无行 ⇒ 空串。
+为什么两套门禁看不见：契约测试只读 JSON Schema（台账/task 不在 schema 里）∧ 覆盖门禁只比「路由 ⇔ endpoints.json 方法+路径」∧ 生成器 --check 只比**生成物之间**一致（台账→生成物是单向读，台账缺行时生成物内部仍自洽）⇒ 三者同时对「无台账行 / 任务号为空 / 生成物过期」不可见。
+======================================================================================================================
+--- A 正向对照（先看解析到几条，再看结论；历史 46/75/98）---
+A0a endpoints.json 解析条数 == total：parsed=117 total=117
+A0b 台账记录数 = 640（端点行 99 / 轮次行 541），表头 = ["任务号", "接口ID", "方法", "路径", "依据", "状态", "证据", "提交"]
+A0c md 端点行解析条数 = 108（> 0 正向对照）
+A0d 生成器「task 由台账反查」代码点命中 = 1 处（> 0 正向对照）
+
+--- B 台账覆盖（A 类硬缺口：端点无台账行）---
+B1 端点总数 117 ；有台账行 99 ；**无台账行 18**（= 覆盖缺口）
+B2 缺口分档：**已实现（有路由）9 条** / 未注册（无路由）9 条
+B3 已实现侧逐条（这 9 条是「已交付但无台账记录」的端点，task 字段因此恒为空）:
+      · ADM-AUTH01  POST /api/v1/admin/auth/sms/login                   registered=Y
+      · ADM-AUTH02  GET  /api/v1/admin/admin-users                      registered=Y
+      · ADM-AUTH03  POST /api/v1/admin/admin-users                      registered=Y
+      · ADM-AUTH04  POST /api/v1/admin/admin-users/{id}/suspend         registered=Y
+      · ADM-AUTH05  POST /api/v1/admin/admin-users/{id}/resume          registered=Y
+      · ADM-Q03     GET  /api/v1/admin/quotes/{id}/items                registered=Y
+      · ADM-PAY04   POST /api/v1/admin/payments                         registered=Y
+      · ADM-PAY05   POST /api/v1/admin/payments/{id}/void               registered=Y
+      · ADM-DET01   GET  /api/v1/admin/detection-jobs                   registered=Y
+B4 未注册侧逐条（归属并行工作流 specs/001-intake-automation 的 T-M4-07~12，本轮不实现）:
+      · ADM-SU01    GET  /api/v1/admin/supply-units                     registered=N
+      · ADM-SU02    GET  /api/v1/admin/supply-units/{id}                registered=N
+      · ADM-SU03    POST /api/v1/admin/supply-units/{id}/reconfigure    registered=N
+      · ADM-SU04    POST /api/v1/admin/supply-units/{id}/offline        registered=N
+      · ADM-CB01    POST /api/v1/admin/config-batches                   registered=N
+      · ADM-CB02    GET  /api/v1/admin/config-batches                   registered=N
+      · ADM-CB03    GET  /api/v1/admin/config-batches/{batchId}         registered=N
+      · ADM-CB04    POST /api/v1/admin/config-batches/{batchId}/items/{itemId}/retry registered=N
+      · ADM-CB05    POST /api/v1/admin/config-batches/{batchId}/items/{itemId}/rollback registered=N
+B5 端点数相加自证：有行 99 + 已实现缺口 9 + 未注册缺口 9 = 117（应 == 端点总数）
+
+--- C 台账行任务号为空（B 类硬缺口）---
+C1 端点行中任务号为空的记录 = 0 条（0 = 无此类缺口）
+
+--- D 台账 ⇔ 生成物 task 一致性（C 类硬缺口：改了台账未重跑生成器）---
+D1 台账有行但生成物 task 不一致 = 0 条（0 = 生成物与台账同源一致）
+
+--- E 冻结清单「状态」列形态（D 类形态项）---
+E1 md 端点行 108 条；「状态」列非 `Txx/待实现/已实现` 形态 = 4 条
+      · ADM-S07 状态列 = '新增'（该列语义为 `待实现`/`Txx`/`已实现`；此处承载了**来源**标记 ⇒ 无任务号可反查）
+      · ADM-S08 状态列 = '新增'（该列语义为 `待实现`/`Txx`/`已实现`；此处承载了**来源**标记 ⇒ 无任务号可反查）
+      · ADM-S09 状态列 = '新增'（该列语义为 `待实现`/`Txx`/`已实现`；此处承载了**来源**标记 ⇒ 无任务号可反查）
+      · ADM-DET01 状态列 = '新增'（该列语义为 `待实现`/`Txx`/`已实现`；此处承载了**来源**标记 ⇒ 无任务号可反查）
+
+--- F 第三证人（冻结清单状态列 vs 台账端点行，逐任务计数；**双向**）---
+F1 T03   md= 6 台账= 6
+F1 T04   md= 5 台账= 5
+F1 T05   md= 7 台账= 7
+F1 T06   md= 6 台账= 6
+F1 T07   md= 4 台账= 4
+F1 T08   md=11 台账=11
+F1 T09   md= 6 台账= 6
+F1 T10   md= 5 台账= 5
+F1 T11   md=13 台账=11  <== 差值 +2
+F1 T12   md= 4 台账= 4
+F1 T13   md= 3 台账= 3
+F1 T14   md=28 台账=22  <== 差值 +6
+F1 T15   md= 0 台账= 3  <== 差值 -3
+F1 T17   md= 6 台账= 6
+F2 差值分**两类**（不合并陈述 —— 历史 81/95：判据范围必须与语义一致）：
+F2a 「md 多、台账少」的任务号 2 个 = [["T11", 13, 11], ["T14", 28, 22]] ⇒ 与 B3 已实现缺口逐条对应（有 md 行、无台账行）
+F2b 「台账多、md 少」的任务号 1 个 = [["T15", 0, 3]] ⇒ **反向不一致**：台账把端点记为该任务号，而冻结清单的
+     「状态」列对同一端点写的是**来源**标记（无任务号可反查）—— 两台源对同一条端点的任务归属不同。
+F2c 上类的端点逐条 = ["ADM-S07", "ADM-S08", "ADM-S09"]；其 md 状态列取值 = ["新增", "新增", "新增"]
+F3 台账里这些任务号的**任务级行**（接口ID 为空、承载任务描述）= 1 条：[["T15", "端到端验收与交付"]]
+F4 第三证人结论：台账侧有任务级行佐证 ⇒ 该任务号在台账里是**已登记任务**；冻结清单的状态列与之不同 ⇒
+     两台源的不一致，不是「台账凭空造号」（正/反两方向都由机器判据给出，历史 51/151）。
+
+--- 判别力自测（合成夹具 + 注入缺陷；历史 46/66/75/98/141）---
+  [PASS] P0 干净夹具基线：缺口/空任务号/不一致 三者皆空 ([], [], [])
+  [PASS] P0b 干净夹具正向对照：已覆盖数 == 端点数 cov=2
+  [PASS] P1a 注入「台账缺 EP-A 行」→ A 恰好点出 EP-A ['EP-A']
+  [PASS] P1b 注入后已覆盖数由 2 降为 1
+  [PASS] P1c 空台账夹具：缺口 == 全部端点（不得判绿）
+  [PASS] P2 注入「台账行任务号为空」→ B 恰好点出 1 条 ['EP-A']
+  [PASS] P2b 干净夹具上 B 为空（反向对照）
+  [PASS] P3a 注入「生成物 task 为空」→ C 恰好点出 EP-A [('EP-A', 'T01', '')]
+  [PASS] P3b 注入「生成物 task 写错」→ C 报出 (want, got) [('EP-A', 'T01', '')]
+  [PASS] P3c 干净夹具上 C 为空（反向对照）
+  [PASS] P4a md 解析器正向对照：解析到 2 行（非 0） [('EP-A', 'T14'), ('EP-B', '新增')]
+  [PASS] P4b 注入「状态列写 新增」→ 恰好点出 EP-B [('EP-B', '新增')]
+  [PASS] P4c 含转义竖线的 md 行仍被解析（坑 48 回归守卫） [('EP-C', 'T11')]
+  自测：13 PASS / 0 FAIL
+
+--- G 结论 ---
+G1 台账覆盖缺口 18 条（已实现 9 / 未注册 9）；任务号为空 0 条；生成物不一致 0 条；md 状态列形态异常 4 条；双向任务号不一致 3 个任务号
+G2 未注册的 9 条属并行工作流（specs/001-intake-automation T-M4-07~12 在途；其提交链 09-28 10:06–10:33 活跃）⇒ 本作业按硬规则 1 不实现、不补行（其 task 归属由该工作流决定）。
+G3 已实现的 9 条属**本作业台账的记录缺口**：其 task 字段应可反查，而台账无行 ⇒ 生成物 task 恒为空、coverage-report 的 by_task 把它们归入空键分组（空键分组 = 18 条，其中已实现 9 条）。
+G4 分级（据实，不夸大）：三项均为**契约元数据一致性/可追溯性**项 —— 零运行时影响（task 不参与路由、不参与契约测试、不影响任何端点行为），严重度=记录口径；唯一可观测后果 = `by_task` 分组与「任务可追溯性」（硬约束 1 的字段）失真。
+G5 本取证**只读**：未改台账 / 未改生成物 / 未改交付代码。是否补 9 条台账行与任务号取值口径列待拍板 ——补行需填台账端点行的 `状态`（形如 `已实现(N例)`）与 `证据`/`提交` 三列，其中「例数」无法从任何现存产物机械派生 ⇒ 不自造。
+G6 判别力：自测 13 PASS / 0 FAIL（合成夹具 + 注入缺陷，锚点全部命中）；空夹具判「缺口 == 全部端点」（不判绿，历史 98/141）。
+PROBE_END=1
