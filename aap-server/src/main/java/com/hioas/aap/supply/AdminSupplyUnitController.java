@@ -25,18 +25,24 @@ import org.springframework.web.bind.annotation.RestController;
  * <p>与供应商端 `SET-MDL01`（`/provider/supply-units`，仅本人主体、只读）是**两套视图**：
  * 管理端可按任意维度筛全部供给单元，并把「重配置/下架」这两个治理动作暴露出来。
  *
- * <p>状态码：`ADM-SU03` 按契约返回 **202 已受理**（重配置是异步编排，差异清单在响应体里给，
- * 上游写入由 T-M4-08~11 的执行器接管）；其余 200。
+ * <p>状态码：`ADM-SU03` 按契约（`specs/001-intake-automation/contracts/…openapi.yaml`：
+ * `'202': 已受理，返回 batchId`）返回 **202 已受理** —— 重配置是异步编排，差异清单在响应体里给，
+ * 上游写入由执行器接管；其余 200。该端点在冻结清单 §2.6 的「请求/响应」列里**声明了 202**，
+ * 故与 §4 码表「业务码 `0` → 200」不冲突（零业务码的通用映射不变，只是 HTTP 层用 202 表达「已受理」）。
+ *
+ * <p>依赖注入口径：字段名取 **类名小写首字母**（`supplyUnitAdminService`）—— 与仓库既有控制器一致，
+ * 也是静态审计（如「分页夹取是否发生在控制器或其调用链上」「审计标注端点链路上真的有留痕」）解析接收者
+ * 类型的方式；用裸 `service` 会让这些链路判定断链（把「已夹取/已留痕」误报成缺口）。
  */
 @RestController
 @RequestMapping("/api/v1/admin/supply-units")
 @PreAuthorize("hasAnyRole('TECH_OPS','SUPER_ADMIN')")
 public class AdminSupplyUnitController {
 
-    private final SupplyUnitAdminService service;
+    private final SupplyUnitAdminService supplyUnitAdminService;
 
-    public AdminSupplyUnitController(SupplyUnitAdminService service) {
-        this.service = service;
+    public AdminSupplyUnitController(SupplyUnitAdminService supplyUnitAdminService) {
+        this.supplyUnitAdminService = supplyUnitAdminService;
     }
 
     /** ADM-SU01 供给单元列表（`providerId`/`modelName`/`status` 可选 + 分页）。 */
@@ -46,13 +52,13 @@ public class AdminSupplyUnitController {
                                                                    @RequestParam(required = false) Long providerId,
                                                                    @RequestParam(required = false) String modelName,
                                                                    @RequestParam(required = false) String status) {
-        return ApiEnvelope.ok(service.adminList(page, pageSize, providerId, modelName, status));
+        return ApiEnvelope.ok(supplyUnitAdminService.adminList(page, pageSize, providerId, modelName, status));
     }
 
     /** ADM-SU02 供给单元详情（含调度画像与质量分；不存在 → 404 `E-1406`）。 */
     @GetMapping("/{id}")
     public ApiEnvelope<SupplyUnitViews.SupplyUnit> detail(@PathVariable Long id) {
-        return ApiEnvelope.ok(service.detail(id));
+        return ApiEnvelope.ok(supplyUnitAdminService.detail(id));
     }
 
     /**
@@ -68,13 +74,13 @@ public class AdminSupplyUnitController {
             @Valid @RequestBody(required = false) SupplyUnitViews.ReconfigureRequest request) {
         Boolean dryRun = request == null ? null : request.dryRun();
         String reason = request == null ? null : request.reason();
-        return ApiEnvelope.ok(service.reconfigure(principal, id, dryRun, reason));
+        return ApiEnvelope.ok(supplyUnitAdminService.reconfigure(principal, id, dryRun, reason));
     }
 
     /** ADM-SU04 下架（R-65：存在未结清账期 → 409 `E-1601`）。 */
     @PostMapping("/{id}/offline")
     public ApiEnvelope<SupplyUnitViews.SupplyUnit> offline(@AuthenticationPrincipal AuthPrincipal principal,
                                                           @PathVariable Long id) {
-        return ApiEnvelope.ok(service.offline(principal, id));
+        return ApiEnvelope.ok(supplyUnitAdminService.offline(principal, id));
     }
 }
