@@ -1,0 +1,61 @@
+R554 跨轮 FAIL 明细比对（上一轮 = R553）
+归一：路径去仓库/临时前缀 + 剥行首来源前缀（历史 135/177）；[PASS] 行已排除（历史 47/109）
+上一轮 161 行 / 本轮 183 行；新增 40 / 消失 18
+  新增: auth-contract | A0b D 行数 = total：parsed=108 期望=117
+  新增: auth-contract | A1 清单每条端点都能在实现里定位到路由（解析器覆盖性正向对照）：未定位 9 条：['ADM-CB01', 'ADM-CB02', 'ADM-CB03', 'ADM-CB04', 'ADM-CB05', 'ADM-SU01', 'ADM-SU02', 'ADM-SU03', 'ADM-SU04']
+  新增: auth-contract | A8 md「角色」列 = 清单角色集合（仅逐条列角色的 7 列表头行）：不一致 42 条
+  新增: contract-keys | [FAIL] docs/backend/openapi.yaml ADM-CB02：有 pageSize 参数但响应未 PageMeta 包装（分页端点漏包装）
+  新增: contract-keys | [FAIL] docs/backend/openapi.yaml ADM-SU01：有 pageSize 参数但响应未 PageMeta 包装（分页端点漏包装）
+  新增: error-codes | A0c D 行数 = total：parsed=108 期望=117
+  新增: error-codes | A8 md 行 ID 集合 = 清单 ID 集合：差集=['ADM-CB01', 'ADM-CB02', 'ADM-CB03', 'ADM-CB04', 'ADM-CB05', 'ADM-SU01', 'ADM-SU02', 'ADM-SU03', 'ADM-SU04']
+  新增: error-codes | A9 md 每行错误码列 = 清单：不一致 18 条
+  新增: gap-logical-fk | A0g   控制器路由定位率仅 108/117 → 未定位：GET /admin/config-batches, GET /admin/config-batches/{}, GET /admin/supply-units, GET /admin/supply-units/{}, POST /admin/config-batches, POST /admin/config-batches/{}/items/{}/retry, POST /admin/config-batches/{}/items/{}/rollback, POST /admin/supply-units/{}/offline, POST /admin/supply-units/{}/reconfigure
+  新增: gap-pagination-defaults | [FAIL] A1 openapi 每个 page/pageSize 参数都声明 default：缺失 56/56（样例 PROV-03(page)、PROV-03(pageSize)、CRED-01(page)、CRED-01(pageSize)、RPT-01(page)）
+  新增: gap-pagination-defaults | [FAIL] A2 openapi 每个 pageSize 参数都声明 maximum：缺失 28/28
+  新增: gap-pagination-defaults-selftest | [FAIL] T1 注入修法锚点命中 46 处（= page+pageSize 参数数）  — hits=56
+  新增: gap-paging-range | A4: openapi 声明 pageSize 上限 200 的 operation：0/28
+  新增: gap-paging-range | A5: openapi 声明 pageSize 默认值 20 的 operation：0/28
+  新增: gap-paging-range | A5b: openapi 声明 page 默认值 1 的 operation：0/28
+  新增: gap-sensitive-fields | A2c 逐端点响应 DTO 敏感键 ⇔ response_model schema（已定位的端点全部一致） 已定位 39 个端点（跳过 78：AUTH-01: 无键; AUTH-05: 未定位控制器; PROV-03: 返回 Map（键在 Service 里拼装，静态不可判定）; PROV-04: 返回 Map（键在 Service 里拼装，静态不可判定））；契约声明未出口 3 条、实现出口未声明 2 条
+  新增: query-params | A0b D 行数 = total（裸 split 会漏行，坑 48）：parsed=108 期望=117
+  新增: query-params | A0e 非空查询参数端点被真的解析出来（否则本审计空转）：M 非空 30 条；D 非空 27 条；O 非空 30 条；I 非空 30 条
+  新增: query-params | A1 md 逐行 `q：…` = endpoints.json query_params：不一致 5 条
+  新增: query-params | A3a 清单每条端点都在实现里定位到同方法同路径的控制器方法：未定位 9 条
+  新增: request-body | A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）：不一致 13 条：{'ADM-CB01': '未定位到控制器方法（路由审计已覆盖）', 'ADM-CB05': '未定位到控制器方法（路由审计已覆盖）', 'ADM-CFG07': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-CFG09': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-S07': "newapi-endpoint-create schema-not-in-dto=['remark'] dto-not-in-schema=[]", 'ADM-SU03': '未定位到控制器方法（路由审计已覆盖）', 'ADM-U02': "usage-refresh schema-not-in-dto=['batch_id'] dto-not-in-schema=[]", 'CRED-02': "credential-create schema-not-in-dto=['is_primary'] dto-not-in-schema=[]"}
+  新增: response-shape | A0b D 行数 = total（转义竖线按未转义切分，坑 48）：parsed=108 期望=117
+  新增: response-shape | A2b 未能静态判定的返回类型 ≤ 8（超出说明判据覆盖不足，坑 57）：15 条：[('ADM-CB01', '未定位'), ('ADM-CB02', '未定位'), ('ADM-CB03', '未定位'), ('ADM-CB04', '未定位'), ('ADM-CB05', '未定位'), ('ADM-PAY06', 'ApiEnvelope<Detail>'), ('ADM-PAY07', 'ApiEnvelope<Detail>'), ('ADM-PAY08', 'ApiEnvelope<Detail>')]
+  新增: routes | A0b D 行数 = total（裸 split 会漏行，坑 48）：parsed=108 期望=117
+  新增: routes | A1 md 逐行「方法+路径」= endpoints.json（未归一前缀）：不一致 9 条
+  新增: routes | A3 清单每条端点都在实现里有同方法同路径的路由：未定位 9 条
+  新增: spotcheck-audit-cols | A5 md 声明审计字段为业务表通用，但 DDL 里 1 张表缺列：aap_config_batch_item
+  新增: spotcheck-audit-cols-selftest | 真实仓库 FAIL 集合 = {A1,A2,A3}（实际 ['A1', 'A2', 'A3', 'A5']）
+  新增: spotcheck-entity-ddl | A7b 声明未引用的孤儿序列 8 条（上限 3）：['seq_config_batch', 'seq_config_batch_item', 'seq_model_catalog', 'seq_settlement_line', 'seq_settlement_line_id', 'seq_settlement_statement_id', 'seq_supply_unit', 'seq_vendor']
+  新增: spotcheck-http-method | A3 实现方法分布与清单不一致（方法语义漂移）：GET 实现 57 / 清单 55
+  新增: spotcheck-http-method | A3 实现方法分布与清单不一致（方法语义漂移）：POST 实现 53 / 清单 55
+  新增: spotcheck-lock | A0b M 逐端点行数 = D 端点数：md=108 期望=117（两套表头：['ID/方法/路径/鉴权/请求/响应/错误码/幂等/并发/依据/状态', 'ID/方法/路径/角色/请求/响应/错误码/状态']）
+  新增: spotcheck-required | A2 无「必填同时可空」的自相矛盾属性：矛盾模型 8 个：{'config-batch-create': ['batch_type', 'mode'], 'config-batch-rollback': ['reason'], 'contract-issue': ['file_id'], 'detection-job-create': ['credential_id'], 'payment-record': ['contract_id', 'provider_id'], 'payment-record-create': ['contract_id', 'voucher_file_id'], 'quote-create': ['credential_id'], 'settlement-generate': ['provider_id']}
+  新增: spotcheck-required | A3 每个 schema.required 字段都能找到实现侧强制证据（注解 / 守卫 / 别名守卫）：无强制证据 4 个：[('ADM-S07', 'api_key', []), ('CRED-02', 'api_key', []), ('CRED-04', 'api_key', []), ('PROV-04', 'category', ['aap_notification', 'aap_provider_qualification'])]
+  新增: spotcheck-string-length | A2 admin-user-suspend.reason 声明 maxLength=255 > DDL 同名列宽度 [512] → 客户端可提交被库拒绝的值
+  新增: spotcheck-string-length | A2 payment-void.reason 声明 maxLength=255 > DDL 同名列宽度 [512] → 客户端可提交被库拒绝的值
+  新增: spotcheck-string-length | A2 settlement-void.reason 声明 maxLength=255 > DDL 同名列宽度 [512] → 客户端可提交被库拒绝的值
+  新增: spotcheck-string-length | A3b settlement-void.reason 声明 maxLength=255 但实现侧零强制，且 DDL 同名列是 varchar(512) → 超长(>512) 撞库为 **500 E-2001**，而契约承诺 400 E-1001（端点 ADM-PAY09）
+  新增: spotcheck-string-length-selftest | S13 真实仓库 FAIL 断言集合 = 已人工回查的 3 类 实际=['A2', 'A3b', 'A3c', 'A5b'] 期望=['A3b', 'A3c', 'A5b']
+  新增: spotcheck-string-length-selftest | S16 真实仓库 FAIL 明细 9 条 FAIL 明细=21
+  消失: auth-contract | A8 md「角色」列 = 清单角色集合（仅逐条列角色的 7 列表头行）：不一致 33 条
+  消失: error-codes | A9 md 每行错误码列 = 清单：不一致 11 条
+  消失: gap-pagination-defaults | [FAIL] A1 openapi 每个 page/pageSize 参数都声明 default：缺失 52/52（样例 PROV-03(page)、PROV-03(pageSize)、CRED-01(page)、CRED-01(pageSize)、RPT-01(page)）
+  消失: gap-pagination-defaults | [FAIL] A2 openapi 每个 pageSize 参数都声明 maximum：缺失 26/26
+  消失: gap-pagination-defaults-selftest | [FAIL] T1 注入修法锚点命中 46 处（= page+pageSize 参数数）  — hits=52
+  消失: gap-paging-range | A4: openapi 声明 pageSize 上限 200 的 operation：0/26
+  消失: gap-paging-range | A5: openapi 声明 pageSize 默认值 20 的 operation：0/26
+  消失: gap-paging-range | A5b: openapi 声明 page 默认值 1 的 operation：0/26
+  消失: gap-sensitive-fields | A2c 逐端点响应 DTO 敏感键 ⇔ response_model schema（已定位的端点全部一致） 已定位 39 个端点（跳过 69：AUTH-01: 无键; AUTH-05: 未定位控制器; PROV-03: 返回 Map（键在 Service 里拼装，静态不可判定）; PROV-04: 返回 Map（键在 Service 里拼装，静态不可判定））；契约声明未出口 3 条、实现出口未声明 2 条
+  消失: query-params | A1 md 逐行 `q：…` = endpoints.json query_params：不一致 3 条
+  消失: request-body | A5 每个端点的请求模型 schema 属性 = 控制器 DTO 分量（双向）：不一致 10 条：{'ADM-CFG07': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-CFG09': "report-template-save schema-not-in-dto=['status'] dto-not-in-schema=[]", 'ADM-S07': "newapi-endpoint-create schema-not-in-dto=['remark'] dto-not-in-schema=[]", 'ADM-U02': "usage-refresh schema-not-in-dto=['batch_id'] dto-not-in-schema=[]", 'CRED-02': "credential-create schema-not-in-dto=['is_primary'] dto-not-in-schema=[]", 'CRED-04': "credential-create schema-not-in-dto=['is_primary'] dto-not-in-schema=[]", 'PROV-02': "provider-profile-update schema-not-in-dto=[] dto-not-in-schema=['manual_override', 'override_reason']", 'PROV-04': "qualification-create schema-not-in-dto=['company_name', 'contact_name', 'contact_phone', 'remark', 'uscc'] dto-not-in-schema=[]"}
+  消失: spotcheck-entity-ddl | A7b 声明未引用的孤儿序列 5 条（上限 3）：['seq_model_catalog', 'seq_settlement_line', 'seq_settlement_line_id', 'seq_settlement_statement_id', 'seq_vendor']
+  消失: spotcheck-http-method | A3 实现方法分布与清单不一致（方法语义漂移）：GET 实现 57 / 清单 51
+  消失: spotcheck-http-method | A3 实现方法分布与清单不一致（方法语义漂移）：POST 实现 53 / 清单 50
+  消失: spotcheck-required | A2 无「必填同时可空」的自相矛盾属性：矛盾模型 6 个：{'contract-issue': ['file_id'], 'detection-job-create': ['credential_id'], 'payment-record': ['contract_id', 'provider_id'], 'payment-record-create': ['contract_id', 'voucher_file_id'], 'quote-create': ['credential_id'], 'settlement-generate': ['provider_id']}
+  消失: spotcheck-required | A3 每个 schema.required 字段都能找到实现侧强制证据（注解 / 守卫 / 别名守卫）：无强制证据 5 个：[('ADM-S07', 'api_key', []), ('ADM-S07', 'base_url', ['aap_credential', 'aap_newapi_endpoint', 'aap_vendor']), ('CRED-02', 'api_key', []), ('CRED-04', 'api_key', []), ('PROV-04', 'category', ['aap_notification', 'aap_provider_qualification'])]
+  消失: spotcheck-string-length | A3c settlement-void.reason 声明 maxLength=255 但实现侧零强制，DDL 侧为 无同名列（无长度上限）→ 超长输入被**静默接受**，契约声明的上限无效（端点 ADM-PAY09）
+  消失: spotcheck-string-length-selftest | S16 真实仓库 FAIL 明细 9 条 FAIL 明细=18

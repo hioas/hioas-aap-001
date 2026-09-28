@@ -1,0 +1,83 @@
+R554 红基线轮（**未记账**：装置无红轮记账口径）—— 契约被并行工作流扩至 117 条（+9），全量测试红在覆盖门禁（305 例中仅 1 例失败）
+全部读数由 tools/round-verify/{run-round.sh,analyze.py,regression.py} 的真实输出与 git/grep 现场读数汇总，无手写值；LF 落盘
+==============================================================================
+
+## 一、本轮两轮全量（串行，真实输出）
+- 被测提交 = 9fc47812（= 窗口起点 HEAD，独立 detached worktree 内检出，WT_DIRTY_LINES=0）
+  该提交是他方（并行工作流 feat(intake)）的 test(migration) 提交，**不触碰**我的交付面
+- 窗口 = 10:51:53 → 10:56:55；窗口内他方推进提交 = 0（head_start = head_end = 9fc47812）
+- 并发前置双向对照：pos=2/2、neg=0/2（必须 0）、result=CLEAR、jps_reach=Y；worktree add/remove rc=0/0
+- run1 10:52:15→10:54:47（maven 02:27 min）rc=1；run2 10:54:48→10:56:50（02:01 min）rc=1（串行：run1_end ≤ run2_start）
+- 各 **305 例 / 49 类**（上一轮 R553 = 263 例 / 45 类；他方新增 42 例）：
+  Failures-Errors-Skipped = **1-0-0**（两轮一致）、`BUILD FAILURE` 而非 SUCCESS
+- `@Test` 词边界计数 305 == surefire 合计 305（裸子串 307 作对照，差 2）；禁用扫描 0 条；逐类结果（剥 Time elapsed 再排序）diff = 0
+- **唯一失败用例** = `com.hioas.aap.coverage.EndpointCoverageTest.everyListedEndpointIsRegistered`（:143，
+  断言消息「以下接口在冻结清单中但未注册（明细见 .agents/state/evidence/coverage-report.json）」）
+  ⇒ **除覆盖门禁外 304/305 全绿** = 红基线**干净**（与契约扩展提交自述的「红在能力缺失」独立复核一致）
+
+## 二、覆盖读数（本轮真实跑测落盘的覆盖报告）
+- endpoints.json `total` = **117**（R553 = 108）；覆盖报告 total=**117** / implemented=**108** / **missing=9**；registered_routes=**125**
+- `not_registered`（9 条，任务号均为空串 —— 未挂到任何任务族）：
+  ADM-SU01 `GET /api/v1/admin/supply-units`、ADM-SU02 `GET /api/v1/admin/supply-units/{id}`、
+  ADM-SU03 `POST /api/v1/admin/supply-units/{id}/reconfigure`、ADM-SU04 `POST /api/v1/admin/supply-units/{id}/offline`、
+  ADM-CB01 `POST /api/v1/admin/config-batches`、ADM-CB02 `GET /api/v1/admin/config-batches`、
+  ADM-CB03 `GET /api/v1/admin/config-batches/{batchId}`、
+  ADM-CB04 `POST /api/v1/admin/config-batches/{batchId}/items/{itemId}/retry`、
+  ADM-CB05 `POST /api/v1/admin/config-batches/{batchId}/items/{itemId}/rollback`
+- 按族相加 == total：15 族 108/117（空任务号 9/18 · T03 6/6 · T04 5/5 · T05 7/7 · T06 6/6 · T07 4/4 · T08 11/11 ·
+  T09 6/6 · T10 5/5 · T11 11/11 · T12 4/4 · T13 3/3 · T14 22/22 · T15 3/3 · T17 6/6）
+
+## 三、归属取证：这 9 条属**并行工作流**的在途工作（故本轮巡检未实现）
+1. 契约扩展提交 `4bc86fb0` 自述：「契约红基线（预期且干净）：EndpointCoverageTest 红，逐条列出 9 条未注册端点
+   —— 红在『能力缺失』，下一步实现 Controller 转绿」（同提交把门禁 hasSize 108 → 117）
+2. 并行工作流计划 `specs/001-intake-automation/tasks.md`：
+   :76「**T-M4-07 ~ T-M4-12 ⏳ 未开始**｜编排器 / 限速 / 回读 / 单模型回滚 / dry-run / 契约端点」；
+   :24「T-M4-12 新端点契约测试（M4 段）与生成器更新 …… **端点总数由 108 更新为 137**」
+   ⇒ 该工作流还会继续扩契约（不止这 9 条），且其顺序明确写着先做编排器/限速/回读，后补契约端点
+3. 人类可读清单 `docs/backend/02-API接口模型清单.md` 对 `ADM-SU` / `ADM-CB` 命中 **0 处**
+   ⇒ 按硬规则 1「任何新增或变更先改清单再改代码」，此刻实现属**无 md 依据**的臆造；与并行工作流直接重叠 ⇒ 不做
+4. 实现侧零路由：`aap-server/src/main/java` 下 `admin/supply-units`、`admin/config-batches` 命中文件数 **0 / 0**；
+   用例侧零调用点：`endpoint-tests` 审计本轮 rc=1（清单每条端点须有真实 HTTP 用例）—— 新增 9 条无任何调用点
+
+## 四、回归面（84 条全量复跑）跨源审计的**新增漂移**（机器产出，非人工归纳）
+- 结构读数：manifest 43 审计 + 41 自测 = 84（自洽）；存在性预检 84/84；tag 集合 84↔84 差异 0；
+  **rc 变化 2 条**（`endpoint-tests` 0→1、`spotcheck-audit-cols-selftest` 0→1）、新增 0、未复跑 0；
+  rc=0 **38** 条 / rc!=0 **46** 条（R553 = 40/44）；FAIL 明细 **43 脚本 / 183 行**（R553 = 42/161）；
+  跨轮 faildiff 161 → 183：**新增 40 / 消失 18**（消失项经逐条核对全部为「计数型文本差异」，见下）；
+  **零写副作用**（冻结清单生成物快照 103 个 size+md5 运行前后全等）；归仓耐久性 54 条「索引⇔归档⇔原文件」三方逐字节一致
+- 崩溃通道 3 条（新增 `endpoint-tests`，其理由行集为空 ⇒ 纯「rc 无 FAIL 明细」通道）；可比通道 2 条理由 sha256 与上一轮**逐字节相同**
+- **新增漂移逐类**（全部可归因到「契约扩 117、md 未同步、实现未注册、新表/新模型入账」）：
+  ① **md 清单未同步**（6 处 `parsed=108 期望=117`）：routes A0b、query-params A0b、response-shape A0b、error-codes A0c、
+     auth-contract A0b、spotcheck-lock A0b（另 routes A1「md 逐行方法+路径不一致 9 条」、query-params A1「`q：…` 不一致 5 条」）
+  ② **清单 ID 集合与 md 差集 = 9 条**：error-codes A8（`差集=['ADM-CB01'…'ADM-SU04']`）、error-codes A9「不一致 18 条」、auth-contract A8「不一致 42 条」
+  ③ **实现未定位 9 条**：auth-contract A1、routes A3、query-params A3a、gap-logical-fk A0g「路由定位率 108/117」
+  ④ **新端点无真实 HTTP 用例**：`endpoint-tests` rc 0→1（无 FAIL 明细，纯 rc 通道）
+  ⑤ **新 DDL 表缺审计列**：spotcheck-audit-cols **A5「aap_config_batch_item」**（md 声明审计字段为业务表通用）
+  ⑥ **新序列成孤儿**：spotcheck-entity-ddl A7b「声明未引用的孤儿序列 5 → **8** 条（上限 3）」：`seq_config_batch`、`seq_config_batch_item` 等
+  ⑦ **新请求模型自相矛盾**：spotcheck-required A2「矛盾模型 6 → **8** 个」，含 `config-batch-create: ['batch_type','mode']`
+  ⑧ **openapi 侧新端点形状**：contract-keys 2 条「有 pageSize 参数但响应未 PageMeta 包装」（ADM-SU01、ADM-CB02）；
+     request-body A5「不一致 13 条」（ADM-CB01/CB05 未定位到控制器方法）；response-shape A2b「未能静态判定 15 条」
+- **自测脆性（本轮 rc 变化的根因之一）**：`spotcheck-audit-cols-selftest` 的末条判据把「真实仓库 FAIL 集合」
+  硬编码为 `{A1,A2,A3}`，仓库状态发生**合法**变化（此处 = ⑤）即转红 ⇒ 与既有待拍板 ②（「常驻红基线 = 旧快照」）**同族**，
+  属「改判据口径」，未拍板前不改
+
+## 五、装置缺陷取证（本轮新发现，红相位无记账口径）
+1. `tools/round-verify/analyze.py:216`：`STREAK = int(st_prev) + 1` —— 连续全绿轮次**纯由上一轮 history 行推导**，
+   无 rc / missing 前置判据 ⇒ 本轮红（rc=1/1、missing=9）仍打印「连续全绿 = 第 **536** 轮」（本轮实测，假自述）
+2. 同工具**落盘产物名与首行硬编码绿语义**：本轮实际写出 `green-verify-R554-{full-run1,full-run2,testcount,coverage-fields,tested-state}.txt`
+   与 `round-R554-analysis.txt`，首行写「R554 校验轮（missing==0 -> 交付代码零改动）」
+   ⇒ 若照此提交，仓库里会出现**红轮却名为 green** 的交付证据（历史 12「文件名不能骗人」）
+   ⇒ 本轮已**删除这 6 个产物**（原始输出留档于 `$TEMP/aap-round-verify/R554/analyzer-artifacts/`，未改动工具）
+3. `tools/round-verify/closeout.py:139-143`：描述列前缀硬编码「missing=0」「连续第 N 轮全绿」「rc=0/0」「逐类 diff=0」，
+   且全文件**无** `rc == 0` / `missing == 0` 前置断言（grep 证据）⇒ 红轮若走 closeout 会写出台账**假绿行**
+4. 后果（必须留痕）：本轮**不写**台账行与 coverage-history 行（写行即假自述）；因此**下一轮** `analyze.py` 的
+   A22「上一轮 history 行恰好 1 条」将**响亮失败**（判据失效）—— 这是「宁可响亮失败，不写假绿」（历史 175/98/12）的取舍，
+   需人拍板（新增待拍板 ⑳）
+
+## 六、边界与断言
+- **未改交付面一行**：`aap-server` / `docs/backend` / `aap-client` / 冻结清单生成物（103 个快照 size+md5 全等）零改动；
+  本轮唯一写入 = 本文件 + 状态文件小节 + 回归面证据 4 件 + 审计自身重写的 2 个既有证据文件（`endpoint-test-audit.{json,txt}`）
+- 未触碰他方在途 6 条（`coverage-report.json`（10:30:28，他方跑测重写）、`README.md`、`aap-server/pom.xml`、
+  `SecurityConfig.java`、`application.yml`、`aap-server/src/main/webapp/`；后 5 条 mtime 均为 09-24/09-25，全部早于本轮窗口）
+- 未按镜像名杀进程、未 attach 他人 CDP、未用浏览器；密钥仅经 `tools/with-env.sh` 注入（不回显值）
+- 本轮返工真值：**0 处**（装置/脚本侧未发生需要修正的判据或产物；第五节所列为本轮**新发现**，非返工）
