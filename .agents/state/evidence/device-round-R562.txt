@@ -1,7 +1,7 @@
 R562 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动三判据）
 ==============================================================================
 生成方式：本文件由 `tools/round-verify/device-report.py` 从 git / facts / 证据的**真实输出**取值（数字零手写值），不接触交付面。
-轮次 = R562；被测提交（HEAD 的独立 worktree 内检出）= e30d9622；窗口 = 2026-09-28 15:37:08 -> 2026-09-28 15:41:56（facts 落盘）
+轮次 = R562；被测提交（HEAD 的独立 worktree 内检出）= 0aee5e72；窗口 = 2026-09-28 15:47:16 -> 2026-09-28 15:52:02（facts 落盘）
 
 一、装置面改动（机器推导，零手写）
   被测提交的 `tools/round-verify` 文件 = 14 个 / 工作区同名文件 = 14 个（新增 0 / 删除 0）
@@ -31,20 +31,21 @@ R562 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
-  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 6 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 11 == `git status` 条目 11
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 8 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 4 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 12 == `git status` 条目 12
+      M .agents/state/evidence/final-check-R562.txt  mtime=2026-09-28 15:46:52
+      M .agents/state/evidence/independent-R562.txt  mtime=2026-09-28 15:46:53
+      M .agents/state/evidence/postwrite-check-R562.txt  mtime=2026-09-28 15:46:48
       M README.md  mtime=2026-09-24 07:51:14
       M aap-server/pom.xml  mtime=2026-09-24 08:07:37
       M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
       M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
       ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
-      （本轮产物）M .agents/state/evidence/endpoint-test-audit.json  mtime=2026-09-28 15:42:05
-      （本轮产物）M .agents/state/evidence/endpoint-test-audit.txt  mtime=2026-09-28 15:42:05
-      （本轮产物）M .agents/state/evidence/red-verify-R562-full-run1.txt  mtime=2026-09-28 15:42:01
-      （本轮产物）M .agents/state/evidence/red-verify-R562-full-run2.txt  mtime=2026-09-28 15:42:01
-      （本轮产物）M .agents/state/evidence/red-verify-R562-tested-state.txt  mtime=2026-09-28 15:42:01
-      （本轮产物）M .agents/state/evidence/round-R562-analysis.txt  mtime=2026-09-28 15:42:01
+      （本轮产物）M .agents/state/evidence/red-verify-R562-full-run1.txt  mtime=2026-09-28 15:52:06
+      （本轮产物）M .agents/state/evidence/red-verify-R562-full-run2.txt  mtime=2026-09-28 15:52:06
+      （本轮产物）M .agents/state/evidence/red-verify-R562-tested-state.txt  mtime=2026-09-28 15:52:06
+      （本轮产物）M .agents/state/evidence/round-R562-analysis.txt  mtime=2026-09-28 15:52:06
       其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
-  ③ 本轮提交（e30d9622..HEAD）改动文件 = 0 个，其中位于交付面前缀的 = 0 个（**须 0**）
+  ③ 本轮提交（0aee5e72..HEAD）改动文件 = 0 个，其中位于交付面前缀的 = 0 个（**须 0**）
 
 五、下一族
   missing=5 > 0：按 docs/backend 的任务顺序推进下一族（本轮完成端点 0 条 / 新增用例 0 条）。

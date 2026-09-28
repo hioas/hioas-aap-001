@@ -1,15 +1,16 @@
 R562 红相位轮（两轮红或 missing>0 ⇒ **未达成两轮全绿**，据此如实记账，历史 12/554）；全部读数由 tools/round-verify/analyze.py 从 facts / run{1,2}.raw / wt-arch 解析，无手写值
 ==============================================================================
-被测状态（worktree 实际检出） = e30d9622
-被测提交全 SHA = e30d962266f1997e643867883804f0676c370812
-被测提交主题 = chore(aap-server): R562 收尾证据（postwrite / final-check 19-0 / independent 39-1）
-run1 = 15:37:25 -> 15:39:44 rc=1 / run2 = 15:39:45 -> 15:41:52 rc=1（串行：run1_end <= run2_start = True，按绝对时刻解算）
-窗口 = 15:37:08 -> 15:41:56（1790581028 -> 1790581316，由执行器落盘、消费方只读，历史 243-3）
-HEAD 起点 = e30d9622 / 终点 = e30d9622；窗口内他方推进提交数 = 0
+被测状态（worktree 实际检出） = 0aee5e72
+被测提交全 SHA = 0aee5e72e5e7f6f0755ed110fe8efdc1b8e12a33
+被测提交主题 = chore(aap-server): 回正长期未提交的端点覆盖审计产物（回归面每次复跑都会重写 ⇒ 每轮须落盘）
+run1 = 15:47:30 -> 15:49:55 rc=1 / run2 = 15:49:55 -> 15:51:58 rc=1（串行：run1_end <= run2_start = True，按绝对时刻解算）
+窗口 = 15:47:16 -> 15:52:02（1790581636 -> 1790581922，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = 0aee5e72 / 终点 = 0aee5e72；窗口内他方推进提交数 = 0
 worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
-主体仓库在途改动（只登记、不触碰）= 7 条
-    M .agents/state/evidence/endpoint-test-audit.json
-    M .agents/state/evidence/endpoint-test-audit.txt
+主体仓库在途改动（只登记、不触碰）= 8 条
+    M .agents/state/evidence/final-check-R562.txt
+    M .agents/state/evidence/independent-R562.txt
+    M .agents/state/evidence/postwrite-check-R562.txt
     M README.md
     M aap-server/pom.xml
     M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
