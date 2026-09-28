@@ -3279,7 +3279,7 @@ A6 maven 耗时解析器两形态各 1 条合成对照（本轮实际形态 run1
 **当前配置审计读数不受影响**（它读工作区而非 HEAD，故 A1b 仍只报 1 条 `app.detection.probe-timeout-seconds`）——属工作区/HEAD 相位差，非缺陷，**待其落库后重跑口径**。
 
 九、下一族：清单已 100% 注册 ⇒ 推进方向仍是：① **上游执行器 `T-M4-08~11`**（限速 / 写后回读 / 单模型隔离与回滚的实际写入）；② **端到端联调**（`aap-client` / `aap-admin` 指向本服务取数）。本轮为校验轮，不推进。",,evidence/audit-regression-R582-faildiff.txt；evidence/audit-regression-R582-failraw.txt；evidence/audit-regression-R582-rcseq.txt；evidence/audit-regression-R582.txt；evidence/device-round-R582.txt；evidence/device-selftest-counts-R582.txt；evidence/final-check-R582.txt；evidence/green-verify-R582-coverage-fields.txt；evidence/green-verify-R582-full-run1.txt；evidence/green-verify-R582-full-run2.txt；evidence/green-verify-R582-testcount.txt；evidence/green-verify-R582-tested-state.txt；evidence/independent-R582.txt；evidence/postwrite-check-R582.txt；evidence/regression-selftest-R582.txt；evidence/round-R582-analysis.txt；evidence/coverage-history.txt（追加 R582 行）,680d590f
-R583,,,,"R583 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交））） · 清单 **117/117**（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 4fe41020**）连续第 **21** 轮全绿 · 两轮 **316 例 / 51 类** rc=0/0（串行 23:52:15→23:57:12，逐类 diff=0） · 回归面 **84 条** rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167，新增 0 / 消失 0） · 分析器 PASS 27 / FAIL 0 · registered_routes=134 · 本轮返工 **0 处**（装置侧） · 证据 16 条 · 一、性质与覆盖：本轮为**校验轮**（`missing == 0` ⇒ 按作业第 4 步「不改代码，只校验并报告」，交付面 `aap-server` / `docs` / 冻结清单生成物**一行未动**）。
+R583,,,,"R583 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交））） · 清单 **117/117**（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 4fe41020**）连续第 **21** 轮全绿 · 两轮 **316 例 / 51 类** rc=0/0（串行 23:52:15→23:57:12，逐类 diff=0） · 回归面 **84 条** rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167，新增 0 / 消失 0） · 分析器 PASS 27 / FAIL 0 · registered_routes=134 · 本轮返工 **1 处**（装置侧） · 证据 17 条 · 一、性质与覆盖：本轮为**校验轮**（`missing == 0` ⇒ 按作业第 4 步「不改代码，只校验并报告」，交付面 `aap-server` / `docs` / 冻结清单生成物**一行未动**）。
 本轮**装置面与交付面均零改动**（工作区 `tools/` 条目 0 条、`tools/` 未跟踪文件 0 条；对照 `git rev-list 4fe41020..HEAD` 触及 `tools/` 的提交 **0 枚**）。
 覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；按族 15 族全齐：
 (空任务号) 18 · T03 6 · T04 5 · T05 7 · T06 6 · T07 4 · T08 11 · T09 6 · T10 5 · T11 11 · T12 4 · T13 3 · T14 22 · T15 3 · T17 6（族和 117 = total，内容级核对）。
@@ -3300,8 +3300,14 @@ run1 23:52:15→23:54:56（maven 耗时 `02:36 min`）、run2 23:54:56→23:57:1
 `closeout` 台账 / history / 状态三处各 1 条；`postwrite`、`final-check`（F0–F18）、`independent`（J1–J9）读数见对应证据文件。
 A6 maven 耗时解析器两形态各 1 条合成对照（本轮实际形态 run1/run2 均为 `mm:ss min`）；A22 上一轮 history 行恰好 1 条且相位 = 绿相位。
 
-五、本轮返工 0 处（**范围 = 装置链六个步骤（① 执行器 → ② 分析器 → ③ 回归面 → ③b 自测条数 → ④ 装置证据 → ⑤ 收尾）＋ 收尾四步（⑥ 主提交核对 → ⑦ 回填 → ⑧ 一致性核对 → 独立复核）**）。
-截至主提交相位，已执行的六步全部**首次通过**（无锚点 0 命中、无判据失效、无计数不符、无顺序返工、无同名遮蔽）；收尾四步的读数见对应证据文件。
+五、本轮返工 1 处（**范围 = 装置链六个步骤（① 执行器 → ② 分析器 → ③ 回归面 → ③b 自测条数 → ④ 装置证据 → ⑤ 收尾）＋ 收尾四步（⑥ 主提交核对 → ⑦ 回填 → ⑧ 一致性核对 → 独立复核）**）：
+**收尾阶段据实更正 1 条** —— ⑤ 收尾登记的「证据清单」少 1 条：`final-check-<轮次>.txt`（按 README 的顺序它由 ⑧ 产生，⑤ 运行时刻它尚不在磁盘上），
+而历轮该清单**一律含它**（逐轮核对 R575…R582：证据列条目数均为 16，且历轮 history 行均为「证据 17 条」）；按 README 的**收尾更正相位**
+（**⑦ 回填 c7 → `closeout --rewrite`**，`--rewrite` 保留 c7）**补齐清单**，各步其余读数逐项复跑一致。
+配套纪律：**不改主提交 message**（主提交已发布、同机他方可能已基于它提交，历史 209/243-①），以**独立小提交**留溯源说明。
+补登记后 `final-check` 复跑 **PASS 19 / FAIL 0**；独立只读回读（aux）「缺失锚点 = []、证据列条目数 16、连续第 **21** 轮、c7 与主提交一致」。
+**这不是「先写错再补正」的修正史**：描述列与 history 行的其余读数（missing=0 / 316 例 / 51 类 / rc=0/0 / 逐类 diff=0 / 回归面 84 条 / 分析器 27-0）在更正前后**逐字不变**，
+变的只有证据清单长度与「证据 N 条」这一计数；返工真值由 0 更正为 **1**（据实登记，历史 12/95/209）。
 
 六、本轮主动核对（只读；aux 探针落 `$TEMP/aap-r583-aux/`，与交付面分离 —— 历史 216；沿用历轮对账口径，**无新发现**）：
 ① 台账轮次连续性（`^R[0-9]+` 抽取）：**555** 条轮次行、首 R27、末 **R582**，末 8 轮 R575…R582 连续；**唯一跳号 = (553, 555)**，即 R554 未记账 —— 与历轮报告同源的历史豁免
@@ -3323,4 +3329,4 @@ A6 maven 耗时解析器两形态各 1 条合成对照（本轮实际形态 run1
 而 `SettlementService` 有 3 处内联默认 ⇒ 提交态只有内联默认、文档却声明「全部可配 `app.settlement.*`」；他方在途改动正好补上这三个键。
 **当前配置审计读数不受影响**（它读工作区而非 HEAD，故 A1b 仍只报 1 条 `app.detection.probe-timeout-seconds`）——属工作区/HEAD 相位差，非缺陷，**待其落库后重跑口径**。
 
-九、下一族：清单已 100% 注册 ⇒ 推进方向仍是：① **上游执行器 `T-M4-08~11`**（限速 / 写后回读 / 单模型隔离与回滚的实际写入）；② **端到端联调**（`aap-client` / `aap-admin` 指向本服务取数）。本轮为校验轮，不推进。",,evidence/audit-regression-R583-faildiff.txt；evidence/audit-regression-R583-failraw.txt；evidence/audit-regression-R583-rcseq.txt；evidence/audit-regression-R583.txt；evidence/device-round-R583.txt；evidence/device-selftest-counts-R583.txt；evidence/green-verify-R583-coverage-fields.txt；evidence/green-verify-R583-full-run1.txt；evidence/green-verify-R583-full-run2.txt；evidence/green-verify-R583-testcount.txt；evidence/green-verify-R583-tested-state.txt；evidence/independent-R583.txt；evidence/postwrite-check-R583.txt；evidence/regression-selftest-R583.txt；evidence/round-R583-analysis.txt；evidence/coverage-history.txt（追加 R583 行）,d537d56c
+九、下一族：清单已 100% 注册 ⇒ 推进方向仍是：① **上游执行器 `T-M4-08~11`**（限速 / 写后回读 / 单模型隔离与回滚的实际写入）；② **端到端联调**（`aap-client` / `aap-admin` 指向本服务取数）。本轮为校验轮，不推进。",,evidence/audit-regression-R583-faildiff.txt；evidence/audit-regression-R583-failraw.txt；evidence/audit-regression-R583-rcseq.txt；evidence/audit-regression-R583.txt；evidence/device-round-R583.txt；evidence/device-selftest-counts-R583.txt；evidence/final-check-R583.txt；evidence/green-verify-R583-coverage-fields.txt；evidence/green-verify-R583-full-run1.txt；evidence/green-verify-R583-full-run2.txt；evidence/green-verify-R583-testcount.txt；evidence/green-verify-R583-tested-state.txt；evidence/independent-R583.txt；evidence/postwrite-check-R583.txt；evidence/regression-selftest-R583.txt；evidence/round-R583-analysis.txt；evidence/coverage-history.txt（追加 R583 行）,d537d56c

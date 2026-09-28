@@ -11,7 +11,7 @@ R583 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
   轮次无关性守卫：装置脚本（13 个 .py/.sh）内当前轮次号命中 = **0**（须 0
     = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
 
-二、本轮返工真值 = **0 处**（零交付面影响；条目文本来自单一事实源 `note-R583.md`，与台账描述列 / 状态文件小节共用）
+二、本轮返工真值 = **1 处**（零交付面影响；条目文本来自单一事实源 `note-R583.md`，与台账描述列 / 状态文件小节共用）
 ------------------------------------------------------------------------------
 一、性质与覆盖：本轮为**校验轮**（`missing == 0` ⇒ 按作业第 4 步「不改代码，只校验并报告」，交付面 `aap-server` / `docs` / 冻结清单生成物**一行未动**）。
 本轮**装置面与交付面均零改动**（工作区 `tools/` 条目 0 条、`tools/` 未跟踪文件 0 条；对照 `git rev-list 4fe41020..HEAD` 触及 `tools/` 的提交 **0 枚**）。
@@ -34,8 +34,14 @@ run1 23:52:15→23:54:56（maven 耗时 `02:36 min`）、run2 23:54:56→23:57:1
 `closeout` 台账 / history / 状态三处各 1 条；`postwrite`、`final-check`（F0–F18）、`independent`（J1–J9）读数见对应证据文件。
 A6 maven 耗时解析器两形态各 1 条合成对照（本轮实际形态 run1/run2 均为 `mm:ss min`）；A22 上一轮 history 行恰好 1 条且相位 = 绿相位。
 
-五、本轮返工 0 处（**范围 = 装置链六个步骤（① 执行器 → ② 分析器 → ③ 回归面 → ③b 自测条数 → ④ 装置证据 → ⑤ 收尾）＋ 收尾四步（⑥ 主提交核对 → ⑦ 回填 → ⑧ 一致性核对 → 独立复核）**）。
-截至主提交相位，已执行的六步全部**首次通过**（无锚点 0 命中、无判据失效、无计数不符、无顺序返工、无同名遮蔽）；收尾四步的读数见对应证据文件。
+五、本轮返工 1 处（**范围 = 装置链六个步骤（① 执行器 → ② 分析器 → ③ 回归面 → ③b 自测条数 → ④ 装置证据 → ⑤ 收尾）＋ 收尾四步（⑥ 主提交核对 → ⑦ 回填 → ⑧ 一致性核对 → 独立复核）**）：
+**收尾阶段据实更正 1 条** —— ⑤ 收尾登记的「证据清单」少 1 条：`final-check-<轮次>.txt`（按 README 的顺序它由 ⑧ 产生，⑤ 运行时刻它尚不在磁盘上），
+而历轮该清单**一律含它**（逐轮核对 R575…R582：证据列条目数均为 16，且历轮 history 行均为「证据 17 条」）；按 README 的**收尾更正相位**
+（**⑦ 回填 c7 → `closeout --rewrite`**，`--rewrite` 保留 c7）**补齐清单**，各步其余读数逐项复跑一致。
+配套纪律：**不改主提交 message**（主提交已发布、同机他方可能已基于它提交，历史 209/243-①），以**独立小提交**留溯源说明。
+补登记后 `final-check` 复跑 **PASS 19 / FAIL 0**；独立只读回读（aux）「缺失锚点 = []、证据列条目数 16、连续第 **21** 轮、c7 与主提交一致」。
+**这不是「先写错再补正」的修正史**：描述列与 history 行的其余读数（missing=0 / 316 例 / 51 类 / rc=0/0 / 逐类 diff=0 / 回归面 84 条 / 分析器 27-0）在更正前后**逐字不变**，
+变的只有证据清单长度与「证据 N 条」这一计数；返工真值由 0 更正为 **1**（据实登记，历史 12/95/209）。
 
 六、本轮主动核对（只读；aux 探针落 `$TEMP/aap-r583-aux/`，与交付面分离 —— 历史 216；沿用历轮对账口径，**无新发现**）：
 ① 台账轮次连续性（`^R[0-9]+` 抽取）：**555** 条轮次行、首 R27、末 **R582**，末 8 轮 R575…R582 连续；**唯一跳号 = (553, 555)**，即 R554 未记账 —— 与历轮报告同源的历史豁免
@@ -69,26 +75,17 @@ A6 maven 耗时解析器两形态各 1 条合成对照（本轮实际形态 run1
 
 四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
-  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 12 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 17 == `git status` 条目 17
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 3 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 8 == `git status` 条目 8
       M README.md  mtime=2026-09-24 07:51:14
       M aap-server/pom.xml  mtime=2026-09-24 08:07:37
       M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
       M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
       ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
-      （本轮产物）?? .agents/state/evidence/audit-regression-R583-faildiff.txt  mtime=2026-09-29 00:02:10
-      （本轮产物）?? .agents/state/evidence/audit-regression-R583-failraw.txt  mtime=2026-09-29 00:02:10
-      （本轮产物）?? .agents/state/evidence/audit-regression-R583-rcseq.txt  mtime=2026-09-29 00:02:10
-      （本轮产物）?? .agents/state/evidence/audit-regression-R583.txt  mtime=2026-09-29 00:02:10
-      （本轮产物）?? .agents/state/evidence/device-selftest-counts-R583.txt  mtime=2026-09-29 00:02:19
-      （本轮产物）?? .agents/state/evidence/green-verify-R583-coverage-fields.txt  mtime=2026-09-28 23:57:21
-      （本轮产物）?? .agents/state/evidence/green-verify-R583-full-run1.txt  mtime=2026-09-28 23:57:21
-      （本轮产物）?? .agents/state/evidence/green-verify-R583-full-run2.txt  mtime=2026-09-28 23:57:21
-      （本轮产物）?? .agents/state/evidence/green-verify-R583-testcount.txt  mtime=2026-09-28 23:57:21
-      （本轮产物）?? .agents/state/evidence/green-verify-R583-tested-state.txt  mtime=2026-09-28 23:57:21
-      （本轮产物）?? .agents/state/evidence/regression-selftest-R583.txt  mtime=2026-09-29 00:02:13
-      （本轮产物）?? .agents/state/evidence/round-R583-analysis.txt  mtime=2026-09-28 23:57:21
+      （本轮产物）M .agents/state/aap-server-feature-status.csv  mtime=2026-09-29 00:05:07
+      （本轮产物）M .agents/state/evidence/coverage-history.txt  mtime=2026-09-29 00:05:07
+      （本轮产物）?? .agents/state/evidence/final-check-R583.txt  mtime=2026-09-29 00:05:10
       其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
-  ③ 本轮提交（4fe41020..HEAD）改动文件 = 0 个，其中位于交付面前缀的 = 0 个（**须 0**）
+  ③ 本轮提交（4fe41020..HEAD）改动文件 = 18 个，其中位于交付面前缀的 = 0 个（**须 0**）
 
 五、下一族
   **无**（清单 117/117、missing=0）—— 本轮完成端点 0 条 / 新增用例 0 条、无红基线。
