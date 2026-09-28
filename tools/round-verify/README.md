@@ -84,13 +84,13 @@ python tools/round-verify/independent.py --selftest
 | `manifest.json` | 回归面命令表**单一事实源**（43 审计 + 41 负向自测 = 84 条）。`tag` 是跨轮比对键：**不得改名或删除**（历史 169/177/182） |
 | `run-round.sh <ROUND>` | 执行器：并发前置双向对照 → HEAD 独立 worktree → 串行两轮 `mvn -B -ntp test` → 归档 coverage + 测试源 → 回收 → 落盘 facts |
 | `analyze.py <ROUND>` | 分析器：A0a–A23（两轮 rc/BUILD SUCCESS/逐类 diff/`@Test` 对账/禁用扫描/覆盖按族相加/窗口与 in-flight 登记）→ `green-verify-*.txt` |
-| `regression.py <ROUND>` | 回归面复跑：命令表存在性预检、rc 逐条比对、tag 集合对齐、零写副作用、跨轮 FAIL 归一比对、**崩溃通道的完整理由行集跨轮比对**（`CRASHCHAN tag=… sha256=…`；判据 = 上一轮同处「rc!=0 ∧ FAIL 0 行」的通道理由不得变化，上一轮无该段 ⇒ 判据不可用、**不得判绿**）、**归仓耐久性守卫**（判据 = `sha256` **三方逐字节一致**：索引 ⇔ 归档 ⇔ 原文件，另查索引孤儿与「原文件已丢失」档）。带 `--selftest`（**23** 例判别力实测，纯函数 `durability()`/`crash_reason()`/`crash_diff()` 同源；条数取自该自测的汇总行 `自测：23 PASS / 0 FAIL`，据实更正，勿再写旧口径；**不进 manifest 回归面**，与 `backfill-c7.py --selftest` 同档） |
+| `regression.py <ROUND>` | 回归面复跑：命令表存在性预检、rc 逐条比对、tag 集合对齐、零写副作用、跨轮 FAIL 归一比对、**崩溃通道的完整理由行集跨轮比对**（`CRASHCHAN tag=… sha256=…`；判据 = 上一轮同处「rc!=0 ∧ FAIL 0 行」的通道理由不得变化，上一轮无该段 ⇒ 判据不可用、**不得判绿**）、**归仓耐久性守卫**（判据 = `sha256` **三方逐字节一致**：索引 ⇔ 归档 ⇔ 原文件，另查索引孤儿与「原文件已丢失」档）。带 `--selftest`（**26** 例判别力实测，纯函数 `durability()`/`crash_reason()`/`crash_diff()` 同源；条数取自该自测的汇总行 `自测：26 PASS / 0 FAIL`（勘误留痕 `evidence/device-selftest-counts-<轮次>.txt`），据实更正，勿再写旧口径；**不进 manifest 回归面**，与 `backfill-c7.py --selftest` 同档） |
 | `device-report.py <ROUND> --rework N --note <file>` | 装置侧证据（第 ④ 步，**收尾的前置**）：装置面改动（工作区未提交条目 + 逐文件 numstat 走 `git diff HEAD` + `被测提交..HEAD` 提交链）+ 轮次无关性守卫（含判别力对照）+ 交付面零改动三判据 → `device-round-<轮次>.txt` |
 | `closeout.py <ROUND> --rework N --note <file>` | 收尾：写台账行 / `coverage-history.txt` 行 / 状态文件小节；数字全部由证据推出，内容级验收（8 列 + 描述逐字符相等 + 锚点 + 幂等）；`--device-change` 双向机器核对装置改动申报（申报了必须真有 / 未申报必须真零改动） |
 | `postwrite.py <ROUND> <主提交短号>` | 主提交落地核对：携带文件 / HEAD 树内 / 台账行逐列相等（c7 例外） |
 | `backfill-c7.py <ROUND> <主提交短号>` | 台账「提交」列回填（第 ⑦ 步）：写盘前与 `HEAD:` 逐记录逐列比对（只允许本轮行 c7 一处差异，其余差异响亮失败且零副作用），写盘后内容级验收（差异集合 / 记录数 / 物理行数 / 内嵌换行记录数 / CR 五连）+ 短号须是 HEAD 的祖先；`--selftest` = 20 条合成夹具判据（**不进 manifest 回归面**：它是写盘器；条数取自该自测的汇总行 `判据：PASS 20 / FAIL 0`，据实更正，勿再写旧口径）|
-| `final-check.py <ROUND> <主提交短号>` | 收尾一致性核对（F0–F18）：描述列 / history 行 / 状态小节 / 装置证据**四处同源**逐组相等 + 自述标记唯一 + 证据文件齐备（`--selftest` = **20** 例合成夹具判别力实测；该参数**仍需轮次实参**，用法 `python tools/round-verify/final-check.py <轮次> --selftest`） |
-| `independent.py <ROUND> [--device-change <路径>]... [--no-write]` | **独立复核探针**（只读、轮次无关；**不采信装置自身判定行**）：J1 facts/窗口 → J2 两轮**原始 maven 日志**独立解析 → J3 测试面（`@Test\b` 对账 ∧ 禁用扫描 0）→ J4 覆盖三处独立读数 → J5 交付面零改动（**相位感知**）+ 在途 mtime + worktree 回收 → J6 装置改动 == **申报集合**（双向逐文件点名）→ J7 证据齐备 ∧ 字节级 CR==0 → J8 装置目录轮次无关性 → J9 自证；落盘 `independent-<轮次>.txt`（收尾须 `--extra` 先登记）。`--selftest` = **39** 例（合成 ctx + 注入缺陷，断言「恰好新增目标判据」；含「窗口跨午夜（合法）必须不假失败」一条，用法 `python tools/round-verify/independent.py --selftest`）。**不进 manifest 回归面**（与 `regression.py --selftest` 同档：扩面须人拍板） |
+| `final-check.py <ROUND> <主提交短号>` | 收尾一致性核对（F0–F18）：描述列 / history 行 / 状态小节 / 装置证据**四处同源**逐组相等 + 自述标记唯一 + 证据文件齐备（`--selftest` = **23** 例合成夹具判别力实测；该参数**仍需轮次实参**，用法 `python tools/round-verify/final-check.py <轮次> --selftest`） |
+| `independent.py <ROUND> [--device-change <路径>]... [--no-write]` | **独立复核探针**（只读、轮次无关；**不采信装置自身判定行**）：J1 facts/窗口 → J2 两轮**原始 maven 日志**独立解析 → J3 测试面（`@Test\b` 对账 ∧ 禁用扫描 0）→ J4 覆盖三处独立读数 → J5 交付面零改动（**相位感知**）+ 在途 mtime + worktree 回收 → J6 装置改动 == **申报集合**（双向逐文件点名）→ J7 证据齐备 ∧ 字节级 CR==0 → J8 装置目录轮次无关性 → J9 自证；落盘 `independent-<轮次>.txt`（收尾须 `--extra` 先登记）。`--selftest` = **44** 例（合成 ctx + 注入缺陷，断言「恰好新增目标判据」；含「窗口跨午夜（合法）必须不假失败」一条，用法 `python tools/round-verify/independent.py --selftest`）。**不进 manifest 回归面**（与 `regression.py --selftest` 同档：扩面须人拍板） |
 | `archive-temp-scripts.py` | 归仓：把仍住在 `$TEMP` 的抽查脚本逐字节存档进 `tools/regression/archive/`（`--check` 只读复核 / `--restore` 一键还原） |
 
 ## 纪律（踩过的坑，别再犯）
@@ -99,6 +99,7 @@ python tools/round-verify/independent.py --selftest
 - 归仓守卫判据是**逐字节三方一致**（索引 ⇔ 归档 ⇔ 原文件），不是「归档文件存在」：原文件在归仓后被就地改写时，
   存在性判据照样判绿，而「归档 = 仍在使用的脚本」这个前提已不成立（`--restore` 会还原出过期脚本）；
   改判据时**别忘 `--selftest`** —— 每个分支都要有一条「注入 → 恰好点名该 tag」的判别力实测（历史 46/66/90/94）。
+- 装置 README 引用的**自测条数**会随新增自测而变，手工维护必然过期（历史 12/201/206 的纯数字盲区）：每轮巡检按各工具 `--selftest` 的**汇总行**核对一次并留痕 `evidence/device-selftest-counts-<轮次>.txt`；三态替换（旧值在→替换 / 新值在→已应用 / 都没有→判据失效）。
 - 纯值（轮次、窗口起止、HEAD、被测提交、rc）**只从 facts 读**；消费脚本源码里零硬编码（历史 201/206/243-③）。
 - 「0 发现 / 0 命中」先怀疑判据：每个解析器都配 `> 0` 正向对照（历史 46/75/98）。
 - 跨轮比对有三类通道，别只盯前两类：逐条 `rc`、FAIL 明细、**崩溃通道（`rc!=0 ∧ FAIL 0 行`）的理由行集**。

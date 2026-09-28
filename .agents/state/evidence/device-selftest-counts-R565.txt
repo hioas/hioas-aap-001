@@ -1,0 +1,29 @@
+R565 装置 README 自测条数取证（自述 ⇔ 工具汇总行）
+==============================================================================
+生成方式：aux consume 脚本读各工具 `--selftest` 的**原始输出**（由执行器所用的同一个 bash 采集，历史 240/251），
+从**汇总行**解析条数（零手写值），再据实更正 `tools/round-verify/README.md`；本文件即勘误留痕。
+
+一、原始输出与汇总行（每项均断言结束标记存在 = 完整结论，非半截输出）
+  regression.py      结束标记 SELFTEST_END=1      汇总行「自测：26 PASS / 0 FAIL（共 26 例）」→ 条数 = 26
+  final-check.py     结束标记 FINAL_CHECK_END=1   汇总行「判据：PASS 23 / FAIL 0」→ 条数 = 23
+  independent.py     结束标记 SELFTEST_END=1      汇总行「判据：PASS 44 / FAIL 0（共 44 例）」→ 条数 = 44
+  backfill-c7.py     结束标记 SELFTEST_END=1      汇总行「判据：PASS 20 / FAIL 0」→ 条数 = 20
+  device-report.py   结束标记 SELFTEST_END=1      汇总行「判据：PASS 10 / FAIL 0」→ 条数 = 10
+  正向对照：五项条数均 > 0（[10, 20, 23, 26, 44]）；FAIL 均 = 0。
+
+二、README 更正前 ⇔ 更正后（旧片段在盘上各命中 1 次才允许替换，历史 208/245 三态判据）
+  regression --selftest 条数       更正前自述 23 → 更正后 **26**（= 该工具汇总行）
+  final-check --selftest 条数      更正前自述 20 → 更正后 **23**（= 该工具汇总行）
+  independent --selftest 条数      更正前自述 39 → 更正后 **44**（= 该工具汇总行）
+  注：`backfill-c7.py --selftest` 的 README 自述（20 例）经核对**本就正确**，未改动（只改过期项，不做整表重排）。
+  装置目录新增纪律行：已插入
+
+三、零写副作用与行尾
+  更正前 `git status --porcelain` 与各项自测运行后**逐行相同**（diff 行数 0）⇒ 四项 `--selftest` 均为只读。
+  README 写回走 `write_bytes`（不翻译行尾），写回后 CR 计数 = 0（历史 69/84/146）。
+
+四、为什么值得专门取证
+  装置 README 的条数是**纯数字自述**，机械轮次替换与任何审计都碰不到它（历史 201/206 的纯数字盲区族）；
+  它此前与工具汇总行分叉（23/20/39 vs 26/23/44）而**六个装置步骤全程无一处报警** —— 只能靠每轮显式核对。
+  本轮同时把该核对写进 README 的纪律段，避免下一轮重新发现。
+SELFTEST_COUNTS_EVIDENCE_END=1

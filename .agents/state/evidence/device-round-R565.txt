@@ -1,0 +1,101 @@
+R565 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动三判据）
+==============================================================================
+生成方式：本文件由 `tools/round-verify/device-report.py` 从 git / facts / 证据的**真实输出**取值（数字零手写值），不接触交付面。
+轮次 = R565；被测提交（HEAD 的独立 worktree 内检出）= 93e34c19；窗口 = 2026-09-28 17:39:07 -> 2026-09-28 17:44:01（facts 落盘）
+
+一、装置面改动（机器推导，零手写）
+  被测提交的 `tools/round-verify` 文件 = 14 个 / 工作区同名文件 = 14 个（新增 0 / 删除 0）
+  工作区未提交的 tools/ 条目 = 1 条： M tools/round-verify/README.md
+  「被测提交..HEAD」触及 tools/ 的提交 = 0 枚（本文件生成于主提交之前）
+  逐文件 numstat（工作区 vs HEAD，`插入/删除/路径`）：4	3	tools/round-verify/README.md
+  轮次无关性守卫：装置脚本（12 个 .py/.sh）内当前轮次号命中 = **0**（须 0
+    = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
+
+二、本轮返工真值 = **1 处**（零交付面影响；条目文本来自单一事实源 `note-R565.md`，与台账描述列 / 状态文件小节共用）
+------------------------------------------------------------------------------
+一、性质与覆盖：本轮为**校验轮**（missing=0 ⇒ 交付面零改动：`aap-server` / `docs` / 冻结清单生成物一行未动）；本轮新增写入 = 台账 / 状态 / 证据 + **一处装置文档据实更正**（见第四节）。
+覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；按族 15 族全齐：
+(空任务号) 18 · T03 6 · T04 5 · T05 7 · T06 6 · T07 4 · T08 11 · T09 6 · T10 5 · T11 11 · T12 4 · T13 3 · T14 22 · T15 3 · T17 6
+（族和 117 = total，内容级核对）。
+
+二、两轮全量（**串行**，在 HEAD 的独立 detached worktree 内）：被测提交 **93e34c19**（R564 飞书留痕提交，`WT_DIRTY_LINES=0` ⇒ 跑的是提交态）；
+run1 17:39:25→17:41:50、run2 17:41:51→17:43:57，各 **316 例 / 51 类**、rc=0/0、Failures-Errors-Skipped = 0-0-0、两轮 `BUILD SUCCESS` 均为真、**逐类 diff=0**；
+`@Test` 词边界计数 316 == surefire 合计 316（裸子串 318 作对照，差 2 即 `@TestConfiguration`/`@TestPropertySource`）；归档测试源 57 个 `.java`；禁用扫描 **0 条**（未削弱测试）。
+窗口 17:39:07→17:44:01；窗口内他方推进提交数 **0**（HEAD 起点=终点=93e34c19）。maven 耗时真值 run1 142s / run2 124s（均为 `mm:ss min` 形态；装置的双写法解析器两种形态各 1 条合成对照，历史 175/176）。
+
+三、回归面（命令表 = 仓库内单一事实源 `tools/round-verify/manifest.json`）：声明 43 审计 + 41 自测 = **84 条**，实际解析 84，自洽 True；存在性预检缺失 0；
+**rc 变化 0 条 / 新增 0 / 未复跑 0**（rc=0 条数 39/84）；FAIL 明细 43 个脚本 167 行；跨轮 faildiff **167→167，新增 0 / 消失 0**；
+零写副作用：冻结清单生成物 size+md5 运行前后全等（变化 **0** 个）。
+崩溃通道 2 条（`gap-coverage-gap`、`gap-coverage-gap-selftest`，均为 `rc!=0 ∧ FAIL 0 行`），其**完整理由行集 sha256 与上一轮逐字节一致**（可比通道 2 条、理由变化 0 条）。
+归仓耐久性守卫（三方逐字节：索引 ⇔ 归档 ⇔ 原文件）：仓库外脚本 54 条、一致 52 / **异常 2**（`spotcheck-success-shape`、`gap-pagination-order` 的在用脚本已被就地改写，归档退化为陈旧快照）——**沿用登记项，非本轮新增**（待拍板 ㊱/㉝）；索引孤儿 0、原文件丢失 0。
+
+四、装置链读数：`analyze` **PASS 27 / FAIL 0**（A0a–A25）；`regression --selftest` **26 PASS / 0 FAIL**；`device-report` 锚点齐备；`closeout` 台账 / history / 状态三处各 1 条；`postwrite`、`final-check`（F0–F18）、`independent`（J1–J9）读数见对应证据文件。
+装置侧改动 1 处（**文档自述计数据实更正**，零行为影响）：`tools/round-verify/README.md` 三处自测条数过期 —— `regression.py --selftest` 23→**26**、`final-check.py --selftest` 20→**23**、`independent.py --selftest` 39→**44**；
+新值取自各工具 `--selftest` 的**汇总行**（新证据 `evidence/device-selftest-counts-R565.txt` 逐项留痕）；`backfill-c7.py` 的 20 与 `device-report.py` 的 10 经核对本就正确，未改动。
+同一 README 的「纪律」段新增一条常驻核对（**轮次无关**表述）：自测条数会随新增自测而变，每轮按汇总行核对一次留痕，三态替换；避免下一轮重新发现。
+为什么此前无人报警：该条数是**纯数字自述**，机械轮次替换与全部 84 条回归面都碰不到它（历史 201/206 的纯数字盲区族），六个装置步骤全程零信号。
+
+五、本轮返工 1 处（判据侧，零交付面影响）：新增的 aux 取证脚本把装置自测汇总行的**两种体裁**（`判据：PASS N / FAIL M` 与 `自测：N PASS / M FAIL（共 N 例）`，数字与关键字次序相反）写成同一种模式 ⇒ 首次运行对 `regression --selftest` 的原始输出 **0 命中**、`AssertionError` 响亮失败；
+按纪律**修判据**（双分支归一）后重跑通过，未改动任何交付面代码，也未放松任何期望值（历史 46/168：0 命中先怀疑判据；历史 175 正例：崩溃远好于静默产出）。
+其余环节（两轮全量、84 条回归面、六个装置步骤）**全部首次通过**。
+
+六、与上一轮（R564）的差异逐条：rc 变化 0 条；FAIL 明细 167→167（新增 0 / 消失 0）；tag 集合 84→84 一致；复跑条数 84→84；用例数 316→316、类数 51→51；
+崩溃通道理由 sha256 2→2 逐字节不变；连续全绿计数 2 → **3**（由上一轮 history 行的连续计数形态解析后 +1，两载形态均支持）。
+
+七、本轮新增发现 1 条（已据实更正，见第四节）：装置 README 的自测条数与工具汇总行分叉（23/20/39 vs 26/23/44），且**没有任何守卫覆盖它**。
+另沿用登记 2 条归仓分叉（第三节，非本轮新增）。交付面零发现（`missing=0`、两轮全绿、回归面零漂移）。
+
+八、安全与多项目共存：未使用浏览器、未按镜像名杀进程、未触碰他方 worktree/CDP；敏感值自检 0 命中，`audit-secret-leak` / `evidence-secrets` 双闸清洁；
+无密钥、令牌或完整连接串进入代码、证据或回复；主体仓库 5 条他方在途改动（README / pom.xml / SecurityConfig / application.yml / webapp）**原样未动**（mtime 均早于本轮窗口，
+窗口内落在留痕目录之外的改动 0 条 ⇒ 本轮改动归属清楚）。**注意：本轮装置改动是 `tools/round-verify/README.md`，与仓库根的 `README.md`（他方在途）不是同一个文件**，提交时按显式路径 `git add`，绝不用 `git add -A`。
+
+九、待办（沿用上一轮编号清单，另有新增）：
+㊴（**新增**）：装置 README 的自测条数会在新增自测时再度过期 —— 是否在 `device-report.py` 里加一条常驻守卫「README 自述条数 == 各工具 `--selftest` 汇总行」（代价：每次跑 4+1 个 `--selftest`，约数秒；或改为由本轮的 aux 取证脚本每轮核对）。
+㉟（沿用）：`spotcheck-state-machine` A1 的 3 条同族条目是否放宽为「`set status='字面量'` ∧ where 同列参数化等值 ⇒ INFO + 上限」。
+㊱（沿用）：归仓守卫 2 条分叉（`spotcheck-success-shape` / `gap-pagination-order` 的归档副本过期）—— 是否授权跑 `tools/archive-temp-scripts.py` 重新归仓。
+㊲（沿用）：`spotcheck-success-shape-selftest` T16 正向对照仍写死「90/90 ∧ 90 operation」（实际 117）—— 与 ㉘ 的作业口径一起拍。
+㊳（沿用）：`coverage-report.json` 是否做成 `closeout` 常驻「刷回被测提交」步骤（本轮 J4e 已 PASS，未复发）。
+㉝/㉑（沿用）：`$TEMP` 下未版本化的取证脚本是否收编进 `tools/`（须同步所有引用回归面条数的收尾守卫）。
+㉙/㉚/㉛（沿用）：18 条端点无台账行是否机械派生 / 清单「状态」列 6 条写「新增」无法反查任务号 / `ADM-S07/08/09` 任务号冲突以哪侧为准 / 台账覆盖是否收编为常驻审计。
+㉗（沿用·阻塞项）：`ADM-CFG01~05` **一词两义**（「批量配置批次」vs「检测配置」）—— 定前缀前两侧都不要实现。
+㉘（沿用）：**20 条未登记端点**（规格自述终局 137 条）—— 作业口径是否正式由 `90/117` 更新为 `137`。
+㉕㉖㉒㉔㉓（沿用）：12 条超发路由消费方分档 / `aap-admin/src/api` 是否纳入扫描根 / 9 条 md 冻结清单补写授权 / aux 探针收编 + `gap-coverage-gap` 噪声源 / 11 条零 schema 背书端点是否加强测试。
+------------------------------------------------------------------------------
+
+三、本轮关键读数（读自 analyze / regression 证据，零手写值）
+  相位 = green（两轮 rc=0/0 ∧ missing=0 的合取，判据见 tools/round-verify/phase.py）
+  分析器判据 PASS 27 / FAIL 0；覆盖 total=117 implemented=117 **missing=0** registered_routes=134；连续第 3 轮全绿
+  回归面：复跑 84 条（上一轮 R564 = 84 条）；rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行
+  零写副作用：生成物 size+md5 变化 0 个（须 0）；跨轮 faildiff 上一轮 167 行 / 本轮 167 行、新增 0 / 消失 0
+  崩溃通道：rc!=0 条目 45 条，其中 FAIL 通道不可见（rc!=0 ∧ FAIL 0 行）= 2 条
+
+四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
+  ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 13 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 18 == `git status` 条目 18
+      M README.md  mtime=2026-09-24 07:51:14
+      M aap-server/pom.xml  mtime=2026-09-24 08:07:37
+      M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
+      M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
+      ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
+      （本轮产物）M tools/round-verify/README.md  mtime=2026-09-28 17:51:18
+      （本轮产物）?? .agents/state/evidence/audit-regression-R565-faildiff.txt  mtime=2026-09-28 17:48:46
+      （本轮产物）?? .agents/state/evidence/audit-regression-R565-failraw.txt  mtime=2026-09-28 17:48:46
+      （本轮产物）?? .agents/state/evidence/audit-regression-R565-rcseq.txt  mtime=2026-09-28 17:48:46
+      （本轮产物）?? .agents/state/evidence/audit-regression-R565.txt  mtime=2026-09-28 17:48:46
+      （本轮产物）?? .agents/state/evidence/device-selftest-counts-R565.txt  mtime=2026-09-28 17:51:18
+      （本轮产物）?? .agents/state/evidence/green-verify-R565-coverage-fields.txt  mtime=2026-09-28 17:44:04
+      （本轮产物）?? .agents/state/evidence/green-verify-R565-full-run1.txt  mtime=2026-09-28 17:44:04
+      （本轮产物）?? .agents/state/evidence/green-verify-R565-full-run2.txt  mtime=2026-09-28 17:44:04
+      （本轮产物）?? .agents/state/evidence/green-verify-R565-testcount.txt  mtime=2026-09-28 17:44:04
+      （本轮产物）?? .agents/state/evidence/green-verify-R565-tested-state.txt  mtime=2026-09-28 17:44:04
+      （本轮产物）?? .agents/state/evidence/regression-selftest-R565.txt  mtime=2026-09-28 17:48:49
+      （本轮产物）?? .agents/state/evidence/round-R565-analysis.txt  mtime=2026-09-28 17:44:04
+      其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
+  ③ 本轮提交（93e34c19..HEAD）改动文件 = 0 个，其中位于交付面前缀的 = 0 个（**须 0**）
+
+五、下一族
+  **无**（清单 117/117、missing=0）—— 本轮完成端点 0 条 / 新增用例 0 条、无红基线。
+
+六、留痕
+  本文件 = .agents/state/evidence/device-round-R565.txt（由本工具直接落盘，`newline="\n"`；文件名与 closeout.py 的消费名机器核对一致；行数下限判据与 CR=0 判据见下）
+DEVICE_REPORT_END=1
