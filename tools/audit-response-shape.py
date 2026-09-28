@@ -65,6 +65,8 @@ PATH_LINE_RE = re.compile(r"^  (/[^ ]*):$")
 OPID_LINE_RE = re.compile(r"^      operationId: (\S+)$")
 QUERY_NAME_RE = re.compile(r"^        - name: ([A-Za-z0-9_]+)$", re.MULTILINE)
 QUERY_IN_RE = re.compile(r"^        - name: ([A-Za-z0-9_]+)\n          in: query$", re.MULTILINE)
+# 成功响应段的起点：`responses:` 下的键（缩进 8 空格）。成功码逐端点可不同（200/201/202）⇒ 按 2xx 通配。
+SUCCESS_SEG_RE = re.compile(r"^        2\d\d:", re.MULTILINE)
 DATA_SINGLE_RE = re.compile(r"^ +data:\n +\$ref: \"?#/components/schemas/(\w+)\"?$", re.MULTILINE)
 DATA_KIND_RE = re.compile(r"^ +data:\n +(allOf|oneOf):$", re.MULTILINE)
 ITEMS_REF_RE = re.compile(r"^ +items:\n +\$ref: \"?#/components/schemas/(\w+)\"?$", re.MULTILINE)
@@ -235,11 +237,14 @@ def parse_openapi(text: str) -> tuple[dict[str, dict], list[str]]:
         body = "\n".join(buf)
         rec = {"method": (cur_method or "").upper(), "path": cur_path or "", "query": set()}
         rec["query"] = set(QUERY_IN_RE.findall(body))
-        # 只取 200 段（4XX 段不参与形状判定）
+        # 只取**成功**段（4XX 段不参与形状判定）。成功码**逐端点可不同**（201 创建 / 202 已受理 /
+        # 200 缺省）⇒ 判据按 `2\d\d` 通配，**不能**硬编码 `200:`（真实返工：契约逐步把非 200 成功码
+        # 写进 md/规格/实现后，写死 `200:` 会让该端点的 seg 退化成整段——把 4XX 段也算进来，
+        # 形状判定随之漂移；指纹 = 明明有成功响应却判 unknown）。
         seg = body
-        i200 = seg.find("        200:")
-        if i200 >= 0:
-            seg = seg[i200:]
+        m_ok = SUCCESS_SEG_RE.search(seg)
+        if m_ok:
+            seg = seg[m_ok.start():]
             j4 = seg.find("        4XX:")
             if j4 > 0:
                 seg = seg[:j4]

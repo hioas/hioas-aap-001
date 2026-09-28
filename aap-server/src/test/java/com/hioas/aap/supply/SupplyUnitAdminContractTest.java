@@ -206,7 +206,7 @@ class SupplyUnitAdminContractTest extends ApiTestBase {
         assertThat(dry.data().path("mode").asText()).isEqualTo("DRY_RUN");
         assertThat(dry.data().path("batch_type").asText()).isEqualTo("RECONFIG");
         assertThat(dry.data().path("trigger_source").asText()).isEqualTo("ADMIN_MANUAL");
-        assertThat(dry.data().path("status").asText()).isEqualTo("COMPLETED");
+        assertThat(dry.data().path("status").asText()).isEqualTo("SUCCEEDED");
         assertThat(dry.data().path("rate_limit_per_sec").asInt()).as("R-57 限速 5").isEqualTo(5);
         assertThat(dry.data().path("total_count").asInt()).isEqualTo(1);
         assertThat(dry.data().path("succeeded_count").asInt()).isZero();
@@ -228,7 +228,7 @@ class SupplyUnitAdminContractTest extends ApiTestBase {
                         + " from aap_config_batch where id = ?", Long.valueOf(dry.data().path("id").asText()));
         assertThat(batch.get("batch_no")).as(dry.body()).isEqualTo(dry.data().path("batch_no").asText());
         assertThat(batch.get("mode")).isEqualTo("DRY_RUN");
-        assertThat(batch.get("status")).isEqualTo("COMPLETED");
+        assertThat(batch.get("status")).isEqualTo("SUCCEEDED");
         assertThat(((Number) batch.get("total_count")).intValue()).isEqualTo(1);
         assertThat(((Number) batch.get("rate_limit_per_sec")).intValue()).isEqualTo(5);
         assertThat(jdbc.queryForObject("select count(*) from aap_config_batch_item where batch_id = ?",

@@ -1,0 +1,24 @@
+R563 推进轮 · 任务级 TDD **红基线**（ADM-CB01~05 交付；冻结清单 117 条里最后 5 条未实现端点）
+
+命令（唯一规范命令 + 类名过滤，串行；环境注入走 tools/with-env.sh，只回显变量名；
+      worktree 路径 = 本轮唯一临时工作树，历史 27/28：提交态复跑一律用 head 的独立 worktree，不碰他人在途工作区）：
+  export PATH="$HOME/bin:$PATH"; cd C:/Users/laitz/AppData/Local/Temp/aap-r563-red-161905/aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test -Dtest=ConfigBatchAdminContractTest
+
+红基线手法：**只把本轮新测试**拷入 worktree（`AdminConfigBatchController.java` / `ConfigBatchAdminService.java` /
+            `ConfigBatchReader.java` / `ConfigBatchType.java` / `ConfigBatchMode.java` **尚未进 worktree**）⇒ 5 条路由未注册。
+被测状态：worktree 检出 e951f7fc；证据写入时仓库 HEAD = e951f7fc；`git -C <worktree> diff --stat HEAD -- aap-server/` 行数 = 3
+          （被测的是**提交态源码 + 本轮新增测试**，与工作区里他方在途改动无关）
+窗口（日志首末带时间戳行）：2026-09-28 16:21:14.848 → 2026-09-28 16:21:23.947
+用例数：6（ConfigBatchAdminContractTest：createBatch / listBatches / batchDetail / retryItem / rollbackItem / permissions）
+读数：Tests run: 6, Failures: 6, Errors: 0, Skipped: 0（surefire 合计行前缀 = [ERROR]，有失败时的正确前缀，历史 228）
+业务码直方图：E-1406 × 6
+逐例失败（6/6）：batchDetail, createBatch, listBatches, permissions, retryItem, rollbackItem
+失败报文样例（基类把响应体带进失败信息，历史 17）：
+  [清单 §2.6：重试 → 202]
+  [{"code":"E-1406","message":"接口或资源不存在","data":null,"traceId":"3033509d955142b7b0eb1b108a7660d9","details":null}]
+  [{"code":"E-1406","message":"接口或资源不存在","data":null,"traceId":"ff58451c47ed4087a01f3a93981e2123","details":null}]
+
+判读（历史 23：先读红基线的状态码再动手）：红 = **404 E-1406（接口或资源不存在）**，即「路由未注册」型红，
+      **不是**实现缺陷、也不是 400（校验缺失）/409（状态机）/500 E-2001（SQL 或列约束）型红；
+      因此本轮要补的是「控制器路由注册 + 服务实现」，而不是去改校验或状态机。
+证据含义：本批 6 例在实现前**确实为红**（可复现、非空转），随后实现落地才转绿 —— 见 green-ADM-CB-R563.txt。

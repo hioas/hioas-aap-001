@@ -153,8 +153,11 @@ public class SupplyUnitAdminService {
         String batchNo = docNoGenerator.configBatchNo();
         int writeCount = (int) diffs.stream().filter(d -> ChannelConfigPlanner.isWrite(d.action())).count();
         OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-        // DRY_RUN：零写入 ⇒ 批次立即完成、明细动作 SKIPPED；APPLY：只登记受理（执行器待 T-M4-08~11）
-        String batchStatus = dry ? "COMPLETED" : "PENDING";
+        // DRY_RUN：零写入 ⇒ 批次立即收敛（数据模型 §9 的批次状态枚举 PENDING/RUNNING/PARTIAL/SUCCEEDED/FAILED/CANCELLED
+        // 里没有 COMPLETED —— 早期用 `COMPLETED` 属**枚举外取值**，R563 按 data-model.md §9 回正为 `SUCCEEDED`，
+        // 与 ADM-CB01 同表同值，避免「同一列两种写法」）；
+        // APPLY：只登记受理（执行器待 T-M4-08~11）
+        String batchStatus = dry ? "SUCCEEDED" : "PENDING";
         jdbc.update("""
                 insert into aap_config_batch (id, batch_no, batch_type, mode, trigger_source, status,
                     total_count, succeeded_count, failed_count, mismatch_count, rate_limit_per_sec, diff_payload,
@@ -300,56 +303,9 @@ public class SupplyUnitAdminService {
                 (String) r.get("status")));
     }
 
-    /** 批次 + 明细回读（响应与库同源；踩坑 22：子集合必须在同一处补齐）。 */
+    /** 批次 + 明细回读（响应与库同源；踩坑 22：子集合必须在同一处补齐 —— 读出口统一在 {@link ConfigBatchReader}）。 */
     private SupplyUnitViews.ConfigBatch loadBatch(long batchId) {
-        List<Map<String, Object>> rows = jdbc.queryForList(
-                "select id, batch_no, batch_type, mode, trigger_source, status, total_count, succeeded_count,"
-                        + " failed_count, mismatch_count, rate_limit_per_sec, diff_payload::text as diff_payload,"
-                        + " started_at, finished_at, created_at"
-                        + " from aap_config_batch where id = ? and deleted = false", batchId);
-        if (rows.isEmpty()) {
-            return null;
-        }
-        Map<String, Object> r = rows.get(0);
-        List<Map<String, Object>> itemRows = jdbc.queryForList("""
-                select id, batch_id, supply_unit_id, provider_id, model_name, action, status,
-                       readback_equal, attempt_count, last_error, created_at
-                  from aap_config_batch_item
-                 where batch_id = ? and deleted = false
-                 order by id asc
-                """, batchId);
-        List<SupplyUnitViews.ConfigBatchItem> items = new ArrayList<>(itemRows.size());
-        for (Map<String, Object> it : itemRows) {
-            items.add(new SupplyUnitViews.ConfigBatchItem(
-                    idOf(it.get("id")),
-                    idOf(it.get("batch_id")),
-                    idOf(it.get("supply_unit_id")),
-                    idOf(it.get("provider_id")),
-                    (String) it.get("model_name"),
-                    (String) it.get("action"),
-                    (String) it.get("status"),
-                    (Boolean) it.get("readback_equal"),
-                    intOrNull(it.get("attempt_count")),
-                    (String) it.get("last_error"),
-                    rfc3339(it.get("created_at"))));
-        }
-        return new SupplyUnitViews.ConfigBatch(
-                idOf(r.get("id")),
-                (String) r.get("batch_no"),
-                (String) r.get("batch_type"),
-                (String) r.get("mode"),
-                (String) r.get("trigger_source"),
-                (String) r.get("status"),
-                intOrNull(r.get("total_count")),
-                intOrNull(r.get("succeeded_count")),
-                intOrNull(r.get("failed_count")),
-                intOrNull(r.get("mismatch_count")),
-                intOrNull(r.get("rate_limit_per_sec")),
-                JsonCodec.readTree((String) r.get("diff_payload")),
-                rfc3339(r.get("started_at")),
-                rfc3339(r.get("finished_at")),
-                rfc3339(r.get("created_at")),
-                items);
+        return ConfigBatchReader.read(jdbc, batchId);
     }
 
     private Map<String, Object> diffPayload(String mode, Map<String, Long> summary) {

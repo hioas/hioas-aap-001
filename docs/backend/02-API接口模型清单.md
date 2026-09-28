@@ -264,11 +264,11 @@
 | ADM-SU02 | GET | `/admin/supply-units/{id}` | TECH_OPS SUPER_ADMIN | → `SupplyUnit`（含调度画像 `routing_priority`/`routing_weight` 与 `quality_score`） | E-1406 | 已实现 |
 | ADM-SU03 | POST | `/admin/supply-units/{id}/reconfigure` | TECH_OPS SUPER_ADMIN | body `{dry_run?,reason?}`（**`dry_run` 默认 true**）→ **202** `ConfigBatch`（dry-run 出 `diff_summary` 差异清单、生产零写入） | E-1406 E-1601 | 已实现 |
 | ADM-SU04 | POST | `/admin/supply-units/{id}/offline` | TECH_OPS SUPER_ADMIN | → `SupplyUnit`（`status=OFFLINE` 留痕 + 审计；R-65 存在**未结清账期**时禁止） | E-1406 E-1601 | 已实现 |
-| ADM-CB01 | POST | `/admin/config-batches` | TECH_OPS SUPER_ADMIN | body `{batch_type,mode,scope?,rate_limit_per_sec?,reason?}` → **201** `ConfigBatch` | E-1601 | 待实现 |
-| ADM-CB02 | GET | `/admin/config-batches` | TECH_OPS SUPER_ADMIN | q：`status?` `page` `pageSize` → 分页 `ConfigBatch` | | 待实现 |
-| ADM-CB03 | GET | `/admin/config-batches/{batchId}` | TECH_OPS SUPER_ADMIN | → `ConfigBatch`（含明细与 `mismatch` 清单） | E-1406 | 待实现 |
-| ADM-CB04 | POST | `/admin/config-batches/{batchId}/items/{itemId}/retry` | TECH_OPS SUPER_ADMIN | → **202** `ConfigBatchItem`（R-59 只影响该项） | E-1406 E-1601 | 待实现 |
-| ADM-CB05 | POST | `/admin/config-batches/{batchId}/items/{itemId}/rollback` | TECH_OPS SUPER_ADMIN | body `{reason}` → **202** `ConfigBatchItem` | E-1406 E-1601 | 待实现 |
+| ADM-CB01 | POST | `/admin/config-batches` | TECH_OPS SUPER_ADMIN | body `{batch_type,mode,scope?,rate_limit_per_sec?,reason?}` → **201** `ConfigBatch`（`DRY_RUN` 出差异清单且生产零写入；`scope` 省略=全量未下线单元，命中 >20 个 → 409 E-1601） | E-1001 E-1601 | 已实现 |
+| ADM-CB02 | GET | `/admin/config-batches` | TECH_OPS SUPER_ADMIN | q：`status?` `page` `pageSize` → 分页 `ConfigBatch`（排序 `created_at desc, id desc`；`status` 大小写不敏感） | | 已实现 |
+| ADM-CB03 | GET | `/admin/config-batches/{batchId}` | TECH_OPS SUPER_ADMIN | → `ConfigBatch`（含明细与 `mismatch` 清单） | E-1001 E-1406 | 已实现 |
+| ADM-CB04 | POST | `/admin/config-batches/{batchId}/items/{itemId}/retry` | TECH_OPS SUPER_ADMIN | → **202** `ConfigBatchItem`（R-59 只影响该项；仅 `FAILED`/`MISMATCH` 可重试，幂等键复用） | E-1001 E-1406 E-1601 | 已实现 |
+| ADM-CB05 | POST | `/admin/config-batches/{batchId}/items/{itemId}/rollback` | TECH_OPS SUPER_ADMIN | body `{reason}` → **202** `ConfigBatchItem`（`reason` 必填并留痕；仅 `SUCCEEDED` 可回滚） | E-1001 E-1406 E-1601 | 已实现 |
 
 > **为什么新增（ADM-SU / ADM-CB 九条）**：`specs/001-intake-automation`（进件自动化）把渠道粒度从「一供应商一渠道」
 > 改为「**一供给单元（模型 × 供应商）一渠道**」（spec §3.2 / FR-2.1~2.2），于是需要一组管理端运维端点：
@@ -281,9 +281,16 @@
 > `/admin/detection-configs*`（T14，已实现）⇒ 按硬规则 1（**清单为准**）批量配置批次改用 `ADM-CB01…05`，
 > 规格层那 5 条 ID 为**词表冲突**，见待拍板项（`ADM-CFG01~05` 一词两义）。
 >
-> **`ADM-SU03` 现状**：差异清单由 `ChannelConfigPlanner`（T-M4-07）计算；上游**执行器**（T-M4-08~11：限速/写后回读/
+> **`ADM-SU03` / `ADM-CB01~05` 现状**：差异清单由 `ChannelConfigPlanner`（T-M4-07）计算；上游**执行器**（T-M4-08~11：限速/写后回读/
 > 单模型隔离与回滚/dry-run 空实现）尚未落地 ⇒ `mode=APPLY` 只登记批次（`status=PENDING`）而**不写上游**，
 > 且不用假计数冒充「已执行」（R-58「不得静默成功」的同一纪律）。
+>
+> **`scope` 口径（CB01，实现侧补齐）**：省略或全空 ⇒ 全量**未下线**（`status <> 'OFFLINE'`）供给单元——「全量」不把
+> 被刻意下架的渠道重新拉起来（安全默认）；显式维度 ⇒ `supplyUnitIds` ∪ `providerIds` 的全部单元 ∪ `modelNames`（忽略大小写）
+> ∪ `tags`（命中 `aap_channel_binding.tag`）的**并集**，不额外按状态过滤；命中 0 个 ⇒ 登记 `total_count=0` 的空批次
+> （不静默报错、不伪造目标）；命中 >20 个 ⇒ 409 `E-1601`（R-57「每批 ≤20」，与规格「影响面超阈值需二次确认」同码）。
+> 内层维度键为 **camelCase**（`providerIds`/`modelNames`/`supplyUnitIds`/`tags`）——以规格 `requestBody` 为准，
+> 与顶层 snake_case 不一致属规格既有形态。
 >
 > **键名口径**：`supply-unit` / `config-batch` / `config-batch-item` 三个模型只有 snake_case 键（无 camelCase 别名、
 > `aap-admin` 尚未接线），故响应键名 = schema 键名（`provider_id` / `batch_no` / `rate_limit_per_sec` …）。

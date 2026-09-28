@@ -1,0 +1,34 @@
+R563 推进轮 · 任务级 TDD **绿基线**（ADM-CB01~05 交付；覆盖 117 条清单里最后 5 条未实现端点）
+
+命令（**与红基线同一条命令、同一个 worktree**，只在其中补上实现文件）：
+  export PATH="$HOME/bin:$PATH"; cd C:/Users/laitz/AppData/Local/Temp/aap-r563-red-161905/aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test -Dtest=ConfigBatchAdminContractTest
+原始日志（本轮落盘，未改写）：green-class5.raw / green-full5.raw
+窗口：2026-09-28 16:55:08.743 → 2026-09-28 16:55:21.440（同行判定可复核：本文件记录的时刻 = 本轮实际跑测时刻，历史 186）
+读数：Tests run: 6, Failures: 0, Errors: 0, Skipped: 0 ⇒ **本批 6/6 绿**
+逐例映射：createBatch→ADM-CB01 · listBatches→ADM-CB02 · batchDetail→ADM-CB03 · retryItem→ADM-CB04 ·
+            rollbackItem→ADM-CB05 · permissions→ADM-CB01…05 权限矩阵
+
+用例覆盖的契约点（逐条，全部打**真实 HTTP**；每例前 truncateAll，用例内的令牌只取一次，历史：短信 60s 重发限制）：
+  ADM-CB01：201 + 独立 schema 校验（config-batch / config-batch-item）+ 批次号 `CFG-B<yyyymm>-<4 位>` +
+            **DRY_RUN 生产零写入**（首个 dry-run 例断言 `aap_channel_binding` / `aap_sync_task` 均 0 行、明细全 SKIPPED；APPLY 改与**发请求前基线**比对）+
+            响应与库同源（batch_no/mode/status/total_count/明细数逐项对库）+ APPLY ⇒ 批次 PENDING（不谎报已执行，R-58）+
+            scope 四种维度（supplyUnitIds / providerIds / modelNames 大小写不敏感 / tags）+ 省略 scope = 全量**未下线**单元 +
+            命中 0 ⇒ 登记空批次（total_count=0、无明细）+ 20 个恰好可行（AC-10）+ 21 个 ⇒ 409 E-1601（R-57 每批 ≤20）+
+            校验 400 E-1001（缺 batch_type / 未知 batch_type / 未知 mode / rate_limit_per_sec > 5）
+  ADM-CB02：分页元信息 + 排序 `created_at desc, id desc` + `status` 过滤（大小写不敏感）+ page/pageSize 边界 + 逻辑删除行不出现
+  ADM-CB03：明细数组（断言钉**响应体**里的 `items.size()=2`，历史 22）+ `mismatch` 清单 + 不存在/已删除 ⇒ 404 E-1406 + 非数字 id ⇒ 400
+  ADM-CB04：202 + `FAILED`→`PENDING` + `attempt_count` +1 + **兄弟项不动**（R-59 单模型隔离）+ 批次回 RUNNING 且计数重算 + 留痕列刷新 +
+            **幂等键复用**（重试换键会让上游重复建渠道）+ 非 FAILED/MISMATCH ⇒ 409 E-1601 + 跨批次明细 ⇒ 404 E-1406
+  ADM-CB05：202 + `SUCCEEDED`→`ROLLED_BACK` + `reason` 落库留痕 + 批次转 PARTIAL + 非 SUCCEEDED ⇒ 409 E-1601 +
+            `reason` 省略/空白 ⇒ 400 E-1001（契约 required）+ 跨批次 ⇒ 404
+  permissions：TECH_OPS / SUPER_ADMIN 200·201·202 · BIZ_OPERATOR 403 E-1901 · 供应商 403 E-1901 · 匿名 401 E-1902
+
+全量（同一 worktree、同一规范命令，串行；**与红基线期间绝不并发跑第二个测试进程**）：
+  命令：export PATH="$HOME/bin:$PATH"; cd C:/Users/laitz/AppData/Local/Temp/aap-r563-red-161905/aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test
+  窗口：2026-09-28 16:55:28.663 → 2026-09-28 16:57:33.741
+  读数：Tests run: 316, Failures: 0, Errors: 0, Skipped: 0 + BUILD SUCCESS（逐类日志行解析到 51 个测试类 > 0，正向对照，历史 46/75）
+  覆盖门禁结论（取报告字段值，不靠 grep 类名，历史 96）：`coverage-report.json` = total 117 / implemented **117** / missing **0** /
+            registered_routes **134** / not_registered [] ⇒ **117/117 全注册、missing = 0**（冻结清单首次全覆盖）
+
+诚实边界：`mode=APPLY` 只把批次与明细登记为 `PENDING`（**不写上游、不谎报成功**，R-58）——上游执行器 T-M4-08~11
+          （限速 / 写后回读 / 单模型隔离与回滚的实际写入）尚未落地，见 `02-API接口模型清单.md` §2.6 的现状说明与偏差表。

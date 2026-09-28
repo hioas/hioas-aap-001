@@ -728,15 +728,15 @@ PATHS: list[tuple] = [
      [], ["E-1406", "E-1601"], "新增"),
     # 批量配置批次（dry-run 差异清单 / 单模型重试与回滚）
     ("ADM-CB01", "post", "/admin/config-batches", "Admin", "TECH_OPS,SUPER_ADMIN", "config-batch-create",
-     "config-batch", [], ["E-1601"], "新增"),
+     "config-batch", [], ["E-1001", "E-1601"], "新增"),
     ("ADM-CB02", "get", "/admin/config-batches", "Admin", "TECH_OPS,SUPER_ADMIN", None, "config-batch",
      ["status", "page", "pageSize"], [], "新增"),
     ("ADM-CB03", "get", "/admin/config-batches/{batchId}", "Admin", "TECH_OPS,SUPER_ADMIN", None, "config-batch",
-     [], ["E-1406"], "新增"),
+     [], ["E-1001", "E-1406"], "新增"),
     ("ADM-CB04", "post", "/admin/config-batches/{batchId}/items/{itemId}/retry", "Admin", "TECH_OPS,SUPER_ADMIN",
-     None, "config-batch-item", [], ["E-1406", "E-1601"], "新增"),
+     None, "config-batch-item", [], ["E-1001", "E-1406", "E-1601"], "新增"),
     ("ADM-CB05", "post", "/admin/config-batches/{batchId}/items/{itemId}/rollback", "Admin", "TECH_OPS,SUPER_ADMIN",
-     "config-batch-rollback", "config-batch-item", [], ["E-1406", "E-1601"], "新增"),
+     "config-batch-rollback", "config-batch-item", [], ["E-1001", "E-1406", "E-1601"], "新增"),
 ]
 
 LIST_RESPONSE_MODELS = {
@@ -755,7 +755,24 @@ PAGEABLE = {
     # 与 ADM-SU02/04（单对象）共用 ⇒ 只在列表端点上声明分页包装；否则 openapi 会把单对象端点
     # 也声明成分页集合（「第七处不变量」，契约测试与覆盖门禁都看不见）。
     "ADM-SU01": True,
+    # `config-batch` 被 ADM-CB01（单对象，201）与 ADM-CB02（分页列表）共用，同理只在列表端点声明分页；
+    # md §2.6 的 ADM-CB02 行明写「分页 `ConfigBatch`」⇒ 端点级判据与 md 一致。
+    "ADM-CB02": True,
 }
+
+# 逐端点成功状态码（默认 200）。为什么必须显式声明：契约里「已创建 201 / 已受理 202」是**对外可见**的语义
+# （客户端 codegen 与前端路由据此分支），而本表缺席时生成器会把**全部**端点一律写成 200 —— 与 md 冻结清单、
+# 规格契约、实现三处冲突，且契约测试只读 JSON Schema、覆盖门禁只比「方法 + 路径」，全量用例全绿也看不见
+# （历史 43/73/85/100 同族：生成物之间的漂移对两套门禁不可见）。
+# 依据：`02-API接口模型清单.md` 逐行「请求/响应」列（ADM-SU03 **202** / ADM-CB01 **201** / ADM-CB04 **202** /
+# ADM-CB05 **202**）+ `specs/001-intake-automation/contracts/intake-automation.openapi.yaml` + 控制器 `@ResponseStatus`。
+SUCCESS_STATUS = {
+    "ADM-SU03": "202",
+    "ADM-CB01": "201",
+    "ADM-CB04": "202",
+    "ADM-CB05": "202",
+}
+
 
 
 def _pageable(eid: str | None, model: str | None) -> bool:
@@ -911,7 +928,7 @@ def openapi() -> dict:
                 "content": {"application/json": {"schema": {"$ref": f"#/components/schemas/Request{_comp(req)}"}}},
             }
         op["responses"] = {
-            "200": {
+            SUCCESS_STATUS.get(eid, "200"): {
                 "description": "成功",
                 "content": {"application/json": {"schema": _enveloped(res, eid)}},
             }
