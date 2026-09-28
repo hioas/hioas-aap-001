@@ -1,0 +1,49 @@
+R582 独立复核探针（轮次无关装置：tools/round-verify/independent.py；**只读**，不采信装置自身判定行）
+==============================================================================
+相位 = 提交后（提交链 1 枚）；被测提交（facts）= 3f861351；窗口 = 2026-09-28 23:31:59 -> 2026-09-28 23:37:12；申报的装置改动 = （无）
+生成方式：全部读数由**原始 maven 日志 / facts / 覆盖 JSON / git / 磁盘**独立解析得出，源码内零硬编码纯值；
+每个解析器都是纯函数（入参 = 文本）；判别力自测见 `--selftest`（合成 ctx + 注入缺陷，断言恰好新增目标判据）。
+
+[PASS] J1a facts 必填键齐备（正向对照 >0） 缺失=无 ｜ 读到 41 键
+[PASS] J1b facts 轮次 == 本轮 ∧ 完成标记 ROUND='R582' WRITTEN='1'
+[PASS] J1c 窗口内 HEAD 零推进 advanced=0（3f861351 -> 3f861351）
+[PASS] J1d 被测提交 == 窗口起点 HEAD ∧ worktree 零脏行 tested=3f861351 head=3f861351 dirty=0
+[PASS] J1e worktree add/remove rc == 0 add=0 remove=0
+[PASS] J1f 并发前置门槛**真的执行**（历史 238/251） ok=1 result=CLEAR jps_reachable=Y
+[PASS] J1g 窗口单调且两轮串行（按绝对时刻解算：轮次可跨午夜，HH:MM:SS 字符串比会假失败） 2026-09-28 23:31:59 → 2026-09-28 23:32:21 → 2026-09-28 23:34:55 → 2026-09-28 23:34:55 → 2026-09-28 23:37:07 → 2026-09-28 23:37:12
+[PASS] J2a 合计行解析正向对照（每轮恰好 1 条） run1=1 run2=1 条
+[PASS] J2b 两轮合计五元组全 0 失败且两轮一致 run1=[(316, 0, 0, 0)] run2=[(316, 0, 0, 0)]
+[PASS] J2c 两轮 BUILD SUCCESS 真 / BUILD FAILURE 假 run1 ok=True bad=False run2 ok=True bad=False
+[PASS] J2d 逐类行数 > 0 且两轮相等（正向对照） 51 / 51 类
+[PASS] J2e 逐类五元组两轮逐条相等（耗时本就不入键，历史 79） 解析到 51 类；差异 0 类
+[PASS] J2f 类级用例数之和 == 合计（口径自洽） run1 316 vs 316 ｜ run2 316 vs 316
+[PASS] J2g run1_end <= run2_start（串行；同一解算：跨午夜不假失败） 2026-09-28 23:34:55 → 2026-09-28 23:34:55
+[PASS] J2h maven 耗时双写法解析（两种形态都要收，历史 175） run1=min(02:30 min, 150.000s) run2=min(02:09 min, 129.000s)
+[PASS] J3a 归档测试源非空且 == facts 声明 57 个 .java / facts 声明 57
+[PASS] J3b @Test 词边界计数 == surefire 合计（裸子串作对照） @Test\b=316 vs surefire=316（裸子串 318）
+[PASS] J3c 不得削弱测试：禁用扫描 == 0 命中 0 条（0 才合规）
+[PASS] J4a missing == 0 ∧ implemented == total（正向对照 total > 0） total=117 implemented=117 missing=0
+[PASS] J4b 按族相加 == total（族数 > 0 正向对照） 族数=15 族和 117/117
+[PASS] J4c registered_routes > 0 ∧ not_registered == [] routes=134 not_registered=[]
+[PASS] J4d endpoints.json 端点数 == 顶层 total == 覆盖 total（三处一致） endpoints=117 total=117 cov=117
+[PASS] J4e 仓库跟踪副本 == worktree 归档副本（投影后逐字段，历史 56/131） repo=117 arch=117
+[PASS] J5a 被测提交..HEAD 触及交付面的提交 == 0 count=0（被测提交=3f861351）
+[PASS] J5b 本轮改动集合不含交付面前缀（相位 = 提交后（提交链 1 枚）） 改动 17 个 / 越界 0 个 []
+[PASS] J5c 快照差集方向一：窗口起点快照里的他方在途条目**原样保留**（须 0 条消失；正向对照 在途 > 0） 在途 5 条 / 消失或改动 0 条
+[PASS] J5d 快照差集方向二：新增条目**全部**落在本轮自己的前缀（留痕 / 装置）内（须 0 条越界） 新增 0 条 / 越界 0 条
+[PASS] J5e 未申报装置改动时额外要求快照**逐字节相等**（零改动轮的严格形态） 申报装置改动 0 个 ⇒ 快照相等 = True
+[PASS] J5f 在途改动 mtime 全部早于窗口起点（对象 = 窗口起点快照；**本轮已申报的装置改动除外**） 在途 5 条 / 落在窗口内（已剔除本轮申报的装置改动 0 条）0 条
+[PASS] J5g 本轮临时 worktree 已回收（磁盘不存在 ∧ git 未登记） path=C:/Users/laitz/AppData/Local/Temp/aap-round-wt-R582-233158 exists=False listed=False
+[PASS] J6a 装置面改动 == 申报集合（逐文件点名 · 相位 = 提交后（提交链 1 枚）） 实得=[] 申报=[]
+[PASS] J6b 申报的装置文件在磁盘上真实存在 缺失=无
+[PASS] J6c 申报的装置文件不落在交付面前缀内 越界=无
+[PASS] J6d 该判据有牙齿（**集合相等 ≠ 集合非空**：注入「多一个文件」即不等，历史 75/98） 申报 0 个 / 注入集合 1 个
+[PASS] J7a 本轮核心证据齐备（11 条，正向对照 >0） 缺失=无 ｜ 已落 11 条
+[PASS] J7b 本轮核心证据字节级 CR == 0（历史 69/84/146） 含 CR 的文件=无（逐字节检查 11 条）
+[PASS] J7c CR 检测器有牙齿（合成 CRLF 判含 CR / LF 判 0） CRLF=1 / LF=0
+[PASS] J8a 装置源码内当前轮次号命中 == 0（历史 201/205/217） 命中 0 处（扫描 13 个 .py/.sh）
+[PASS] J8b 该守卫的判别力对照 == 1（非空转，历史 75/98） 判别力对照 = 1（对合成串命中次数，须 1）
+[PASS] J9 本工具源码内零当前轮次号字面量（自证轮次无关） 命中 0 处
+
+独立复核：PASS 40 / FAIL 0（共 40 项判据）
+INDEPENDENT_END=0
