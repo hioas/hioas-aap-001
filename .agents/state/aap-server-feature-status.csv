@@ -2382,7 +2382,7 @@ run1 17:20:18→17:22:41、run2 17:22:41→17:24:48，各 **316 例 / 51 类**�
 窗口内落在留痕目录之外的改动 0 条 ⇒ 本轮改动归属清楚）。
 
 九、待办：沿用上一轮编号清单（㉟ 状态机判据放宽、㊱ 归仓、㊲ 自测口径、㊳ coverage-report 收尾刷回、㉝/㉑ `$TEMP` 脚本收编、㉙/㉚/㉛/㉗/㉘/㉕/㉖/㉒/㉔/㉓），本轮**无新增**待拍板项。",,evidence/audit-regression-R564-faildiff.txt；evidence/audit-regression-R564-failraw.txt；evidence/audit-regression-R564-rcseq.txt；evidence/audit-regression-R564.txt；evidence/device-round-R564.txt；evidence/final-check-R564.txt；evidence/green-verify-R564-coverage-fields.txt；evidence/green-verify-R564-full-run1.txt；evidence/green-verify-R564-full-run2.txt；evidence/green-verify-R564-testcount.txt；evidence/green-verify-R564-tested-state.txt；evidence/independent-R564.txt；evidence/postwrite-check-R564.txt；evidence/regression-selftest-R564.txt；evidence/round-R564-analysis.txt；evidence/coverage-history.txt（追加 R564 行）,ce440368
-R565,,,,"R565 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；本轮另含**装置侧改动**（tools/round-verify/README.md —— 轮次无关的轮次校验装置（只读审计 + 留痕写入器），不触碰交付面；证据：工作区未提交 1 条 / 提交链自 93e34c19 起 0 枚提交触及 tools/））） · 清单 **117/117**（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 93e34c19**）连续第 **3** 轮全绿 · 两轮 **316 例 / 51 类** rc=0/0（串行 17:39:25→17:43:57，逐类 diff=0） · 回归面 **84 条** rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167，新增 0 / 消失 0） · 分析器 PASS 27 / FAIL 0 · registered_routes=134 · 本轮返工 **1 处**（装置侧） · 证据 17 条 · 一、性质与覆盖：本轮为**校验轮**（missing=0 ⇒ 交付面零改动：`aap-server` / `docs` / 冻结清单生成物一行未动）；本轮新增写入 = 台账 / 状态 / 证据 + **一处装置文档据实更正**（见第四节）。
+R565,,,,"R565 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；本轮另含**装置侧改动**（tools/round-verify/README.md —— 轮次无关的轮次校验装置（只读审计 + 留痕写入器），不触碰交付面；证据：工作区未提交 0 条 / 提交链自 93e34c19 起 1 枚提交触及 tools/））） · 清单 **117/117**（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 93e34c19**）连续第 **3** 轮全绿 · 两轮 **316 例 / 51 类** rc=0/0（串行 17:39:25→17:43:57，逐类 diff=0） · 回归面 **84 条** rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167，新增 0 / 消失 0） · 分析器 PASS 27 / FAIL 0 · registered_routes=134 · 本轮返工 **2 处**（装置侧） · 证据 17 条 · 一、性质与覆盖：本轮为**校验轮**（missing=0 ⇒ 交付面零改动：`aap-server` / `docs` / 冻结清单生成物一行未动）；本轮新增写入 = 台账 / 状态 / 证据 + **一处装置文档据实更正**（见第四节）。
 覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；按族 15 族全齐：
 (空任务号) 18 · T03 6 · T04 5 · T05 7 · T06 6 · T07 4 · T08 11 · T09 6 · T10 5 · T11 11 · T12 4 · T13 3 · T14 22 · T15 3 · T17 6
 （族和 117 = total，内容级核对）。
@@ -2404,9 +2404,11 @@ run1 17:39:25→17:41:50、run2 17:41:51→17:43:57，各 **316 例 / 51 类**�
 同一 README 的「纪律」段新增一条常驻核对（**轮次无关**表述）：自测条数会随新增自测而变，每轮按汇总行核对一次留痕，三态替换；避免下一轮重新发现。
 为什么此前无人报警：该条数是**纯数字自述**，机械轮次替换与全部 84 条回归面都碰不到它（历史 201/206 的纯数字盲区族），六个装置步骤全程零信号。
 
-五、本轮返工 1 处（判据侧，零交付面影响）：新增的 aux 取证脚本把装置自测汇总行的**两种体裁**（`判据：PASS N / FAIL M` 与 `自测：N PASS / M FAIL（共 N 例）`，数字与关键字次序相反）写成同一种模式 ⇒ 首次运行对 `regression --selftest` 的原始输出 **0 命中**、`AssertionError` 响亮失败；
-按纪律**修判据**（双分支归一）后重跑通过，未改动任何交付面代码，也未放松任何期望值（历史 46/168：0 命中先怀疑判据；历史 175 正例：崩溃远好于静默产出）。
-其余环节（两轮全量、84 条回归面、六个装置步骤）**全部首次通过**。
+五、本轮返工 2 处（均判据侧，零交付面影响；第②处在**收尾阶段**才暴露，故返工真值据实由 1 更正为 **2**）：
+① 新增的 aux 取证脚本把装置自测汇总行的**两种体裁**（`判据：PASS N / FAIL M` 与 `自测：N PASS / M FAIL（共 N 例）`，数字与关键字次序相反）写成同一种模式 ⇒ 首次运行对 `regression --selftest` 的原始输出 **0 命中**、`AssertionError` 响亮失败；
+② 收尾阶段的只读复核探针（aux，32 项）把覆盖读数 `registered_routes`（**整数 134**）当列表取 `len()` ⇒ `TypeError: object of type 'int' has no len()` 当场崩。
+两处都按纪律**修判据**后重跑通过（①→5 项自测条数全部解析成功；②→32/32 全 PASS），未改动任何交付面代码，也未放松任何期望值（历史 46/168：0 命中 / 异常值先怀疑判据；历史 175 正例：崩溃远好于静默产出）。
+其余环节（两轮全量、84 条回归面、六个装置步骤）**全部首次通过**；返工真值的更正走**独立收尾提交**（历史 209/250：不改已发布的主提交 message，并在「台账行 / 状态文件 / 收尾提交 message」三处同步）。
 
 六、与上一轮（R564）的差异逐条：rc 变化 0 条；FAIL 明细 167→167（新增 0 / 消失 0）；tag 集合 84→84 一致；复跑条数 84→84；用例数 316→316、类数 51→51；
 崩溃通道理由 sha256 2→2 逐字节不变；连续全绿计数 2 → **3**（由上一轮 history 行的连续计数形态解析后 +1，两载形态均支持）。

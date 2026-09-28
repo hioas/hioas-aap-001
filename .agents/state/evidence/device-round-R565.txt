@@ -5,13 +5,14 @@ R565 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 一、装置面改动（机器推导，零手写）
   被测提交的 `tools/round-verify` 文件 = 14 个 / 工作区同名文件 = 14 个（新增 0 / 删除 0）
-  工作区未提交的 tools/ 条目 = 1 条： M tools/round-verify/README.md
-  「被测提交..HEAD」触及 tools/ 的提交 = 0 枚（本文件生成于主提交之前）
-  逐文件 numstat（工作区 vs HEAD，`插入/删除/路径`）：4	3	tools/round-verify/README.md
+  工作区未提交的 tools/ 条目 = 0 条（无）
+  「被测提交..HEAD」触及 tools/ 的提交 = 1 枚：
+    b3f5b68c chore(state): R565 巡检轮（校验轮：missing=0、两轮 316 例全绿；装置 README 三处自测条数据实更正）
+  逐文件 numstat（工作区 vs HEAD，`插入/删除/路径`）：无
   轮次无关性守卫：装置脚本（12 个 .py/.sh）内当前轮次号命中 = **0**（须 0
     = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
 
-二、本轮返工真值 = **1 处**（零交付面影响；条目文本来自单一事实源 `note-R565.md`，与台账描述列 / 状态文件小节共用）
+二、本轮返工真值 = **2 处**（零交付面影响；条目文本来自单一事实源 `note-R565.md`，与台账描述列 / 状态文件小节共用）
 ------------------------------------------------------------------------------
 一、性质与覆盖：本轮为**校验轮**（missing=0 ⇒ 交付面零改动：`aap-server` / `docs` / 冻结清单生成物一行未动）；本轮新增写入 = 台账 / 状态 / 证据 + **一处装置文档据实更正**（见第四节）。
 覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；按族 15 族全齐：
@@ -35,9 +36,11 @@ run1 17:39:25→17:41:50、run2 17:41:51→17:43:57，各 **316 例 / 51 类**�
 同一 README 的「纪律」段新增一条常驻核对（**轮次无关**表述）：自测条数会随新增自测而变，每轮按汇总行核对一次留痕，三态替换；避免下一轮重新发现。
 为什么此前无人报警：该条数是**纯数字自述**，机械轮次替换与全部 84 条回归面都碰不到它（历史 201/206 的纯数字盲区族），六个装置步骤全程零信号。
 
-五、本轮返工 1 处（判据侧，零交付面影响）：新增的 aux 取证脚本把装置自测汇总行的**两种体裁**（`判据：PASS N / FAIL M` 与 `自测：N PASS / M FAIL（共 N 例）`，数字与关键字次序相反）写成同一种模式 ⇒ 首次运行对 `regression --selftest` 的原始输出 **0 命中**、`AssertionError` 响亮失败；
-按纪律**修判据**（双分支归一）后重跑通过，未改动任何交付面代码，也未放松任何期望值（历史 46/168：0 命中先怀疑判据；历史 175 正例：崩溃远好于静默产出）。
-其余环节（两轮全量、84 条回归面、六个装置步骤）**全部首次通过**。
+五、本轮返工 2 处（均判据侧，零交付面影响；第②处在**收尾阶段**才暴露，故返工真值据实由 1 更正为 **2**）：
+① 新增的 aux 取证脚本把装置自测汇总行的**两种体裁**（`判据：PASS N / FAIL M` 与 `自测：N PASS / M FAIL（共 N 例）`，数字与关键字次序相反）写成同一种模式 ⇒ 首次运行对 `regression --selftest` 的原始输出 **0 命中**、`AssertionError` 响亮失败；
+② 收尾阶段的只读复核探针（aux，32 项）把覆盖读数 `registered_routes`（**整数 134**）当列表取 `len()` ⇒ `TypeError: object of type 'int' has no len()` 当场崩。
+两处都按纪律**修判据**后重跑通过（①→5 项自测条数全部解析成功；②→32/32 全 PASS），未改动任何交付面代码，也未放松任何期望值（历史 46/168：0 命中 / 异常值先怀疑判据；历史 175 正例：崩溃远好于静默产出）。
+其余环节（两轮全量、84 条回归面、六个装置步骤）**全部首次通过**；返工真值的更正走**独立收尾提交**（历史 209/250：不改已发布的主提交 message，并在「台账行 / 状态文件 / 收尾提交 message」三处同步）。
 
 六、与上一轮（R564）的差异逐条：rc 变化 0 条；FAIL 明细 167→167（新增 0 / 消失 0）；tag 集合 84→84 一致；复跑条数 84→84；用例数 316→316、类数 51→51；
 崩溃通道理由 sha256 2→2 逐字节不变；连续全绿计数 2 → **3**（由上一轮 history 行的连续计数形态解析后 +1，两载形态均支持）。
@@ -71,27 +74,14 @@ run1 17:39:25→17:41:50、run2 17:41:51→17:43:57，各 **316 例 / 51 类**�
 
 四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
-  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 13 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 18 == `git status` 条目 18
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 0 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 5 == `git status` 条目 5
       M README.md  mtime=2026-09-24 07:51:14
       M aap-server/pom.xml  mtime=2026-09-24 08:07:37
       M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
       M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
       ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
-      （本轮产物）M tools/round-verify/README.md  mtime=2026-09-28 17:51:18
-      （本轮产物）?? .agents/state/evidence/audit-regression-R565-faildiff.txt  mtime=2026-09-28 17:48:46
-      （本轮产物）?? .agents/state/evidence/audit-regression-R565-failraw.txt  mtime=2026-09-28 17:48:46
-      （本轮产物）?? .agents/state/evidence/audit-regression-R565-rcseq.txt  mtime=2026-09-28 17:48:46
-      （本轮产物）?? .agents/state/evidence/audit-regression-R565.txt  mtime=2026-09-28 17:48:46
-      （本轮产物）?? .agents/state/evidence/device-selftest-counts-R565.txt  mtime=2026-09-28 17:51:18
-      （本轮产物）?? .agents/state/evidence/green-verify-R565-coverage-fields.txt  mtime=2026-09-28 17:44:04
-      （本轮产物）?? .agents/state/evidence/green-verify-R565-full-run1.txt  mtime=2026-09-28 17:44:04
-      （本轮产物）?? .agents/state/evidence/green-verify-R565-full-run2.txt  mtime=2026-09-28 17:44:04
-      （本轮产物）?? .agents/state/evidence/green-verify-R565-testcount.txt  mtime=2026-09-28 17:44:04
-      （本轮产物）?? .agents/state/evidence/green-verify-R565-tested-state.txt  mtime=2026-09-28 17:44:04
-      （本轮产物）?? .agents/state/evidence/regression-selftest-R565.txt  mtime=2026-09-28 17:48:49
-      （本轮产物）?? .agents/state/evidence/round-R565-analysis.txt  mtime=2026-09-28 17:44:04
       其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
-  ③ 本轮提交（93e34c19..HEAD）改动文件 = 0 个，其中位于交付面前缀的 = 0 个（**须 0**）
+  ③ 本轮提交（93e34c19..HEAD）改动文件 = 21 个，其中位于交付面前缀的 = 0 个（**须 0**）
 
 五、下一族
   **无**（清单 117/117、missing=0）—— 本轮完成端点 0 条 / 新增用例 0 条、无红基线。
