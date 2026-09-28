@@ -44,10 +44,19 @@
 }
 ```
 
-**结论**：`mode: "batch"` 使「一次请求建多条渠道」成为原生能力 →
-「一模型一渠道」的渠道数膨胀（M 供应商 × N 模型）在**请求数**上可控。
-**待实测**：`batch` 模式下 `channel` 的确切形状（单对象数组？多 `channel` 键？）——
-官方文档示例只给了 `single`，见 §5 待实测项 T-1。
+**结论（已实测，见 §2.5）**：请求体的 `channel` 始终是**单个渠道对象**；`mode` 决定
+**key 如何被拆分**，不是决定「一次建几条渠道」：
+
+| mode | 语义（源码 `controller/channel.go` 710–716 + `switch Mode`） |
+| --- | --- |
+| `single` | `keys = [Channel.Key]` —— 用单个 key 建 **1 条**渠道 |
+| `batch` | `keys = strings.Split(Channel.Key, "\n")` —— key 按换行拆分，**每个 key 建 1 条渠道**，配 `batch_add_set_key_prefix_2_name` 用 key 前缀命名 |
+| `multi_to_single` | 多 key **合并为一条渠道**的多 Key 模式（`ChannelInfo.IsMultiKey=true`、`MultiKeySize=len(keys)`），key 以 `\n` 存储、按 `MultiKeyMode` 轮询 |
+
+**对「一模型一渠道」的正确用法**：
+- 渠道创建**逐条**执行（`mode: single`）+ 限速 + 并发受限 —— 请求数 = 供给单元数，**批量维度上无捷径**；
+- 若某供应商对某模型提供**多把 key**，用 `multi_to_single` 把多 key 挂到**同一条渠道**（而非用 `batch` 拆成多条渠道），
+  这样渠道数仍 = 模型数，同时获得 key 冗余与轮询。
 
 ### 2.2 Channel 实体字段（源码 `model/channel.go`）
 
@@ -116,7 +125,8 @@ cache token 字段，在 `Other` JSON 内）。本特性**不推翻**这些结�
 | DR-01 | 渠道粒度 = **模型 × 供应商**（一模型一渠道） | 使 new-api 的 `priority/weight/auto_ban/param_override` 从供应商级提升为**模型级**调度杠杆；同模型多供应商可分流择优；故障隔离粒度更细 | 采纳 |
 | DR-02 | 渠道名 = `AAP-{short_code}-{model_slug}` | 可读、可反解（解析出供应商与模型）、天然唯一；`/` 等非法字符转 `_`；满足「模型名 + 渠道名」 | 采纳 |
 | DR-03 | 保留「合并渠道」模式为**可配策略**（`channel_granularity: PER_MODEL \| PER_PROVIDER`） | 长尾模型拆渠道收益低于成本（渠道数膨胀、key 副本、管理开销）；策略化可平滑演进，且不破坏既有实现 | 采纳 |
-| DR-04 | 渠道批量创建走 **`mode: "batch"`**；失败按**单模型**回滚 | 单模型回滚比供应商级整批回滚代价更低（新粒度带来的直接收益） | 采纳（待 T-1 实测确认 payload） |
+| DR-04 | 渠道创建**逐条** `mode: "single"` + 限速 + 并发受限；失败按**单模型**回滚 | **T-1 实测更正**：`mode:"batch"` 的批量维度是 key 而非模型，无法一次建多条不同配置的渠道。单模型回滚仍优于供应商级整批回滚（新粒度的直接收益） | 采纳（已实测） |
+| DR-04a | 多 key 场景用 **`multi_to_single`** 把多把 key 挂到同一条渠道 | T-1 实测：该模式即多 Key 模式（`MultiKeySize`/`MultiKeyMode`），渠道数不增而得 key 冗余 | 采纳（已实测） |
 | DR-05 | 新建**两张价格表**：模型价格表（平台基准/对外价）+ 渠道价格表（采购成本/结算基准） | 两个视角共同构成毛利视图与对账基准；现有 `aap_reference_price` 只是原料，没有视图与流程 | 采纳 |
 | DR-06 | key 副本问题优先用 new-api **多 Key 模式**（`multi_to_single`）缓解，而非自建 key 池 | 不改造 new-api 的前提下，这是最小的重复面；且轮换入口 `POST /api/channel/:id/key` 已存在 | 采纳（待 T-3 评估） |
 | DR-07 | 自动化采用**四级（L0–L3）+ 风险矩阵**，不默认全自动 | 一票否决、凭证安全、资金相关动作不能无人值守；但低风险模型/白名单供应商可全自动以达成「系统侧 ≤2 小时」的北极星 | 采纳 |
@@ -129,7 +139,7 @@ cache token 字段，在 `Other` JSON 内）。本特性**不推翻**这些结�
 
 | # | 待确认 | 影响 | 验证方式 |
 | --- | --- | --- | --- |
-| T-1 | `mode: "batch"` 的请求体确切形状与响应（返回创建的 id 列表？部分失败如何表达？） | 批量建渠道的实现与部分失败处理 | 对本地 new-api 桩/真实实例发一次 batch 请求，记录原始响应 |
+| T-1 | ~~`mode: "batch"` 的请求体确切形状与响应~~ | ~~批量建渠道的实现~~ | ✅ **已完成（源码级）**：`channel` 为单对象；`batch` 按 key 拆分建多条渠道（非按模型）。结论见 §2.5 与 DR-04/DR-04a。**推论**：多渠道创建无原生批接口，必须逐条 + 限速 |
 | T-2 | `/api/option/model_pricing` 与 `billing_setting.billing_expr` 的关系（并存还是替代） | 定价写入路径选择 | 读 `controller/option.go` + 实测 PATCH 后读回 |
 | T-3 | 多 Key 模式下 `multi_key_mode` 的取值与轮询语义；key 更新是否影响已在跑的请求 | DR-06 的可行性 | 源码 `constant.MultiKeyMode` + 实测 |
 | T-4 | 渠道 `name` 长度上限与字符集限制（模型名可能很长/含特殊字符） | 命名规则 DR-02 的边界 | 实测超长/特殊字符写入 |

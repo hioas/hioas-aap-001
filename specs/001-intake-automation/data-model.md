@@ -14,8 +14,8 @@
 | --- | --- | --- |
 | **改** | `aap_channel_binding` | 渠道粒度从「供应商」改为「供给单元（模型 × 供应商）」 |
 | **增** | `aap_supply_unit` | 供给单元聚合根：模型 × 供应商 的最小组合 |
-| **增** | `aap_model_catalog` | 平台模型目录（FR-3.1） |
-| **增** | `aap_model_price` | 模型价格表：基准价/对外价 + 版本 + 生效时间（FR-3.2） |
+| **复用** | `aap_model` / `aap_vendor` | 平台模型目录与厂商 —— **V9 已建**（dev 库实测），本特性不重建，只补价格维度 |
+| **增** | `aap_model_price` | 模型价格表：八大单价 + 版本 + 生效时间（FR-3.2）。注：既有 `aap_reference_price`（model_name/vendor/input/output/effective_from-to）是**原料**，缺八大单价与版本号；`aap_model.input_price/output_price` 是 page-3-2 目录字段（口径待裁 D-ADM-4）。本表是**版本化的权威价格** |
 | **增** | `aap_channel_price` | 渠道价格表：`(渠道 × 模型) → 生效价` + 来源 + 回读状态（FR-4） |
 | **增** | `aap_routing_policy` | 模型级调度策略（priority/weight 规则）（FR-6.4） |
 | **增** | `aap_quality_feedback` | 渠道实测质量反馈（驱动调权）（FR-7.1） |
@@ -24,7 +24,7 @@
 | **增** | `aap_price_drift` | 价格漂移记录（FR-7.2 / R-63） |
 | **增** | `aap_intake_run` | 进件流水线运行实例（FR-1.7/1.8/1.9） |
 
-表总数：53 → **64**。
+表总数：dev 库实测 **57** → 新增 11 张 → **68**。（既有 57 张含 V9 的 `aap_model`/`aap_vendor` 等，PRD 文档的 53 张为早期口径。）
 
 ---
 
@@ -33,13 +33,12 @@
 **变更点**：一条渠道绑定一个**供给单元**（单模型），而非一个供应商的全部模型。
 
 ```sql
--- 新增列
+-- 新增列（**只补缺的**：实测 aap_channel_binding 已有 models jsonb / channel_name varchar(64)
+--          / priority integer / weight integer，故不重建、不重复添加回读缓存列）
 ALTER TABLE aap_channel_binding
-  ADD COLUMN supply_unit_id bigint,              -- 供给单元（模型 × 供应商）
-  ADD COLUMN model_name     varchar(128),        -- 冗余存该渠道的唯一模型（便于查询与回读校验）
-  ADD COLUMN granularity    varchar(16) NOT NULL DEFAULT 'PER_MODEL',  -- PER_MODEL | PER_PROVIDER
-  ADD COLUMN routing_priority bigint,            -- 回读缓存：写入时的 priority
-  ADD COLUMN routing_weight   int;               -- 回读缓存：写入时的 weight
+  ADD COLUMN IF NOT EXISTS supply_unit_id bigint,   -- 供给单元（模型 × 供应商）
+  ADD COLUMN IF NOT EXISTS model_name     varchar(128),  -- 该渠道的唯一模型（PER_MODEL）；合并模式为 null
+  ADD COLUMN IF NOT EXISTS granularity    varchar(16) NOT NULL DEFAULT 'PER_MODEL';
 
 -- 唯一约束：同一供给单元只能有一条 PER_MODEL 渠道
 CREATE UNIQUE INDEX uq_binding_supply_unit
@@ -50,11 +49,11 @@ CREATE UNIQUE INDEX uq_binding_supply_unit
 -- channel_name 已是唯一列；本特性要求命名规则见 spec §3.3
 ```
 
-**既有列语义收紧**：
+**既有列语义收紧**（实测列型：`models` = **jsonb**、`channel_name` = **varchar(64)**、`priority`/`weight` = integer）：
 
 | 列 | 旧语义 | 新语义 |
 | --- | --- | --- |
-| `models` | 逗号分隔的模型列表（多值） | **单值**（PER_MODEL 下恰为一个模型）；合并模式下仍多值 |
+| `models`（jsonb） | 模型数组（多元素，合并渠道） | **单元素数组**（PER_MODEL 下恰为一个模型）；合并模式下仍多元素 —— 列型不变 |
 | `channel_name` | `AAP-{short_code}-{seq}` | PER_MODEL：`AAP-{short_code}-{model_slug}`；PER_PROVIDER：沿用旧规则 |
 | `tag` | `= provider_code` | 不变（仍按供应商打标，支撑批量启停） |
 
@@ -112,7 +111,21 @@ CREATE INDEX idx_supply_unit_provider    ON aap_supply_unit (provider_id)      W
 
 ---
 
-## 4. 新增：`aap_model_catalog`（平台模型目录，FR-3.1）
+## 4. 复用（不新增）：平台模型目录 FR-3.1 —— `aap_model` / `aap_vendor`
+
+⚠️ **据实更正**：dev 库实测 `aap_model`、`aap_vendor` **已由 V9 建立**（迁移 `V9__model_catalog.sql`），
+并已有 `catalog` 包（`AdminCatalogController` / `CatalogService` / `ModelCatalogEntity` / `VendorMapper`）。
+本特性**不重建**这两张表，只做两件事：
+
+1. 复用其目录能力（模型名、厂商、上下文窗口、能力标签）；
+2. 补上**价格维度**（FR-3.2）—— 见 §5，并以 `aap_model.model_uid` 作为供给单元的可选外键。
+
+`aap_model` 实测列：`id, vendor_id, model_name, model_uid, model_type, context_window, max_output,
+input_price, output_price, capabilities, base_url, api_key_cipher, enabled, remark` + 审计字段；
+唯一键 `uk_model_uid (model_uid) where deleted = false`。
+
+> ⚠️ 遗留待裁：V9 头部记录的 `D-ADM-4`（价格单位 CNY/1K vs USD/1M 双重不一致）与
+> 本特性 `Q-1`（对外价口径）是同一问题的两个侧面，需一并裁定后再统一换算层。
 
 ```sql
 CREATE TABLE aap_model_catalog (
