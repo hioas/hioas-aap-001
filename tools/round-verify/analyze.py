@@ -24,7 +24,11 @@ ROOT = Path("E:/workspaces/hioas/hioas-aap-001")
 # 「串行」会把合法窗口判成非串行（假失败，历史 12/244）；同一口径两处副本必须同源（历史 44/191）。
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from windowtime import serial_ok  # noqa: E402
+# 相位（green/red）的判定与命名 = 与 closeout / device-report / final-check / independent **共享**的单一事实源
+# （`phase.py`）：红轮的产物**不得**命名为 green（历史 12：文件名不能骗人）；红轮的台账**不得**写绿相位措辞。
+from phase import GREEN, RED, RED_MARK, STREAK_KW, phase_of, ev_prefix, cases_pat, state_section_mark  # noqa: E402
 EV = ROOT / ".agents/state/evidence"
+STATE = ROOT / ".agents/state/aap-server-tdd-state.md"
 T = Path("C:/Users/laitz/AppData/Local/Temp")
 
 ROUND = (sys.argv[1] if len(sys.argv) > 1 else "").upper()
@@ -39,8 +43,7 @@ if "--evidence-dir" in sys.argv:
     OUTDIR.mkdir(parents=True, exist_ok=True)
 W = T / "aap-round-verify" / ROUND
 FACTSF = W / ("facts-%s.log" % ROUND)
-HDR = ("%s 校验轮（missing==0 -> 交付代码零改动）；"
-       "全部读数由 tools/round-verify/analyze.py 从 facts / run{1,2}.raw / wt-arch 解析，无手写值" % ROUND)
+# HDR 由「相位」推出（见下方 ⓪ 段；相位未定前的占位不再使用，避免出现绿相位措辞）
 
 out = []
 verdicts = []
@@ -86,6 +89,14 @@ REQ = ["ENV_BASH", "ENV_UNAME", "ENV_MVN", "ENV_JAVA", "ENV_JPS", "FACTS_ROUND",
        "WORKTREE_REMOVE_RC", "FACTS_WINDOW_END", "FACTS_WINDOW_END_TS", "FACTS_WINDOW_END_ISO",
        "FACTS_HEAD_AT_END", "FACTS_HEAD_ADVANCED_COUNT", "FACTS_WRITTEN"]
 MISSK = [k for k in REQ if k not in FACTS]
+# ---------- ⓪ 相位（两轮 rc ∧ missing 的合取；纯值只从 facts / wt-arch 读，源码零硬编码） ----------
+# 缺键一律取「红」侧默认值：**判据不可用 ≠ 绿**（历史 98/141）。
+COVJ = json.loads((W / "wt-arch" / "coverage-report.json").read_text(encoding="utf-8"))
+PHASE = phase_of(FACTS.get("FACTS_RUN1_RC", "1"), FACTS.get("FACTS_RUN2_RC", "1"), COVJ.get("missing", 1))
+PFX = ev_prefix(PHASE)
+HDR = ("%s %s；全部读数由 tools/round-verify/analyze.py 从 facts / run{1,2}.raw / wt-arch 解析，无手写值"
+       % (ROUND, "校验轮（两轮 rc=0 ∧ missing==0 ⇒ 交付面零改动）" if PHASE == GREEN
+          else "红相位轮（两轮红或 missing>0 ⇒ **未达成两轮全绿**，据此如实记账，历史 12/554）"))
 p(HDR)
 p("=" * 78)
 
@@ -173,7 +184,7 @@ rec("A10 @Test 词边界计数 == surefire 合计", jun == R1["n"], "@Test=%d vs
 rec("A11 禁用扫描 0 条（不得削弱测试）", not dis_hits, "命中 = %s" % (dis_hits or "无"))
 
 # ---------- ④ 覆盖 ----------
-cov = json.loads((W / "wt-arch" / "coverage-report.json").read_text(encoding="utf-8"))
+cov = COVJ  # ⓪ 段已读（相位判定的同一份输入，避免两处副本分叉，历史 44/191）
 bt = cov.get("by_task", {})
 sum_bt = sum(v.get("total", 0) for v in bt.values())
 sum_bt_impl = sum(v.get("implemented", 0) for v in bt.values())
@@ -207,13 +218,32 @@ rec("A20 worktree add/remove rc == 0", FACTS["WORKTREE_ADD_RC"] == "0" and FACTS
     "add=%s remove=%s" % (FACTS["WORKTREE_ADD_RC"], FACTS["WORKTREE_REMOVE_RC"]))
 rec("A21 facts 写入完成标记 == 1", FACTS["FACTS_WRITTEN"] == "1", "FACTS_WRITTEN=%s" % FACTS["FACTS_WRITTEN"])
 
-# ---------- ⑥ 覆盖率"连续轮次"由上一轮 history 行推导 ----------
+# ---------- ⑥ 覆盖率"连续轮次"由上一轮 history 行推导（**相位感知**，历史 554/待拍板 ⑳） ----------
+# 三态：① 上一轮恰好 1 条 → 按其相位取计数（绿：`连续第 N 轮`；红：计数清零）；
+#       ② 上一轮 0 条 **且** 状态文件里存在「### <PREV> …」小节、标题含「红」→ 唯一合法形态：
+#          上一轮是红相位而装置当时无红相位记账口径（历史遗留，据实登记，不判「行丢失」）；
+#       ③ 其余（0 条且无红相位小节 / >1 条）→ **判据失效**，响亮失败，且计数按红侧默认 0（不得判绿）。
 hist_lines = (EV / "coverage-history.txt").read_text(encoding="utf-8", errors="replace").splitlines()
 prev_line = [ln for ln in hist_lines if (" %s " % PREV) in ln]
-rec("A22 上一轮 history 行恰好 1 条", len(prev_line) == 1, "命中 %d 条" % len(prev_line))
-st_prev = g1(prev_line[0] if prev_line else "", r"连续第 (\d+) 轮", "上一轮连续轮数")
-STREAK = int(st_prev) + 1
-p("连续全绿 = 第 %d 轮（由上一轮 history 行推导：prev=%s 记 %s）" % (STREAK, PREV, st_prev))
+if len(prev_line) == 1:
+    _row = prev_line[0]
+    if RED_MARK in _row:
+        prev_streak, prev_kind = 0, "红相位（计数清零）"
+    else:
+        prev_streak, prev_kind = int(g1(_row, r"连续第 (\d+) 轮", "上一轮连续轮数")), "绿相位"
+    rec("A22 上一轮 history 行恰好 1 条", True, "命中 1 条；上一轮相位 = %s" % prev_kind)
+elif len(prev_line) == 0:
+    _nmk, _ok = state_section_mark(STATE, PREV)
+    prev_streak, prev_kind = 0, "上一轮未记账（红相位，装置当时无红相位口径，历史遗留）"
+    rec("A22 上一轮未记账的唯一合法形态（状态小节标题含「红」）", _ok,
+        "history 命中 0 条；状态文件 `### %s ` 小节 %d 个、标题含「红」= %s" % (PREV, _nmk, _ok))
+else:
+    prev_streak, prev_kind = 0, "上一轮 history 行 %d 条（判据失效）" % len(prev_line)
+    rec("A22 上一轮 history 行恰好 1 条", False, "命中 %d 条（判据失效）" % len(prev_line))
+STREAK = (prev_streak + 1) if PHASE == GREEN else 0
+p("连续全绿 = 第 %d 轮（%s；prev=%s 记 %s）"
+  % (STREAK, "相位=green ⇒ 上一轮计数 +1" if PHASE == GREEN else "相位=red ⇒ **计数清零**（下次全绿从第 1 轮起算）",
+     prev_kind, prev_streak))
 
 # ---------- ⑦ 在途改动（只登记，不触碰） ----------
 inflight = [x for x in (W / "root-status-before.txt").read_text(encoding="utf-8", errors="replace").splitlines() if x.strip()]
@@ -229,6 +259,16 @@ for ln in inflight:
         inwin.append(rel)
 rec("A23 在途改动中 mtime 落在本轮窗口内的条数", True, "%d 条 %s" % (len(inwin), inwin or "（无）"))
 
+# ---------- ⑦b 相位自洽（历史 554/待拍板 ⑳：红相位不得产出绿相位措辞的产物） ----------
+_nf_so_far = sum(1 for _, ok, _ in verdicts if not ok)
+rec("A24 相位与判据结果自洽（红相位 ⇒ 已判 FAIL 条数 > 0；绿相位 ⇒ == 0）",
+    (_nf_so_far > 0) if PHASE == RED else (_nf_so_far == 0),
+    "phase=%s 已判 FAIL=%d（两轮 rc=%s/%s、missing=%s）"
+    % (PHASE, _nf_so_far, FACTS.get("FACTS_RUN1_RC"), FACTS.get("FACTS_RUN2_RC"), cov.get("missing")))
+rec("A25 相位命名守卫（红相位下 5 条校验证据名不得含 green）",
+    all("green" not in n for n in ["%s-%s-full-run%d.txt" % (PFX, ROUND, r) for r in (1, 2)]) if PHASE == RED else True,
+    "前缀 = %s（由 phase.ev_prefix 推出）" % PFX)
+
 # ---------- ⑧ 落盘 ----------
 p("=" * 78)
 np_ = sum(1 for _, ok, _ in verdicts if ok)
@@ -242,7 +282,7 @@ def wr(name, text):
 
 
 wr("round-%s-analysis.txt" % ROUND, "\n".join(out))
-wr("green-verify-%s-tested-state.txt" % ROUND, "\n".join([
+wr("%s-%s-tested-state.txt" % (PFX, ROUND), "\n".join([
     HDR, "=" * 78,
     "被测状态（worktree 实际检出） = %s" % FACTS["FACTS_TESTED_COMMIT"],
     "被测提交全 SHA = %s" % FACTS["FACTS_TESTED_COMMIT_FULL"],
@@ -262,7 +302,7 @@ wr("green-verify-%s-tested-state.txt" % ROUND, "\n".join([
     "环境指纹：bash=%s uname=%s mvn=%s java=%s jps=%s（可达=%s）"
     % (FACTS["ENV_BASH"], FACTS["ENV_UNAME"], FACTS["ENV_MVN"], FACTS["ENV_JAVA"], FACTS["ENV_JPS"], FACTS["ENV_JPS_REACHABLE"]),
 ]))
-wr("green-verify-%s-testcount.txt" % ROUND, "\n".join([
+wr("%s-%s-testcount.txt" % (PFX, ROUND), "\n".join([
     HDR, "=" * 78,
     "run1 合计 = %s" % (R1["tot"],), "run2 合计 = %s" % (R2["tot"],),
     "@Test 词边界计数 = %d（子串计数 = %d 作对照，差 = %d）" % (jun, jun_sub, jun_sub - jun),
@@ -276,7 +316,7 @@ for r, RR in ((1, R1), (2, R2)):
     assert RR["unames"] == len(RR["cls"]), \
         "[FAIL] run%d 类名不可区分：%d 行 / 唯一 %d（判据失效，历史 98；落盘前拦下）" % (r, len(RR["cls"]), RR["unames"])
     assert len(RR["cls"]) > 0, "[FAIL] run%d 逐类行数 0 —— 解析器失效（历史 46）" % r
-    wr("green-verify-%s-full-run%d.txt" % (ROUND, r), "\n".join([
+    wr("%s-%s-full-run%d.txt" % (PFX, ROUND, r), "\n".join([
         HDR, "=" * 78,
         "run%d 合计 = %s" % (r, RR["tot"]),
         "BUILD SUCCESS = %s / BUILD FAILURE = %s（maven 耗时 = %02d:%02d min，形态=%s；rc = %d）"
@@ -287,14 +327,16 @@ for r, RR in ((1, R1), (2, R2)):
         % (RR["unames"], len(RR["cls"]), RR["name_min"], RR["name_max"]),
         "逐类结果（已剥 Time elapsed，排序后）共 %d 行：" % len(RR["cls"]),
     ] + ["  %s" % k for k in RR["key"]]))
-wr("green-verify-%s-coverage-fields.txt" % ROUND, "\n".join([
+wr("%s-%s-coverage-fields.txt" % (PFX, ROUND), "\n".join([
     HDR, "=" * 78,
     "total=%s implemented=%s missing=%s registered_routes=%s not_registered=%s"
     % (cov.get("total"), cov.get("implemented"), cov.get("missing"), cov.get("registered_routes"), cov.get("not_registered")),
     "按族分布：%s" % fam,
-    "连续全绿 = 第 %d 轮（由上一轮 coverage-history 行推导：prev=%s）" % (STREAK, PREV),
+    ("连续全绿 = 第 %d 轮（由上一轮 coverage-history 行推导：prev=%s）" % (STREAK, PREV)) if PHASE == GREEN
+    else ("相位 = %s（**红相位**：连续全绿**计数清零** = %d；两轮 rc=%s/%s、missing=%s ⇒ 未达成两轮全绿）"
+          % (PHASE, STREAK, FACTS.get("FACTS_RUN1_RC"), FACTS.get("FACTS_RUN2_RC"), cov.get("missing"))),
     "上一轮行用例数 = %s；本轮两轮用例数 = %d / %d"
-    % (g1(prev_line[0], r"两轮 (\d+) 例全绿", "上一轮用例数") if prev_line else "(未解析到)", R1["n"], R2["n"]),
+    % (g1(prev_line[0], cases_pat(), "上一轮用例数") if prev_line else "(未解析到)", R1["n"], R2["n"]),
 ]))
-print("ANALYZE_WROTE = round-%s-analysis.txt / green-verify-%s-*.txt（5 条）" % (ROUND, ROUND))
+print("ANALYZE_WROTE = round-%s-analysis.txt / %s-%s-*.txt（5 条；相位 = %s）" % (ROUND, PFX, ROUND, PHASE))
 sys.exit(1 if nf_ else 0)

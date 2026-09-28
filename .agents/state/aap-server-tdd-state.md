@@ -16259,3 +16259,27 @@ R491 巡检轮收尾要点（返工真值 = 9 处，据实更正；全部装置/
 - **权威数字**：本轮**无**「两轮全绿」权威读数；权威事实 = 被测提交 `9fc47812`、305 例 / 1 例失败（覆盖门禁）、missing = 9、返工 0 处。
   完整取证见 `.agents/state/evidence/red-baseline-R554.txt`。
 
+
+### R555 巡检轮（**红相位**：missing=9 ≠ 0 或两轮 rc=1/1 ≠ 0/0 ⇒ **未达成两轮全绿**，据实记红）
+
+- **性质**：**本轮为红相位**（红相位）—— 三处记录（描述列 / history / 本节）**不含任何绿相位措辞**；但**交付面零改动**（未改 `aap-server` / `docs` / 冻结清单生成物任何一行）；本轮另含**装置侧改动**（tools/round-verify/phase.py、tools/round-verify/analyze.py、tools/round-verify/closeout.py、tools/round-verify/device-report.py、tools/round-verify/final-check.py、tools/round-verify/independent.py、tools/round-verify/regression.py —— 轮次无关的轮次校验装置（只读审计 + 留痕写入器），不触碰交付面；证据：工作区未提交 7 条 / 提交链自 ca7b032d 起 0 枚提交触及 tools/）；本轮新增写入 = 台账 / 状态 / 证据。
+- **两轮全量（串行）**：被测提交 = ca7b032d（独立 detached worktree 内）；run1 11:22:47→11:25:19、run2 11:25:19→11:27:28；各 **305 例 / 49 类**、rc=1/1、Failures-Errors-Skipped = 1-0-0；`@Test` 词边界计数与 surefire 合计一致；禁用扫描 0 条。
+- **覆盖**：total=117 implemented=108 **missing=9**、registered_routes=125、not_registered=[{'id':；连续全绿计数 = **0**（红相位**计数清零**，下次全绿从第 1 轮起算）。
+- **回归面**：复跑 84 条（tag 集合与上一轮 R554 一致）；rc 变化 0 条、新增 0、未复跑 0；FAIL 明细 43 脚本 183 行（跨轮 faildiff 183→183：新增 0 / 消失 0）；零写副作用（冻结清单生成物 size+md5 全等，变化 0 个）；命令表已由仓库内 `tools/round-verify/manifest.json` 提供，$TEMP 抽查脚本 54 条全部归仓（由 manifest 的 $TEMP 条目数与归仓目录数**双源互证**推出）。
+- **本轮要点（单一事实源 = round-note.md）**：
+本轮返工 12 处（装置/脚本侧，**零交付面影响**：未改 `aap-server` / `docs` / `aap-client` 任何一行）：
+① 新建 `tools/round-verify/phase.py` —— 相位（green/red）的**单一事实源**（`phase_of(两轮 rc, missing)`、`RED_MARK`、`ev_prefix`、`cases_pat`、`streak_pat/streak_marker`、`find_verify`、`state_section_mark`），带 `--selftest`（17 例 PASS），并把「空/畸形输入必须响亮失败」写成 P7a（判据不可用 ≠ 绿，历史 98/141）；
+② `analyze.py` 相位感知：⓪ 相位段（两轮 rc ∧ missing 的合取，**缺键一律取红侧默认值**）、④ 复用 ⓪ 的读数（避免同一输入两处副本分叉，历史 44/191）、⑥ 连续轮次**三态**（绿=连续第 N 轮 / 红=计数清零 / 上一轮红相位未记账）、⑦b 相位自洽、产物前缀由 `PFX` 推出、`HDR` 去掉绿相位措辞；
+③ `closeout.py` 相位感知：**红相位可记账**（历史 554 的死锁根因）、校验证据两种前缀都认、红相位不要求「回归面 rc 变化 0」、上一轮红相位未记账按机器判据豁免（与 analyze A22 同源）、描述列 / history / 状态小节三处按相位分支、跨轮 faildiff **如实登记**（删掉硬编码「新增 0」这条未经验证的自述，历史 12/95）、零写副作用读数解析；并清掉残留的绿相位锚点块（历史 102：同名/残留会让红相位必然假红）；
+④ `device-report.py`：覆盖证据两种前缀都认（红轮不再因缺 `green-verify-*` 而 rc=2 空转）、关键读数补「相位 = …」行；
+⑤ `final-check.py`：F7 锚点集由相位推出（`missing` / `rc` / 轮次标记三处不再硬编码绿相位措辞）、F10 轮次三元组相位感知、F12 读数改用本轮 `missing`、`build_ctx` 新增 `phase` / `rc_pair` / `miss_run` 三键（真实与合成上下文键集同步）；
+⑥ `independent.py`：5 条校验证据的前缀由**磁盘实际相位**推出（新增 `evidence_core()`，两种前缀都认）；
+⑦ 红相位合成夹具返工①：`red()` 的替换**顺序**（先通用替换、后形态替换；反序会让「形态锚点」永不出现 —— 实测 T20 的 F7 假红）；
+⑧ 红相位合成夹具返工②：红相位轮次**四种写法**补齐（含 history 里的裸「连续第 N 轮；」形态 —— 实测 T20 的 F10 假红，历史 189 同族）；
+⑨ 红相位合成夹具返工③：T21 的注入口径改为 F7-only（原注入同时打红 F10，判据不干净：注入口径必须只指向目标断言）；
+⑩ `regression.py` 崩溃通道跨轮比对**归一**：证据文本里「空理由行集」写作 `sha256=none`，内存态是空串 ⇒ 同一状态两种写法被判「内容变化」的**假 FAIL**（本仓生产实测，历史 57/131/200 族）；修法是写入与解析两侧共用 `_norm_sha()` + `parse_crash_channels()` 单一入口，并补 3 条判别力自测（S17 / S17p / S17n），夹具形态取**真实证据文本**而非 Python 字典 —— 旧夹具两侧都是空串，**测不出**该缺陷（历史 82/93/136）。自测 26/26 PASS；
+⑪ `device-report.py` 覆盖字段行解析：`not_registered=(\S+)` 在未注册清单**非空**（含空格）时整行匹配失败 ⇒ 改 `(.*)`（红相位首次非空即暴露，历史 46：读数解析失败先怀疑判据）；
+⑫ 装置脚本**轮次无关性**去化：新增注释里写入了当前轮次号被我自己的守卫当场拦下（`装置脚本内当前轮次号命中 = 2（须 0）`）⇒ 改写成不含轮次号的等义表述（历史 199/249：历史事实一律去化轮次号，机械派生改不到）。
+- **返工真值**：本轮返工真值 = **12 处**（装置/脚本侧，零交付面影响；逐条见上文要点与 `device-round-R555.txt`）。
+- **权威数字**：权威数字 = 返工 12 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
+

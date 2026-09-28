@@ -44,25 +44,33 @@ ROOT = Path("E:/workspaces/hioas/hioas-aap-001")
 EV = ROOT / ".agents/state/evidence"
 T = Path("C:/Users/laitz/AppData/Local/Temp")
 DEV_DIR = ROOT / "tools/round-verify"
+# 相位（green/red）单一事实源：校验证据的前缀由它推出（历史 12/554）
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from phase import GREEN, RED, ev_prefix  # noqa: E402
 END_MARK = "INDEPENDENT_END"
 DELIVERY_PREFIXES = ("aap-server/", "docs/", "aap-client/")
 # 本轮**自己的**写入前缀（留痕目录 + 装置目录）：窗口内新增的条目必须全部落在这两类里（判据 J5d）。
 MY_PREFIXES = (".agents/state/", "tools/")
 # 本轮核心证据（由 analyze.py / regression.py 产出）；收尾相位才产生的证据**不在此表内** —— 历史 222：
 # 本文件不能把自己、或尚未产生的文件判成缺失。
+# 5 条「校验证据」的**前缀由相位推出**（`phase.ev_prefix`）：绿轮 `green-verify-*`、红轮 `red-verify-*`
+# —— 红轮的产物不得命名为 green（历史 12/554：文件名不能骗人）。
 EVIDENCE_CORE = [
     "round-%s-analysis.txt",
-    "green-verify-%s-coverage-fields.txt",
-    "green-verify-%s-testcount.txt",
-    "green-verify-%s-tested-state.txt",
-    "green-verify-%s-full-run1.txt",
-    "green-verify-%s-full-run2.txt",
     "audit-regression-%s.txt",
     "audit-regression-%s-rcseq.txt",
     "audit-regression-%s-failraw.txt",
     "audit-regression-%s-faildiff.txt",
     "regression-selftest-%s.txt",
 ]
+EVIDENCE_STEMS = ["coverage-fields", "testcount", "tested-state", "full-run1", "full-run2"]
+
+
+def evidence_core(round_):
+    """本轮核心证据清单：校验证据前缀由**磁盘上的实际相位**推出（两种前缀都认，历史 181/554）。"""
+    pfx = ev_prefix(RED if any(EV.glob("red-verify-%s-*.txt" % round_)) else GREEN)
+    return ([n % round_ for n in EVIDENCE_CORE]
+            + ["%s-%s-%s.txt" % (pfx, round_, s) for s in EVIDENCE_STEMS])
 REQ_KEYS = ["FACTS_ROUND", "FACTS_WINDOW_START", "FACTS_WINDOW_START_TS", "FACTS_WINDOW_START_ISO",
             "FACTS_WINDOW_END", "FACTS_WINDOW_END_ISO", "FACTS_HEAD_AT_START", "FACTS_HEAD_AT_START_FULL",
             "FACTS_TESTED_COMMIT", "FACTS_TESTED_COMMIT_FULL", "WT_DIRTY_LINES", "FACTS_RUN1_START",
@@ -350,7 +358,7 @@ def evaluate(ctx):
         "申报 %d 个 / 注入集合 %d 个" % (len(want), len(want) + 1))
 
     # ---------- J7 证据齐备 + 字节级行尾 ----------
-    names = [n % R for n in EVIDENCE_CORE]
+    names = evidence_core(R)
     absent_ev = [n for n in names if n not in ctx["ev_disk"]]
     add("J7a 本轮核心证据齐备（%d 条，正向对照 >0）" % len(names), len(names) > 0 and not absent_ev,
         "缺失=%s ｜ 已落 %d 条" % (absent_ev or "无", len(names) - len(absent_ev)))
@@ -415,7 +423,7 @@ def build_ctx(ROUND, declared):
     foreign = [p for p in added if not p.startswith(MY_PREFIXES)]
     ev_disk = set(p.name for p in EV.iterdir() if p.is_file())
     ev_cr = {}
-    for nm in [n % ROUND for n in EVIDENCE_CORE]:
+    for nm in evidence_core(ROUND):
         if nm in ev_disk:
             ev_cr[nm] = count_cr(rd_bytes(EV / nm))
     dev_hits, dev_scanned = 0, 0
@@ -496,7 +504,7 @@ SYNTH_JAVA = ["package com.x;\npublic class ATest {\n  @Test\n  void a(){}\n  @T
 def synth_ctx():
     facts = parse_facts(SYNTH_FACTS)
     run = parse_run(SYNTH_RUN)
-    names = [n % SYNTH_R for n in EVIDENCE_CORE]
+    names = evidence_core(SYNTH_R)
     dev = ["tools/round-verify/independent.py"]
     return {
         "round": SYNTH_R, "prev": prev_round(SYNTH_R), "facts": facts,

@@ -1,0 +1,75 @@
+R555 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动三判据）
+==============================================================================
+生成方式：本文件由 `tools/round-verify/device-report.py` 从 git / facts / 证据的**真实输出**取值（数字零手写值），不接触交付面。
+轮次 = R555；被测提交（HEAD 的独立 worktree 内检出）= ca7b032d；窗口 = 2026-09-28 11:22:30 -> 2026-09-28 11:27:32（facts 落盘）
+
+一、装置面改动（机器推导，零手写）
+  被测提交的 `tools/round-verify` 文件 = 13 个 / 工作区同名文件 = 14 个（新增 1 / 删除 0）
+    新增：phase.py
+  工作区未提交的 tools/ 条目 = 7 条： M tools/round-verify/analyze.py |  M tools/round-verify/closeout.py |  M tools/round-verify/device-report.py |  M tools/round-verify/final-check.py |  M tools/round-verify/independent.py |  M tools/round-verify/regression.py | ?? tools/round-verify/phase.py
+  「被测提交..HEAD」触及 tools/ 的提交 = 0 枚（本文件生成于主提交之前）
+  逐文件 numstat（工作区 vs HEAD，`插入/删除/路径`）：57	15	tools/round-verify/analyze.py; 109	33	tools/round-verify/closeout.py; 17	3	tools/round-verify/device-report.py; 66	11	tools/round-verify/final-check.py; 16	8	tools/round-verify/independent.py; 39	7	tools/round-verify/regression.py
+  轮次无关性守卫：装置脚本（12 个 .py/.sh）内当前轮次号命中 = **0**（须 0
+    = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
+
+二、本轮返工真值 = **12 处**（零交付面影响；条目文本来自单一事实源 `round-note.md`，与台账描述列 / 状态文件小节共用）
+------------------------------------------------------------------------------
+本轮返工 12 处（装置/脚本侧，**零交付面影响**：未改 `aap-server` / `docs` / `aap-client` 任何一行）：
+① 新建 `tools/round-verify/phase.py` —— 相位（green/red）的**单一事实源**（`phase_of(两轮 rc, missing)`、`RED_MARK`、`ev_prefix`、`cases_pat`、`streak_pat/streak_marker`、`find_verify`、`state_section_mark`），带 `--selftest`（17 例 PASS），并把「空/畸形输入必须响亮失败」写成 P7a（判据不可用 ≠ 绿，历史 98/141）；
+② `analyze.py` 相位感知：⓪ 相位段（两轮 rc ∧ missing 的合取，**缺键一律取红侧默认值**）、④ 复用 ⓪ 的读数（避免同一输入两处副本分叉，历史 44/191）、⑥ 连续轮次**三态**（绿=连续第 N 轮 / 红=计数清零 / 上一轮红相位未记账）、⑦b 相位自洽、产物前缀由 `PFX` 推出、`HDR` 去掉绿相位措辞；
+③ `closeout.py` 相位感知：**红相位可记账**（历史 554 的死锁根因）、校验证据两种前缀都认、红相位不要求「回归面 rc 变化 0」、上一轮红相位未记账按机器判据豁免（与 analyze A22 同源）、描述列 / history / 状态小节三处按相位分支、跨轮 faildiff **如实登记**（删掉硬编码「新增 0」这条未经验证的自述，历史 12/95）、零写副作用读数解析；并清掉残留的绿相位锚点块（历史 102：同名/残留会让红相位必然假红）；
+④ `device-report.py`：覆盖证据两种前缀都认（红轮不再因缺 `green-verify-*` 而 rc=2 空转）、关键读数补「相位 = …」行；
+⑤ `final-check.py`：F7 锚点集由相位推出（`missing` / `rc` / 轮次标记三处不再硬编码绿相位措辞）、F10 轮次三元组相位感知、F12 读数改用本轮 `missing`、`build_ctx` 新增 `phase` / `rc_pair` / `miss_run` 三键（真实与合成上下文键集同步）；
+⑥ `independent.py`：5 条校验证据的前缀由**磁盘实际相位**推出（新增 `evidence_core()`，两种前缀都认）；
+⑦ 红相位合成夹具返工①：`red()` 的替换**顺序**（先通用替换、后形态替换；反序会让「形态锚点」永不出现 —— 实测 T20 的 F7 假红）；
+⑧ 红相位合成夹具返工②：红相位轮次**四种写法**补齐（含 history 里的裸「连续第 N 轮；」形态 —— 实测 T20 的 F10 假红，历史 189 同族）；
+⑨ 红相位合成夹具返工③：T21 的注入口径改为 F7-only（原注入同时打红 F10，判据不干净：注入口径必须只指向目标断言）；
+⑩ `regression.py` 崩溃通道跨轮比对**归一**：证据文本里「空理由行集」写作 `sha256=none`，内存态是空串 ⇒ 同一状态两种写法被判「内容变化」的**假 FAIL**（本仓生产实测，历史 57/131/200 族）；修法是写入与解析两侧共用 `_norm_sha()` + `parse_crash_channels()` 单一入口，并补 3 条判别力自测（S17 / S17p / S17n），夹具形态取**真实证据文本**而非 Python 字典 —— 旧夹具两侧都是空串，**测不出**该缺陷（历史 82/93/136）。自测 26/26 PASS；
+⑪ `device-report.py` 覆盖字段行解析：`not_registered=(\S+)` 在未注册清单**非空**（含空格）时整行匹配失败 ⇒ 改 `(.*)`（红相位首次非空即暴露，历史 46：读数解析失败先怀疑判据）；
+⑫ 装置脚本**轮次无关性**去化：新增注释里写入了当前轮次号被我自己的守卫当场拦下（`装置脚本内当前轮次号命中 = 2（须 0）`）⇒ 改写成不含轮次号的等义表述（历史 199/249：历史事实一律去化轮次号，机械派生改不到）。
+------------------------------------------------------------------------------
+
+三、本轮关键读数（读自 analyze / regression 证据，零手写值）
+  相位 = red（两轮 rc=1/1 ∧ missing=9 的合取，判据见 tools/round-verify/phase.py）
+  分析器判据 PASS 22 / FAIL 5；覆盖 total=117 implemented=108 **missing=9** registered_routes=125；连续全绿计数 = 0（**红相位**清零）
+  回归面：复跑 84 条（上一轮 R554 = 84 条）；rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 183 行
+  零写副作用：生成物 size+md5 变化 0 个（须 0）；跨轮 faildiff 上一轮 183 行 / 本轮 183 行、新增 0 / 消失 0
+  崩溃通道：rc!=0 条目 46 条，其中 FAIL 通道不可见（rc!=0 ∧ FAIL 0 行）= 3 条
+
+四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
+  ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 6 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 19 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 25 == `git status` 条目 25
+      M .agents/state/evidence/coverage-report.json  mtime=2026-09-28 10:30:28
+      M README.md  mtime=2026-09-24 07:51:14
+      M aap-server/pom.xml  mtime=2026-09-24 08:07:37
+      M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
+      M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
+      ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
+      （本轮产物）M tools/round-verify/analyze.py  mtime=2026-09-28 11:22:51
+      （本轮产物）M tools/round-verify/closeout.py  mtime=2026-09-28 11:41:04
+      （本轮产物）M tools/round-verify/device-report.py  mtime=2026-09-28 11:45:03
+      （本轮产物）M tools/round-verify/final-check.py  mtime=2026-09-28 11:27:22
+      （本轮产物）M tools/round-verify/independent.py  mtime=2026-09-28 11:25:05
+      （本轮产物）M tools/round-verify/regression.py  mtime=2026-09-28 11:45:18
+      （本轮产物）?? .agents/state/evidence/audit-regression-R555-faildiff.txt  mtime=2026-09-28 11:44:31
+      （本轮产物）?? .agents/state/evidence/audit-regression-R555-failraw.txt  mtime=2026-09-28 11:44:31
+      （本轮产物）?? .agents/state/evidence/audit-regression-R555-rcseq.txt  mtime=2026-09-28 11:44:31
+      （本轮产物）?? .agents/state/evidence/audit-regression-R555.txt  mtime=2026-09-28 11:44:31
+      （本轮产物）?? .agents/state/evidence/device-round-R555.txt  mtime=2026-09-28 11:45:23
+      （本轮产物）?? .agents/state/evidence/red-verify-R555-coverage-fields.txt  mtime=2026-09-28 11:28:05
+      （本轮产物）?? .agents/state/evidence/red-verify-R555-full-run1.txt  mtime=2026-09-28 11:28:05
+      （本轮产物）?? .agents/state/evidence/red-verify-R555-full-run2.txt  mtime=2026-09-28 11:28:05
+      （本轮产物）?? .agents/state/evidence/red-verify-R555-testcount.txt  mtime=2026-09-28 11:28:05
+      （本轮产物）?? .agents/state/evidence/red-verify-R555-tested-state.txt  mtime=2026-09-28 11:28:05
+      （本轮产物）?? .agents/state/evidence/regression-selftest-R555.txt  mtime=2026-09-28 11:45:37
+      （本轮产物）?? .agents/state/evidence/round-R555-analysis.txt  mtime=2026-09-28 11:28:05
+      （本轮产物）?? tools/round-verify/phase.py  mtime=2026-09-28 11:26:08
+      其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
+  ③ 本轮提交（ca7b032d..HEAD）改动文件 = 0 个，其中位于交付面前缀的 = 0 个（**须 0**）
+
+五、下一族
+  missing=9 > 0：按 docs/backend 的任务顺序推进下一族（本轮完成端点 0 条 / 新增用例 0 条）。
+
+六、留痕
+  本文件 = .agents/state/evidence/device-round-R555.txt（由本工具直接落盘，`newline="\n"`；文件名与 closeout.py 的消费名机器核对一致；行数下限判据与 CR=0 判据见下）
+DEVICE_REPORT_END=1

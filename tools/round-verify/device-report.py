@@ -192,7 +192,14 @@ def main():
     WSTART_TS = int(facts["FACTS_WINDOW_START_TS"])
 
     ana_p = EV / ("round-%s-analysis.txt" % ROUND)
-    cov_p = EV / ("green-verify-%s-coverage-fields.txt" % ROUND)
+    # 校验证据的前缀由**相位**推出（绿 `green-verify-*` / 红 `red-verify-*`，历史 12/554）——
+    # 消费侧两种前缀都认（产出/消费双向一致，历史 181）。
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from phase import GREEN as _GREEN, phase_of as _phase_of, find_verify as _find_verify  # noqa: E402
+    cov_p = _find_verify(EV, ROUND, "coverage-fields")
+    if cov_p is None:
+        print("[FAIL] 覆盖字段证据缺失：green-verify / red-verify 两种前缀都没有（须先跑 analyze.py，历史 181）")
+        return 2
     reg_p = EV / ("audit-regression-%s.txt" % ROUND)
     # 跨轮 faildiff 是**独立证据文件**（不在主回归证据里）—— 读数源必须与产出方的写法一致（历史 205/218）：
     # 首版从主证据里找 faildiff 段 ⇒ 0 命中、断言响亮失败（修的是判据，不是期望值）。
@@ -217,8 +224,10 @@ def main():
     NP, NF = m_jud.group(1), m_jud.group(2)
     m_streak = g1(ana, r"连续全绿 = 第 (\d+) 轮", "连续全绿轮次")
     STREAK = m_streak.group(1)
-    m_cov = g1(covf, r"^total=(\d+) implemented=(\d+) missing=(\d+) registered_routes=(\d+) not_registered=(\S+)$",
+    m_cov = g1(covf, r"^total=(\d+) implemented=(\d+) missing=(\d+) registered_routes=(\d+) not_registered=(.*)$",
                "覆盖字段行")
+    # `not_registered` 用 `(.*)` 而非 `(\S+)`：未注册清单非空时含空格（`[{'id': …}, …]`），
+    # `\S+` 会**整行匹配失败**（历史 46：读数解析失败先怀疑判据；本仓实测红相位首次非空即暴露）。
     TOT, IMPL, MISS, ROUTES = m_cov.group(1), m_cov.group(2), m_cov.group(3), m_cov.group(4)
     m_rc = g1(reg, r"rc 变化 (\d+) 条、新增 (\d+)、未复跑 (\d+)", "回归面 rc 逐条比对行")
     m_fail = g1(reg, r"FAIL 明细：(\d+) 个脚本含 FAIL 行、合计 (\d+) 行", "回归面 FAIL 明细行")
@@ -315,8 +324,13 @@ def main():
     L.append("-" * 78)
     L.append("")
     L.append("三、本轮关键读数（读自 analyze / regression 证据，零手写值）")
+    _phase = _phase_of(facts["FACTS_RUN1_RC"], facts["FACTS_RUN2_RC"], MISS)
+    _streak_txt = (("连续第 %s 轮全绿" % STREAK) if _phase == _GREEN
+                   else ("连续全绿计数 = %s（**红相位**清零）" % STREAK))
+    L.append("  相位 = %s（两轮 rc=%s/%s ∧ missing=%s 的合取，判据见 tools/round-verify/phase.py）"
+             % (_phase, facts["FACTS_RUN1_RC"], facts["FACTS_RUN2_RC"], MISS))
     L.append("  分析器判据 PASS %s / FAIL %s；覆盖 total=%s implemented=%s **missing=%s** registered_routes=%s；"
-             "连续第 %s 轮全绿" % (NP, NF, TOT, IMPL, MISS, ROUTES, STREAK))
+             "%s" % (NP, NF, TOT, IMPL, MISS, ROUTES, _streak_txt))
     L.append("  回归面：复跑 %s 条（上一轮 %s = %s 条）；rc 变化 %s / 新增 %s / 未复跑 %s；"
              "FAIL 明细 %s 脚本 %s 行" % (m_run.group(1), m_run.group(2), m_run.group(3),
                                           m_rc.group(1), m_rc.group(2), m_rc.group(3),

@@ -45,6 +45,10 @@ from pathlib import Path
 
 ROOT = Path("E:/workspaces/hioas/hioas-aap-001")
 EV = ROOT / ".agents/state/evidence"
+# 相位（green/red）单一事实源：轮次标记 / 锚点 / 跨相位的措辞都由它推出（历史 12/554）。
+# 纯值（轮次 / 用例数 / rc / missing）一律由证据推出，**不得**硬编码绿相位措辞（否则红轮无法收尾）。
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from phase import GREEN, RED, phase_of, streak_pat, streak_marker, cases_pat  # noqa: E402
 CSV = ROOT / ".agents/state/aap-server-feature-status.csv"
 STATE = ROOT / ".agents/state/aap-server-tdd-state.md"
 HIST = EV / "coverage-history.txt"
@@ -143,10 +147,10 @@ def evaluate(ctx):
         add("F6", n == 1, "自述标记『本轮返工 **%s 处**』出现 %d 次（须 1；锚定真值形态，历史 250）" % (v6, n))
     else:
         add("F6", False, v6)
-    anchors = [R, "missing=0", "rc=0/0", "被测提交 %s" % ctx["tested"],
-               "连续第 **%s** 轮" % ctx["streak_src"], "返工 **%s 处**" % ctx["rework_src"]]
+    anchors = [R, "missing=%s" % ctx["miss_run"], "rc=%s" % ctx["rc_pair"], "被测提交 %s" % ctx["tested"],
+               streak_marker(ctx["phase"], ctx["streak_src"]), "返工 **%s 处**" % ctx["rework_src"]]
     miss_a = [a for a in anchors if a not in desc]
-    add("F7", not miss_a, "缺锚点 %s" % (miss_a or "无") + "（锚点全部由事实推出）")
+    add("F7", not miss_a, "缺锚点 %s" % (miss_a or "无") + "（锚点全部由事实/相位推出）")
 
     # ---- F8/F9 证据列 ----
     ev = [x for x in ((cell(row, 6) or "").split("；")) if x.strip()]
@@ -172,13 +176,13 @@ def evaluate(ctx):
          lambda t: _g1(t, r"本轮返工 \*\*(\d+) 处\*\*", "描述·返工"),
          lambda t: _g1(t, r"本轮返工 (\d+) 处（判据/脚本侧）", "history·返工"),
          lambda t: _g1(t, r"本轮返工真值 = \*\*(\d+) 处\*\*", "状态·返工")),
-        ("连续轮次",
-         lambda t: _g1(t, r"连续第 \*\*(\d+)\*\* 轮", "描述·轮次"),
-         lambda t: _g1(t, r"连续第 (\d+) 轮", "history·轮次"),
-         lambda t: _g1(t, r"连续第 \*\*(\d+)\*\* 轮全绿", "状态·轮次")),
+        ("轮次/红相位计数",
+         lambda t: _g1(t, streak_pat(ctx["phase"]), "描述·轮次"),
+         lambda t: _g1(t, streak_pat(ctx["phase"]), "history·轮次"),
+         lambda t: _g1(t, streak_pat(ctx["phase"]), "状态·轮次")),
         ("用例数/类数",
          lambda t: _g1(t, r"两轮 \*\*(\d+) 例 / (\d+) 类\*\*", "描述·用例"),
-         lambda t: _g1(t, r"全量两轮 (\d+) 例全绿", "history·用例"),
+         lambda t: _g1(t, cases_pat(), "history·用例"),
          lambda t: _g1(t, r"各 \*\*(\d+) 例 / (\d+) 类\*\*", "状态·用例")),
         ("回归面条数",
          lambda t: _g1(t, r"回归面 \*\*(\d+) 条\*\*", "描述·回归面"),
@@ -212,8 +216,9 @@ def evaluate(ctx):
     # ---- F12 装置证据的返工真值 ----
     ok12, why12 = probe(lambda: _g1(ctx["dev_text"], r"返工真值 = \*\*(\d+) 处\*\*", "装置证据·返工真值"))
     if ok12 and ok6:
-        add("F12", why12 == v6 and "missing=0" in ctx["dev_text"],
-            "装置证据返工真值=%r / 描述=%r；含 missing=0 %s" % (why12, v6, "missing=0" in ctx["dev_text"]))
+        add("F12", why12 == v6 and ("missing=%s" % ctx["miss_run"]) in ctx["dev_text"],
+            "装置证据返工真值=%r / 描述=%r；含 missing=%s %s"
+            % (why12, v6, ctx["miss_run"], ("missing=%s" % ctx["miss_run"]) in ctx["dev_text"]))
     else:
         add("F12", False, why12 if not ok12 else "描述列自述标记未解析到")
 
@@ -331,9 +336,13 @@ def build_ctx(ROUND, MAIN):
     round_files = [x for x in dt_out.splitlines() if x.strip()]
 
     desc_row = next((r[4] for r in rows if r and r[0] == ROUND), "")
+    # 相位由**事实源**推出（facts 的两轮 rc ∧ 本轮跑测归档的 missing）—— 不读描述列，否则循环论证。
+    rc1, rc2 = facts.get("FACTS_RUN1_RC", "1"), facts.get("FACTS_RUN2_RC", "1")
+    miss_run = (cov_run or {}).get("missing", 1)
+    phase = phase_of(rc1, rc2, miss_run)
     streak = ""
     rework = ""
-    m = re.search(r"连续第 \*\*(\d+)\*\* 轮", desc_row)
+    m = re.search(streak_pat(phase), desc_row)
     if m:
         streak = m.group(1)
     m = re.search(r"本轮返工 \*\*(\d+) 处\*\*", desc_row)
@@ -355,6 +364,7 @@ def build_ctx(ROUND, MAIN):
         "orphans": orphans, "orphan_whitelist": ORPHAN_WHITELIST, "scan_roots": scan_roots,
         "n_csv": n_csv, "n_hist": len(hist_lines), "n_state": n_state,
         "streak_src": streak, "rework_src": rework,
+        "phase": phase, "rc_pair": "%s/%s" % (rc1, rc2), "miss_run": miss_run,
         "cov_repo": cov_repo, "cov_run": cov_run,
     }
     # 真实上下文与合成上下文的**键集必须相等**：新增 ctx 键时只在合成侧补齐，
@@ -419,11 +429,42 @@ def synth_ctx():
         "scan_roots": ["tools/*.py(31)", "manifest.audits+selftests(84)", "archive/ 归仓目录(54)"],
         "n_csv": 1, "n_hist": 1, "n_state": 1,
         "streak_src": "476", "rework_src": "3",
+        "phase": GREEN, "rc_pair": "0/0", "miss_run": 0,
         "cov_repo": {"total": 108, "implemented": 108, "missing": 0, "registered_routes": 125,
                      "by_task": {"": {"total": 9, "implemented": 9}, "T17": {"total": 6, "implemented": 6}}},
         "cov_run": {"total": 108, "implemented": 108, "missing": 0, "registered_routes": 125,
                     "by_task": {"": {"total": 9, "implemented": 9}, "T17": {"total": 6, "implemented": 6}}},
     }
+
+
+def synth_ctx_red():
+    """红相位合成上下文：与 `synth_ctx()` **只差相位相关字段**（描述列 / history / 状态小节 / 装置证据的关键读数）。
+
+    为什么需要它：F7 锚点、F10 的轮次三元组、F12 的 missing 读数都是**相位相关**判据 —— 只在绿相位夹具上
+    自测，红相位分支永远不被执行（历史 32/75/98：判定有几个分支就要有几条反例）。
+    """
+    c = synth_ctx()
+
+    def red(t):
+        # 顺序敏感（历史 245①）：先做通用替换，再做**形态相关**替换 —— 反序会让「形态锚点」再也匹配不到。
+        t = t.replace("missing=0", "missing=9")
+        t = t.replace("missing=9 ⇒ **校验轮**", "missing=9（**红相位**）⇒ 红相位轮")
+        t = t.replace("连续第 **476** 轮全绿", "%s = **0**（红相位**计数清零**）" % "连续全绿计数")
+        t = t.replace("连续第 **476** 轮", "%s = **0**（红相位**计数清零**）" % "连续全绿计数")
+        t = t.replace("连续第 476 轮全绿", "%s = 0（红相位清零）" % "连续全绿计数")
+        t = t.replace("连续第 476 轮", "%s = 0（红相位清零）" % "连续全绿计数")
+        return t.replace("rc=0/0", "rc=1/1")
+
+    c["phase"], c["rc_pair"], c["miss_run"], c["streak_src"] = RED, "1/1", 9, "0"
+    c["cov_repo"] = dict(c["cov_repo"], total=117, implemented=108, missing=9)
+    c["cov_run"] = dict(c["cov_run"], total=117, implemented=108, missing=9)
+    c["csv_rows"][1][4] = red(c["csv_rows"][1][4])
+    c["hist_line"] = red(c["hist_line"])
+    c["hist_text"] = c["hist_line"] + "\n"
+    c["state_sec"] = red(c["state_sec"])
+    c["state_text"] = c["state_sec"]
+    c["dev_text"] = red(c["dev_text"])
+    return c
 
 
 def fails_of(chk):
@@ -500,6 +541,20 @@ def selftest():
     # T18 正向对照：真实仓库的覆盖缺口扫描读数 > 0
     chk("T18 白名单与孤儿候选都非空（判据非空转）",
         len(ORPHAN_WHITELIST) > 0 and len(synth_ctx()["orphans"]) > 0)
+
+    # ---- 相位分支的判别力实测（历史 32/75/98：判定有几个分支就要有几条反例） ----
+    bad_red = fails_of(evaluate(synth_ctx_red()))
+    chk("T20 红相位合成上下文基线全绿（F7/F10/F12 的**红相位分支**真的被执行）", not bad_red, "FAIL=%s" % bad_red)
+    c21 = synth_ctx_red()
+    c21["csv_rows"][1][4] = c21["csv_rows"][1][4].replace("missing=9", "missing=N")
+    f21 = fails_of(evaluate(c21))
+    chk("T21 红相位注入「描述列 missing 锚点被改」-> 恰好新增 F7（F10 的轮次/用例/回归面读数不受影响）",
+        sorted(set(f21) - set(bad_red)) == ["F7"] and not (set(bad_red) - set(f21)),
+        "新增=%s 消失=%s" % (sorted(set(f21) - set(bad_red)), sorted(set(bad_red) - set(f21))))
+    c22 = synth_ctx()
+    c22["csv_rows"][1][4] = synth_ctx_red()["csv_rows"][1][4]
+    chk("T22 互斥：红相位措辞喂给**绿相位**上下文 -> F7 转红（锚点不跨相位假命中）",
+        "F7" in fails_of(evaluate(c22)), "FAIL=%s" % fails_of(evaluate(c22)))
 
     ok = sum(1 for _, c, _ in res if c)
     for name, c, info in res:

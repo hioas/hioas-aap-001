@@ -1,0 +1,20 @@
+R555 红相位轮（两轮红或 missing>0 ⇒ **未达成两轮全绿**，据此如实记账，历史 12/554）；全部读数由 tools/round-verify/analyze.py 从 facts / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = ca7b032d
+被测提交全 SHA = ca7b032d03572d5d33063b67307d69a5c96dd4e0
+被测提交主题 = chore(evidence): R554 红基线轮（**未记账**：装置无红轮记账口径）—— 并行工作流把冻结清单 108→117（ADM-SU01~04 / ADM-CB01~05 未实现，属 specs/001-intake-automation 的 T-M4-07~12 在途，且 md 清单对 ADM-SU/ADM-CB 命中 0 处 ⇒ 按硬规则 1 不实现）；两轮 305 例仅 1 例失败（EndpointCoverageTest 覆盖门禁）⇒ 红基线干净；回归面 84 条 rc 变化 2 条、faildiff 161→183（新增 40 条全部可归因到契约扩展 / md 未同步 / 新表缺审计列）；本轮新发现：装置红相位无记账口径（analyze STREAK 由上一轮 history +1 推导、落盘 green-verify-* 名不副实、closeout 描述列硬编码 missing=0 / rc=0/0）⇒ 不写台账行与 history 行（下一轮 A22 将响亮失败，待拍板 ⑳）；交付面零改动、未触碰他方在途 6 条；返工真值 0 处
+run1 = 11:22:47 -> 11:25:19 rc=1 / run2 = 11:25:19 -> 11:27:28 rc=1（串行：run1_end <= run2_start = True，按绝对时刻解算）
+窗口 = 11:22:30 -> 11:27:32（1790565750 -> 1790566052，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = ca7b032d / 终点 = ca7b032d；窗口内他方推进提交数 = 0
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 8 条
+    M .agents/state/evidence/coverage-report.json
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+    M tools/round-verify/analyze.py
+   ?? aap-server/src/main/webapp/
+   ?? tools/round-verify/phase.py
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 2 ['tools/round-verify/analyze.py', 'tools/round-verify/phase.py']
+环境指纹：bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）

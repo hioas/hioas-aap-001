@@ -69,6 +69,8 @@ def sha256_of(path):
 # ---------- 崩溃/诊断行 + 路径归一：**定义在 --selftest 之前**，自测与生产路径共用同一判据（历史 230） ----------
 CRASH_RE = re.compile(r"^[A-Za-z_.]*(?:Error|Exception)\b")
 DIAG_RE = re.compile(r"^(生成物与生成器不一致:|孤儿产物|check FAILED:|[A-Za-z_]+ FAILED:|FAIL:)")
+# 崩溃通道的机器可读行（**唯一定义**：生产路径的写入/解析与 `--selftest` 共用；历史 102：不要留同名残骸）
+CH_RE = re.compile(r"^\s*CRASHCHAN tag=(\S+) rc=(-?\d+) sha256=(\S+) nlines=(\d+) head=(.*)$", re.M)
 PATHFIX = [(r"[A-Za-z]:[/\\]workspaces[/\\]hioas[/\\]hioas-aap-001[/\\]", ""),
            (r"[A-Za-z]:[/\\]Users[/\\]laitz[/\\]AppData[/\\]Local[/\\]Temp[/\\]", "<T>/")]
 
@@ -91,6 +93,21 @@ def crash_reason(txt):
         return "", 0, ""
     full = "\n".join(normpath(x) for x in ls)
     return hashlib.sha256(full.encode("utf-8")).hexdigest(), len(ls), ls[0][:160]
+
+
+def _norm_sha(v):
+    """崩溃通道 sha256 的**唯一归一函数**（历史 57/131/200：两侧必须走同一个归一函数）。
+
+    「空理由行集」有两种等价写法：**证据文本**里是字面量 `none`（写入侧 `h or "none"`），
+    **内存态**是 `""`。不归一即「同一状态两种写法」⇒ 跨轮比对报**假 FAIL**
+    （本仓实测：红相位某轮 `endpoint-tests` 因上一轮证据里的 `none` 与本轮 `""` 不等而被判「内容变化」）。
+    """
+    return "" if (v in ("", "none")) else v
+
+
+def parse_crash_channels(text):
+    """从证据文本解析 `{tag: sha256}`（**唯一入口**：生产路径与 `--selftest` 共用，杜绝双副本分叉，历史 44/191）。"""
+    return dict((m.group(1), _norm_sha(m.group(3))) for m in CH_RE.finditer(text))
 
 
 def crash_diff(prev, cur):
@@ -266,6 +283,25 @@ def run_selftest():
     case("S16 新增通道 → added 点名（rc 通道已覆盖该转移，此处只作信息档）",
          crash_diff({"A": h0}, {"A": h0, "B": h1})[1] == ["B"])
 
+    # ---- S17x：崩溃通道「空理由行集」的两种写法必须归一（生产实测的假 FAIL 回归守卫） ----
+    # 夹具形态 = **真实证据文本**（不是 Python 字典）：写入侧对空理由行集写 `sha256=none`，
+    # 而内存态是 `""` ⇒ 不归一时跨轮比对把「同一状态」判成「内容变化」。旧自测只用字典构造，
+    # 两侧都是 `""`，**测不出**该缺陷（历史 82/93/136：夹具形态与被测真实形态不符）。
+    prev_txt = ("-- 崩溃通道：rc!=0 条目 2 条，其中 FAIL 通道不可见（rc!=0 ∧ FAIL 0 行）= 2 条 "
+                "['endpoint-tests', 'gap-x']\n"
+                "      CRASHCHAN tag=endpoint-tests rc=1 sha256=none nlines=0 head=（无！）\n"
+                "      CRASHCHAN tag=gap-x rc=1 sha256=%s nlines=1 head=AssertionError: x\n" % h0)
+    prevc = parse_crash_channels(prev_txt)
+    curc = {"endpoint-tests": crash_reason("")[0], "gap-x": h0}
+    case("S17 上一轮证据文本的 `sha256=none` 与本轮内存态 `\"\"` 归一后不报变化（假 FAIL 回归守卫）",
+         crash_diff(prevc, curc)[:3] == ([], [], []),
+         "changed=%s" % (crash_diff(prevc, curc)[0],))
+    case("S17p 正向对照：文本夹具真的解析到 2 条 > 0 ∧ 空理由已归一为 `\"\"` ∧ 非空理由逐字节保留",
+         len(prevc) == 2 and prevc.get("endpoint-tests") == "" and prevc.get("gap-x") == h0,
+         "n=%d none→%r gap-x_match=%s" % (len(prevc), prevc.get("endpoint-tests"), prevc.get("gap-x") == h0))
+    case("S17n 旧写法（不归一）在同一夹具上必然报变化 ⇒ 证明归一确实修掉了假 FAIL",
+         crash_diff({"endpoint-tests": "none"}, {"endpoint-tests": ""})[0] == ["endpoint-tests"])
+
     print("=" * 78)
     print("%s 装置判据判别力实测（合成夹具；判据与生产路径同源 = durability() / crash_reason() / crash_diff()）" % ROUND)
     print("=" * 78)
@@ -430,19 +466,15 @@ p("-- 崩溃通道：rc!=0 条目 %d 条，其中 FAIL 通道不可见（rc!=0 �
 CURCRASH = {}
 for t in silent_red:
     h, n, head = crash_reason((W / (t + ".log")).read_text(encoding="utf-8", errors="replace"))
-    CURCRASH[t] = h
+    CURCRASH[t] = _norm_sha(h)  # 归一（历史 57/131）：与证据文本侧解析共用 _norm_sha，否则同一状态两种写法
     p("      %-30s rc=%d 理由 = %s" % (t, rc_of[t], head or "（无！）"))
     # 机器可读行（下一轮据此比对**内容**，不只比 rc）—— 唯一入口，展示行也从同一函数取值。
     p("      CRASHCHAN tag=%s rc=%d sha256=%s nlines=%d head=%s"
       % (t, rc_of[t], h or "none", n, head or "（无！）"))
 
 # ---------- 崩溃通道跨轮比对（历史 98/187/219：rc 不变而**内容变了**的通道此前完全不可见） ----------
-CH_RE = re.compile(r"^\s*CRASHCHAN tag=(\S+) rc=(-?\d+) sha256=(\S+) nlines=(\d+) head=(.*)$", re.M)
 PREVREG = EV / ("audit-regression-%s.txt" % PREVR)
-PREVCRASH = {}
-if PREVREG.exists():
-    for m in CH_RE.finditer(PREVREG.read_text(encoding="utf-8", errors="replace")):
-        PREVCRASH[m.group(1)] = m.group(3)
+PREVCRASH = parse_crash_channels(PREVREG.read_text(encoding="utf-8", errors="replace")) if PREVREG.exists() else {}
 CRASH_CHANGED, CRASH_ADDED, CRASH_GONE, CRASH_USABLE = crash_diff(PREVCRASH, CURCRASH)
 p("-- 崩溃通道跨轮比对（判据：上一轮同处「rc!=0 ∧ FAIL 0 行」的通道，其**完整理由行集** sha256 必须不变；"
   "rc 逐条比对只能看见「rc 变了」，FAIL 明细又为 0 ⇒ 内容变化此前零可见性）--")
@@ -456,7 +488,7 @@ if not CRASH_USABLE:
       "按历史 141/98 判据不可用时不得判绿 ⇒ 本轮计入非零退出，下一轮起自动生效）" % PREVREG.name)
 for t in CRASH_CHANGED:
     p("[FAIL] 崩溃通道内容变化（rc 未变，故 rc 通道与 FAIL 明细都看不见）: %s  sha256 %s -> %s"
-      % (t, PREVCRASH[t][:12], CURCRASH[t][:12]))
+      % (t, PREVCRASH[t][:12] or "none", CURCRASH[t][:12] or "none"))
 
 VERDICT = ("判据不可用（上一轮 rcseq 解析到 0 条，不得判绿）" if RCSEQ_EMPTY else
            ("零回归" if not (mism or changed or gone or TAGDIFF or arch_bad or DUR["orphan"]
