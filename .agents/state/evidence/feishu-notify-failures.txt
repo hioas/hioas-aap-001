@@ -412,3 +412,7 @@ R633 通知（2026-09-29，rc=0）：`hermes send -t feishu -s 'AAP TDD 进度'`
 R633 要点：清单 117/117 全注册；全量 327 例 **1 例稳定失败**（`ConfigBatchAdminContractTest.createBatch` 期望 201、实测 500 E-2001，根因 `ClassCastException: String→Number` @ `ConfigBatchReader.longOf:118` ← `AdminConfigBatchController.create:59`，由他方提交 `16b257e3` 引入）⇒ 本轮**红相位据实记账**；交付面零改动、装置链返工 0 处。
 R633 台账：R633 行 c7 = `42f00956`（主提交，HEAD 祖先）；收尾链提交 `a7e66c34`、final-check 留痕 `13b38981`。
 R633 安全面：未按镜像名杀进程、未触碰他方在途文件、未 attach 他方实例；首跑（18:44 起）被他方并发全量测试污染（run2 61 例红 + PG deadlock 49 处）已**整体归档** `$TEMP/aap-round-verify/R633/contaminated/` 并**串行复跑**（复跑 deadlock 0/0）。
+R644 通知（2026-09-30 00:5x）：`hermes send -t feishu -s 'AAP TDD 进度' …` 两次尝试均**未取得投递回执** ——
+  首次 180 s 内卡在 `C:/Users/laitz/AppData/Local/hermes/tools/.install.lock`（另一会话的 PM 操作持有该锁，非本作业动作）；
+  第二次回显 `hermes: source-update completion failed: pm: worker exited without a result … running with the previous dependencies`。
+  ⇒ 通知投递状态**不明**（既无 Skipped 抑制回显、也无发送成功回显）；本 cron 的最终回复仍会自动投递到同一目标，用户可见性不受影响。
