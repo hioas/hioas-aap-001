@@ -28,6 +28,7 @@
 * J3 测试面：`@Test` 词边界对账 ∧ 禁用扫描 == 0（不得削弱测试）
 * J4 覆盖三处独立读数一致（worktree 归档副本 / 仓库跟踪副本 / `endpoints.json`）
 * J5 交付面零改动（**相位感知**：提交前看工作区、提交后看提交链）+ 在途归属 + worktree 回收
+     ＋ **装置链自写面**（J5f 的第 4 类解释项；J5i/J5j = 判据可用性与「每轮须落盘」纪律）
 * J6 装置面改动 == 申报集合（逐文件点名 · 双向）
 * J7 本轮核心证据齐备 ∧ 字节级 CR == 0（历史 69/84/146）
 * J8 装置目录轮次无关性（当前轮次号不得出现在装置源码里；判别力对照 = 1）
@@ -39,6 +40,16 @@
 ∧ 主题不含本轮轮次号）、`--external-withdrawn`（他方自主撤下的在途路径，须「在窗口起点快照里 ∧ 已从快照消失
 ∧ 不落在我方改动集合里」）。**未申报的外部活动照旧响亮失败**；核心不变量由 J5h 直接判：
 **我方改动集合 ∩ 窗口起点他方在途集合 == ∅**。
+
+**装置链自写面**（J5f 的**第 4 类**解释项；机器派生，不是人工申报，历史 66/210）：回归面命令表里的脚本会
+**自己写回**追踪证据文件（本仓实测 `tools/audit-endpoint-tests.py` 每轮重写 `.agents/state/evidence/endpoint-test-audit.txt`
+与同名 `.json`），这类产物常以「工作区已改动」的形态留在他方在途清单里 ⇒ 其 mtime 落窗时会被 J5f 误判成
+「他方在途被碰」。正解不是人工加白名单（历史 210：逐条列举必然漏项），而是**机器派生**：命令表（`manifest.json`）
+cmd 实参里的脚本 ∧ 其源码含写标记 ∧ 从源码抽出的证据文件名（按 basename 认 —— 常量常带目录变量）。
+只有「路径落在证据目录 ∧ basename 属自写面」才可能被豁免，`README.md` / `pom.xml` 之流**永远**无法被豁免；
+J5i 是「解析到 0 个即判据失效」的正向对照（历史 46/75/98）。配套 J5j：「自写面里的**追踪**文件 mtime 落窗 ⇒
+提交后必须与 HEAD 一致」，把提交 `0aee5e72` 立下的约定（「回归面每次复跑都会重写 ⇒ 每轮须落盘」）固化成机器判据，
+相位感知（提交前相位不适用，历史 243-①）。
 
 相位（`--phase` 由 git 事实**推导**，不手写）：主提交之前 = 「工作区未提交」，之后 = 「提交链 N 枚」。
 """
@@ -254,14 +265,60 @@ def ext_commits_ok(n_advanced, declared, bad):
     return int(n_advanced or 0) == len(declared) and not bad
 
 
-def late_unexplained(late, declared, ext_files, withdrawn):
-    """J5f 的判据对象（纯函数）：落在窗口内的在途项 ∖ 已解释项（申报装置改动 ∪ 他方提交触及 ∪ 他方自主撤下）。
+# ========== 装置链自写面（J5f 的**第 4 类**解释项；机器派生，不是人工申报，历史 66/210） ==========
+# 为什么需要它：回归面命令表里的脚本会**自己写回**追踪证据文件（本仓实测 `tools/audit-endpoint-tests.py`
+# 每轮重写 `.agents/state/evidence/endpoint-test-audit.txt`），而这类产物往往同时以「工作区已改动」的形态
+# 留在他方在途清单里 ⇒ 其 mtime 落在窗口内时，J5f 会把「**我方工具自写**」误判成「他方在途条目被碰」
+# （判据范围必须与语义一致：豁免只放宽**我方自己的**动作，历史 81/193/198）。
+# 判据必须**机器派生**（历史 210：人工逐条列举必然漏项）：
+#   ① 命令表（`manifest.json`）cmd 实参里以 .py/.sh 结尾的脚本；
+#   ② 该脚本源码里含**写标记**（`write_text` / `write_bytes` / `open(`）；
+#   ③ 从这类脚本源码里抽出的**证据文件名**（常量常带目录变量 ⇒ 按 basename 认，历史 218/225）。
+# 只有「路径落在证据目录 ∧ basename 属自写面」才可能被豁免；README.md / pom.xml 之流**永远**无法被豁免。
+WRITE_MARK_RE = re.compile(r"write_text|write_bytes|open[(]")
+EVID_PREFIX = ".agents/state/evidence/"
+EVID_NAME_RE = re.compile(r'"([A-Za-z0-9_.-]+[.](?:txt|json|jsonl|csv|md))"')
+
+
+def manifest_script_args(manifest_text):
+    """命令表里引用的脚本路径（纯函数，入参 = manifest 文本）：按 .py/.sh 结尾认，出现顺序去重。"""
+    try:
+        m = json.loads(manifest_text)
+    except ValueError:
+        return []
+    out = []
+    for grp in ("audits", "selftests"):
+        for e in (m.get(grp) or []):
+            for a in (e.get("cmd") or []):
+                a = str(a).replace(chr(92), "/")   # chr(92) = 反斜杠：不写字面量，避开转义歧义
+                if a.endswith((".py", ".sh")) and a not in out:
+                    out.append(a)
+    return out
+
+
+def writer_output_names(pairs):
+    """装置链自写面（纯函数，入参 = [(脚本路径, 源码文本)]）：写脚本源码里出现的证据文件名集合。"""
+    names = set()
+    for _p, src in pairs:
+        if src and WRITE_MARK_RE.search(src):
+            names |= set(EVID_NAME_RE.findall(src))
+    return sorted(names)
+
+
+def selfwritten_exempt(late, names):
+    """自写豁免集合（纯函数）：落窗在途项里「路径在证据目录 ∧ basename 属自写面」的那些。"""
+    ns = set(names)
+    return [p for p in late if p.startswith(EVID_PREFIX) and p[len(EVID_PREFIX):] in ns]
+
+
+def late_unexplained(late, declared, ext_files, withdrawn, selfwritten=()):
+    """J5f 的判据对象（纯函数）：落窗在途项 ∖ 已解释项（装置改动 ∪ 他方提交触及 ∪ 他方自主撤下 ∪ 装置链自写）。
 
     形状纪律（本轮真实返工，历史 218/225）：判据对象与豁免集合必须**同形** —— 不可读项若存成
     「路径 + （不可读）后缀」，豁免比对恒不命中，合法态照样报红。故 `late` 一律存**原始路径**，
     「不可读」只作为并列读数（`inflight_late_unread`）。
     """
-    ex = set(declared) | set(ext_files) | set(withdrawn)
+    ex = set(declared) | set(ext_files) | set(withdrawn) | set(selfwritten)
     return [p for p in late if p not in ex]
 
 
@@ -422,10 +479,10 @@ def evaluate(ctx):
     # J5h = **直接不变量**：我方提交链改动文件 ∩ 窗口起点他方在途集合 == ∅（须 0 条交集）。
     # 它比下面的快照差集更贴语义：差集判据会把**他方自己的**活动（撤下自己的在途文件）算成我方违规
     # （判据范围与语义不符，历史 81/193/198）。正向对照要求**两侧都非空**，否则 `∩ = ∅` 是空转假绿（历史 98）。
-    overlap = sorted(set(ctx["own_commit_files"]) & set(ctx["inflight"]))
+    overlap = sorted(set(ctx["round_touched"]) & set(ctx["inflight"]))
     add("J5h 我方改动集合 ∩ 窗口起点他方在途集合 == ∅（正向对照：我方改动 > 0 ∧ 在途 > 0）",
-        bool(ctx["own_commit_files"]) and len(ctx["inflight"]) > 0 and not overlap,
-        "我方 %d 个 / 在途 %d 个 / 交集 %s" % (len(ctx["own_commit_files"]), len(ctx["inflight"]), overlap or "0 条"))
+        bool(ctx["round_touched"]) and len(ctx["inflight"]) > 0 and not overlap,
+        "我方 %d 个 / 在途 %d 个 / 交集 %s" % (len(ctx["round_touched"]), len(ctx["inflight"]), overlap or "0 条"))
     # 差集方向一：他方在途条目的消失/改动**必须显式申报**（`--external-withdrawn`），且申报项逐条可核
     # （「在窗口起点快照里 ∧ 已从快照消失 ∧ 不落在我方改动集合里」三条件缺一即不可核）。未申报 ⇒ 照旧红。
     gone_bad = [p for p in ctx["inflight_gone"] if p not in set(ctx["ext_withdrawn"])]
@@ -447,11 +504,27 @@ def evaluate(ctx):
                                       "本判据不适用（由 J5c/J5d 给出双向归属核对）"
                                       if ctx["declared"] else "快照相等 = %s"
                                       % (ctx["status_before"] == ctx["status_after"])))
-    add("J5f 在途改动落在窗口内的条目**全部已解释**（本轮申报的装置改动 / 他方提交触及 / 他方自主撤下；未解释 ⇒ 红）",
+    add("J5f 在途改动落在窗口内的条目**全部已解释**（申报装置改动 / 他方提交触及 / 他方自主撤下 / **装置链自写**；未解释 ⇒ 红）",
         ctx["window_start_ts"] > 0 and len(ctx["inflight"]) > 0 and not ctx["inflight_late_eff"],
-        "在途 %d 条 / 落在窗口内（已剔除申报项：装置 %d ＋ 他方提交触及 %d ＋ 自主撤下 %d；其中「文件已不在磁盘」%d 条）%s"
+        "在途 %d 条 / 落在窗口内（已剔除申报项：装置 %d ＋ 他方提交触及 %d ＋ 自主撤下 %d ＋ 装置链自写 %d；其中「文件已不在磁盘」%d 条）%s"
         % (len(ctx["inflight"]), len(ctx["inflight_late_exempt"]), len(ctx["ext_files"]),
-           len(ctx["ext_withdrawn"]), len(ctx["inflight_late_unread"]), ctx["inflight_late_eff"] or "0 条"))
+           len(ctx["ext_withdrawn"]), len(ctx["inflight_late_selfwritten"]), len(ctx["inflight_late_unread"]),
+           ctx["inflight_late_eff"] or "0 条"))
+    # J5i/J5j = 「装置链自写面」的判据可用性 + 落盘纪律（历史 66 第 4 类；约定出处 = 提交 0aee5e72
+    # 「回归面每次复跑都会重写 ⇒ 每轮须落盘」）。两者都**机器派生**：名字取自命令表脚本源码里的证据文件名。
+    add("J5i 装置链自写面解析到 N 个证据文件名（正向对照 > 0；0 即判据失效，历史 46/75）",
+        len(ctx["selfwritten_names"]) > 0,
+        "自写面 %d 个 / 命令表脚本 %d 个：%s"
+        % (len(ctx["selfwritten_names"]), len(ctx["manifest_scripts"]),
+           "、".join(ctx["selfwritten_names"][:6]) or "（空）"))
+    pre_phase = str(ctx["phase"]).startswith("提交前")
+    add("J5j 装置链自写面的**追踪**文件 mtime 落窗 ⇒ 提交后必须与 HEAD 一致（「每轮须落盘」，约定出处 = 提交 0aee5e72）",
+        pre_phase or not ctx["selfwritten_dirty"],
+        "落窗自写追踪文件 %d 个%s；%s"
+        % (len(ctx["selfwritten_scope"]),
+           ("（" + "、".join(ctx["selfwritten_scope"]) + "）") if ctx["selfwritten_scope"] else "",
+           "本判据不适用（提交前相位：工作区尚未提交，历史 243-①）" if pre_phase
+           else ("与 HEAD 不一致 %d 个" % len(ctx["selfwritten_dirty"]))))
     add("J5g 本轮临时 worktree 已回收（磁盘不存在 ∧ git 未登记）",
         ctx["wt_path"] != "" and not ctx["wt_exists"] and ctx["wt_path"] not in ctx["wt_list"],
         "path=%s exists=%s listed=%s" % (ctx["wt_path"], ctx["wt_exists"], ctx["wt_path"] in ctx["wt_list"]))
@@ -553,6 +626,25 @@ def build_ctx(ROUND, declared, external=(), withdrawn=()):
             # （「判据里的字符串必须与对象同形」，历史 218/225）。
             late.append(p)
             late_unread.append(p)
+    # ---- 装置链自写面（机器派生；J5f 第 4 类豁免 + J5i/J5j 的判据对象，历史 66/210） ----
+    m_scripts = manifest_script_args(rd_text(DEV_DIR / "manifest.json"))
+    sw_names = writer_output_names([(s, rd_text(ROOT / s)) for s in m_scripts])
+    sw_late = selfwritten_exempt(late, sw_names)
+    # J5j 的作用域 = 自写面里的**追踪**文件 ∧ mtime 落窗（未追踪的本轮新证据不在「须落盘」纪律内，历史 222）。
+    # 注意它**不能**从 `inflight` 推（那份快照取自窗口起点）：文件在窗口起点干净、被命令表在窗口内重写时
+    # 同样必须进作用域 —— 否则「忘了落盘」这类缺陷永远看不见（历史 98/187：判据范围必须覆盖语义）。
+    sw_scope = []
+    for n in sw_names:
+        p = EVID_PREFIX + n
+        try:
+            if not (ROOT / p).exists() or int((ROOT / p).stat().st_mtime) <= ws_ts:
+                continue
+        except OSError:
+            continue
+        if sh("ls-files", "--error-unmatch", "--", p)[0] != 0:
+            continue
+        sw_scope.append(p)
+    sw_dirty = [p for p in sw_scope if sh("status", "--porcelain", "--", p)[1].strip()]
     after_paths = status_paths(sa)
     gone = sorted(set(inflight) - set(after_paths))
     added = sorted(set(after_paths) - set(inflight))
@@ -588,8 +680,12 @@ def build_ctx(ROUND, declared, external=(), withdrawn=()):
         # J5f 的**判据范围**：本轮**已申报**的装置改动、他方提交触及的文件、他方自主撤下的在途路径
         # 按定义会在窗口内落地/变化，不能与他方在途的「未解释」项混谈（判据范围必须与语义一致，
         # 历史 81/193/195）；豁免 = 申报集合的子集（机器核对，不是人列举）。
-        "inflight_late_eff": late_unexplained(late, declared, ext_files, withdrawn),
+        "inflight_late_eff": late_unexplained(late, declared, ext_files, withdrawn, sw_late),
         "inflight_late_exempt": [p for p in late if p in set(declared)],
+        # J5f 的**第 4 类**解释项：装置链自写面（机器派生，见文件上方 WRITE_MARK_RE 段）
+        "manifest_scripts": m_scripts, "selfwritten_names": sw_names,
+        "inflight_late_selfwritten": sw_late, "selfwritten_scope": sw_scope,
+        "selfwritten_dirty": sw_dirty,
         "status_paths_after": after_paths, "inflight_gone": gone, "inflight_added": added,
         "inflight_foreign": foreign,
         "window_start_ts": ws_ts,
@@ -684,6 +780,9 @@ def synth_ctx():
         "inflight": ["README.md", "aap-server/pom.xml"], "inflight_late": [], "window_start_ts": 1000,
         "inflight_late_unread": [],
         "inflight_late_eff": [], "inflight_late_exempt": [],
+        "manifest_scripts": ["tools/audit-endpoint-tests.py"],
+        "selfwritten_names": ["endpoint-test-audit.txt"], "inflight_late_selfwritten": [],
+        "selfwritten_scope": [], "selfwritten_dirty": [],
         "wt_path": "C:/tmp/合成worktree-%s" % SYNTH_R, "wt_exists": False, "wt_list": "",
         "device_actual": list(dev), "declared": list(dev), "phase": "提交前（工作区未提交）",
         "external": [], "external_bad": [], "ext_files": [],
@@ -803,7 +902,8 @@ def selftest():
     mutate("本轮提交触及交付面（提交数）", lambda c: c.update(delivery_commits=1), ["J5a"])
     mutate("本轮改动里混入交付面路径",
            lambda c: c.update(round_touched=c["round_touched"] + ["aap-server/src/main/java/X.java"]), ["J5b"])
-    mutate("本轮改动集合为空（判据不可用而非合规）", lambda c: c.update(round_touched=[]), ["J5b"])
+    mutate("本轮改动集合为空（判据不可用而非合规；J5h 的正向对照同步转红，历史 98）",
+           lambda c: c.update(round_touched=[]), ["J5b", "J5h"])
     mutate("他方在途条目被本轮改动 / 删除 / 回退（方向一）",
            lambda c: c.update(inflight_gone=["README.md"],
                               status_paths_after=["aap-server/pom.xml", "tools/round-verify/independent.py"],
@@ -912,8 +1012,8 @@ def selftest():
     mutate("申报撤下但该路径落在我方改动集合里（不可核 ⇒ 必须转红，豁免不得被架空）",
            lambda c: c.update(inflight_gone=["aap-server/X.java"], ext_withdrawn=["aap-server/X.java"],
                               ext_withdrawn_bad=["aap-server/X.java"]), ["J5c"])
-    mutate("我方提交文件落在窗口起点他方在途文件上（J5h 直接不变量）",
-           lambda c: c.update(own_commit_files=list(c["own_commit_files"]) + ["aap-server/pom.xml"]), ["J5h"])
+    mutate("我方改动集合落在窗口起点他方在途文件上（J5h 直接不变量）",
+           lambda c: c.update(round_touched=list(c["round_touched"]) + ["README.md"]), ["J5h"])
     chk("T-EXT1 own_of 三态：恒等（空申报）/ 剔除成员 / 非成员不得被剔除（历史 57/68/190）",
         own_of(["a", "b"], []) == ["a", "b"] and own_of(["a", "b"], ["a"]) == ["b"]
         and own_of(["a", "b"], ["zz"]) == ["a", "b"], "见条件")
@@ -925,6 +1025,40 @@ def selftest():
         late_unexplained(["a"], [], [], []) == ["a"]
         and late_unexplained(["a"], [], [], ["a"]) == []
         and late_unexplained(["a（不可读）"], [], [], ["a"]) == ["a（不可读）"], "见条件")
+
+    # ---- 装置链自写面（J5f 第 4 类豁免 + J5i/J5j 落盘纪律；约定出处 = 提交 0aee5e72，历史 66/210） ----
+    chk("T-SW1 writer_output_names 三态：写脚本命中 / 无写标记脚本不命中 / 空输入空集",
+        writer_output_names([("a.py", 'X = "e.txt"\nP.write_text(X)')]) == ["e.txt"]
+        and writer_output_names([("a.py", 'X = "e.txt"\nprint(X)')]) == []
+        and writer_output_names([]) == [], "三态各一条")
+    chk("T-SW2 manifest_script_args 两态：解析 cmd 实参里的脚本 / 坏 JSON 退化为空集",
+        manifest_script_args('{"audits":[{"tag":"t","cmd":["py.exe","tools/x.py","--check"]}],'
+                             '"selftests":[{"cmd":["py.exe","tools/y-selftest.py"]}]}')
+        == ["tools/x.py", "tools/y-selftest.py"]
+        and manifest_script_args("{ 不是 JSON") == [], "两态各一条")
+    chk("T-SW3 selfwritten_exempt 两态 + 两条反例：证据目录 ∧ basename 命中才豁免",
+        selfwritten_exempt([".agents/state/evidence/e.txt"], ["e.txt"]) == [".agents/state/evidence/e.txt"]
+        and selfwritten_exempt(["README.md"], ["README.md"]) == []
+        and selfwritten_exempt([".agents/state/evidence/other.txt"], ["e.txt"]) == [], "见条件")
+    chk("T-SW4 late_unexplained 第 4 类：自写豁免生效 ∧ 非自写项不得被豁免（历史 57/68/190）",
+        late_unexplained([".agents/state/evidence/e.txt"], [], [], [], [".agents/state/evidence/e.txt"]) == []
+        and late_unexplained(["README.md"], [], [], [], [".agents/state/evidence/e.txt"]) == ["README.md"],
+        "见条件")
+    # 正向对照 = 自写的落窗项**必须不新增 FAIL**；反例 = 同一项未被豁免时必须点名 J5f。
+    mutate("落窗在途项属装置链自写面（合法态，正向对照：不新增 FAIL）",
+           lambda c: c.update(inflight_late=[".agents/state/evidence/e.txt"], inflight_late_eff=[],
+                              inflight_late_selfwritten=[".agents/state/evidence/e.txt"]), [])
+    mutate("落窗在途项**不属**自写面（README.md 永远无法被豁免）",
+           lambda c: c.update(inflight_late=["README.md"], inflight_late_eff=["README.md"],
+                              inflight_late_selfwritten=[]), ["J5f"])
+    mutate("自写面解析为空（判据失效 ⇒ 必须点名 J5i，历史 46/75）",
+           lambda c: c.update(selfwritten_names=[]), ["J5i"])
+    mutate("提交后相位 + 落窗自写追踪文件与 HEAD 不一致（漏落盘 ⇒ 点名 J5j）",
+           lambda c: c.update(phase="提交后（提交链 1 枚）", selfwritten_scope=[".agents/state/evidence/e.txt"],
+                              selfwritten_dirty=[".agents/state/evidence/e.txt"]), ["J5j"])
+    mutate("提交前相位 + 同一读数（判据不适用 ⇒ 不得假失败，历史 243-①）",
+           lambda c: c.update(phase="提交前（工作区未提交）", selfwritten_scope=[".agents/state/evidence/e.txt"],
+                              selfwritten_dirty=[".agents/state/evidence/e.txt"]), [])
 
     ok = sum(1 for _, c, _ in res if c)
     for name, c, info in res:
