@@ -6550,7 +6550,7 @@ M `aap-server/pom.xml`（D-BUILD-02 前端打包 exec-maven-plugin，他方在�
 `run-round` → `analyze`（27 PASS / 0 FAIL）→ 回归面（rc 变化 0 / faildiff 新增与消失均 0）→ `regression --selftest`（26/0）→
 `selftest-counts`（更正 0）**五步一次通过、零重跑、零闸门失败**；本轮无交付面改动（`missing == 0`）⇒ 不存在「交付闭环 / 交付修复」计数。
 要点文本本处一律写**纯文本**计数形态（不加粗、不在关键词与数字之间插入任何标记），以匹配机器判据的裸子串锚定（历史 202/204/250）。",,evidence/audit-regression-R639-faildiff.txt；evidence/audit-regression-R639-failraw.txt；evidence/audit-regression-R639-rcseq.txt；evidence/audit-regression-R639.txt；evidence/device-round-R639.txt；evidence/device-selftest-counts-R639.txt；evidence/final-check-R639.txt；evidence/green-verify-R639-coverage-fields.txt；evidence/green-verify-R639-full-run1.txt；evidence/green-verify-R639-full-run2.txt；evidence/green-verify-R639-testcount.txt；evidence/green-verify-R639-tested-state.txt；evidence/independent-R639.txt；evidence/postwrite-check-R639.txt；evidence/regression-selftest-R639.txt；evidence/round-R639-analysis.txt；evidence/coverage-history.txt（追加 R639 行）,454b9060
-R640,,,,"R640 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交））） · 清单 **117/117**（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 795fd148**）连续第 **6** 轮全绿 · 两轮 **327 例 / 53 类** rc=0/0（串行 21:52:22→21:57:15，逐类 diff=0） · 回归面 **84 条** rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167，新增 0 / 消失 0） · 分析器 PASS 27 / FAIL 0 · registered_routes=134 · 本轮返工 **0 处**（装置侧） · 证据 17 条 · 一、性质与范围：本轮 = **绿相位巡检轮（纯校验，零代码改动）**。`missing == 0` ∧ 两轮 `rc=0/0` ⇒ 交付面零改动；
+R640,,,,"R640 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交））） · 清单 **117/117**（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 795fd148**）连续第 **6** 轮全绿 · 两轮 **327 例 / 53 类** rc=0/0（串行 21:52:22→21:57:15，逐类 diff=0） · 回归面 **84 条** rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167，新增 0 / 消失 0） · 分析器 PASS 27 / FAIL 0 · registered_routes=134 · 本轮返工 **1 处**（装置侧） · 证据 18 条 · 一、性质与范围：本轮 = **绿相位巡检轮（纯校验，零代码改动）**。`missing == 0` ∧ 两轮 `rc=0/0` ⇒ 交付面零改动；
 连续全绿计数由第 5 轮 → **第 6 轮**（`analyze` A22/相位自洽判定：上一轮为绿相位 ⇒ 计数 +1）。
 覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；15 族全齐：
 (空任务号) 18 · T03 6 · T04 5 · T05 7 · T06 6 · T07 4 · T08 11 · T09 6 · T10 5 · T11 11 · T12 4 · T13 3 · T14 22 · T15 3 · T17 6（族和 117 = total，内容级核对）。
@@ -6606,7 +6606,17 @@ reason phrase「Bad Request」，直连行为空）⇒ 管理端 dev 与后端�
 **(d)** 上轮清单各项（`J5c/J5d` 预跑相位、`coverage-report.json` 长 M、远端口径、tier3/4 归仓、`selftest-counts` 是否入回归面、
 `ADM-CFG01~05` 一词两义、18 条端点无台账行、红相位记账口径等）**全部沿用**。
 
-八、本轮返工真值口径：装置侧返工 0 处（零交付面影响）——
-`run-round` → `analyze`（27 PASS / 0 FAIL）→ 回归面（rc 变化 0 / faildiff 新增与消失均 0）→ `regression --selftest`（26/0）→
-`selftest-counts`（更正 0）**五步一次通过、零重跑、零闸门失败**；本轮无交付面改动（`missing == 0`）⇒ 不存在「交付闭环 / 交付修复」计数。
-要点文本本处一律写**纯文本**计数形态（不加粗、不在关键词与数字之间插入任何标记），以匹配机器判据的裸子串锚定（历史 202/204/250）。",,evidence/audit-regression-R640-faildiff.txt；evidence/audit-regression-R640-failraw.txt；evidence/audit-regression-R640-rcseq.txt；evidence/audit-regression-R640.txt；evidence/device-round-R640.txt；evidence/device-selftest-counts-R640.txt；evidence/green-verify-R640-coverage-fields.txt；evidence/green-verify-R640-full-run1.txt；evidence/green-verify-R640-full-run2.txt；evidence/green-verify-R640-testcount.txt；evidence/green-verify-R640-tested-state.txt；evidence/independent-R640.txt；evidence/postwrite-check-R640.txt；evidence/regression-selftest-R640.txt；evidence/round-R640-analysis.txt；evidence/three-end-probe-R640.txt；evidence/coverage-history.txt（追加 R640 行）,791da0fb
+八、本轮返工真值口径：装置侧返工 1 处（零交付面影响）——
+**(1) 收尾阶段暴露的证据登记缺口（纯数字盲区）**：⑤ 收尾时磁盘上已有 14 条本轮证据，`--extra` 只登记了
+`postwrite-check-R640.txt` / `independent-R640.txt` 两条 ⇒ 证据列 16 条；而装置第 ⑧ 步还会产出
+`final-check-R640.txt`（本轮磁盘实际 17 条，比 R637–R639 各轮的 16 条多 1 条：本轮新增 `three-end-probe-R640.txt` 取证文件），
+该条**未被登记** ⇒ 台账行证据列**少 1 条**，与「证据列 = 本轮磁盘文件清单」的既有同口径形态（R637/R638/R639 三处实测
+on-disk 16 = listed 16）不一致。属**纯数字盲区**族（历史 201/206/217-③：计数靠人列举必然漏项）。
+修法：按装置 README 的**收尾更正相位**执行（⑦ 回填 c7 已完成在前）`closeout.py R640 --rewrite`，让证据列由
+**磁盘实际文件清单**重新推出（17 条 + coverage-history）；**不改写已发布的主提交**（历史 209：不 amend 已发布提交），
+另以**独立收尾提交**据实更正，并同步「台账行 / 状态文件 / 收尾提交 message」三处。
+装置链本体（`run-round` → `analyze` 27 PASS / 0 FAIL → 回归面 rc 变化 0 / faildiff 新增与消失均 0 →
+`regression --selftest` 26/0 → `selftest-counts` 更正 0）**五步一次通过、零重跑、零闸门失败**；
+本轮无交付面改动（`missing == 0`）⇒ 不存在「交付闭环 / 交付修复」计数。
+本轮返工 1 处（装置侧，即上文 (1)）；计数形态本处一律写**纯文本**（不加粗、关键词与数字之间不插标记），
+以匹配机器判据的裸子串锚定（历史 202/204/250）。",,evidence/audit-regression-R640-faildiff.txt；evidence/audit-regression-R640-failraw.txt；evidence/audit-regression-R640-rcseq.txt；evidence/audit-regression-R640.txt；evidence/device-round-R640.txt；evidence/device-selftest-counts-R640.txt；evidence/final-check-R640.txt；evidence/green-verify-R640-coverage-fields.txt；evidence/green-verify-R640-full-run1.txt；evidence/green-verify-R640-full-run2.txt；evidence/green-verify-R640-testcount.txt；evidence/green-verify-R640-tested-state.txt；evidence/independent-R640.txt；evidence/postwrite-check-R640.txt；evidence/regression-selftest-R640.txt；evidence/round-R640-analysis.txt；evidence/three-end-probe-R640.txt；evidence/coverage-history.txt（追加 R640 行）,791da0fb
