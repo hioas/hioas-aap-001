@@ -6620,7 +6620,7 @@ on-disk 16 = listed 16）不一致。属**纯数字盲区**族（历史 201/206/
 本轮无交付面改动（`missing == 0`）⇒ 不存在「交付闭环 / 交付修复」计数。
 本轮返工 1 处（装置侧，即上文 (1)）；计数形态本处一律写**纯文本**（不加粗、关键词与数字之间不插标记），
 以匹配机器判据的裸子串锚定（历史 202/204/250）。",,evidence/audit-regression-R640-faildiff.txt；evidence/audit-regression-R640-failraw.txt；evidence/audit-regression-R640-rcseq.txt；evidence/audit-regression-R640.txt；evidence/device-round-R640.txt；evidence/device-selftest-counts-R640.txt；evidence/final-check-R640.txt；evidence/green-verify-R640-coverage-fields.txt；evidence/green-verify-R640-full-run1.txt；evidence/green-verify-R640-full-run2.txt；evidence/green-verify-R640-testcount.txt；evidence/green-verify-R640-tested-state.txt；evidence/independent-R640.txt；evidence/postwrite-check-R640.txt；evidence/regression-selftest-R640.txt；evidence/round-R640-analysis.txt；evidence/three-end-probe-R640.txt；evidence/coverage-history.txt（追加 R640 行）,791da0fb
-R641,,,,"R641 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交））） · 清单 **117/117**（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 0b47072b**）连续第 **7** 轮全绿 · 两轮 **327 例 / 53 类** rc=0/0（串行 22:18:34→22:26:07，逐类 diff=0） · 回归面 **84 条** rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167，新增 0 / 消失 0） · 分析器 PASS 27 / FAIL 0 · registered_routes=134 · 本轮返工 **2 处**（装置侧） · 证据 18 条 · 一、性质与范围：本轮 = **绿相位巡检轮（纯校验，零代码改动）**。`missing == 0` ∧ 两轮 `rc=0/0` ⇒ 交付面零改动；
+R641,,,,"R641 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交））） · 清单 **117/117**（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 0b47072b**）连续第 **7** 轮全绿 · 两轮 **327 例 / 53 类** rc=0/0（串行 22:18:34→22:26:07，逐类 diff=0） · 回归面 **84 条** rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167，新增 0 / 消失 0） · 分析器 PASS 27 / FAIL 0 · registered_routes=134 · 本轮返工 **3 处**（装置侧） · 证据 18 条 · 一、性质与范围：本轮 = **绿相位巡检轮（纯校验，零代码改动）**。`missing == 0` ∧ 两轮 `rc=0/0` ⇒ 交付面零改动；
 连续全绿计数由第 6 轮 → **第 7 轮**（`analyze` A22/相位自洽判定：上一轮为绿相位 ⇒ 计数 +1）。
 覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；15 族全齐：
 (空任务号) 18 · T03 6 · T04 5 · T05 7 · T06 6 · T07 4 · T08 11 · T09 6 · T10 5 · T11 11 · T12 4 · T13 3 · T14 22 · T15 3 · T17 6（族和 117 = total，内容级核对）。
@@ -6661,7 +6661,7 @@ M `aap-server/pom.xml`（D-BUILD-02 前端打包 exec-maven-plugin，他方在�
 **三端 dev 面本轮全部在跑**（后端 8084/8086 + 管理端 + 客户端 ×2）。
 ② **代理环境变量污染探针（返工 (1) 的现场）**：环境里存在本地代理（`HTTP_PROXY`/`HTTPS_PROXY` 指向 `127.0.0.1:7897`），
 未剥离时对回环地址的请求被代理截走并回 **502**（响应带 `Proxy-Connection: keep-alive` 标记）——
-R640 观察到的「5173 应答 502」据此判定为**探针伪影**，不是 dev server 状态。剥离后复探：
+上一轮（R640）观察到的「5173 应答 502」据此判定为**探针伪影**，不是 dev server 状态。剥离后复探：
 管理端 `127.0.0.1:5174/` → **200**（`<title>AAP 管理端</title>`）＋ 代理 `POST /api/v1/auth/sms/send` → **400** + 小写 `x-trace-id`；
 客户端 `[::1]:5173/` → **200**（uni H5 首屏）＋ 代理同形 POST → **400** + 小写 `x-trace-id`；
 直连后端同形请求 → **400** + **大写** `X-Trace-Id` ⇒ 大小写差异证明前两者的请求**确实穿了前端代理**，**两个前端的代理段均可达**。
@@ -6693,7 +6693,7 @@ R640 观察到的「5173 应答 502」据此判定为**探针伪影**，不是 d
 **(d)** 上轮清单各项（`J5c/J5d` 预跑相位、`coverage-report.json` 长 M、远端口径、tier3/4 归仓、
 `selftest-counts` 是否入回归面、`ADM-CFG01~05` 一词两义、18 条端点无台账行、红相位记账口径等）**全部沿用**。
 
-八、本轮返工真值口径：装置侧返工 2 处（均为**取证脚本判据侧**，零交付面影响；逐条见 `three-end-probe-R641.txt` 第四节）——
+八、本轮返工真值口径：装置侧返工 3 处（均为**取证脚本 / 留痕文本判据侧**，零交付面影响；逐条见 `three-end-probe-R641.txt` 第四节）——
 **(1) 代理环境变量未剥离 ⇒ 假发现**：首版探针直接 curl 回环地址，5173/5174 均回 **502**；若据此写「客户端 dev 不可用」即为假发现
 （指纹 = 响应带 `Proxy-Connection` 标记 + 环境里存在本地代理）。**同一缺陷的第二形态**：第二版把 `--noproxy` 的通配符未加引号
 ⇒ 被 shell 展开成文件名 ⇒ 代理仍未被剥离、**已可用的 5174 也变 502**（同一处判据连踩两次）；正解 = 探针内 `unset` 代理变量，
@@ -6701,8 +6701,16 @@ R640 观察到的「5173 应答 502」据此判定为**探针伪影**，不是 d
 **(2) 跨源比对两侧未走同一归一 ⇒ 31 条假发现**：磁盘侧类名剥了包前缀、histogram 侧是全限定名 ⇒ `comm` 交集为空，
 报出「31 个控制器全部未加载」，与同一份输出里的「已加载 28」**自相矛盾**（历史 57 族）；修法 = 两侧同用全限定点分名后复跑
 ⇒ 真实差集 3 / 2。两条均由各自的**正向对照**（对照端点 200、已加载 28 > 0 与磁盘 31 > 0）当场发现，未进入交付证据的错误结论。
+**(3) 留痕文本的行首轮次号形态污染台账解析（收尾阶段由常驻探针发现）**：本轮台账描述列的**内嵌换行**里有一行以 `R640 ` 开头
+（""R640 观察到的「5173 应答 502」…""）⇒ 常驻探针 `ledger-audit.py` 按行首 `^R[0-9]+` 抽轮次行时把它当成一条**轮次行**，
+`nums[-1]` 由 R641 变回 R640、`A2b`（台账末轮次行 == 本轮）由 PASS 转 FAIL ⇒ **探针有牙齿**（正确报警，不是判据失效）。
+修法 = 该行改写为「上一轮（R640）观察到的…」（去化行首轮次号形态），并按装置 README 的**收尾更正相位**重跑
+④ `device-report`（返工真值 2 → 3）→ ⑤ `closeout --rewrite`；**不改写已发布主提交**（历史 209），以独立收尾提交据实更正。
+同族**历史残留 2 处**（`R633 …` / `R635 …` 两行，来自更早轮次的要点文本）仍在台账里 —— 它们是 `A1b`（轮次号单调）与
+`A1c`（轮次号无重复）**长期 FAIL 的真实根因**（本轮顺带定因）；修它们需改写历史轮次行的描述列，属**跨轮留痕变更**，
+按纪律列入待拍板而非本轮擅自执行。
 装置链本体（`run-round` → `analyze` 27 PASS / 0 FAIL → 回归面 rc 变化 0 / faildiff 新增与消失均 0 →
 `regression --selftest` 26/0 → `selftest-counts` 更正 0）**五步一次通过、零重跑、零闸门失败**；
 本轮无交付面改动（`missing == 0`）⇒ 不存在「交付闭环 / 交付修复」计数。
-本轮返工 2 处（装置/取证脚本侧，即上文 (1)(2)）；计数形态本处一律写**纯文本**（不加粗、关键词与数字之间不插标记），
+本轮返工 3 处（装置/取证脚本与留痕文本侧，即上文 (1)(2)(3)）；计数形态本处一律写**纯文本**（不加粗、关键词与数字之间不插标记），
 以匹配机器判据的裸子串锚定（历史 202/204/250）。",,evidence/audit-regression-R641-faildiff.txt；evidence/audit-regression-R641-failraw.txt；evidence/audit-regression-R641-rcseq.txt；evidence/audit-regression-R641.txt；evidence/device-round-R641.txt；evidence/device-selftest-counts-R641.txt；evidence/final-check-R641.txt；evidence/green-verify-R641-coverage-fields.txt；evidence/green-verify-R641-full-run1.txt；evidence/green-verify-R641-full-run2.txt；evidence/green-verify-R641-testcount.txt；evidence/green-verify-R641-tested-state.txt；evidence/independent-R641.txt；evidence/postwrite-check-R641.txt；evidence/regression-selftest-R641.txt；evidence/round-R641-analysis.txt；evidence/three-end-probe-R641.txt；evidence/coverage-history.txt（追加 R641 行）,b715a55d
