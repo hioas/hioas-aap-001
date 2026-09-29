@@ -6342,7 +6342,7 @@ rc=0 条数 39/84（与 R634 逐条相同）；FAIL 明细 **43 脚本 167 行**
 
 八、本轮返工真值口径：装置侧返工 0 处（装置链首次运行即全绿：`analyze` 0 FAIL、回归面 rc 变化 0、`regression --selftest` 26/0、
 `selftest-counts` 更正 0、无崩溃通道变化）；本轮的**交付面修复**记为**交付闭环**（见一），不计入装置侧返工真值。",,evidence/audit-regression-R635-faildiff.txt；evidence/audit-regression-R635-failraw.txt；evidence/audit-regression-R635-rcseq.txt；evidence/audit-regression-R635.txt；evidence/device-round-R635.txt；evidence/device-selftest-counts-R635.txt；evidence/final-check-R635.txt；evidence/green-ADM-CB01-apply-R635.txt；evidence/green-verify-R635-coverage-fields.txt；evidence/green-verify-R635-full-run1.txt；evidence/green-verify-R635-full-run2.txt；evidence/green-verify-R635-testcount.txt；evidence/green-verify-R635-tested-state.txt；evidence/independent-R635.txt；evidence/postwrite-check-R635.txt；evidence/red-ADM-CB01-apply-R635.txt；evidence/regression-selftest-R635.txt；evidence/round-R635-analysis.txt；evidence/coverage-history.txt（追加 R635 行）,0d56af30
-R636,,,,"R636 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交））） · 清单 **117/117**（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 c1b3be93**）连续第 **2** 轮全绿 · 两轮 **327 例 / 53 类** rc=0/0（串行 20:24:15→20:29:14，逐类 diff=0） · 回归面 **84 条** rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167，新增 0 / 消失 0） · 分析器 PASS 27 / FAIL 0 · registered_routes=134 · 本轮返工 **0 处**（装置侧） · 证据 17 条 · 一、性质与范围：本轮 = **绿相位巡检轮（纯校验，零代码改动）**。`missing == 0` ∧ 两轮 `rc=0/0` ⇒ 交付面零改动；
+R636,,,,"R636 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交））） · 清单 **117/117**（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 c1b3be93**）连续第 **2** 轮全绿 · 两轮 **327 例 / 53 类** rc=0/0（串行 20:24:15→20:29:14，逐类 diff=0） · 回归面 **84 条** rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167，新增 0 / 消失 0） · 分析器 PASS 27 / FAIL 0 · registered_routes=134 · 本轮返工 **1 处**（装置侧） · 证据 17 条 · 一、性质与范围：本轮 = **绿相位巡检轮（纯校验，零代码改动）**。`missing == 0` ∧ 两轮 `rc=0/0` ⇒ 交付面零改动；
 连续全绿计数由第 1 轮 → **第 2 轮**（`analyze` A22/相位自洽判定：上一轮为绿相位 ⇒ 计数 +1）。
 覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；15 族全齐：
 (空任务号) 18 · T03 6 · T04 5 · T05 7 · T06 6 · T07 4 · T08 11 · T09 6 · T10 5 · T11 11 · T12 4 · T13 3 · T14 22 · T15 3 · T17 6（族和 117 = total，内容级核对）。
@@ -6387,6 +6387,10 @@ R635 已按该口径据实修正断言与 md §2.6 现状注记。若**契约所
 **(d)** 上轮清单各项（`J5c/J5d` 预跑相位、`coverage-report.json` 长 M、远端口径、tier3/4 归仓、`selftest-counts` 是否入回归面、
 `ADM-CFG01~05` 一词两义、18 条端点无台账行、红相位记账口径等）**全部沿用**。
 
-八、本轮返工真值口径：装置侧返工 0 处（装置链首次运行即全绿：`analyze` 27/0、回归面 rc 变化 0 且 faildiff 新增/消失均 0、
-`regression --selftest` 26/0、`selftest-counts` 更正 0、崩溃通道理由行集 sha256 逐条不变）；
-本轮无交付面改动（`missing == 0`）⇒ 不存在「交付闭环 / 交付修复」计数。",,evidence/audit-regression-R636-faildiff.txt；evidence/audit-regression-R636-failraw.txt；evidence/audit-regression-R636-rcseq.txt；evidence/audit-regression-R636.txt；evidence/device-round-R636.txt；evidence/device-selftest-counts-R636.txt；evidence/final-check-R636.txt；evidence/green-verify-R636-coverage-fields.txt；evidence/green-verify-R636-full-run1.txt；evidence/green-verify-R636-full-run2.txt；evidence/green-verify-R636-testcount.txt；evidence/green-verify-R636-tested-state.txt；evidence/independent-R636.txt；evidence/postwrite-check-R636.txt；evidence/regression-selftest-R636.txt；evidence/round-R636-analysis.txt；evidence/coverage-history.txt（追加 R636 行）,eca8c231
+八、本轮返工真值口径：装置侧返工 1 处（要点文本侧，零交付面影响）——
+① 首次 `device-report` 因本轮要点文本把返工计数写成**加粗形态**（计数两侧带 `**`），而该工具的判据锚定裸子串「返工 N 处」⇒
+判据**正确**报 FAIL（历史 202/204/250 族：判据锚定措辞形态，加粗字符落在「返工」与数字之间即不匹配）；
+去掉加粗后重跑即通过。该处属**要点文本侧返工**（不是装置缺陷、不是交付面问题），据实登记。
+装置链其余步骤一次通过：`analyze` 27 PASS / 0 FAIL、回归面 rc 变化 0 且 faildiff 新增/消失均 0、
+`regression --selftest` 26/0、`selftest-counts` 更正 0、`independent` 43/0、`final-check` 20/0、
+崩溃通道理由行集 sha256 逐条不变；本轮无交付面改动（`missing == 0`）⇒ 不存在「交付闭环 / 交付修复」计数。",,evidence/audit-regression-R636-faildiff.txt；evidence/audit-regression-R636-failraw.txt；evidence/audit-regression-R636-rcseq.txt；evidence/audit-regression-R636.txt；evidence/device-round-R636.txt；evidence/device-selftest-counts-R636.txt；evidence/final-check-R636.txt；evidence/green-verify-R636-coverage-fields.txt；evidence/green-verify-R636-full-run1.txt；evidence/green-verify-R636-full-run2.txt；evidence/green-verify-R636-testcount.txt；evidence/green-verify-R636-tested-state.txt；evidence/independent-R636.txt；evidence/postwrite-check-R636.txt；evidence/regression-selftest-R636.txt；evidence/round-R636-analysis.txt；evidence/coverage-history.txt（追加 R636 行）,eca8c231

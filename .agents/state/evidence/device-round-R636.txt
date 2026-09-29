@@ -11,7 +11,7 @@ R636 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
   轮次无关性守卫：装置脚本（13 个 .py/.sh）内当前轮次号命中 = **0**（须 0
     = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
 
-二、本轮返工真值 = **0 处**（零交付面影响；条目文本来自单一事实源 `note-R636.md`，与台账描述列 / 状态文件小节共用）
+二、本轮返工真值 = **1 处**（零交付面影响；条目文本来自单一事实源 `note-R636.md`，与台账描述列 / 状态文件小节共用）
 ------------------------------------------------------------------------------
 一、性质与范围：本轮 = **绿相位巡检轮（纯校验，零代码改动）**。`missing == 0` ∧ 两轮 `rc=0/0` ⇒ 交付面零改动；
 连续全绿计数由第 1 轮 → **第 2 轮**（`analyze` A22/相位自洽判定：上一轮为绿相位 ⇒ 计数 +1）。
@@ -58,9 +58,13 @@ R635 已按该口径据实修正断言与 md §2.6 现状注记。若**契约所
 **(d)** 上轮清单各项（`J5c/J5d` 预跑相位、`coverage-report.json` 长 M、远端口径、tier3/4 归仓、`selftest-counts` 是否入回归面、
 `ADM-CFG01~05` 一词两义、18 条端点无台账行、红相位记账口径等）**全部沿用**。
 
-八、本轮返工真值口径：装置侧返工 0 处（装置链首次运行即全绿：`analyze` 27/0、回归面 rc 变化 0 且 faildiff 新增/消失均 0、
-`regression --selftest` 26/0、`selftest-counts` 更正 0、崩溃通道理由行集 sha256 逐条不变）；
-本轮无交付面改动（`missing == 0`）⇒ 不存在「交付闭环 / 交付修复」计数。
+八、本轮返工真值口径：装置侧返工 1 处（要点文本侧，零交付面影响）——
+① 首次 `device-report` 因本轮要点文本把返工计数写成**加粗形态**（计数两侧带 `**`），而该工具的判据锚定裸子串「返工 N 处」⇒
+判据**正确**报 FAIL（历史 202/204/250 族：判据锚定措辞形态，加粗字符落在「返工」与数字之间即不匹配）；
+去掉加粗后重跑即通过。该处属**要点文本侧返工**（不是装置缺陷、不是交付面问题），据实登记。
+装置链其余步骤一次通过：`analyze` 27 PASS / 0 FAIL、回归面 rc 变化 0 且 faildiff 新增/消失均 0、
+`regression --selftest` 26/0、`selftest-counts` 更正 0、`independent` 43/0、`final-check` 20/0、
+崩溃通道理由行集 sha256 逐条不变；本轮无交付面改动（`missing == 0`）⇒ 不存在「交付闭环 / 交付修复」计数。
 ------------------------------------------------------------------------------
 
 三、本轮关键读数（读自 analyze / regression 证据，零手写值）
@@ -72,27 +76,18 @@ R635 已按该口径据实修正断言与 md §2.6 现状注记。若**契约所
 
 四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
-  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 6 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 12 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 18 == `git status` 条目 18
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 6 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 0 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 6 == `git status` 条目 6
       M .agents/state/evidence/coverage-report.json  mtime=2026-09-29 18:48:15
       M README.md  mtime=2026-09-24 07:51:14
       M aap-server/pom.xml  mtime=2026-09-24 08:07:37
       M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
       M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
       ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
-      （本轮产物）?? .agents/state/evidence/audit-regression-R636-faildiff.txt  mtime=2026-09-29 20:34:20
-      （本轮产物）?? .agents/state/evidence/audit-regression-R636-failraw.txt  mtime=2026-09-29 20:34:20
-      （本轮产物）?? .agents/state/evidence/audit-regression-R636-rcseq.txt  mtime=2026-09-29 20:34:20
-      （本轮产物）?? .agents/state/evidence/audit-regression-R636.txt  mtime=2026-09-29 20:34:20
-      （本轮产物）?? .agents/state/evidence/device-selftest-counts-R636.txt  mtime=2026-09-29 20:34:30
-      （本轮产物）?? .agents/state/evidence/green-verify-R636-coverage-fields.txt  mtime=2026-09-29 20:29:23
-      （本轮产物）?? .agents/state/evidence/green-verify-R636-full-run1.txt  mtime=2026-09-29 20:29:23
-      （本轮产物）?? .agents/state/evidence/green-verify-R636-full-run2.txt  mtime=2026-09-29 20:29:23
-      （本轮产物）?? .agents/state/evidence/green-verify-R636-testcount.txt  mtime=2026-09-29 20:29:23
-      （本轮产物）?? .agents/state/evidence/green-verify-R636-tested-state.txt  mtime=2026-09-29 20:29:23
-      （本轮产物）?? .agents/state/evidence/regression-selftest-R636.txt  mtime=2026-09-29 20:34:23
-      （本轮产物）?? .agents/state/evidence/round-R636-analysis.txt  mtime=2026-09-29 20:29:23
       其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
-  ③ 提交区间（c1b3be93..HEAD）改动文件 = 0 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 0 枚 = 他方 0 枚 + 本轮 0 枚
+  ③ 提交区间（c1b3be93..HEAD）改动文件 = 19 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 3 枚 = 他方 0 枚 + 本轮 3 枚
+      [本轮] ea6436d2 chore(aap-server): R636 final-check 一致性核对留痕（F0-F18 + F14b：20 PAS  文件 1 个 / 交付面命中 0 个
+      [本轮] 7c64bd8b chore(state): R636 收尾链留痕（postwrite 落地核对 PASS + 独立复核 43 PASS / 0   文件 3 个 / 交付面命中 0 个
+      [本轮] eca8c231 chore(aap-server): R636 巡检轮（清单 117/117 全注册；绿相位全量 327 例两轮全绿 = 连续第  文件 16 个 / 交付面命中 0 个
       ⇒ **本轮自己的提交**触及交付面前缀的 = 0 个（**须 0**）；他方提交的交付面改动不计入本轮（历史 81/193/198：他方在途不得算作本轮改动）
 
 五、下一族
