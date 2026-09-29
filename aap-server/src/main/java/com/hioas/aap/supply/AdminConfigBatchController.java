@@ -35,9 +35,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminConfigBatchController {
 
     private final ConfigBatchAdminService configBatchAdminService;
+    private final ConfigApplyExecutor configApplyExecutor;
 
-    public AdminConfigBatchController(ConfigBatchAdminService configBatchAdminService) {
+    public AdminConfigBatchController(ConfigBatchAdminService configBatchAdminService,
+                                      ConfigApplyExecutor configApplyExecutor) {
         this.configBatchAdminService = configBatchAdminService;
+        this.configApplyExecutor = configApplyExecutor;
     }
 
     /** ADM-CB01 创建批次（DRY_RUN 出差异清单且生产零写入；影响面 > 20 个单元 → 409 `E-1601`）。 */
@@ -46,7 +49,16 @@ public class AdminConfigBatchController {
     public ApiEnvelope<SupplyUnitViews.ConfigBatch> create(
             @AuthenticationPrincipal AuthPrincipal principal,
             @RequestBody(required = false) SupplyUnitViews.ConfigBatchCreateRequest request) {
-        return ApiEnvelope.ok(configBatchAdminService.create(principal, request));
+        SupplyUnitViews.ConfigBatch batch = configBatchAdminService.create(principal, request);
+        // DRY_RUN 天然零写入（AC-10）；只有 APPLY 才触发执行器把 PENDING 明细真正下发到网关。
+        // 执行结果（逐项 SUCCEEDED/FAILED/MISMATCH 与回读结论）通过 ADM-CB03 详情查看 ——
+        // 本响应体是「受理时刻」的快照，计数在执行前，故不在此处重算，避免与详情口径不一致。
+        if (batch.mode() != null && !"DRY_RUN".equals(batch.mode())) {
+            int rate = batch.rateLimitPerSec() == null
+                    ? ConfigApplyRateLimiter.DEFAULT_RATE_PER_SEC : batch.rateLimitPerSec();
+            configApplyExecutor.execute(ConfigBatchReader.longOf(batch.id()), rate);
+        }
+        return ApiEnvelope.ok(batch);
     }
 
     /** ADM-CB02 批次列表（分页 + `status` 可选过滤）。 */
