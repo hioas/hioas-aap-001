@@ -11,7 +11,7 @@ R609 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
   轮次无关性守卫：装置脚本（13 个 .py/.sh）内当前轮次号命中 = **0**（须 0
     = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
 
-二、本轮返工真值 = **0 处**（零交付面影响；条目文本来自单一事实源 `note-R609.md`，与台账描述列 / 状态文件小节共用）
+二、本轮返工真值 = **1 处**（零交付面影响；条目文本来自单一事实源 `note-R609.md`，与台账描述列 / 状态文件小节共用）
 ------------------------------------------------------------------------------
 一、性质与覆盖：本轮为**校验轮**（missing == 0 ⇒ 按作业第 4 步「不改代码，只校验并报告」；被测提交 = 窗口起点 HEAD = 终点 HEAD = d686418b，
 故 `git rev-list d686418b..HEAD -- aap-server docs aap-client` = **0 枚**、`-- tools/` 亦为 **0 枚**）。
@@ -41,10 +41,12 @@ closeout 台账 / history / 状态三处各 1 条；postwrite、final-check（F0
 A6 maven 耗时解析器两形态各 1 条合成对照（本轮实际形态 run1/run2 均为 `mm:ss min`，与 R601–R608 同形，故按历史 176 只能记「本轮未复现 `<1 分钟` 写法」）；
 A22 上一轮 history 行恰好 1 条且相位 = 绿相位；A25 相位命名守卫（本轮前缀 = green-verify）通过。
 
-五、本轮返工真值 = 返工 0 处（**范围 = 装置链前四步（① 执行器 → ② 分析器 → ③ 回归面 → ③b 自测条数 → ④ 装置证据）＋ 收尾四步（⑤ 收尾 → ⑥ 主提交核对 → ⑦ 回填 → ⑧ 一致性核对）＋ 独立复核**；
-**范围不含**只读 aux 探针自身的判据修正，后者逐条见 §六 且按历轮口径不计入）：前四步逐步骤一次通过（无脚本崩溃、无锚点 0 命中、无计数不符）：
-analyze 27/0、regression rc 变化 0、regression --selftest 26/0、selftest-counts 更正 0 处、device-report 三判据齐备；
-收尾四步与独立复核的逐条读数见对应证据文件（postwrite-check / independent / final-check；若收尾阶段暴露新返工，按历史 209 以**独立收尾提交**据实更正，不改本提交的 message）。
+五、本轮返工真值 = 返工 1 处（**范围 = 装置链前四步（① 执行器 → ② 分析器 → ③ 回归面 → ③b 自测条数 → ④ 装置证据）＋ 收尾四步（⑤ 收尾 → ⑥ 主提交核对 → ⑦ 回填 → ⑧ 一致性核对）＋ 独立复核**；
+**范围不含**只读 aux 探针自身的判据修正，后者逐条见 §六 且按历轮口径不计入）：装置链前四步逐步骤一次通过（无脚本崩溃、无锚点 0 命中、无计数不符）：
+analyze 27/0、regression rc 变化 0、regression --selftest 26/0、selftest-counts 更正 0 处、device-report 三判据齐备；⑥⑦⑧ 三步读数见对应证据文件（postwrite-check 逐列差异 = 无 / independent 40/0 / final-check 19/0）。
+**唯一返工 = 第 ⑧ 步之后暴露的「飞书留痕行固定提交计数失真」**：该行原写「收尾链五枚提交」，而本轮实际收尾链为 **3 枚**（加主提交 1 枚 = 4 枚）——写下时它是对收尾链枚数的**预估**，实际不同即成为**假自述**，属历史 **217-③**（固定计数会随收尾提交数变化）的复发形态（历史 12/95）。
+修法按 217-③ 做**结构性消除**（把该计数**去化**，改写成「收尾链各步提交均已完成」这类不含固定计数的等义表述），并以**独立小提交**据实更正（历史 209：不 amend 已发布提交、不虚构修正史）；
+随后按同一纪律用 `closeout.py --rewrite` 把返工真值由 0 **对称同步**到「台账描述列 / 状态文件本节 / history 行」三处（保留已回填的 c7 = 主提交短号）。
 A24 相位与判据结果自洽（绿相位 ⇒ 已判 FAIL 条数 == 0）；A23 在途改动中 mtime 落在本轮窗口内的条数 = **0**。
 
 六、本轮主动核对（只读；主探针为**轮次无关**的常驻工具 `$TEMP/aap-aux/ledger-audit.py <轮次> <上一轮>` —— 该脚本**不含任何轮次字面量**，
@@ -91,26 +93,15 @@ pom.xml 的 exec-maven-plugin 同样 HEAD **0** / 工作区 **1**；SecurityConf
 
 四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
-  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 12 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 17 == `git status` 条目 17
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 1 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 6 == `git status` 条目 6
       M README.md  mtime=2026-09-24 07:51:14
       M aap-server/pom.xml  mtime=2026-09-24 08:07:37
       M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
       M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
       ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
-      （本轮产物）?? .agents/state/evidence/audit-regression-R609-faildiff.txt  mtime=2026-09-29 09:06:55
-      （本轮产物）?? .agents/state/evidence/audit-regression-R609-failraw.txt  mtime=2026-09-29 09:06:55
-      （本轮产物）?? .agents/state/evidence/audit-regression-R609-rcseq.txt  mtime=2026-09-29 09:06:55
-      （本轮产物）?? .agents/state/evidence/audit-regression-R609.txt  mtime=2026-09-29 09:06:55
-      （本轮产物）?? .agents/state/evidence/device-selftest-counts-R609.txt  mtime=2026-09-29 09:07:01
-      （本轮产物）?? .agents/state/evidence/green-verify-R609-coverage-fields.txt  mtime=2026-09-29 09:02:08
-      （本轮产物）?? .agents/state/evidence/green-verify-R609-full-run1.txt  mtime=2026-09-29 09:02:08
-      （本轮产物）?? .agents/state/evidence/green-verify-R609-full-run2.txt  mtime=2026-09-29 09:02:08
-      （本轮产物）?? .agents/state/evidence/green-verify-R609-testcount.txt  mtime=2026-09-29 09:02:08
-      （本轮产物）?? .agents/state/evidence/green-verify-R609-tested-state.txt  mtime=2026-09-29 09:02:08
-      （本轮产物）?? .agents/state/evidence/regression-selftest-R609.txt  mtime=2026-09-29 09:06:57
-      （本轮产物）?? .agents/state/evidence/round-R609-analysis.txt  mtime=2026-09-29 09:02:08
+      （本轮产物）M .agents/state/evidence/final-check-R609.txt  mtime=2026-09-29 09:09:39
       其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
-  ③ 本轮提交（d686418b..HEAD）改动文件 = 0 个，其中位于交付面前缀的 = 0 个（**须 0**）
+  ③ 本轮提交（d686418b..HEAD）改动文件 = 20 个，其中位于交付面前缀的 = 0 个（**须 0**）
 
 五、下一族
   **无**（清单 117/117、missing=0）—— 本轮完成端点 0 条 / 新增用例 0 条、无红基线。

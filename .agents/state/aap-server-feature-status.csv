@@ -4837,7 +4837,7 @@ pom.xml 的 exec-maven-plugin 同样 HEAD **0** / 工作区 **1**；SecurityConf
 ③ 技能参考本轮**无新坑可归仓**（候选逐条核对均被既有条目覆盖：解析器正向对照 = 46/75/98；扫描根集合必须显式枚举 = 213；辅助脚本按设计不在 driver = 213-③ / 216；证据自述与事实不符 = 12/95/218；跨运行时判可达性 = 240/251）。
 ④ 待办 ㊲ 复核（只读，**未改动**）：`spotcheck-success-shape-selftest` 的 T16 正向对照仍写死「90/90 ∧ 90 operation」（真实仓库现为 **117**）⇒ 该自测常驻 rc=1；其所测脚本本体在 `$TEMP`（manifest 引用绝对路径），仓库归档副本与之已分叉（归仓异常 2 条之一）⇒ **修它会同时触碰待办 ㊱（归仓授权）**，属**需人拍板**，本轮维持现状未动。
 ⑤ 本轮**无交付面可推进项**：清单已 100% 注册，剩余方向（上游执行器 T-M4-08~11 的实际写入、端到端联调）均属待拍板/需授权项 ⇒ 维持校验轮口径，未改任何交付代码。",,evidence/audit-regression-R608-faildiff.txt；evidence/audit-regression-R608-failraw.txt；evidence/audit-regression-R608-rcseq.txt；evidence/audit-regression-R608.txt；evidence/device-round-R608.txt；evidence/device-selftest-counts-R608.txt；evidence/final-check-R608.txt；evidence/green-verify-R608-coverage-fields.txt；evidence/green-verify-R608-full-run1.txt；evidence/green-verify-R608-full-run2.txt；evidence/green-verify-R608-testcount.txt；evidence/green-verify-R608-tested-state.txt；evidence/independent-R608.txt；evidence/postwrite-check-R608.txt；evidence/regression-selftest-R608.txt；evidence/round-R608-analysis.txt；evidence/coverage-history.txt（追加 R608 行）,591b9f6a
-R609,,,,"R609 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交））） · 清单 **117/117**（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 d686418b**）连续第 **47** 轮全绿 · 两轮 **316 例 / 51 类** rc=0/0（串行 08:57:18→09:02:01，逐类 diff=0） · 回归面 **84 条** rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167，新增 0 / 消失 0） · 分析器 PASS 27 / FAIL 0 · registered_routes=134 · 本轮返工 **0 处**（装置侧） · 证据 17 条 · 一、性质与覆盖：本轮为**校验轮**（missing == 0 ⇒ 按作业第 4 步「不改代码，只校验并报告」；被测提交 = 窗口起点 HEAD = 终点 HEAD = d686418b，
+R609,,,,"R609 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交））） · 清单 **117/117**（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 d686418b**）连续第 **47** 轮全绿 · 两轮 **316 例 / 51 类** rc=0/0（串行 08:57:18→09:02:01，逐类 diff=0） · 回归面 **84 条** rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167，新增 0 / 消失 0） · 分析器 PASS 27 / FAIL 0 · registered_routes=134 · 本轮返工 **1 处**（装置侧） · 证据 17 条 · 一、性质与覆盖：本轮为**校验轮**（missing == 0 ⇒ 按作业第 4 步「不改代码，只校验并报告」；被测提交 = 窗口起点 HEAD = 终点 HEAD = d686418b，
 故 `git rev-list d686418b..HEAD -- aap-server docs aap-client` = **0 枚**、`-- tools/` 亦为 **0 枚**）。
 本轮**装置面与交付面均零改动**（`git status --porcelain -- tools/` 空 0 条；被测提交..HEAD 无触及 tools/ 的提交）。
 覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；按族 15 族全齐：
@@ -4865,10 +4865,12 @@ closeout 台账 / history / 状态三处各 1 条；postwrite、final-check（F0
 A6 maven 耗时解析器两形态各 1 条合成对照（本轮实际形态 run1/run2 均为 `mm:ss min`，与 R601–R608 同形，故按历史 176 只能记「本轮未复现 `<1 分钟` 写法」）；
 A22 上一轮 history 行恰好 1 条且相位 = 绿相位；A25 相位命名守卫（本轮前缀 = green-verify）通过。
 
-五、本轮返工真值 = 返工 0 处（**范围 = 装置链前四步（① 执行器 → ② 分析器 → ③ 回归面 → ③b 自测条数 → ④ 装置证据）＋ 收尾四步（⑤ 收尾 → ⑥ 主提交核对 → ⑦ 回填 → ⑧ 一致性核对）＋ 独立复核**；
-**范围不含**只读 aux 探针自身的判据修正，后者逐条见 §六 且按历轮口径不计入）：前四步逐步骤一次通过（无脚本崩溃、无锚点 0 命中、无计数不符）：
-analyze 27/0、regression rc 变化 0、regression --selftest 26/0、selftest-counts 更正 0 处、device-report 三判据齐备；
-收尾四步与独立复核的逐条读数见对应证据文件（postwrite-check / independent / final-check；若收尾阶段暴露新返工，按历史 209 以**独立收尾提交**据实更正，不改本提交的 message）。
+五、本轮返工真值 = 返工 1 处（**范围 = 装置链前四步（① 执行器 → ② 分析器 → ③ 回归面 → ③b 自测条数 → ④ 装置证据）＋ 收尾四步（⑤ 收尾 → ⑥ 主提交核对 → ⑦ 回填 → ⑧ 一致性核对）＋ 独立复核**；
+**范围不含**只读 aux 探针自身的判据修正，后者逐条见 §六 且按历轮口径不计入）：装置链前四步逐步骤一次通过（无脚本崩溃、无锚点 0 命中、无计数不符）：
+analyze 27/0、regression rc 变化 0、regression --selftest 26/0、selftest-counts 更正 0 处、device-report 三判据齐备；⑥⑦⑧ 三步读数见对应证据文件（postwrite-check 逐列差异 = 无 / independent 40/0 / final-check 19/0）。
+**唯一返工 = 第 ⑧ 步之后暴露的「飞书留痕行固定提交计数失真」**：该行原写「收尾链五枚提交」，而本轮实际收尾链为 **3 枚**（加主提交 1 枚 = 4 枚）——写下时它是对收尾链枚数的**预估**，实际不同即成为**假自述**，属历史 **217-③**（固定计数会随收尾提交数变化）的复发形态（历史 12/95）。
+修法按 217-③ 做**结构性消除**（把该计数**去化**，改写成「收尾链各步提交均已完成」这类不含固定计数的等义表述），并以**独立小提交**据实更正（历史 209：不 amend 已发布提交、不虚构修正史）；
+随后按同一纪律用 `closeout.py --rewrite` 把返工真值由 0 **对称同步**到「台账描述列 / 状态文件本节 / history 行」三处（保留已回填的 c7 = 主提交短号）。
 A24 相位与判据结果自洽（绿相位 ⇒ 已判 FAIL 条数 == 0）；A23 在途改动中 mtime 落在本轮窗口内的条数 = **0**。
 
 六、本轮主动核对（只读；主探针为**轮次无关**的常驻工具 `$TEMP/aap-aux/ledger-audit.py <轮次> <上一轮>` —— 该脚本**不含任何轮次字面量**，
