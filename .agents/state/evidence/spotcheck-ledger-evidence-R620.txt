@@ -1,0 +1,36 @@
+==============================================================================
+只读抽查 R620：台账「证据」列 ⇔ 文件系统／git 树事实（存在性／跟踪性／HEAD 树／名字自证／重复）
+扫描域 = aap-server-feature-status.csv（列：任务号，接口ID，方法，路径，依据，状态，证据，提交）＋ 工作树 ＋ 索引 ＋ 树对象（HEAD / HEAD~1）
+------------------------------------------------------------------------------
+[PASS] A0a 台账轮次行解析到 = 592 条（须 > 0）
+[PASS] A0b 「证据」列 token 解析到 = 8339 条（须 > 0）
+[PASS] A0c 可归一为仓库相对路径 = 8339 条（须 > 0）；不可归一 = 0 条
+[PASS] A0d 三个裁判集非空：磁盘 9875 / 索引 9841 / HEAD 树 9841（须均 > 0）
+[PASS] A1 「证据」列引用在磁盘上取得到：违规 = 0 处；已解析 8339 / 8339（唯一路径 8080）
+[PASS] A2 引用均在索引内（git ls-files）：违规 = 0 处
+[PASS] A3 引用均在 HEAD 树内：违规 = 0 处
+[PASS] A4 引用文件名里的轮次号 == **本行**轮次号：违规 = 0 处 / 可比对 8077（无轮次号者不参与）
+[PASS] A5 同一行内重复引用同一路径：重复组 = 0 组
+[PASS] A6 反向读数（**信息项**，不判 FAIL）：已跟踪证据文件 9841 个，其中 0 引用的 = 1761 个（17.9%）
+      形态分解（前 12）= review-? 394／requests-? 325／green-? 244／? 138／red-? 117／gap-? 80／verify-? 77／postwrite-? 69／audit-? 43／measure-? 39／cmp-? 36／textleaf-? 29
+      口径：台账「证据」列是**逐轮结论**的取证清单，而非证据目录的完整索引 ⇒ 未引用 ≠ 缺失；该读数用于与历史登记项（待办 20/53）对账，非本轮缺陷。
+[PASS] A7 磁盘存在但未被跟踪 = 34 个（**相位态**：本轮新证据在提交前必然未跟踪）
+      · .agents/state/evidence/audit-regression-R620-faildiff.txt
+      · .agents/state/evidence/audit-regression-R620-failraw.txt
+      · .agents/state/evidence/audit-regression-R620-rcseq.txt
+      · .agents/state/evidence/audit-regression-R620.txt
+      · .agents/state/evidence/build-h5-序号9.log
+      · .agents/state/evidence/build-mp-序号9.log
+      · .agents/state/evidence/dev-8086.log
+      · .agents/state/evidence/device-selftest-counts-R620.txt
+------------------------------------------------------------------------------
+[PASS] A11a 注入「磁盘不存在的路径」(R800)：A1 违规 0 → 1（须恰好 +1 且点名 R800）
+[PASS] A11b 注入「存在但未跟踪的路径」(R801→.agents/state/evidence/audit-regression-R620-faildiff.txt)：A2 违规 0 → 1（须恰好 +1 且点名 R801；A1 不变）
+[PASS] A11c 注入「文件名指向别的轮次」(R900 引 .agents/state/evidence/audit-auth-contract-R30.txt)：A4 违规 0 → 1（须恰好 +1 且点名 R900；A1/A2/A3 不变）
+[PASS] A11d 对偶树（把树判定的下界换成**上一轮被测提交** b99486c3 的树）：A3 违规 0 → 17（须 > 0 —— 证明否定分支有牙齿；HEAD 与其证据文件数 9841 / 9824 ⇒ 注入态**语义真的变了**，历史 176-② 的对偶判据）
+------------------------------------------------------------------------------
+[PASS] W1 第三方裁判：CSV 表头第 7 列名 = '证据'（须为「证据」）；证据目录磁盘文件 = 9875 个（须 > 0）
+[PASS] Z0 只读守卫：运行前后 git status 逐行相同 = True（18 行；写入窗口 = 本证据文件自身，在守卫之后落盘，历史 222）
+==============================================================================
+判据：PASS 17 / FAIL 0
+PROBE_END=1
