@@ -1,0 +1,53 @@
+R643 环境面 delta 复核（只读探针；零凭据、零进程操作、不碰他人实例）
+==============================================================================
+数据源：$TEMP/aap-round-verify/R643/probe-R643.raw（本轮）
+       $TEMP/aap-round-verify/R642/probe-R642.raw（上一轮，仅用于 delta 比对）
+本轮测试窗口（facts-R643.log）：2026-09-29 23:13:16 → 2026-09-29 23:19:10
+------------------------------------------------------------------------------
+[PASS] A0a 两侧 raw 均带结束标记 PROBE_END=1（区分「完整结论」与「半截输出」）cur=True prev=True
+[PASS] A0b 两侧 raw 行数 > 50（正向对照）cur=98 prev=88
+[PASS] A1a 本项目两端口（8084/8086）均解析到监听 PID（正向对照）=[('8084', '58236'), ('8086', '46624')]
+[PASS] A1b 两实例 PID 与上一轮完全相同 = True（PID 复用 + uptime 连续共同判「未重启」）
+[PASS] A1c 两轮各解析到 2 个 uptime 读数（正向对照）cur=2 prev=2
+[PASS] A2a 两实例均有 uptime 跨轮增量（正向对照）={'46624': 1398.2, '58236': 1398.2}
+[PASS] A2b 未重启判据：|Δuptime − Δprobe| ≤ 90 s（容差覆盖探针内 jcmd 读数的偏移）Δprobe=1392 s Δuptime={'46624': 1398.2, '58236': 1398.2}
+[PASS] A2c 两实例 uptime 严格递增（重启会使 uptime 归零/骤降）= True
+[PASS] A0c-health-8084 探针条目解析到 = health-8084（正向对照）
+[PASS] A0c-health-8086 探针条目解析到 = health-8086（正向对照）
+[PASS] A0c-neg-nosuchpath 探针条目解析到 = neg-nosuchpath（正向对照）
+[PASS] A0c-neg-unlistened 探针条目解析到 = neg-unlistened（正向对照）
+[PASS] A0c-adminhome 探针条目解析到 = adminhome（正向对照）
+[PASS] A0c-adminproxy 探针条目解析到 = adminproxy（正向对照）
+[PASS] A0c-clienthome 探针条目解析到 = clienthome（正向对照）
+[PASS] A0c-clientproxy 探针条目解析到 = clientproxy（正向对照）
+[PASS] A0c-direct8084 探针条目解析到 = direct8084（正向对照）
+[PASS] A3a 两实例健康端点 200 且包体带 groups（本项目实例判据）= 8084:200 8086:200 body={"groups":["liveness","readiness"],"status":"UP"}
+[PASS] A4a 负向对照：不存在路径 → 401 E-1902（与真实路径同答 ⇒ 路由探测不可判实例新鲜度）= 401 / {"code":"E-1902","message":"未认证或登录已过期","data":null,"traceId"
+[PASS] A4b 负向对照：未监听端口 5199 → curl exit 7 且显式写 <no-response>（body 截断修复仍生效，历史 126）= exit=7 body=<no-response curl_exit=7>
+[PASS] A5a 8080 判为非本项目（401 + Spring 默认错误体、无 groups）= 401 / {"timestamp":"2026-09-29T15:27:04.076Z","status":401,"error":"Unauthorized","pat
+[PASS] A5b 8083 判为非本项目（裸 {status:UP}、无 groups）= 200 / {"status":"UP"}
+[PASS] A6a 管理端 dev 首页 200 + 标题 = '<title>AAP 管理端</title>'（不是代理错误页）
+[PASS] A6b 客户端 dev 首页 200 + 含 vite 客户端脚本（uni H5 首屏）= 200
+[PASS] A6c 管理端 /api 代理段 400 + 小写 x-trace-id（代理侧改写）= 400 HTTP/1.1 400 Bad Request x-trace-id: 3507c4f88edb47f8a16ef76
+[PASS] A6d 客户端 /api 代理段 400 + 小写 x-trace-id = 400 HTTP/1.1 400 Bad Request x-trace-id: dd762d08960c40279999db6
+[PASS] A6e 直连后端 400 + 大写 X-Trace-Id ⇒ 大小写差异证明前两者确实穿了前端代理 = 400 HTTP/1.1 400  X-Trace-Id: 603d2d73ccaf4627b788dc1b163d3f67
+[PASS] A6f 三个 POST 段均回同一业务码 E-1001（参数校验失败）= 代理未改写业务包体
+[PASS] A7a 磁盘控制器类 = 31 个、两实例 MISSING 均解析到（正向对照）
+[PASS] A7b 两实例「磁盘有 / 已加载无」集合与上一轮逐条相同 = True
+[PASS] A7c 两实例 EXTRA_IN_LOADED 均为空（已加载的控制器都是磁盘上有的）= {'46624': [], '58236': []}
+[PASS] A8a 主工作区 target/classes 的 .class 数（正向对照）cur=460 prev=456
+[PASS] A8b 最新 .class mtime 与上一轮读数不同 ⇒ 期间确实发生过重编译（判据有牙齿：若未重编译则该值必然相同）cur=2026-09-29 23:15:54 prev=2026-09-29 22:57:15
+[PASS] A8c 该重编译时刻 2026-09-29 23:15:54 落在本轮窗口内 = True（窗口 2026-09-29 23:13:16→2026-09-29 23:19:10）；尚未能取证发起进程，故不主张他方命令
+[PASS] A9a 本巡轮回合命令表（manifest.json，84 条）中 mvn|maven|compile|javac 命中数 = 0（须 0；归因机器证据）
+[PASS] A9b 两轮全量跑在 HEAD 的独立 worktree 内（C:/Users/laitz/AppData/Local/Temp/aap-round-wt-R643-231314，WT_DIRTY_LINES=0）⇒ 主工作区 target/classes 非本轮动作
+[PASS] A10a main 源提交面解析到 2 个时点（正向对照）=[('2026-09-24 22:06:51', '12'), ('2026-09-25 05:39:48', '11')]
+[PASS] A10b 自启动以来未生效的 main 源提交数两轮相同（12 / 11）= True
+[PASS] A11a 探针全程零凭据（无 Authorization / Cookie / -u）
+[PASS] A11b 探针零进程操作（无 taskkill；只登记他人实例）
+------------------------------------------------------------------------------
+上限陈述：可说的是「本项目 dev 面可达（两后端 health = UP）+ 两个前端代理段仍复现打通 + 两实例未重启且
+各缺 3 / 2 个控制器类 + 主工作区 target/classes 在本轮窗口内被**外部**重编译」。
+不得推出「三端联调通过」：业务链路需凭据驱动，本轮按只读边界未驱动。
+==============================================================================
+判据：PASS 40 / FAIL 0
+DELTA_END=1
