@@ -11,7 +11,7 @@ R640 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
   轮次无关性守卫：装置脚本（13 个 .py/.sh）内当前轮次号命中 = **0**（须 0
     = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
 
-二、本轮返工真值 = **0 处**（零交付面影响；条目文本来自单一事实源 `note-R640.md`，与台账描述列 / 状态文件小节共用）
+二、本轮返工真值 = **1 处**（零交付面影响；条目文本来自单一事实源 `note-R640.md`，与台账描述列 / 状态文件小节共用）
 ------------------------------------------------------------------------------
 一、性质与范围：本轮 = **绿相位巡检轮（纯校验，零代码改动）**。`missing == 0` ∧ 两轮 `rc=0/0` ⇒ 交付面零改动；
 连续全绿计数由第 5 轮 → **第 6 轮**（`analyze` A22/相位自洽判定：上一轮为绿相位 ⇒ 计数 +1）。
@@ -69,10 +69,20 @@ reason phrase「Bad Request」，直连行为空）⇒ 管理端 dev 与后端�
 **(d)** 上轮清单各项（`J5c/J5d` 预跑相位、`coverage-report.json` 长 M、远端口径、tier3/4 归仓、`selftest-counts` 是否入回归面、
 `ADM-CFG01~05` 一词两义、18 条端点无台账行、红相位记账口径等）**全部沿用**。
 
-八、本轮返工真值口径：装置侧返工 0 处（零交付面影响）——
-`run-round` → `analyze`（27 PASS / 0 FAIL）→ 回归面（rc 变化 0 / faildiff 新增与消失均 0）→ `regression --selftest`（26/0）→
-`selftest-counts`（更正 0）**五步一次通过、零重跑、零闸门失败**；本轮无交付面改动（`missing == 0`）⇒ 不存在「交付闭环 / 交付修复」计数。
-要点文本本处一律写**纯文本**计数形态（不加粗、不在关键词与数字之间插入任何标记），以匹配机器判据的裸子串锚定（历史 202/204/250）。
+八、本轮返工真值口径：装置侧返工 1 处（零交付面影响）——
+**(1) 收尾阶段暴露的证据登记缺口（纯数字盲区）**：⑤ 收尾时磁盘上已有 14 条本轮证据，`--extra` 只登记了
+`postwrite-check-R640.txt` / `independent-R640.txt` 两条 ⇒ 证据列 16 条；而装置第 ⑧ 步还会产出
+`final-check-R640.txt`（本轮磁盘实际 17 条，比 R637–R639 各轮的 16 条多 1 条：本轮新增 `three-end-probe-R640.txt` 取证文件），
+该条**未被登记** ⇒ 台账行证据列**少 1 条**，与「证据列 = 本轮磁盘文件清单」的既有同口径形态（R637/R638/R639 三处实测
+on-disk 16 = listed 16）不一致。属**纯数字盲区**族（历史 201/206/217-③：计数靠人列举必然漏项）。
+修法：按装置 README 的**收尾更正相位**执行（⑦ 回填 c7 已完成在前）`closeout.py R640 --rewrite`，让证据列由
+**磁盘实际文件清单**重新推出（17 条 + coverage-history）；**不改写已发布的主提交**（历史 209：不 amend 已发布提交），
+另以**独立收尾提交**据实更正，并同步「台账行 / 状态文件 / 收尾提交 message」三处。
+装置链本体（`run-round` → `analyze` 27 PASS / 0 FAIL → 回归面 rc 变化 0 / faildiff 新增与消失均 0 →
+`regression --selftest` 26/0 → `selftest-counts` 更正 0）**五步一次通过、零重跑、零闸门失败**；
+本轮无交付面改动（`missing == 0`）⇒ 不存在「交付闭环 / 交付修复」计数。
+本轮返工 1 处（装置侧，即上文 (1)）；计数形态本处一律写**纯文本**（不加粗、关键词与数字之间不插标记），
+以匹配机器判据的裸子串锚定（历史 202/204/250）。
 ------------------------------------------------------------------------------
 
 三、本轮关键读数（读自 analyze / regression 证据，零手写值）
@@ -84,28 +94,20 @@ reason phrase「Bad Request」，直连行为空）⇒ 管理端 dev 与后端�
 
 四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
-  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 6 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 13 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 19 == `git status` 条目 19
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 6 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 1 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 7 == `git status` 条目 7
       M .agents/state/evidence/coverage-report.json  mtime=2026-09-29 18:48:15
       M README.md  mtime=2026-09-24 07:51:14
       M aap-server/pom.xml  mtime=2026-09-24 08:07:37
       M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
       M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
       ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
-      （本轮产物）?? .agents/state/evidence/audit-regression-R640-faildiff.txt  mtime=2026-09-29 22:03:52
-      （本轮产物）?? .agents/state/evidence/audit-regression-R640-failraw.txt  mtime=2026-09-29 22:03:52
-      （本轮产物）?? .agents/state/evidence/audit-regression-R640-rcseq.txt  mtime=2026-09-29 22:03:52
-      （本轮产物）?? .agents/state/evidence/audit-regression-R640.txt  mtime=2026-09-29 22:03:52
-      （本轮产物）?? .agents/state/evidence/device-selftest-counts-R640.txt  mtime=2026-09-29 22:04:04
-      （本轮产物）?? .agents/state/evidence/green-verify-R640-coverage-fields.txt  mtime=2026-09-29 21:57:26
-      （本轮产物）?? .agents/state/evidence/green-verify-R640-full-run1.txt  mtime=2026-09-29 21:57:26
-      （本轮产物）?? .agents/state/evidence/green-verify-R640-full-run2.txt  mtime=2026-09-29 21:57:26
-      （本轮产物）?? .agents/state/evidence/green-verify-R640-testcount.txt  mtime=2026-09-29 21:57:26
-      （本轮产物）?? .agents/state/evidence/green-verify-R640-tested-state.txt  mtime=2026-09-29 21:57:26
-      （本轮产物）?? .agents/state/evidence/regression-selftest-R640.txt  mtime=2026-09-29 22:03:55
-      （本轮产物）?? .agents/state/evidence/round-R640-analysis.txt  mtime=2026-09-29 21:57:26
-      （本轮产物）?? .agents/state/evidence/three-end-probe-R640.txt  mtime=2026-09-29 22:05:18
+      （本轮产物）M .agents/state/evidence/final-check-R640.txt  mtime=2026-09-29 22:09:54
       其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
-  ③ 提交区间（795fd148..HEAD）改动文件 = 0 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 0 枚 = 他方 0 枚 + 本轮 0 枚
+  ③ 提交区间（795fd148..HEAD）改动文件 = 20 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 4 枚 = 他方 0 枚 + 本轮 4 枚
+      [本轮] fc3fc288 chore(state): R640 收尾更正留痕（**收尾阶段才暴露**的登记缺口据实更正：证据列 16 → 17 条、返工真  文件 3 个 / 交付面命中 0 个
+      [本轮] fb71e069 chore(aap-server): R640 final-check 一致性核对留痕（F0-F18 + F14b：20 PAS  文件 1 个 / 交付面命中 0 个
+      [本轮] 98768714 chore(state): R640 收尾链留痕（postwrite 落地核对 PASS + 独立复核 43 PASS / 0   文件 3 个 / 交付面命中 0 个
+      [本轮] 791da0fb chore(aap-server): R640 巡检轮（清单 117/117 全注册；绿相位全量 327 例两轮全绿 = 连续第  文件 17 个 / 交付面命中 0 个
       ⇒ **本轮自己的提交**触及交付面前缀的 = 0 个（**须 0**）；他方提交的交付面改动不计入本轮（历史 81/193/198：他方在途不得算作本轮改动）
 
 五、下一族
