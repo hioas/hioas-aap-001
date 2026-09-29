@@ -1,0 +1,18 @@
+R631 校验轮（两轮 rc=0 ∧ missing==0 ⇒ 交付面零改动）；全部读数由 tools/round-verify/analyze.py 从 facts / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 705931d9
+被测提交全 SHA = 705931d920cd754bfdeba31a1c4ff2e936a1cc22
+被测提交主题 = chore(state): R630 飞书通知留痕（运行时重复投递抑制，非发送失败）
+run1 = 17:59:10 -> 18:01:35 rc=0 / run2 = 18:01:36 -> 18:03:48 rc=0（串行：run1_end <= run2_start = True，按绝对时刻解算）
+窗口 = 17:58:51 -> 18:03:53（1790675931 -> 1790676233，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = 705931d9 / 终点 = 705931d9；窗口内他方推进提交数 = 0
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 6 条
+    M .agents/state/evidence/coverage-report.json
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+   ?? aap-server/src/main/webapp/
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0 （无）
+环境指纹：bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）
