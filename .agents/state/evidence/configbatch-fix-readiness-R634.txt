@@ -1,0 +1,130 @@
+== R634 主动取证：ConfigBatch 500 的「修法就绪度」（只读实验；全程在 $TEMP 的独立 detached worktree 内，主工作区零改动） ==
+实验对象 = 94fb977b（worktree 与 HEAD 差异 0 行） ｜ 实验窗口 19:22:31 → 19:25:56 ｜ 全部**串行**、单类运行（mvn -Dtest=ConfigBatchAdminContractTest）
+
+== 一、修前红基线（worktree = HEAD 原样） ==
+  rc=1（19:22:47 → 19:23:32）｜ 合计 = Tests run: 6, Failures: 1, Errors: 0, Skipped: 0 ｜ 失败 = ConfigBatchAdminContractTest.createBatch
+  根因 = java.lang.ClassCastException: class java.lang.String cannot be cast to class java.lang.Number（HTTP 层 = 500 `E-2001`）
+[PASS] 一0 修前合计行解析到（正向对照，历史 46/228） run=(6,1,0,0)
+[PASS] 一1 修前红例 = createBatch（与 R633 两轮全量读到的红例同一个） createBatch
+[PASS] 一2 修前根因 = 类型强转失败（实验全程单进程串行 ⇒ 非并发污染） ClassCastException
+
+== 二、隔离实验：**只修类型**（= R633 登记的候选修法①）—— 实测**仍红** ==
+  变体 A = 调用点改 `Long.parseLong(batch.id())`（与候选①「longOf 容忍字符串」等价：类型侧已修好，测试前提不动）
+  rc=1（19:25:00 → 19:25:28）｜ 合计 = Tests run: 6, Failures: 1 ｜ 失败点已**换了位置**：
+  `[响应与库同源] expected: "PENDING" / but was: "PARTIAL"`（ConfigBatchAdminContractTest.java:245）
+  机理（由实现推出，与三节的正例互为印证）：他方 T-M4-10/11 的 create 在**同一请求内**同步执行该批 PENDING 明细，
+  执行器收尾 `settle()` 按明细实际状态重算批次终态；测试库（每例 truncateAll）无 `aap_newapi_endpoint` 行 ⇒ 该唯一明细 FAILED ⇒ 批次 **PARTIAL**。
+  于是原断言「响应与库同源 = PENDING」的**前提失效**：响应确是受理时刻快照（PENDING），而库内已被执行器推进。
+[PASS] 二0 变体 A 仍红（⇒ 候选①不足，非实验偶发） (6,1,0,0)
+[PASS] 二1 失败点从「类型强转（500）」移到「响应与库同源（PENDING vs PARTIAL）」 两处不同
+[PASS] 二2 ⇒ 「R633 待拍板 (a)」的**最小修法不成立**（机器证据 = 二0/二1）
+
+== 三、完整修法（**我方两文件**，零触碰他方文件）实测绿 ==
+  补丁 = ① `ConfigBatchReader.longOf` 容忍对外 ID 的字符串形态（统一同包 `ConfigApplyExecutor.longOf` 的口径，历史 44/83）
+       ② `ConfigBatchAdminContractTest.createBatch` 的 APPLY 前提更新（判据**更严**：执行器必须真的跑过 / 不得留 PENDING /
+          失败必须留痕 / 终态计数自洽 / 上游零写入相对发请求前的基线）
+  变体 B（= 变体 A 的类型修 + ②）：rc=0（19:25:28 → 19:25:49）｜ Tests run: 6, Failures: 0 ｜ BUILD SUCCESS
+  变体 ourfix（① + ②，两个独立 worktree 各跑一次）：rc=0/0（19:23:33→19:24:00 / 19:24:00→19:24:16）｜ 各 6 例全绿 ｜ BUILD SUCCESS
+[PASS] 三0 完整修法单类**两轮/两处**全绿 rc=0 / rc=0
+[PASS] 三1 两处运行的被测提交一致（同一 HEAD、worktree 与 HEAD 差异 0 行、单类运行） 94fb977b
+
+== 四、补丁（2 文件 / 35 增 12 删；`git diff` 原文） ==
+diff --git a/aap-server/src/main/java/com/hioas/aap/supply/ConfigBatchReader.java b/aap-server/src/main/java/com/hioas/aap/supply/ConfigBatchReader.java
+index b2a86f63..756adc34 100644
+--- a/aap-server/src/main/java/com/hioas/aap/supply/ConfigBatchReader.java
++++ b/aap-server/src/main/java/com/hioas/aap/supply/ConfigBatchReader.java
+@@ -114,8 +114,19 @@ final class ConfigBatchReader {
+         return value == null ? null : String.valueOf(((Number) value).longValue());
+     }
+ 
++    /**
++     * JDBC 数值列（或**对外 ID 的字符串形态**）→ long。
++     *
++     * <p>为什么容忍字符串：本仓对外 ID 一律 **string**（契约口径，历史 83），调用方把视图 record 的
++     * {@code id()} 直接传进来是合法用法（同包 `ConfigApplyExecutor.longOf` 早就是这个口径 —— 一处严格、
++     * 一处宽容是漂移高发形态，历史 44）。只认 {@code Number} 会让该调用形态在 HTTP 层炸成 500 `E-2001`
++     * （强转失败对契约测试与覆盖门禁**都不可见**，历史 13/24 族），故此处统一口径。
++     */
+     static long longOf(Object value) {
+-        return value == null ? 0L : ((Number) value).longValue();
++        if (value == null) {
++            return 0L;
++        }
++        return value instanceof Number number ? number.longValue() : Long.parseLong(String.valueOf(value).trim());
+     }
+ 
+     static Integer intOrNull(Object value) {
+diff --git a/aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java b/aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java
+index 10d53c76..efa1baca 100644
+--- a/aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java
++++ b/aap-server/src/test/java/com/hioas/aap/supply/ConfigBatchAdminContractTest.java
+@@ -229,9 +229,13 @@ class ConfigBatchAdminContractTest extends ApiTestBase {
+         assertThat(empty.data().path("items").size()).as("无目标 ⇒ 无明细").isZero();
+         assertThat(empty.data().path("status").asText()).isEqualTo("SUCCEEDED");
+ 
+-        // APPLY：只登记受理（执行器 T-M4-08~11 未落地），状态 PENDING 且明细 PENDING
+-        // APPLY 的上游零写入必须相对**发请求前的基线**读（绝对值会把本方法前半段插入的绑定夹具算成「APPLY 写了上游」；
+-        // 也不能在请求之后再取基线 —— 那是恒真的空转判据，历史 19/81/230）
++        // APPLY：执行器**已落地**（他方 T-M4-10/11）⇒ create 在**同一请求内**同步执行该批 PENDING 明细
++        // （真源 specs/001-intake-automation/apply-path.md §3/§4）。因此响应体是「受理时刻快照」，
++        // 而**库内**状态已被执行器推进到终态 —— 响应与库**不再同源**（原「响应与库同源 = PENDING」的前提
++        // 随执行器落地失效）。本段按新口径改写：不是放宽断言，而是**收紧**（新增「执行器必须真的跑过」
++        // 「不得留 PENDING」「失败留痕」「终态计数自洽」四类机器判据，历史 12/17/22）。
++        // 上游零写入仍必须相对**发请求前的基线**读（绝对值会把前半段插入的绑定夹具算成 APPLY 写了上游；
++        // 请求之后再取基线是恒真空转判据，历史 19/81/230）。
+         long bindingsBeforeApply = jdbc.queryForObject("select count(*) from aap_channel_binding", Long.class);
+         long syncTasksBeforeApply = jdbc.queryForObject("select count(*) from aap_sync_task", Long.class);
+         HttpResult apply = post("/admin/config-batches", """
+@@ -239,16 +243,24 @@ class ConfigBatchAdminContractTest extends ApiTestBase {
+                 """, techOps);
+         assertThat(apply.status()).as(apply.body()).isEqualTo(201);
+         assertThat(apply.data().path("mode").asText()).isEqualTo("APPLY");
+-        assertThat(apply.data().path("status").asText()).isEqualTo("PENDING");
+-        assertThat(apply.data().path("items").get(0).path("status").asText()).isEqualTo("PENDING");
+-        assertThat(jdbc.queryForObject("select status from aap_config_batch where id = ?", String.class,
+-                Long.parseLong(apply.data().path("id").asText()))).as("响应与库同源").isEqualTo("PENDING");
+-        // 上游零写入的判据必须相对**发请求前的基线**（本方法前半段为「标签维度」插过 1 条绑定夹具，
+-        // 绝对 `isZero()` 会把夹具算成「APPLY 写了上游」——判据范围与语义不符，历史 19/81）
++        assertThat(apply.data().path("status").asText()).as("响应 = 受理时刻快照（执行前）").isEqualTo("PENDING");
++        assertThat(apply.data().path("items").get(0).path("status").asText()).as("响应 = 受理时刻快照")
++                .isEqualTo("PENDING");
++        long applyId = Long.parseLong(apply.data().path("id").asText());
++        // 执行器收尾（settle）：测试库无 aap_newapi_endpoint 行 ⇒ 该项 FAILED（不写成功），批次终态 PARTIAL
++        Map<String, Object> settled = jdbc.queryForMap("select status, succeeded_count, failed_count,"
++                + " mismatch_count, finished_at from aap_config_batch where id = ?", applyId);
++        assertThat(settled.get("status")).as("PENDING 明细已被执行器推进 ⇒ 批次收敛为 PARTIAL").isEqualTo("PARTIAL");
++        assertThat(((Number) settled.get("failed_count")).intValue()).as("无可用端点 ⇒ 该项 FAILED").isEqualTo(1);
++        assertThat(settled.get("finished_at")).as("执行器收尾必须写 finished_at").isNotNull();
++        assertThat(jdbc.queryForObject("select status from aap_config_batch_item where batch_id = ?",
++                String.class, applyId)).as("执行器不得把明细留在 PENDING（否则等于没执行）").isEqualTo("FAILED");
++        assertThat(jdbc.queryForObject("select last_error from aap_config_batch_item where batch_id = ?",
++                String.class, applyId)).as("失败原因必须留痕（不得静默）").contains("new-api");
+         assertThat(jdbc.queryForObject("select count(*) from aap_channel_binding", Long.class))
+-                .as("APPLY 尚未执行 ⇒ 不改上游（基线 %d 条）", bindingsBeforeApply).isEqualTo(bindingsBeforeApply);
++                .as("无可用端点 ⇒ APPLY 不改上游（基线 %d 条）", bindingsBeforeApply).isEqualTo(bindingsBeforeApply);
+         assertThat(jdbc.queryForObject("select count(*) from aap_sync_task", Long.class))
+-                .as("APPLY 尚未执行 ⇒ 不排队同步任务（基线 %d 条）", syncTasksBeforeApply).isEqualTo(syncTasksBeforeApply);
++                .as("无可用端点 ⇒ APPLY 不排队同步任务（基线 %d 条）", syncTasksBeforeApply).isEqualTo(syncTasksBeforeApply);
+ 
+         // 请求校验（清单 §2.6 的 `batch_type`/`mode` 是必填；非法值必须 400 而不是落库报 500，踩坑 21/130）
+         assertThat(post("/admin/config-batches", """
+[PASS] 四0 补丁触及的文件 = **我方两文件**（`ConfigBatchReader.java` + `ConfigBatchAdminContractTest.java`），其余 0 个 命中 2 / 其它 0
+[PASS] 四1 他方在编两文件（`AdminConfigBatchController.java` / `ConfigApplyExecutor.java`）在补丁里**零命中** 0 / 0
+
+== 五、纪律与边界 ==
+  · 四处运行（修前红基线 / 变体 A / 变体 B / ourfix 两轮）**全部串行**；每次起跑前检查「无其它 surefire / mvn test JVM」（PREFLIGHT_BUSY=0）；
+  · worktree 以带时间戳唯一名创建、跑完 `git worktree remove --force` 回收（rc=0）；实验期间主工作区 `git status` 无新增改动；
+  · 未重启/关闭/attach 他方任何进程（只读观察，未触碰）；
+  · 本实验**未落地**任何代码改动：补丁只存在于本证据与本轮装置产物目录内。
+
+==============================================================================
+判据：PASS 10 / FAIL 0
+
+结论（由上方读数推出，零手写）：
+  · R633 登记的候选修法①（只修类型转换）**实测不足**：类型修好后红例只是**换了失败点**（响应与库同源 PENDING vs PARTIAL），
+    根因是他方 T-M4-10/11 的执行器已把「APPLY 只登记受理」这一前提推翻（同一请求内同步执行 + settle 收敛终态）。
+  · 完整修法 = ① 我方 helper 口径统一（longOf 容忍对外 ID 字符串形态） + ② 我方测试的 APPLY 前提按新语义**收紧**改写；
+    该修法在独立 worktree 内单类**两轮全绿**（变体 B 的等价路径同为绿）⇒ **具备落地就绪度**（全量两轮未跑，留待落地轮复验）。
+  · 该修法**只触及我方两文件**（ADM-CB01~05 交付物与其契约测试），他方在编文件零改动 ⇒ 不违反多项目共存纪律（历史 15/198）。
+  · 待拍板：授权我方按此补丁落地，或由他方在 T-M4-10/11 收口时一并修（两种口径等价，已机器取证）。
+CONFIGBATCH_FIX_READY_END=1
