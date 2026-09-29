@@ -1,0 +1,51 @@
+轮次 = R632 ｜ 被测提交 = 567531d5 ｜ 窗口 = 18:17:56 → 18:23:23 ｜ 两轮 rc=0/0（读自 facts，零手写）
+
+== 甲、配置层三端对齐（只读解析） ==
+  aap-server 监听端口（application.yml 占位默认）= 8084
+  aap-client dev proxy 目标端口 = 8084（自身 dev server 端口 = 5173）｜ aap-admin dev proxy 目标端口 = 8084
+[PASS] 甲0 四处端口解析均为非空（正向对照，历史 46/75） srv=8084 cli_proxy=8084 cli_dev=5173 adm=8084
+[PASS] 甲1 三端端口一致（前端两端 dev proxy 目标 == 后端监听端口） 8084/8084/8084
+[PASS] 甲2 后端端口实际 LISTENING（活实例存在性） 127.0.0.1:8084 = True
+[PASS] 甲3 端口探测器有牙齿（同一探针对已知在听的后端端口判 True、对未监听端口判 False） 在听端口 8084 ⇒ True ｜ 未监听 59999 ⇒ False
+  读数（非判据）：候选 ['5173', '5174', '5175', '5176', '3000', '4173'] → 在听 [('5174', 200, 'AAP 管理端'), ('5175', 200, 'AAP 管理端')]
+
+== 乙、后端活实例契约面（直连 8084，只读 GET） ==
+  · GET /actuator/health                              → http=200 code=None     message=None traceId=无 ｜ 健康端点（非业务契约面）
+  · GET /api/v1/notifications?page=1&pageSize=1       → http=401 code='E-1902' message='未认证或登录已过期' traceId=有 ｜ 受保护业务端点（无令牌）
+  · GET /api/v1/admin/users?page=1&pageSize=1         → http=401 code='E-1902' message='未认证或登录已过期' traceId=有 ｜ 管理端受保护端点（无令牌）
+  · GET /api/v1/__no_such_route__r632                 → http=401 code='E-1902' message='未认证或登录已过期' traceId=有 ｜ 未注册路由（实测语义见下方备注）
+[PASS] 乙0 直连探针真的拿到 HTTP 响应（正向对照，> 0） 解析到 4 / 4 条
+[PASS] 乙1 actuator 健康 = 200 [200]
+[PASS] 乙2 受保护业务端点无令牌被拒（401）——真实 HTTP 上的鉴权边界 [('/api/v1/notifications', 401), ('/api/v1/admin/users', 401)]
+[PASS] 乙3 业务包络字段齐备（code/message 非空、traceId 存在） [('E-1902', 'traceId=有'), ('E-1902', 'traceId=有')]
+  备注（v1 据实修正）：`/api/v1` 下**未注册路由**在无令牌时返回 **401**（实测 [401]）⇒ 鉴权过滤器先于路由；
+         「404 E-1406」只在**已认证**请求下才可见 —— 本轮无令牌（不得索取凭据），故该分支未验。
+
+== 丁、前端 dev server → /api 代理 → 后端（真·链路实测，只读 GET） ==
+  · :5174 ［AAP 管理端］ 页面 http=200 ｜ 经代理 GET /api/v1/notifications → http=401 code='E-1902' traceId=有 ⇒ 链路通
+  · :5175 ［AAP 管理端］ 页面 http=200 ｜ 经代理 GET /api/v1/notifications → http=401 code='E-1902' traceId=有 ⇒ 链路通
+[PASS] 丁0 至少有一个前端 dev server 可探（正向对照） 候选在听数 = 2
+[PASS] 丁1 前端页面 200 ∧ 其 /api 代理拿到后端业务包络（E-1902 + traceId）——前端↔后端链路真通 [('5174', 'http=200/401', 'E-1902'), ('5175', 'http=200/401', 'E-1902')]
+
+== 丙、三端测试面盘点（只读） ==
+  aap-server：53 个 *Test.java（HEAD worktree 内两轮全量 327 例 / 53 类，见 green-verify-R632-*）
+  aap-admin ：5 个测试文件（vitest：contract-rbac.spec.ts, detection.spec.ts, http.spec.ts, providers.spec.ts, sync.spec.ts）
+  aap-client：85 个测试文件（unit 46 / pages 32 / components 1 / fixtures 5）；另有 e2e 脚本 mp-e2e-full.mjs, mp-e2e.mjs
+  playwright/cypress 配置 = 无（前端两端测试均不驱动真实后端实例：vitest 单测/组件测）
+[PASS] 丙0 三端测试面盘点非空（正向对照） 后端 53 / admin 5 / client 85
+[PASS] 丙1 前端测试面不驱动真实后端（playwright/cypress 配置缺省 ⇒ 无跨端 e2e 装置） playwright/cypress 配置 = 无 ｜ 判据牙齿对照（同机制命中已知配置）= ['aap-client\\vitest.config.ts']
+
+==============================================================================
+判据：PASS 12 / FAIL 0
+
+按端逐条（结论均由上方读数算出，零手写）：
+  ① 后端 aap-server：端口 8084 在听=True，health=[200]，受保护端点无令牌=[401, 401]（code=['E-1902', 'E-1902']，traceId=有）
+  ② 管理端 aap-admin：命中端口 ['5174', '5175']（标题「AAP 管理端」），页面 http=[200, 200] ｜ /api 代理 → http=[401, 401] code=['E-1902', 'E-1902'] ⇒ **链路真通**
+  ③ 客户端 aap-client：自身 dev server 端口 5173 在听=False（本轮**未**运行）；其 /api 代理目标 = 后端端口 8084（一致）；测试面 85 文件（vitest；本轮未跑）⇒ 「客户端页面 → 后端」链路本轮**无机器证据**
+
+  结论分级：配置层**三端一致**=True ｜ 后端 HTTP 契约面**可用**=True ｜ 管理端↔后端链路**真通**=True ｜ 客户端↔后端链路**未验**=True ｜ 需令牌的业务数据链路**未验**（不得索取凭据）=True
+  ⇒ 不得声称「三端全部联调通过」：管理端一条链路本轮有实 HTTP 证据，客户端端**无**。
+
+  ⚠ 归属声明：:5174/:5175 与 :8084 上的实例、及其工作区在途改动（`SecurityConfig.java`/`application.yml` 未提交，见 analyze A23）**均属他方**；上述读数是「他方常驻实例」的实测，**不作为提交态契约证据**。
+     提交态契约证据仍是两轮全量用例（HEAD 的独立 detached worktree 内跑）。本探针全程只发 GET、未触碰他方进程。
+AUX_END=1
