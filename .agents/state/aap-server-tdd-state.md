@@ -21400,3 +21400,62 @@ rc=0 条数 39/84（与 R634 逐条相同）；FAIL 明细 **43 脚本 167 行**
 - **返工真值**：本轮返工真值 = **0 处**（装置/脚本侧，零交付面影响；逐条见上文要点）。
 - **权威数字**：权威数字 = 返工 0 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
 
+
+### R636 巡检轮（校验轮：missing=0 ⇒ 交付面零改动）
+
+- **性质**：`missing=0` ⇒ **交付面零改动**（未改 `aap-server` / `docs` 任何一行）；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交）；本轮新增写入 = 台账 / 状态 / 证据。
+- **两轮全量（串行）**：被测提交 = c1b3be93（独立 detached worktree 内）；run1 20:24:15→20:26:59、run2 20:26:59→20:29:14；各 **327 例 / 53 类**、rc=0/0、Failures-Errors-Skipped = 0-0-0；`@Test` 词边界计数与 surefire 合计一致；禁用扫描 0 条。
+- **覆盖**：total=117 implemented=117 **missing=0**、registered_routes=134、not_registered=[]；连续第 **2** 轮全绿。
+- **回归面**：复跑 84 条（tag 集合与上一轮 R635 一致）；rc 变化 0 条、新增 0、未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167：新增 0 / 消失 0）；零写副作用（冻结清单生成物 size+md5 全等，变化 0 个）；命令表已由仓库内 `tools/round-verify/manifest.json` 提供，$TEMP 抽查脚本 54 条全部归仓（由 manifest 的 $TEMP 条目数与归仓目录数**双源互证**推出）。
+- **本轮要点（单一事实源 = note-R636.md）**：
+一、性质与范围：本轮 = **绿相位巡检轮（纯校验，零代码改动）**。`missing == 0` ∧ 两轮 `rc=0/0` ⇒ 交付面零改动；
+连续全绿计数由第 1 轮 → **第 2 轮**（`analyze` A22/相位自洽判定：上一轮为绿相位 ⇒ 计数 +1）。
+覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；15 族全齐：
+(空任务号) 18 · T03 6 · T04 5 · T05 7 · T06 6 · T07 4 · T08 11 · T09 6 · T10 5 · T11 11 · T12 4 · T13 3 · T14 22 · T15 3 · T17 6（族和 117 = total，内容级核对）。
+被测提交 = **`c1b3be93`**（= 窗口起点 HEAD = 窗口终点 HEAD，`FACTS_HEAD_ADVANCED_COUNT=0`）。
+
+二、两轮全量（**串行**，HEAD 的独立 detached worktree 内，`WT_DIRTY_LINES=0` ⇒ 跑的是**提交态**）：
+窗口 20:23:56→20:29:20，run1 20:24:15→20:26:59、run2 20:26:59→20:29:14，各 **327 例 / 53 类**、**rc=0/0**、
+Failures-Errors-Skipped = 0-0-0、两轮 `BUILD SUCCESS` 均为真、**逐类 diff = 0**（已剥 `Time elapsed` 再排序，历史 59/79）；
+`@Test` 词边界计数 **327 == surefire 327**（裸子串 329 作对照，差 2 = `@TestConfiguration`/`@TestPropertySource`，历史 35）；
+归档测试源 **59** 个 `.java`；禁用扫描 **0 条**（未削弱测试）。并发前置双向对照 pos=2/2、neg=0/2（CLEAR，`PREFLIGHT_OK=1`）；
+环境指纹 bash=/usr/bin/bash · MINGW64_NT-10.0-26100 · jps 可达 Y（`ENV_JPS_REACHABLE=Y`，历史 238）；worktree add/remove rc 均 0 且已回收。
+maven 自述耗时两轮**同为** `mm:ss min`（161 s / 132 s）⇒ 按历史 176-② **不得**声称双写法修复有效，据实写「本轮**未复现**另一种写法」。
+
+三、回归面（`manifest.json` **84 条**）：**rc 变化 0 / 新增 0 / 未复跑 0**；rc=0 条数 39/84（与 R635 逐条相同）；
+FAIL 明细 **43 脚本 167 行**（跨轮 faildiff **167→167，新增 0 / 消失 0**，两侧解析行数均 > 0 作正向对照）；
+**零写副作用**（冻结清单生成物 size+md5 运行前后全等，变化 **0** 个）；崩溃通道 2 条（`gap-coverage-gap` 与其负向自测，
+理由行集 sha256 与上一轮**逐条相同**，归仓守卫异常属历史沿用观察项 —— 归档与在用脚本分叉）。
+`regression --selftest` **26 PASS / 0 FAIL**；`selftest-counts` 逐工具自述⇔汇总行**一致（更正 0）**且只读守卫为真
+（regression 26 · final-check 28 · independent 66 · backfill-c7 20 · device-report 13 · selftest-counts 15）。
+
+四、主工作区在途改动（**只登记、零触碰**，提交按显式路径 `git add`）：6 条 ——
+M `.agents/state/evidence/coverage-report.json`（审计派生的已跟踪产物，历史 R635 曾同类更新）、M `README.md`、
+M `aap-server/pom.xml`（D-BUILD-02 前端打包 exec-maven-plugin，他方在编）、M `SecurityConfig.java`、M `application.yml`、
+?? `aap-server/src/main/webapp/`。**mtime 全部早于本轮窗口**（A23 = 0）⇒ 两轮跑的确实是提交态、不依赖他人未提交改动（历史 172/193）。
+**并发风险显式说明**：他方在途的 `pom.xml` 新增 `generate-resources` 阶段前端构建（`npm run build` / `build:h5`），
+若在主工作区直接跑 `mvn test` 会被卷入前端打包 ⇒ 本轮沿用**独立 worktree（HEAD 态）**跑测（历史 193），该风险对证据链零影响。
+
+五、装置链：`analyze` **27 PASS / 0 FAIL**（相位 = green，`ANALYZE_WROTE` 5 条证据）；本轮**装置面改动 0 个文件**
+（未申报 `--device-change`，双向核对通过）；`round-verify/README.md` 六条自测条数与本轮回读一致。
+
+六、主动取证（只读，主工作区零触碰）：两轮全量在 `$TEMP` 的独立 detached worktree 内完成（带唯一时间戳名，
+跑完 `git worktree remove --force` 回收 rc=0）；未重启 / 关闭 / attach 他方任何进程或浏览器（多项目共存硬规则，
+`PREFLIGHT_CONTROL_NEG_MATCH=0/2` 即「不把 `spring-boot:run` / IDE maven server 误判为测试进程」的双向对照）。
+
+七、待拍板（沿用并更新）：
+**(a)** `ADM-CB01` 的 APPLY 语义已由他方接线定型为「**同一请求内同步执行 + 响应 = 受理时刻快照**，执行结果经 `ADM-CB03` 读取」；
+R635 已按该口径据实修正断言与 md §2.6 现状注记。若**契约所有方**更希望「响应 = 收敛后终态」，请拍板（需改他方控制器，属跨侧改动）。
+**(b)** `independent.py` 的三条判据缺陷（J4a/J4c 把「红相位」等同于 `missing>0`；J5e 把本轮自己的留痕提交算进快照）
+本轮因相位转绿而 PASS，**缺陷本体仍在**；改判据属装置改动（须 `--device-change` 走 ④→⑤ 链 + 新分支合成夹具）。
+**(c)** 上游执行器 **T-M4-08~11** 收口（他方进行中）与**端到端联调**（三端：`aap-admin` / `aap-client` / `aap-server`）
+仍是清单 117/117 全注册之后的**真实剩余工作面**；本轮按「`missing == 0` ⇒ 不改代码、只校验并报告」执行。
+**(d)** 上轮清单各项（`J5c/J5d` 预跑相位、`coverage-report.json` 长 M、远端口径、tier3/4 归仓、`selftest-counts` 是否入回归面、
+`ADM-CFG01~05` 一词两义、18 条端点无台账行、红相位记账口径等）**全部沿用**。
+
+八、本轮返工真值口径：装置侧返工 0 处（装置链首次运行即全绿：`analyze` 27/0、回归面 rc 变化 0 且 faildiff 新增/消失均 0、
+`regression --selftest` 26/0、`selftest-counts` 更正 0、崩溃通道理由行集 sha256 逐条不变）；
+本轮无交付面改动（`missing == 0`）⇒ 不存在「交付闭环 / 交付修复」计数。
+- **返工真值**：本轮返工真值 = **0 处**（装置/脚本侧，零交付面影响；逐条见上文要点）。
+- **权威数字**：权威数字 = 返工 0 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
+
