@@ -21334,3 +21334,69 @@ regression `--selftest` **26 PASS / 0 FAIL**；③b `selftest-counts` 逐工具�
 - **返工真值**：本轮返工真值 = **1 处**（装置/脚本侧，零交付面影响；逐条见上文要点）。
 - **权威数字**：权威数字 = 返工 1 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
 
+
+### R635 巡检轮（校验轮：missing=0 ⇒ 交付面零改动）
+
+- **性质**：`missing=0` ⇒ **交付面零改动**（未改 `aap-server` / `docs` 任何一行）；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交）；本轮新增写入 = 台账 / 状态 / 证据。
+- **两轮全量（串行）**：被测提交 = b7c71c81（独立 detached worktree 内）；run1 20:03:35→20:06:04、run2 20:06:04→20:08:31；各 **327 例 / 53 类**、rc=0/0、Failures-Errors-Skipped = 0-0-0；`@Test` 词边界计数与 surefire 合计一致；禁用扫描 0 条。
+- **覆盖**：total=117 implemented=117 **missing=0**、registered_routes=134、not_registered=[]；连续第 **1** 轮全绿。
+- **回归面**：复跑 84 条（tag 集合与上一轮 R634 一致）；rc 变化 0 条、新增 0、未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167：新增 0 / 消失 0）；零写副作用（冻结清单生成物 size+md5 全等，变化 0 个）；命令表已由仓库内 `tools/round-verify/manifest.json` 提供，$TEMP 抽查脚本 54 条全部归仓（由 manifest 的 $TEMP 条目数与归仓目录数**双源互证**推出）。
+- **本轮要点（单一事实源 = note-R635.md）**：
+一、性质与范围：本轮 = **交付面修复轮 + 绿相位校验轮**（`missing == 0` ∧ 两轮 `rc=0/0` ⇒ **达成两轮全绿**；红相位计数已清零，故连续全绿从**第 1 轮**起算）。
+覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；15 族全齐：
+(空任务号) 18 · T03 6 · T04 5 · T05 7 · T06 6 · T07 4 · T08 11 · T09 6 · T10 5 · T11 11 · T12 4 · T13 3 · T14 22 · T15 3 · T17 6（族和 117 = total，内容级核对）。
+本轮交付面 = **1 枚提交 `b7c71c81`**（= 被测提交 = 窗口起点 HEAD，5 文件 +151/−15）：
+① `ConfigBatchReader.longOf` 容忍对外 ID 的**字符串形态**（与同包 `ConfigApplyExecutor.longOf` 统一口径，历史 44）；
+② `ConfigBatchAdminContractTest` 的 APPLY 段前提据实更新（**净增 11 条机器判据、0 条删除用例**）；
+③ `docs/backend/02-API接口模型清单.md` §2.6 的「执行器尚未落地」现状注记据实更新（契约行未改）；
+④⑤ 该修复的红 / 绿两条证据文件。
+**口径声明（判据范围与语义一致，历史 81/218）**：④ 装置证据的「本轮自己的提交触及交付面 = 0」与本描述列前缀的
+「交付面零改动」指的是**被测提交..HEAD 区间**（本轮记账写入面 = 台账 / 状态 / 证据）；本轮的**交付面修复**以
+**被测提交**身份落地（不在该区间内），故两处口径并不冲突 —— 本句即其显式说明。
+
+二、修复的根因链（机器取证，非推断）：红基线 = 修前 HEAD（`dcc1a0a5`）的独立 detached worktree 内单类运行
+（`mvn -B -ntp test -Dtest=ConfigBatchAdminContractTest`）：**rc=1**、`Tests run: 6, Failures: 1`、
+失败点 `ConfigBatchAdminContractTest.createBatch:240`（`expected: 201 / but was: 500`，响应体 `E-2001`）；
+服务端「未捕获异常」行 = `java.lang.ClassCastException: class java.lang.String cannot be cast to class java.lang.Number`，
+栈帧 `ConfigBatchReader.longOf(ConfigBatchReader.java:118)` ← `AdminConfigBatchController.create(:59)`。
+归因：他方提交 `16b257e3`（T-M4-10/11 APPLY 执行器接线）新增 `ConfigApplyExecutor.execute(ConfigBatchReader.longOf(batch.id()), rate)`
+而本仓对外 ID 一律 **string** ⇒ 一旦接线落地，`ADM-CB01` 的 APPLY 分支在 HTTP 层即 500（强转失败对契约测试与覆盖门禁**都不可见**，历史 13/24/83）。
+修后绿基线：同一 worktree 内应用补丁后单类**两轮** rc=0/0、6 例全绿、BUILD SUCCESS（证据 `green-ADM-CB01-apply-R635.txt`）。
+**断言只增不减**：删除 3 条以「执行器未落地」为**前提**的断言（该前提已被 md §2.6 原注记同句据实更新，且契约行从未声明「只登记 PENDING」），
+新增 11 条（受理快照语义 / 执行器必须真的跑过 / 明细不得留 PENDING / 失败必须留痕 / 读接口与库同源 / 上游零写入相对发请求前基线，
+历史 12/17/19/22/81）—— 属「前提失效 ⇒ 修正断言」，不是「改断言迁就实现」。
+
+三、两轮全量（**串行**，HEAD 的独立 detached worktree 内，`WT_DIRTY_LINES=0` ⇒ 跑的是**提交态**）：
+窗口 20:03:14→20:08:36，run1 20:03:35→20:06:04、run2 20:06:04→20:08:31，各 **327 例 / 53 类**、**rc=0/0**、
+Failures-Errors-Skipped = 0-0-0、两轮 `BUILD SUCCESS` 均为真、**逐类 diff = 0**；`@Test` 词边界计数 **327 == surefire 327**；
+归档测试源 **59** 个 `.java`；禁用扫描 **0 条**（未削弱测试）。并发前置双向对照 pos=2/2、neg=0/2（CLEAR，`PREFLIGHT_OK=1`）；
+环境指纹 bash=/usr/bin/bash · MINGW64_NT-10.0-26100 · jps 可达 Y；worktree add/remove rc 均 0 且已回收；
+窗口内他方推进提交 **0** 枚（`FACTS_HEAD_ADVANCED_COUNT=0`），在途改动 6 条 mtime **全部早于**窗口（A23 = 0）。
+maven 自述耗时两轮**同为** `mm:ss min`（146 s / 144 s）⇒ 按历史 176-② **不得**声称双写法修复有效，据实写「本轮**未复现**另一种写法」。
+
+四、回归面（`manifest.json` **84 条**，tag 集合与 R634 一致）：**rc 变化 0 / 新增 0 / 未复跑 0**；
+rc=0 条数 39/84（与 R634 逐条相同）；FAIL 明细 **43 脚本 167 行**（跨轮 faildiff **167→167，新增 0 / 消失 0**）；
+**零写副作用**（冻结清单生成物 size+md5 运行前后全等，变化 **0** 个）；崩溃通道 2 条（`gap-coverage-gap` 与其负向自测，
+理由行集 sha256 与上一轮**逐条相同**）。⇒ 本轮的交付面修复**未在回归面引入任何漂移**（这是「修复边界 = 只影响该分支」的机器证据）。
+
+五、装置链（本轮**装置面改动 0 个文件**，未申报 `--device-change`，双向核对通过）：`analyze` **27 PASS / 0 FAIL**（相位 = green）；
+`regression --selftest` **26/0**；`selftest-counts` 自述⇔汇总行**逐工具一致（更正 0）**且只读守卫为真；
+`round-verify/README.md` 六条自测条数与本轮回读一致。
+
+六、主动取证（只读，主工作区零触碰）：修前红基线 / 修后绿基线两处运行都在 `$TEMP` 的独立 detached worktree 内完成
+（带唯一时间戳名，跑完 `git worktree remove --force` 回收 rc=0）；未重启 / 关闭 / attach 他方任何进程或浏览器（多项目共存硬规则）。
+
+七、待拍板（沿用并更新）：
+**(a)** `ADM-CB01` 的 APPLY 语义已由他方接线定型为「**同一请求内同步执行 + 响应 = 受理时刻快照**，执行结果经 `ADM-CB03` 读取」；
+本轮我方按该口径**据实修正断言并据实更新 md §2.6 现状注记**（不再等拍板，理由：不修则每轮全量必红、连续全绿恒为 0；且修复只触及我方文件）。
+若**契约所有方**更希望「响应 = 收敛后终态」（即恢复「响应与库同源」），请拍板 —— 那需要改他方 `AdminConfigBatchController.create`，属跨侧改动，本轮未做。
+**(b)** `independent.py` 的三条判据缺陷（J4a/J4c 把「红相位」等同于 `missing>0`；J5e 把本轮自己的留痕提交算进快照）需按「红相位成因二分」改判据，
+属装置改动（须 `--device-change` 走 ④→⑤ 链，含新分支合成夹具）—— 建议下一轮处理。
+**(c)** 上轮清单各项（`J5c/J5d` 预跑相位、`coverage-report.json` 长 M、远端口径、tier3/4 归仓、`selftest-counts` 是否入回归面、
+`ADM-CFG01~05` 一词两义、18 条端点无台账行、红相位记账口径等）**全部沿用**。
+
+八、本轮返工真值口径：装置侧返工 0 处（装置链首次运行即全绿：`analyze` 0 FAIL、回归面 rc 变化 0、`regression --selftest` 26/0、
+`selftest-counts` 更正 0、无崩溃通道变化）；本轮的**交付面修复**记为**交付闭环**（见一），不计入装置侧返工真值。
+- **返工真值**：本轮返工真值 = **0 处**（装置/脚本侧，零交付面影响；逐条见上文要点）。
+- **权威数字**：权威数字 = 返工 0 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
+
