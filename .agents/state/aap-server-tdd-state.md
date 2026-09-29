@@ -20466,3 +20466,37 @@ headers 0 / 0 ⇒ **0 新漂移**；money 留档 0 / 本轮 1 —— **该新增
 - **返工真值**：本轮返工真值 = **0 处**（装置/脚本侧，零交付面影响；逐条见上文要点与 `device-round-R621.txt`）。
 - **权威数字**：权威数字 = 返工 0 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
 
+### R621 巡检轮（校验轮：missing=0 ⇒ 交付面零改动）
+
+- 装置链 ①–⑧：analyze **27/0** · 回归面 84 条 **rc 变化 0 / 新增 0 / 未复跑 0**、FAIL 明细 **167 → 167（新增 0 / 消失 0）**、零写副作用 · `regression --selftest` **26/0** ·
+  `selftest-counts` 逐工具一致（**device-report 10 → 13**，因本轮新增 3 条自测；README 已据实更正）· `device-report` **13/0**、落盘 121 行 · `closeout` 内容级验收 ·
+  `postwrite` PASS（主提交携带 **20 文件**）· 独立复核 **35 PASS / 5 FAIL** · `final-check` **18 PASS / 1 FAIL**（F14）。
+- **装置面 1 处判据修正（历史 81/193/198）**：`device-report.py` 的 ③「交付面零改动」原把整个 `被测提交..HEAD` 当成「本轮提交」
+  ⇒ 他方在本轮窗口内推进提交（`FACTS_HEAD_ADVANCED_COUNT=1`）时，**他方**的交付面改动被误报为「本轮碰了交付面」并**硬中止**（rc=2，装置证据写不出）。
+  修法：按**提交归属**分区 + 新增 `--external-commit <sha>` 显式申报他方提交（申报须在区间内 ∧ 主题不含本轮轮次号；**未申报的交付面改动照旧响亮失败**）；
+  自测 **10 → 13 例**（S11 分区有效 / S12 未申报不得放宽 / S13 申报不存在即判据失效），README 同源同步。
+- **同源未修（列待拍板 65）**：`independent.py` 的 J1c/J5a/J5b/J5c/J5f 与 `final-check.py` 的 F14 仍按「区间只含本轮提交、他方在途不动」的假设判定
+  ⇒ 本轮 5 + 1 条 FAIL，**全部是外部事实的正确读数、非本轮缺陷**：
+  · J1c 窗口内 HEAD 推进 1 枚（`8650f9ab` → `719d3088`）；
+  · J5a/J5b/F14 交付面命中 4 文件，全部来自他方提交 `719d3088`（`supply/ConfigApplyRateLimiter.java`、`supply/ReadbackComparator.java` 及其两个测试）；
+  · J5c/J5f 他方在途 `supply/SupplyUnitService.java` 在窗口内**被撤下**（mtime 不可读）。
+- **本轮新增只读抽查轴（第八类留痕面判据）＝ 以「留档证据文件」为扫描根的覆盖缺口扫描**（判据 **10/0**、负向自测 **9/0**；
+  证据 `evidence/gap-evidence-orphan-R621.txt` 与 `evidence/gap-evidence-orphan-selftest-R621.txt`）：236 个不变量 key 中，
+  **34 条产品不变量**里 **3 条从未进回归面**（`spotcheck-envelope` R44 / `spotcheck-headers` R42 / `spotcheck-money` R43 —— 脚本仍活 `$TEMP`，
+  既不在 manifest 的 84 条也不在归仓索引 52 条目里）、**2 条已永久丢失**（`spotcheck-http-status` R40 / `spotcheck-page-total` R47）；
+  tier 分布 1=17 / 1b=11 / 2=1 / 3=136 / 3b=4 / 4=67；正向对照 tier=1 的 17 条 > 0（匹配非空转）。
+- **复跑读数**（与各自最近留档证据逐条比对 FAIL 集合）：envelope 留档 4 / 本轮 4（新增 0 / 消失 0 ⇒ **0 新漂移**，按历史 176-② 记「**未复现缺陷态**」）·
+  headers 0 / 0 ⇒ 0 新漂移 · money 0 → 1 —— **该条经独立取证判为假发现**：`aap-client/src/utils/settlement-model.ts:23` 的 `amount: string`
+  属**本地视图模型** `SettlementLineView` 的**格式化展示字段**（`amount: money(l.amount)`；`money(v: unknown): string`），并非对契约字段的类型声明
+  （契约 `models/settlement-line.schema.json` 的 `amount` 为 number）⇒ 判据把同名展示字段当契约字段（历史 81/118），**不是契约漂移**；
+  该脚本**当前不可直接补入回归面**（会把 1 条假 FAIL 变成常驻噪声）。
+- 常驻探针：`ledger-audit` 收尾前 **24 PASS / 2 FAIL**（A2b/A4d = 预期相位态）→ 收尾后 **26/26**；台账轮次行 593（末 R621）、记录 702、物理行 5634、CR 0。
+- 观察项（只读）：`evidence/` 内一份 maven 输出日志 `verify-endpoints-117-20260929.txt`（mtime 落在窗口内、未跟踪且不出现在 `git status` ⇒ 被忽略规则覆盖）
+  ⇒ **归属未定**，未触碰、未提交；他方在途 D-BUILD-02 / D-SETTLE-02 仍未落库（相位差，未触碰）；远端 main = `9fc47812`（未变）。
+
+**待办（新增，接 61 之后）**
+
+62. tier3 三条（envelope / headers / money）是否**归仓 + 补入回归面**？（前置：先修 money 的判据范围＝本地展示字段 vs 契约字段）
+63. tier4 两条（`spotcheck-http-status` R40 / `spotcheck-page-total` R47）脚本已丢失 —— 是否**重写补入**，还是只保留留档证据？
+64. 新轴（留档证据为根的缺口扫描）是否**常驻化并进 manifest**？（须同步 84 → N 与所有引用该数字的收尾守卫）
+65. `independent.py` J1c/J5a/J5b/J5c/J5f + `final-check.py` F14 是否按 ④ 的 `--external-commit` **同族参数化**（他方窗口内推进提交 / 撤下在途文件）？
