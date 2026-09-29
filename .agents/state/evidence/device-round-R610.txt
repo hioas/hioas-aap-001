@@ -46,6 +46,7 @@ A22 上一轮 history 行恰好 1 条且相位 = 绿相位；A25 相位命名守
 analyze 27/0、regression rc 变化 0、regression --selftest 26/0、selftest-counts 更正 0 处、device-report 三判据齐备、
 ⑥⑦⑧ 三步读数见对应证据文件（postwrite-check 逐列差异 = 无 / independent 40/0 / final-check 19/0）。
 A24 相位与判据结果自洽（绿相位 ⇒ 已判 FAIL 条数 == 0）；A23 在途改动中 mtime 落在本轮窗口内的条数 = **0**。
+**另有 1 处「继承性留痕失真」在本轮**只读**核对中发现并据实更正**（R609 飞书通知留痕的「对应读数」快照行仍写返工 0 处、而该轮权威真值已在收尾阶段更正为 1 处），按同一口径（既往下游产物的**过期自述**，非本轮装置链任何一步的返工）**不计入本轮返工真值**；逐条见 §六 ⑨。
 
 六、本轮主动核对（只读；主探针为**轮次无关**的常驻工具 `$TEMP/aap-aux/ledger-audit.py <轮次> <上一轮>` —— 该脚本**不含任何轮次字面量**，
 故历史上「每轮机械派生 aux 脚本」的整族缺陷（历史 234/239/245）在本轮**结构性不存在**）；**无交付面新发现**：
@@ -65,6 +66,15 @@ A24 相位与判据结果自洽（绿相位 ⇒ 已判 FAIL 条数 == 0）；A23
 全部落在 `$TEMP/aap-round-verify/R610/`（轮次目录，非仓库），**不进仓库、不进证据列**。
 ⑧ 本轮**装置链的全部只读核对**均走**轮次无关常驻工具**（analyze / regression / selftest-counts / device-report / independent / ledger-audit）；
 **无**工作区外一次性脚本参与装置链任何判据与产物，亦**无**收尾阶段新暴露的返工（§五 权威数字据此为 0）。
+⑨ **留痕侧新发现 1 处（继承性、据实更正，不计入本轮返工真值）**：`evidence/feishu-notify-failures.txt` 里的
+「`[日期 RNNN] 对应读数：…`」是**通知时刻的快照行**；R609 那一行仍写「本轮返工 0 处」，而该轮返工真值在**收尾阶段**
+已被据实更正为 **1 处**（台账描述列 / history / 状态文件三处同源，见该轮 `268ac2f5`）⇒ 快照行写下于更正之前、
+**未随之同步**，构成同一事实两种写法（历史 12/95/215/217-③ 的**同步覆盖面遗漏**：批量同步真值时覆盖面靠人列举，
+漏了「留痕快照行」这一类）。本轮按历史 209 处理：**不改写已发布提交**、**保留原文**，就地补**据实更正**标注
+（注明原值 0 处、权威值 1 处、更正依据与该轮提交号），并以独立小提交落痕；同时把本轮自己的快照行写成**不含预测性固定计数**的措辞。
+**结构性改进（防复发）**：此处新增的判据 = 「凡写入 `本轮返工 N 处` / `连续第 N 轮` / `提交枚数` 这类**快照计数**的留痕点，
+必须登记进真值变更时的**同步覆盖面清单**，并在收尾时用 `grep -rn` 扫**全部**出现位置、断言『处理项数 == 命中项数』（历史 210/215）」；
+本轮已按该判据核对 `feishu-notify-failures.txt` 全文（R610 行零预测性计数）。
 
 七、与上一轮（R609）的差异逐条：rc 变化 0 条；FAIL 明细 167→167（新增 0 / 消失 0）；tag 集合 84→84 一致；复跑条数 84→84；用例数 316→316、类数 51→51；
 覆盖 117→117、registered_routes 134→134；崩溃通道理由 sha256 2→2 逐字节不变；归仓守卫异常 2→2（沿用）；连续全绿计数 **47 → 48**（由上一轮 history 行的连续计数形态解析后 +1）；
@@ -92,26 +102,16 @@ pom.xml 的 exec-maven-plugin 同样 HEAD **0** / 工作区 **1**；SecurityConf
 
 四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
-  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 12 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 17 == `git status` 条目 17
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 2 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 7 == `git status` 条目 7
       M README.md  mtime=2026-09-24 07:51:14
       M aap-server/pom.xml  mtime=2026-09-24 08:07:37
       M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
       M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
       ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
-      （本轮产物）?? .agents/state/evidence/audit-regression-R610-faildiff.txt  mtime=2026-09-29 09:29:26
-      （本轮产物）?? .agents/state/evidence/audit-regression-R610-failraw.txt  mtime=2026-09-29 09:29:26
-      （本轮产物）?? .agents/state/evidence/audit-regression-R610-rcseq.txt  mtime=2026-09-29 09:29:26
-      （本轮产物）?? .agents/state/evidence/audit-regression-R610.txt  mtime=2026-09-29 09:29:26
-      （本轮产物）?? .agents/state/evidence/device-selftest-counts-R610.txt  mtime=2026-09-29 09:29:34
-      （本轮产物）?? .agents/state/evidence/green-verify-R610-coverage-fields.txt  mtime=2026-09-29 09:24:32
-      （本轮产物）?? .agents/state/evidence/green-verify-R610-full-run1.txt  mtime=2026-09-29 09:24:32
-      （本轮产物）?? .agents/state/evidence/green-verify-R610-full-run2.txt  mtime=2026-09-29 09:24:32
-      （本轮产物）?? .agents/state/evidence/green-verify-R610-testcount.txt  mtime=2026-09-29 09:24:32
-      （本轮产物）?? .agents/state/evidence/green-verify-R610-tested-state.txt  mtime=2026-09-29 09:24:32
-      （本轮产物）?? .agents/state/evidence/regression-selftest-R610.txt  mtime=2026-09-29 09:29:30
-      （本轮产物）?? .agents/state/evidence/round-R610-analysis.txt  mtime=2026-09-29 09:24:32
+      （本轮产物）M .agents/state/evidence/feishu-notify-failures.txt  mtime=2026-09-29 09:34:16
+      （本轮产物）?? .agents/state/evidence/final-check-R610.txt  mtime=2026-09-29 09:31:49
       其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
-  ③ 本轮提交（a68975df..HEAD）改动文件 = 0 个，其中位于交付面前缀的 = 0 个（**须 0**）
+  ③ 本轮提交（a68975df..HEAD）改动文件 = 18 个，其中位于交付面前缀的 = 0 个（**须 0**）
 
 五、下一族
   **无**（清单 117/117、missing=0）—— 本轮完成端点 0 条 / 新增用例 0 条、无红基线。
