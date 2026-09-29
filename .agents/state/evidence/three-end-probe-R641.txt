@@ -1,0 +1,87 @@
+R641 三端在跑实例归属 · 代理段可达性 · 在跑实例构建新鲜度取证（**只读探测**，主工作区零触碰）
+==============================================================================
+装置：netstat -ano（端口 → PID）＋ PowerShell Get-CimInstance Win32_Process（PID → 命令行）
+      ＋ jcmd <pid> VM.uptime / VM.command_line / GC.class_histogram（在跑实例只读诊断）
+      ＋ curl（HTTP 形态，**先剥离代理环境变量**）＋ git log/rev-list/status（提交时刻口径）
+说明：R639 = 逐端口归属；R640 = 管理端代理段可达 + 在跑实例为「约 5 天前旧构建」（由 VM.uptime 推断）。
+      本轮在此之上再推进三格，且三格都会**修正或收窄 R640 的结论**：
+      ① 5173/5174([::1]) 的**真实归属**（R640 记为「他方/供应商端 dev server 占用位」，本轮由命令行证伪）；
+      ② 代理环境变量对探针的**污染**（R640 观察到的 502 是探针伪影，不是 dev server 状态）；
+      ③ 在跑实例的**控制器集合**（磁盘 31 vs 已加载 28/29）—— 比「uptime 推断」硬得多的差异清单。
+
+一、逐端口归属（netstat -ano LISTENING + 进程命令行，**命令行优先于端口猜测**）
+------------------------------------------------------------------------------
+  0.0.0.0:8084 / [::]:8084   PID 58236   java  -cp @…\spring-boot-…argfile com.hioas.aap.AapServerApplication
+  0.0.0.0:8086 / [::]:8086   PID 46624   java  -cp @…\spring-boot-…argfile com.hioas.aap.AapServerApplication
+  127.0.0.1:5174             PID 69336   node  …\hioas-aap-001\aap-admin\node_modules\…\vite\bin\vite.js
+  [::1]:5174                 PID 16212   node  …\hioas-aap-001\aap-client\node_modules\…\@dcloudio\vite-plugin-uni\bin\uni.js
+  [::1]:5173                 PID 38736   node  …\hioas-aap-001\aap-client\node_modules\…\@dcloudio\vite-plugin-uni\bin\uni.js
+  [::1]:3000                 PID 57924   node  E:\workspaces\mind\wisemapping-frontend\…\vite\bin\vite.js（**他项目**）
+  0.0.0.0:8080 / [::]:8080   PID 77464   java  com.wisemapping.Application（**他项目**）
+  判定（本轮**更正 R640**）：5173 与 5174([::1]) = **aap-client（uni-app / H5）dev server**（命令行含 `aap-client/…/vite-plugin-uni/bin/uni.js`），
+  不是「他方/供应商端」；aap-admin dev = 127.0.0.1:5174（另一地址族、另一 PID）；aap-client 由**两个** uni 进程各占一个端口。
+  ⇒ **三端 dev 面本轮全部在跑**（后端 ×2 + 管理端 + 客户端 ×2），与 R640「aap-client 未起」相比是**状态变化**（据实更新，不是前轮判据失效）。
+
+二、在跑实例的启动形态与新鲜度（jcmd 只读；**收窄 R640 的「旧构建」表述**）
+------------------------------------------------------------------------------
+  ① VM.command_line（两实例同形）：`java_command: com.hioas.aap.AapServerApplication`，
+     `java_class_path (initial)` 首项 = `E:\workspaces\hioas\hioas-aap-001\aap-server\target\classes`（**目录，非 jar**）。
+  ② 目标目录实测：`aap-server/target/classes` 存在，`*.class` 共 **456** 个；
+     最新 = **2026-09-29 18:42:13**（`com/hioas/aap/usage/UsageController.class`，**晚于两实例启动约 3.9 小时**）；
+     最旧 = 2026-09-19 17:48:20；目录自身 mtime = 2026-09-24 19:18:37。
+  ③ VM.uptime（本轮实测）：PID 58236 = **433576 s ≈ 5.02 d** ⇒ 启动 ≈ 2026-09-24 22:06:41；
+     PID 46624 = **406396 s ≈ 4.70 d** ⇒ 启动 ≈ 2026-09-25 05:39:33（与 R640 读数一致 ⇒ 两实例**本轮未重启**）。
+  ④ 触及 `aap-server/src/main` 的提交：最后一次 = `b7c71c81`（2026-09-29 20:03:10）；
+     自实例启动以来 = **12 枚（8084）/ 11 枚（8086）**，全部 44 枚（`git rev-list --count --since=… HEAD -- aap-server/src/main`）。
+  ⑤ **控制器集合差异（新增读数，比 uptime 推断硬）**：磁盘 31 个 `*Controller.class`；
+     `jcmd GC.class_histogram` 里出现的控制器类 = **28（PID 58236）/ 29（PID 46624）**
+     ⇒ 差集 = 8084 缺 **3** 个：`settlement.SettlementController`、`supply.AdminConfigBatchController`、`supply.AdminSupplyUnitController`；
+       8086 缺 **2** 个：`supply.AdminConfigBatchController`、`supply.AdminSupplyUnitController`。
+     判读：控制器 bean 若已加载必有单例实例 ⇒ 未出现在 histogram 中 = **该类在在跑 JVM 里尚未加载**
+     （残余不确定 = `@Lazy` / 0 实例，本仓库未见该配置，已列为判据边界），即**在跑实例缺 3/2 个控制器类对应的端点族**；
+     两实例差集**不对称** ⇒ 8084 与 8086 **不是同一份构建产物**。
+  ⑥ 由此**收窄 R640 的措辞**：classpath 指向 `target/classes` 且该目录今日 18:42 被重新编译过 ⇒「在跑实例 = 5 天前旧构建」
+     **不能无条件成立**：**已加载的类**（含 28/29 个控制器 bean，Spring 启动期即实例化）仍是启动时版本，
+     而**启动后从未加载的类**（如上述 3/2 个控制器、以及按需加载的实体/DTO/工具类）**会在首次请求时从磁盘取到今日重编译的新版**。
+     故正确表述 = 「在跑实例对**已加载的控制器/服务**是旧版；对**首次加载的类**不保证」——「整体旧构建」不成立（这是对前轮结论的**据实收窄**，不是判据失效）。
+
+三、三端可达性（**先剥离代理环境变量**；空体 POST = 参数校验前置失败、无副作用）
+------------------------------------------------------------------------------
+  代理污染事实（探针侧）：环境里 `HTTP_PROXY` = `HTTPS_PROXY` = `http://127.0.0.1:7897`（本地代理），
+      未剥离时对回环地址的请求会被代理截走：`5173/5174` 回 **502** 且响应带 `Proxy-Connection: keep-alive` 标记。
+  ① aap-admin dev：GET `http://127.0.0.1:5174/` → **200**，正文含 `<title>AAP 管理端</title>`（594 B，vite dev 首页）；
+     POST `http://127.0.0.1:5174/api/v1/auth/sms/send`（body=`{}`）→ **400**，响应头含 **小写** `x-trace-id: 20a8f976…`，
+     包体 = 后端五键包络（E-1001 / 参数校验失败 / data:null / traceId / details）⇒ **管理端代理段端到端可达**（与 R640 同结论，本轮在无代理条件下复证）。
+  ② aap-client dev：GET `http://[::1]:5173/` → **200**（833 B，uni-app H5 首屏，含 `/@vite/client`），
+     POST `http://[::1]:5173/api/v1/auth/sms/send` → **400** + 小写 `x-trace-id: 9403a1ad…` ⇒ **客户端代理段端到端可达**（**本轮新增**）；
+     `http://[::1]:5174/` 同形 200 / 代理 POST 400（另一个 uni 进程，同一客户端工程）。
+     注意地址族：客户端 dev **只绑 IPv6 环回**，对 `http://127.0.0.1:5173/` 是 `curl exit 7`（连接被拒）——**不是服务不可用**。
+  ③ 直连后端对照：POST `http://127.0.0.1:8084/api/v1/auth/sms/send` → **400**，响应头 `X-Trace-Id: 068cfb18…`（**大写 X**）
+     ⇒ 与经 vite/http-proxy 的小写 `x-trace-id` **可区分**，证明 ①② 的请求确实穿过了前端代理。
+  ④ actuator（无凭据只读）：`/actuator/health` → **200** `{"groups":["liveness","readiness"],"status":"UP"}`（两实例同）；
+     `/actuator/info` → **200** `{}`；`/actuator/mappings` → **401 E-1902**（被安全过滤器挡）
+     ⇒ 正面：两实例**健康**（不是僵死进程）；负面：**无法**从运行实例读已注册路由表，故 ⑤ 的集合差异只能由 class 加载面推出。
+  ⑤ 负向对照：未监听端口 `5199` → `curl exit 7`（连接被拒）；`/api/v1/__no_such_path__` → **401 E-1902**（与真实路径同答）
+     ⇒ 沿用 R640 结论：**路由探测不能用于判「实例是否含最新端点」**（安全过滤器先于路由），按纪律**未获取/未伪造任何凭据**。
+
+四、本轮探针判据修正（**返工留痕 2 处**，均在 $TEMP 取证脚本侧；装置链本体零重跑）
+------------------------------------------------------------------------------
+  (1) **代理环境未剥离 ⇒ 假发现**：首版探针直接 curl 回环地址 ⇒ 5173/5174 均 **502**，若据此写「客户端 dev 不可用」即为假发现；
+      指纹 = 响应带 `Proxy-Connection: keep-alive`（真 dev server 不会输出该头）+ 环境变量里存在本地代理。
+      修法：探针内 `unset HTTP_PROXY HTTPS_PROXY …` 后复探（复探后 5173/5174 均 200）。**同一缺陷的第二形态**：
+      第二版把 `--noproxy *` 的 `*` 未加引号 ⇒ 被 glob 展开成当前目录文件名 ⇒ 代理未被剥离、**5174 也变 502**（同一处判据的第二次踩）；
+      正解 = 用 `unset` 或给通配符加引号，并对**已知可用的对照端点**（5174）同时断言 200，作为探针有牙齿的正向对照。
+  (2) **跨源比对两侧未走同一归一 ⇒ 31 条假发现**：磁盘侧类名剥掉了 `com.hioas.aap.` 前缀、histogram 侧是全限定名 ⇒
+      `comm` 交集为空，报出「31 个控制器全部未加载」，与同一份输出里的「已加载 28」**自相矛盾**（历史 57 族）。
+      修法：两侧同用**全限定点分名**（同一归一函数）后复跑 ⇒ 真实差集 3 / 2（见 二⑤）；正向对照 = 「已加载 28 > 0 ∧ 磁盘 31 > 0」。
+
+五、结论（据实分级，不越界为「三端联调通过」）
+------------------------------------------------------------------------------
+  ① **dev 面三端全部在跑且代理段均可达**（后端 8084/8086 · 管理端 127.0.0.1:5174 · 客户端 [::1]:5173 与 [::1]:5174），
+     两实例 `/actuator/health` = UP ⇒ 「服务在跑 + 代理段通」有机器证据。
+  ② **但「在跑实例 = 当前提交态」不成立**：已加载控制器 28/29 < 磁盘 31；两实例缺 3/2 个控制器类且**互不相同**；
+     自启动以来各有 12/11 枚 main 源提交未生效 ⇒ 业务链路若打到缺失控制器对应的端点族，行为与 HEAD 不一致。
+  ③ **本轮仍未驱动业务链路**（需凭据；按只读边界未获取/未伪造），故**不得**由本节推出「三端联调通过」——
+     可陈述的上限是「dev 面可达 + 代理段打通」，业务闭环待重启实例/具备凭据后再验。
+  ④ 重启/重建运行实例属**跨人决策**（不在本巡检轮职权内）；本条只提供判据与读数，供拍板用。
+PROBE_EVIDENCE_END=1
