@@ -20614,7 +20614,7 @@ final-check 同族：`final-check.py R621 afef34c0`（不申报）F14 红、加 
 
 ### R623 巡检轮（校验轮：missing=0 ⇒ 交付面零改动）
 
-- **性质**：`missing=0` ⇒ **交付面零改动**（未改 `aap-server` / `docs` 任何一行）；本轮另含**装置侧改动**（tools/round-verify/independent.py、tools/round-verify/README.md —— 轮次无关的轮次校验装置（只读审计 + 留痕写入器），不触碰交付面；证据：工作区未提交 2 条 / 提交链自 b39800e8 起 0 枚提交触及 tools/）；本轮新增写入 = 台账 / 状态 / 证据。
+- **性质**：`missing=0` ⇒ **交付面零改动**（未改 `aap-server` / `docs` 任何一行）；本轮另含**装置侧改动**（tools/round-verify/independent.py、tools/round-verify/README.md —— 轮次无关的轮次校验装置（只读审计 + 留痕写入器），不触碰交付面；证据：工作区未提交 2 条 / 提交链自 b39800e8 起 1 枚提交触及 tools/）；本轮新增写入 = 台账 / 状态 / 证据。
 - **两轮全量（串行）**：被测提交 = b39800e8（独立 detached worktree 内）；run1 15:12:40→15:15:10、run2 15:15:11→15:17:22；各 **327 例 / 53 类**、rc=0/0、Failures-Errors-Skipped = 0-0-0；`@Test` 词边界计数与 surefire 合计一致；禁用扫描 0 条。
 - **覆盖**：total=117 implemented=117 **missing=0**、registered_routes=134、not_registered=[]；连续第 **61** 轮全绿。
 - **回归面**：复跑 84 条（tag 集合与上一轮 R622 一致）；rc 变化 0 条、新增 0、未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167：新增 0 / 消失 0）；零写副作用（冻结清单生成物 size+md5 全等，变化 0 个）；命令表已由仓库内 `tools/round-verify/manifest.json` 提供，$TEMP 抽查脚本 54 条全部归仓（由 manifest 的 $TEMP 条目数与归仓目录数**双源互证**推出）。
@@ -20644,8 +20644,8 @@ maven 自述耗时两轮**同为** `mm:ss min`（147 / 129 秒）⇒ 按历史 1
 （可比通道 2 条 / 理由变化 0 条）；归仓耐久性守卫**异常 2 条**（沿用登记项 ㊱「归档与在用脚本分叉」，非本轮新增）。
 
 五、装置链读数：analyze **PASS 27 / FAIL 0**（A0a–A25）· regression `--selftest` **26 PASS / 0 FAIL** ·
-③b `selftest-counts` 逐工具条数（regression 26 / final-check 28 / independent **65** / backfill-c7 20 / device-report 13 / selftest-counts 15）
-与 README 逐项一致（independent 一处由 56 → 65 据实更正）· ④ device-report 三判据齐备 · ⑤ 收尾内容级验收 · ⑥ postwrite 逐列差异见证据 ·
+③b `selftest-counts` 逐工具条数（regression 26 / final-check 28 / independent **66** / backfill-c7 20 / device-report 13 / selftest-counts 15）
+与 README 逐项一致（independent 一处由 56 → 66 据实更正）· ④ device-report 三判据齐备 · ⑤ 收尾内容级验收 · ⑥ postwrite 逐列差异见证据 ·
 ⑦ 回填（短号须为 HEAD 祖先）· ⑧ final-check（F0–F18 + F14b）· 独立复核（J1–J9）。
 **本轮装置链返工真值 = 3 处**（范围 = ① 执行器 → ② 分析器 → ③ 回归面 → ③b 自测条数 → ④ 装置证据 → ⑤ 收尾 → ⑥ 主提交核对 → ⑦ 回填 → ⑧ 一致性核对 ＋ 独立复核）：
 真实返工 3 处（本轮，逐条见下）：
@@ -20666,8 +20666,9 @@ maven 自述耗时两轮**同为** `mm:ss min`（147 / 129 秒）⇒ 按历史 1
 作用域**不从 `inflight` 推**（那份快照取自窗口起点，漏掉「起点干净、窗口内被重写」这一整类，历史 98/187）。
 真实数据读数（非合成）：**J5i 自写面 40 个 / 命令表脚本 80 个**；**J5f 的落窗 1 条由「装置链自写」解释**（R622 的同一条 FAIL 转绿）；
 **J5j 落窗自写追踪文件 2 个**（`endpoint-test-audit.txt` + 同名 `.json`）⇒ 本轮据约定**落盘提交**，提交后 clean ⇒ J5j 转绿。
-判别力自测：`independent.py --selftest` **65 PASS / 0 FAIL**（56 → +9：4 条纯函数三/两态 + 5 条注入），
-含**反向对照**「落窗项**不属**自写面时必须点名 J5f」（证明豁免没把牙齿拔掉）与「提交前相位不得假失败」（历史 243-①）。
+判别力自测：`independent.py --selftest` **66 PASS / 0 FAIL**（56 → +10：4 条纯函数多态 + 6 条注入/正向对照；
+另把一条与既有用例重复的注入合并为一条并同步其期望值），含**双向对照**「落窗项**不属**自写面时必须点名 J5f」
+与「我方改动落在**自写面**路径上不得报 J5h」（豁免没把牙齿拔掉）以及「提交前相位不得假失败」（历史 243-①）。
 
 七、主动核对（**只读**；常驻探针为轮次无关工具 ⇒ 「每轮机械派生 aux 脚本」整族缺陷本轮结构性不存在）：
 ① 台账轮次连续性（常驻 `$TEMP/aap-aux/ledger-audit.py R623 R622`，收尾前为预期相位态，收尾后应转满盘）：轮次行 / 记录数 / 列数异常 0 / CR 0，

@@ -479,10 +479,18 @@ def evaluate(ctx):
     # J5h = **直接不变量**：我方提交链改动文件 ∩ 窗口起点他方在途集合 == ∅（须 0 条交集）。
     # 它比下面的快照差集更贴语义：差集判据会把**他方自己的**活动（撤下自己的在途文件）算成我方违规
     # （判据范围与语义不符，历史 81/193/198）。正向对照要求**两侧都非空**，否则 `∩ = ∅` 是空转假绿（历史 98）。
-    overlap = sorted(set(ctx["round_touched"]) & set(ctx["inflight"]))
-    add("J5h 我方改动集合 ∩ 窗口起点他方在途集合 == ∅（正向对照：我方改动 > 0 ∧ 在途 > 0）",
+    # **装置链自写面**路径同样豁免（与 J5f 第 4 类同源）：这类产物落在证据目录、由命令表脚本确定性重写、
+    # 且其「在途」身份本身是约定断档的产物（`0aee5e72` 立下「每轮须落盘」）⇒ 把它计入「碰了他方的活」
+    # 是同一族的假阳性。豁免仍被机器判据夹住：只有「路径在证据目录 ∧ basename 出自命令表写脚本源码」才命中。
+    _sw_set = set(EVID_PREFIX + n for n in ctx["selfwritten_names"])
+    raw_overlap = sorted(set(ctx["round_touched"]) & set(ctx["inflight"]))
+    overlap = [p for p in raw_overlap if p not in _sw_set]
+    sw_overlap = [p for p in raw_overlap if p in _sw_set]
+    add("J5h 我方改动集合 ∩ 窗口起点他方在途集合 == ∅（正向对照：我方改动 > 0 ∧ 在途 > 0；**装置链自写面**路径豁免）",
         bool(ctx["round_touched"]) and len(ctx["inflight"]) > 0 and not overlap,
-        "我方 %d 个 / 在途 %d 个 / 交集 %s" % (len(ctx["round_touched"]), len(ctx["inflight"]), overlap or "0 条"))
+        "我方 %d 个 / 在途 %d 个 / 交集 %s（其中自写面豁免 %s）"
+        % (len(ctx["round_touched"]), len(ctx["inflight"]), overlap or "0 条",
+           ("%d 条：" % len(sw_overlap)) + "、".join(sw_overlap) if sw_overlap else "0 条"))
     # 差集方向一：他方在途条目的消失/改动**必须显式申报**（`--external-withdrawn`），且申报项逐条可核
     # （「在窗口起点快照里 ∧ 已从快照消失 ∧ 不落在我方改动集合里」三条件缺一即不可核）。未申报 ⇒ 照旧红。
     gone_bad = [p for p in ctx["inflight_gone"] if p not in set(ctx["ext_withdrawn"])]
@@ -1014,6 +1022,9 @@ def selftest():
                               ext_withdrawn_bad=["aap-server/X.java"]), ["J5c"])
     mutate("我方改动集合落在窗口起点他方在途文件上（J5h 直接不变量）",
            lambda c: c.update(round_touched=list(c["round_touched"]) + ["README.md"]), ["J5h"])
+    mutate("我方改动落在**装置链自写面**路径上（豁免 ⇒ 不新增 FAIL，正向对照）",
+           lambda c: c.update(round_touched=list(c["round_touched"]) + [".agents/state/evidence/endpoint-test-audit.txt"],
+                              inflight=list(c["inflight"]) + [".agents/state/evidence/endpoint-test-audit.txt"]), [])
     chk("T-EXT1 own_of 三态：恒等（空申报）/ 剔除成员 / 非成员不得被剔除（历史 57/68/190）",
         own_of(["a", "b"], []) == ["a", "b"] and own_of(["a", "b"], ["a"]) == ["b"]
         and own_of(["a", "b"], ["zz"]) == ["a", "b"], "见条件")

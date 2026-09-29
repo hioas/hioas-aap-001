@@ -5696,7 +5696,7 @@ final-check 同族：`final-check.py R621 afef34c0`（不申报）F14 红、加 
 
 八、下一族：清单已 100% 注册 ⇒ 方向仍是 ① 上游执行器 T-M4-08~11（限速 / 写后回读 / 单模型隔离与回滚）；② 端到端联调（`aap-client` / `aap-admin` 指向本服务取数）。
 本轮为校验轮，未推进交付面。",,evidence/audit-regression-R622-faildiff.txt；evidence/audit-regression-R622-failraw.txt；evidence/audit-regression-R622-rcseq.txt；evidence/audit-regression-R622.txt；evidence/device-round-R622.txt；evidence/device-selftest-counts-R622.txt；evidence/final-check-R622.txt；evidence/green-verify-R622-coverage-fields.txt；evidence/green-verify-R622-full-run1.txt；evidence/green-verify-R622-full-run2.txt；evidence/green-verify-R622-testcount.txt；evidence/green-verify-R622-tested-state.txt；evidence/independent-R622.txt；evidence/postwrite-check-R622.txt；evidence/regression-selftest-R622.txt；evidence/round-R622-analysis.txt；evidence/coverage-history.txt（追加 R622 行）,7e09ec97
-R623,,,,"R623 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；本轮另含**装置侧改动**（tools/round-verify/independent.py、tools/round-verify/README.md —— 轮次无关的轮次校验装置（只读审计 + 留痕写入器），不触碰交付面；证据：工作区未提交 2 条 / 提交链自 b39800e8 起 0 枚提交触及 tools/））） · 清单 **117/117**（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 b39800e8**）连续第 **61** 轮全绿 · 两轮 **327 例 / 53 类** rc=0/0（串行 15:12:40→15:17:22，逐类 diff=0） · 回归面 **84 条** rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167，新增 0 / 消失 0） · 分析器 PASS 27 / FAIL 0 · registered_routes=134 · 本轮返工 **3 处**（装置侧） · 证据 17 条 · 一、性质与覆盖：本轮为**校验轮**（`missing == 0` ⇒ 按作业第 4 步「不改代码，只校验并报告」；基线 = 被测提交 = 窗口起点 HEAD `b39800e8`）。
+R623,,,,"R623 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；本轮另含**装置侧改动**（tools/round-verify/independent.py、tools/round-verify/README.md —— 轮次无关的轮次校验装置（只读审计 + 留痕写入器），不触碰交付面；证据：工作区未提交 2 条 / 提交链自 b39800e8 起 1 枚提交触及 tools/））） · 清单 **117/117**（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 b39800e8**）连续第 **61** 轮全绿 · 两轮 **327 例 / 53 类** rc=0/0（串行 15:12:40→15:17:22，逐类 diff=0） · 回归面 **84 条** rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167，新增 0 / 消失 0） · 分析器 PASS 27 / FAIL 0 · registered_routes=134 · 本轮返工 **3 处**（装置侧） · 证据 17 条 · 一、性质与覆盖：本轮为**校验轮**（`missing == 0` ⇒ 按作业第 4 步「不改代码，只校验并报告」；基线 = 被测提交 = 窗口起点 HEAD `b39800e8`）。
 覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；15 族全齐：
 (空任务号) 18 · T03 6 · T04 5 · T05 7 · T06 6 · T07 4 · T08 11 · T09 6 · T10 5 · T11 11 · T12 4 · T13 3 · T14 22 · T15 3 · T17 6（族和 117 = total，内容级核对）。
 本轮**交付面零改动**（被测提交..HEAD 无触及交付面的提交；worktree 与 HEAD 差异 0 行）；**装置面改动 2 个文件**（见六）。
@@ -5721,8 +5721,8 @@ maven 自述耗时两轮**同为** `mm:ss min`（147 / 129 秒）⇒ 按历史 1
 （可比通道 2 条 / 理由变化 0 条）；归仓耐久性守卫**异常 2 条**（沿用登记项 ㊱「归档与在用脚本分叉」，非本轮新增）。
 
 五、装置链读数：analyze **PASS 27 / FAIL 0**（A0a–A25）· regression `--selftest` **26 PASS / 0 FAIL** ·
-③b `selftest-counts` 逐工具条数（regression 26 / final-check 28 / independent **65** / backfill-c7 20 / device-report 13 / selftest-counts 15）
-与 README 逐项一致（independent 一处由 56 → 65 据实更正）· ④ device-report 三判据齐备 · ⑤ 收尾内容级验收 · ⑥ postwrite 逐列差异见证据 ·
+③b `selftest-counts` 逐工具条数（regression 26 / final-check 28 / independent **66** / backfill-c7 20 / device-report 13 / selftest-counts 15）
+与 README 逐项一致（independent 一处由 56 → 66 据实更正）· ④ device-report 三判据齐备 · ⑤ 收尾内容级验收 · ⑥ postwrite 逐列差异见证据 ·
 ⑦ 回填（短号须为 HEAD 祖先）· ⑧ final-check（F0–F18 + F14b）· 独立复核（J1–J9）。
 **本轮装置链返工真值 = 3 处**（范围 = ① 执行器 → ② 分析器 → ③ 回归面 → ③b 自测条数 → ④ 装置证据 → ⑤ 收尾 → ⑥ 主提交核对 → ⑦ 回填 → ⑧ 一致性核对 ＋ 独立复核）：
 真实返工 3 处（本轮，逐条见下）：
@@ -5743,8 +5743,9 @@ maven 自述耗时两轮**同为** `mm:ss min`（147 / 129 秒）⇒ 按历史 1
 作用域**不从 `inflight` 推**（那份快照取自窗口起点，漏掉「起点干净、窗口内被重写」这一整类，历史 98/187）。
 真实数据读数（非合成）：**J5i 自写面 40 个 / 命令表脚本 80 个**；**J5f 的落窗 1 条由「装置链自写」解释**（R622 的同一条 FAIL 转绿）；
 **J5j 落窗自写追踪文件 2 个**（`endpoint-test-audit.txt` + 同名 `.json`）⇒ 本轮据约定**落盘提交**，提交后 clean ⇒ J5j 转绿。
-判别力自测：`independent.py --selftest` **65 PASS / 0 FAIL**（56 → +9：4 条纯函数三/两态 + 5 条注入），
-含**反向对照**「落窗项**不属**自写面时必须点名 J5f」（证明豁免没把牙齿拔掉）与「提交前相位不得假失败」（历史 243-①）。
+判别力自测：`independent.py --selftest` **66 PASS / 0 FAIL**（56 → +10：4 条纯函数多态 + 6 条注入/正向对照；
+另把一条与既有用例重复的注入合并为一条并同步其期望值），含**双向对照**「落窗项**不属**自写面时必须点名 J5f」
+与「我方改动落在**自写面**路径上不得报 J5h」（豁免没把牙齿拔掉）以及「提交前相位不得假失败」（历史 243-①）。
 
 七、主动核对（**只读**；常驻探针为轮次无关工具 ⇒ 「每轮机械派生 aux 脚本」整族缺陷本轮结构性不存在）：
 ① 台账轮次连续性（常驻 `$TEMP/aap-aux/ledger-audit.py R623 R622`，收尾前为预期相位态，收尾后应转满盘）：轮次行 / 记录数 / 列数异常 0 / CR 0，
@@ -5756,4 +5757,4 @@ maven 自述耗时两轮**同为** `mm:ss min`（147 / 129 秒）⇒ 按历史 1
    其读数仅供写要点取用、**不作为证据**（落盘相位 = 提交后）；本轮已把其中**语义可判**的 J5h 口径改为相位感知，其余保留相位态（不作为 FAIL 口径）。
 
 八、下一族：清单已 100% 注册 ⇒ 方向仍是 ① 上游执行器 T-M4-08~11（限速 / 写后回读 / 单模型隔离与回滚）；② 端到端联调（`aap-client` / `aap-admin` 指向本服务取数）。
-本轮为校验轮，未推进交付面。",,evidence/audit-regression-R623-faildiff.txt；evidence/audit-regression-R623-failraw.txt；evidence/audit-regression-R623-rcseq.txt；evidence/audit-regression-R623.txt；evidence/device-round-R623.txt；evidence/device-selftest-counts-R623.txt；evidence/final-check-R623.txt；evidence/green-verify-R623-coverage-fields.txt；evidence/green-verify-R623-full-run1.txt；evidence/green-verify-R623-full-run2.txt；evidence/green-verify-R623-testcount.txt；evidence/green-verify-R623-tested-state.txt；evidence/independent-R623.txt；evidence/postwrite-check-R623.txt；evidence/regression-selftest-R623.txt；evidence/round-R623-analysis.txt；evidence/coverage-history.txt（追加 R623 行）,
+本轮为校验轮，未推进交付面。",,evidence/audit-regression-R623-faildiff.txt；evidence/audit-regression-R623-failraw.txt；evidence/audit-regression-R623-rcseq.txt；evidence/audit-regression-R623.txt；evidence/device-round-R623.txt；evidence/device-selftest-counts-R623.txt；evidence/final-check-R623.txt；evidence/green-verify-R623-coverage-fields.txt；evidence/green-verify-R623-full-run1.txt；evidence/green-verify-R623-full-run2.txt；evidence/green-verify-R623-testcount.txt；evidence/green-verify-R623-tested-state.txt；evidence/independent-R623.txt；evidence/postwrite-check-R623.txt；evidence/regression-selftest-R623.txt；evidence/round-R623-analysis.txt；evidence/coverage-history.txt（追加 R623 行）,9469aa36

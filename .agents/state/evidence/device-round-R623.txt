@@ -6,8 +6,9 @@ R623 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 一、装置面改动（机器推导，零手写）
   被测提交的 `tools/round-verify` 文件 = 15 个 / 工作区同名文件 = 15 个（新增 0 / 删除 0）
   工作区未提交的 tools/ 条目 = 2 条： M tools/round-verify/README.md |  M tools/round-verify/independent.py
-  「被测提交..HEAD」触及 tools/ 的提交 = 0 枚（本文件生成于主提交之前）
-  逐文件 numstat（工作区 vs HEAD，`插入/删除/路径`）：1	1	tools/round-verify/README.md; 147	13	tools/round-verify/independent.py
+  「被测提交..HEAD」触及 tools/ 的提交 = 1 枚：
+    9469aa36 chore(aap-server): R623 巡检轮（清单 117/117、327 例两轮全绿连续第 61 轮；装置侧＝J5f 第 4 类「装置链自写面」+ J5i/J5j 落盘纪律（待办 66）；并把每轮被回归面重写的端点覆盖审计产物落盘）
+  逐文件 numstat（工作区 vs HEAD，`插入/删除/路径`）：1	1	tools/round-verify/README.md; 14	3	tools/round-verify/independent.py
   轮次无关性守卫：装置脚本（13 个 .py/.sh）内当前轮次号命中 = **0**（须 0
     = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
 
@@ -38,8 +39,8 @@ maven 自述耗时两轮**同为** `mm:ss min`（147 / 129 秒）⇒ 按历史 1
 （可比通道 2 条 / 理由变化 0 条）；归仓耐久性守卫**异常 2 条**（沿用登记项 ㊱「归档与在用脚本分叉」，非本轮新增）。
 
 五、装置链读数：analyze **PASS 27 / FAIL 0**（A0a–A25）· regression `--selftest` **26 PASS / 0 FAIL** ·
-③b `selftest-counts` 逐工具条数（regression 26 / final-check 28 / independent **65** / backfill-c7 20 / device-report 13 / selftest-counts 15）
-与 README 逐项一致（independent 一处由 56 → 65 据实更正）· ④ device-report 三判据齐备 · ⑤ 收尾内容级验收 · ⑥ postwrite 逐列差异见证据 ·
+③b `selftest-counts` 逐工具条数（regression 26 / final-check 28 / independent **66** / backfill-c7 20 / device-report 13 / selftest-counts 15）
+与 README 逐项一致（independent 一处由 56 → 66 据实更正）· ④ device-report 三判据齐备 · ⑤ 收尾内容级验收 · ⑥ postwrite 逐列差异见证据 ·
 ⑦ 回填（短号须为 HEAD 祖先）· ⑧ final-check（F0–F18 + F14b）· 独立复核（J1–J9）。
 **本轮装置链返工真值 = 3 处**（范围 = ① 执行器 → ② 分析器 → ③ 回归面 → ③b 自测条数 → ④ 装置证据 → ⑤ 收尾 → ⑥ 主提交核对 → ⑦ 回填 → ⑧ 一致性核对 ＋ 独立复核）：
 真实返工 3 处（本轮，逐条见下）：
@@ -60,8 +61,9 @@ maven 自述耗时两轮**同为** `mm:ss min`（147 / 129 秒）⇒ 按历史 1
 作用域**不从 `inflight` 推**（那份快照取自窗口起点，漏掉「起点干净、窗口内被重写」这一整类，历史 98/187）。
 真实数据读数（非合成）：**J5i 自写面 40 个 / 命令表脚本 80 个**；**J5f 的落窗 1 条由「装置链自写」解释**（R622 的同一条 FAIL 转绿）；
 **J5j 落窗自写追踪文件 2 个**（`endpoint-test-audit.txt` + 同名 `.json`）⇒ 本轮据约定**落盘提交**，提交后 clean ⇒ J5j 转绿。
-判别力自测：`independent.py --selftest` **65 PASS / 0 FAIL**（56 → +9：4 条纯函数三/两态 + 5 条注入），
-含**反向对照**「落窗项**不属**自写面时必须点名 J5f」（证明豁免没把牙齿拔掉）与「提交前相位不得假失败」（历史 243-①）。
+判别力自测：`independent.py --selftest` **66 PASS / 0 FAIL**（56 → +10：4 条纯函数多态 + 6 条注入/正向对照；
+另把一条与既有用例重复的注入合并为一条并同步其期望值），含**双向对照**「落窗项**不属**自写面时必须点名 J5f」
+与「我方改动落在**自写面**路径上不得报 J5h」（豁免没把牙齿拔掉）以及「提交前相位不得假失败」（历史 243-①）。
 
 七、主动核对（**只读**；常驻探针为轮次无关工具 ⇒ 「每轮机械派生 aux 脚本」整族缺陷本轮结构性不存在）：
 ① 台账轮次连续性（常驻 `$TEMP/aap-aux/ledger-audit.py R623 R622`，收尾前为预期相位态，收尾后应转满盘）：轮次行 / 记录数 / 列数异常 0 / CR 0，
@@ -85,30 +87,22 @@ maven 自述耗时两轮**同为** `mm:ss min`（147 / 129 秒）⇒ 按历史 1
 
 四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
-  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 6 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 15 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 21 == `git status` 条目 21
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 6 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 6 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 12 == `git status` 条目 12
       M .agents/state/evidence/coverage-report.json  mtime=2026-09-29 14:00:18
       M README.md  mtime=2026-09-24 07:51:14
       M aap-server/pom.xml  mtime=2026-09-24 08:07:37
       M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
       M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
       ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
-      （本轮产物）M .agents/state/evidence/endpoint-test-audit.txt  mtime=2026-09-29 15:17:38
-      （本轮产物）M tools/round-verify/README.md  mtime=2026-09-29 15:29:32
-      （本轮产物）M tools/round-verify/independent.py  mtime=2026-09-29 15:28:14
-      （本轮产物）?? .agents/state/evidence/audit-regression-R623-faildiff.txt  mtime=2026-09-29 15:22:42
-      （本轮产物）?? .agents/state/evidence/audit-regression-R623-failraw.txt  mtime=2026-09-29 15:22:42
-      （本轮产物）?? .agents/state/evidence/audit-regression-R623-rcseq.txt  mtime=2026-09-29 15:22:42
-      （本轮产物）?? .agents/state/evidence/audit-regression-R623.txt  mtime=2026-09-29 15:22:42
-      （本轮产物）?? .agents/state/evidence/device-selftest-counts-R623.txt  mtime=2026-09-29 15:30:25
-      （本轮产物）?? .agents/state/evidence/green-verify-R623-coverage-fields.txt  mtime=2026-09-29 15:17:30
-      （本轮产物）?? .agents/state/evidence/green-verify-R623-full-run1.txt  mtime=2026-09-29 15:17:30
-      （本轮产物）?? .agents/state/evidence/green-verify-R623-full-run2.txt  mtime=2026-09-29 15:17:30
-      （本轮产物）?? .agents/state/evidence/green-verify-R623-testcount.txt  mtime=2026-09-29 15:17:30
-      （本轮产物）?? .agents/state/evidence/green-verify-R623-tested-state.txt  mtime=2026-09-29 15:17:30
-      （本轮产物）?? .agents/state/evidence/regression-selftest-R623.txt  mtime=2026-09-29 15:22:46
-      （本轮产物）?? .agents/state/evidence/round-R623-analysis.txt  mtime=2026-09-29 15:17:30
+      （本轮产物）M .agents/state/aap-server-feature-status.csv  mtime=2026-09-29 15:31:47
+      （本轮产物）M .agents/state/evidence/device-selftest-counts-R623.txt  mtime=2026-09-29 15:32:37
+      （本轮产物）M tools/round-verify/README.md  mtime=2026-09-29 15:32:37
+      （本轮产物）M tools/round-verify/independent.py  mtime=2026-09-29 15:32:25
+      （本轮产物）?? .agents/state/evidence/independent-R623.txt  mtime=2026-09-29 15:31:53
+      （本轮产物）?? .agents/state/evidence/postwrite-check-R623.txt  mtime=2026-09-29 15:31:44
       其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
-  ③ 提交区间（b39800e8..HEAD）改动文件 = 0 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 0 枚 = 他方 0 枚 + 本轮 0 枚
+  ③ 提交区间（b39800e8..HEAD）改动文件 = 19 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 1 枚 = 他方 0 枚 + 本轮 1 枚
+      [本轮] 9469aa36 chore(aap-server): R623 巡检轮（清单 117/117、327 例两轮全绿连续第 61 轮；装置侧＝J5f  文件 19 个 / 交付面命中 0 个
       ⇒ **本轮自己的提交**触及交付面前缀的 = 0 个（**须 0**）；他方提交的交付面改动不计入本轮（历史 81/193/198：他方在途不得算作本轮改动）
 
 五、下一族
