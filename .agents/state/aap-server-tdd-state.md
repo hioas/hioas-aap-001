@@ -19520,3 +19520,81 @@ pom.xml 的 exec-maven-plugin 同样 HEAD **0** / 工作区 **1**；SecurityConf
 - **返工真值**：本轮返工真值 = **0 处**（装置/脚本侧，零交付面影响；逐条见上文要点）。
 - **权威数字**：权威数字 = 返工 0 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
 
+
+### R609 巡检轮（校验轮：missing=0 ⇒ 交付面零改动）
+
+- **性质**：`missing=0` ⇒ **交付面零改动**（未改 `aap-server` / `docs` 任何一行）；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交）；本轮新增写入 = 台账 / 状态 / 证据。
+- **两轮全量（串行）**：被测提交 = d686418b（独立 detached worktree 内）；run1 08:57:18→08:59:46、run2 08:59:46→09:02:01；各 **316 例 / 51 类**、rc=0/0、Failures-Errors-Skipped = 0-0-0；`@Test` 词边界计数与 surefire 合计一致；禁用扫描 0 条。
+- **覆盖**：total=117 implemented=117 **missing=0**、registered_routes=134、not_registered=[]；连续第 **47** 轮全绿。
+- **回归面**：复跑 84 条（tag 集合与上一轮 R608 一致）；rc 变化 0 条、新增 0、未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167：新增 0 / 消失 0）；零写副作用（冻结清单生成物 size+md5 全等，变化 0 个）；命令表已由仓库内 `tools/round-verify/manifest.json` 提供，$TEMP 抽查脚本 54 条全部归仓（由 manifest 的 $TEMP 条目数与归仓目录数**双源互证**推出）。
+- **本轮要点（单一事实源 = note-R609.md）**：
+一、性质与覆盖：本轮为**校验轮**（missing == 0 ⇒ 按作业第 4 步「不改代码，只校验并报告」；被测提交 = 窗口起点 HEAD = 终点 HEAD = d686418b，
+故 `git rev-list d686418b..HEAD -- aap-server docs aap-client` = **0 枚**、`-- tools/` 亦为 **0 枚**）。
+本轮**装置面与交付面均零改动**（`git status --porcelain -- tools/` 空 0 条；被测提交..HEAD 无触及 tools/ 的提交）。
+覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；按族 15 族全齐：
+(空任务号) 18 · T03 6 · T04 5 · T05 7 · T06 6 · T07 4 · T08 11 · T09 6 · T10 5 · T11 11 · T12 4 · T13 3 · T14 22 · T15 3 · T17 6（族和 117 = total，内容级核对）。
+
+二、两轮全量（**串行**，在 HEAD 的独立 detached worktree 内）：被测提交 **d686418b**（R608 飞书通知留痕提交，WT_DIRTY_LINES=0 ⇒ 跑的是提交态）；
+run1 08:57:18→08:59:46（maven 耗时 `02:25 min`）、run2 08:59:46→09:02:01（`02:12 min`），各 **316 例 / 51 类**、rc=0/0、
+Failures-Errors-Skipped = 0-0-0、两轮 BUILD SUCCESS 均为真、**逐类 diff=0**；
+`@Test` 词边界计数 316 == surefire 合计 316（裸子串 318 作对照，差 2 即 @TestConfiguration / @TestPropertySource）；归档测试源 57 个 .java；禁用扫描 **0 条**（未削弱测试）。
+窗口 08:56:58→09:02:05；窗口内他方推进提交数 **0**（HEAD 起点 = 终点 = d686418b）；并发前置双向对照 pos=2/2、neg=0/2（CLEAR，PREFLIGHT_OK=1）；
+环境指纹 bash=/usr/bin/bash / MINGW64_NT-10.0-26100 / mvn=/c/Users/laitz/bin/mvn / java=/e/workspaces/jdk/temurin-25.0.4/bin/java / jps 可达 Y；
+worktree add/remove rc 均 0、已回收（磁盘不存在 ∧ git 未登记，独立复核 J5g 取证）。
+连续全绿计数 = **第 47 轮**（由上一轮 history 行的连续计数形态解析后 +1；上一轮相位 = 绿相位，记 46）。
+
+三、回归面（命令表 = 仓库内单一事实源 tools/round-verify/manifest.json）：声明 43 审计 + 41 自测 = **84 条**，实际解析 84，自洽；
+**rc 变化 0 条 / 新增 0 / 未复跑 0**（rc=0 条数 39/84、rc!=0 45 条，逐条与 R608 相同）；FAIL 明细 43 个脚本 **167 行**；跨轮 faildiff **167→167，新增 0 / 消失 0**；
+零写副作用：生成物快照 103 个，size+md5 运行前后全等（变化 **0** 个）。
+崩溃通道 2 条（gap-coverage-gap、gap-coverage-gap-selftest，均为「rc!=0 ∧ FAIL 0 行」），其**完整理由行集 sha256 与上一轮逐字节一致**
+（可比通道 2 条、理由变化 0 条；sha256 前 8 位 4bad9ac9… / 14235db0…）。
+归仓耐久性守卫（三方逐字节：索引 ⇔ 归档 ⇔ 原文件）：**异常 2 条**（spotcheck-success-shape、gap-pagination-order，归档副本与在用脚本分叉）——**沿用登记项，非本轮新增**（待办 ㊱/㉝）。
+
+四、装置链读数：analyze **PASS 27 / FAIL 0**（A0a–A25）；regression --selftest **26 PASS / 0 FAIL**；③b selftest-counts 逐工具条数
+regression 26 / final-check 23 / independent 47 / backfill-c7 20 / device-report 10 / selftest-counts 15 与 README 自述**逐项一致、更正 0 处**（只读守卫 = True）；
+closeout 台账 / history / 状态三处各 1 条；postwrite、final-check（F0–F18）、independent（J1–J9）读数见对应证据文件。
+A6 maven 耗时解析器两形态各 1 条合成对照（本轮实际形态 run1/run2 均为 `mm:ss min`，与 R601–R608 同形，故按历史 176 只能记「本轮未复现 `<1 分钟` 写法」）；
+A22 上一轮 history 行恰好 1 条且相位 = 绿相位；A25 相位命名守卫（本轮前缀 = green-verify）通过。
+
+五、本轮返工真值 = 返工 0 处（**范围 = 装置链前四步（① 执行器 → ② 分析器 → ③ 回归面 → ③b 自测条数 → ④ 装置证据）＋ 收尾四步（⑤ 收尾 → ⑥ 主提交核对 → ⑦ 回填 → ⑧ 一致性核对）＋ 独立复核**；
+**范围不含**只读 aux 探针自身的判据修正，后者逐条见 §六 且按历轮口径不计入）：前四步逐步骤一次通过（无脚本崩溃、无锚点 0 命中、无计数不符）：
+analyze 27/0、regression rc 变化 0、regression --selftest 26/0、selftest-counts 更正 0 处、device-report 三判据齐备；
+收尾四步与独立复核的逐条读数见对应证据文件（postwrite-check / independent / final-check；若收尾阶段暴露新返工，按历史 209 以**独立收尾提交**据实更正，不改本提交的 message）。
+A24 相位与判据结果自洽（绿相位 ⇒ 已判 FAIL 条数 == 0）；A23 在途改动中 mtime 落在本轮窗口内的条数 = **0**。
+
+六、本轮主动核对（只读；主探针为**轮次无关**的常驻工具 `$TEMP/aap-aux/ledger-audit.py <轮次> <上一轮>` —— 该脚本**不含任何轮次字面量**，
+故历史上「每轮机械派生 aux 脚本」的整族缺陷（历史 234/239/245）在本轮**结构性不存在**）；**无交付面新发现**：
+① 台账轮次连续性（`^R[0-9]+` 抽取）：**581** 条轮次行、首 R27、末 **R608**（本轮行由 ⑤ 收尾追加），轮次号单调递增且无重复；**唯一跳号 = [554]**，即 R554 未记账 —— 与历轮报告同源的历史豁免
+（aap-server-tdd-state.md 有专节「R554 红基线轮（未记账）」，取证留档 evidence/red-baseline-R554.txt），**非本轮缺口**；列数不符行 **0**。
+② 台账结构（口径 = csv.reader + 字节级读法）：**csv 记录数 689**（含表头；数据 688）、CR 字节 **0**、**含内嵌换行的记录数**由「记录数 689 + 记录内换行 4150 + 末尾换行 1 == 物理行数 4840」自洽式给出；
+描述列由 **依据(index4) / 状态(index5)** 交替承载（依据非空 573 行、状态非空 46 行），与历史要点「两列交替承载」判据一致。
+③ coverage-history.txt 保持单调追加：本轮收尾前相位实测 **物理行数 991 / 非空 924**；
+行首带完整时间戳且紧跟轮次号的行 **154** 条、时间戳单调不减 = True（非单调相邻对 0）、末条带戳行 = **R608**、上一轮带戳行恰好 **1** 条。
+④ 安全：secret-leak（Tier A 必须 0 命中：rc=0）/ evidence-secrets（证据文件真实令牌 **0 条**：rc=0）/ secret-leak-selftest（rc=0，均在回归面 84 条内）三闸清洁（rcseq 逐条可查）；
+`.gitignore` 覆盖 .env / .env.* / target / node_modules，被跟踪的 .env 类文件只有 aap-server/.env.example。
+⑤ 多项目共存：未使用浏览器、未按镜像名杀进程、未触碰他方 worktree / CDP；提交一律按显式路径 `git add`（不做全量添加，历史 198）。
+⑥ 常驻 aux 探针 ledger-audit.py 本轮读数：收尾前相位 **PASS 24 / FAIL 2**（两条 FAIL 均为**预期相位态**：A2b 台账末轮次行仍为 R608、A4d history 末条带戳行仍为 R608）——⑤ 收尾写入后复跑应达 **26/26**（见收尾留痕）。
+⑦ **本轮不新增一次性只读探针**：上一轮（R606）新增的「被跟踪 `tools/` 脚本 ⊆ driver 引用集」只读核对已登记为待办 ⑮（7 个辅助脚本是否为「可执行性冒烟」纳入 driver 属**扩面、须人拍板**）；
+且 `tools/` 自 R606 起**零改动**（本轮取证：`git status --porcelain -- tools/` = 0 条 ∧ 被测提交..HEAD 触及 tools/ 的提交 = 0 枚）
+⇒ 该读数在本轮**按构造不变**，重复跑属空转，按历史 213-③ 不擅自累加探针。本轮的只读读数留档（`independent-prerun.txt` / `ledger-audit-prerun.txt` / `jps-readonly.txt`）
+全部落在 `$TEMP/aap-round-verify/R609/`（轮次目录，非仓库），**不进仓库、不进证据列**。
+⑧ 本轮**装置链的全部只读核对**均走**轮次无关常驻工具**（analyze / regression / selftest-counts / device-report / independent / ledger-audit）；**无**工作区外一次性脚本参与本轮任何判据与产物。
+本轮自撰探针侧**零判据失效**（无新探针 ⇒ 无新判据；既有常驻探针的解析器均带 `> 0` 正向对照）。
+
+七、与上一轮（R608）的差异逐条：rc 变化 0 条；FAIL 明细 167→167（新增 0 / 消失 0）；tag 集合 84→84 一致；复跑条数 84→84；用例数 316→316、类数 51→51；
+覆盖 117→117、registered_routes 134→134；崩溃通道理由 sha256 2→2 逐字节不变；归仓守卫异常 2→2（沿用）；连续全绿计数 **46 → 47**（由上一轮 history 行的连续计数形态解析后 +1）；
+装置链读数 analyze 27/0 → 27/0、regression --selftest 26/0 → 26/0、selftest-counts 更正 0 → 0；台账轮次行 580 → 581（+1 = 本轮行）；history 带戳行 153 → 154（+1 = 本轮行）。
+
+八、上一轮登记的观察项复核（只读，**结论不变**）：他方在途的 **D-BUILD-02**（pom.xml 加 exec-maven-plugin 前端打包进 jar + SecurityConfig 放行静态资源/SPA + webapp 占位）与
+**D-SETTLE-02**（application.yml 新增 app.settlement 段下 cycle / amount-basis / fee-basis 三键）**仍未落库**：据常驻探针的键级读数，HEAD 版 yml 里这三个子键各出现 **0** 次，工作区各 **1** 次；
+pom.xml 的 exec-maven-plugin 同样 HEAD **0** / 工作区 **1**；SecurityConfig 行数 HEAD **92** / 工作区 **97**；webapp 下仅 admin-spa 占位（1 个 md 文件）。
+五条在途改动 mtime（2026-09-24 07:51 ~ 2026-09-25 05:13）全部早于本轮窗口起点（08:56:58）⇒ A23 记 **0** 条落窗。
+**当前配置审计读数不受影响**（它读工作区而非 HEAD）——属工作区/HEAD 相位差，非缺陷，**待其落库后重跑口径**。
+口径留痕（沿用，防止下一轮把它误读成「读数漂移」）：该行的「行数」是**常驻探针口径**（按换行切分含末尾空段）；同一文件用 wc -l（换行符计数）读到的分别是 **91 / 96**，两者相差恒为 1、属**定义差异而非仓库变化**，比对本轮与历轮时须用同一口径。
+本地 `origin/main` 停在 **976f94d6**（R330 期），距 HEAD **1329** 提交（本轮直接读数；较上一轮报告 +5）⇒ 远端推送口径仍为待拍板（见待办 6）。
+`jps -l -m` 只读复核（留档 `$TEMP/aap-round-verify/R609/jps-readonly.txt`，14 个 JVM）：**2 个** `-o -B -ntp spring-boot:run` 启动器（44768 / 51908）各派生 1 个
+`com.hioas.aap.AapServerApplication`（46624 / 58236）；另 1 个（66644，无 `-o -B -ntp`）与 `com.nebula.im.ImApplication` / `com.wisemapping.Application` 同列，属第三方项目；
+**无 surefire / 测试 JVM** ⇒ 前置 CLEAR、两轮 rc=0/0 不受影响；按多项目共存硬规则**未触碰**。
+- **返工真值**：本轮返工真值 = **0 处**（装置/脚本侧，零交付面影响；逐条见上文要点）。
+- **权威数字**：权威数字 = 返工 0 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
+
