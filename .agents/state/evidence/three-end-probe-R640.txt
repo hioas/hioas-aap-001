@@ -1,0 +1,66 @@
+R640 三端实例归属 · 代理段可达性 · 在跑实例新鲜度取证（**只读探测**，主工作区零触碰）
+==============================================================================
+装置：netstat -ano（端口 → PID）＋ jcmd <pid> VM.command_line / VM.uptime（java 进程归属）
+      ＋ curl（HTTP 形态）＋ git log/rev-list/merge-base（提交时刻口径）
+说明：R639 已把「有服务在跑」升级为逐端口归属判定；本轮在此之上再推进两格：
+      ① 代理段（管理端 dev → 后端）**是否真的可达**（此前只判「谁在监听」）；
+      ② 在跑的实例**是不是当前提交态的构建**（此前未判，且任何测试/门禁都看不见）。
+
+一、逐端口归属（netstat -ano：LISTENING）
+------------------------------------------------------------------------------
+  0.0.0.0:8084 / [::]:8084   PID 58236   java  VM.command_line = com.hioas.aap.AapServerApplication
+  0.0.0.0:8086 / [::]:8086   PID 46624   java  VM.command_line = com.hioas.aap.AapServerApplication
+  127.0.0.1:5174             PID 69336   node（AAP 管理端 vite dev server）
+  [::1]:5174                 PID 16212   node（同上；IPv6 侧另一 PID，属同一 dev server 形态）
+  [::1]:5173                 PID 38736   （他方/供应商端 dev server 占用位；R639 实测该端口应答 502 代理）
+  判定：8084 / 8086 = **本仓库 aap-server 两个实例**（与 HEAD 配置 server.port 默认 8084 一致）；
+        5174 = aap-admin dev server；aap-client 侧**未发现运行实例**。
+
+二、代理段端到端（经 aap-admin 的 vite 代理，**只读探测**）
+------------------------------------------------------------------------------
+  代理配置（静态事实，aap-admin/vite.config.ts）：'/api' → process.env.AAP_API_TARGET || 'http://127.0.0.1:8084'
+  ① 经代理：POST http://127.0.0.1:5174/api/v1/auth/sms/send  body={}（缺 phone/captcha，校验前置失败，无副作用）
+     响应行 = HTTP/1.1 400 Bad Request ；Content-Type: application/json ；X-Trace-Id: a56d52de…
+     包体 = {"code":"E-1001","message":"参数校验失败","data":null,"traceId":"a56d52de…","details":[{phone},{captcha}]}
+  ② 直连：POST http://127.0.0.1:8084/api/v1/auth/sms/send  body={}（同一请求形态）
+     响应行 = HTTP/1.1 400 ；Content-Type: application/json ；X-Trace-Id: 8ccb072f…
+     包体 = 同上五键包络（traceId = 8ccb072f…，与①不同 ⇒ 两次独立处理）
+  ③ 直连 8086 同请求 → HTTP=400，同一包络形态（traceId c0ba19d9…）
+  判定：**管理端 dev（5174）→ 后端（8084）的代理段真实可达** —— 拿到的是后端自己的包络与 traceId，
+        且两跳形态可区分（经代理的行含 vite/http-proxy 补的 reason phrase「Bad Request」，直连行为空）。
+        代理段可达**仍不等于**三端联调通过（见第四节的新鲜度缺口与 aap-client 缺席）。
+
+三、在跑实例的新鲜度（本轮新增判据：在跑的是不是当前提交态的构建）
+------------------------------------------------------------------------------
+  基准提交（最后一次触及 aap-server/src/main 的提交）：
+      b7c71c81  2026-09-29 20:03:10  fix(aap-server): ADM-CB01 APPLY 分支修复 …
+      经 git merge-base --is-ancestor 确认：**是 HEAD 795fd148 的祖先**。
+  实例启动时刻（由 jcmd VM.uptime 快照反推，读取时刻 2026-09-29 22:04）：
+      PID 58236（8084）VM.uptime 431849.410 s ⇒ 启动 ≈ 2026-09-24 22:06:51
+      PID 46624（8086）VM.uptime 404672.193 s ⇒ 启动 ≈ 2026-09-25 05:39:48
+  期间触及 aap-server/src/main 的提交数（git log --since=<启动时刻> -- aap-server/src/main）：
+      8084：**12 枚**；8086：**11 枚**（全历史触及该目录者共 44 枚）。
+  判定：两个在跑实例都**早于**其后的全部 main 源提交 ⇒ 在跑的是**约 5 天前的构建**，
+        不含 ADM-CB01 APPLY 修复（b7c71c81）与 T-M4-08~11 接线（719d3088 / 16b257e3）等 12/11 枚改动。
+        ⇒ 若在 8084/8086 上驱动「三端联调」，验的是**旧构建**；「链路可达」与「跑的是当前提交态」必须分开陈述。
+
+四、负向对照（判据有牙齿：**证明上面第三节没有依赖路由探测**）
+------------------------------------------------------------------------------
+  未认证访问（无凭据，只读 GET）：
+      GET 8084 /api/v1/admin/config-batches       → 401 E-1902（未认证或登录已过期）
+      GET 8084 /api/v1/admin/detection-configs    → 401 E-1902
+      GET 8084 /api/v1/admin/no-such-endpoint-xyz → **401 E-1902**（不存在的路径同样 401）
+      8086 三条同形（均 401 E-1902）
+  判定：安全过滤器**先于**路由 ⇒ 无凭据时**无法**用路由探测区分「已注册 / 未注册」
+        （不存在的路径与真实路径同答 401）。故第三节结论**只**由「jcmd VM.uptime × git log -- aap-server/src/main」
+        推出，未使用任何路由探测结果；本负向对照正是该判据边界的有牙齿证明。
+        按纪律未获取/未伪造任何凭据（不猜口令、不读他人令牌）。
+
+五、结论（分级）
+------------------------------------------------------------------------------
+  [已确认] 8084/8086 = 本仓库 aap-server 两实例；5174 = aap-admin dev（代理 target 指向 8084）；aap-client 无实例。
+  [已确认] 管理端 dev → 后端的**代理段可达**（后端包络 + 独立 traceId）。
+  [已确认] 在跑两实例**早于最近 12 / 11 枚 main 源提交**（旧构建）。
+  [未验证] 三端端到端联调（aap-client 未起；aap-admin ↔ aap-server 的业务链路需凭据驱动，本轮按只读边界未驱动）。
+  [未验证] 运行实例是否含最新端点（无凭据不可判，见第四节负向对照）——属待拍板项的取证边界说明。
+  [边界] 本轮为 `missing=0` 的纯校验轮 ⇒ 未改任何交付面代码，上述取证全部只读。
