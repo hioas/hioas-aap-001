@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""收尾核对（**轮次无关**：`python tools/round-verify/final-check.py <轮次> <主提交短号> [--selftest]`）。
+"""收尾核对（**轮次无关**：`python tools/round-verify/final-check.py <轮次> <主提交短号> [--external-commit <短号>]... [--selftest]`）。
 
 为什么有它
 ----------
@@ -26,7 +26,8 @@
 * F11 要点文本三处同源：装置证据 ↔ 状态小节**逐字符相等** ∧ 描述列**以它结尾**（历史 12/95/215）
 * F12 装置证据的返工真值 == 描述列解析值 ∧ 含 missing=0
 * F13 主提交是 HEAD 的祖先（历史 200-②）
-* F14 本轮提交（被测提交..HEAD）改动文件**不含交付面前缀**（须 0）
+* F14 我**方**提交（被测提交..HEAD ∖ 已申报他方提交）改动文件**不含交付面前缀**（须 0）
+* F14b 他方并发提交**显式申报**（`--external-commit`）且逐枚可核（在区间内 ∧ 主题不含本轮轮次号）
 * F15 CSV / history / 状态小节三处本轮记录**各恰好 1 条**（幂等，历史 46）
 * F16 覆盖缺口扫描：`tools/*.py` 中未被回归面引用的条目 == **白名单键集**（双向 + 每条理由非空 + 上限，
       历史 57/68/178/213）—— 任何**新增**孤儿立刻转红
@@ -224,11 +225,18 @@ def evaluate(ctx):
     else:
         add("F12", False, why12 if not ok12 else "描述列自述标记未解析到")
 
-    # ---- F13/F14 提交链 ----
+    # ---- F13/F14/F14b 提交链 ----
     add("F13", ctx["ancestor"], "主提交 %s 是 HEAD 的祖先 = %s" % (ctx["main"], ctx["ancestor"]))
     bad_files = [x for x in ctx["round_files"] if x.startswith(DELIVERY_PREFIXES)]
     add("F14", bool(ctx["round_files"]) and not bad_files,
-        "本轮提交改动 %d 个文件 / 越界交付面 %d 个 %s" % (len(ctx["round_files"]), len(bad_files), bad_files[:5]))
+        "我**方**提交改动 %d 个文件 / 越界交付面 %d 个 %s（区间内共 %d 个，其中已申报他方提交触及 %d 个）"
+        % (len(ctx["round_files"]), len(bad_files), bad_files[:5], len(ctx["round_files_all"]),
+           len(ctx["ext_files"])))
+    # F14b：他方并发提交必须**显式申报**且逐枚可核（区间内 ∧ 主题不含本轮轮次号）。未申报的外部活动
+    # 照旧由 F14 响亮失败 —— 判据范围与语义一致（历史 81/193/198），与 `independent.py` / `device-report.py` 同族。
+    add("F14b", not ctx["external_bad"] and (not ctx["external"] or bool(ctx["ext_files"])),
+        "申报他方提交 %s / 触及文件 %d 个 / 不可核 %s"
+        % (ctx["external"] or "无", len(ctx["ext_files"]), ctx["external_bad"] or "无"))
 
     # ---- F15 三处各恰好 1 条 ----
     add("F15", ctx["n_csv"] == 1 and ctx["n_hist"] == 1 and ctx["n_state"] == 1,
@@ -267,8 +275,19 @@ def evaluate(ctx):
     return chk
 
 
+def own_of(all_files, ext_files):
+    """归属归一（纯函数，入参 = 文本列表）：把**已申报他方提交**触及的文件从区间改动集合里剔除。
+
+    与 `independent.py` 的同名纯函数**必须同语义**（同一事实只有一种写法，历史 44）：
+    判据是集合差，且只对**成员**生效 —— 非成员项不得改动集合，否则「申报」可架空守卫
+    （历史 57/68/190）。空申报时恒等（零外部活动轮次口径不变）。
+    """
+    ext = set(ext_files)
+    return sorted(x for x in all_files if x not in ext)
+
+
 # ---------------------------------------------------------------- 真实上下文
-def build_ctx(ROUND, MAIN):
+def build_ctx(ROUND, MAIN, external=()):
     facts = parse_facts(T / "aap-round-verify" / ROUND / ("facts-%s.log" % ROUND))
     tested = facts["FACTS_TESTED_COMMIT"]
     raw = CSV.read_bytes()
@@ -332,10 +351,24 @@ def build_ctx(ROUND, MAIN):
     n_csv = len([r for r in rows if r and r[0] == ROUND])
     n_state = len(marks)
 
-    # 提交链
+    # ---- F13/F14/F14b 提交链 ----
+    # 提交链：`被测提交..HEAD` 的全部改动文件按**归属**分区 —— 已申报他方提交触及的文件从「我方改动集合」
+    # 里剔除（纯函数 `own_of`，只对成员生效；未申报的外部改动照旧留在集合里由 F14 响亮失败）。
+    ext_files, ext_bad = [], []
+    for s in external:
+        a_in, _, _ = sh("merge-base", "--is-ancestor", s, "HEAD")      # 必须是 HEAD 的祖先
+        a_old, _, _ = sh("merge-base", "--is-ancestor", s, tested)     # 但**不得**落在被测提交及更早
+        _, subj, _ = sh("log", "-1", "--format=%s", s)
+        if a_in != 0 or a_old == 0 or (ROUND in subj):
+            ext_bad.append(s)
+            continue
+        _, fs, _ = sh("show", "--name-only", "--format=", s)
+        ext_files.extend(x.strip() for x in fs.splitlines() if x.strip())
+    ext_files = sorted(set(ext_files))
     rc_anc, _, _ = sh("merge-base", "--is-ancestor", MAIN, "HEAD")
     _, dt_out, _ = sh("diff", "--name-only", "%s..HEAD" % tested)
-    round_files = [x for x in dt_out.splitlines() if x.strip()]
+    round_files_all = [x for x in dt_out.splitlines() if x.strip()]
+    round_files = own_of(round_files_all, ext_files)
 
     desc_row = next((r[4] for r in rows if r and r[0] == ROUND), "")
     # 相位由**事实源**推出（facts 的两轮 rc ∧ 本轮跑测归档的 missing）—— 不读描述列，否则循环论证。
@@ -363,6 +396,8 @@ def build_ctx(ROUND, MAIN):
         "ev_tracked": set(x.split("/")[-1] for x in ev_tracked),
         "ev_head": set(x.split("/")[-1] for x in ev_head),
         "ancestor": rc_anc == 0, "round_files": round_files,
+        "round_files_all": round_files_all, "external": [s for s in external if s not in ext_bad],
+        "external_bad": ext_bad, "ext_files": ext_files,
         "orphans": orphans, "orphan_whitelist": ORPHAN_WHITELIST, "scan_roots": scan_roots,
         "n_csv": n_csv, "n_hist": len(hist_lines), "n_state": n_state,
         "streak_src": streak, "rework_src": rework,
@@ -427,6 +462,12 @@ def synth_ctx():
         "ev_disk": set(evnames), "ev_tracked": set(evnames), "ev_head": set(evnames),
         "ancestor": True, "round_files": [".agents/state/evidence/device-round-%s.txt" % R,
                                           "tools/round-verify/final-check.py"],
+        # 合成「他方并发提交」形态：区间内共 3 个文件，其中交付面那 1 个由**已申报他方提交**触及 ⇒
+        # 归属归一后我方改动集合只剩 2 个（F14 绿）；把它改回未申报即 F14 红（判别力实测，历史 66/90）。
+        "round_files_all": [".agents/state/evidence/device-round-%s.txt" % R,
+                            "tools/round-verify/final-check.py",
+                            "aap-server/src/main/java/X.java"],
+        "external": ["deadbee"], "external_bad": [], "ext_files": ["aap-server/src/main/java/X.java"],
         "orphans": sorted(ORPHAN_WHITELIST), "orphan_whitelist": ORPHAN_WHITELIST,
         "scan_roots": ["tools/*.py(31)", "manifest.audits+selftests(84)", "archive/ 归仓目录(54)"],
         "n_csv": 1, "n_hist": 1, "n_state": 1,
@@ -532,6 +573,22 @@ def selftest():
            ["F6", "F11"])
     # T19 仓库跟踪的 coverage-report 副本停在旧口径（F18）
     mutate(lambda c: c.update(cov_repo=dict(c["cov_repo"], total=102, implemented=102)), ["F18"])
+    # T23/T24/T25 他方并发提交的申报语义（与 `independent.py` / `device-report.py` 同族，历史 81/193/198）：
+    # 未申报 ⇒ 交付面文件留在「我方改动集合」里由 F14 响亮失败；申报了但不可核 / 解析不到触及文件 ⇒ F14b 红。
+    mutate(lambda c: c.update(round_files=c["round_files_all"], ext_files=[], external=[]), ["F14"])
+    mutate(lambda c: c.update(external_bad=["deadbee"]), ["F14b"])
+    mutate(lambda c: c.update(external=["deadbee"], ext_files=[]), ["F14b"])
+    chk("T25 own_of 三态：恒等（空申报）/ 剔除成员 / 非成员不得被剔除（历史 57/68/190）",
+        own_of(["a", "b"], []) == ["a", "b"] and own_of(["a", "b"], ["a"]) == ["b"]
+        and own_of(["a", "b"], ["zz"]) == ["a", "b"], "见条件")
+    # 跨工具同族守卫：两个工具对「归属归一」必须同语义（同一事实只有一种写法，历史 44）。
+    # 导入失败必须判红（不得静默跳过 —— 历史 98：守卫不可用 ≠ 守卫通过）。
+    try:
+        from independent import own_of as _own_ind
+        _same = _own_ind(["a", "b"], ["a"]) == own_of(["a", "b"], ["a"]) == ["b"]
+    except Exception:
+        _same = False
+    chk("T26 与 independent.py 的 own_of 同语义（归属归一只有一种写法，历史 44）", _same, "见条件")
     # T17 空上下文必须整体变红（空夹具判据，历史 128/132）
     empty = {k: (type(v)() if isinstance(v, (list, set, dict, str)) else v) for k, v in synth_ctx().items()}
     empty.update(csv_bytes=b"", csv_rows=[], hist_line="", state_sec="", dev_text="",
@@ -583,7 +640,12 @@ def main():
     if not re.fullmatch(r"[0-9a-f]{7,40}", MAIN):
         print("[FAIL] 主提交短号必填（第 2 个参数）")
         return 2
-    ctx = build_ctx(ROUND, MAIN)
+    n_ex = sum(1 for a in args if a == "--external-commit")
+    external = [args[i + 1] for i, a in enumerate(args) if a == "--external-commit" and i + 1 < len(args)]
+    if len(external) != n_ex:
+        print("[FAIL] --external-commit 缺参数值")
+        return 2
+    ctx = build_ctx(ROUND, MAIN, external)
     chk = evaluate(ctx)
     out = EV / ("final-check-%s.txt" % ROUND)
     L = ["%s 收尾核对（轮次无关装置：tools/round-verify/final-check.py）" % ROUND, "=" * 78,

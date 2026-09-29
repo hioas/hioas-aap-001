@@ -63,9 +63,14 @@ python tools/round-verify/final-check.py R491 <主提交短号>
 
 ```bash
 # 预跑（只回显，用于写要点文本时取读数）：相位 = 提交前（工作区未提交）
-python tools/round-verify/independent.py R491 --no-write --device-change <本轮装置改动文件>
+#   他方在本轮窗口内推进的提交 / 自主撤下的在途文件**必须显式申报**（判据 J1c/J5a/J5b/J5c/J5f 的前提）；
+#   申报项逐枚/逐条机器可核（提交须在 被测提交..HEAD 区间内 ∧ 主题不含本轮轮次号；撤下路径须在窗口起点快照里
+#   ∧ 已从快照消失 ∧ 不落在我方改动集合里），**未申报的外部活动照旧响亮失败**（历史 81/193/198）。
+python tools/round-verify/independent.py R491 --no-write --device-change <本轮装置改动文件> \
+       [--external-commit <他方提交短号>]... [--external-withdrawn <他方自主撤下的在途路径>]...
 # 落盘（相位 = 提交后：装置改动必须已在提交链里）：收尾时须用 `--extra independent-<轮次>.txt` 先登记
-python tools/round-verify/independent.py R491 --device-change <本轮装置改动文件>
+python tools/round-verify/independent.py R491 --device-change <本轮装置改动文件> \
+       [--external-commit <他方提交短号>]... [--external-withdrawn <他方自主撤下的在途路径>]...
 # 判别力自测（合成 ctx + 注入缺陷，断言「恰好新增目标判据」）
 python tools/round-verify/independent.py --selftest
 ```
@@ -95,8 +100,8 @@ python tools/round-verify/independent.py --selftest
 | `closeout.py <ROUND> --rework N --note <file>` | 收尾：写台账行 / `coverage-history.txt` 行 / 状态文件小节；数字全部由证据推出，内容级验收（8 列 + 描述逐字符相等 + 锚点 + 幂等）；`--device-change` 双向机器核对装置改动申报（申报了必须真有 / 未申报必须真零改动） |
 | `postwrite.py <ROUND> <主提交短号>` | 主提交落地核对：携带文件 / HEAD 树内 / 台账行逐列相等（c7 例外） |
 | `backfill-c7.py <ROUND> <主提交短号>` | 台账「提交」列回填（第 ⑦ 步）：写盘前与 `HEAD:` 逐记录逐列比对（只允许本轮行 c7 一处差异，其余差异响亮失败且零副作用），写盘后内容级验收（差异集合 / 记录数 / 物理行数 / 内嵌换行记录数 / CR 五连）+ 短号须是 HEAD 的祖先；`--selftest` = 20 条合成夹具判据（**不进 manifest 回归面**：它是写盘器；条数取自该自测的汇总行 `判据：PASS 20 / FAIL 0`，据实更正，勿再写旧口径）|
-| `final-check.py <ROUND> <主提交短号>` | 收尾一致性核对（F0–F18）：描述列 / history 行 / 状态小节 / 装置证据**四处同源**逐组相等 + 自述标记唯一 + 证据文件齐备（`--selftest` = **23** 例合成夹具判别力实测；该参数**仍需轮次实参**，用法 `python tools/round-verify/final-check.py <轮次> --selftest`） |
-| `independent.py <ROUND> [--device-change <路径>]... [--no-write]` | **独立复核探针**（只读、轮次无关；**不采信装置自身判定行**）：J1 facts/窗口 → J2 两轮**原始 maven 日志**独立解析 → J3 测试面（`@Test\b` 对账 ∧ 禁用扫描 0）→ J4 覆盖三处独立读数 → J5 交付面零改动（**相位感知**）+ 在途 mtime + worktree 回收 → J6 装置改动 == **申报集合**（双向逐文件点名）→ J7 证据齐备 ∧ 字节级 CR==0 → J8 装置目录轮次无关性 → J9 自证；落盘 `independent-<轮次>.txt`（收尾须 `--extra` 先登记）。`--selftest` = **47** 例（合成 ctx + 注入缺陷，断言「恰好新增目标判据」；含「窗口跨午夜（合法）必须不假失败」一条，用法 `python tools/round-verify/independent.py --selftest`）。**不进 manifest 回归面**（与 `regression.py --selftest` 同档：扩面须人拍板） |
+| `final-check.py <ROUND> <主提交短号> [--external-commit <短号>]...` | 收尾一致性核对（F0–F18 ＋ **F14b**：他方并发提交须显式申报且逐枚可核 —— 判据范围与语义一致，历史 81/193/198）：描述列 / history 行 / 状态小节 / 装置证据**四处同源**逐组相等 + 自述标记唯一 + 证据文件齐备（`--selftest` = **28** 例合成夹具判别力实测；该参数**仍需轮次实参**，用法 `python tools/round-verify/final-check.py <轮次> --selftest`） |
+| `independent.py <ROUND> [--device-change <路径>]... [--external-commit <短号>]... [--external-withdrawn <在途路径>]... [--no-write]` | **独立复核探针**（只读、轮次无关；**不采信装置自身判定行**）：J1 facts/窗口 → J2 两轮**原始 maven 日志**独立解析 → J3 测试面（`@Test\b` 对账 ∧ 禁用扫描 0）→ J4 覆盖三处独立读数 → J5 交付面零改动（**相位感知**）+ 在途归属（**J5h 直接不变量：我方改动集合 ∩ 窗口起点他方在途集合 == ∅**）+ worktree 回收 → J6 装置改动 == **申报集合**（双向逐文件点名）→ J7 证据齐备 ∧ 字节级 CR==0 → J8 装置目录轮次无关性 → J9 自证；落盘 `independent-<轮次>.txt`（收尾须 `--extra` 先登记）。**他方并发活动（窗口内推进的提交 / 自主撤下的在途文件）须显式申报且逐条可核**，未申报照旧响亮失败（历史 81/193/198）。`--selftest` = **56** 例（合成 ctx + 注入缺陷，断言「恰好新增目标判据」；含「窗口跨午夜（合法）必须不假失败」一条，用法 `python tools/round-verify/independent.py --selftest`）。**不进 manifest 回归面**（与 `regression.py --selftest` 同档：扩面须人拍板） |
 | `archive-temp-scripts.py` | 归仓：把仍住在 `$TEMP` 的抽查脚本逐字节存档进 `tools/regression/archive/`（`--check` 只读复核 / `--restore` 一键还原） |
 | `selftest-counts.py <ROUND>` | 装置 README 自测条数取证（**轮次无关**）：逐个执行装置工具的 `--selftest`（`sys.executable` + `cwd=仓库根`，不经 shell），从**汇总行**解析条数（两种体裁），与 README 自述逐条比对，不等即据实更正（写回后重读 ⇒ 判「已一致」＝幂等可重跑）+ 只读守卫（运行前后 `git status --porcelain` 逐行相同）→ `evidence/device-selftest-counts-<轮次>.txt`。取代此前只活在 `$TEMP` 的 aux 脚本（历史 169/177/216；该条数自述是纯数字盲区，历史 201/206）。`--selftest` = **15** 例（两种体裁解析 / 0 命中与多命中的判据失效 / 三态更正与幂等 / 完整性标记双向 / README 模式逐工具命中 1 次 / 上一轮次号推导 / 本文件轮次无关自证） |
 
@@ -113,9 +118,14 @@ python tools/round-verify/independent.py --selftest
   常驻红通道的 FAIL 明细恒为 0 ⇒ 「rc 没变、理由变了」只有第三类看得见；理由取**完整行集**（不截断、不只取末行，
   本仓实测该理由 4000+ 字符且变化落在中段），并配「旧写法在该注入下判绿」的反证（历史 98/187/218/219）。
 - 证据文件一律 `newline="\n"` 落盘（历史 69/84/146）。
-- **他方在本轮窗口内推进提交**时（`FACTS_HEAD_ADVANCED_COUNT > 0`）：④ 的 ③ 判据要求把该提交
-  用 `--external-commit <sha>` 显式申报（旧版把整个 `被测提交..HEAD` 当「本轮提交」⇒ 他方的交付面改动被误报，
-  判据范围与语义不符，历史 81/193/198）；`analyze` 的 A17 与本工具的分区行都会把该提交逐条留读。
+- **他方并发活动必须显式申报、且申报项逐条可核**（判据范围与语义一致，历史 81/193/198）：
+  ① 他方在本轮窗口内推进提交时（`FACTS_HEAD_ADVANCED_COUNT > 0`），④ `device-report.py`、⑦ `independent.py`、
+  ⑧ `final-check.py` **三处同族**都要用 `--external-commit <sha>` 申报（旧的「整个 `被测提交..HEAD` 都算本轮」
+  会把他方的交付面改动误报成本轮违规；申报须在区间内 ∧ 主题不含本轮轮次号）；
+  ② 他方**自主撤下**自己的在途文件（`git status` 起点有、终点没了 / 文件已不在磁盘）时，`independent.py` 用
+  `--external-withdrawn <路径>` 申报（须在窗口起点快照里 ∧ 已从快照消失 ∧ **不落在我方改动集合里**）；
+  ③ **未申报的外部活动照旧响亮失败** —— 豁免只放宽「他方自己的动作」，不放宽「我方碰了他方的活」
+  （后者由 J5h 直接判：我方改动集合 ∩ 窗口起点他方在途集合 == ∅）；`analyze` 的 A17/A23 会逐条留读。
 - 轮次会**跨午夜**（实测窗口 `23:56:59 → 00:02:04`）：facts 里 run 的起止只有 `HH:MM:SS`，**不要**按字符串比单调/串行 ——
   用 `resolve_window_seq()` 按窗口 ISO 边界解算**绝对时刻**（窗口 ≤6h ⇒ 合法落位唯一），并在窗口不可用/跨度异常时判**判据不可用**
   （不得判绿）。合法窗口被判「非单调」是**假失败**（历史 12/244）。

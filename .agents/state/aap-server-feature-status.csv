@@ -5632,3 +5632,67 @@ headers 0 / 0 ⇒ **0 新漂移**；money 留档 0 / 本轮 1 —— **该新增
 ③ 多项目共存：本轮**未使用浏览器**、**未按镜像名杀进程**、未触碰他方 worktree / CDP / 他方常驻 `spring-boot:run` 与 `newapi-stub` 进程；提交按**显式路径** `git add`（不做全量添加，历史 198）。
 ④ 观察项复核（只读）：他方在途 **D-BUILD-02** / **D-SETTLE-02** 仍未落库（`application.yml` 四子键 HEAD 各 0 / 工作区各 1；`exec-maven-plugin` HEAD 0 / 工作区 1；
    SecurityConfig 92 / 97 行）⇒ **相位差**、非缺陷、未触碰；远端 `git ls-remote origin main` 只读实测 main = `9fc47812`（未变）⇒ `9fc47812..HEAD` 待推送口径仍待拍板（待办 6）。",,evidence/audit-regression-R621-faildiff.txt；evidence/audit-regression-R621-failraw.txt；evidence/audit-regression-R621-rcseq.txt；evidence/audit-regression-R621.txt；evidence/device-round-R621.txt；evidence/device-selftest-counts-R621.txt；evidence/final-check-R621.txt；evidence/gap-evidence-orphan-R621.txt；evidence/gap-evidence-orphan-selftest-R621.txt；evidence/green-verify-R621-coverage-fields.txt；evidence/green-verify-R621-full-run1.txt；evidence/green-verify-R621-full-run2.txt；evidence/green-verify-R621-testcount.txt；evidence/green-verify-R621-tested-state.txt；evidence/independent-R621.txt；evidence/postwrite-check-R621.txt；evidence/regression-selftest-R621.txt；evidence/round-R621-analysis.txt；evidence/coverage-history.txt（追加 R621 行）,afef34c0
+R622,,,,"R622 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；本轮另含**装置侧改动**（tools/round-verify/README.md、tools/round-verify/final-check.py、tools/round-verify/independent.py —— 轮次无关的轮次校验装置（只读审计 + 留痕写入器），不触碰交付面；证据：工作区未提交 3 条 / 提交链自 3968ecce 起 0 枚提交触及 tools/））） · 清单 **117/117**（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 3968ecce**）连续第 **60** 轮全绿 · 两轮 **327 例 / 53 类** rc=0/0（串行 14:44:24→14:49:20，逐类 diff=0） · 回归面 **84 条** rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167，新增 0 / 消失 0） · 分析器 PASS 27 / FAIL 0 · registered_routes=134 · 本轮返工 **1 处**（装置侧） · 证据 17 条 · 一、性质与覆盖：本轮为**校验轮**（`missing == 0` ⇒ 按作业第 4 步「不改代码，只校验并报告」；基线 = 被测提交 = 窗口起点 HEAD `3968ecce`）。
+覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；15 族全齐：
+(空任务号) 18 · T03 6 · T04 5 · T05 7 · T06 6 · T07 4 · T08 11 · T09 6 · T10 5 · T11 11 · T12 4 · T13 3 · T14 22 · T15 3 · T17 6（族和 117 = total，内容级核对）。
+本轮**交付面零改动**（被测提交..HEAD 无触及交付面的提交；worktree 与 HEAD 差异 0 行）；**装置面改动 3 个文件**（见六）。
+
+二、两轮全量（**串行**，在 HEAD 的独立 detached worktree 内）：`WT_DIRTY_LINES=0` ⇒ 跑的是**提交态**；
+窗口 14:44:00→14:49:24，run1 14:44:24→14:47:02、run2 14:47:02→14:49:20，各 **327 例 / 53 类**、rc=0/0、
+Failures-Errors-Skipped = 0-0-0、两轮 `BUILD SUCCESS` 均为真、**逐类 diff = 0**；`@Test` 词边界计数 **327 == surefire 合计 327**
+（裸子串 329 作对照，差 2 = `@TestConfiguration`/`@TestPropertySource`）；归档测试源 **59** 个 `.java`；禁用扫描 **0 条**（未削弱测试）。
+用例数由上一轮的 316 → **327**（+11）、类数 51 → **53**（+2）、测试源 57 → 59：全部来自**进入被测提交树**的他方提交
+`719d3088`（`ConfigApplyRateLimiterTest` 6 例、`ReadbackComparatorTest` 5 例）—— 口径自洽（类级和 327 == 合计 327）。
+并发前置双向对照 pos=2/2、neg=0/2（CLEAR，`PREFLIGHT_OK=1`）；环境指纹 bash=/usr/bin/bash · MINGW64_NT-10.0-26100 · jps 可达 Y；
+worktree add/remove rc 均 0、已回收。maven 自述耗时两轮**同为** `mm:ss min`（155 / 136 秒）⇒ 按历史 176-② **不得**声称
+「双写法修复有效」，据实写「本轮**未复现**另一种写法」（双形态的判别力由 `--selftest` 的合成对照给出）。连续全绿 = **第 60 轮**。
+
+三、他方并发活动：本轮 `FACTS_HEAD_ADVANCED_COUNT=0`（窗口起点 = 终点 = `3968ecce`）⇒ **窗口内零推进**、无待申报提交。
+主体仓库在途未提交改动 **7 条**，mtime 全部**早于**窗口起点（最近两条 14:00:18 / 14:04:20 属**上一轮**窗口）⇒ 落窗 **0 条**（A23）。
+未触碰任何在途文件；本轮未使用浏览器、未按镜像名杀进程、未 attach 他方 CDP、未触碰他方常驻进程与 worktree。
+
+四、回归面（命令表 = 仓库内单一事实源 `tools/round-verify/manifest.json`，84 条 = 43 审计 + 41 负向自测）：**rc 变化 0 条 / 新增 0 / 未复跑 0**（rc=0 39/84）；
+FAIL 明细 43 个脚本 **167 行**；跨轮 faildiff **167 → 167（新增 0 / 消失 0）**；**零写副作用**（生成物快照 size+md5 运行前后全等，变化 0 个）；
+崩溃通道（`rc!=0 ∧ FAIL 0 行`）2 条，其**完整理由行集 sha256 与上一轮逐字节一致**（可比通道 2 条 / 理由变化 0 条）；
+归仓耐久性守卫**异常 2 条**（沿用登记项 ㊱「归档与在用脚本分叉」，非本轮新增）。
+
+五、装置链读数：analyze **PASS 27 / FAIL 0**（A0a–A25）· regression `--selftest` **26 PASS / 0 FAIL** ·
+③b `selftest-counts` 逐工具条数（regression 26 / final-check **28** / independent **56** / backfill-c7 20 / device-report 13 / selftest-counts 15）与 README **逐项一致、更正 0 处**、只读守卫 True ·
+④ device-report 三判据齐备 · ⑤ 收尾内容级验收 · ⑥ postwrite 逐列差异见证据 · ⑦ 回填（短号须为 HEAD 祖先）· ⑧ final-check（F0–F18 + F14b）· 独立复核（J1–J9）。
+**本轮装置链返工真值 = 1 处**（范围 = ① 执行器 → ② 分析器 → ③ 回归面 → ③b 自测条数 → ④ 装置证据 → ⑤ 收尾 → ⑥ 主提交核对 → ⑦ 回填 → ⑧ 一致性核对 ＋ 独立复核）；
+① 处 = 六 的 J5f 豁免对象带后缀（由**真实数据回放**在写证据之前当场抓出，未进任何证据文件）。其余各步一次通过：无脚本崩溃、无锚点 0 命中、无计数不符。
+绿相位自洽：两轮 rc=0/0 ∧ missing=0 ⇒ 已判 FAIL 条数 == 0（A24）；在途改动 mtime 落窗 = **0**（A23）。
+
+六、**本轮装置面改动（待办 65 落地）= 他方并发活动的「显式申报 + 逐条可核」三处同族参数化**（改动 3 个文件：
+`tools/round-verify/independent.py`、`tools/round-verify/final-check.py`、`tools/round-verify/README.md`）。
+动机（判据范围与语义一致，历史 81/193/198）：R621 那一轮 6 条常驻 FAIL **全部**源于「他方在窗口内推进 1 枚提交 / 他方自主撤下 1 个在途文件」
+把「零推进 / 零改动 / 原样保留 / mtime 早于窗口」这几条判据的**前提**打破 —— 那不是本轮违规，但**也不能靠人眼放行**。
+做法：① 提交级 `--external-commit <sha>` 在 `independent.py` / `final-check.py` 与既有的 `device-report.py` **同族**落地
+（申报须在 `被测提交..HEAD` 区间内 ∧ 主题不含本轮轮次号）；② 在途文件级 `--external-withdrawn <路径>`（须「在窗口起点快照里
+∧ 已从快照消失 ∧ **不落在我方改动集合里**」）；③ 新增**直接不变量 J5h**：我方改动集合 ∩ 窗口起点他方在途集合 == ∅
+（比快照差集更贴语义 —— 差集判据把他方**自己的**动作算成我方违规）；④ **未申报的外部活动照旧响亮失败**（豁免只放宽他方自己的动作）。
+真实返工 1 处（本轮）：J5f 的豁免集合是**原始路径**，而 `late` 项原先存成「路径 + （不可读）后缀」⇒ 比对恒不命中、合法态照样报红
+（历史 218/225：判据里的字符串必须与**对象同形**）；已把「不可读」拆成并列读数 `inflight_late_unread`，并抽出纯函数 `late_unexplained`
+＋回归守卫 `T-EXT3`（**带后缀的对象必须豁免失效**，即旧写法指纹）。该缺陷由**真实数据回放**（下述）在写证据之前抓出。
+验证（**真实数据回放**，非合成）：对上一轮 R621 的 facts/日志/快照重跑判别力 ——
+① **不申报**：`independent.py R621 … --no-write` = **36 PASS / 5 FAIL**，恰好复现 J1c / J5a / J5b / J5c / J5f（**牙齿未拔**）；
+② **申报** `--external-commit 719d3088 --external-withdrawn …SupplyUnitService.java` = **41 PASS / 0 FAIL**（装置改动集合按实得补全）；
+final-check 同族：`final-check.py R621 afef34c0`（不申报）F14 红、加 `--external-commit 719d3088` 后 **F14 转绿**（回放相位下另有 F10/F11/F15 三条红，
+根因为 R621 的状态小节标题在其**收尾后补记**提交里被写了两遍 —— 回放旧轮次必然看到 2 个标题，属**回放相位态**、非本轮缺陷；
+已把该重复标题登记为观察项）。回放全程 `--no-write` / 立即 `git checkout --` 还原归档证据（还原后 `git status` 对该文件 0 行）。
+判别力自测：`independent.py --selftest` **56 PASS / 0 FAIL**（47 → +9：6 条注入 + 3 条纯函数三/四态）、`final-check.py --selftest` **28 PASS / 0 FAIL**（23 → +5）。
+**如实说明**：本轮窗口内无他方并发活动 ⇒ 新判据在**本轮真实输入上未被触发**（按历史 176-② 只写「本轮未复现该输入」，
+其有效性由**上一轮真实数据回放** + 判别力自测双向证明，不写成「已验证有效」）。
+
+七、主动核对（**只读**；常驻探针为轮次无关工具 ⇒ 「每轮机械派生 aux 脚本」整族缺陷本轮结构性不存在）：
+① 台账轮次连续性（常驻 `$TEMP/aap-aux/ledger-audit.py R622 R621`，收尾前为预期相位态，收尾后应转满盘）：轮次行 / 记录数 / 列数异常 0 / CR 0，
+   `coverage-history.txt` CR 0、末条 = 上一轮。
+② 安全三闸（在回归面 84 条内，rcseq 逐条可查）：`secret-leak` rc=0（Tier A 0 命中）/ `evidence-secrets` rc=0 / `secret-leak-selftest` rc=0；提交前敏感值自检 0 命中（未串 `&&` 链，历史 137）。
+③ 多项目共存：见 三 末段（未触碰他方任何资源）；提交按**显式路径** `git add`（不做全量添加，历史 198）。
+④ 观察项复核（只读）：他方在途 D-BUILD-02 / D-SETTLE-02 仍未落库（`application.yml` 四子键 HEAD 各 0 / 工作区各 1；`exec-maven-plugin` HEAD 0 / 工作区 1）
+   ⇒ **相位差**、非缺陷、未触碰；远端 `git ls-remote origin main` 只读实测 main 仍为 `9fc47812` ⇒ `9fc47812..HEAD` 待推送口径仍待拍板。
+⑤ 新增观察项：`aap-server-tdd-state.md` 里 `### R621 巡检轮…` 标题出现 **2 次**（R621 的收尾后补记沿用了同一标题形态）——
+   影响面仅「回放旧轮次的 final-check 会把状态小节判成 2 条」（实时轮次不受影响，因为核对发生在补记之前）；本轮未改历史文本，登记待拍板。
+
+八、下一族：清单已 100% 注册 ⇒ 方向仍是 ① 上游执行器 T-M4-08~11（限速 / 写后回读 / 单模型隔离与回滚）；② 端到端联调（`aap-client` / `aap-admin` 指向本服务取数）。
+本轮为校验轮，未推进交付面。",,evidence/audit-regression-R622-faildiff.txt；evidence/audit-regression-R622-failraw.txt；evidence/audit-regression-R622-rcseq.txt；evidence/audit-regression-R622.txt；evidence/device-round-R622.txt；evidence/device-selftest-counts-R622.txt；evidence/final-check-R622.txt；evidence/green-verify-R622-coverage-fields.txt；evidence/green-verify-R622-full-run1.txt；evidence/green-verify-R622-full-run2.txt；evidence/green-verify-R622-testcount.txt；evidence/green-verify-R622-tested-state.txt；evidence/independent-R622.txt；evidence/postwrite-check-R622.txt；evidence/regression-selftest-R622.txt；evidence/round-R622-analysis.txt；evidence/coverage-history.txt（追加 R622 行）,

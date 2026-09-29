@@ -3,7 +3,8 @@
 """独立复核探针（**轮次无关**、**只读**；不采信装置自身的判定行）。
 
 用法：
-  python tools/round-verify/independent.py <轮次> [--device-change <路径>]... [--no-write]
+  python tools/round-verify/independent.py <轮次> [--device-change <路径>]...
+         [--external-commit <他方提交短号>]... [--external-withdrawn <他方自主撤下的在途路径>]... [--no-write]
   python tools/round-verify/independent.py --selftest
 
 为什么有它
@@ -31,6 +32,13 @@
 * J7 本轮核心证据齐备 ∧ 字节级 CR == 0（历史 69/84/146）
 * J8 装置目录轮次无关性（当前轮次号不得出现在装置源码里；判别力对照 = 1）
 * J9 本工具的轮次无关性自证（源码内零当前轮次号字面量）
+
+**他方并发活动的处理**（判据范围必须与语义一致，历史 81/193/198）：他方在本轮窗口内推进的提交、或他方自主撤下的
+在途文件，会把「零推进 / 零改动 / 原样保留 / mtime 早于窗口」这几条判据的**前提**打破 —— 那不是本轮的违规，
+但也不能靠人眼放行。正解是**显式申报 + 逐条可核**：`--external-commit`（他方提交，须落在 `被测提交..HEAD` 区间内
+∧ 主题不含本轮轮次号）、`--external-withdrawn`（他方自主撤下的在途路径，须「在窗口起点快照里 ∧ 已从快照消失
+∧ 不落在我方改动集合里」）。**未申报的外部活动照旧响亮失败**；核心不变量由 J5h 直接判：
+**我方改动集合 ∩ 窗口起点他方在途集合 == ∅**。
 
 相位（`--phase` 由 git 事实**推导**，不手写）：主提交之前 = 「工作区未提交」，之后 = 「提交链 N 枚」。
 """
@@ -226,6 +234,37 @@ def phase_and_touched(n_commits, commit_files, worktree_files, inflight):
     return "提交后（提交链 %d 枚）" % n, sorted(set(commit_files) | set(left))
 
 
+def own_of(all_files, ext_files):
+    """归属归一（纯函数，入参 = 文本列表）：把**已申报他方提交**触及的文件从区间改动集合里剔除。
+
+    判据是**集合差**，且必须只对**成员**生效：`ext_files` 里的非成员项不得改动集合 —— 否则「申报」
+    就能凭空剔除任意路径、把守卫架空（历史 57/68/190：豁免必须被机器判据夹住）。空申报时恒等
+    （零外部活动轮次的口径完全不变，历史 208 的可重跑性）。
+    """
+    ext = set(ext_files)
+    return sorted(x for x in all_files if x not in ext)
+
+
+def ext_commits_ok(n_advanced, declared, bad):
+    """窗口内 HEAD 推进数 == 已申报他方提交数 ∧ 申报项逐枚可核（纯函数，历史 66/94）。
+
+    `bad` = 不可核的申报项（不在 `被测提交..HEAD` 区间内 ∧ 或主题含本轮轮次号）。
+    三态：零推进 + 零申报 = 合法；推进了却未申报 = 红；申报了却不可核 = 红。
+    """
+    return int(n_advanced or 0) == len(declared) and not bad
+
+
+def late_unexplained(late, declared, ext_files, withdrawn):
+    """J5f 的判据对象（纯函数）：落在窗口内的在途项 ∖ 已解释项（申报装置改动 ∪ 他方提交触及 ∪ 他方自主撤下）。
+
+    形状纪律（本轮真实返工，历史 218/225）：判据对象与豁免集合必须**同形** —— 不可读项若存成
+    「路径 + （不可读）后缀」，豁免比对恒不命中，合法态照样报红。故 `late` 一律存**原始路径**，
+    「不可读」只作为并列读数（`inflight_late_unread`）。
+    """
+    ex = set(declared) | set(ext_files) | set(withdrawn)
+    return [p for p in late if p not in ex]
+
+
 # 窗口时刻解算 = 装置内**共享**纯函数（`windowtime.py`）：轮次会跨午夜，按 HH:MM:SS 字符串比单调/串行
 # 会把合法窗口判成「非单调」（假失败，历史 12/244）。单一事实源，`analyze.py` A5 共用同一份（历史 44/191）。
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -250,11 +289,11 @@ def evaluate(ctx):
     add("J1b facts 轮次 == 本轮 ∧ 完成标记",
         facts.get("FACTS_ROUND") == R and facts.get("FACTS_WRITTEN") == "1",
         "ROUND=%r WRITTEN=%r" % (facts.get("FACTS_ROUND"), facts.get("FACTS_WRITTEN")))
-    add("J1c 窗口内 HEAD 零推进",
-        facts.get("FACTS_HEAD_AT_START_FULL") == facts.get("FACTS_HEAD_AT_END_FULL")
-        and facts.get("FACTS_HEAD_ADVANCED_COUNT") == "0",
-        "advanced=%s（%s -> %s）" % (facts.get("FACTS_HEAD_ADVANCED_COUNT"), facts.get("FACTS_HEAD_AT_START"),
-                                    facts.get("FACTS_HEAD_AT_END")))
+    add("J1c 窗口内 HEAD 推进数 == 已申报他方提交数 ∧ 申报项逐枚可核（他方并发活动须显式申报，历史 193/198）",
+        ext_commits_ok(facts.get("FACTS_HEAD_ADVANCED_COUNT"), ctx["external"], ctx["external_bad"]),
+        "advanced=%s 申报他方提交=%s 不可核=%s（%s -> %s）"
+        % (facts.get("FACTS_HEAD_ADVANCED_COUNT"), ctx["external"] or "无", ctx["external_bad"] or "无",
+           facts.get("FACTS_HEAD_AT_START"), facts.get("FACTS_HEAD_AT_END")))
     add("J1d 被测提交 == 窗口起点 HEAD ∧ worktree 零脏行",
         facts.get("FACTS_TESTED_COMMIT") == facts.get("FACTS_HEAD_AT_START") and facts.get("WT_DIRTY_LINES") == "0",
         "tested=%s head=%s dirty=%s" % (facts.get("FACTS_TESTED_COMMIT"), facts.get("FACTS_HEAD_AT_START"),
@@ -371,15 +410,30 @@ def evaluate(ctx):
             "repo=%s arch=%s" % ((cr_ or {}).get("total"), ca["total"]))
 
     # ---------- J5 交付面 / 在途 / worktree ----------
-    add("J5a 被测提交..HEAD 触及交付面的提交 == 0", ctx["delivery_commits"] == 0,
-        "count=%d（被测提交=%s）" % (ctx["delivery_commits"], facts.get("FACTS_TESTED_COMMIT")))
+    add("J5a 我**方**提交（被测提交..HEAD ∖ 已申报他方提交）触及交付面的提交 == 0",
+        ctx["delivery_commits"] == 0,
+        "count=%d（区间内触及交付面 %d 枚，其中申报他方 %d 枚；被测提交=%s）"
+        % (ctx["delivery_commits"], ctx["delivery_commits_all"], len(ctx["external"]),
+           facts.get("FACTS_TESTED_COMMIT")))
     bad_files = [x for x in ctx["round_touched"] if x.startswith(DELIVERY_PREFIXES)]
-    add("J5b 本轮改动集合不含交付面前缀（相位 = %s）" % ctx["phase"],
+    add("J5b 我方改动集合不含交付面前缀（相位 = %s）" % ctx["phase"],
         bool(ctx["round_touched"]) and not bad_files,
         "改动 %d 个 / 越界 %d 个 %s" % (len(ctx["round_touched"]), len(bad_files), bad_files[:5]))
-    add("J5c 快照差集方向一：窗口起点快照里的他方在途条目**原样保留**（须 0 条消失；正向对照 在途 > 0）",
-        len(ctx["inflight"]) > 0 and not ctx["inflight_gone"],
-        "在途 %d 条 / 消失或改动 %s" % (len(ctx["inflight"]), ctx["inflight_gone"] or "0 条"))
+    # J5h = **直接不变量**：我方提交链改动文件 ∩ 窗口起点他方在途集合 == ∅（须 0 条交集）。
+    # 它比下面的快照差集更贴语义：差集判据会把**他方自己的**活动（撤下自己的在途文件）算成我方违规
+    # （判据范围与语义不符，历史 81/193/198）。正向对照要求**两侧都非空**，否则 `∩ = ∅` 是空转假绿（历史 98）。
+    overlap = sorted(set(ctx["own_commit_files"]) & set(ctx["inflight"]))
+    add("J5h 我方改动集合 ∩ 窗口起点他方在途集合 == ∅（正向对照：我方改动 > 0 ∧ 在途 > 0）",
+        bool(ctx["own_commit_files"]) and len(ctx["inflight"]) > 0 and not overlap,
+        "我方 %d 个 / 在途 %d 个 / 交集 %s" % (len(ctx["own_commit_files"]), len(ctx["inflight"]), overlap or "0 条"))
+    # 差集方向一：他方在途条目的消失/改动**必须显式申报**（`--external-withdrawn`），且申报项逐条可核
+    # （「在窗口起点快照里 ∧ 已从快照消失 ∧ 不落在我方改动集合里」三条件缺一即不可核）。未申报 ⇒ 照旧红。
+    gone_bad = [p for p in ctx["inflight_gone"] if p not in set(ctx["ext_withdrawn"])]
+    add("J5c 快照差集方向一：消失/改动的在途条目**全部已申报**（他方自主撤下须显式申报；须 0 条未申报 ∧ 0 条不可核申报）",
+        len(ctx["inflight"]) > 0 and not gone_bad and not ctx["ext_withdrawn_bad"],
+        "在途 %d 条 / 消失 %s / 已申报撤下 %s / 未申报 %s / 不可核申报 %s"
+        % (len(ctx["inflight"]), ctx["inflight_gone"] or "0 条", ctx["ext_withdrawn"] or "无", gone_bad or "无",
+           ctx["ext_withdrawn_bad"] or "无"))
     add("J5d 快照差集方向二：新增条目**全部**落在本轮自己的前缀（留痕 / 装置）内（须 0 条越界）",
         bool(ctx["status_paths_after"]) and not ctx["inflight_foreign"],
         "新增 %d 条%s / 越界 %s" % (len(ctx["inflight_added"]),
@@ -393,10 +447,11 @@ def evaluate(ctx):
                                       "本判据不适用（由 J5c/J5d 给出双向归属核对）"
                                       if ctx["declared"] else "快照相等 = %s"
                                       % (ctx["status_before"] == ctx["status_after"])))
-    add("J5f 在途改动 mtime 全部早于窗口起点（对象 = 窗口起点快照；**本轮已申报的装置改动除外**）",
+    add("J5f 在途改动落在窗口内的条目**全部已解释**（本轮申报的装置改动 / 他方提交触及 / 他方自主撤下；未解释 ⇒ 红）",
         ctx["window_start_ts"] > 0 and len(ctx["inflight"]) > 0 and not ctx["inflight_late_eff"],
-        "在途 %d 条 / 落在窗口内（已剔除本轮申报的装置改动 %d 条）%s"
-        % (len(ctx["inflight"]), len(ctx["inflight_late_exempt"]), ctx["inflight_late_eff"] or "0 条"))
+        "在途 %d 条 / 落在窗口内（已剔除申报项：装置 %d ＋ 他方提交触及 %d ＋ 自主撤下 %d；其中「文件已不在磁盘」%d 条）%s"
+        % (len(ctx["inflight"]), len(ctx["inflight_late_exempt"]), len(ctx["ext_files"]),
+           len(ctx["ext_withdrawn"]), len(ctx["inflight_late_unread"]), ctx["inflight_late_eff"] or "0 条"))
     add("J5g 本轮临时 worktree 已回收（磁盘不存在 ∧ git 未登记）",
         ctx["wt_path"] != "" and not ctx["wt_exists"] and ctx["wt_path"] not in ctx["wt_list"],
         "path=%s exists=%s listed=%s" % (ctx["wt_path"], ctx["wt_exists"], ctx["wt_path"] in ctx["wt_list"]))
@@ -439,45 +494,74 @@ def evaluate(ctx):
 
 
 # ============================ 真实上下文 ============================
-def build_ctx(ROUND, declared):
+def build_ctx(ROUND, declared, external=(), withdrawn=()):
     W = T / "aap-round-verify" / ROUND
     facts = parse_facts(rd_text(W / ("facts-%s.log" % ROUND)))
     tested = facts.get("FACTS_TESTED_COMMIT", "HEAD")
+    # ---- 他方并发活动：显式申报 + 逐枚/逐条可核（未申报的外部活动照旧响亮失败，历史 81/193/198） ----
+    ext_files, ext_bad = [], []
+    for s in external:
+        a_in, _, _ = sh("merge-base", "--is-ancestor", s, "HEAD")      # 必须是 HEAD 的祖先
+        a_old, _, _ = sh("merge-base", "--is-ancestor", s, tested)     # 但**不得**落在被测提交及更早
+        _, subj, _ = sh("log", "-1", "--format=%s", s)
+        if a_in != 0 or a_old == 0 or (ROUND in subj):
+            ext_bad.append(s)
+            continue
+        _, fs, _ = sh("show", "--name-only", "--format=", s)
+        ext_files.extend(x.strip() for x in fs.splitlines() if x.strip())
+    ext_files = sorted(set(ext_files))
+    ext_short = [s[:7] for s in external]
     # 相位判定的**判据范围**：`<被测提交>..HEAD` 的**全部路径**提交数（历史 81/141/175）。
     # 只看 `-- tools/` 会让「装置面与交付面均零改动」的轮次在**提交后**仍被判成「提交前」，
     # 于是它去读已清空的工作区得到空集合，而 J5b 把空集合判成「判据不可用」⇒ 对合法状态报假失败。
+    # 「本轮**自己的**提交数」= 区间提交数 ∖ 已申报他方提交（他方提交不发源于本轮）。
     _, out_c, _ = sh("rev-list", "--count", "%s..HEAD" % tested)
     _, files_c, _ = sh("diff", "--name-only", "%s..HEAD" % tested)
     _, files_t, _ = sh("diff", "--name-only", "%s..HEAD" % tested, "--", "tools/")
     _, out_w, _ = sh("status", "--porcelain", "--", "tools/")
     dirty = sorted(ln[3:].strip().strip('"') for ln in out_w.splitlines() if ln.strip())
-    committed = sorted(x.strip() for x in files_t.splitlines() if x.strip())
     ncc = int(out_c.strip() or "0")
+    all_commit_files = sorted(x.strip() for x in files_c.splitlines() if x.strip())
+    own_commit_files = own_of(all_commit_files, ext_files)      # 归属归一（纯函数：只对成员生效）
+    n_own = max(0, ncc - len([s for s in external if s not in ext_bad]))
+    committed = sorted(x.strip() for x in files_t.splitlines() if x.strip() and x.strip() not in set(ext_files))
     sb = rd_text(W / "root-status-before.txt")
     sa = rd_text(W / "root-status-after.txt")
     inflight = status_paths(sb)
     phase, round_touched = phase_and_touched(
-        ncc, [x.strip() for x in files_c.splitlines() if x.strip()],
-        status_paths(sh("status", "--porcelain")[1]), inflight)
+        n_own, own_commit_files, status_paths(sh("status", "--porcelain")[1]), inflight)
     # 装置面改动取**并集**（工作区未提交 ∪ 提交链），与 `closeout.py` 的同一判据同源 ——
     # 提交后仍留未提交的 tools/ 改动时不能被静默漏掉（历史 81/195）。
     device_actual = sorted(set(committed) | set(dirty)) if ncc else dirty
-    _rc, out_d, _ = sh("rev-list", "--count", "%s..HEAD" % tested, "--", "aap-server/", "docs/", "aap-client/")
-    delivery_commits = int(out_d.strip() or "0") if _rc == 0 else -1
+    _dlrc, out_d, _ = sh("rev-list", "%s..HEAD" % tested, "--", "aap-server/", "docs/", "aap-client/")
+    all_delivery = [x.strip() for x in out_d.splitlines() if x.strip()] if _dlrc == 0 else []
+    own_delivery = [c for c in all_delivery
+                    if not any(c.startswith(s) or s.startswith(c) for s in ext_short)]
+    delivery_commits = len(own_delivery) if _dlrc == 0 else -1
+    delivery_commits_all = len(all_delivery)
     wtp = facts.get("WORKTREE_PATH", "")
     _, wtl, _ = sh("worktree", "list", "--porcelain")
     ws_ts = int(facts.get("FACTS_WINDOW_START_TS", "0") or "0")
-    late = []
+    late, late_unread = [], []
     for p in inflight:
         try:
             if (ROOT / p).stat().st_mtime > ws_ts:
                 late.append(p)
         except OSError:
-            late.append(p + "（不可读）")
+            # 不可读（文件已不在磁盘上）= 他方在窗口内撤下自己的在途文件，与「mtime 落在窗口内」同类。
+            # 判据对象一律存**原始路径**（不带后缀）：后缀会让 J5f 的申报豁免比对恒不命中
+            # （「判据里的字符串必须与对象同形」，历史 218/225）。
+            late.append(p)
+            late_unread.append(p)
     after_paths = status_paths(sa)
     gone = sorted(set(inflight) - set(after_paths))
     added = sorted(set(after_paths) - set(inflight))
     foreign = [p for p in added if not p.startswith(MY_PREFIXES)]
+    # 他方自主撤下的申报必须**三条件可核**：① 在窗口起点快照里 ② 已从快照消失 ③ **不落在我方改动集合里**。
+    # 第 ③ 条才是牙齿：若我方提交/改动了该路径，申报必须被驳回（否则「申报」可架空 J5c，历史 57/68/190）。
+    own_changes = set(own_commit_files) | set(round_touched)
+    wd_bad = [p for p in withdrawn
+              if not (p in inflight and p not in after_paths and p not in own_changes)]
     ev_disk = set(p.name for p in EV.iterdir() if p.is_file())
     ev_cr = {}
     for nm in evidence_core(ROUND):
@@ -500,16 +584,23 @@ def build_ctx(ROUND, declared):
         "cov_repo": proj_cov(json_or_none(EV / "coverage-report.json")),
         "ep": json_or_none(ROOT / "docs/backend/endpoints.json"),
         "status_before": sb, "status_after": sa, "inflight": inflight, "inflight_late": late,
-        # J5f 的**判据范围**：本轮**已申报**的装置改动按定义会在窗口内落地，不能与他方在途混谈
-        # （判据范围必须与语义一致，历史 81/193/195）；豁免 = 申报集合的子集（机器核对，不是人列举）。
-        "inflight_late_eff": [p for p in late if p not in set(declared)],
+        "inflight_late_unread": late_unread,
+        # J5f 的**判据范围**：本轮**已申报**的装置改动、他方提交触及的文件、他方自主撤下的在途路径
+        # 按定义会在窗口内落地/变化，不能与他方在途的「未解释」项混谈（判据范围必须与语义一致，
+        # 历史 81/193/195）；豁免 = 申报集合的子集（机器核对，不是人列举）。
+        "inflight_late_eff": late_unexplained(late, declared, ext_files, withdrawn),
         "inflight_late_exempt": [p for p in late if p in set(declared)],
         "status_paths_after": after_paths, "inflight_gone": gone, "inflight_added": added,
         "inflight_foreign": foreign,
         "window_start_ts": ws_ts,
         "wt_path": wtp, "wt_exists": bool(wtp) and Path(wtp).exists(), "wt_list": wtl,
         "device_actual": device_actual, "declared": list(declared), "phase": phase,
-        "delivery_commits": delivery_commits, "round_touched": round_touched,
+        "external": [s for s in external if s not in ext_bad], "external_bad": ext_bad,
+        "ext_files": ext_files,
+        "ext_withdrawn": [p for p in withdrawn if p not in wd_bad], "ext_withdrawn_bad": wd_bad,
+        "own_commit_files": own_commit_files,
+        "delivery_commits": delivery_commits, "delivery_commits_all": delivery_commits_all,
+        "round_touched": round_touched,
         "ev_disk": ev_disk, "ev_cr": ev_cr,
         "dev_hits": dev_hits, "dev_scanned": dev_scanned, "dev_teeth": teeth,
         "self_src": rd_text(DEV_DIR / "independent.py"),
@@ -591,10 +682,14 @@ def synth_ctx():
         "status_paths_after": ["README.md", "aap-server/pom.xml", "tools/round-verify/independent.py"],
         "inflight_gone": [], "inflight_added": ["tools/round-verify/independent.py"], "inflight_foreign": [],
         "inflight": ["README.md", "aap-server/pom.xml"], "inflight_late": [], "window_start_ts": 1000,
+        "inflight_late_unread": [],
         "inflight_late_eff": [], "inflight_late_exempt": [],
         "wt_path": "C:/tmp/合成worktree-%s" % SYNTH_R, "wt_exists": False, "wt_list": "",
         "device_actual": list(dev), "declared": list(dev), "phase": "提交前（工作区未提交）",
-        "delivery_commits": 0,
+        "external": [], "external_bad": [], "ext_files": [],
+        "ext_withdrawn": [], "ext_withdrawn_bad": [],
+        "own_commit_files": dev + [".agents/state/evidence/round-%s-analysis.txt" % SYNTH_R],
+        "delivery_commits": 0, "delivery_commits_all": 0,
         "round_touched": dev + [".agents/state/evidence/round-%s-analysis.txt" % SYNTH_R],
         "ev_disk": set(names), "ev_cr": {n: 0 for n in names},
         "dev_hits": 0, "dev_scanned": 9, "dev_teeth": 1,
@@ -801,6 +896,36 @@ def selftest():
         run1=parse_run(SYNTH_RUN_RED.replace("Failures: 1, Errors: 0", "Failures: 0, Errors: 0")),
         run2=parse_run(SYNTH_RUN_RED.replace("Failures: 1, Errors: 0", "Failures: 0, Errors: 0"))), ["J2b"])
 
+    # ---- 他方并发活动的申报语义（判据范围与语义一致，历史 81/193/198/227） ----
+    # 正向对照（expect 空）：已申报且逐枚可核 = 合法态，必须**不新增 FAIL**；反例则必须**恰好点名**目标判据。
+    mutate("已申报他方提交且逐枚可核（合法态，正向对照：不新增 FAIL）",
+           lambda c: c.update(facts=dict(c["facts"], FACTS_HEAD_ADVANCED_COUNT="1"),
+                              external=["deadbee"], external_bad=[], delivery_commits=0), [])
+    mutate("申报项不可核（不在区间内 / 主题含本轮轮次号）",
+           lambda c: c.update(facts=dict(c["facts"], FACTS_HEAD_ADVANCED_COUNT="1"),
+                              external=["deadbee"], external_bad=["deadbee"]), ["J1c"])
+    mutate("在途条目消失但**未申报**（原「原样保留」判据的牙齿仍在）",
+           lambda c: c.update(inflight_gone=["aap-server/X.java"]), ["J5c"])
+    mutate("在途条目消失且已申报他方自主撤下（合法态，正向对照：不新增 FAIL）",
+           lambda c: c.update(inflight_gone=["aap-server/X.java"], ext_withdrawn=["aap-server/X.java"],
+                              ext_withdrawn_bad=[]), [])
+    mutate("申报撤下但该路径落在我方改动集合里（不可核 ⇒ 必须转红，豁免不得被架空）",
+           lambda c: c.update(inflight_gone=["aap-server/X.java"], ext_withdrawn=["aap-server/X.java"],
+                              ext_withdrawn_bad=["aap-server/X.java"]), ["J5c"])
+    mutate("我方提交文件落在窗口起点他方在途文件上（J5h 直接不变量）",
+           lambda c: c.update(own_commit_files=list(c["own_commit_files"]) + ["aap-server/pom.xml"]), ["J5h"])
+    chk("T-EXT1 own_of 三态：恒等（空申报）/ 剔除成员 / 非成员不得被剔除（历史 57/68/190）",
+        own_of(["a", "b"], []) == ["a", "b"] and own_of(["a", "b"], ["a"]) == ["b"]
+        and own_of(["a", "b"], ["zz"]) == ["a", "b"], "见条件")
+    chk("T-EXT2 ext_commits_ok 四态：零/合法/未申报/不可核",
+        ext_commits_ok(0, [], []) and ext_commits_ok(1, ["s"], [])
+        and not ext_commits_ok(1, [], []) and not ext_commits_ok(0, ["s"], ["s"]), "见条件")
+    # 本轮真实返工的回归守卫：J5f 的豁免必须与 `late` 项**同形**（不可读项存原始路径）。
+    chk("T-EXT3 late_unexplained 三态：未解释原样 / 已申报撤下豁免 / **带后缀的对象豁免失效**（旧写法指纹）",
+        late_unexplained(["a"], [], [], []) == ["a"]
+        and late_unexplained(["a"], [], [], ["a"]) == []
+        and late_unexplained(["a（不可读）"], [], [], ["a"]) == ["a（不可读）"], "见条件")
+
     ok = sum(1 for _, c, _ in res if c)
     for name, c, info in res:
         print("  [%s] %s%s" % ("PASS" if c else "FAIL", name, (" " + info) if info else ""))
@@ -820,15 +945,24 @@ def main():
         return selftest()
     ROUND = (args[0] if args else "").upper()
     if not re.fullmatch(r"R\d+", ROUND):
-        print("用法: python tools/round-verify/independent.py <轮次> [--device-change <路径>]... [--no-write]")
+        print("用法: python tools/round-verify/independent.py <轮次> [--device-change <路径>]...")
+        print("      [--external-commit <他方提交短号>]... [--external-withdrawn <他方自主撤下的在途路径>]...")
+        print("      [--no-write]")
         print("      python tools/round-verify/independent.py --selftest")
         return 2
-    n_flag = sum(1 for a in args if a == "--device-change")
-    declared = [args[i + 1] for i, a in enumerate(args) if a == "--device-change" and i + 1 < len(args)]
-    if len(declared) != n_flag:
-        print("[FAIL] --device-change 缺参数值")
+
+    def _vals(flag):
+        n = sum(1 for a in args if a == flag)
+        v = [args[i + 1] for i, a in enumerate(args) if a == flag and i + 1 < len(args)]
+        return n, v
+
+    n_flag, declared = _vals("--device-change")
+    n_ex, external = _vals("--external-commit")
+    n_wd, withdrawn = _vals("--external-withdrawn")
+    if len(declared) != n_flag or len(external) != n_ex or len(withdrawn) != n_wd:
+        print("[FAIL] --device-change / --external-commit / --external-withdrawn 缺参数值")
         return 2
-    ctx = build_ctx(ROUND, declared)
+    ctx = build_ctx(ROUND, declared, external, withdrawn)
     # 真实上下文与合成上下文**键集必须相等**（只在合成侧补键会让自测全绿而真实运行 KeyError，历史 44/82）
     ref = synth_ctx()
     if set(ctx) != set(ref):
@@ -842,6 +976,9 @@ def main():
          "相位 = %s；被测提交（facts）= %s；窗口 = %s -> %s；申报的装置改动 = %s"
          % (ctx["phase"], ctx["facts"].get("FACTS_TESTED_COMMIT"), ctx["facts"].get("FACTS_WINDOW_START_ISO"),
             ctx["facts"].get("FACTS_WINDOW_END_ISO"), ctx["declared"] or "（无）"),
+         "申报的他方并发活动 = 提交 %s / 自主撤下的在途路径 %s（判据 J1c/J5a/J5b/J5c/J5f 的**前提**由它们给出；"
+         "未申报的外部活动照旧响亮失败，历史 81/193/198）"
+         % (ctx["external"] or "（无）", ctx["ext_withdrawn"] or "（无）"),
          "生成方式：全部读数由**原始 maven 日志 / facts / 覆盖 JSON / git / 磁盘**独立解析得出，源码内零硬编码纯值；",
          "每个解析器都是纯函数（入参 = 文本）；判别力自测见 `--selftest`（合成 ctx + 注入缺陷，断言恰好新增目标判据）。",
          ""]
