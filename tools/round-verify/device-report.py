@@ -44,6 +44,35 @@ STATE_PREFIXES = (".agents/state/", "tools/")
 # 交付面路径前缀（出现即「本轮碰了交付面」，须为 0）。
 DELIVERY_PREFIXES = ("aap-server/", "docs/", "aap-client/")
 END_MARK = "DEVICE_REPORT_END=1"
+SEP = "\x1f"
+
+
+def partition_commits(log_text, external, prefixes):
+    """把 `git log --format=%h%x1f%s --name-only <range>` 的输出切成 [(sha, subject, files)]，
+    并按「是否显式申报为他方提交」分区。
+
+    判据与语义一致（历史 81/193/198）：只有**本轮自己的提交**触及交付面才算命中。
+    旧版把整个 `被测提交..HEAD` 区间当成「本轮提交」⇒ 他方在本轮窗口内推进提交时，
+    他方的交付面改动会被误报成「本轮碰了交付面」（判据范围与语义不符）。
+    返回 (commits, bad_files, ext_rows, missing_external)。"""
+    commits, cur = [], None
+    for ln in log_text.splitlines():
+        if SEP in ln:
+            sha, subj = ln.split(SEP, 1)
+            cur = [sha.strip(), subj.strip(), []]
+            commits.append(cur)
+        elif ln.strip() and cur is not None:
+            cur[2].append(ln.strip())
+    shas = {c[0] for c in commits}
+    missing = [s for s in sorted(external) if s not in shas]
+    bad, ext_rows = [], []
+    for sha, subj, files in commits:
+        hits = [f for f in files if f.startswith(prefixes)]
+        if sha in external:
+            ext_rows.append((sha, subj, hits))
+        else:
+            bad.extend(hits)
+    return [tuple(c) for c in commits], bad, ext_rows, missing
 
 
 def opt(args, name, default=None):
@@ -153,6 +182,22 @@ def selftest(round_str):
     h3, n3 = scan_round_ref("", digits)
     chk("S10 空文本命中 0（反向对照）", n3 == 0, "命中 %d" % n3)
 
+    # 判别力：提交区间**按归属分区**（历史 81/193/198：他方在途不得算作本轮改动）
+    log = ("aaaa111" + SEP + "feat(intake): 他方提交" + "\n"
+           "aap-server/src/main/java/X.java" + "\n"
+           "\n"
+           "bbbb222" + SEP + "chore(state): R" + digits + " 本轮装置留痕" + "\n"
+           ".agents/state/x.txt" + "\n")
+    cm, bad, ext, miss = partition_commits(log, {"aaaa111"}, DELIVERY_PREFIXES)
+    chk("S11 区间解析到 2 枚提交（正向对照）且他方提交的交付面改动**不**计入本轮",
+        len(cm) == 2 and bad == [] and len(ext) == 1, "commits=%d bad=%s ext=%d" % (len(cm), bad, len(ext)))
+    _cm2, bad2, ext2, _m2 = partition_commits(log, set(), DELIVERY_PREFIXES)
+    chk("S12 未申报他方提交时交付面改动照旧判命中（向后兼容，不得放宽）",
+        len(bad2) == 1 and ext2 == [], "bad=%s" % bad2)
+    _cm3, _b3, _e3, miss3 = partition_commits(log, {"zzzz999"}, DELIVERY_PREFIXES)
+    chk("S13 申报不存在的提交 -> missing 非空（判据失效，不得静默通过）",
+        miss3 == ["zzzz999"], "missing=%s" % miss3)
+
     ok = sum(1 for _, c0, _ in checks if c0)
     for name, c0, info in checks:
         print("  [%s] %s%s" % ("PASS" if c0 else "FAIL", name, (" " + info) if info else ""))
@@ -165,7 +210,8 @@ def main():
     args = sys.argv[1:]
     ROUND = (args[0] if args else "").upper()
     if not re.fullmatch(r"R\d+", ROUND):
-        print("用法: python tools/round-verify/device-report.py <轮次> --rework N --note <要点文件> [--selftest]")
+        print("用法: python tools/round-verify/device-report.py <轮次> --rework N --note <要点文件> "
+              "[--external-commit <他方提交短号>]... [--selftest]")
         return 2
     if "--selftest" in args:
         return selftest(ROUND)
@@ -282,12 +328,23 @@ def main():
             mt = -1.0
         entries.append((ln[:2].strip(), path, mt))
     cls = classify(entries, WSTART_TS)
-    # 本轮提交改动文件集合（被测提交..HEAD）：交付面路径出现即「碰了交付面」。
+    # 本轮提交改动文件集合（被测提交..HEAD）——**按提交归属分区**：
+    # 只有本轮自己的提交触及交付面才算命中；他方在本轮窗口内推进的提交必须显式申报
+    # （`--external-commit <sha>`）后才不计入，且申报须可核（见下三处断言，历史 81/193/198）。
     _rc, dt_out, _ = sh("diff", "--name-only", "%s..HEAD" % TESTED)
     round_files = [x for x in dt_out.splitlines() if x.strip()]
-    bad_files = [x for x in round_files if x.startswith(DELIVERY_PREFIXES)]
+    EXT = [args[i + 1] for i, a in enumerate(args) if a == "--external-commit"]
+    _rc, log_out, _ = sh("log", "--format=%h%x1f%s", "--name-only", "%s..HEAD" % TESTED)
+    commits, bad_files, ext_rows, missing_ext = partition_commits(log_out, set(EXT), DELIVERY_PREFIXES)
+    if missing_ext:
+        print("[FAIL] --external-commit 申报的提交不在 %s..HEAD 区间内：%s（申报不实 / 判据失效）"
+              % (TESTED, missing_ext))
+        return 2
+    if [s for s, subj, _ in ext_rows if ROUND in subj]:
+        print("[FAIL] --external-commit 申报的提交主题含本轮轮次号 %s —— 这不是他方提交（自述不实）" % ROUND)
+        return 2
     if bad_files:
-        print("[FAIL] 本轮提交触及交付面路径 %d 条：%s" % (len(bad_files), bad_files[:5]))
+        print("[FAIL] 本轮自己的提交触及交付面路径 %d 条：%s" % (len(bad_files), bad_files[:5]))
         return 2
 
     # ---- 组文 ----
@@ -358,8 +415,16 @@ def main():
         raise SystemExit("[FAIL] 归属分类计数与 git status 条数不等（判据失效）")
     L.append("      其中位于交付面前缀（%s）的窗口后条目 = %d 条（**须 0** ＝ 交付面零改动）"
              % ("、".join(x.rstrip("/") for x in DELIVERY_PREFIXES), len(cls["delivery_touched"])))
-    L.append("  ③ 本轮提交（%s..HEAD）改动文件 = %d 个，其中位于交付面前缀的 = %d 个（**须 0**）"
-             % (TESTED, len(round_files), len(bad_files)))
+    L.append("  ③ 提交区间（%s..HEAD）改动文件 = %d 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；"
+             "申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 %d 枚 = 他方 %d 枚 + 本轮 %d 枚"
+             % (TESTED, len(round_files), len(commits), len(ext_rows), len(commits) - len(ext_rows)))
+    for sha, subj, files in commits:
+        tag = "他方（已申报）" if sha in set(EXT) else "本轮"
+        nh = len([f for f in files if f.startswith(DELIVERY_PREFIXES)])
+        L.append("      [%s] %s %s  文件 %d 个 / 交付面命中 %d 个"
+                 % (tag, sha, subj[:64], len(files), nh))
+    L.append("      ⇒ **本轮自己的提交**触及交付面前缀的 = %d 个（**须 0**）；他方提交的交付面改动不计入本轮"
+             "（历史 81/193/198：他方在途不得算作本轮改动）" % len(bad_files))
     L.append("")
     L.append("五、下一族")
     if MISS == "0":

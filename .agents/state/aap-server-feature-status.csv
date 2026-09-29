@@ -5574,3 +5574,61 @@ A15–A17 被测状态与窗口、A18 并发前置、A23 在途落窗 0、A24/A2
 四子键 HEAD 版各 0 次 / 工作区各 1 次；`pom.xml` 的 `exec-maven-plugin` HEAD 0 / 工作区 1；`SecurityConfig.java` HEAD 92 行 / 工作区 97 行）⇒ 工作区/HEAD **相位差**，
 非缺陷、**未触碰**（5 条在途改动 mtime 2026-09-24 07:51:14 / 09-24 08:07:37 / 09-24 08:07:43 / 09-24 19:12:39 / 09-25 05:13:53，全部早于窗口起点 13:30:02 ⇒ 落窗 **0** 条）。
 远端（`git ls-remote origin main` 只读实测）远端 main = `9fc47812`（未变）⇒ `9fc47812..HEAD` 待推送口径仍待拍板（待办 6）。",,evidence/audit-regression-R620-faildiff.txt；evidence/audit-regression-R620-failraw.txt；evidence/audit-regression-R620-rcseq.txt；evidence/audit-regression-R620.txt；evidence/device-round-R620.txt；evidence/device-selftest-counts-R620.txt；evidence/green-verify-R620-coverage-fields.txt；evidence/green-verify-R620-full-run1.txt；evidence/green-verify-R620-full-run2.txt；evidence/green-verify-R620-testcount.txt；evidence/green-verify-R620-tested-state.txt；evidence/independent-R620.txt；evidence/postwrite-check-R620.txt；evidence/regression-selftest-R620.txt；evidence/round-R620-analysis.txt；evidence/spotcheck-commit-claim-R620.txt；evidence/spotcheck-ledger-evidence-R620.txt；evidence/coverage-history.txt（追加 R620 行）,e0ba8259
+R621,,,,"R621 巡检轮（missing=0 ⇒ **校验轮**：**交付面零改动**（交付代码 / 测试面 / 冻结清单生成物零改动；本轮另含**装置侧改动**（tools/round-verify/device-report.py、tools/round-verify/README.md —— 轮次无关的轮次校验装置（只读审计 + 留痕写入器），不触碰交付面；证据：工作区未提交 2 条 / 提交链自 8650f9ab 起 0 枚提交触及 tools/））） · 清单 **117/117**（作业目标「90 条全部落地」已含于 total 之中；**基线 = 被测提交 8650f9ab**）连续第 **59** 轮全绿 · 两轮 **316 例 / 51 类** rc=0/0（串行 13:57:23→14:03:47，逐类 diff=0） · 回归面 **84 条** rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167，新增 0 / 消失 0） · 分析器 PASS 27 / FAIL 0 · registered_routes=134 · 本轮返工 **0 处**（装置侧） · 证据 19 条 · 一、性质与覆盖：本轮为**校验轮**（`missing == 0` ⇒ 按作业第 4 步「不改代码，只校验并报告」；基线 = 被测提交 = 窗口起点 HEAD `8650f9ab`）。
+覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；15 族全齐：
+(空任务号) 18 · T03 6 · T04 5 · T05 7 · T06 6 · T07 4 · T08 11 · T09 6 · T10 5 · T11 11 · T12 4 · T13 3 · T14 22 · T15 3 · T17 6（族和 117 = total，内容级核对）。
+本轮**装置面与交付面均零改动**（`git status --porcelain -- tools/` = 0 条；被测提交..HEAD 无触及 `tools/` 的提交）。
+
+二、两轮全量（**串行**，在 HEAD 的独立 detached worktree 内）：`WT_DIRTY_LINES=0` ⇒ 跑的是**提交态**；
+窗口 13:56:54→14:03:53，run1 13:57:23→14:01:19、run2 14:01:19→14:03:47，各 **316 例 / 51 类**、rc=0/0、
+Failures-Errors-Skipped = 0-0-0、两轮 `BUILD SUCCESS` 均为真、**逐类 diff = 0**；`@Test` 词边界计数 **316 == surefire 合计 316**
+（裸子串 318 作对照，差 2 = `@TestConfiguration`/`@TestPropertySource`）；归档测试源 57 个 `.java`；禁用扫描 **0 条**（未削弱测试）。
+并发前置双向对照 pos=2/2、neg=0/2（CLEAR，`PREFLIGHT_OK=1`）；环境指纹 bash=/usr/bin/bash · MINGW64_NT-10.0-26100 · jps 可达 Y；
+worktree add/remove rc 均 0、已回收；maven 自述耗时两轮**同为** `mm:ss min`（233 / 146 秒）⇒ 按历史 176-② **不得**声称
+「双写法修复有效」，据实写「本轮**未复现**另一种写法」。连续全绿 = **第 59 轮**（由上一轮 history 行的连续计数形态解析后 +1）。
+
+三、**本轮他方在窗口内推进 1 枚提交**（`FACTS_HEAD_ADVANCED_COUNT=1`：起点 `8650f9ab` → 终点 `719d3088`，主题 `feat(intake): T-M4-08 限速计划 + T-M4-09 写后回读比较`）：
+被测对象仍是**窗口起点 HEAD**（worktree 检出的提交），故两轮读数不受影响；该提交只触及 `.agents/state` 与 `supply/*.java(+测试)`，
+未触及 `tools/`。主体仓库在途未提交改动 **6 条**（其中 `?? aap-server/src/main/java/com/hioas/aap/supply/SupplyUnitService.java`
+在本轮窗口内**已被他方撤下**——`git status` 捕获时存在、analyze 读 mtime 时已不存在 ⇒ 记「他方在途抖动」，非缺陷、**未触碰**；
+其余 5 条 mtime 2026-09-24 07:51 ~ 09-25 05:13 全部**早于**窗口起点 ⇒ 落窗 **0** 条）。
+
+四、回归面（命令表 = 仓库内单一事实源 `tools/round-verify/manifest.json`，84 条 = 43 审计 + 41 负向自测）：**rc 变化 0 条 / 新增 0 / 未复跑 0**（rc=0 39/84）；
+FAIL 明细 43 个脚本 **167 行**；跨轮 faildiff **167 → 167（新增 0 / 消失 0）**；**零写副作用**（生成物快照 size+md5 运行前后全等，变化 0 个）；
+崩溃通道（`rc!=0 ∧ FAIL 0 行`）2 条，其**完整理由行集 sha256 与上一轮逐字节一致**（可比通道 2 条 / 理由变化 0 条）；
+归仓耐久性守卫**异常 2 条**（沿用登记项 ㊱「归档与在用脚本分叉」，非本轮新增）。
+
+五、装置链读数：analyze **PASS 27 / FAIL 0**（A0a–A25）· regression `--selftest` **26 PASS / 0 FAIL** ·
+③b `selftest-counts` 逐工具条数（regression 26 / final-check 23 / independent 47 / backfill-c7 20 / device-report 10 / selftest-counts 15）与 README **逐项一致、更正 0 处**、只读守卫 True ·
+④ device-report 三判据齐备 · ⑤ 收尾内容级验收 · ⑥ postwrite 逐列差异见证据 · ⑦ 回填（短号须为 HEAD 祖先）· ⑧ final-check（F0–F18）· 独立复核（J1–J9）。
+**本轮装置链返工真值 = 返工 0 处**（范围 = ① 执行器 → ② 分析器 → ③ 回归面 → ③b 自测条数 → ④ 装置证据 → ⑤ 收尾 → ⑥ 主提交核对 → ⑦ 回填 → ⑧ 一致性核对 ＋ 独立复核；
+**范围不含**只读 aux/一次性抽查脚本自身的判据修正，后者按历轮口径不计入）。各步一次通过：无脚本崩溃、无锚点 0 命中、无计数不符。
+绿相位自洽：两轮 rc=0/0 ∧ missing=0 ⇒ 已判 FAIL 条数 == 0（A24）；在途改动 mtime 落窗 = **0**（A23）。
+
+六、**本轮新增只读抽查轴（第八类留痕面判据：以「留档证据」为扫描根的覆盖缺口扫描）**（判据 **10 PASS / 0 FAIL**，负向自测 **9 PASS / 0 FAIL**）：
+为什么是新的（先查历史再声称）：历史所有缺口扫描（`gap-coverage-gap` / `gap-tools-coverage` / `gap-drivergap` …）都以**磁盘上的脚本**为扫描根，
+⇒ 一个不变量的脚本**被清理之后**，它在那类扫描里就**不存在**（「缺口集合为空」照样成立，历史 213 的姊妹面）；
+本轴改以**仓库内持久痕迹**（`evidence/{spotcheck,gap}-*.txt`）为根，反查每条不变量**是否有活脚本 / 是否在回归面**，tier 分档：
+1=driver 精确 / 1b=driver 别名 / 2=已归档未进 driver / 3=仅活 $TEMP（随时丢失）/ 3b=脚本以**不同形文件名**在 $TEMP（弱证据）/ 4=脚本已丢失。
+读数：证据文件 **9858**（其中 `{spotcheck,gap}-*.txt` **1570**）→ 唯一不变量 key **236**；driver tag **84**；归仓索引 **52 条目 / 54 目录**；
+$TEMP（深度 ≤3）`.py` **31558**；tier 分布 1=17 · 1b=11 · 2=1 · 3=136 · 3b=4 · 4=67（正向对照：tier=1 的 17 条 > 0 ⇒ 匹配非空转）。
+**真发现**：34 条**产品不变量**里 **3 条**落在 tier3（**从未进入回归面**）：`spotcheck-envelope`（第十八类 响应包络字段集合 + traceId 出口，R44）、
+`spotcheck-headers`（第十六类 请求头名/头语义，R42）、`spotcheck-money`（金额类型，R43）—— 脚本仍活在 `$TEMP`、既不在 manifest 也不在归仓索引；
+另 **2 条已永久丢失**（只剩留档证据）：`spotcheck-http-status`（R40）、`spotcheck-page-total`（R47，与技能记载一致）；
+**3 条** 3b 是 R619/R620 的**一次性**轴脚本（`probe-*.py` 命名）⇒ 归信息项。
+tier3 三条**只读复跑**（与各自最近留档证据的 FAIL 集合逐条比对）：envelope 留档 4 / 本轮 4（新增 0 / 消失 0 ⇒ **0 新漂移**，按历史 176-② 记「**未复现缺陷态**」，不写「修复有效」）；
+headers 0 / 0 ⇒ **0 新漂移**；money 留档 0 / 本轮 1 —— **该新增 1 条经独立取证判为假发现**：
+`aap-client/src/utils/settlement-model.ts:23` 的 `amount: string` 属**本地视图模型** `SettlementLineView` 的**展示字段**（`amount: money(l.amount)`，
+`export function money(v: unknown): string` 是格式化器），并非对契约字段的类型声明（契约 `models/settlement-line.schema.json` 的 `amount` 为 number）
+⇒ 判据把**同名展示字段**当契约字段（历史 81/118 形态）⇒ **不是契约漂移**；其豁免名单只覆盖 `total`（上限 1）
+⇒ 该脚本**当前不可直接补入回归面**（会把 1 条假 FAIL 变成常驻噪声），须先收窄判据 → 列**待拍板**。
+判据局限（如实登记）：$TEMP 子目录层级基准首版用 `str(Path)`（Windows 下含反斜杠）⇒ 子目录被整片剪枝、tier3b 假报 0 / tier4 假报 5；
+修正后 tier3b = 4（总）/ 3（产品不变量）、tier4 收敛为真值 2（历史 29/58：解析不出的记「未能静态判定」，不当漂移）。
+
+七、主动核对（**只读**；常驻探针为轮次无关工具 ⇒ 「每轮机械派生 aux 脚本」整族缺陷本轮结构性不存在）：
+① 台账轮次连续性（常驻 `$TEMP/aap-aux/ledger-audit.py R621 R620`，收尾前 **24 PASS / 2 FAIL**：A2b/A4d 为**预期相位态**，收尾后应转 26/26）：
+   轮次行 **593** 条（末 R620）、台账记录 701 / 8 列 / 列数异常 0 / CR 0、`coverage-history.txt` CR 0、带戳行 **166** 条、末条 = R620。
+② 安全三闸（在回归面 84 条内，rcseq 逐条可查）：`secret-leak` rc=0（Tier A 0 命中）/ `evidence-secrets` rc=0 / `secret-leak-selftest` rc=0；提交前敏感值自检 0 命中（未串 `&&` 链，历史 137）。
+③ 多项目共存：本轮**未使用浏览器**、**未按镜像名杀进程**、未触碰他方 worktree / CDP / 他方常驻 `spring-boot:run` 与 `newapi-stub` 进程；提交按**显式路径** `git add`（不做全量添加，历史 198）。
+④ 观察项复核（只读）：他方在途 **D-BUILD-02** / **D-SETTLE-02** 仍未落库（`application.yml` 四子键 HEAD 各 0 / 工作区各 1；`exec-maven-plugin` HEAD 0 / 工作区 1；
+   SecurityConfig 92 / 97 行）⇒ **相位差**、非缺陷、未触碰；远端 `git ls-remote origin main` 只读实测 main = `9fc47812`（未变）⇒ `9fc47812..HEAD` 待推送口径仍待拍板（待办 6）。",,evidence/audit-regression-R621-faildiff.txt；evidence/audit-regression-R621-failraw.txt；evidence/audit-regression-R621-rcseq.txt；evidence/audit-regression-R621.txt；evidence/device-round-R621.txt；evidence/device-selftest-counts-R621.txt；evidence/final-check-R621.txt；evidence/gap-evidence-orphan-R621.txt；evidence/gap-evidence-orphan-selftest-R621.txt；evidence/green-verify-R621-coverage-fields.txt；evidence/green-verify-R621-full-run1.txt；evidence/green-verify-R621-full-run2.txt；evidence/green-verify-R621-testcount.txt；evidence/green-verify-R621-tested-state.txt；evidence/independent-R621.txt；evidence/postwrite-check-R621.txt；evidence/regression-selftest-R621.txt；evidence/round-R621-analysis.txt；evidence/coverage-history.txt（追加 R621 行）,

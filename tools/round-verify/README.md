@@ -36,7 +36,8 @@ python tools/round-verify/selftest-counts.py R491
 # ④ 装置侧证据（装置面改动 + 返工真值 + 交付面零改动三判据；**收尾的前置**：closeout 申报装置侧改动时要求它已存在）
 #    注意：该工具**自己落盘**证据文件（`newline="\n"`），stdout 只是状态回显 —— **不要再加 `>` 重定向**，
 #    否则重定向会与工具自身的写入争抢同一个文件（实测：文件被回显覆盖，丢失报告标题行，行数 67 → 68）
-python tools/round-verify/device-report.py R491 --rework <N> --note <本轮要点.md>
+python tools/round-verify/device-report.py R491 --rework <N> --note <本轮要点.md> \
+       [--external-commit <他方提交短号>]...   # 被测提交..HEAD 区间内的**他方**提交须显式申报（否则计入「本轮碰了交付面」）
 
 # ⑤ 收尾（写台账行 / coverage-history 行 / 状态文件小节；数字全部由 ①②③ 的证据推出）
 python tools/round-verify/closeout.py R491 --rework <N> --note <本轮要点.md> \
@@ -90,7 +91,7 @@ python tools/round-verify/independent.py --selftest
 | `run-round.sh <ROUND>` | 执行器：并发前置双向对照 → HEAD 独立 worktree → 串行两轮 `mvn -B -ntp test` → 归档 coverage + 测试源 → 回收 → 落盘 facts |
 | `analyze.py <ROUND>` | 分析器：A0a–A23（两轮 rc/BUILD SUCCESS/逐类 diff/`@Test` 对账/禁用扫描/覆盖按族相加/窗口与 in-flight 登记）→ `green-verify-*.txt` |
 | `regression.py <ROUND>` | 回归面复跑：命令表存在性预检、rc 逐条比对、tag 集合对齐、零写副作用、跨轮 FAIL 归一比对、**崩溃通道的完整理由行集跨轮比对**（`CRASHCHAN tag=… sha256=…`；判据 = 上一轮同处「rc!=0 ∧ FAIL 0 行」的通道理由不得变化，上一轮无该段 ⇒ 判据不可用、**不得判绿**）、**归仓耐久性守卫**（判据 = `sha256` **三方逐字节一致**：索引 ⇔ 归档 ⇔ 原文件，另查索引孤儿与「原文件已丢失」档）。带 `--selftest`（**26** 例判别力实测，纯函数 `durability()`/`crash_reason()`/`crash_diff()` 同源；条数取自该自测的汇总行 `自测：26 PASS / 0 FAIL`（勘误留痕 `evidence/device-selftest-counts-<轮次>.txt`），据实更正，勿再写旧口径；**不进 manifest 回归面**，与 `backfill-c7.py --selftest` 同档） |
-| `device-report.py <ROUND> --rework N --note <file>` | 装置侧证据（第 ④ 步，**收尾的前置**）：装置面改动（工作区未提交条目 + 逐文件 numstat 走 `git diff HEAD` + `被测提交..HEAD` 提交链）+ 轮次无关性守卫（含判别力对照）+ 交付面零改动三判据 → `device-round-<轮次>.txt`；`--selftest` = **10** 例纯函数负向自测（合成夹具，零仓库写入；条数取自该自测的汇总行 `判据：PASS 10 / FAIL 0`，据实更正，勿再写旧口径） |
+| `device-report.py <ROUND> --rework N --note <file> [--external-commit <sha>]...` | 装置侧证据（第 ④ 步，**收尾的前置**）：装置面改动（工作区未提交条目 + 逐文件 numstat 走 `git diff HEAD` + `被测提交..HEAD` 提交链）+ 轮次无关性守卫（含判别力对照）+ 交付面零改动三判据 → `device-round-<轮次>.txt`；**③ 按提交归属分区**：只有**本轮自己的提交**触及交付面才算命中，区间内的他方提交须用 `--external-commit` 显式申报（申报须在区间内 ∧ 主题不含本轮轮次号；未申报的交付面改动照旧响亮失败，历史 81/193/198）；`--selftest` = **13** 例纯函数负向自测（合成夹具，零仓库写入；条数取自该自测的汇总行 `判据：PASS 13 / FAIL 0`，据实更正，勿再写旧口径） |
 | `closeout.py <ROUND> --rework N --note <file>` | 收尾：写台账行 / `coverage-history.txt` 行 / 状态文件小节；数字全部由证据推出，内容级验收（8 列 + 描述逐字符相等 + 锚点 + 幂等）；`--device-change` 双向机器核对装置改动申报（申报了必须真有 / 未申报必须真零改动） |
 | `postwrite.py <ROUND> <主提交短号>` | 主提交落地核对：携带文件 / HEAD 树内 / 台账行逐列相等（c7 例外） |
 | `backfill-c7.py <ROUND> <主提交短号>` | 台账「提交」列回填（第 ⑦ 步）：写盘前与 `HEAD:` 逐记录逐列比对（只允许本轮行 c7 一处差异，其余差异响亮失败且零副作用），写盘后内容级验收（差异集合 / 记录数 / 物理行数 / 内嵌换行记录数 / CR 五连）+ 短号须是 HEAD 的祖先；`--selftest` = 20 条合成夹具判据（**不进 manifest 回归面**：它是写盘器；条数取自该自测的汇总行 `判据：PASS 20 / FAIL 0`，据实更正，勿再写旧口径）|
@@ -112,6 +113,9 @@ python tools/round-verify/independent.py --selftest
   常驻红通道的 FAIL 明细恒为 0 ⇒ 「rc 没变、理由变了」只有第三类看得见；理由取**完整行集**（不截断、不只取末行，
   本仓实测该理由 4000+ 字符且变化落在中段），并配「旧写法在该注入下判绿」的反证（历史 98/187/218/219）。
 - 证据文件一律 `newline="\n"` 落盘（历史 69/84/146）。
+- **他方在本轮窗口内推进提交**时（`FACTS_HEAD_ADVANCED_COUNT > 0`）：④ 的 ③ 判据要求把该提交
+  用 `--external-commit <sha>` 显式申报（旧版把整个 `被测提交..HEAD` 当「本轮提交」⇒ 他方的交付面改动被误报，
+  判据范围与语义不符，历史 81/193/198）；`analyze` 的 A17 与本工具的分区行都会把该提交逐条留读。
 - 轮次会**跨午夜**（实测窗口 `23:56:59 → 00:02:04`）：facts 里 run 的起止只有 `HH:MM:SS`，**不要**按字符串比单调/串行 ——
   用 `resolve_window_seq()` 按窗口 ISO 边界解算**绝对时刻**（窗口 ≤6h ⇒ 合法落位唯一），并在窗口不可用/跨度异常时判**判据不可用**
   （不得判绿）。合法窗口被判「非单调」是**假失败**（历史 12/244）。

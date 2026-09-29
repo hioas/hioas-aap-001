@@ -1,0 +1,18 @@
+R621 校验轮（两轮 rc=0 ∧ missing==0 ⇒ 交付面零改动）；全部读数由 tools/round-verify/analyze.py 从 facts / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 8650f9ab
+被测提交全 SHA = 8650f9ab51529bae62c733082453e7b7bd42a3d2
+被测提交主题 = chore(state): R620 状态文件收尾后补记（⑧ 之后一次性落地核对 9 PASS / 0 FAIL；判据侧自纠 1 处：L3 行筛选「巡轮」不是「巡检轮」的子串 → 假报 history 行缺失，按历轮口径不计入装置链返工真值，权威数字仍为 0 处）
+run1 = 13:57:23 -> 14:01:19 rc=0 / run2 = 14:01:19 -> 14:03:47 rc=0（串行：run1_end <= run2_start = True，按绝对时刻解算）
+窗口 = 13:56:54 -> 14:03:53（1790661414 -> 1790661833，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = 8650f9ab / 终点 = 719d3088；窗口内他方推进提交数 = 1
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 6 条
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+   ?? aap-server/src/main/java/com/hioas/aap/supply/SupplyUnitService.java
+   ?? aap-server/src/main/webapp/
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0 （无）
+环境指纹：bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）

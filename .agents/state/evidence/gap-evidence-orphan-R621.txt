@@ -1,0 +1,105 @@
+== R621 只读抽查（新轴）：以**留档证据文件**为扫描根的覆盖缺口扫描 ==
+事实：历史所有缺口扫描都以**磁盘脚本**为扫描根；脚本被清理后该不变量在那些扫描里『不存在』。
+本轴以仓库内的持久痕迹（evidence/{spotcheck,gap}-*.txt）为根，反查每条不变量是否有活脚本、是否在回归面。
+tier：1=driver 精确 / 1b=driver 别名 / 2=已归档未进 driver / 3=仅活在 $TEMP（随时丢失）/ 4=脚本已丢失。
+
+-- 逐源读数（正向对照须 > 0）--
+E  证据目录文件数 = 9858；其中 {spotcheck,gap}-*.txt = 1570；唯一不变量 key = 236
+D  driver tag 数 = 84（manifest 自述 audits=43 / selftests=41 / all=84）
+A  归档索引条目 = 52 / 归档目录 = 54
+T  $TEMP（深度<=3）扫描到的 .py = 31558
+-- tier 分布 --
+   1-driver-exact   17 条
+   1b-driver-alias  11 条
+   2-archived       1 条
+   3-temp-only      136 条
+   3b-renamed       4 条
+   4-lost           67 条
+[PASS] A0a 证证据文件解析 > 0 n=1570
+[PASS] A0b 唯一 key > 0 n=236
+[PASS] A0c driver tag > 0 n=84
+[PASS] A0d 归档索引 > 0   n=52
+[PASS] A0e $TEMP 脚本扫描 > 0 n=31558
+[PASS] A0f tier=1（在册精确命中）> 0 —— 证明匹配非空转 n=17
+[PASS] A1 tier 分类完备（每 key 恰好 1 档） rows=236 keys=236
+-- 真发现读数：**产品不变量**（spotcheck-*）落在「有证据但不在回归面」的清单 --
+   产品不变量 key 总数 = 34；其中 tier=3（脚本仅在 $TEMP、未归仓未进 driver） = 3；tier=3b（脚本以**不同形文件名**在 $TEMP，弱证据） = 3；tier=4（脚本已丢失） = 2
+   [tier3] spotcheck-envelope           last_R=44    NOT_DRIVER=1 TEMP=r44-spotcheck-envelope-selftest.py;r44-spotcheck-envelope.py
+   [tier3] spotcheck-headers            last_R=42    NOT_DRIVER=1 TEMP=r42-spotcheck-headers-selftest.py;r42-spotcheck-headers.py
+   [tier3] spotcheck-money              last_R=43    NOT_DRIVER=1 TEMP=r43-spotcheck-money-selftest.py;r43-spotcheck-money.py
+   [tier3b] spotcheck-commit-claim      last_R=620   弱匹配脚本=probe-commit-claim-R620.py
+   [tier3b] spotcheck-ledger-commit     last_R=619   弱匹配脚本=probe-commit-R619.py
+   [tier3b] spotcheck-ledger-evidence   last_R=620   弱匹配脚本=probe-evidence-col-R620.py
+   [tier4] spotcheck-http-status        last_R=40    脚本已丢失（只剩留档证据）
+   [tier4] spotcheck-page-total         last_R=47    脚本已丢失（只剩留档证据）
+[PASS] A2 tier=3 的 key 都真的在 $TEMP 里定位到同域脚本 n=3
+[PASS] A3 tier=4 的 key 都有留档证据（证明该不变量确曾存在） n=2
+[PASS] A4 别名覆盖读数（spotcheck-X 与 gap-X 同核心名）> 0 —— 说明重命名类不误报 n=28
+-- 别名（同一不变量的两种命名，视为已覆盖）--
+   gap-coverage-gap             -> gap-coverage-gap-selftest
+   gap-endpoint-tests           -> endpoint-tests
+   gap-round-claims             -> round-claims-selftest
+   spotcheck-audit-cols         -> spotcheck-audit-cols-selftest
+   spotcheck-audit-log          -> gap-audit-log
+   spotcheck-config             -> spotcheck-config-selftest
+   spotcheck-entity-ddl         -> spotcheck-entity-ddl-selftest
+   spotcheck-http-method        -> spotcheck-http-method-selftest
+   spotcheck-idempotency        -> spotcheck-idempotency-selftest
+   spotcheck-lock               -> spotcheck-lock-selftest
+   spotcheck-logical-fk         -> gap-logical-fk
+   spotcheck-numeric-range      -> spotcheck-numeric-range-selftest
+   spotcheck-outbound           -> spotcheck-outbound-selftest
+   spotcheck-pagination         -> spotcheck-pagination-selftest
+   spotcheck-pagination-defaults -> gap-pagination-defaults-selftest
+   spotcheck-pagination-order   -> gap-pagination-order
+   spotcheck-param-reach        -> gap-param-reach
+   spotcheck-required           -> spotcheck-required-selftest
+   spotcheck-sensitive-fields   -> gap-sensitive-fields-selftest
+   spotcheck-softdelete         -> gap-softdelete
+   spotcheck-state-machine      -> spotcheck-state-machine-selftest
+   spotcheck-status-machine     -> gap-status-machine
+   spotcheck-string-length      -> spotcheck-string-length-selftest
+   spotcheck-success-shape      -> spotcheck-success-shape-selftest
+   spotcheck-throttle           -> spotcheck-throttle-selftest
+   spotcheck-time-bucket        -> gap-time-bucket-selftest
+   spotcheck-tx-boundary        -> spotcheck-tx-boundary-selftest
+   spotcheck-unique             -> spotcheck-unique-selftest
+-- tier3 产品不变量脚本的**只读复跑**（判据：与该 key 最近留档证据的 FAIL 集合逐条比对）--
+   spotcheck-envelope           rc=0   留档FAIL=4   本轮FAIL=0   新增=0   消失=4  
+        消失: [FAIL] A2 实现 ApiEnvelope 分量集合 == envelope.schema.json 键集合：impl=['code', 'data', 'details', 'message', 'traceId'] schema=['code', 'data', 'message', 't
+        消失: [FAIL] A3 envelope.schema.json 与 error.schema.json 包络键集合一致（同一包络两种形状 = 漂移温床）：envelope=['code', 'data', 'message', 'traceId'] error=['code', 'data', 'de
+        消失: [FAIL] A5 客户端是否接线读取包体 details（承诺 vs 实现）：body.details 读取点=0；客户端 ApiError 注释承诺 details，且 ApiError 有 details 字段
+   spotcheck-envelope           rc=1   留档FAIL=4   本轮FAIL=4   新增=0   消失=0  
+   spotcheck-headers            rc=1   留档FAIL=0   本轮FAIL=0   新增=0   消失=0  
+   spotcheck-headers            rc=0   留档FAIL=0   本轮FAIL=0   新增=0   消失=0  
+   spotcheck-money              rc=1   留档FAIL=0   本轮FAIL=2   新增=2   消失=0  
+        新增: [FAIL] case_client_money_string：期望点名 `A8`，实得 rc=1 新增 FAIL=[]
+        新增: [FAIL] case_ok_fixture：期望 rc=0/FAIL 0，实得 rc=1 FAIL=['A8']
+   spotcheck-money              rc=1   留档FAIL=0   本轮FAIL=1   新增=1   消失=0  
+        新增: [FAIL] A8 客户端 utils/settlement-model.ts:23 `amount: string` 与 schema 的 number 不一致（金额类型漂移）
+------------------------------------------------------------------------------
+判据：10 PASS / 0 FAIL
+-- R621 判读（结论句由上方读数推出，不含未经取证的断言）--
+1) 三条**产品不变量**抽查从未进入回归面：`spotcheck-envelope`（第十八类 响应包络字段集合 + traceId 出口，R44）、
+   `spotcheck-headers`（第十六类 请求头名/头语义，R42）、`spotcheck-money`（金额类型，R43）的脚本**仍活在 $TEMP**，
+   既不在 manifest 的 84 条里、也不在归仓索引（52 条目 / 54 目录）里 ⇒ 系统清理即永久退场（历史 169/177/182/213）。
+2) 两条**已永久丢失**（只剩留档证据）：`spotcheck-http-status`（R40）、`spotcheck-page-total`（R47）；
+   后者与技能 `references/pitfalls-inspection-round-toolchain.md` 的记载一致（历史 177）。
+3) 另有三条落在 3b：`spotcheck-commit-claim` / `spotcheck-ledger-evidence`（R620）、`spotcheck-ledger-commit`（R619）
+   —— 它们的脚本以 `probe-*.py` 命名仍在 $TEMP；这三条是历轮**一次性**轴（按设计一次性）⇒ 归**信息项**，
+   不属「旧不变量退场」。
+4) tier3 三条的**只读复跑**读数（与各自最近留档证据的 FAIL 集合逐条比对）：
+   · envelope：留档 4 / 本轮 4，新增 0 / 消失 0 ⇒ **0 新漂移**（4 条均为 R44 已登记的既有发现）；按历史 176-② 记「**未复现缺陷态**」，
+     不写成「修复有效」；
+   · headers：留档 0 / 本轮 0 ⇒ **0 新漂移**；
+   · money：留档 0 / 本轮 1，**新增 1 条 = 假发现**（取证见下）。
+5) money 新增 FAIL 的**独立取证**（不采信脚本自身措辞）：`aap-client/src/utils/settlement-model.ts:23` 的 `amount: string`
+   属**本地视图模型** `SettlementLineView` 的**展示字段**（`amount: money(l.amount)`，且 `export function money(v: unknown): string`
+   是格式化器、产出人读字符串），不是「客户端对契约字段的类型声明」；契约 `models/settlement-line.schema.json` 的 `amount` 为 number
+   ⇒ 判据把**同名展示字段**当契约字段（历史 81/118 的形态）⇒ **不是契约漂移**。
+   该脚本的豁免名单只覆盖 `total`（分页计数同名碰撞、上限 1）⇒ **当前不可直接补入回归面**（会把 1 条假 FAIL 变成常驻噪声）：
+   须先按「本地视图模型展示字段 vs 契约字段」收窄判据 → 列**待拍板**。
+6) 判据局限（如实登记，历史 29/58：解析不出的记「未能静态判定」，不当漂移）：$TEMP 子目录扫描的层级基准首版
+   用 `str(Path)`（Windows 下含反斜杠）⇒ `base_depth` 算错、子目录被整片剪枝，tier3b 假报 0、tier4 假报 5；
+   修正层级基准后 tier3b = 4（总）/3（产品不变量）、tier4 收敛为真值 2。
+R621-GAP-EVIDENCE-ORPHAN-END=1
