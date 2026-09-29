@@ -1,0 +1,19 @@
+R633 红相位轮（两轮红或 missing>0 ⇒ **未达成两轮全绿**，据此如实记账，历史 12/554）；全部读数由 tools/round-verify/analyze.py 从 facts / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 0e635d40
+被测提交全 SHA = 0e635d40e4414d439c985ffb8150e54fcb83ae80
+被测提交主题 = test(intake): APPLY 接入后的验证证据 —— 本批范围全绿；既有模块 flaky 与本批无关
+run1 = 18:51:31 -> 18:53:51 rc=1 / run2 = 18:53:51 -> 18:56:02 rc=1（串行：run1_end <= run2_start = True，按绝对时刻解算）
+窗口 = 18:51:11 -> 18:56:06（1790679071 -> 1790679366，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = 0e635d40 / 终点 = 0e635d40；窗口内他方推进提交数 = 0
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 7 条
+    M .agents/state/evidence/coverage-report.json
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+   ?? .agents/state/evidence/concurrency-contamination-R633.txt
+   ?? aap-server/src/main/webapp/
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0 （无）
+环境指纹：bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）

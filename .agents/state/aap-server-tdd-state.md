@@ -21204,3 +21204,68 @@ J5j 在预跑相位按设计判「不适用」（历史 243-①）。
 - **返工真值**：本轮返工真值 = **0 处**（装置/脚本侧，零交付面影响；逐条见上文要点）。
 - **权威数字**：权威数字 = 返工 0 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
 
+
+### R633 巡检轮（**红相位**：missing=0 ≠ 0 或两轮 rc=1/1 ≠ 0/0 ⇒ **未达成两轮全绿**，据实记红）
+
+- **性质**：**本轮为红相位**（红相位）—— 三处记录（描述列 / history / 本节）**不含任何绿相位措辞**；但**交付面零改动**（未改 `aap-server` / `docs` / 冻结清单生成物任何一行）；本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交）；本轮新增写入 = 台账 / 状态 / 证据。
+- **两轮全量（串行）**：被测提交 = 0e635d40（独立 detached worktree 内）；run1 18:51:31→18:53:51、run2 18:53:51→18:56:02；各 **327 例 / 53 类**、rc=1/1、Failures-Errors-Skipped = 1-0-0；`@Test` 词边界计数与 surefire 合计一致；禁用扫描 0 条。
+- **覆盖**：total=117 implemented=117 **missing=0**、registered_routes=134、not_registered=[]；连续全绿计数 = **0**（红相位**计数清零**，下次全绿从第 1 轮起算）。
+- **回归面**：复跑 84 条（tag 集合与上一轮 R632 一致）；rc 变化 0 条、新增 0、未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167：新增 2 / 消失 2）；零写副作用（冻结清单生成物 size+md5 全等，变化 0 个）；命令表已由仓库内 `tools/round-verify/manifest.json` 提供，$TEMP 抽查脚本 54 条全部归仓（由 manifest 的 $TEMP 条目数与归仓目录数**双源互证**推出）。
+- **本轮要点（单一事实源 = note-R633.md）**：
+一、性质与覆盖：本轮为**红相位巡检轮**（`missing == 0` 但两轮 rc=1/1 ⇒ **未达成两轮全绿**，据实记红、不写任何绿相位措辞；基线 = 被测提交 = 窗口起点 HEAD `0e635d40`）。
+覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；15 族全齐：
+(空任务号) 18 · T03 6 · T04 5 · T05 7 · T06 6 · T07 4 · T08 11 · T09 6 · T10 5 · T11 11 · T12 4 · T13 3 · T14 22 · T15 3 · T17 6（族和 117 = total，内容级核对）。
+本轮**未改任何交付代码/测试/清单**（被测提交..HEAD 提交链 0 枚、窗口内他方推进 0 枚；worktree 与 HEAD 差异 0 行）；**装置面改动 0 个文件**（见七）。
+
+二、两轮全量（**串行**，在 HEAD 的独立 detached worktree 内）：`WT_DIRTY_LINES=0` ⇒ 跑的是**提交态**；
+窗口 18:51:11→18:56:06，run1 18:51:31→18:53:51、run2 18:53:51→18:56:02，各 **327 例 / 53 类**、**rc=1/1**、
+Failures-Errors-Skipped = **1**-0-0、两轮 `BUILD FAILURE` 均为真（`BUILD SUCCESS` 均为假）、**逐类 diff = 0**（含失败类在内 53/53 逐类一致 ⇒ 失败同点同形，非 flaky）；
+`@Test` 词边界计数 **327 == surefire 合计 327**（裸子串 329 作对照，差 2 = `@TestConfiguration`/`@TestPropertySource`）；归档测试源 **59** 个 `.java`；禁用扫描 **0 条**（未削弱测试）。
+并发前置双向对照 pos=2/2、neg=0/2（CLEAR，`PREFLIGHT_OK=1`）；环境指纹 bash=/usr/bin/bash · MINGW64_NT-10.0-26100 · jps 可达 Y；worktree add/remove rc 均 0、已回收。
+maven 自述耗时两轮**同为** `mm:ss min`（02:18 / 02:09）⇒ 按历史 176-② **不得**声称「双写法修复有效」，据实写「本轮**未复现**另一种写法」。
+**连续全绿计数 = 0**（相位 = red ⇒ 计数清零，下次全绿从第 1 轮起算；prev = 绿相位 记 70）。
+
+三、红例（唯一）与归因：`com.hioas.aap.supply.ConfigBatchAdminContractTest.createBatch:240` 两轮**稳定**失败 —— 期望 **201**、实测 **500 E-2001**
+（traceId run1=`408c0188…` / run2=`7c40b1a6…`）；根因 = `java.lang.ClassCastException: class java.lang.String cannot be cast to class java.lang.Number`，
+调用栈前两帧落在 `ConfigBatchReader.longOf(ConfigBatchReader.java:118)` ← `AdminConfigBatchController.create(AdminConfigBatchController.java:59)`
+（视图 record 的 `id` 分量类型 = **String**，与 `((Number) value).longValue()` 强转冲突；属历史 13/24/83 族「类型转换失败在 HTTP 层只表现为 500」）。
+归属 = 他方提交 `16b257e3`（2026-09-29 18:42:21，`feat(intake): APPLY 执行器接入（T-M4-10/11）`）引入的**接线代码**，非本轮动作、非并发污染（两轮 `deadlock detected` = **0/0**）。
+取证 = `evidence/defect-configbatch-create-500-R633.txt`（10 PASS / 0 FAIL；含「两轮同点同形」「根因与调用栈帧」「视图 id 类型为 String」「引入提交」四条机器判据 + 各自的 `> 0` 正向对照）。
+处置 = 按作业「需人拍板的冲突就停在报告里列为待拍板」**本轮只登记不改**：两侧候选修法（`longOf` 容忍字符串 / 调用点改 `Long.parseLong(batch.id())`）都落在**他方在编特性**内 ⇒ 不碰他方在编文件（历史 15/198）；详见九 (a)。
+
+四、环境并发污染（首跑作废 + 串行复跑）：本轮 ① 执行器的**首跑**（被测提交同为 `0e635d40`）被他方并发全量测试进程污染 ——
+run1 红 1 例（E-1903 短信频控）、run2 红 **61 例**、PG 级 `deadlock detected` **49 处**（两个不同 PG 后端进程互相等锁）；
+判据 = 他方全量日志（`.agents/state/evidence/full-after-apply-20260929.txt`，mtime 落窗）∧ 两个测试 JVM 并存 ∧ PG 死锁链点名两个不同后端进程。
+首跑产物**整体归档** `$TEMP/aap-round-verify/R633/contaminated/`（逐字节保全；取证锚在**修正前**的产物上，历史 214）并**串行复跑**（本轮全部证据只用复跑产物）。
+取证 = `evidence/concurrency-contamination-R633.txt`（含放大阈值判据与 jps 现场回显的**转录/判据分离**）。复跑 run1/run2 deadlock = 0/0 ⇒ 复跑确为干净跑。
+
+五、他方并发活动：`FACTS_HEAD_ADVANCED_COUNT=0`（窗口起点 = 终点 = `0e635d40`）⇒ 窗口内**零推进**、无待申报提交。
+主体仓库在途未提交改动 **7 条**（`coverage-report.json` / 根 `README.md` / `pom.xml` / `SecurityConfig.java` / `application.yml` / `src/main/webapp/` + 本轮新增的取证件），落窗 **0 条**（A23）；**未触碰**任何在途文件。
+他方另在本机常驻**后端实例**（:8084）、**管理端 dev server 两枚**（:5174/:5175）、**客户端 dev server**（`[::1]:5173`）—— 本轮只做**只读 GET** 探测（见八），未重启、未关闭、未 attach、未按镜像名杀进程。
+
+六、回归面（命令表 = 仓库内单一事实源 `tools/round-verify/manifest.json`，84 条 = 43 审计 + 41 负向自测）：
+**rc 变化 0 条 / 新增 0 / 未复跑 0**（rc=0 39/84）；FAIL 明细 43 个脚本 **167 行**；跨轮 faildiff **167 → 167（新增 2 / 消失 2）** ——
+两对差异**全部是同一断言的计数增大**（`spotcheck-audit-cols` A2 手写 SQL 写点 **7→8 处**、`spotcheck-state-machine` A1 写点 **13→15 条**），
+系他方本批新增手写 SQL 写点所致（**内容变化而非回归**：失败集合的语义项未增，仅计数上升）；**零写副作用**（生成物快照 size+md5 运行前后全等，变化 0 个）；
+崩溃通道（`rc!=0 ∧ FAIL 0 行`）2 条，其**完整理由行集 sha256 与上一轮逐字节一致**（可比通道 2 条 / 理由变化 0 条）；归仓耐久性守卫**异常 2 条**（沿用登记项 ㊱，非本轮新增）。
+
+七、装置面/交付面改动申报：本轮**未改** `tools/`（`git status -- tools/` 空 ∧ 被测提交..HEAD 无触及 tools/ 的提交）⇒ 未申报 `--device-change`（判据双向核对通过）；
+交付面（`aap-server/` / `aap-client/` / `aap-admin/` / `docs/`）**零改动**。
+
+八、主动只读核对（**非**装置链步骤，不计返工真值）：三端联调就绪度 **16 PASS / 0 FAIL**，证据 = `evidence/e2e-readiness-R633.txt`
+（探针 `$TEMP/aap-aux/probe-e2e-R633.py` v3：双栈 + 原始 socket，绕开本机 HTTP 代理）。读数：后端 :8084 两栈在听、`/actuator/health`=200、受保护端点无令牌 = 401 + `E-1902` + traceId；
+管理端 :5174/:5175 页面 200 且**经其 `/api` 代理**取到后端业务包络；客户端 :5173 **在 IPv6 回环上确在听**（v4=False / v6=True）∧ 经其 `/api` 代理同样取到后端业务包络 ⇒ **前端↔后端链路真通**；三端端口一致（8084 / 8084 / 8084）。
+**对上轮结论的更正**：R632 探针只试 IPv4 → 误判「客户端 dev server 未运行」（本轮戊0/戊1 给出该误判的机器证据：上一轮源码 `v4only=True`、无 `::1`）⇒ 上一轮「客户端端链路未验」**作废并更正为：三端代理层链路本轮均有实 HTTP 证据**。
+仍**不声称「三端全部联调通过」**：需令牌的业务数据链路未验（**不索取凭据**），且上述实例与在途改动**均属他方**、读数**不作为提交态契约证据**。
+
+九、装置链读数与返工真值：analyze **PASS 24 / FAIL 3**（三条 FAIL = A1/A2/A3，即「两轮 rc 均 0」「五元组全 0 失败」「`BUILD SUCCESS` 两轮为真」，与红相位**自洽**，A24 已机器核对）；
+regression `--selftest` **26 PASS / 0 FAIL**；③b `selftest-counts` 逐工具条数（26 / 28 / 66 / 20 / 13 / 15）与 README 逐项一致（零更正）；④–⑧ 读数见对应证据文件。
+**本轮装置链返工 0 处**（判据/脚本侧；范围 = ① 执行器 → ② 分析器 → ③ 回归面 → ③b 自测条数 → ④ 装置证据 → ⑤ 收尾 → ⑥ 主提交核对 → ⑦ 回填 → ⑧ 一致性核对 ＋ 独立复核）：
+①–⑧ 各步与独立复核**一次通过**（零崩溃 / 零锚点 0 命中 / 零计数不符 / 零守卫转红）。① 的**首跑作废**属**环境并发**（他方进程污染，见四），非判据/脚本缺陷，按 R631/R632 先例（自捕/环境项不计入真值）处理，且此处有机器证据（他方产物 mtime 落窗 + PG 死锁链 + 两个 JVM 并存）。
+待拍板（本轮新增；沿用上一轮编号的清单见状态文件）：
+**(a) ConfigBatch 500**（他方在编特性内的接线缺陷，见三）—— 由他方修，还是授权我方以最小改动修（`longOf` 容忍字符串 ／ 调用点 `Long.parseLong(batch.id())`）？在拍板前本轮**不动**该文件。
+**(b)** 红相位下「三端联调就绪度」读数是否算**交付面证据**（他方常驻实例 vs 我方实例的口径，沿用待办 ㊷/3F）。
+**(c)** 首跑污染产物是否**长期保留归档**（当前保留于 `$TEMP/aap-round-verify/R633/contaminated/`，逐字节保全）。
+- **返工真值**：本轮返工真值 = **0 处**（装置/脚本侧，零交付面影响；逐条见上文要点）。
+- **权威数字**：权威数字 = 返工 0 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
+

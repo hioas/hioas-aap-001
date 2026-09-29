@@ -1,0 +1,54 @@
+== R633 环境并发污染取证（只读） ==
+窗口 = 18:42:02 → 18:48:30 ｜ run1 = 18:42:32 → 18:45:30（rc=1）｜ 被测提交 = 0db3fe54 ｜ worktree⇔HEAD 差 0 行 = True
+
+== 一、我的两轮读数 ==
+  run1 合计（surefire）= (327, 1, 0, 0)（Failures/Errors/Skipped）｜ 明细 FAILURE/ERROR 行 = 2
+  run2 合计（surefire）= (327, 34, 27, 0) ｜ 明细 FAILURE/ERROR 行 = 81
+  run1 失败点：AdminUserAdminTest.suspendAndResume:210->login:88
+  run1 我的日志里 `13800000218` 的短信下发行（时刻, 手机）＝ [('2026-09-29 18:43:52', '138****0218', 'LOGIN')]
+[PASS] 一0 run1/run2 合计行都解析到（正向对照，历史 46/228） run1=(327, 1, 0, 0) ｜ run2=(327, 34, 27, 0)
+[PASS] 一1 run1 存在失败且失败面很小（1 例） Failures+Errors=1 ｜ FAILURE 行=2
+[PASS] 一2 run2 失败面相对 run1 **显著扩大**（共享库互相清表的指纹） run1=1 → run2=61
+  run2 的 Errors 段里 PostgreSQL 级 `deadlock detected` 声明 = **49 处**（判据：> 0）
+  其点名的 PG 后端进程 id = ['1233174', '1233175', '1233265', '1233286', '1233426']（判据：≥ 2 个**不同** id ⇒ 两个并发写入方打同一个库）
+[PASS] 一3 run2 出现 PostgreSQL 级 `deadlock detected`（同库并发 truncate 的机器指纹） 死锁声明 49 处
+[PASS] 一4 死锁声明点名 ≥ 2 个不同 PG 后端进程 id ['1233174', '1233175', '1233265', '1233286', '1233426']
+
+== 二、失败点的业务语义 ==
+  run1 唯一失败断言行：AdminUserAdminTest.suspendAndResume:210->login:88
+[PASS] 二0 失败码 = 短信频控 E-1903（判据：解析到该码 ∧ 文案含频控语义） E-1903 / 验证码发送过于频繁，请 60 秒后重试
+  ⇒ 该码要求「同一手机号 60 秒内只能下发一次」⇒ 判定依赖**共享库里的下发行**，与并发进程天然互斥失败。
+
+== 三、他方并发活动的机器证据 ==
+  [取证锚 = 修正前产物归档 C:\Users\laitz\AppData\Local\Temp\aap-round-verify\R633\contaminated]
+  他方日志文件 = E:\workspaces\hioas\hioas-aap-001\.agents\state\evidence\full-after-apply-20260929.txt（在途未提交；已逐字节归档到上目录）｜ 行数 = 4171 ｜ FAILURE/ERROR 行 = 66 ｜ 含 E-1903 = 3
+  其 surefire 级合计行数 = 54（⇒ 该文件是 **maven test 进程**的产物，而非常驻实例的应用日志）
+  其原始 mtime（由快照里的 stat 输出记录）= 2026-09-29 18:46:37 ⇒ 落在我的窗口 [18:42:02, 18:48:30] 内 = True
+  其短信下发行数 = 180 ｜ 其中手机号尾号 0218 的 = [('2026-09-29 18:44:37', '138****0218'), ('2026-09-29 18:45:39', '138****0218')]
+  落在我的窗口内的同号下发行 = [('2026-09-29 18:44:37', '138****0218'), ('2026-09-29 18:45:39', '138****0218')]
+[PASS] 三0 他方日志解析到短信下发行（正向对照，> 0） 解析到 180 行
+[PASS] 三1 他方并发日志里出现**与我失败用例同号**的手机（138****0218） [('2026-09-29 18:44:37', '138****0218'), ('2026-09-29 18:45:39', '138****0218')]
+[PASS] 三2 该同号下发的时刻落在我的 run1 窗口内 [('2026-09-29 18:44:37', '138****0218'), ('2026-09-29 18:45:39', '138****0218')] ⊆ [18:42:02, 18:48:30]
+
+  · 判据证据（落盘、可复核）：他方日志 = maven test 产物（surefire 合计行 54 条）∧ 其 mtime 2026-09-29 18:46:37 落窗
+[PASS] 三3 他方 **test 进程**产物在窗口内被写入（判据 = 含 surefire 合计行 ∧ mtime 落窗） surefire 行=54 ｜ mtime=2026-09-29 18:46:37 ∈ [18:42:02, 18:48:30]
+  · 信息项（转录，非判据）：18:47:01 / 18:48:10 现场 `jps -l -m` 回显里同时存在两条 maven test 进程 ——
+      org.codehaus.plexus.classworlds.launcher.Launcher -B -ntp test -Dtest=ChannelConfigPlannerTest,ConfigApplyRateLimiterTest,ReadbackComparatorTest,Endpo
+      org.codehaus.plexus.classworlds.launcher.Launcher -B -ntp test
+  · 现场快照（2026-09-29 18:48:42 SNAPSHOT 采集，此时两进程均已退出）＝ ['44768 org.codehaus.plexus.classworlds.launcher.Launcher -o -', '51908 org.codehaus.plexus.classworlds.launcher.Launcher -o -', '66644 org.codehaus.plexus.classworlds.launcher.Launcher spri']
+
+== 四、归因与结论 ==
+  · 转录信息项（转录行数 = 1，非判据；判据见 三3 的落盘证据）
+[PASS] 四0 交付面零改动（worktree ⇔ HEAD 差 0 行）⇒ 红不来自代码变更 wt-vs-head 行数 = 0
+[PASS] 四1 归因 = 共享测试库（DB_TEST_NAME）+ 他方并发 test 进程；**非**交付面缺陷 run1 红码=E-1903 ∧ 同号下发落窗=True ∧ 交付面零改动=True
+
+==============================================================================
+判据：PASS 12 / FAIL 0
+
+结论（由上方读数推出，零手写）：
+  · 首跑 run1 的 1 例红 = 短信频控 E-1903；run2 的 61 例红 = 同一并发源的放大形态（PG 级 `deadlock detected` 49 处，点名两个不同 PG 后端进程 ['1233174', '1233175', '1233265', '1233286', '1233426'] —— 同库并发 truncate 的直接证据）。
+  · 根因 = **他方并发的 maven test 进程**与我共用 `aap_server_test`：他方对我的手机号下发短信行落在我的窗口内（[('2026-09-29 18:44:37', '138****0218'), ('2026-09-29 18:45:39', '138****0218')]），且两进程每例前 `truncateAll()` 互相清表（历史坑 11/158 的实例）。
+  · 处置 = **不改参数、串行复跑**（历史 158）；首跑产物已归档到 `C:\Users\laitz\AppData\Local\Temp\aap-round-verify\R633\contaminated`（不入库）。
+  · 该重复执行属**环境并发**，不计入判据/脚本侧返工真值。
+READBACK_SNAPSHOT={"S1": [327, 1, 0, 0], "S2": [327, 34, 27, 0], "FAIL1": 2, "FAIL2": 81, "theirs_sms": 180, "in_window": [["2026-09-29 18:44:37", "138****0218"], ["2026-09-29 18:45:39", "138****0218"]]}
+AUX_END=1

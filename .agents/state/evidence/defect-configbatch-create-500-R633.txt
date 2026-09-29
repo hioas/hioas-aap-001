@@ -1,0 +1,51 @@
+== R633 红基线取证：ConfigBatchAdminContractTest.createBatch 稳定失败（只读） ==
+被测提交 = 0e635d40（worktree 与 HEAD 差异 0 行）｜ 窗口 = 18:51:11 → 18:56:06 ｜ 两轮 rc = 1/1
+
+== 一、确定性（两轮同点同形） ==
+  run1 合计 = (327, 1, 0, 0) ｜ run2 合计 = (327, 1, 0, 0)
+  run1 失败行：[ERROR] com.hioas.aap.supply.ConfigBatchAdminContractTest.createBatch -- Time elapsed: 0.343 s <<< FAILURE!
+  run2 失败行：[ERROR] com.hioas.aap.supply.ConfigBatchAdminContractTest.createBatch -- Time elapsed: 0.316 s <<< FAILURE!
+[PASS] 一0 两轮合计行都解析到（正向对照，历史 46/228） ('327', '1', '0', '0') / ('327', '1', '0', '0')
+[PASS] 一1 两轮**同一用例**失败、且各仅 1 例（⇒ 确定性，非 flaky） run1=('327', '1', '0', '0') ｜ run2=('327', '1', '0', '0')
+[PASS] 一2 两轮失败形态一致：同一用例的 `expected: 201 / but was: 500` + 业务码 E-2001 run1 expected=201 but=500 ｜ run2 expected=201 but=500 ｜ traceId run1=408c0188abca4d288535ab702d52490f / run2=7c40b1a62b604003963069bec0589a4f
+[PASS] 一3 两轮均**无** PG 级 `deadlock detected`（⇒ 不是共享库并发污染，历史 11/158 的反面对照） deadlock run1=0 / run2=0
+
+== 二、根因（服务端未捕获异常 + 调用栈前两帧） ==
+  未捕获异常：java.lang.ClassCastException: class java.lang.String cannot be cast to class java.lang.Number (java.lang.String and java.lang.Number are in module java.base of loader 'bootstrap')
+    at com.hioas.aap.supply.ConfigBatchReader.longOf(ConfigBatchReader.java:118)
+    at com.hioas.aap.supply.AdminConfigBatchController.create(AdminConfigBatchController.java:59)
+[PASS] 二0 未捕获异常解析到（正向对照） java.lang.ClassCastException: class java.lang.String cannot be cast to class jav
+[PASS] 二0b 两轮根因**同类**（异常类名一致 ⇒ 同一缺陷、非随机失败） run1=java.lang.ClassCastException ｜ run2=java.lang.ClassCastException
+[PASS] 二1 调用栈前两帧**落在 com.hioas.aap 源码**（可定位到文件:行） [('longOf', '118'), ('create', '59')]
+
+  源码对照：
+    ConfigBatchReader：return value == null ? null : String.valueOf(((Number) value).longValue());
+    ConfigBatchReader：static long longOf(Object value) {
+    ConfigBatchReader：return value == null ? 0L : ((Number) value).longValue();
+    AdminConfigBatchController：configApplyExecutor.execute(ConfigBatchReader.longOf(batch.id()), rate);
+    SupplyUnitViews：record ConfigBatch 的 id 分量类型 = String
+[PASS] 二2 视图 record 的 `id` 是 **String**（⇒ 与 `((Number) value).longValue()` 强转冲突） String
+[PASS] 二3 强转点与调用点在源码里确实存在（判据：两处各命中 1 行） longOf 行=3 ｜ 调用行=1
+
+  git 引入路径（最近一次触及各文件）：
+    AdminConfigBatchController.java : 16b257e3 2026-09-29 18:42:21 +0800 feat(intake): APPLY 执行器接入（T-M4-10/11）—— 批次明细真正下发网关并回读判定
+    ConfigBatchReader.java          : 0e9adbb8 2026-09-28 16:59:42 +0800 feat(aap-server): ADM-CB01~05 批量配置批次交付（6 例真实 HTTP 全绿，117/117 全注册）
+    ConfigBatchAdminContractTest.java: 0e9adbb8 2026-09-28 16:59:42 +0800 feat(aap-server): ADM-CB01~05 批量配置批次交付（6 例真实 HTTP 全绿，117/117 全注册）
+[PASS] 二4 该调用点由**近期提交**引入（判据：控制器最近提交时间晚于本轮窗口起点前 30 分钟以上，即非本轮） 16b257e3 2026-09-29 18:42:21 +0800 feat(intake): APPLY 执行器接入
+
+== 三、复现与修法（本轮**不实施**，理由见四） ==
+  复现：cd aap-server && ../tools/with-env.sh aap-server mvn -B -ntp test -Dtest=ConfigBatchAdminContractTest
+  触发点：POST /admin/config-batches（mode=APPLY）→ 控制器在返回前调用 configApplyExecutor.execute(longOf(batch.id()), rate)
+  最小修法（候选，供拍板）：ConfigBatchReader.longOf 容忍字符串形态（与同文件 idOf 的 String.valueOf 口径一致），
+    即 `value instanceof Number n ? n.longValue() : Long.parseLong(String.valueOf(value))`；或改调用点为 `Long.parseLong(batch.id())`。
+    两侧都在**他方在编特性**（T-M4-10/11）内 ⇒ 本轮只登记不动手（历史 15/198：不碰他方在编文件）。
+
+==============================================================================
+判据：PASS 10 / FAIL 0
+
+结论（由上方读数推出，零手写）：
+  · 被测提交 0e635d40 上，ConfigBatchAdminContractTest.createBatch 两轮**稳定**失败：期望 201、实测 **500 E-2001**（根因 = java.lang.ClassCastException: class java.lang.String cannot ）。
+  · 归属：由他方提交 16b257e3 引入的接线代码（本批 T-M4-10/11），**非**本轮动作、非并发污染（deadlock=0）。
+  · 影响面：全量 327 例里 1 例红 ⇒ 覆盖门禁与其余 326 例均绿；交付面其余部分不受影响。
+  · 处置 = 按作业「需人拍板的冲突就停在报告里列为待拍板」：本轮**只登记不改**，红相位据实记账。
+REDBASE_END=1

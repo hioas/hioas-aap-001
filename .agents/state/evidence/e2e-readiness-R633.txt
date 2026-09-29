@@ -1,0 +1,68 @@
+轮次 = R633 ｜ 被测提交 = 0e635d40 ｜ 窗口 = 18:51:11 → 18:56:06 ｜ 两轮 rc=1/1（读自 facts，零手写）
+环境指纹：HTTP_PROXY=http://127.0.0.1:7897 ｜ HTTPS_PROXY=http://127.0.0.1:7897 ｜ sys.executable=C:\Users\laitz\AppData\Local\hermes\hermes-agent\venv\Scripts\python.exe
+本探针一律用**裸 socket** 发 GET ⇒ 与上述代理解析完全无关（判据修正 ②）。
+
+== 甲、配置层三端对齐（只读解析） ==
+  aap-server 监听端口（application.yml 占位默认）= 8084
+  aap-client dev proxy 目标端口 = 8084（自身 dev server 端口 = 5173）｜ aap-admin dev proxy 目标端口 = 8084
+[PASS] 甲0 四处端口解析均为非空（正向对照，历史 46/75） srv=8084 cli_proxy=8084 cli_dev=5173 adm=8084
+[PASS] 甲1 三端端口一致（前端两端 dev proxy 目标 == 后端监听端口） 8084/8084/8084
+
+== 甲b、双栈端口探测（IPv4 127.0.0.1 + IPv6 ::1；v2 只试 IPv4 ⇒ 假阴性） ==
+  · 端口 8084   IPv4(127.0.0.1)=True  IPv6([::1])=True 
+  · 端口 5173   IPv4(127.0.0.1)=False IPv6([::1])=True 
+  · 端口 5174   IPv4(127.0.0.1)=True  IPv6([::1])=True 
+  · 端口 5175   IPv4(127.0.0.1)=True  IPv6([::1])=False
+  · 端口 5199   IPv4(127.0.0.1)=False IPv6([::1])=True 
+[PASS] 甲b0 双栈探针有牙齿（已知后端端口两栈至少一栈在听 ∧ 未监听端口两栈皆 False） 8084=(True, True) ｜ 59999 双栈皆 False
+[PASS] 甲b1 **IPv6 回环上确实有监听**（v2 判据修正的直接读数：任一端口 v6=True） [('8084', 'v4=True', 'v6=True'), ('5173', 'v4=False', 'v6=True'), ('5174', 'v4=True', 'v6=True'), ('5175', 'v4=True', 'v6=False'), ('5199', 'v4=False', 'v6=True')]
+[PASS] 甲b2 **同一端口两栈结论不同**（证明「只试一栈」会得出相反结论 —— 判据缺陷的机器证据） [('5173', False, True), ('5175', True, False), ('5199', False, True)]
+
+== 乙、后端活实例契约面（裸 socket 直连 127.0.0.1:8084，只读 GET） ==
+  · GET /actuator/health                           → http=200  code=None     traceId=无 ｜ 健康端点（非业务契约面）
+  · GET /api/v1/notifications?page=1&pageSize=1    → http=401  code='E-1902' traceId=有 ｜ 受保护业务端点（无令牌）
+  · GET /api/v1/admin/users?page=1&pageSize=1      → http=401  code='E-1902' traceId=有 ｜ 管理端受保护端点（无令牌）
+[PASS] 乙0 直连探针真的拿到 HTTP 响应（正向对照，> 0） 解析到 3 / 3 条
+[PASS] 乙1 actuator 健康 = 200 [200]
+[PASS] 乙2 受保护业务端点无令牌被拒（401）——真实 HTTP 上的鉴权边界 [('/api/v1/notifications', 401), ('/api/v1/admin/users', 401)]
+[PASS] 乙3 业务包络字段齐备（code/message 非空、traceId 存在） [('E-1902', 'traceId=有'), ('E-1902', 'traceId=有')]
+  备注：`/api/v1` 下**未注册路由**在无令牌时也返回 401（鉴权过滤器先于路由）；「404 E-1406」只在**已认证**请求下才可见 —— 本轮无令牌（不索取凭据），故该分支未验。
+
+== 丙、前端 dev server → /api 代理 → 后端（真·链路实测，裸 socket 只读 GET） ==
+  · [::1]:5173 ［识别=aap-client］ 页面 http=200 ｜ 服务端源码 /src/api/http.ts http=200 ｜ 经代理 GET /api/v1/notifications → http=401 code='E-1902' traceId=有 ⇒ 链路通
+  · [127.0.0.1]:5174 ［识别=未解析］ 页面 http=200 ｜ 服务端源码 /src/api/http.ts http=200 ｜ 经代理 GET /api/v1/notifications → http=401 code='E-1902' traceId=有 ⇒ 链路通
+  · [127.0.0.1]:5175 ［识别=未解析］ 页面 http=200 ｜ 服务端源码 /src/api/http.ts http=200 ｜ 经代理 GET /api/v1/notifications → http=401 code='E-1902' traceId=有 ⇒ 链路通
+  · [::1]:5199 ［识别=aap-client］ 页面 http=200 ｜ 服务端源码 /src/api/http.ts http=200 ｜ 经代理 GET /api/v1/notifications → http=401 code='E-1902' traceId=有 ⇒ 链路通
+[PASS] 丙0 至少有一个前端 dev server 可探（正向对照） 可探端 = 4 个
+[PASS] 丙1 每个可探前端：页面 200 ∧ 其 /api 代理拿到后端业务包络（E-1902 + traceId）——前端↔后端链路真通 [('5173', 'http=200/401', 'E-1902'), ('5174', 'http=200/401', 'E-1902'), ('5175', 'http=200/401', 'E-1902'), ('5199', 'http=200/401', 'E-1902')]
+[PASS] 丙2 **客户端 aap-client 自有 dev server 在听 ∧ 其代理链路真通**（本轮新增判据；v2 曾判「未运行」） [('::1', '5173', 'IPv6', 'aap-client', True), ('::1', '5199', 'IPv6', 'aap-client', True)]
+[PASS] 丙3 管理端 dev server 链路（沿用 v2 口径：端口 5174/5175） [('5174', 'E-1902', 'traceId=有'), ('5175', 'E-1902', 'traceId=有')]
+
+== 丁、客户端自带联调装置盘点（只读：只列文件与前置条件，不执行） ==
+  客户端 tools/*.mjs = 13 个：check-mp-api-base.mjs, debug-h5.mjs, h5-chain.mjs, h5-shots.mjs, h5-smoke.mjs, mock-upstream.mjs, mp-e2e-full.mjs, mp-e2e.mjs, mp-harness.mjs, mp-ide-loggedin.mjs, mp-ide-smoke.mjs, quote-pages-shots.mjs, verify-real-channel.mjs
+  小程序编译产物 dist/build/mp-weixin/api/*.js = 13 个（`mp-e2e*.mjs` / `check-mp-api-base.mjs` 的**前置**）
+[PASS] 丁0 客户端联调装置盘点非空（正向对照） tools=13 ｜ dist-api=13
+  说明：`mp-e2e-full.mjs`（真实 HTTP 全业务链）与 `mp-e2e.mjs`（登录+工作台）需**已编译产物**且会发 POST 写库；本轮纪律「只读、不索取凭据」⇒ 不执行，仅盘点其存在与前置条件。
+
+== 戊、上一轮（R632）判据缺陷取证：IPv4-only 探针 ⇒ 客户端端假阴性 ==
+  上一轮探针文件 = C:\Users\laitz\AppData\Local\Temp\aap-aux\probe-e2e-R632.py（存在=True）
+  其端口探测写法含 `127.0.0.1` 字面量 = True ｜ 源码中出现 `::1` = False
+[PASS] 戊0 上一轮探针源码确实**只**试 IPv4（正向对照：解析到该写法 > 0 且无 ::1） v4only=True ｜ has_v6=False
+  上一轮证据原文（节选）：'客户端 aap-client：自身 dev server 端口 5173 在听=False（本轮**未**运行）'
+[PASS] 戊1 上一轮证据确实写出了「客户端 dev server 未在听」 上一轮判 = False ｜ 本轮同端口双栈实测 = (False, True)
+
+==============================================================================
+判据：PASS 16 / FAIL 0
+
+按端逐条（结论均由上方读数算出，零手写）：
+  ① 后端 aap-server：端口 8084 IPv4=True/IPv6=True ｜ health=[200] ｜ 受保护端点无令牌=[401, 401]（code=['E-1902', 'E-1902']，traceId=有）
+  ② 管理端 aap-admin：端口/栈 = [('5174', 'IPv4'), ('5175', 'IPv4')] ｜ 页面 http=[200, 200] ｜ /api 代理 → http=[401, 401] code=['E-1902', 'E-1902'] ⇒ **链路真通**
+  ③ 客户端 aap-client：端口/栈 = [('5173', 'IPv6'), ('5199', 'IPv6')] ｜ 识别 = ['aap-client', 'aap-client'] ｜ 页面 http=[200, 200] ｜ /api 代理 → http=[401, 401] code=['E-1902', 'E-1902'] ⇒ **链路真通**
+
+  结论分级（布尔值全部由判据推出）：配置层三端一致=True ｜ 后端 HTTP 契约面可用=True ｜ 管理端↔后端链路真通=True ｜ 客户端↔后端链路真通=True ｜ 需令牌的业务数据链路未验（不索取凭据）=True
+  ⇒ 「代理层链路」三端**均有**实 HTTP 证据；「需令牌的业务数据链路」三端**均未验**（不索取凭据）⇒ 仍不得声称「三端全部联调通过（含业务数据）」。
+  ⇒ 上一轮「客户端端无机器证据」的**根因是探针判据**（IPv4-only），不是客户端未运行：本轮同端口 IPv6 栈 200 + 代理 401/E-1902。
+
+  ⚠ 归属声明：:5174/:5175/:8084/:5173/:5199 上的实例、及其工作区在途改动（`SecurityConfig.java` / `application.yml` / `AdminConfigBatchController.java` 未提交，见 analyze A23）**均属他方**；上述读数是「他方常驻实例」的实测，**不作为提交态契约证据**。
+     提交态契约证据仍是两轮全量用例（HEAD 的独立 detached worktree 内跑）。本探针全程只发 GET、未触碰他方任何进程。
+AUX_END=1
