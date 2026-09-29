@@ -1,0 +1,69 @@
+== R635 红基线：ADM-CB01 CREATE 的 APPLY 分支（被测提交 = HEAD 基线提交；HEAD 的独立 detached worktree 内单类运行） ==
+  == R635 修前红基线（只读实验；HEAD 的独立 detached worktree） ==
+  WINDOW_START=2026-09-29 19:59:36
+  ROOT_HEAD=dcc1a0a5
+  WORKTREE_ADD_RC=0
+  WT_HEAD=dcc1a0a5
+  RUN_START=19:59:47 RUN_END=20:00:35 RC=1
+  RAW_LINES=276
+  WORKTREE_REMOVE_RC=0
+
+== 一、单类读数 ==
+  合计 = Tests run: 6, Failures: 1, Errors: 0, Skipped: 0
+  正向对照 一0 合计行解析到 1 条（须 > 0，历史 46/75/98）
+  失败方法 = ['com.hioas.aap.supply.ConfigBatchAdminContractTest.createBatch']（判据：去重后 1 条；类级 FAILURE 行 1 条 —— 历史 228 的两类行之别）
+
+== 二、失败详情（原样摘录，含响应体） ==
+  |  -- in com.hioas.aap.supply.ConfigBatchAdminContractTest
+  | [ERROR] com.hioas.aap.supply.ConfigBatchAdminContractTest.createBatch -- Time elapsed: 0.562 s <<< FAILURE!
+  | org.opentest4j.AssertionFailedError: 
+  | [{"code":"E-2001","message":"内部错误","data":null,"traceId":"f60b0950c7c3464c97037c3c869956b5","details":null}] 
+  | expected: 201
+  |  but was: 500
+  | 	at com.hioas.aap.supply.ConfigBatchAdminContractTest.createBatch(ConfigBatchAdminContractTest.java:240)
+  | 
+  | [INFO] 
+  | [INFO] Results:
+  | [INFO] 
+  | [ERROR] Failures: 
+  | [ERROR]   ConfigBatchAdminContractTest.createBatch:240 [{"code":"E-2001","message":"内部错误","data":null,"traceId":"f60b0950c7c3464c97037c3c869956b5","details":null}] 
+  | expected: 201
+  |  but was: 500
+  | [INFO] 
+  | [ERROR] Tests run: 6, Failures: 1, Errors: 0, Skipped: 0
+  | [INFO] 
+  | [INFO] ------------------------------------------------------------------------
+  | [INFO] BUILD FAILURE
+  | [INFO] ------------------------------------------------------------------------
+  | [INFO] Total time:  45.352 s
+  | [INFO] Finished at: 2026-09-29T20:00:35+08:00
+  | [INFO] ------------------------------------------------------------------------
+  | [ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project aap-server: There are test failures.
+  | [ERROR] 
+  | [ERROR] See C:\Users\laitz\AppData\Local\Temp\aap-r635-wt-195936\aap-server\target\surefire-reports for the individual test results.
+  | [ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+  | [ERROR] -> [Help 1]
+  | [ERROR] 
+  | [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+  | [ERROR] Re-run Maven using the -X switch to enable full debug logging.
+  | [ERROR] 
+  | [ERROR] For more information about the errors and possible solutions, please read the following articles:
+  | [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+
+== 三、根因（机器判定） ==
+  ClassCastException 行 = 2 条；命中 ConfigBatchReader.longOf 的栈帧 = 1 条
+    2026-09-29 20:00:33.394 ERROR [http-nio-auto-1-exec-4] [f60b0950c7c3464c97037c3c869956b5] com.hioas.aap.common.GlobalExceptionHandler - 未捕获异常，已按 E-2001 处理: java.lang.ClassCastException: class java.lan
+    java.lang.ClassCastException: class java.lang.String cannot be cast to class java.lang.Number (java.lang.String and java.lang.Number are in module java.base of loader 'bootstrap')
+    at com.hioas.aap.supply.ConfigBatchReader.longOf(ConfigBatchReader.java:118)
+  [PASS] 三0 根因 = 类型强转失败（ClassCastException: String -> Number）且栈帧指向我方 helper longOf
+  [PASS] 三1 HTTP 层暴露为 500 业务码 E-2001（500 才能说明「契约测试只看到 500」这一不可见性）
+  [PASS] 三2 运行前并发前置：单进程串行（实验全程只有本次 maven 一个测试 JVM；未与任何审计/自测并发，历史 158）
+
+==============================================================================
+判据：PASS 4 / FAIL 0（不足即已 assert 中断，不会落盘假绿）
+结论（由上方读数推出）：
+  · 被测提交 = HEAD（单类 6 例）中 1 例红：ADM-CB01 的 APPLY 分支在 HTTP 层返回 **500 E-2001**，
+    根因是 APPLY 执行器接线（他方 `16b257e3`）调用 `ConfigBatchReader.longOf(batch.id())` 时传入对外 ID 的
+    **字符串形态**，而该 helper 只接受 `Number` ⇒ 该分支的**类型契约**在我们自己的类里不成立。
+  · 这不是 flaky：单进程串行、同点同形（与 R633/R634 两轮全量读到的红例同一枚）。
+REDBASE_EVIDENCE_END=1

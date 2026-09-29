@@ -229,9 +229,13 @@ class ConfigBatchAdminContractTest extends ApiTestBase {
         assertThat(empty.data().path("items").size()).as("无目标 ⇒ 无明细").isZero();
         assertThat(empty.data().path("status").asText()).isEqualTo("SUCCEEDED");
 
-        // APPLY：只登记受理（执行器 T-M4-08~11 未落地），状态 PENDING 且明细 PENDING
-        // APPLY 的上游零写入必须相对**发请求前的基线**读（绝对值会把本方法前半段插入的绑定夹具算成「APPLY 写了上游」；
-        // 也不能在请求之后再取基线 —— 那是恒真的空转判据，历史 19/81/230）
+        // APPLY：执行器**已落地**（他方 T-M4-10/11）⇒ create 在**同一请求内**同步执行该批 PENDING 明细
+        // （真源 specs/001-intake-automation/apply-path.md）。因此响应体是「受理时刻快照」，
+        // 而**库内**状态已被执行器推进到终态 —— 响应与库**不再同源**（原「响应与库同源 = PENDING」的前提
+        // 随执行器落地失效）。本段按新口径改写：不是放宽断言，而是**收紧**（新增「执行器必须真的跑过」
+        // 「不得留 PENDING」「失败留痕」「读接口与库同源」四类机器判据，历史 12/17/22）。
+        // 上游零写入仍必须相对**发请求前的基线**读（绝对值会把前半段插入的绑定夹具算成 APPLY 写了上游；
+        // 请求之后再取基线是恒真空转判据，历史 19/81/230）。
         long bindingsBeforeApply = jdbc.queryForObject("select count(*) from aap_channel_binding", Long.class);
         long syncTasksBeforeApply = jdbc.queryForObject("select count(*) from aap_sync_task", Long.class);
         HttpResult apply = post("/admin/config-batches", """
@@ -239,16 +243,30 @@ class ConfigBatchAdminContractTest extends ApiTestBase {
                 """, techOps);
         assertThat(apply.status()).as(apply.body()).isEqualTo(201);
         assertThat(apply.data().path("mode").asText()).isEqualTo("APPLY");
-        assertThat(apply.data().path("status").asText()).isEqualTo("PENDING");
-        assertThat(apply.data().path("items").get(0).path("status").asText()).isEqualTo("PENDING");
-        assertThat(jdbc.queryForObject("select status from aap_config_batch where id = ?", String.class,
-                Long.parseLong(apply.data().path("id").asText()))).as("响应与库同源").isEqualTo("PENDING");
-        // 上游零写入的判据必须相对**发请求前的基线**（本方法前半段为「标签维度」插过 1 条绑定夹具，
-        // 绝对 `isZero()` 会把夹具算成「APPLY 写了上游」——判据范围与语义不符，历史 19/81）
+        assertThat(apply.data().path("status").asText()).as("响应 = 受理时刻快照（执行前）").isEqualTo("PENDING");
+        assertThat(apply.data().path("items").get(0).path("status").asText()).as("响应 = 受理时刻快照")
+                .isEqualTo("PENDING");
+        long applyId = Long.parseLong(apply.data().path("id").asText());
+        // 执行器收尾（settle）：测试库无 aap_newapi_endpoint 行 ⇒ 该项 FAILED（不写成功），批次终态 PARTIAL
+        Map<String, Object> settled = jdbc.queryForMap("select status, succeeded_count, failed_count,"
+                + " mismatch_count, finished_at from aap_config_batch where id = ?", applyId);
+        assertThat(settled.get("status")).as("PENDING 明细已被执行器推进 ⇒ 批次收敛为 PARTIAL").isEqualTo("PARTIAL");
+        assertThat(((Number) settled.get("failed_count")).intValue()).as("无可用端点 ⇒ 该项 FAILED").isEqualTo(1);
+        assertThat(settled.get("finished_at")).as("执行器收尾必须写 finished_at").isNotNull();
+        assertThat(jdbc.queryForObject("select status from aap_config_batch_item where batch_id = ?",
+                String.class, applyId)).as("执行器不得把明细留在 PENDING（否则等于没执行）").isEqualTo("FAILED");
+        assertThat(jdbc.queryForObject("select last_error from aap_config_batch_item where batch_id = ?",
+                String.class, applyId)).as("失败原因必须留痕（不得静默）").contains("new-api");
+        // 执行结果由**读接口**暴露且读侧与库同源（ADM-CB03；历史 17/22 的读侧镜像：只断言「库里有」会漏掉响应对不对）
+        HttpResult settledDetail = get("/admin/config-batches/" + applyId, techOps);
+        assertThat(settledDetail.status()).as(settledDetail.body()).isEqualTo(200);
+        assertThat(settledDetail.data().path("status").asText()).as("详情 = 库内终态（读侧同源）").isEqualTo("PARTIAL");
+        assertThat(settledDetail.data().path("failed_count").asInt()).isEqualTo(1);
+        assertThat(settledDetail.data().path("items").get(0).path("status").asText()).isEqualTo("FAILED");
         assertThat(jdbc.queryForObject("select count(*) from aap_channel_binding", Long.class))
-                .as("APPLY 尚未执行 ⇒ 不改上游（基线 %d 条）", bindingsBeforeApply).isEqualTo(bindingsBeforeApply);
+                .as("无可用端点 ⇒ APPLY 不改上游（基线 %d 条）", bindingsBeforeApply).isEqualTo(bindingsBeforeApply);
         assertThat(jdbc.queryForObject("select count(*) from aap_sync_task", Long.class))
-                .as("APPLY 尚未执行 ⇒ 不排队同步任务（基线 %d 条）", syncTasksBeforeApply).isEqualTo(syncTasksBeforeApply);
+                .as("无可用端点 ⇒ APPLY 不排队同步任务（基线 %d 条）", syncTasksBeforeApply).isEqualTo(syncTasksBeforeApply);
 
         // 请求校验（清单 §2.6 的 `batch_type`/`mode` 是必填；非法值必须 400 而不是落库报 500，踩坑 21/130）
         assertThat(post("/admin/config-batches", """

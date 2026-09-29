@@ -114,8 +114,19 @@ final class ConfigBatchReader {
         return value == null ? null : String.valueOf(((Number) value).longValue());
     }
 
+    /**
+     * JDBC 数值列（或**对外 ID 的字符串形态**）→ long。
+     *
+     * <p>为什么容忍字符串：本仓对外 ID 一律 **string**（契约口径，历史 83），调用方把视图 record 的
+     * {@code id()} 直接传进来是合法用法（同包 `ConfigApplyExecutor.longOf` 早就是这个口径 —— 一处严格、
+     * 一处宽容是漂移高发形态，历史 44）。只认 {@code Number} 会让该调用形态在 HTTP 层炸成 500 `E-2001`
+     * （强转失败对契约测试与覆盖门禁**都不可见**，历史 13/24 族），故此处统一口径。
+     */
     static long longOf(Object value) {
-        return value == null ? 0L : ((Number) value).longValue();
+        if (value == null) {
+            return 0L;
+        }
+        return value instanceof Number number ? number.longValue() : Long.parseLong(String.valueOf(value).trim());
     }
 
     static Integer intOrNull(Object value) {

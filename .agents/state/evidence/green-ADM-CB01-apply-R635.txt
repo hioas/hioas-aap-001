@@ -1,0 +1,35 @@
+== R635 修后绿基线：ADM-CB01 APPLY 分支（补丁 = 我方 3 文件；HEAD 的独立 detached worktree 内应用后单类两轮） ==
+  补丁文件 = ConfigBatchReader.java（longOf 容忍对外 ID 的字符串形态）+
+            ConfigBatchAdminContractTest.java（APPLY 前提按执行器已落地**收紧**改写） +
+            docs/backend/02-API接口模型清单.md（§2.6 的「执行器尚未落地」现状注记据实更新）
+  运行全程**串行**（同一 worktree、同一 JVM 序列；未与任何审计/自测并发，历史 158）
+
+  run1 = Tests run: 6, Failures: 0, Errors: 0, Skipped: 0 ｜ BUILD SUCCESS ｜ rc=0
+  run2 = Tests run: 6, Failures: 0, Errors: 0, Skipped: 0 ｜ BUILD SUCCESS ｜ rc=0
+
+  [PASS] 一0 合计行两条都解析到（正向对照，历史 46/75/98）
+  [PASS] 一1 两轮 rc = 0/0（修前红基线 rc=1 ⇒ 修复真的改变了结论，不是「本来就没红」）
+  [PASS] 一2 两轮合计五元组一致 = ('6', '0', '0', '0') / ('6', '0', '0', '0')（非 flaky）
+
+== 二、本段断言的变化方向（**收紧**，不是放宽 —— 硬规则「不得削弱测试」的机器可查形式） ==
+  删除 3 条：以「执行器未落地」为**前提**的断言（响应 status=PENDING ∧ 明细 PENDING ∧ 库 status=PENDING）。
+    该前提由他方 `16b257e3`（T-M4-10/11 执行器接线）推翻，md §2.6 原「现状」注记同句已据实更新 ⇒ 属**前提失效**，
+    不是「断言写错迁就实现」（判据：md 契约行 §2.6 `ADM-CB01` 只声明 201 + ConfigBatch，未声明「只登记 PENDING」）。
+  新增 11 条（全部是机器判据，逐条可复算）：
+    + 响应 = 受理时刻快照 ⇒ status/明细 status 仍须为 PENDING（快照语义不得漂移为终态）
+    + 执行器收尾：库内批次 status = PARTIAL（PENDING 明细已被推进，不得留 PENDING）
+    + 执行器收尾：failed_count = 1（无可用端点 ⇒ 该项 FAILED，不得伪造成功数，R-58）
+    + 执行器收尾：finished_at 非空（收尾必须落地时间）
+    + 执行器不得把明细留在 PENDING（否则「等于没执行」）
+    + 失败原因必须留痕：last_error 含 new-api（不得静默失败）
+    + 读接口 ADM-CB03 与库**同源**：status = PARTIAL
+    + 读接口 failed_count = 1
+    + 读接口 items[0].status = FAILED
+    + 上游零写入相对**发请求前基线**（aap_channel_binding，历史 19/81/230）
+    + 上游零写入相对**发请求前基线**（aap_sync_task）
+  净变化 = 6 例仍为 6 例（无删除用例、无 skip；`@Test` 数不变）
+
+==============================================================================
+判据：PASS 3 / FAIL 0（不足即已 assert 中断，不会落盘假绿）
+结论：被测提交 = 修前 HEAD 基线提交 + 本补丁；单类 6 例**两轮全绿**（rc=0/0、BUILD SUCCESS）⇒ 可进两轮全量复验。
+GREENBASE_EVIDENCE_END=1
