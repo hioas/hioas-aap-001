@@ -1,0 +1,78 @@
+R642 三端 / 在跑实例只读取证（纯巡检轮的**主动取证**；零凭据、零副作用、零进程操作）
+================================================================================
+落盘：.agents/state/evidence/three-end-probe-R642.txt（本文件；LF）
+原始读数：$TEMP/aap-round-verify/R642/ 下 probe-R642.raw（第二版，含两处判据修正）、probe2-R642.raw（maven 启动器→子进程→端口）、
+          probe3-R642.raw（四端口健康 + 逐实例控制器集合 + 外部重编译足迹）、probe4-R642.raw（非本仓库监听者身份）、
+          probe5-R642.raw（8083 的完整命令行归类）。探针时刻 23:02:05 ~ 23:03:38（本轮窗口 22:47:02→22:52:30 之后）。
+判据纪律：探针内 unset 代理变量（历史坑 122）；每个「缺失 / 不可达」判据都配正向对照；跨源比对两侧走同一归一（全限定点分名）；
+          只读边界：未 kill 任何进程、未 attach 他人浏览器、未获取或伪造任何凭据（历史硬规则：多项目共存安全边界）。
+
+一、范围与结论上限
+本轮 = 绿相位巡检轮（覆盖 missing == 0，零交付面改动），故不做端点开发；本节取证的对象是**任何测试与门禁都看不见的「联调就绪度」事实**。
+可陈述上限 = 「本项目 dev 面可达 + 两个前端代理段本轮复现打通 + 两个 AAP 后端实例健康 + 两实例各缺 3 / 2 个控制器类」；
+**不得**据此推出「三端联调通过」（业务链路需凭据驱动，本轮按只读边界未驱动）。
+
+二、监听端口归属（机器读数：netstat 地址族 + PID + 进程名 + 命令行）
+本项目（aap）在跑 6 个进程：
+  - 8084  PID 58236  IMAGE=java  CMDLINE=...java.exe -XX:TieredStopAtLevel=1 -cp @...spring-boot-11930120102563152353.argfile com.hioas.aap.AapServerApplication
+  - 8086  PID 46624  IMAGE=java  同上（另一 argfile / 另一实例）
+  - [::1]:5173  PID 38736  IMAGE=node  aap-client/node_modules/.bin/../@dcloudio/vite-plugin-uni/bin/uni.js（客户端 dev，仅绑 IPv6 环回）
+  - [::1]:5174  PID 16212  IMAGE=node  同上（客户端 dev 第二实例）
+  - 127.0.0.1:5174  PID 69336  IMAGE=node  aap-admin/node_modules/.bin/../vite/bin/vite.js（管理端 dev，IPv4）
+  - 127.0.0.1:5175  PID 55156  IMAGE=node  同上 + --port 5175 --strictPort（管理端 dev 第二实例）
+非本仓库（**他方项目：只登记、绝不触碰**）：
+  - 8080  PID 77464  com.wisemapping.Application（E:/workspaces/mind 侧）
+  - 8083  PID 69076  IDEA 启动的 hioas-aim/apps/java-im/target/classes（spring-boot 3.5.7；命令行含 E:/workspaces/hioas/hioas-aim/apps/java-im）
+  - [::1]:3000  PID 57924  wisemapping-frontend 的 vite
+  - 5179  PID 13820  hioas-aim/apps/aim-uikit 的 vite（即作业所指「另一项目正在跑 uikit-e2e」那一侧）
+判别法（**判据有牙齿**，仅按端口/进程名会误判）：用「已加载的 com.hioas.aap.*Controller 集合」+「health 包体形状」双重判别 ——
+  8084/8086：health = {"groups":["liveness","readiness"],"status":"UP"}（200），控制器集合非空；
+  8080：401 + Spring 默认错误体 {"timestamp":...,"error":"Unauthorized","path":"/actuator/health"}，控制器集合 **0**；
+  8083：200 + 裸 {"status":"UP"}（无 groups），控制器集合 **0** ⇒ 两者**不是** AAP 后端实例。
+
+三、两个 AAP 实例 + 两个前端代理段（正 / 负向对照齐备）
+正向对照：/actuator/health → 8084 200（大写 X-Trace-Id）、8086 200（大写 X-Trace-Id）。
+负向对照：不存在路径 /api/v1/__no_such_path__ → 401 E-1902（与真实路径同答 ⇒ 路由探测不可判「实例是否含最新端点」）；
+          未监听端口 5199 → curl exit 7（连接被拒，非 401）。
+端到端（空体 POST = 参数校验前置失败、无副作用）：
+  - 127.0.0.1:5174/ → 200（<title>AAP 管理端</title>，594 字节）；其 /api/v1/auth/sms/send → 400 E-1001 + **小写** x-trace-id
+  - [::1]:5173/ → 200（uni H5 首屏，833 字节）；其同形 POST → 400 E-1001 + **小写** x-trace-id
+  - 直连 8084 同形 POST → 400 E-1001 + **大写** X-Trace-Id
+⇒ 头名大小写差异证明前两者的请求**确实穿了前端代理** ⇒ 两个前端的代理段本轮**复现可达**（与 R641 结论一致）。
+地址族纪律：客户端 dev 只绑 IPv6 环回，127.0.0.1:5173 的 exit 7（连接被拒）**不**等于服务不可用。
+
+四、在跑实例新鲜度与控制器集合差异（与 R641 逐条一致 ⇒ 两实例本轮未重启）
+classpath 首项 = aap-server/target/classes（**目录，非 jar**）；进程启动时刻（powershell StartTime 机器读数）
+= 8084（PID 58236）2026-09-24 22:06:42、8086（PID 46624）2026-09-25 05:39:41；jcmd VM.uptime = 435419.416 s / 408240.323 s（与启动时刻一致）。
+磁盘 31 个 *Controller.class vs 已加载 **28（8084）/ 29（8086）**：
+  8084 缺 com.hioas.aap.settlement.SettlementController、com.hioas.aap.supply.AdminConfigBatchController、com.hioas.aap.supply.AdminSupplyUnitController；
+  8086 缺后两者；两实例 EXTRA_IN_LOADED 均为空（无「加载了磁盘上不存在的控制器」）⇒ **两实例不是同一份构建产物**。
+自实例启动以来触及 main 源的提交数 = 12（8084）/ 11（8086）（与 R641 相同；main 侧最近提交 = b7c71c81，2026-09-29 20:03:10，ADM-CB01 APPLY 分支修复）。
+继承 R641 的收窄措辞：classpath 指向目录且被重编译 ⇒「实例整体为旧构建」**不成立**，须按「已加载 / 首次加载」分层陈述。
+
+五、本轮新发现：主工作区 target/classes 在 22:57:11–22:57:15 被**外部**全量重编译（422 / 456 个 .class）
+读数：最旧命中 = AapServerApplication.class @ 22:57:11.1100431、最新 = usage/UsageController.class @ 22:57:15.9300787；
+      命中包分布前 5 = quote 57 / compile 35 / iam 33 / supply 29 / sync 27；target/classes 目录自身 mtime 仍为 2026-09-24 19:18:37。
+归因（**机器排除 + 机制取证，不猜测命令**）：
+  (a) 本巡轮回合的命令表 tools/round-verify/manifest.json（84 条）中关键字 mvn / maven / compile / javac 命中数**均为 0** ⇒ 非本轮动作；
+  (b) 本轮两轮全量跑在 HEAD（3d2bc5c9）的**独立 detached worktree** 内（WT_DIRTY_LINES=0），其 target 在 $TEMP 下且已 `worktree remove --force` 回收 ⇒ 不写主工作区 target/classes；
+  (c) 机制取证：spring-boot-maven-plugin 4.1.1 的 `run` goal 在 plugin.xml 里带 `<executePhase>test-compile</executePhase>` ⇒
+      「他方 `mvn spring-boot:run`（重建/启动实例）」本身就会先重编译全部 main 类，与观测到的全量重编译形态吻合；
+      但**不主张**具体是哪一条命令（未取证发起进程，只证明「非本轮」）。
+对本轮证据链的影响：零交互（回归面的零写副作用判据 = 冻结生成物 size + md5 全等，变化 0 个）。
+风险提示（留给下一轮）：任何一轮都**不得**把 target/classes 的 mtime 类读数当作「本轮自身动作」的证据；
+            他方在同一时段于主工作区构建 ⇒ 任何「在主工作区跑测」的方案都必须先核对并发（历史坑 11/158/193）。
+
+六、本回合的探针判据侧返工 **2 处**（均在提交前发现并修正；零交付面影响）
+(1) body 文件未在每次 curl 前截断：第一版 raw 在 `neg-unlistened exit=7` 下方仍回显上一次 401 的包体 ⇒ **证据行自相矛盾**（exit=7 却带包体）。
+    修法 = 每次调用前 `: > body.txt`，失败分支显式写 `<no-response curl_exit=7>`（第二版 raw 第 42–44 行即修正后形态）。
+(2) `tasklist //FI "PID eq N" //FO CSV //NH` 在 MSYS 下取不到进程名 ⇒ 第一版 raw 全部为 `IMAGE=<none>`；
+    **该缺陷自 R641 起就存在**（R641 的 probe-R641.raw 含 7 条 `IMAGE=<none>`，该轮未发现）。
+    修法 = 改用 powershell `(Get-Process -Id N).ProcessName`，第二版 IMAGE=java / node 全部就位。
+两处都是由**逐行复核 raw**（而不是只看结论句）发现的 —— 这正是坑 12（证据必须反映真实结论）在取证侧的形态。
+
+七、对照清单（证明判据非空转）
+正向：两实例 health 200（探针能区分 200 / 401 / 502）；已加载控制器 28、29 均 > 0；磁盘 31 > 0；两个前端首页 200。
+负向：不存在路径 401；未监听端口 exit 7（连不上）；**非本仓库实例（8080/8083）控制器集合 = 0** ⇒「读的是 AAP 类」这条判据不是空转。
+
+PROBE_EVIDENCE_END=1
