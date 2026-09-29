@@ -65,8 +65,11 @@ A24 相位与判据结果自洽（绿相位 ⇒ 已判 FAIL 条数 == 0）；A23
 且 `tools/` 自 R606 起**零改动**（本轮取证：`git status --porcelain -- tools/` = 0 条 ∧ 被测提交..HEAD 触及 tools/ 的提交 = 0 枚）
 ⇒ 该读数在本轮**按构造不变**，重复跑属空转，按历史 213-③ 不擅自累加探针。本轮的只读读数留档（`independent-prerun.txt` / `ledger-audit-prerun.txt` / `jps-readonly.txt`）
 全部落在 `$TEMP/aap-round-verify/R609/`（轮次目录，非仓库），**不进仓库、不进证据列**。
-⑧ 本轮**装置链的全部只读核对**均走**轮次无关常驻工具**（analyze / regression / selftest-counts / device-report / independent / ledger-audit）；**无**工作区外一次性脚本参与本轮任何判据与产物。
-本轮自撰探针侧**零判据失效**（无新探针 ⇒ 无新判据；既有常驻探针的解析器均带 `> 0` 正向对照）。
+⑧ 本轮**装置链的全部只读核对**均走**轮次无关常驻工具**（analyze / regression / selftest-counts / device-report / independent / ledger-audit）；**无**工作区外一次性脚本参与装置链任何判据与产物。
+装置链**外**另有 **1 份收尾独立复核探针**（`verify-R609-closeout.py`，只读、落在轮次目录、**不进仓库**）：其**首版有 2 处判据失效**，均**改判据、零产物改动**（按历轮口径：只读探针自身的判据修正**不计入返工真值**，故 §五 权威数字仍 = 1 处）——
+① 台账读取用「先 `str.splitlines()` 再喂 `csv.reader`」→ 字段**内嵌换行被静默丢弃**（同一行描述列读到 **7017** 而非 **7085** 字符、`\n` 计数 0）；
+② 状态文件的「返工真值」正则**未限定本轮小节** → 全文首匹配命中历史轮次（读出 4 而非 1）。
+两处均为「不等 / 异常值先怀疑判据」的实例；修后复跑 **22 PASS / 0 FAIL**（含「三处返工真值同源 1/1/1」「三处连续轮次同源（归一粗体标记）」「三处用例数同源」三条同源判据）。既有常驻探针的解析器仍均带 `> 0` 正向对照。
 
 七、与上一轮（R608）的差异逐条：rc 变化 0 条；FAIL 明细 167→167（新增 0 / 消失 0）；tag 集合 84→84 一致；复跑条数 84→84；用例数 316→316、类数 51→51；
 覆盖 117→117、registered_routes 134→134；崩溃通道理由 sha256 2→2 逐字节不变；归仓守卫异常 2→2（沿用）；连续全绿计数 **46 → 47**（由上一轮 history 行的连续计数形态解析后 +1）；
@@ -93,13 +96,12 @@ pom.xml 的 exec-maven-plugin 同样 HEAD **0** / 工作区 **1**；SecurityConf
 
 四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
-  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 1 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 6 == `git status` 条目 6
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 5 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 0 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 5 == `git status` 条目 5
       M README.md  mtime=2026-09-24 07:51:14
       M aap-server/pom.xml  mtime=2026-09-24 08:07:37
       M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
       M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
       ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
-      （本轮产物）M .agents/state/evidence/final-check-R609.txt  mtime=2026-09-29 09:09:39
       其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
   ③ 本轮提交（d686418b..HEAD）改动文件 = 20 个，其中位于交付面前缀的 = 0 个（**须 0**）
 
