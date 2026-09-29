@@ -1,0 +1,39 @@
+R615 校验轮（两轮 rc=0 ∧ missing==0 ⇒ 交付面零改动）；全部读数由 tools/round-verify/analyze.py 从 facts / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+[PASS] A0a facts 必填键齐备 缺失 = 无（要求 36 键）
+[PASS] A0b facts 轮次 == R615 读到 'R615'
+[PASS] A1 run1/run2 rc 均为 0 rc=0/0
+[PASS] A2 两轮合计行五元组一致且全 0 失败 run1=('316', '0', '0', '0') run2=('316', '0', '0', '0')
+[PASS] A3 BUILD SUCCESS 两轮均为真 run1 SUCCESS=True FAILURE=False / run2 SUCCESS=True FAILURE=False
+[PASS] A4 逐类结果（已剥 Time elapsed 再排序）两轮一致 逐类行数 51 / 51；diff = 0
+[PASS] A5 串行（run1_end <= run2_start；按绝对时刻解算，跨午夜不假失败） 2026-09-29 11:30:49 → 2026-09-29 11:30:49
+[PASS] A6 maven 耗时双写法解析器有牙齿（两形态各 1 条合成对照） 本轮实际形态 run1=141(mm:ss min) run2=139(mm:ss min)
+[PASS] A7 类级行数 > 0（正向对照） 51 类
+[PASS] A8 类级行数与合计口径一致（类级 tests 相加 == 合计） run1 类级和=316 / 合计=316；run2 类级和=316 / 合计=316
+[PASS] A9 归档测试源非空 57 个 .java（facts 声明 57）
+[PASS] A10 @Test 词边界计数 == surefire 合计 @Test=316 vs surefire=316（裸子串 318 作对照，差 2）
+[PASS] A11 禁用扫描 0 条（不得削弱测试） 命中 = 无
+[PASS] A12 覆盖 total/implemented/missing == 117/117/0 total=117 implemented=117 missing=0
+[PASS] A13 按族相加 == total（内容级） 族和 = 117/117（族数 15）
+[PASS] A14 registered_routes / not_registered registered_routes=134 not_registered=[]
+---- 被测状态与窗口 ----
+[PASS] A15 worktree 与 HEAD 差异行数 == 0 WT_DIRTY_LINES=0
+[PASS] A16 worktree 检出提交 == 窗口起点 HEAD tested=03c54aa9 head_start=03c54aa9
+[PASS] A17 窗口内他方推进提交数 FACTS_HEAD_ADVANCED_COUNT=0（head_end=03c54aa9）
+[PASS] A18 并发前置双向对照 pos=2/2 neg=0/2（必须 0） result=CLEAR
+[PASS] A19 环境指纹齐备 bash=/usr/bin/bash uname=MINGW64_NT-10.0-26100 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps_reach=Y
+[PASS] A20 worktree add/remove rc == 0 add=0 remove=0
+[PASS] A21 facts 写入完成标记 == 1 FACTS_WRITTEN=1
+[PASS] A22 上一轮 history 行恰好 1 条 命中 1 条；上一轮相位 = 绿相位
+连续全绿 = 第 53 轮（相位=green ⇒ 上一轮计数 +1；prev=绿相位 记 52）
+主体仓库在途改动（只登记、不触碰）= 5 条
+    M README.md                                                           mtime=2026-09-24 07:51:14
+    M aap-server/pom.xml                                                  mtime=2026-09-24 08:07:37
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java   mtime=2026-09-24 19:12:39
+    M aap-server/src/main/resources/application.yml                       mtime=2026-09-25 05:13:53
+   ?? aap-server/src/main/webapp/                                         mtime=2026-09-24 08:07:43
+[PASS] A23 在途改动中 mtime 落在本轮窗口内的条数 0 条 （无）
+[PASS] A24 相位与判据结果自洽（红相位 ⇒ 已判 FAIL 条数 > 0；绿相位 ⇒ == 0） phase=green 已判 FAIL=0（两轮 rc=0/0、missing=0）
+[PASS] A25 相位命名守卫（红相位下 5 条校验证据名不得含 green） 前缀 = green-verify（由 phase.ev_prefix 推出）
+==============================================================================
+判据：PASS 27 / FAIL 0
