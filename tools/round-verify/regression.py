@@ -414,6 +414,12 @@ def fp():
 BEFORE = fp()
 p("运行前生成物快照 = %d 个（> 0 正向对照）" % len(BEFORE))
 
+# 每条命令的**有界**执行（巡检轮实测的真发现）：无上限时，一条劣化/挂起的工具会让整轮停在
+# 「看起来死锁」的状态（实测同一条命令因 $TEMP 元数据棘轮由 ~40s 劣化到 ~16min，整轮被冻 20+ 分钟、
+# 期间零输出 ⇒ 判据完全不可见）。加界后：超时 ⇒ rc=124 + 一条 [FAIL] 行（响亮失败），而不是无限等待
+# （历史 175：响亮崩溃远好于静默空转）。上限取得足够宽，以免把「慢但在推进」的命令误判成失败。
+CMD_TIMEOUT_S = 1800
+TIMEOUT_RC = 124
 missing, mism, ran, nonzero = [], [], [], []
 for tag, cmd in ALL:
     script = cmd_path(cmd[1])
@@ -421,23 +427,30 @@ for tag, cmd in ALL:
         missing.append(tag)
         p("  --  %-34s 磁盘缺失（跳过，按 ROOT 解析）" % tag)
         continue
-    r = subprocess.run(cmd, cwd=str(ROOT), capture_output=True)
-    so = r.stdout.decode("utf-8", "replace")
-    se = r.stderr.decode("utf-8", "replace")
-    txt = so + "\n" + se
+    try:
+        r = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, timeout=CMD_TIMEOUT_S)
+        trc = r.returncode
+        txt = ((r.stdout or b"").decode("utf-8", "replace") + "\n"
+               + (r.stderr or b"").decode("utf-8", "replace"))
+    except subprocess.TimeoutExpired as ex:
+        trc = TIMEOUT_RC
+        _o = (ex.stdout or b"").decode("utf-8", "replace") if isinstance(ex.stdout, bytes) else (ex.stdout or "")
+        _e = (ex.stderr or b"").decode("utf-8", "replace") if isinstance(ex.stderr, bytes) else (ex.stderr or "")
+        txt = (_o + "\n" + _e + "\n[FAIL] %s：命令超时 >%ds 被中止（本轮记 rc=%d；超时 = 判据不可用，不得判绿）\n"
+               % (tag, CMD_TIMEOUT_S, TIMEOUT_RC))
     (W / (tag + ".log")).write_text(txt, encoding="utf-8", newline="\n")
     fails = sorted({re.sub(r"^\[FAIL\s*\]\s*", "", ln).strip() for ln in txt.splitlines()
                     if re.search(r"\[FAIL\s*\]", ln) and "[PASS]" not in ln})
     failmap[tag] = fails
-    rcseq.append("%s rc=%d" % (tag, r.returncode))
+    rcseq.append("%s rc=%d" % (tag, trc))
     ran.append(tag)
     exp = PREV.get(tag)
-    bad = (exp is not None and exp != r.returncode)
+    bad = (exp is not None and exp != trc)
     if bad:
-        mism.append((tag, exp, r.returncode))
-    if r.returncode != 0:
-        nonzero.append((tag, r.returncode))
-    p("  %s %-34s rc=%d (%s=%s) FAIL行=%d" % ("!!" if bad else "OK", tag, r.returncode, PREVR, exp, len(fails)))
+        mism.append((tag, exp, trc))
+    if trc != 0:
+        nonzero.append((tag, trc))
+    p("  %s %-34s rc=%d (%s=%s) FAIL行=%d" % ("!!" if bad else "OK", tag, trc, PREVR, exp, len(fails)))
 
 AFTER = fp()
 changed = sorted(k for k in set(BEFORE) | set(AFTER) if BEFORE.get(k) != AFTER.get(k))

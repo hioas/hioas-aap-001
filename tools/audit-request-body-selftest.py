@@ -30,10 +30,13 @@
 
 from __future__ import annotations
 
+import atexit
 import hashlib
 import json
+import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -48,7 +51,62 @@ TMP = Path(str(Path.home()) + "/AppData/Local/Temp") if not Path("/tmp").exists(
 # 旧写法只用 `%H%M%S`（日内秒，命名空间 86400）且脚本从不清理历史目录 → 残留逐轮累积（棘轮），
 # 与任一历史运行**同秒**即 `shutil.copytree(..., WORK/"inject")` 撞 `FileExistsError` → rc 随机为 1，
 # 在回归面里表现为一条**无法归因的 rc 变化**（而 FAIL 明细零变化）。改用 mkdtemp ⇒ 名字唯一、可重跑、并发安全。
+# 同族第二处（巡检轮实测，历史 169/177 的棘轮）：mkdtemp 只解决「撞名」，**不解决「清理」** ——
+# WORK 从不回收 ⇒ 每轮在 $TEMP 留一份「整仓副本」（1.2 万文件级）：实测累积 **694 份**、
+# 同一条命令由 ~40s 劣化到 ~16min（回归面表现为「看起来卡死」，实为文件系统元数据被拖垮）。
+# 结构性消除两条：① 运行前清理**同前缀 ∧ mtime 早于 1 小时**的历史 WORK（活跃实例必然 < 1 小时 ⇒ 并发安全）；
+#                ② 本次 WORK 注册 atexit 回收（正常/异常退出都清理；被强杀时由下一次运行的 ① 兜底）。
+def _purge_stale(keep_secs: int = 3600, max_del: int = 24) -> tuple[int, int]:
+    """清理同前缀的历史 WORK：只删 mtime 早于 keep_secs 的目录，**单轮最多删 max_del 个**。
+
+    上限的理由（巡检轮实测）：单目录 = 1.2 万文件的整仓副本，实测删除速率 ~8 个/分钟；
+    若一次性清空历史积压（本项目实测积压 694 个），本命令会从 ~40s 劣化到小时级 ——
+    在回归面里表现为超时/卡死。故本函数只负责「止住新增」（每轮新增 1–2 个 ≪ 24），
+    历史积压由一次性 aux 脚本在后台排空。
+
+    失败可见性（同一轮实测：首版只报「失败 21 个」而不知原因 ⇒ 判据不可用）：用 onerror 回调
+    **清只读位后重试一次**，仍失败则把「路径 + 首个错误」记入 `_purge_reasons`（上限 3 条）供调用方打印。
+    """
+    n = f = 0
+    try:
+        with os.scandir(TMP) as it:
+            for e in it:
+                if n + f >= max_del:
+                    break
+                if not e.name.startswith("aap-reqbody-selftest-") or not e.is_dir(follow_symlinks=False):
+                    continue
+                try:
+                    if time.time() - e.stat().st_mtime < keep_secs:
+                        continue
+                    shutil.rmtree(e.path, onerror=_rm_onerror)
+                    n += 1
+                except OSError as ex:
+                    f += 1
+                    if len(_purge_reasons) < 3:
+                        _purge_reasons.append("%s: %s" % (e.name, str(ex)[:120]))
+    except OSError:
+        pass
+    return n, f
+
+
+_purge_reasons: list[str] = []
+
+
+def _rm_onerror(func, path, exc_info) -> None:
+    """Windows 上只读文件会被 rmtree 拒绝：清只读位后重试一次；仍失败则抛给外层记理由。"""
+    try:
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+    except OSError:
+        raise
+
+
+_stale_n, _stale_f = _purge_stale()
+print("历史 WORK 清理：删除 %d 个 / 失败 %d 个（单轮上限 24；保留 1 小时内的活跃实例）" % (_stale_n, _stale_f))
+if _purge_reasons:
+    print("  失败样例（最多 3 条）：" + " | ".join(_purge_reasons))
 WORK = Path(tempfile.mkdtemp(prefix="aap-reqbody-selftest-", dir=str(TMP)))
+atexit.register(lambda: shutil.rmtree(WORK, ignore_errors=True))
 
 results: list[str] = []
 npass = 0
