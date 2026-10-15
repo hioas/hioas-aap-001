@@ -134,8 +134,45 @@ log "ARCH_TEST_FILES=$(find "$ARCH/testsrc" -name '*.java' 2>/dev/null | wc -l |
 
 git -C "$ROOT" status --porcelain > "$W/root-status-after.txt" 2>&1
 
+# ---- worktree 回收（三层：先离开该树 → 有界重试 → 残留兜底）----
+# 真实返工（巡检轮实测：同一 HEAD 连续两次逐轮复现）：Windows **不允许删除任何进程的当前目录（含其祖先）**，
+# 而上面 `cd "$WT/aap-server"` 之后 bash 的 CWD 就在树内 ⇒ `git worktree remove --force` 以
+# `error: failed to delete '<WT>': Permission denied`（rc=255）**半途失败**：目录残留部分文件、
+# 而 worktree 登记项已被摘除 ⇒ `analyze.py` A20、`independent.py` J1e/J5g 响亮 FAIL、整轮证据不可用。
+# 最小复现（本机实测）：worktree 子目录内 `cd` 后 `git -C <主库> worktree remove --force <wt>` ⇒ rc=255 + 残留；
+# 从树外执行 ⇒ rc=0 + 目录消失。故此处先 `cd` 出树，再重试，最后交 `rm-tree.py` 兜底。
+cd "$ROOT" 2>/dev/null || cd "$W" 2>/dev/null || true
 git -C "$ROOT" worktree remove --force "$WT" >>"$W/wt.log" 2>&1
-log "WORKTREE_REMOVE_RC=$?"
+RM_GIT_RC=$?
+RM_RETRIES=0
+while [ "$RM_GIT_RC" != "0" ] && [ "$RM_RETRIES" -lt 2 ]; do
+  RM_RETRIES=$((RM_RETRIES + 1))
+  sleep 5
+  git -C "$ROOT" worktree prune >>"$W/wt.log" 2>&1
+  git -C "$ROOT" worktree remove --force "$WT" >>"$W/wt.log" 2>&1
+  RM_GIT_RC=$?
+done
+log "WORKTREE_REMOVE_GIT_RC=$RM_GIT_RC"
+log "WORKTREE_REMOVE_RETRIES=$RM_RETRIES"
+RM_RESID=0
+if [ -d "$WT" ]; then
+  RMPY="$(type -p python)"
+  if [ -n "${RMPY:-}" ]; then
+    "$RMPY" "$ROOT/tools/round-verify/rm-tree.py" "$WT" >>"$W/wt.log" 2>&1
+    RM_RESID=$?
+  else
+    RM_RESID=127
+  fi
+fi
+log "WORKTREE_REMOVE_RESIDUE_PY_RC=$RM_RESID"
+git -C "$ROOT" worktree prune >>"$W/wt.log" 2>&1
+# WORKTREE_REMOVE_RC 的语义 = 「**已回收**」（磁盘不存在 ∧ git 未登记）—— 三层里任一层成功即为 0，
+# 且把 git 首层 rc / 重试次数 / 兜底 rc 全部单独留痕（不掩盖中间失败，历史 12/175）。
+if [ ! -d "$WT" ] && ! git -C "$ROOT" worktree list --porcelain 2>/dev/null | grep -qF "$WT"; then
+  log "WORKTREE_REMOVE_RC=0"
+else
+  log "WORKTREE_REMOVE_RC=1"
+fi
 # 窗口尾三值同上：**同源派生**（理由见窗口起点处的注释）。
 WE=$(date +%s)
 log "FACTS_WINDOW_END=$(date -d "@$WE" +%H:%M:%S)"

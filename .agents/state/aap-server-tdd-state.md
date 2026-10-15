@@ -22113,3 +22113,28 @@ M `aap-server/pom.xml`（D-BUILD-02 前端打包 exec-maven-plugin）、M `Secur
 - **返工真值**：本轮返工真值 = **3 处**（装置/脚本侧，零交付面影响；逐条见上文要点）。
 - **权威数字**：权威数字 = 返工 3 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
 
+
+### R646 巡检轮（校验轮：missing=0 ⇒ 交付面零改动）
+
+- **性质**：`missing=0` ⇒ **交付面零改动**（未改 `aap-server` / `docs` 任何一行）；本轮另含**装置侧改动**（tools/round-verify/run-round.sh、tools/round-verify/rm-tree.py —— 轮次无关的轮次校验装置（只读审计 + 留痕写入器），不触碰交付面；证据：工作区未提交 2 条 / 提交链自 d222a94a 起 0 枚提交触及 tools/）；本轮新增写入 = 台账 / 状态 / 证据。
+- **两轮全量（串行）**：被测提交 = d222a94a（独立 detached worktree 内）；run1 21:48:56→21:52:15、run2 21:52:16→21:54:36；各 **327 例 / 53 类**、rc=0/0、Failures-Errors-Skipped = 0-0-0；`@Test` 词边界计数与 surefire 合计一致；禁用扫描 0 条。
+- **覆盖**：total=117 implemented=117 **missing=0**、registered_routes=134、not_registered=[]；连续第 **12** 轮全绿。
+- **回归面**：复跑 84 条（tag 集合与上一轮 R645 一致）；rc 变化 0 条、新增 0、未复跑 0；FAIL 明细 43 脚本 167 行（跨轮 faildiff 167→167：新增 0 / 消失 0）；零写副作用（冻结清单生成物 size+md5 全等，变化 0 个）；命令表已由仓库内 `tools/round-verify/manifest.json` 提供，$TEMP 抽查脚本 54 条全部归仓（由 manifest 的 $TEMP 条目数与归仓目录数**双源互证**推出）。
+- **本轮要点（单一事实源 = note-R646.md）**：
+一、性质与范围：本轮 = **绿相位巡检轮（纯校验，零交付面代码改动）**。`missing == 0` ∧ 两轮 `rc=0/0` ⇒ 按作业第 4 步只校验并报告；连续全绿计数由上一轮（R645）记的 11 → **第 12 轮**。覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；15 族全齐（族和 117 = total，内容级核对）。被测提交 = **`d222a94a`**（= 窗口起点 HEAD = 窗口终点 HEAD，`FACTS_HEAD_ADVANCED_COUNT=0`、`WT_DIRTY_LINES=0` ⇒ 跑的是**提交态**；执行器第三次执行一次性完成：`FACTS_WRITTEN=1`、analyze A0a 的 36 键必填集缺失 = 无、A21 完成标记 = 1）。
+二、两轮全量（串行，HEAD 的独立 detached worktree 内）：窗口 **2026-10-15 21:48:34 → 21:54:43**（未跨午夜）；run1 21:48:56→21:52:15、run2 21:52:16→21:54:36，各 **327 例 / 53 类**、**rc=0/0**、五元组 327-0-0-0、两轮 `BUILD SUCCESS` 均为真、**逐类 diff = 0**（已剥 `Time elapsed` 再排序）；`@Test` 词边界 **327 == surefire 327**（裸子串 329 作对照）；归档测试源 **59**；禁用扫描 **0 条**（不得削弱测试）；类级 tests 相加 == 合计（327/327 两轮）；并发前置双向对照 pos=2/2 / neg=0/2（`PREFLIGHT_OK=1`）；worktree add rc=0、**回收三层 rc 全 0**（`GIT_RC=0` / `RETRIES=0` / 兜底 rc=0）且磁盘无残留、git 未登记。maven 自述耗时两轮**同为** `mm:ss min` 体裁（192 s / 138 s）⇒ 据实写「本轮**未复现**另一种写法」（历史 176-②）。
+三、回归面（`manifest.json` **84 条**）：**rc 变化 0 / 新增 0 / 未复跑 0**；rc=0 条数 39/84（与上一轮逐条相同）；FAIL 明细 **43 脚本 167 行**（跨轮 faildiff **167→167**，两侧解析行数均 > 0 作正向对照）；**零写副作用**（冻结清单生成物 size+md5 运行前后全等，变化 0 个）；崩溃通道 2 条（`gap-coverage-gap` / 其自测）的**完整理由行集 sha256 与上一轮逐条相同**；归仓守卫异常 2 条为同名同条历史沿用。
+四、装置链：`analyze` **27 PASS / 0 FAIL**；`regression --selftest` **26 PASS / 0 FAIL**；`selftest-counts` 逐工具自述 ⇔ 汇总行**一致（更正 0）**、只读守卫为真；本轮**装置面改动 2 个文件**（`tools/round-verify/run-round.sh` 改 + 新增 `tools/round-verify/rm-tree.py`）。
+五、装置真发现（**本轮唯一交付面之外的实质缺陷，已修复**）：**执行器的 worktree 回收失败**（取证 = `evidence/worktree-reclaim-R646.txt`，**PASS 11 / FAIL 0**）——
+① **现象**：本轮两次前置尝试（21:05:27–、21:13:41–，同 HEAD `d222a94a`、两轮 rc 均 0）都在回收处失败：facts `WORKTREE_REMOVE_RC=255`、worktree 目录**残留**（5.1MB / 378 文件 / 73 目录）、而 git **登记项已被摘除**（`worktree list` 只剩主库）；
+② **根因（最小复现）**：**Windows 不允许删除任何进程的当前目录（含其祖先）**，而执行器 `cd "$WT/aap-server"` 跑完两轮后 CWD 仍在树内 ⇒ `git worktree remove --force` 报 `error: failed to delete '<WT>': Permission denied`（rc=255）；
+③ **判别力实测**（小仓库夹具，**18 PASS / 0 FAIL**）：CWD 在树内 ⇒ rc=255 + 目录残留（对照 A，复现真实故障）；先离开该树 ⇒ rc=0 + 目录消失（对照 B）；装置 `rm-tree.py` 能删掉与 A 同形的残留（对照 C）且对非 `aap-round-wt-` 路径**拒绝**（rc=3）、缺参拒绝（rc=2）；文本判据证明修复真的落在 `run-round.sh`（对照 D 6 条）；
+④ **修法（三层）**：先离开该树 → 有界重试 5s×2（含 `worktree prune`）→ 仍残留交 `tools/round-verify/rm-tree.py` 兜底（仅接受含 `aap-round-wt-` 的路径、按实际存在性给退出码）；并把 `WORKTREE_REMOVE_GIT_RC` / `WORKTREE_REMOVE_RETRIES` / `WORKTREE_REMOVE_RESIDUE_PY_RC` 三项中间读数**单独留痕**，`WORKTREE_REMOVE_RC` 语义 = 「已回收（磁盘不存在 ∧ 未登记）」；
+⑤ **后果若不修**：`analyze` A20 与 `independent` J1e/J5g 会**响亮 FAIL**（整轮证据不可用）——修复后本轮 A20 PASS；
+⑥ **归档说明**：两次被废弃尝试的 facts/raw 以 `-attempt1/-attempt2` 留档（**仅作现象取证，不冒充本轮结论**），本轮一切结论以第三次执行（21:48–21:54）为准。
+六、**环境面（三端可达性）只读探针**（`evidence/three-end-R646.txt`，**PASS 4 / FAIL 3**；零凭据、零进程操作、未碰他人实例与浏览器）：**上一轮尚存的 8086 后端与管理端/客户端 dev 本轮全部停机** —— 目标端口（8080/8083/8084/8086/5173/5174/5175）**监听行 = 0**（整体 LISTENING 正控 53 行 ⇒ 解析器有输入），`8086`/`8084`/`8080` health 与 `5175` 首页均 exit=7（连接被拒），业务请求（POST `/api/v1/auth/sms/send`）直连 8084/8086 亦 exit=7；负向对照（未监听 5199）与正向对照（整体 53 行）均 PASS ⇒ 探针有牙齿。**上限陈述**：只能写「目标端口全部无人监听」；不得据此推出「三端联调通过」，也不得推出任何业务结论（业务链路需凭据驱动，历史 12/95）。
+七、**本轮返工 8 处**（判据/脚本侧，零交付面影响；全部在**提交前**修正）：① 装置执行器 worktree 回收缺陷（真发现，见五）→ 三层修复 + 判别力实测 18/0；② aux 判别力脚本 v1 的「登记项已摘除」判据用**裸子串** `wt`（把夹具名 `wtctl-…` 匹配进来）⇒ 假 FAIL → 改为**精确路径** grep；③ 同脚本 v1 的 C/D 两段误用 aux 目录里的**旧副本** rm-tree.py（无守卫）⇒ 3 条假 FAIL → 一律用**装置内**文件；④ 同脚本 v2 把装置路径写成 `C:/workspaces/…`（仓库在 `E:`）⇒ D 段 6 条假 FAIL（grep 直接报 No such file）→ 修正盘符后 6/6 通过；⑤ 同脚本 v2 的「旧写法已消失」用**多行 -F 模式**（grep 会拆成多条模式 ⇒ 恒非 0）→ 改单行锚点（`log "WORKTREE_REMOVE_RC=$?` 那句必须消失，实测 0）；⑥ 同脚本 v2 的残留兜底夹具路径**不含** `aap-round-wt-` 前缀（守卫**正确拒绝**却被判 FAIL —— 判据选错对象，历史 81）→ 夹具改用装置真实形态的路径；⑦ 三端探针 v1 未剥离环境代理（本机 `HTTP_PROXY` 已设置）⇒ curl 一律经代理、**连未监听端口也回 502**，全部读数失真（由 v1 的负向对照当场抓出）→ v2 一律 `--noproxy '*'` 后重跑；⑧ 取证脚本 `mk-reclaim-evidence.sh` 在**双引号内**写了反引号（`cd`）被当**命令替换**执行 ⇒ 证据行被吞字（历史 84 同族）→ 改为等义表达后重新落盘（该证据 86 行 / CR=0）。
+八、待拍板：① **运行环境已完全停机**（后端 8080/8083/8084/8086 与前端 5173/5174/5175 均无监听；上一轮尚有 8086 + 管理端 5175 可用）⇒ 重启实例是**联调窗口的前置**（本轮按只读边界未重启、未碰他人进程与浏览器）；② `ADM-CB01` APPLY 语义；③ `independent.py` 三条判据缺陷（J4a/J4c/J5e）；④ 台账历史两行行首轮次号残留（R633/R635）—— 常驻探针 A1b/A1c 长期 FAIL 的根因；⑤ 是否把「环境面 delta + 三端可达性」探针**固化进装置**（本轮仍为一次性 aux，扩面须人拍板，历史 169/177/182）；⑥ 上轮清单各项（`J5c/J5d` 预跑相位、`coverage-report.json` 长 M、远端口径、tier3/4 归仓、`selftest-counts` 是否入回归面、`ADM-CFG01~05` 一词两义、18 条端点无台账行）全部沿用。
+- **返工真值**：本轮返工真值 = **8 处**（装置/脚本侧，零交付面影响；逐条见上文要点与 `device-round-R646.txt`）。
+- **权威数字**：权威数字 = 返工 8 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
+

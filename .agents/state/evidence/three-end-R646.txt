@@ -1,0 +1,52 @@
+PROBE_BEGIN=1  （R646 · 只读 · 零凭据 · 零进程操作）
+ENV_BASH=/usr/bin/bash  ENV_UNAME=MSYS_NT-10.0-26100  PROBE_NOW=2026-10-15 22:07:10
+ENV_PROXY_SET_HTTP=Y ENV_PROXY_SET_http=N （值不回显）
+
+---- 一、监听端口（两分支对照：整体正控 + 目标端口）----
+  整体 LISTENING 行数 = 53（正向对照 > 0 ⇒ 解析器拿得到输入）
+  目标端口（8080/8083/8084/8086/5173/5174/5175）监听行：
+    （无 —— 全部不在监听）
+
+---- 二、后端实例 health（+ 负向对照）----
+  CURL tag=health-8084 m=GET url=http://127.0.0.1:8084/actuator/health exit=7 http=000
+       body=<no-response>
+  CURL tag=health-8086 m=GET url=http://127.0.0.1:8086/actuator/health exit=7 http=000
+       body=<no-response>
+  CURL tag=health-8080 m=GET url=http://127.0.0.1:8080/actuator/health exit=7 http=000
+       body=<no-response>
+  CURL tag=neg-unlistened m=GET url=http://127.0.0.1:5199/ exit=7 http=000
+       body=<no-response>
+
+---- 三、前端 dev 首页 + /api 代理段 + 直连后端（POST /api/v1/auth/sms/send，无凭据）----
+  CURL tag=adminhome-5175 m=GET url=http://127.0.0.1:5175/ exit=7 http=000
+       body=<no-response>
+  CURL tag=adminproxy-5175 m=POST url=http://127.0.0.1:5175/api/v1/auth/sms/send exit=7 http=000
+       body=<no-response>
+  CURL tag=clienthome-5173 m=GET url=http://127.0.0.1:5173/ exit=7 http=000
+       body=<no-response>
+  CURL tag=clientproxy-5173 m=POST url=http://127.0.0.1:5173/api/v1/auth/sms/send exit=7 http=000
+       body=<no-response>
+  CURL tag=clienthome-5174 m=GET url=http://127.0.0.1:5174/ exit=7 http=000
+       body=<no-response>
+  CURL tag=clientproxy-5174 m=POST url=http://127.0.0.1:5174/api/v1/auth/sms/send exit=7 http=000
+       body=<no-response>
+  CURL tag=direct-8084 m=POST url=http://127.0.0.1:8084/api/v1/auth/sms/send exit=7 http=000
+       body=<no-response>
+  CURL tag=direct-8086 m=POST url=http://127.0.0.1:8086/api/v1/auth/sms/send exit=7 http=000
+       body=<no-response>
+
+---- 四、判据（负向/正向对照证明探针有牙齿；前提被破坏的条目照旧响亮 FAIL、不豁免）----
+  [PASS] C1 负向对照 未监听端口 5199 exit（能区分『拒绝』与『已监听』） = 7
+  [PASS] C2 正向对照 整体 LISTENING 行数 > 0 = 53
+  [PASS] C3 目标端口监听行数（0 ⇒ 环境完全停机） = 0
+  [FAIL] V1 8086 health == 200 = 000（期望 200）
+  [FAIL] V2 8084 health == 200 = 000（期望 200）
+  [PASS] V3 直连 8084 业务请求 exit == 7（实例不在监听） = 7
+  [FAIL] V4 管理端 dev 5175 首页 == 200 = 000（期望 200）
+  读数派生（不硬编码）：8080=000 · 8086=000(exit 7) · 8084=000(exit 7) · 5175 首页=000 / 代理段=000
+        客户端 5173 首页=000 / 代理段=000 · 5174 首页=000 / 代理段=000 · 直连 8086 业务请求 exit=7
+  上限陈述：本轮只读到的可达性事实如上行所示（**目标端口全部无人监听**）；**不得据此推出「三端联调通过」**，
+        也不得推出任何业务结论（业务链路需凭据驱动，历史 12/95）。
+
+---- 汇总：PASS 4 / FAIL 3 ----
+PROBE_END=1

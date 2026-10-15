@@ -1,0 +1,86 @@
+R646 装置真发现取证：worktree 回收失败（Windows ⇒ CWD 在树内）
+生成时刻 = 2026-10-15 22:08:32 · 只读 + 判别力实测（小仓库夹具）· 零凭据 · 未触碰他人工作区
+
+---- 一、现象（本轮两次前置尝试的 facts 原始读数，已按 -attemptN 留档、不手改）----
+  attempt1（2026-10-15 21:05:27）:
+    FACTS_WINDOW_START_ISO=2026-10-15 21:05:27
+    FACTS_HEAD_AT_START=d222a94a
+    FACTS_RUN1_RC=0
+    FACTS_RUN2_RC=0
+    WORKTREE_ADD_RC=0
+    WORKTREE_REMOVE_RC=255
+    wt.log 删除失败行 = 2（wt.log 为两次尝试追加）
+  attempt2（2026-10-15 21:13:41）:
+    FACTS_WINDOW_START_ISO=2026-10-15 21:13:41
+    FACTS_HEAD_AT_START=d222a94a
+    FACTS_RUN1_RC=0
+    FACTS_RUN2_RC=0
+    WORKTREE_ADD_RC=0
+    WORKTREE_REMOVE_RC=255
+    wt.log 删除失败行 = 2（wt.log 为两次尝试追加）
+  [PASS] 现象判据：两次尝试的 WORKTREE_REMOVE_RC 均非 0 = 2
+  [PASS] 现象判据：wt.log 至少出现 1 次 'failed to delete' = YES
+
+---- 二、根因（最小复现：小仓库夹具，树内 vs 树外 CWD）----
+  ---- 对照 A：CWD 在树内（修复前形态 ⇒ 必须失败）----
+    [PASS] A/git_rc = 255
+    [PASS] A/dir = EXISTS
+    [PASS] A/登记项（精确路径） = 0
+  ---- 对照 B：先 cd 出树（修复后形态 ⇒ 必须成功）----
+    [PASS] B/git_rc = 0
+    [PASS] B/dir = GONE
+  ---- 对照 C：装置 rm-tree.py（残留兜底 + 守卫）----
+    [PASS] C/残留（与对照 A 同形） = EXISTS
+    [PASS] C/兜底 rc = 0
+    [PASS] C/兜底后目录 = GONE
+    [PASS] C/正控（合法前缀应删） = GONE
+    [PASS] C/守卫 rc（非 worktree 路径） = 3
+    [PASS] C/守卫后目录仍在 = EXISTS
+    [PASS] C/守卫 rc（缺参数） = 2
+  ---- 对照 D：修复真的落在装置里（文本判据 + 三处关键行）----
+    [PASS] D/离开该树 = 1
+    [PASS] D/有界重试 = 1
+    [PASS] D/兜底调用 = 1
+    [PASS] D/回收语义=已回收 = 1
+    [PASS] D/旧写法（直落 0 的那一行）已消失 = 0
+    [PASS] D/中间 rc 留痕 = 1
+  ---- 汇总：PASS 18 / FAIL 0 ----
+  FIXTEST_END=1
+  [PASS] 判别力实测 rc（0 = 全部对照通过） = 0
+  [PASS] 判别力实测汇总行 = PASS 18 / FAIL 0 = 1
+
+---- 三、修复（tools/round-verify/run-round.sh 三层 + 新增 tools/round-verify/rm-tree.py）----
+  ① 回收前先「离开该树」（消除「CWD 是待删目录的子孙」这一根因，历史 84：双引号内的反引号会被当命令替换执行）；② 有界重试 5s×2 + worktree prune；
+  ③ 仍残留 ⇒ 交 rm-tree.py 兜底（仅接受含 aap-round-wt- 的路径；按实际存在性给退出码）；
+  ④ 中间读数单独留痕：WORKTREE_REMOVE_GIT_RC / WORKTREE_REMOVE_RETRIES / WORKTREE_REMOVE_RESIDUE_PY_RC，
+     WORKTREE_REMOVE_RC 语义 = 「已回收（磁盘不存在 ∧ 未登记）」。
+  判据（文本层，证明修复真的落在装置里）：
+  [PASS] run-round.sh 含『离开该树』行 = 1
+  [PASS] run-round.sh 含兜底调用 = 1
+  [PASS] rm-tree.py 存在且含守卫常量 = 1
+
+---- 四、修复后本轮（第三次执行）的实际读数（现取）----
+  FACTS_ROUND=R646
+  FACTS_WINDOW_START_ISO=2026-10-15 21:48:34
+  FACTS_HEAD_AT_START=d222a94a
+  FACTS_RUN1_RC=0
+  FACTS_RUN2_RC=0
+  FACTS_WINDOW_END_ISO=2026-10-15 21:54:43
+  FACTS_WRITTEN=1
+  WORKTREE_ADD_RC=0
+  WORKTREE_REMOVE_GIT_RC=0
+  WORKTREE_REMOVE_RETRIES=0
+  WORKTREE_REMOVE_RESIDUE_PY_RC=0
+  WORKTREE_REMOVE_RC=0
+  [PASS] 本轮 WORKTREE_REMOVE_RC = 0（已回收） = 0
+  [PASS] 本轮无需重试（RETRIES=0 ⇒ 结构修复本身即足够） = 0
+  [PASS] 磁盘无残留 worktree 目录 = 0
+  [PASS] git 未登记本轮的 worktree（worktree list 只有主库） = 1
+
+---- 五、上限陈述与归档说明 ----
+  ① 若不复此缺陷：analyze A20 与 independent J1e/J5g 会响亮 FAIL（整轮证据不可用）——本轮修复后 A20 已 PASS。
+  ② 两次被废弃尝试的 facts/raw 以 -attempt1/-attempt2 留档（仅作现象取证），**本轮结论一律以第三次执行为准**。
+  ③ 本文件只声明「回收失败已修复」这一事实，不据此推断任何业务/联调结论（历史 12/95）。
+
+---- 汇总：PASS 11 / FAIL 0 ----
+RECLAIM_EVIDENCE_END=1
