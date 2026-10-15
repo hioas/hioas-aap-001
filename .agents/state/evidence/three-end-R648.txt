@@ -1,0 +1,69 @@
+R648 环境面 / $TEMP 棘轮 只读取证（辅助一次性探针；零凭据、零进程操作、未 attach 他人浏览器）
+生成方式：探针 = bash $TEMP/aap-aux/probe-env-R648.sh（读数由 shell 落盘后**由本脚本原样嵌入**，非手写）；
+         棘轮清理自述 = 回归面 request-body-selftest 自身输出行；排空终局 = R647 一次性排空日志。
+==============================================================================
+
+R648 环境面只读探针（端口可达性 + 实例指纹 + $TEMP 棘轮余额）
+生成时刻 = 2026-10-16 00:35:14
+环境指纹 = bash=/usr/bin/bash uname=MSYS_NT-10.0-26100
+
+一、目标端口 LISTENING 快照（netstat -ano，机器读数）
+  全机 LISTENING 行数 = 75（正向对照，须 > 0）
+  端口 8080 = 未监听
+  端口 8083 = LISTENING  pid=29324
+  端口 8084 = 未监听
+  端口 8086 = LISTENING  pid=20400
+  端口 5173 = 未监听
+  端口 5174 = 未监听
+  端口 5175 = 未监听
+  端口 5199 = 未监听
+  端口 9911 = LISTENING  pid=30700
+  端口 9223 = LISTENING  pid=18536
+
+二、HTTP 可达性（只读 GET，3s 超时；零凭据）
+  GET http://127.0.0.1:8086/actuator/health -> http=200 curl_rc=23
+  GET http://127.0.0.1:8083/actuator/health -> http=200 curl_rc=23
+  GET http://127.0.0.1:8080/actuator/health -> http=000 curl_rc=7
+  GET http://127.0.0.1:8084/actuator/health -> http=000 curl_rc=7
+  GET http://127.0.0.1:5199/actuator/health -> http=000 curl_rc=7
+
+三、三端 dev 端口（前端 Vite）可达性
+  GET http://127.0.0.1:5173/ -> http=000 curl_rc=7
+  GET http://127.0.0.1:5174/ -> http=000 curl_rc=7
+  GET http://127.0.0.1:5175/ -> http=000 curl_rc=7
+
+四、进程存活（jps -l -m，只读列举；不 attach / 不 kill）
+20400 com.hioas.aap.AapServerApplication --server.port=8086 --app.credential.allow-loopback=true --app.usage.log-file=C:/Users/laitz/AppData/Local/Temp/biz-closure-usage-log.json
+28720 org.codehaus.plexus.classworlds.launcher.Launcher -B -ntp -Dexec.skip=true -Dspring-boot.run.arguments=--server.port=8086 --app.credential.allow-loopback=true --app.usage.log-file=C:/Users/laitz/AppData/Local/Temp/biz-closure-usage-log.json spring-boot:run
+29324 com.nebula.im.ImApplication
+  jps 行数 = 8（正向对照，须 > 0）
+
+五、$TEMP 棘轮余额（R647 修复后的结构性验证：历史残留是否被排空 + 是否有新残留）
+  现存 aap-reqbody-selftest-* 目录 = 26 个（R647 峰值 694、R647 收尾时 350、本轮窗口前 167）
+  判据窗口 = 本轮窗口起点（读自 facts）= 2026-10-16 00:05:05
+  落在**本轮窗口内**的新增残留 = 0 个（须 0 = 本轮零新增残留）
+  [信息项] 近 2 小时内 mtime 的 = 1 个 —— 它覆盖上一轮时代的残留，**不是**本轮新增（判据不可用窗口）
+    2026-10-15 22:51:35.219186100 +0800 C:/Users/laitz/AppData/Local/Temp/aap-reqbody-selftest-prg5wyyk
+
+六、上限陈述
+  本探针只做可达性/存在性读数，**不得**据此推断三端联调结论（业务链路需凭据驱动，历史 12/95）。
+PROBE_END=1
+
+==============================================================================
+七、返工取证（修正**前**的首轮读数，逐行摘录；判据 = 负向对照失效，历史 46/75）：
+  GET http://127.0.0.1:8080/actuator/health -> http=502 curl_rc=28   ← 未监听，却被判「可达」
+  GET http://127.0.0.1:5199/actuator/health -> http=502 curl_rc=23   ← **负向对照本身失效**
+  GET http://127.0.0.1:5174/ -> http=502 curl_rc=23                  ← 未监听，却被判「可达」
+  根因：本机 HTTP_PROXY / HTTPS_PROXY = http://127.0.0.1:7897 ⇒ curl 默认走代理，未监听端口拿到的是**代理的 502**。
+  修法：全部请求加 --noproxy '*' 直连（见上文正文第五节读数：未监听端口 = http=000 / rc=7）。
+  说明：上列三行是本轮修正前读数的**逐行原样**引用，仅作返工留痕；结论以正文（修正后）为准。
+
+八、棘轮清理自述（来自回归面该命令自身的输出，非手写）：
+  历史 WORK 清理：删除 24 个 / 失败 0 个（单轮上限 24；保留 1 小时内的活跃实例）
+  排空终局（R647 一次性排空）：清理完成：成功 565 / 失败 129，用时 4199.1s
+
+九、上限陈述（判据边界，历史 12/95）：
+  ① 本文件只做**可达性 / 存在性**读数：不得据此推断「三端联调已打通」（业务链路需凭据驱动）。
+  ② 8086 实例属于**他方**会话（由他方 `mvn spring-boot:run` 派生），本轮只做只读探测，未重启、未触碰。
+  ③ 「本轮零新增残留」的判据窗口 = 本轮窗口起点（读自 facts 的 FACTS_WINDOW_START_ISO），**不是**「近 2 小时」。
+EVIDENCE_END=1
