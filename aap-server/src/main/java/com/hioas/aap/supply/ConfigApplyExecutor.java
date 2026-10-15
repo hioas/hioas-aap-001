@@ -65,7 +65,7 @@ public class ConfigApplyExecutor {
                         + " where batch_id = ? and status = 'PENDING' and deleted = false order by id asc", batchId);
         List<ItemOutcome> outcomes = new ArrayList<>();
         long interval = ConfigApplyRateLimiter.intervalMillis(ratePerSec);
-        Map<String, Object> endpoint = activeEndpoint();
+        EndpointRef endpoint = activeEndpoint();
         for (Map<String, Object> item : items) {
             ItemOutcome outcome;
             if (endpoint == null) {
@@ -82,7 +82,7 @@ public class ConfigApplyExecutor {
     }
 
     /** 执行单条明细：取凭据 → 建渠道 → 回读 → 判定 → 落库。 */
-    private ItemOutcome executeItem(Map<String, Object> endpoint, Map<String, Object> item) {
+    private ItemOutcome executeItem(EndpointRef endpoint, Map<String, Object> item) {
         long itemId = longOf(item.get("id"));
         long providerId = longOf(item.get("provider_id"));
         String modelName = item.get("model_name") == null ? null : String.valueOf(item.get("model_name"));
@@ -107,8 +107,7 @@ public class ConfigApplyExecutor {
 
             String body = JsonCodec.toJson(channel);
             NewApiSyncClient.Probe created = client.post(
-                    String.valueOf(endpoint.get("base_url")), String.valueOf(endpoint.get("api_key")),
-                    "/api/channel/", body);
+                    endpoint.baseUrl(), endpoint.apiKey(), "/api/channel/", body);
             if (created.denied()) {
                 // 权限问题重试也不会变好：整项失败并要求人工介入，避免空转退避
                 return markItem(itemId, "FAILED", null,
@@ -125,8 +124,7 @@ public class ConfigApplyExecutor {
                         "建渠道已提交但响应中无渠道 id，无法回读验证（网关响应需实测，见 apply-path T-6）");
             }
             NewApiSyncClient.Probe read = client.get(
-                    String.valueOf(endpoint.get("base_url")), String.valueOf(endpoint.get("api_key")),
-                    "/api/channel/" + channelId);
+                    endpoint.baseUrl(), endpoint.apiKey(), "/api/channel/" + channelId);
             if (!read.ok()) {
                 return markItem(itemId, "MISMATCH", Boolean.FALSE,
                         "回读失败（HTTP " + read.httpStatus() + "）：无法确认配置生效");
@@ -174,13 +172,31 @@ public class ConfigApplyExecutor {
                 longOf(counts.get("ok")), bad, mismatch, status, batchId);
     }
 
-    private Map<String, Object> activeEndpoint() {
+    /** new-api 同步端点（调用方身份）。 */
+    private record EndpointRef(String baseUrl, String apiKey) {
+    }
+
+    /**
+     * 取可用的同步端点。
+     *
+     * <p><b>列名已实测（2026-09-29）</b>：`aap_newapi_endpoint` 有
+     * `id / name / base_url / api_key_cipher / db_url_cipher / readonly / status / deleted / version`，
+     * **没有 `api_key` 列** —— 早前按 `api_key` 取值会得到字符串 `"null"`，调用必然失败。
+     * 与 `aap_credential` 同理，`api_key_cipher` 是密文，必须解密（C-03：明文只存在于内存）。
+     */
+    private EndpointRef activeEndpoint() {
         try {
             List<Map<String, Object>> rows = jdbc.queryForList(
-                    "select * from aap_newapi_endpoint where deleted = false order by id desc limit 1");
-            return rows.isEmpty() ? null : rows.get(0);
+                    "select id, base_url, api_key_cipher from aap_newapi_endpoint"
+                            + " where deleted = false order by id desc limit 1");
+            if (rows.isEmpty()) {
+                return null;
+            }
+            Map<String, Object> row = rows.get(0);
+            return new EndpointRef(String.valueOf(row.get("base_url")),
+                    crypto.decrypt(String.valueOf(row.get("api_key_cipher"))));
         } catch (RuntimeException e) {
-            log.warn("查询 new-api 同步端点失败（表名/列名按实现当日实测，见 apply-path T-8）：{}", e.getMessage());
+            log.warn("查询 new-api 同步端点失败：{}", e.getMessage());
             return null;
         }
     }
