@@ -5,13 +5,14 @@ R647 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 一、装置面改动（机器推导，零手写）
   被测提交的 `tools/round-verify` 文件 = 16 个 / 工作区同名文件 = 16 个（新增 0 / 删除 0）
-  工作区未提交的 tools/ 条目 = 2 条： M tools/audit-request-body-selftest.py |  M tools/round-verify/regression.py
-  「被测提交..HEAD」触及 tools/ 的提交 = 0 枚（本文件生成于主提交之前）
-  逐文件 numstat（工作区 vs HEAD，`插入/删除/路径`）：58	0	tools/audit-request-body-selftest.py; 23	10	tools/round-verify/regression.py
+  工作区未提交的 tools/ 条目 = 0 条（无）
+  「被测提交..HEAD」触及 tools/ 的提交 = 1 枚：
+    f9ea80c4 chore(aap-server): R647 巡检轮（清单 117/117 全注册；绿相位全量 327 例两轮全绿 = 连续第 13 轮；装置面修复：TEMP 元数据棘轮 -> selftest 有界清理 + atexit 回收、regression 每命令有界执行；交付面零改动）
+  逐文件 numstat（工作区 vs HEAD，`插入/删除/路径`）：无
   轮次无关性守卫：装置脚本（14 个 .py/.sh）内当前轮次号命中 = **0**（须 0
     = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
 
-二、本轮返工真值 = **3 处**（零交付面影响；条目文本来自单一事实源 `note-R647.md`，与台账描述列 / 状态文件小节共用）
+二、本轮返工真值 = **4 处**（零交付面影响；条目文本来自单一事实源 `note-R647.md`，与台账描述列 / 状态文件小节共用）
 ------------------------------------------------------------------------------
 一、性质与范围：本轮 = **绿相位巡检轮（纯校验，零交付面代码改动）**。`missing == 0` ∧ 两轮 `rc=0/0` ⇒ 按作业第 4 步只校验并报告；连续全绿计数由 R646 记的 12 → **第 13 轮**。覆盖读数 total **117** / implemented **117** / **missing 0** / registered_routes **134** / not_registered 空；15 族全齐（族和 117 = total）。被测提交 = **`2293921f`**（= 窗口起点 HEAD；窗口内 HEAD 未推进 `FACTS_HEAD_ADVANCED_COUNT=0`；`WT_DIRTY_LINES=0` ⇒ 跑的是**提交态**）。
 二、两轮全量（串行，HEAD 的独立 detached worktree 内）：窗口 **2026-10-15 22:24:09 → 22:36:15**（未跨午夜）；run1 22:24:46→22:30:38、run2 22:30:38→22:35:36，各 **327 例 / 53 类**、**rc=0/0**、五元组 327-0-0-0、两轮 `BUILD SUCCESS` 均为真、**逐类 diff = 0**（已剥 `Time elapsed` 再排序）；`@Test` 词边界 **327 == surefire 327**（裸子串 329 作对照）；归档测试源 **59**；禁用扫描 **0 条**；类级 tests 相加 == 合计（327/327 两轮）；并发前置双向对照 pos=2/2 / neg=0/2（`PREFLIGHT_OK=1`）；worktree add rc=0、回收三层 rc 全 0 且磁盘无残留、git 未登记。maven 自述耗时两轮**同为** `mm:ss min` 体裁（327 s / 268 s）⇒ 据实写「本轮**未复现**另一种写法」（历史 176-②）。**红基线：无**（无红相位）。
@@ -25,8 +26,8 @@ R647 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 ⑤ **修后验证**：该命令修后 **rc=0**（与 R646 逐条一致）；`atexit` 生效（忠实复现探针自述 WORK 名，退出后该目录不存在）；清理探针 **24/24 全成**（首轮运行的 `删除 3/失败 21` 不可复现 ⇒ 判为瞬时态，并已补失败理由字段；判据分档见证据）。
 ⑥ **残余**：历史残留仍有 **350 个**待后台排空（删除速率约 8 个/分钟）；**待拍板**：排空脚本是否固化为常驻工具（属扩面）、以及「为一处注入而整仓 copytree」是否改为只复制相关子树。
 六、**环境面（目标端口）只读探针**（证据 `evidence/three-end-R647.txt`；零凭据、零进程操作、未碰他人实例与浏览器）：与 R646「目标端口全部停机」相比，**后端 8083 / 8086 已恢复监听且 `/actuator/health` = 200**；**8080 / 8084 仍未监听**（curl rc=7）；三端 dev 端口 **5173 / 5174 / 5175 均未监听**；他方 newapi 桩 **9911**（loopback）在听。负向对照（5199 未监听）与正向对照（全机 LISTENING 76 行）均成立 ⇒ 探针有牙齿。**上限陈述**：本轮只做**可达性**探测，**不得**据此推断三端联调结论（业务链路需凭据驱动，历史 12/95）。
-七、**他方并发活动（只登记、零触碰）**：窗口起点后 HEAD 推进 1 枚 —— `f008cd98`（23:01，`test(e2e): 全流程自驱首轮根因 —— app.credential.allow-loopback 未开启`），已在 ④⑦⑧ 三处按纪律**显式申报**（`--external-commit`）；他方进程 `mvn -B -ntp spring-boot:run`（PID 32312，23:01 起，**非测试 JVM**，故未触发并发前置）、`newapi` 桩（9911）；主工作区在途 6 条（含 `coverage-report.json` 长 M）。
-八、**本轮返工 3 处**（判据/证据侧，零交付面影响；全部在**提交前**修正）：① **误判死锁** —— 把该命令的 25× 劣化判为「死锁」（据 CPU≈0 + 无子进程 + 长时间无输出）并**提前终止了第一轮回归运行**（白扔约 20 分钟；同轮该命令随后自行完成、其修复后版本 rc=0）⇒ 诊断改为三判据（长窗 CPU 采样 + 目标目录条目数变化 + 子进程存在性）并要求「慢 vs 死锁」分档结论；② 清理函数首版**只报计数**（「失败 21 个」无任何理由 ⇒ 判据不可用）⇒ 加 `onerror` 清只读位后重试一次 + 失败样例（路径 + 首个错误，上限 3 条）；③ aux 证据首版把「23:00 后仅 2 个目录有新 mtime」当成 **atexit 生效**的证据（结论越界：该 mtime 实来自清理尝试）⇒ 改为**忠实复现探针**（导入模块 → 打印本次 WORK 名 → 退出后核该目录不存在）。另据实说明：还有 **1 处首跑迭代**（清理函数首版未设单轮上限，运行前即被自己否掉、未产出任何产物），同 R646 口径**不计入**返工真值。
+七、**他方并发活动（只登记、零触碰）**：窗口起点后 HEAD 推进 1 枚 —— `f008cd98`（23:01，`test(e2e): 全流程自驱首轮根因 —— app.credential.allow-loopback 未开启`）。**判定**：该提交落在**本轮窗口之后**（facts `FACTS_HEAD_ADVANCED_COUNT=0`）且**不触及交付面/装置面**（`git log 2293921f..HEAD -- aap-server docs tools` 为空）⇒ 据实**不作他方提交申报**（首版误申报已被独立复核 J1c 响亮拦下并更正，见八④）；他方进程 `mvn -B -ntp spring-boot:run`（PID 32312，23:01 起，**非测试 JVM**，未触发并发前置）、`newapi` 桩（9911）；主工作区在途 6 条（含 `coverage-report.json` 长 M），另见他方未跟踪 e2e 证据 3 份。
+八、**本轮返工 4 处**（判据/证据侧，零交付面影响；全部在**提交前**修正）：① **误判死锁** —— 把该命令的 25× 劣化判为「死锁」（据 CPU≈0 + 无子进程 + 长时间无输出）并**提前终止了第一轮回归运行**（白扔约 20 分钟；同轮该命令随后自行完成、其修复后版本 rc=0）⇒ 诊断改为三判据（长窗 CPU 采样 + 目标目录条目数变化 + 子进程存在性）并要求「慢 vs 死锁」分档结论；② 清理函数首版**只报计数**（「失败 21 个」无任何理由 ⇒ 判据不可用）⇒ 加 `onerror` 清只读位后重试一次 + 失败样例（路径 + 首个错误，上限 3 条）；③ aux 证据首版把「23:00 后仅 2 个目录有新 mtime」当成 **atexit 生效**的证据（结论越界：该 mtime 实来自清理尝试）⇒ 改为**忠实复现探针**（导入模块 → 打印本次 WORK 名 → 退出后核该目录不存在）；④ **他方提交误申报** —— 首版把窗口**之后**落地的 `f008cd98` 也按「区间内他方提交」申报 `--external-commit`，而窗口内 HEAD 推进数为 0 ⇒ 独立复核 **J1c 响亮 FAIL**（`advanced=0` vs 申报 1 枚），据实**撤销申报**后 43/0 ⇒ 判据本身正确、错在申报用法（判据范围与语义一致，历史 81/193/198）。另据实说明：还有 **1 处首跑迭代**（清理函数首版未设单轮上限，运行前即被自己否掉、未产出任何产物），同 R646 口径**不计入**返工真值。
 九、待拍板：① **运行实例已部分恢复**（8083/8086 健康；8080/8084 与三端 dev 仍未监听）⇒ 联调窗口仍需人拍板/重启；② `ADM-CB01` APPLY 语义（响应=受理时刻快照 vs 收敛后终态）；③ `independent.py` 三条判据缺陷（J4a/J4c/J5e，本轮相位为绿而 PASS，**缺陷本体仍在**）；④ 台账历史两行行首轮次号残留（R633/R635）—— 常驻台账探针 A1b/A1c 长期 FAIL 的根因；⑤ 本轮工具的**排空/复制范围**两项（见五⑥）；⑥ 上轮清单各项（`J5c/J5d` 预跑相位、`coverage-report.json` 长 M、远端口径、tier3/4 归仓、`selftest-counts` 是否入回归面、`ADM-CFG01~05` 一词两义、18 条端点无台账行、faildiff 是否升为门禁）全部沿用。
 ------------------------------------------------------------------------------
 
@@ -39,37 +40,24 @@ R647 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
-  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 6 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 19 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 25 == `git status` 条目 25
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 6 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 4 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 10 == `git status` 条目 10
       M .agents/state/evidence/coverage-report.json  mtime=2026-09-29 18:48:15
       M README.md  mtime=2026-09-24 07:51:14
       M aap-server/pom.xml  mtime=2026-09-24 08:07:37
       M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
       M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
       ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
-      （本轮产物）M tools/audit-request-body-selftest.py  mtime=2026-10-15 23:45:03
-      （本轮产物）M tools/round-verify/regression.py  mtime=2026-10-15 23:12:44
-      （本轮产物）?? .agents/state/evidence/audit-regression-R647-faildiff.txt  mtime=2026-10-15 23:34:32
-      （本轮产物）?? .agents/state/evidence/audit-regression-R647-failraw.txt  mtime=2026-10-15 23:34:32
-      （本轮产物）?? .agents/state/evidence/audit-regression-R647-rcseq.txt  mtime=2026-10-15 23:34:32
-      （本轮产物）?? .agents/state/evidence/audit-regression-R647.txt  mtime=2026-10-15 23:34:32
-      （本轮产物）?? .agents/state/evidence/device-selftest-counts-R647.txt  mtime=2026-10-15 23:35:58
       （本轮产物）?? .agents/state/evidence/e2e-final-20261015.json  mtime=2026-10-15 23:22:05
       （本轮产物）?? .agents/state/evidence/e2e-final2-20261015.json  mtime=2026-10-15 23:23:55
       （本轮产物）?? .agents/state/evidence/e2e-run-20261015-d.json  mtime=2026-10-15 23:23:13
-      （本轮产物）?? .agents/state/evidence/green-verify-R647-coverage-fields.txt  mtime=2026-10-15 22:37:30
-      （本轮产物）?? .agents/state/evidence/green-verify-R647-full-run1.txt  mtime=2026-10-15 22:37:30
-      （本轮产物）?? .agents/state/evidence/green-verify-R647-full-run2.txt  mtime=2026-10-15 22:37:30
-      （本轮产物）?? .agents/state/evidence/green-verify-R647-testcount.txt  mtime=2026-10-15 22:37:30
-      （本轮产物）?? .agents/state/evidence/green-verify-R647-tested-state.txt  mtime=2026-10-15 22:37:30
-      （本轮产物）?? .agents/state/evidence/regression-selftest-R647.txt  mtime=2026-10-15 23:35:39
-      （本轮产物）?? .agents/state/evidence/round-R647-analysis.txt  mtime=2026-10-15 22:37:30
-      （本轮产物）?? .agents/state/evidence/temp-ratchet-R647.txt  mtime=2026-10-15 23:46:32
-      （本轮产物）?? .agents/state/evidence/three-end-R647.txt  mtime=2026-10-15 23:46:38
+      （本轮产物）?? .agents/state/evidence/independent-R647.txt  mtime=2026-10-15 23:48:52
       其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
-  ③ 提交区间（2293921f..HEAD）改动文件 = 5 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 3 枚 = 他方 1 枚 + 本轮 2 枚
+  ③ 提交区间（2293921f..HEAD）改动文件 = 26 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 5 枚 = 他方 0 枚 + 本轮 5 枚
+      [本轮] 357f069d chore(state): R647 收尾链留痕（postwrite 落地核对 PASS + 台账 c7 回填 = f9ea80  文件 2 个 / 交付面命中 0 个
+      [本轮] f9ea80c4 chore(aap-server): R647 巡检轮（清单 117/117 全注册；绿相位全量 327 例两轮全绿 = 连续第  文件 20 个 / 交付面命中 0 个
       [本轮] cc5e37df test(e2e): 全流程自驱测试 33/33 通过（业务闭环打通）  文件 1 个 / 交付面命中 0 个
       [本轮] 0219ff15 test(e2e): 第 3 轮读数 14/33（allow-loopback 修复生效）+ 两条关键坑  文件 2 个 / 交付面命中 0 个
-      [他方（已申报）] f008cd98 test(e2e): 全流程自驱首轮根因 —— app.credential.allow-loopback 未开启（测试环境漏配  文件 2 个 / 交付面命中 0 个
+      [本轮] f008cd98 test(e2e): 全流程自驱首轮根因 —— app.credential.allow-loopback 未开启（测试环境漏配  文件 2 个 / 交付面命中 0 个
       ⇒ **本轮自己的提交**触及交付面前缀的 = 0 个（**须 0**）；他方提交的交付面改动不计入本轮（历史 81/193/198：他方在途不得算作本轮改动）
 
 五、下一族
