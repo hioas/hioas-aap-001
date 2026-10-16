@@ -1,0 +1,138 @@
+R674 端到端业务闭环**实跑**取证（真实 HTTP；驱动器 = 仓库内 tools/biz-closure-e2e.py）
+取证生成时刻 = 2026-10-16 17:19:28
+==============================================================================
+
+〇、口径与上限（先声明，避免被读成生产结论）
+  * 实例 = 本机单进程后端（jar：aap-server/target/aap-server.jar）+ 本地一体桩 tools/newapi-stub.py；
+  * 库 = 开发库（DB_NAME 取自 E:/env/aap-server.env，本文件不记录其值）；
+  * 真实 new-api 未接入（沿用既有缺口：以本地桩替代厂商/管理端两端点）；
+  * 本文件**只**陈述本轮实跑的 HTTP/库内终态结论；不含凭据、不含令牌原文（驱动器已按 `<redacted len=..>` 脱敏）。
+
+一、动作时间线（由生命周期文件逐行读出）
+  [PASS] 正向对照：生命周期文件行数 > 0 ｜ 行数 = 9
+  17:16:25	两轮全量窗口（facts-R674.log，被测提交 = 窗口起点 HEAD）	WT_DIRTY_LINES=0 FACTS_HEAD_ADVANCED_COUNT=0
+  17:16:25	打包可运行产物（mvn -B -ntp package -DskipTests）	开始端口规划：后端=8084 桩=9911
+  17:17:32	打包完成	rc=0 / BUILD_SUCCESS行数=1 / [INFO] Total time:  01:04 min
+  17:17:32	本地一体桩启动（tools/newapi-stub.py）	端口=9911 job_pid=1445
+  17:17:32	后端启动（jar + 三开关：回环出站/联调取码/用量日志源）	端口=8084 job_pid=1447
+  17:17:41	后端健康检查（GET /actuator/health）	http=200 命中=1 等待约 6s
+  17:18:04	业务闭环驱动（真实 HTTP，10 段）	rc=0 / [OK]行=33 / [FAIL]行=0 / 汇总：33/33 步通过；报告 C:/Users/laitz/AppData/Local/Temp/aap-e2e-R674/biz-closure-R674.json
+  17:18:06	回收前归属核对（8084 jar / 9911 桩）	jar_pid=27556 / stub_pid=25940
+  17:18:11	回收后核对（零残留判据）	8084监听PID集=[] / 9911监听PID集=[] / jps中该jar=0
+
+二、驱动器读数（解析自 driver.out 与报告 JSON）
+  [PASS] 正向对照：driver.out 行数 > 0 ｜ 行数 = 58
+  [PASS] 正向对照：driver.out 含汇总行 ｜ 汇总行 = 汇总：33/33 步通过；报告 C:/Users/laitz/AppData/Local/Temp/aap-e2e-R674/biz-closure-R674.json
+  [OK] 明细行 = 33 / [FAIL] 明细行 = 0
+  报告 JSON：steps_total = 33 / steps_passed = 33 / steps_failed = 0
+  api_base = http://127.0.0.1:8084/api/v1
+  generated_at = 2026-10-16T09:18:03Z
+  段级覆盖：P0=2, P1=1, P10=6, P2=1, P3=3, P4=3, P5=4, P6=2, P7=3, P8=4, P9=4
+  [PASS] 正向对照：报告 steps_total > 0 ｜ steps_total = 33
+  [PASS] 正向对照：明细行数 == 报告 steps_total ｜ 明细 33 + 0 vs steps_total 33
+
+三、逐段结论（每段的通过/失败条数由明细行派生）
+  P0    明细 2 条 ⇒ 通过 2 / 失败 0
+  P1    明细 1 条 ⇒ 通过 1 / 失败 0
+  P10   明细 6 条 ⇒ 通过 6 / 失败 0
+  P2    明细 1 条 ⇒ 通过 1 / 失败 0
+  P3    明细 3 条 ⇒ 通过 3 / 失败 0
+  P4    明细 3 条 ⇒ 通过 3 / 失败 0
+  P5    明细 4 条 ⇒ 通过 4 / 失败 0
+  P6    明细 2 条 ⇒ 通过 2 / 失败 0
+  P7    明细 3 条 ⇒ 通过 3 / 失败 0
+  P8    明细 4 条 ⇒ 通过 4 / 失败 0
+  P9    明细 4 条 ⇒ 通过 4 / 失败 0
+
+四、P9/P10（既有多轮自述里唯一长期标红的段）本轮实跑明细
+  [OK]   [P9] 写 mock 用量日志源 — mock 日志已写 C:/Users/laitz/AppData/Local/Temp/aap-e2e-R674/usage-log-R674.json（stat_hour=2026-10-16T08:00:00Z）
+  [OK]   [P9] [ADMIN] POST /admin/usage/refresh（ADM-U02） — batch_total=1 inserted=1 batch_id=18
+  [OK]   [P9] 供应商端读用量（USE-01） — 供应商可见 total_tokens=108000
+  [OK]   [P9] [ADMIN] 管理端读用量（ADM-U01） — 管理端可见 1 条该供应商桶
+  [OK]   [P10] [ADMIN] 生成结算单（ADM-PAY06） — statement_no=ST2026100005 total=12.34 fee=1.234 net=11.106 status=DRAFT
+  [OK]   [P10] 金额算术自洽（总额 = Σ明细、净额 = 总额 - 平台费） — 明细 1 行；Σ明细=12.34 == 总额=12.34；净额=11.106
+  [OK]   [P10] 打款关联（statement_id 回填） — 期内 CONFIRMED 打款 3 条已挂到本单（共 18 条）
+  [OK]   [P10] 同周期幂等（重复生成返回既有单） — 同周期重复生成 → 同一单 ST2026100005（未新增行）
+  [OK]   [P10] [ADMIN] 确认出账（ADM-PAY08） — 已确认出账（复跑复用既有单，跳过重复确认）
+  [OK]   [P10] 供应商端读结算单（SET-01/02） — 供应商端可见 ST2026100005（明细 1 行，总额 12.34）
+
+五、上限陈述
+  ① 本文件证明的是「本机单实例 + 本地桩 + 开发库」下**业务闭环逐环节走到库内终态**；
+     不等于生产环境结论，也不替代契约测试与全量用例（二者另有独立证据）；
+  ② 实例与桩均**由本轮临时启动并在取证后回收**（归属核验后只停本进程，见时间线；不触碰他方进程/浏览器）；
+  ③ 复现命令见本文件附录「附 B」。
+
+==============================================================================
+附 A · 驱动器完整 stdout（逐字节原样，仅统一行尾）
+  | 业务闭环验收（真实 HTTP）→ http://127.0.0.1:8084/api/v1
+  | 
+  | P0 · 认证
+  |   [OK]   [P0] 供应商短信登录（AUTH-01/02） — {'token': '<redacted len=303>', 'refresh_token': '<redacted len=43>', 'role': 'SUPPLIER', 'providerId': '458589638116450304', 'providerCode': 'AAP-P-000003', 'status': 'PUBLISHED', 'expires_in': 7200, 'provider_code': 'AAP-P-000003', 'provider_id': '458589638116450304', 'refreshToken': '<redacted len=43>'}
+  |   [OK]   [P0] 管理端短信登录（ADM-AUTH01） — {'token': '<redacted len=244>', 'refresh_token': None, 'role': 'SUPER_ADMIN', 'providerId': None, 'providerCode': None, 'status': 'ACTIVE', 'expires_in': 7200, 'provider_code': None, 'provider_id': None, 'refreshToken': None}
+  | 
+  | P1 · 供应商档案
+  |   [OK]   [P1] PUT /provider/profile（唯一 USCC，脚本可重跑） — {'provider_id': '458589638116450304', 'provider_no': 'AAP-P-2026-0003', 'provider_code': 'AAP-P-000003', 'short_name': '闭环供应商', 'short_code': 'AAP-P-000003', 'company_name': '闭环验收科技有限公司', 'uscc': '91110108MADZ6ZCK12', 'industry_category': 'ORIGINAL', 'province': '广东省', 'city': '深圳市', 'address': None, 'website': None, 'contact_name': '闭环联系人', 'contact_title': None, 'contact_phone_masked': '138****8000', 'contact_email': None, 'company_intro': '业务闭环验收脚本写入', 'completeness': 82, 'qualification_files': [], 'status': 'PUBLISHED', 'recheck_interval_days': 30, 'manual_override': False, 'override_reason': None, 'contact': {'name': '闭环联系人', 'phone_masked': '138****8000', 'email': None, 'title': None}, 'account': {'phone_masked': '138****8000', 'role': 'SUPPLIER', 'wx_bound': False}, 'created_at': '2026-09-18T16:12:29Z', 'updated_at': '2026-10-16T09:17:41Z', 'version': 73, 'companyName': '闭环验收科技有限公司', 'contact_phone': '138****8000', 'etag': '73', 'id': '458589638116450304', 'providerCode': 'AAP-P-000003', 'unified_social_credit_code': '91110108MADZ6ZCK12'}
+  | 
+  | P2 · 测试凭证（指向一体桩的厂商角色）
+  |   [OK]   [P2] POST /credentials（上游=http://127.0.0.1:9911/v1） — credential_id=468632110652063744
+  | 
+  | P3 · 检测引擎
+  |   [OK]   [P3] POST /credentials/{id}/precheck（CRED-05） — job_id=468632111256043520 status=ACTIVE
+  |   [OK]   [P3] 轮询 /detection-jobs/{jobId} 至终态（DET-02） — job 终态=COMPLETED（1 次轮询）
+  |   [OK]   [P3] 检测状态归位（PASS，否则 DET-06 放行） — DET-06 人工放行后 detection_status=PASS
+  | 
+  | P4 · 报价单与定价
+  |   [OK]   [P4] POST /quotes + 明细（QT-02/QT-05） — quote_id=468632196173922304
+  |   [OK]   [P4] PUT /quotes/items/{id} 定价（QT-08） — item_id=468632196433969152 已定价
+  |   [OK]   [P4] POST /quotes/{id}/submit（QT-09） — SUBMITTED
+  | 
+  | P5 · 管理端审核 → 合同签署闭环
+  |   [OK]   [P5] [ADMIN] 领取并审核通过（ADM-R02/R03） — review_id=468632197067309056 已审核通过
+  |   [OK]   [P5] [ADMIN] 合同签发（ADM-CT02，带真实文件） — contract_id=468632197574819840 已签发（file_id=468632197969084416）
+  |   [OK]   [P5] POST /contracts/{id}/sign（CON-04，SEAL） — 供应商签署完成 status=SUPPLIER_SIGNED
+  |   [OK]   [P5] [ADMIN] 确认签署（ADM-CT03）→ 合同生效 — 合同生效 status=SIGNED
+  | 
+  | P6 · 打款留痕
+  |   [OK]   [P6] [ADMIN] 记录打款（ADM-PAY04，带凭证文件） — payment_id=468632199105740800 status=PAYMENT_RECORDED
+  |   [OK]   [P6] [ADMIN] 确认打款（ADM-PAY02） — 打款已确认 CONFIRMED
+  | 
+  | P7 · 编译与人工确认（闸门③）
+  |   [OK]   [P7] [ADMIN] POST /admin/quotes/{id}/compile（ADM-Q01） — compilation_id=460730980586139648 gate_status=CONFIRMED
+  |   [OK]   [P7] [ADMIN] 模拟验证（ADM-CP03） — 验证通过 3/3 用例
+  |   [OK]   [P7] [ADMIN] 人工确认（ADM-CP04） — gate_status=CONFIRMED publish_blocked=false
+  | 
+  | P8 · 上架同步（ADM-S07/S08/S09，闭环最后一段）
+  |   [OK]   [P8] [ADMIN] 登记 new-api 端点（ADM-S07） — endpoint_id=19 api_key_mask=stub***-key（无明文）
+  |   [OK]   [P8] [ADMIN] 发起上架同步（ADM-S08） — task_id=39 task_no=SY202610160040 status=PENDING
+  |   [OK]   [P8] [ADMIN] 执行上架（ADM-S09，读前写后三段式） — 任务 SYNCED，回读一致
+  |   [OK]   [P8] 库内终态核对（ADM-S04 + ADM-P01） — binding=20 channel_id=1001 ENABLED；provider=PUBLISHED
+  | 
+  | P9 · 用量归集与对账视图
+  |   [OK]   [P9] 写 mock 用量日志源 — mock 日志已写 C:/Users/laitz/AppData/Local/Temp/aap-e2e-R674/usage-log-R674.json（stat_hour=2026-10-16T08:00:00Z）
+  |   [OK]   [P9] [ADMIN] POST /admin/usage/refresh（ADM-U02） — batch_total=1 inserted=1 batch_id=18
+  |   [OK]   [P9] 供应商端读用量（USE-01） — 供应商可见 total_tokens=108000
+  |   [OK]   [P9] [ADMIN] 管理端读用量（ADM-U01） — 管理端可见 1 条该供应商桶
+  | 
+  | P10 · 结算出账与对账（ADM-PAY06/07/08 + SET-01/02）
+  |   [OK]   [P10] [ADMIN] 生成结算单（ADM-PAY06） — statement_no=ST2026100005 total=12.34 fee=1.234 net=11.106 status=DRAFT
+  |   [OK]   [P10] 金额算术自洽（总额 = Σ明细、净额 = 总额 - 平台费） — 明细 1 行；Σ明细=12.34 == 总额=12.34；净额=11.106
+  |   [OK]   [P10] 打款关联（statement_id 回填） — 期内 CONFIRMED 打款 3 条已挂到本单（共 18 条）
+  |   [OK]   [P10] 同周期幂等（重复生成返回既有单） — 同周期重复生成 → 同一单 ST2026100005（未新增行）
+  |   [OK]   [P10] [ADMIN] 确认出账（ADM-PAY08） — 已确认出账（复跑复用既有单，跳过重复确认）
+  |   [OK]   [P10] 供应商端读结算单（SET-01/02） — 供应商端可见 ST2026100005（明细 1 行，总额 12.34）
+  | 
+  | 汇总：33/33 步通过；报告 C:/Users/laitz/AppData/Local/Temp/aap-e2e-R674/biz-closure-R674.json
+附 B · 复现命令（零凭据；端口/路径按本机实际）
+  # 1) 打包（跳过用例，仅产出可运行 jar；测试面证据另有独立链路）
+  cd aap-server && ../tools/with-env.sh aap-server mvn -B -ntp package -DskipTests
+  # 2) 本地一体桩（厂商 /v1/models + new-api 管理端点）
+  python tools/newapi-stub.py --port 9911 --api-key stub-local-key &
+  # 3) 后端（回环出站 + 联调取码 + 用量日志源三开关）
+  AAP_ALLOW_LOOPBACK=true AAP_SMS_EXPOSE_CODE=true \
+    AAP_USAGE_LOG_FILE=<$TEMP>/aap-e2e-<轮次>/usage-log-<轮次>.json \
+    tools/with-env.sh aap-server java -jar aap-server/target/aap-server.jar &
+  # 4) 业务闭环驱动（逐环节对账，rc=0 = 全部通过）
+  python tools/biz-closure-e2e.py --api-base http://127.0.0.1:<SERVER_PORT>/api/v1 \
+    --newapi-base http://127.0.0.1:9911 --newapi-key stub-local-key \
+    --usage-log <$TEMP>/aap-e2e-<轮次>/usage-log-<轮次>.json --report <$TEMP>/aap-e2e-<轮次>/biz-closure-<轮次>.json
+BIZ_CLOSURE_EVIDENCE_END=1
