@@ -530,3 +530,7 @@ R668（2026-10-16 14:31）：`hermes send -t feishu -s "AAP TDD 进度" "R668 �
   回显：`Skipped send_message to feishu:oc_45c4ca…：This cron job will already auto-deliver its final response to that same target`，rc=0；
   语义判定 = **运行时重复投递抑制（Skipped）**，**非发送失败**（与 R646…R667 同形；本轮无 CLI source 告警）。
   处置：不改用其它目标、不重试（避免重复消息）；本文件仅作留痕；**本作业的最终回复即通知**（自动投递到同一目标）。
+R669（2026-10-16 15:00）：`hermes send -t feishu -s "AAP TDD 进度" "R669 巡检轮：清单 117/117 全注册（missing=0）、全量 327 例两轮全绿 = 连续第 35 轮；回归面 84 条零回归；交付面与装置面零改动；【本轮新事实】① 新增「台账逐阶段计数 ⇔ 该轮证据」只读判据，机器发现并据实更正 R668 行读数（P9 8/P10 12 -> P9 4/P10 6）；② 端到端业务闭环第 3、4 次实跑 33/33（逐阶段读数与 R667/R668 完全相同）；返工 3 处（判据/脚本侧，提交前修正）；主提交 efd2eb6d"` 未取得投递回执 ——
+  回显：`Skipped send_message to feishu:oc_45c4ca…：This cron job will already auto-deliver its final response to that same target`，rc=0；
+  语义判定 = **运行时重复投递抑制（Skipped）**，**非发送失败**（与 R646…R668 同形；本轮无 CLI source 告警）。
+  处置：不改用其它目标、不重试（避免重复消息）；本文件仅作留痕；**本作业的最终回复即通知**（自动投递到同一目标）。
