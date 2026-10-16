@@ -1,0 +1,35 @@
+R665 轮次接管完整性 + 被测状态纯净性 只读探针（一次性质证；零凭据、零写仓库）
+==============================================================================
+背景（历史引用，非本轮自述）：该族早期曾遇上一枚执行器中断退出、留下残缺 facts（缺 run/ARCH/窗口尾/FACTS_WRITTEN）⇒ 当时据实重跑执行器取完整 facts；本轮 facts 完整性由 I0a/I0b/I0c 机器判定。
+数据源：facts-R665.log（facts）· wt-arch/coverage-report.json（归档覆盖报告）· git 只读 · jps 快照
+------------------------------------------------------------------------------
+[PASS] I0a 从 analyze.py 源码解析到的必填键集 = 36 键（正向对照，> 0）
+[PASS] I0b 本轮 facts 缺失键 = 无（须空）
+[PASS] I0c FACTS_WRITTEN 完成标记 = '1'（须 '1'；半截执行器的第一个断点）
+[PASS] I1a 合成残缺 facts 真的被截断（1387 → 893 字节、锚点已移除；形态与历史观测到的残缺件一致 —— 那份止于 WT_DIRTY_LINES 行、918 字节）
+[PASS] I1b 对合成残缺 facts，装置必填键缺失 = 14 个（含 FACTS_WRITTEN / FACTS_RUN1_RC）⇒ A0a/A21 会响亮拒绝
+[PASS] I1c 同一判据对完整 facts 判绿、对残缺 facts 判红 = 判别力成立（历史 46/75）
+[PASS] I2a 时刻链解析到 5 个（正向对照）=['WINDOW_START', 'RUN1_START', 'RUN1_END', 'RUN2_END', 'WINDOW_END']
+[PASS] I2b 窗口→run1→run2→窗口尾 单调不减（跨午夜解算）= True（WINDOW_START <= RUN1_START <= RUN1_END <= RUN2_END <= WINDOW_END）
+[PASS] I2c 两轮相邻且串行：rc = 0/0 ∧ 0 <= (run2_start - run1_end) = 0 s <= 5（E=12:35:39 / S=12:35:39；**秒级戳逐字符相等非语义要求** —— 两次 `date +%H:%M:%S` 之间只隔循环的 3 次 log，跨秒属墙钟对齐，历史 244）
+[PASS] I2c2 判别力对照（三分支，须 True/False/False）：差 1 s 判相邻 = True ∧ 差 119 s 判非相邻 = False ∧ rc 非 0 判非相邻 = False（历史 75/98：无对照的判据不可信）
+[PASS] I3a 两源均非空（正向对照）：HEAD 版 1099 字节 / worktree 归档 1099 字节（已做 CRLF->LF 归一，历史 69/218）
+[PASS] I3b worktree 归档的 coverage-report.json 与 HEAD 版**语义相等**（解析后 JSON 逐字段相等；该产物由测试运行期重生成，缩进/键序/换行可合法不同 ⇒ 逐字节不是该判据的语义，历史 81/244）
+[PASS] I3b2 INFO 两源字节级差异 = True（归档 1099 字节 / HEAD 1099 字节；仅作观察，不作判据）
+[PASS] I3b3 归档覆盖读数自洽：total/implemented/missing = 117/117/0
+[PASS] I3c 主工作区同名文件在途已改（M，'30\t30\t.agents/state/evidence/coverage-re'）⇒ 本轮结论不依赖它（判据 I3b 的直接对照）
+[PASS] I3d 在途版与 HEAD 版的 missing 读数同为 0（在途改动不改变覆盖结论）：在途=0 / HEAD=0
+[PASS] I4a 判别力对照：路径过滤器对**整个历史**命中 aap-server 提交数 = 49（须 > 0 ⇒ 过滤器不是死的；本轮改用全历史，历史 98/141）
+[PASS] I4b 被测提交(158745cf)..HEAD 触及交付面（aap-server/docs）的提交数 = 0（本轮零交付面改动）
+[PASS] I4c0 在途基线（分析器登记，单一事实源）解析到 9 条（须 > 0）=['.agents/state/evidence/coverage-report.json', '.agents/state/evidence/e2e-final-20261015.json', '.agents/state/evidence/e2e-final2-20261015.json', '.agents/state/evidence/e2e-run-20261015-d.json', 'README.md', 'aap-server/pom.xml', 'aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java', 'aap-server/src/main/resources/application.yml', 'aap-server/src/main/webapp/']
+[PASS] I4c 当前交付面未提交条目 ⊆ 在途基线 ⇒ 我方零新增交付面改动（基线外条目 = 无；当前 3 条全部落在基线内）
+[PASS] I5a worktree 注册表只剩主库 = True（行数 1）
+[PASS] I5b 本轮 worktree 目录残留 = 无（须空；执行器已回收）
+[PASS] I5c .round.pid 锁文件已被执行器 trap 清理 = True
+[PASS] I5d 回收 rc = 0、归档测试源 = 59 个 .java（正向对照，均须非 0/非空）
+[PASS] I5e 判别力对照：jps 可达 = True 且模式对合成行命中 = True（须皆真，历史 75/98）
+[PASS] I5f 本刻无测试 JVM（surefire / classworlds test）= 无（快照行数 5）
+[PASS] I6a HEAD 台账里 R664 行 = 1 条（须恰 1 条；按轮次号定位，不用位置判据，历史 233）
+------------------------------------------------------------------------------
+判据：PASS 27 / FAIL 0
+INTEGRITY_END=1
