@@ -1,0 +1,51 @@
+R701 他方 e2e 自述只读登记（**只登记、不采信**；他方产物、非本轮读数）
+说明：e2e 业务闭环实跑本轮暂停（理由见 note-R701.md 第六节），故本文件无「本轮新读数」。
+==============================================================================
+== e2e-final-20261015.json ==
+  generated_at=2026-10-15T15:22:05Z base=http://127.0.0.1:8086/api/v1 steps=24/33 passed=24 failed=9
+  字段 = ['detail', 'ms', 'name', 'ok', 'phase']
+  非 PASS 条目数 = 33（正向对照）
+   - P0 | 供应商短信登录（AUTH-01/02） | None
+   - P0 | 管理端短信登录（ADM-AUTH01） | None
+   - P1 | PUT /provider/profile（唯一 USCC，脚本可重跑） | None
+   - P2 | POST /credentials（上游=http://127.0.0.1:9911/v1） | None
+   - P3 | POST /credentials/{id}/precheck（CRED-05） | None
+   - P3 | 轮询 /detection-jobs/{jobId} 至终态（DET-02） | None
+   - P3 | 检测状态归位（PASS，否则 DET-06 放行） | None
+   - P4 | POST /quotes + 明细（QT-02/QT-05） | None
+   - P4 | PUT /quotes/items/{id} 定价（QT-08） | None
+   - P4 | POST /quotes/{id}/submit（QT-09） | None
+   - P5 | [ADMIN] 领取并审核通过（ADM-R02/R03） | None
+   - P5 | [ADMIN] 合同签发（ADM-CT02，带真实文件） | None
+== e2e-final2-20261015.json ==
+  generated_at=2026-10-15T15:23:55Z base=http://127.0.0.1:8086/api/v1 steps=24/33 passed=24 failed=9
+  字段 = ['detail', 'ms', 'name', 'ok', 'phase']
+  非 PASS 条目数 = 33（正向对照）
+   - P0 | 供应商短信登录（AUTH-01/02） | None
+   - P0 | 管理端短信登录（ADM-AUTH01） | None
+   - P1 | PUT /provider/profile（唯一 USCC，脚本可重跑） | None
+   - P2 | POST /credentials（上游=http://127.0.0.1:9911/v1） | None
+   - P3 | POST /credentials/{id}/precheck（CRED-05） | None
+   - P3 | 轮询 /detection-jobs/{jobId} 至终态（DET-02） | None
+   - P3 | 检测状态归位（PASS，否则 DET-06 放行） | None
+   - P4 | POST /quotes + 明细（QT-02/QT-05） | None
+   - P4 | PUT /quotes/items/{id} 定价（QT-08） | None
+   - P4 | POST /quotes/{id}/submit（QT-09） | None
+   - P5 | [ADMIN] 领取并审核通过（ADM-R02/R03） | None
+   - P5 | [ADMIN] 合同签发（ADM-CT02，带真实文件） | None
+== e2e-run-20261015-d.json ==
+  generated_at=2026-10-15T15:23:13Z base=http://127.0.0.1:8086/api/v1 steps=1/33 passed=1 failed=32
+  字段 = ['detail', 'ms', 'name', 'ok', 'phase']
+  非 PASS 条目数 = 33（正向对照）
+   - P0 | 供应商短信登录（AUTH-01/02） | None
+   - P0 | 管理端短信登录（ADM-AUTH01） | None
+   - P1 | PUT /provider/profile（唯一 USCC，脚本可重跑） | None
+   - P2 | POST /credentials（上游=http://127.0.0.1:9911/v1） | None
+   - P3 | POST /credentials/{id}/precheck（CRED-05） | None
+   - P3 | 轮询 /detection-jobs/{jobId} 至终态（DET-02） | None
+   - P3 | 检测状态归位（PASS，否则 DET-06 放行） | None
+   - P4 | POST /quotes + 明细（QT-02/QT-05） | None
+   - P4 | PUT /quotes/items/{id} 定价（QT-08） | None
+   - P4 | POST /quotes/{id}/submit（QT-09） | None
+   - P5 | [ADMIN] 领取并审核通过（ADM-R02/R03） | None
+   - P5 | [ADMIN] 合同签发（ADM-CT02，带真实文件） | None
