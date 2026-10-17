@@ -1,0 +1,63 @@
+R700 端到端联调窗口「前置可行性」只读取证（零凭据、零进程操作、零仓库写入）
+生成时刻 = 2026-10-17 16:42:41
+环境指纹 = uname=Windows / platform=10
+==============================================================================
+
+一、P1 数据库就绪（dev_postgres 容器 + TCP）
+  判据口径：容器 Up 且 TCP 可达 ⇒ 后端实例可连库（本探针不建连、不读数据）
+  docker ps 命令 rc = 0 / stderr = 无
+  [PASS] 正向对照：docker ps 容器行数 > 0 ｜ 行数 = 12
+  dev_postgres 命中行数 = 1（须 = 1）
+    dev_postgres~Up 34 hours (healthy)~0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
+  127.0.0.1:5432 = CONNECT_OK
+
+二、P2 后端可运行产物（打包 jar）
+  [PASS] 正向对照：jar 命中条数 > 0 ｜ 条数 = 1
+    aap-server.jar  大小 = 39.8 MB  mtime = 2026-10-17 14:44:43
+
+三、P3 端口可用性（本仓库历史端口 vs 他方占用）
+  [PASS] 正向对照：netstat LISTENING 行数 > 0 ｜ 行数 = 73 / rc = 0
+    端口 8080 = 空闲（Windows netstat 未监听）
+    端口 8081 = 空闲（Windows netstat 未监听）
+    端口 8083 = LISTENING pid=10264
+    端口 8084 = 空闲（Windows netstat 未监听）
+    端口 8086 = 空闲（Windows netstat 未监听）
+    端口 5173 = 空闲（Windows netstat 未监听）
+    端口 5174 = 空闲（Windows netstat 未监听）
+    端口 5175 = 空闲（Windows netstat 未监听）
+  空闲 = [8080, 8081, 8084, 8086, 5173, 5174, 5175] / 占用 = [8083]
+
+四、P4 前端三端 dev 可达性（TCP；他方工作流，本探针只读）
+  端口 5173 = CONNECT_FAIL ConnectionRefusedError
+  端口 5174 = CONNECT_FAIL ConnectionRefusedError
+  端口 5175 = CONNECT_FAIL ConnectionRefusedError
+  可达端数 = 0 / 3（读数，非判据）
+
+五、P5 用量日志源配置形态（主配置 vs 测试配置；他方 e2e 自述 P9/P10 缺口的唯一根因假设）
+  main 文件存在 = True / test 文件存在 = True（均须 True）
+  [PASS] 正向对照：两配置文件都存在 ｜ main=True test=True
+  main `usage` 块内 `log-file` 行 = 是
+    main 取值形态 = log-file: ${AAP_USAGE_LOG_FILE:}
+    main 为「占位符 + 空默认」= True
+  test `usage` 块内 `log-file` 行 = 是
+    test 取值形态 = log-file: ${java.io.tmpdir}/aap-usage-log-fixture.json
+  [PASS] 正向对照：主配置 `usage.log-file` 命中（缩进块解析） ｜ main=命中
+
+六、P6 e2e 驱动脚本归属（本仓库内是否存在驱动）
+  名称含 e2e/playwright/cypress/uikit-e2e 的脚本 = 1 条
+    tools/biz-closure-e2e.py
+  说明：本探针只做**存在性**读数，不运行任何 e2e 驱动、不宣称联调结论（历史 12/95）
+  webapp 直接子项 = ['admin-spa']
+
+==============================================================================
+派生结论（由上文读数推出，不手写）：
+  可核前置项 = 4 条，其中**已满足 4 条**：
+    [满足] P1 数据库就绪（容器 Up ∧ 5432 可达）  ｜ 读数：容器 1 行 / TCP CONNECT_OK
+    [满足] P2 后端可运行产物存在（jar > 1 MB）  ｜ 读数：1 个 jar
+    [满足] P3 存在空闲端口可承载后端实例  ｜ 读数：空闲 7 个 [8080, 8081, 8084, 8086]
+    [满足] P5 用量日志源配置形态已定位（main 命中行存在）  ｜ 读数：main=占位符空默认 / test=命中
+  P4 前端 dev 可达端数 = 0 / 3（他方工作流，本探针不操作）
+  P6 本仓库内 e2e 驱动脚本 = 1 条 ⇒ 驱动归属在本仓库
+  上限陈述：本文件只给**前置可达性**读数；端到端联通性仍需在实例起来后由驱动实跑判定，
+            本探针不启动实例、不复跑 e2e、不据此判「联调通过」（历史 12/95/198）。
+E2E_PREFLIGHT_END=1
