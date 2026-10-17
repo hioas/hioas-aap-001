@@ -260,7 +260,12 @@ def produces_type(raw):
 
 
 def non_200_success(routes):
-    """成功路径里的非 200 包装（排除 GlobalExceptionHandler 错误路径）。"""
+    """成功路径里的非 200 包装（排除 GlobalExceptionHandler 错误路径）。
+
+    返回 `(file, line, code, 展示文本)`：带**行号**是为了把命中点归位到**具体端点**，
+    从而支持「清单逐行声明了该非 200 码 ⇒ 不算漂移」的判据（硬约束 1：清单逐行为准）。
+    只按「成功必须 200」一刀切会把契约声明的 202「已受理」误报成缺口（历史 81：判据范围须与语义一致）。
+    """
     hits = []
     for p in java_files(MAIN):
         t = read(p)
@@ -271,12 +276,29 @@ def non_200_success(routes):
             continue
         for m in re.finditer(r"@ResponseStatus\s*\(\s*(?:value\s*=\s*)?HttpStatus\.(\w+)", t):
             if m.group(1) not in ("OK",):
-                hits.append("%s: 注解 @ResponseStatus(HttpStatus.%s)" % (name, m.group(1)))
+                hits.append((p, t[:m.start()].count("\n") + 1, HTTP_NAME_TO_CODE.get(m.group(1), m.group(1)),
+                             "%s: 注解 @ResponseStatus(HttpStatus.%s)" % (name, m.group(1))))
         for m in re.finditer(r"ResponseEntity\.status\s*\(\s*(?:HttpStatus\.(\w+)|(\d{3}))", t):
-            code = m.group(1) or m.group(2)
+            raw = m.group(1) or m.group(2)
+            code = HTTP_NAME_TO_CODE.get(raw, raw)
             if code not in ("OK", "200"):
-                hits.append("%s: ResponseEntity.status(%s)" % (name, code))
+                hits.append((p, t[:m.start()].count("\n") + 1, code,
+                             "%s: ResponseEntity.status(%s)" % (name, raw)))
     return hits
+
+
+HTTP_NAME_TO_CODE = {"OK": "200", "CREATED": "201", "ACCEPTED": "202", "NO_CONTENT": "204"}
+
+
+def declared_non200_success(md_rows):
+    """md 逐端点**声明**的非 200 成功码 → {(method, path): (eid, {codes})}（硬约束 1：清单逐行为准）。"""
+    out = {}
+    for eid, r in md_rows.items():
+        cell = r.get("response_cell") or ""
+        codes = {c for c in re.findall(r"→\s*\*\*(\d{3})\*\*", cell) if c != "200"}
+        if codes:
+            out[key_of(r["method"], r["path"])] = (eid, codes)
+    return out
 
 
 # --------------------------------------------------------------- C：客户端
@@ -466,11 +488,34 @@ def main():
         ok("A1b", "md §0「响应包体」行解析到：%s" % md_env[:80])
     else:
         fail("A1b", "md §0 未解析到「响应包体」行 —— 解析器失效")
-    bad200 = non_200_success(routes)
-    if bad200:
-        fail("A1c", "成功路径出现非 200 返回 %d 处（与 md §4 的「0→200」冲突）：%s" % (len(bad200), "; ".join(bad200[:5])))
+    hits200 = non_200_success(routes)
+    declared_n200 = declared_non200_success(md_rows)
+    info("A1c0", "md 逐端点声明的非 200 成功码 | %d 条（%s）"
+         % (len(declared_n200),
+            "; ".join("%s→%s" % (v[0], ",".join(sorted(v[1]))) for v in declared_n200.values()) or "-"))
+    ctrl_by_file = {}
+    for r in ctrl:
+        ctrl_by_file.setdefault(r["file"], []).append(r)
+    allowed, bad200 = [], []
+    for (f, ln, code, txt) in hits200:
+        near = [r for r in ctrl_by_file.get(f, []) if r["line"] <= ln]
+        r0 = max(near, key=lambda r: r["line"]) if near else None
+        k = key_of(r0["http"], r0["path"]) if r0 else None
+        if k in declared_n200 and code in declared_n200[k][1]:
+            allowed.append("%s（清单 %s 声明 %s）" % (txt, declared_n200[k][0], code))
+        else:
+            bad200.append(txt)
+    if hits200 and not declared_n200:
+        fail("A1c", "命中非 200 成功返回 %d 处，但 md 一条非 200 成功码都未解析到 —— 豁免判据失效（历史 46）"
+             % len(hits200))
+    elif bad200:
+        fail("A1c", "成功路径出现**未声明**的非 200 返回 %d 处（与 md §4「0→200」及清单逐行声明都冲突）：%s"
+             % (len(bad200), "; ".join(bad200[:5])))
     else:
-        ok("A1c", "成功路径非 200 返回 = 0 处（%d 条控制器路由全部走默认 200）" % len(ctrl))
+        ok("A1c", "成功路径非 200 返回：未声明 0 处（命中 %d 处、其中清单逐行声明 %d 处；%d 条控制器路由）"
+           % (len(hits200), len(allowed), len(ctrl)))
+    if allowed:
+        info("A1c2", "清单声明的非 200 成功返回（第三方裁判 = 硬约束 1 的逐行清单）| %s" % "; ".join(allowed[:5]))
     resp_ret = [r for r in ctrl if r["returns"].startswith("ResponseEntity")]
     info("A1d", "控制器成功返回类型：ApiEnvelope 包装 %d 条 / ResponseEntity 包装 %d 条（%s）"
          % (len(ctrl) - len(resp_ret), len(resp_ret),
@@ -579,11 +624,20 @@ def main():
     else:
         fail("A6a", "openapi 未解析到任何 2xx 状态 —— 解析器失效")
     if md_status:
-        odd = [k for s, v in sets.items() for k in v if list(s) != [md_status]]
+        # 逐端点口径：默认成功码 = md §4 的 200，**除非**该端点在 md 逐行里声明了非 200 成功码
+        # （`declared_n200` 与 A1c 同源 —— 修的是判据，不是期望值）。依据：非 200 成功码是**冻结契约的一部分**
+        # （规格 contracts/intake-automation.openapi.yaml + 清单逐行 + 控制器 @ResponseStatus 三处一致；
+        #  本仓实测 ADM-SU03=202 / ADM-CB01=201 / ADM-CB04/05=202）。全局「必须 200」的旧判据会把
+        #  **生成器已按端点声明成功码**这一修复判成漂移（历史 4/54/81：判据范围须与语义一致）。
+        odd = [k for s, v in sets.items() for k in v
+               if list(s) != [md_status]
+               and not (k in declared_n200 and set(s) <= set(declared_n200[k][1]))]
         if odd:
-            fail("A6b", "openapi 声明非 %s 成功状态 %d 条：%s" % (md_status, len(odd), odd[:5]))
+            fail("A6b", "openapi 声明 %s 且 md 逐行未声明的成功状态 %d 条：%s" % (md_status, len(odd), odd[:5]))
         else:
-            ok("A6b", "openapi 全部 %d 条 operation 的成功状态码 = {%s}（与 md §4 一致）" % (len(oapi or {}), md_status))
+            ok("A6b", "openapi 全部 %d 条 operation 的成功状态码 = {%s} 或该端点 md 逐行声明的非 200 码"
+               "（md 逐行声明 %d 条；正向对照 > 0 或与 A1c 同源计数一致）"
+               % (len(oapi or {}), md_status, len(declared_n200)))
 
     print()
     print("== A7 根因定位：生成器是否具备「非 JSON 响应」表达能力 ==")

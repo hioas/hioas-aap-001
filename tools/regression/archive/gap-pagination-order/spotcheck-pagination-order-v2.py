@@ -193,8 +193,15 @@ def main():
 
     impl_root = os.path.join(repo, "aap-server", "src", "main", "java")
     test_root = os.path.join(repo, "aap-server", "src", "test", "java")
-    ddl_path = os.path.join(repo, "aap-server", "src", "main", "resources", "db", "migration",
-                            "V1__baseline.sql")
+    mig_dir = os.path.join(repo, "aap-server", "src", "main", "resources", "db", "migration")
+    # 迁移目录里的**全部** DDL（不只 baseline）：表定义会随迁移新增（如 V15 的 aap_supply_unit），
+    # 只读 baseline 会让「新表上的分页语句」落到「未能静态判定」——那是**扫描范围盲区**（历史 213），
+    # 不是「该表没有唯一键」。按版本号排序拼接，保证解析顺序稳定。
+    def _mig_key(fn):
+        m = re.match(r"V(\d+)__", fn)
+        return (int(m.group(1)) if m else 10 ** 6, fn)
+    ddl_paths = [os.path.join(mig_dir, fn) for fn in sorted(os.listdir(mig_dir), key=_mig_key)
+                 if fn.endswith(".sql")]
     md_path = os.path.join(repo, "docs", "backend", "02-API接口模型清单.md")
     oa_path = os.path.join(repo, "docs", "backend", "openapi.yaml")
     client_root = os.path.join(repo, "aap-client", "src")
@@ -206,21 +213,22 @@ def main():
                 impl_files.append(os.path.join(root, fn))
     impl_files.sort()
 
-    read_files = [ddl_path, md_path, oa_path]
+    read_files = ddl_paths + [md_path, oa_path]
     before = {}
     for p in read_files:
         with open(p, "rb") as fh:
             raw = fh.read()
         before[p] = (hashlib.md5(raw).hexdigest(), len(raw))
 
-    tables = parse_ddl(open(ddl_path, encoding="utf-8").read())
+    tables = parse_ddl("\n".join(open(p, encoding="utf-8").read() for p in ddl_paths))
     stmts = find_paginated_statements(impl_files)
 
     # ---- 正向对照（skill 坑 46/75：0 发现先怀疑解析器）
     emit("PASS" if stmts else "FAIL", "P0 正向对照：解析到含 limit/offset 的分页 SQL 条数 > 0",
          "实测 %d 条" % len(stmts))
     emit("PASS" if tables else "FAIL", "P0b 正向对照：DDL 解析到表定义 > 0",
-         "实测 %d 张表、唯一键集合 %d 组" % (len(tables), sum(len(v["keys"]) for v in tables.values())))
+         "实测 %d 张表、唯一键集合 %d 组（DDL 扫描范围 = %d 个迁移文件）"
+         % (len(tables), sum(len(v["keys"]) for v in tables.values()), len(ddl_paths)))
 
     parsed_order = [s for s in stmts if s["order_cols"]]
     emit("PASS" if len(parsed_order) == len(stmts) else "FAIL",
