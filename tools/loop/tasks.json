@@ -1,0 +1,18 @@
+{
+  "feature": "001-intake-automation",
+  "note": "命令按 cmd.exe 语法（loop.py 用 Windows shell）。判 DONE 只用 green + gate。",
+  "tasks": [
+    {
+      "id": "T-M4-08",
+      "title": "限速计划 ConfigApplyRateLimiter（R-57）",
+      "ac": ["R-57"],
+      "red": "echo red baseline: evidence/red-M4-0809.txt (11/11 UnsupportedOperation)",
+      "green": "cd /d aap-server && E:\\workspaces\\maven\\apache-maven-3.8.6\\bin\\mvn.cmd -B -ntp test -Dtest=ConfigApplyRateLimiterTest,ReadbackComparatorTest",
+      "gate": [],
+      "watch": ["aap-server/src/main/java/com/hioas/aap/supply", "aap-server/src/test/java/com/hioas/aap/supply"],
+      "evidence_dir": ".agents/state/evidence",
+      "max_attempts": 3,
+      "budget_minutes": 20
+    }
+  ]
+}
