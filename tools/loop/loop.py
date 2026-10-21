@@ -10,7 +10,8 @@ DONE 四条件（后两条是反作弊）：
   1. green 命令退出码 0
   2. gate 全部退出码 0
   3. 证据文件 mtime 晚于本 Task 开始时间（防拿历史绿报告冒充）
-  4. git status 有改动（防"说完成了但没干活"）
+  4. **任务 watch 范围内**有改动（防"说完成了但没干活"；不按全仓库判 ——
+     并发仓库里他方的在制品会白白满足这一条，反作弊就失效了）
 
 用法：
   python tools/loop/loop.py --task T-M4-08
@@ -49,14 +50,28 @@ def sh(cmd: str, cwd: str, timeout: int = 2400):
         return 124, "TIMEOUT after %ss: %s" % (timeout, cmd), time.time() - t0
 
 
-def git_dirty(repo: str):
-    rc, out, _ = sh("git status --porcelain", repo, 120)
+def git_dirty(repo: str, paths=None):
+    """工作区是否有改动。paths 非空时**只看这些路径**（含未跟踪文件）。
+
+    为什么需要 paths：多会话并发写同一仓库时，`git status` 会被他方在制品点亮 —— 那样
+    DONE 的第 4 条（"有改动"反作弊）会被别人的改动满足，等于反作弊失效。
+    收敛到本任务的 watch 路径后，含义变成"我改的范围里真的有改动"。
+    """
+    cmd = "git status --porcelain"
+    if paths:
+        quoted = " ".join('"%s"' % p.replace('"', '\\"') for p in paths)
+        cmd += " -- " + quoted
+    rc, out, _ = sh(cmd, repo, 120)
     return (rc == 0 and out.strip() != ""), out
 
 
 def fingerprint(repo: str, watch) -> str:
-    """工作区指纹：git 变更 + 被监视路径的 mtime/size。"""
-    parts = [git_dirty(repo)[1]]
+    """工作区指纹：**被监视路径**的 git 变更 + mtime/size。
+
+    注意 git 部分也要按 watch 收敛：并发仓库里他方的未提交改动会让全仓库 `git status`
+    每 tick 都不同 → 指纹永远"在变" → 永远判不出 DONE（实测过这个坑）。
+    """
+    parts = [git_dirty(repo, watch if watch else None)[1]]
     for rel in watch:
         p = os.path.join(repo, rel)
         if os.path.isfile(p):
@@ -107,9 +122,12 @@ def judge_done(task, results, start_ts: float, repo: str):
     for key, (_, path) in results.items():
         if os.stat(path).st_mtime < start_ts:
             return False, "证据不新鲜(%s 早于任务开始，疑似历史报告)" % key
-    dirty, _ = git_dirty(repo)
+    # 第 4 条反作弊：**本任务 watch 范围内**有改动（不是全仓库 —— 并发仓库里他方改动会使该条失效）
+    watch = task.get("watch") or []
+    dirty, _ = git_dirty(repo, watch if watch else None)
     if not dirty:
-        return False, "工作区无改动（说完成但没干活）"
+        scope = ("（范围：%s）" % ", ".join(watch)) if watch else "（全仓库）"
+        return False, "watch 范围内无改动%s —— 说完成但没干活" % scope
     return True, "四条件通过"
 
 
