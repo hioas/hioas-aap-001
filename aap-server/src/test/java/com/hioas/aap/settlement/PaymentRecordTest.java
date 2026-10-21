@@ -200,10 +200,11 @@ class PaymentRecordTest extends ApiTestBase {
         assertThat(ok.status()).as(ok.body()).isEqualTo(200);
         assertThat(ok.data().path("currency").asText()).as("不传币种应回退合同币种").isEqualTo("CNY");
 
-        // 同合同第二笔生效中 → 409
-        HttpResult dup = post("/admin/payments", recordBody(signed, "200", "CNY", voucher, null), admin);
-        assertThat(dup.status()).as(dup.body()).isEqualTo(409);
-        assertThat(dup.code()).isEqualTo("E-1601");
+        // 同合同第二笔 → **允许**（PRD 10 §5.3 C1–C6 未限制；钱包/结算按供应商聚合多笔打款）。
+        // 2026-09-23 曾在这里断言 409（自造"一合同一笔"守卫），核对真源后守卫已回退，断言同步改正。
+        HttpResult second = post("/admin/payments", recordBody(signed, "200", "CNY", voucher, null), admin);
+        assertThat(second.status()).as(second.body()).isEqualTo(200);
+        assertThat(second.data().path("status").asText()).isEqualTo("PAYMENT_RECORDED");
 
         // 合同不存在 → 404；供应商主体 → 403；未认证 → 401
         assertThat(post("/admin/payments", recordBody(999999999999L, "100", "CNY", voucher, null), admin).code())

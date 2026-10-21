@@ -282,7 +282,16 @@ public class CredentialService {
                     probe.errorMsg() == null ? "凭证预检失败" : probe.errorMsg());
         }
 
-        DetectionJobEntity job = precheckRecorder.recordSuccess(entity.getId(), entity.getProviderId(), record);
+        DetectionJobEntity job;
+        try {
+            job = precheckRecorder.recordSuccess(entity.getId(), entity.getProviderId(), record);
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            // 并发预检：C2 的"同凭证仅 1 个活跃任务"是 check-then-insert，落败线程会撞
+            // 部分唯一索引 `uq_job_active (credential_id) where active_flag` →
+            // 语义上等同"已有进行中的任务"，必须回 E-1301，不能落成 500 E-2001
+            // （2026-09-23 并发压测实测：6 并发预检 = 1×200 + 5×500）。
+            throw new ApiException(ErrorCode.E_1301, "该凭证已有进行中的检测任务，请等待完成或取消后再提交");
+        }
         return new CredentialViews.PrecheckResult(
                 String.valueOf(job.getId()), String.valueOf(job.getId()), job.getJobNo(),
                 "PASSED", "ACTIVE", probe.models());

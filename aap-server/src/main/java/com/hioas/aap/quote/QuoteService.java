@@ -443,7 +443,12 @@ public class QuoteService {
         quote.setSubmittedAt(OffsetDateTime.now(ZoneOffset.UTC));
         quote.setSubmittedBy(principal == null ? null : principal.accountId());
         quote.setItemCount(rows.size());
-        quoteMapper.update(quote);
+        // 并发提交：乐观锁（version）失配时 update 影响 0 行**且不报错**，若继续往下会插同
+        // version_no 的快照 → 撞 uq_quote_version → 500 E-2001（2026-09-23 并发压测实测：
+        // 8 并发提交 = 1×200 + 7×500）。这里必须显式检查影响行数，落败方干净地回 409。
+        if (quoteMapper.update(quote) != 1) {
+            throw new ApiException(ErrorCode.E_1601, "报价单状态已变化（并发提交），请刷新后重试");
+        }
 
         // 版本快照（不可变 C9）：提交即冻结当前内容
         QuoteVersionEntity snapshot = new QuoteVersionEntity();

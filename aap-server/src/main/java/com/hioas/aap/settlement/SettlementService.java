@@ -211,7 +211,8 @@ public class SettlementService {
      *   <li>合同必须存在且为 {@code SIGNED}（未签署禁打款，409 E-1601）；</li>
      *   <li>C4：金额 &gt; 0，币种必与合同一致（不传则取合同币种）；</li>
      *   <li>C5：凭证文件必填且必须存在于 {@code aap_file_asset}；</li>
-     *   <li>同一合同不允许存在第二笔生效中的打款（须先作废再重录，见 {@link #voidPayment}）。</li>
+     *   <li>同一合同**可以**有多笔打款记录（PRD 10 §5.3 C1–C6 未限制；钱包/结算按供应商聚合）。
+     *       2026-09-23 曾自行加过"一合同仅一笔生效中"的守卫与部分唯一索引，核对真源后回退。</li>
      * </ul>
      */
     @Transactional
@@ -243,13 +244,9 @@ public class SettlementService {
             throw ApiException.field(ErrorCode.E_1001, "voucher_file_id",
                     "打款凭证文件不存在：" + cmd.voucherFileId());
         }
-        Long active = jdbc.queryForObject("""
-                select count(*) from aap_payment_record
-                 where contract_id = ? and deleted = false and status in ('PAYMENT_RECORDED','CONFIRMED')
-                """, Long.class, cmd.contractId());
-        if (active != null && active > 0) {
-            throw new ApiException(ErrorCode.E_1601, "该合同已有生效中的打款记录，如需重录请先作废");
-        }
+        // 注：这里**不再**限制"同一合同仅一笔生效中打款" —— PRD 10 §5.3（C1–C6）没有该约束，
+        // 而钱包/结算按供应商聚合多笔打款是既有模型（PAY-01 / 结算生成用例都依赖多笔）。
+        // 2026-09-23 曾自行加过该守卫与配套部分唯一索引（V17），经核对真源后回退：不自造资金规则。
 
         Long actor = actorId(principal);
         PaymentRecordEntity entity = new PaymentRecordEntity();
