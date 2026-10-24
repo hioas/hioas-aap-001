@@ -1,0 +1,77 @@
+R729 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动三判据）
+==============================================================================
+生成方式：本文件由 `tools/round-verify/device-report.py` 从 git / facts / 证据的**真实输出**取值（数字零手写值），不接触交付面。
+轮次 = R729；被测提交（HEAD 的独立 worktree 内检出）= 4948143a；窗口 = 2026-10-24 18:45:18 -> 2026-10-24 18:50:13（facts 落盘）
+
+一、装置面改动（机器推导，零手写）
+  被测提交的 `tools/round-verify` 文件 = 16 个 / 工作区同名文件 = 16 个（新增 0 / 删除 0）
+  工作区未提交的 tools/ 条目 = 0 条（无）
+  「被测提交..HEAD」触及 tools/ 的提交 = 0 枚（本文件生成于主提交之前）
+  逐文件 numstat（工作区 vs HEAD，`插入/删除/路径`）：无
+  轮次无关性守卫：装置脚本（14 个 .py/.sh）内当前轮次号命中 = **0**（须 0
+    = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
+
+二、本轮返工真值 = **0 处**（零交付面影响；条目文本来自单一事实源 `R729-note.md`，与台账描述列 / 状态文件小节共用）
+------------------------------------------------------------------------------
+一、性质与范围：纯校验轮（清单 `missing == 0` ∧ 两轮 `rc=0/0`）⇒ 按作业第 4 步「不改代码、只校验并报告」执行，**交付面零改动**（未改 `aap-server` / `docs` / 测试面 / 冻结清单生成物任何一行）。**本轮完成端点清单 = 0 条；新增用例数 = 0**（纯校验轮 ⇒ 无红基线与绿基线，按作业口径不产生 batch 提交）。作业背景所写「已实现 T03–T09、未完成 45 条（T10–T14）」与仓库现况不符：清单已扩至 **117 条**且逐族 `implemented == total`，作业目标「90 条全部落地」已含于 total 之中；连续全绿计数由上一轮记的 94 递增为 **95**（绿相位 ⇒ 计数 +1）。
+
+二、两轮全量（串行，被测提交的独立 detached worktree 内）：窗口 18:45:17 → 18:50:13；run1 18:45:34→18:47:59（maven 耗时 142 s = 02:22 min）、run2 18:47:59→18:50:07（126 s = 02:06 min，两轮首尾相接、衔接差 0 s），每轮 **327 例 / 53 类**、**rc=0/0**、五元组 327-0-0-0、两轮 `BUILD SUCCESS` 均为真、**逐类 diff = 0**（已剥 `Time elapsed` 再排序）；`@Test` 词边界 **327 == surefire 327**（裸子串 329 作对照，差 2 ⇒ `@TestConfiguration` / `@TestPropertySource` 一类子串误计）；归档测试源 **59** 个 `.java`；禁用扫描 **0 条**（无 `@Disabled` / `assumeTrue`，未削弱测试）；worktree add/remove rc=0（重试 0 次、无残留、目录已回收，`WORKTREE_REMOVE_RESIDUE_PY_RC=0`）。被测提交 = **4948143a**（= 窗口起点 HEAD = 终点 HEAD，`FACTS_HEAD_ADVANCED_COUNT=0`；`WT_DIRTY_LINES=0` ⇒ 两轮跑的是**提交态**，非他人未提交改动）。本轮两轮耗时 02:22 / 02:06 min 均落在 `mm:ss min` 写法分支，`s` 分支由常驻合成对照（2/2）证明有牙齿（历史 175/176）。
+
+三、覆盖读数：total **117** / implemented **117** / **missing=0** / registered_routes **134** / not_registered 空；15 族全齐（族和 117 = total：(空任务号) 18 · T03 6 · T04 5 · T05 7 · T06 6 · T07 4 · T08 11 · T09 6 · T10 5 · T11 11 · T12 4 · T13 3 · T14 22 · T15 3 · T17 6）。逐端点真实 HTTP 用例由既有端点审计（`audit-endpoint-tests`）与 327 例集成用例背书，本轮读数无变化；**下一族 = 无**（missing=0 ⇒ 无待推进族，作业里的 T12→T10→T11→T13→T14 顺序已全部完成）。
+
+四、回归面（命令表 = 仓库内单一事实源 `tools/round-verify/manifest.json`，**84 条** = 43 审计 + 41 负向自测）：命令表存在性预检 84 → 磁盘存在 84 / 缺失 0；tag 集合与上一轮逐条一致（84 vs 84，差异无）；**rc 变化 0 条**（rc=0 者 39 条 / rc!=0 者 45 条，逐条与上一轮同值）、新增 0、未复跑 0；FAIL 明细 **43 脚本 167 行**；跨轮 faildiff **167→167，新增 0 / 消失 0**（两侧解析行数 167 / 167 作正向对照）；**崩溃通道**（`rc!=0 ∧ FAIL 明细 0 行`）2 条（`gap-coverage-gap` 与其负向自测），**理由行集 sha256 与上一轮逐字节相同 ⇒ 理由变化 0 条**、无新增通道、无转绿消失；**零写副作用**（生成物 size+md5 运行前后全等，变化 0 个）。常驻红通道的成因不变（契约/鉴权/路由/错误码等审计的「待拍板项」长期 FAIL、`A1b`/`A1c` 台账项与 `gap-coverage-gap` 的留档差集），本轮**未新增**任何红项。
+
+五、装置链（**逐条以各自证据文件为准，本段只登记本轮已实测读数**）：`analyze` **27 PASS / 0 FAIL**（A1–A25，落盘 5 条校验证据）；`regression --selftest` **26 PASS / 0 FAIL**；`selftest-counts` 六工具自述条数 `[26,28,66,20,13,15]` 与 README 逐条一致（更正 0、只读守卫为真、证据 34 行 / CR=0 / 结束标记唯一）。`device-report` / `closeout` / `postwrite` / `backfill-c7` / `final-check` / `independent` 的判定行分处本轮同名证据文件（`device-round-R729.txt` / `postwrite-check-R729.txt` / `final-check-R729.txt` / `independent-R729.txt`），不复述为「一次通过」以免构成未经验证的自述（历史 12/95）。装置本体**未改动**（`--device-change` 申报为空集；`tools/round-verify` 与 `tools/` 在工作区与提交链均零改动）。
+
+六、环境面读数（**只做可达性 / 存在性陈述，不构成「三端联调已打通」的证据**，本轮现场探测，同一批内分档对照以示探针未空转）：后端类端口在听 = **8086**（他方启动的 dev 实例，curl `/` = http 200）；8083 本轮**未监听**（curl = 000）；前端 dev = 5175 在听（http 200），5173 / 5174 **仍未监听**（curl = 000）；9223（**另一项目** hioas-aim 的 CDP）本轮**无监听**（curl = 000；`/json/version` 亦为空）、只读探测、未 attach / 未 close / 未 kill（多项目共存硬规则）。同批出现「8086 = 200 / 5175 = 200」与「8083 / 5173 / 5174 / 9223 = 000」⇒ 探针能区分「在听」与「不在听」，非全 0 全 1 的假读数。我方本轮未起实例、未起桩、未打包 ⇒ 业务闭环**无本轮新读数**，**不沿用**上一轮读数作为本轮结论。
+
+七、他方并发活动（只登记、零触碰）：窗口内 HEAD 推进 **0 枚** ⇒ 据实**不作** `--external-commit` 申报；主工作区在途 **9 条**（5 `M` + 4 `??`：`README.md` / `aap-server/pom.xml`（前端打包插件 D-BUILD-02）/ `SecurityConfig.java` / `application.yml` / 证据文件 `green-T-M4-08.txt`，以及 `aap-server/src/main/webapp/` 与 3 份他方 e2e 未跟踪自述）；`analyze` A23 = 落窗 **0** 条（在途条目 mtime 最早 2026-09-24，全部早于本轮窗口）。**并发前置实况**：执行器 preflight 双向对照 pos=2/2 neg=0/2、`PREFLIGHT_RESULT=CLEAR` 后才起跑；我方本轮写入集合 = 仅证据 / 台账 / 状态文件，与在途集合交集 **0 条**（未碰他方的活）。
+
+八、返工真值：本轮返工 0 处（判据 / 脚本侧 0 处，交付面 0 处）—— `analyze` 27 条判据与回归面 84 条复跑（含 26 例回归负向自测、六工具自测条数核对）**均未出现需修正的锚点 / 计数 / 判据口径分叉**；本轮亦**未**另写 `$TEMP` 侧 aux 探针（独立复核由仓库内常驻 `independent.py` 承担，其 66 例判别力自测在册）。过程留痕（非缺陷、非返工）：两轮全量各 02:22 / 02:06 min，均在终端单次前台上限内一次跑完；跑测期间**未并行**跑任何审计或自测（历史 158）。
+
+九、待拍板（沿用上一轮各项，**本轮无新增**）：① e2e 业务闭环实跑的恢复方式（是否改为「HEAD worktree 内打包 + 跳过前端插件」）；磁盘上三份 e2e 自述仍为 2026-10-15 旧件，9 条失败全在 P9 用量（ADM-U01/U02、USE-01）与 P10 结算（ADM-PAY06/08、SET-01/02、金额算术、打款关联、同周期幂等）⇒ 这两族的**端到端**行为至今无成功证据（与 327 例集成测试全绿并不矛盾：集成测试打真实 HTTP 但不驱动跨端业务闭环）；② 8086 上他方的 dev 实例（dev profile）是否长期占用；③ 前端三端 dev（5173/5174）**仍不可达** ⇒ 浏览器端三端联调仍需前端侧起来；④ 他方在途 9 条（含 `pom.xml` / `SecurityConfig.java` / `application.yml`）落地后需重核**配置项契约**与**鉴权契约**（在途 `SecurityConfig` 新增静态资源放行清单，落地时须核 `PUBLIC_PATHS` 与鉴权审计五源一致）；⑤ `J5e` 冻结快照判据本体缺陷、逐脚本 FAIL 行分布是否固化进装置、端到端业务闭环驱动是否纳入回归面、归仓耐久性等 aux 判据是否升为门禁、`ADM-CB01` APPLY 语义、台账 `A1b`/`A1c` 长期 FAIL 的根因、他方提交 `559407ad` 改动三处 Service 的契约复核 —— 全部沿用。
+
+十、结论：清单 117/117 全注册（missing=0）；**交付面与装置面均零改动**；全量 327 例两轮全绿（连续第 **95** 轮）；回归面 84 条零回归（rc 逐条一致、崩溃通道理由不变、faildiff 167→167 双向 0）；分析器 27 PASS / 0 FAIL、回归自测 26 PASS / 0 FAIL，收尾核对与独立复核各有独立证据文件；返工真值 = **0 处**（判据/脚本侧 0 处，零交付面影响）；他方在途零触碰；**e2e 业务闭环实跑本轮暂停（连续第 63 次无读数）**，原因与待拍板见第六、九节。
+------------------------------------------------------------------------------
+
+三、本轮关键读数（读自 analyze / regression 证据，零手写值）
+  相位 = green（两轮 rc=0/0 ∧ missing=0 的合取，判据见 tools/round-verify/phase.py）
+  分析器判据 PASS 27 / FAIL 0；覆盖 total=117 implemented=117 **missing=0** registered_routes=134；连续第 95 轮全绿
+  回归面：复跑 84 条（上一轮 R728 = 84 条）；rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行
+  零写副作用：生成物 size+md5 变化 0 个（须 0）；跨轮 faildiff 上一轮 167 行 / 本轮 167 行、新增 0 / 消失 0
+  崩溃通道：rc!=0 条目 45 条，其中 FAIL 通道不可见（rc!=0 ∧ FAIL 0 行）= 2 条
+
+四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
+  ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 9 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 12 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 21 == `git status` 条目 21
+      M .agents/state/evidence/green-T-M4-08.txt  mtime=2026-10-22 00:30:39
+      M README.md  mtime=2026-09-24 07:51:14
+      M aap-server/pom.xml  mtime=2026-09-24 08:07:37
+      M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
+      M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
+      ?? .agents/state/evidence/e2e-final-20261015.json  mtime=2026-10-15 23:22:05
+      ?? .agents/state/evidence/e2e-final2-20261015.json  mtime=2026-10-15 23:23:55
+      ?? .agents/state/evidence/e2e-run-20261015-d.json  mtime=2026-10-15 23:23:13
+      ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
+      （本轮产物）?? .agents/state/evidence/audit-regression-R729-faildiff.txt  mtime=2026-10-24 18:56:07
+      （本轮产物）?? .agents/state/evidence/audit-regression-R729-failraw.txt  mtime=2026-10-24 18:56:07
+      （本轮产物）?? .agents/state/evidence/audit-regression-R729-rcseq.txt  mtime=2026-10-24 18:56:07
+      （本轮产物）?? .agents/state/evidence/audit-regression-R729.txt  mtime=2026-10-24 18:56:07
+      （本轮产物）?? .agents/state/evidence/device-selftest-counts-R729.txt  mtime=2026-10-24 18:56:21
+      （本轮产物）?? .agents/state/evidence/green-verify-R729-coverage-fields.txt  mtime=2026-10-24 18:50:16
+      （本轮产物）?? .agents/state/evidence/green-verify-R729-full-run1.txt  mtime=2026-10-24 18:50:16
+      （本轮产物）?? .agents/state/evidence/green-verify-R729-full-run2.txt  mtime=2026-10-24 18:50:16
+      （本轮产物）?? .agents/state/evidence/green-verify-R729-testcount.txt  mtime=2026-10-24 18:50:16
+      （本轮产物）?? .agents/state/evidence/green-verify-R729-tested-state.txt  mtime=2026-10-24 18:50:16
+      （本轮产物）?? .agents/state/evidence/regression-selftest-R729.txt  mtime=2026-10-24 18:56:13
+      （本轮产物）?? .agents/state/evidence/round-R729-analysis.txt  mtime=2026-10-24 18:50:16
+      其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
+  ③ 提交区间（4948143a..HEAD）改动文件 = 0 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 0 枚 = 他方 0 枚 + 本轮 0 枚
+      ⇒ **本轮自己的提交**触及交付面前缀的 = 0 个（**须 0**）；他方提交的交付面改动不计入本轮（历史 81/193/198：他方在途不得算作本轮改动）
+
+五、下一族
+  **无**（清单 117/117、missing=0）—— 本轮完成端点 0 条 / 新增用例 0 条、无红基线。
+
+六、留痕
+  本文件 = .agents/state/evidence/device-round-R729.txt（由本工具直接落盘，`newline="\n"`；文件名与 closeout.py 的消费名机器核对一致；行数下限判据与 CR=0 判据见下）
+DEVICE_REPORT_END=1
