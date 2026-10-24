@@ -168,6 +168,12 @@ for nm in EXTRA:
     assert nm not in EVLIST, "--extra %s 已在磁盘上（会重复计数；请检查顺序）" % nm
     EVLIST = sorted(EVLIST + [nm])
 N_EV = len(EVLIST)
+# 证据条数的唯一口径 = **磁盘上本轮证据 + 已登记的收尾后证据（`--extra`）**。
+# 历史上这里写 `N_EV + 1`（为「收尾后才产生、且未登记」的那一个文件预留），与后来引入的 `--extra` 登记机制
+# 叠加 ⇒ 只要收尾后证据全部登记过，台账的「证据 N 条」就恒比磁盘实际多 1（实测连续 9 轮：声称 17 条而磁盘 16 条）。
+# 这属「证据条数」这一纯数字的口径缺陷（历史 12/95/201/222）；修法 = 单一机制（登记），不是保留两个来源再对齐。
+# 判别力：每轮收尾完成后，台账 N 必须**等于**磁盘实际文件数（不等即红）。
+# 注意：本注释刻意不写任何轮次号 —— 装置源码零轮次号是常驻守卫（源码里出现轮次号会判红）。
 CFG = "%s / %s" % (facts["FACTS_RUN1_START"], facts["FACTS_RUN1_END"])
 # 归仓条数**不手写**（装置纪律「消费脚本源码里零硬编码纯值」；手写计数一旦过期就是假自述，历史 201/206/12）。
 # 两个来源互相印证：manifest 里指向 $TEMP 的条目数 ⇔ `tools/regression/archive/` 下的归仓目录数。
@@ -196,7 +202,7 @@ if PHASE == GREEN:
               "证据 %d 条"
               % (ROUND, DEVLINE, IMPL, TOT, facts["FACTS_TESTED_COMMIT"], STREAK, N_CASES, N_CLS, RC_PAIR,
                  facts["FACTS_RUN1_START"], facts["FACTS_RUN2_END"], RAN, RCCH, RCADD, RCGONE,
-                 FSCR, FLIN, FD_PREV, FD_NOW, FD_ADD, FD_GONE, NP, NF, ROUTES, REWORK, N_EV + 1))
+                 FSCR, FLIN, FD_PREV, FD_NOW, FD_ADD, FD_GONE, NP, NF, ROUTES, REWORK, N_EV))
     ANCHORS = [ROUND, "missing=0", streak_marker(GREEN, STREAK), "返工 **%s 处**" % REWORK,
                "被测提交 %s" % facts["FACTS_TESTED_COMMIT"], "rc=%s" % RC_PAIR]
 else:
@@ -210,7 +216,7 @@ else:
               % (ROUND, RED_MARK, MISS, RC_PAIR, DEVLINE, IMPL, TOT, facts["FACTS_TESTED_COMMIT"],
                  STREAK_KW, STREAK, N_CASES, N_CLS, RC_PAIR, facts["FACTS_RUN1_START"], facts["FACTS_RUN2_END"],
                  RAN, RCCH, RCADD, RCGONE, FSCR, FLIN, FD_PREV, FD_NOW, FD_ADD, FD_GONE, NP, NF, ROUTES,
-                 REWORK, N_EV + 1))
+                 REWORK, N_EV))
     ANCHORS = [ROUND, RED_MARK, "missing=%s" % MISS, streak_marker(RED, STREAK), "返工 **%s 处**" % REWORK,
                "被测提交 %s" % facts["FACTS_TESTED_COMMIT"], "rc=%s" % RC_PAIR]
 DESC = PREFIX + " · " + note
@@ -278,13 +284,13 @@ if PHASE == GREEN:
     hl = (_HEAD + "全量两轮 %d 例全绿（连续第 %d 轮；两轮 rc=%s、逐类 diff=0） | "
           "回归面复跑 %d 条 rc 变化 %s 条 / FAIL 明细 %s 脚本 %s 行 | 分析器 PASS %d / FAIL %d | "
           "本轮返工 %s 处（判据/脚本侧） | 证据 %d 条"
-          % (N_CASES, STREAK, RC_PAIR, RAN, RCCH, FSCR, FLIN, NP, NF, REWORK, N_EV + 1))
+          % (N_CASES, STREAK, RC_PAIR, RAN, RCCH, FSCR, FLIN, NP, NF, REWORK, N_EV))
 else:
     hl = (_HEAD + "全量两轮 %d 例**%s**（两轮 rc=%s、逐类 diff=0；**未达成全绿**，失败 = 覆盖门禁等，逐条见证据）；"
           "%s = %d（红相位清零） | "
           "回归面复跑 %d 条 rc 变化 %s 条 / FAIL 明细 %s 脚本 %s 行 | 分析器 PASS %d / FAIL %d | "
           "本轮返工 %s 处（判据/脚本侧） | 证据 %d 条"
-          % (N_CASES, RED_MARK, RC_PAIR, STREAK_KW, STREAK, RAN, RCCH, FSCR, FLIN, NP, NF, REWORK, N_EV + 1))
+          % (N_CASES, RED_MARK, RC_PAIR, STREAK_KW, STREAK, RAN, RCCH, FSCR, FLIN, NP, NF, REWORK, N_EV))
 hb = HIST.read_bytes()
 assert hb.count(b"\r") == 0, "history 含 CR"
 if REWRITE:
