@@ -1,0 +1,55 @@
+R707 他方 e2e 自述只读登记（**只登记、不采信**；他方产物、非本轮读数）
+说明：e2e 业务闭环实跑本轮暂停（理由见 note-R707.md 第六节），故本文件无「本轮新读数」。
+本版取键判据已修正：按布尔 `ok` 实算并与自述 steps_passed 对账（旧版按不存在的 status 键判 → 33/33 全红的假读数）。
+==============================================================================
+== e2e-final-20261015.json ==
+  generated_at=2026-10-15T15:22:05Z base=http://127.0.0.1:8086/api/v1
+  自述：steps_passed=24 / steps_total=33 / steps_failed=9
+  字段 = ['detail', 'ms', 'name', 'ok', 'phase']
+  实算（按布尔 ok True）= 通过 24 / 失败 9 / 条目 33（正向对照：条目 > 0）
+  对账：自述 passed == 实算 24 ⇒ 读数可信（仍只登记、不采信其结论）
+   - P9 | [ADMIN] POST /admin/usage/refresh（ADM-U02） | ok=False
+   - P9 | 供应商端读用量（USE-01） | ok=False
+   - P9 | [ADMIN] 管理端读用量（ADM-U01） | ok=False
+   - P10 | [ADMIN] 生成结算单（ADM-PAY06） | ok=False
+   - P10 | 金额算术自洽（总额 = Σ明细、净额 = 总额 - 平台费） | ok=False
+   - P10 | 打款关联（statement_id 回填） | ok=False
+   - P10 | 同周期幂等（重复生成返回既有单） | ok=False
+   - P10 | [ADMIN] 确认出账（ADM-PAY08） | ok=False
+   - P10 | 供应商端读结算单（SET-01/02） | ok=False
+== e2e-final2-20261015.json ==
+  generated_at=2026-10-15T15:23:55Z base=http://127.0.0.1:8086/api/v1
+  自述：steps_passed=24 / steps_total=33 / steps_failed=9
+  字段 = ['detail', 'ms', 'name', 'ok', 'phase']
+  实算（按布尔 ok True）= 通过 24 / 失败 9 / 条目 33（正向对照：条目 > 0）
+  对账：自述 passed == 实算 24 ⇒ 读数可信（仍只登记、不采信其结论）
+   - P9 | [ADMIN] POST /admin/usage/refresh（ADM-U02） | ok=False
+   - P9 | 供应商端读用量（USE-01） | ok=False
+   - P9 | [ADMIN] 管理端读用量（ADM-U01） | ok=False
+   - P10 | [ADMIN] 生成结算单（ADM-PAY06） | ok=False
+   - P10 | 金额算术自洽（总额 = Σ明细、净额 = 总额 - 平台费） | ok=False
+   - P10 | 打款关联（statement_id 回填） | ok=False
+   - P10 | 同周期幂等（重复生成返回既有单） | ok=False
+   - P10 | [ADMIN] 确认出账（ADM-PAY08） | ok=False
+   - P10 | 供应商端读结算单（SET-01/02） | ok=False
+== e2e-run-20261015-d.json ==
+  generated_at=2026-10-15T15:23:13Z base=http://127.0.0.1:8086/api/v1
+  自述：steps_passed=1 / steps_total=33 / steps_failed=32
+  字段 = ['detail', 'ms', 'name', 'ok', 'phase']
+  实算（按布尔 ok True）= 通过 1 / 失败 32 / 条目 33（正向对照：条目 > 0）
+  对账：自述 passed == 实算 1 ⇒ 读数可信（仍只登记、不采信其结论）
+   - P0 | 管理端短信登录（ADM-AUTH01） | ok=False
+   - P1 | PUT /provider/profile（唯一 USCC，脚本可重跑） | ok=False
+   - P2 | POST /credentials（上游=http://127.0.0.1:9911/v1） | ok=False
+   - P3 | POST /credentials/{id}/precheck（CRED-05） | ok=False
+   - P3 | 轮询 /detection-jobs/{jobId} 至终态（DET-02） | ok=False
+   - P3 | 检测状态归位（PASS，否则 DET-06 放行） | ok=False
+   - P4 | POST /quotes + 明细（QT-02/QT-05） | ok=False
+   - P4 | PUT /quotes/items/{id} 定价（QT-08） | ok=False
+   - P4 | POST /quotes/{id}/submit（QT-09） | ok=False
+   - P5 | [ADMIN] 领取并审核通过（ADM-R02/R03） | ok=False
+   - P5 | [ADMIN] 合同签发（ADM-CT02，带真实文件） | ok=False
+   - P5 | POST /contracts/{id}/sign（CON-04，SEAL） | ok=False
+   … 其余 20 条非 OK 明细略
+==============================================================================
+判据：PASS 12 / FAIL 0（判据项 = 存在 / 期望键 / 条目数 / 自述对账，共 12 项）

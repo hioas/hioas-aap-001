@@ -1,0 +1,7 @@
+R707 跨轮 FAIL 明细比对（上一轮 = R706）
+归一：路径去仓库/临时前缀 + 剥行首来源前缀（历史 135/177）；[PASS] 行已排除（历史 47/109）
+上一轮 167 行 / 本轮 167 行；新增 2 / 消失 2
+  新增: gap-softdelete | A3 aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java:645 表 aap_price_time_rule 的查询链上无 `deleted = false`：(select id from aap_price_time_rule where item_id = ?) (select id from aap_price_time_rule where item_id = ?)
+  新增: gap-softdelete | A4 aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:718 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
+  消失: gap-softdelete | A3 aap-server/src/main/java/com/hioas/aap/quote/QuoteService.java:640 表 aap_price_time_rule 的查询链上无 `deleted = false`：(select id from aap_price_time_rule where item_id = ?) (select id from aap_price_time_rule where item_id = ?)
+  消失: gap-softdelete | A4 aap-server/src/main/java/com/hioas/aap/settlement/SettlementService.java:721 join aap_contract c 无 `c.deleted = false`（软删行仍被关联）
