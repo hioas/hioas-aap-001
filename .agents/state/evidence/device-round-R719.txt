@@ -11,7 +11,7 @@ R719 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
   轮次无关性守卫：装置脚本（14 个 .py/.sh）内当前轮次号命中 = **0**（须 0
     = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
 
-二、本轮返工真值 = **0 处**（零交付面影响；条目文本来自单一事实源 `R719-note.md`，与台账描述列 / 状态文件小节共用）
+二、本轮返工真值 = **1 处**（零交付面影响；条目文本来自单一事实源 `R719-note.md`，与台账描述列 / 状态文件小节共用）
 ------------------------------------------------------------------------------
 一、性质与范围：纯校验轮（清单 `missing == 0` ∧ 两轮 `rc=0/0`）⇒ 按作业第 4 步「不改代码、只校验并报告」执行，**交付面零改动**（未改 `aap-server` / `docs` / 测试面 / 冻结清单生成物任何一行）。**本轮完成端点清单 = 0 条；新增用例数 = 0**（纯校验轮 ⇒ 无红基线与绿基线，按作业口径不产生 batch 提交）。作业背景所写「已实现 T03–T09、未完成 45 条（T10–T14）」与仓库现况不符：清单已扩至 **117 条**且逐族 `implemented == total`，作业目标「90 条全部落地」已含于 total 之中；连续全绿计数由上一轮记的 84 递增为 **85**（绿相位 ⇒ 计数 +1）。
 
@@ -27,11 +27,11 @@ R719 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 七、他方并发活动（只登记、零触碰）：窗口内 HEAD 推进 **0 枚** ⇒ 据实**不作** `--external-commit` 申报；主工作区在途 **9 条**（5 `M` + 4 `??`：`README.md` / `aap-server/pom.xml`（前端打包插件 D-BUILD-02）/ `SecurityConfig.java` / `application.yml` / 证据文件 `green-T-M4-08.txt`，以及 `aap-server/src/main/webapp/` 与 3 份他方 e2e 未跟踪自述）；`analyze` A23 = 落窗 **0** 条（在途条目 mtime 最早 2026-09-24，全部早于本轮窗口）。**并发前置实况**：执行器 preflight 双向对照 pos=2/2 neg=0/2、采样 `BUSY_TEST_JVM=0`、`PREFLIGHT_RESULT=CLEAR` 后才起跑；我方本轮写入集合 = 仅证据 / 台账 / 状态文件，与在途集合交集 **0 条**（未碰他方的活）。
 
-八、返工真值：本轮返工 0 处（判据 / 脚本侧 0 处、交付面 0 处）—— 分析器 27 条判据、回归面 84 条命令、装置六步全部一次通过，未出现需修正的判据口径 / 锚点 / 计数分叉，也未对交付面作任何改动。过程留痕（非缺陷、非返工）：`regression.py` 与两轮全量均按后台串行方式起跑（终端单次上限内未跑完，`process_manage` 轮询至 exit 0），84 条 log 全量生成、无半成品、无重复条目，rc / FAIL / 崩溃通道读数与上一轮逐条一致；跑测期间**未并行**跑任何审计或自测（历史 158）。
+八、返工真值：本轮返工 1 处（判据 / 脚本侧 1 处，交付面 0 处）—— 装置六步（`analyze` / `regression` / `selftest-counts` / `device-report` / `closeout` / `postwrite` / `backfill-c7`）与全部 27 + 84 条判据一次通过，未出现需修正的锚点 / 计数分叉；**唯一的 1 处落在本轮自写的台账只读探针**（`$TEMP/aap-r719-aux/r719-ledger-check.py`）：A11 用 `startswith('R719 ')` 匹配 `coverage-history.txt` 的行，而该文件行形如「2026-10-24 14:42:56 R719 R719 巡检轮 | …」（以**时间戳**开头、轮次号在第 3/4 列）⇒ 输出 `[FAIL] A11 … 命中 0 条` 的**假 FAIL**（历史 46：0 命中先怀疑判据）。修正 = 按「时间戳 + 双轮次号」正则解析，并补 A11a「解析到行数 > 0」正向对照；修正后该探针 **24 PASS / 0 FAIL**、`PROBE_END=1`、CR=0（v1 缺陷态输出与修正依据已逐条留在 `ledger-anomaly-check-R719.txt` 第零节）。这是**判据口径**缺陷，不是台账缺陷、不是装置缺陷、零交付面影响。过程留痕（非缺陷、非返工）：`regression.py` 与两轮全量均按后台串行方式起跑（终端单次上限内未跑完，`process_manage` 轮询至 exit 0），84 条 log 全量生成、无半成品、无重复条目，rc / FAIL / 崩溃通道读数与上一轮逐条一致；跑测期间**未并行**跑任何审计或自测（历史 158）。
 
 九、待拍板（沿用上一轮各项，**本轮无新增**）：① e2e 业务闭环实跑的恢复方式（是否改为「HEAD worktree 内打包 + 跳过前端插件」）；磁盘上三份 e2e 自述仍为 2026-10-15 旧件，9 条失败全在 P9 用量（ADM-U01/U02、USE-01）与 P10 结算（ADM-PAY06/08、SET-01/02、金额算术、打款关联、同周期幂等）⇒ 这两族的**端到端**行为至今无成功证据（与 327 例集成测试全绿并不矛盾：集成测试打真实 HTTP 但不驱动跨端业务闭环）；② 8086 上他方的 dev 实例（dev profile）是否长期占用；③ 前端三端 dev（5173/5174）**仍不可达** ⇒ 浏览器端三端联调仍需前端侧起来；④ 他方在途 9 条（含 `pom.xml` / `SecurityConfig.java` / `application.yml`）落地后需重核**配置项契约**与**鉴权契约**（在途 `SecurityConfig` 新增静态资源放行清单，落地时须核 `PUBLIC_PATHS` 与鉴权审计五源一致）；⑤ `J5e` 冻结快照判据本体缺陷、逐脚本 FAIL 行分布是否固化进装置、端到端业务闭环驱动是否纳入回归面、归仓耐久性等 aux 判据是否升为门禁、`ADM-CB01` APPLY 语义、台账 `A1b`/`A1c` 长期 FAIL 的根因、他方提交 `559407ad` 改动三处 Service 的契约复核 —— 全部沿用。
 
-十、结论：清单 117/117 全注册（missing=0）；**交付面与装置面均零改动**；全量 327 例两轮全绿（连续第 **85** 轮）；回归面 84 条零回归（rc 逐条一致、崩溃通道理由不变、faildiff 167→167 双向 0）；装置链自 `analyze` 至 `independent` 一次通过（分析器 27 PASS / 0 FAIL、回归自测 26 PASS / 0 FAIL），收尾核对与独立复核各有独立证据文件；返工真值 = **0 处**；他方在途零触碰；**e2e 业务闭环实跑本轮暂停（连续第 53 次无读数）**，原因与待拍板见第六、九节。
+十、结论：清单 117/117 全注册（missing=0）；**交付面与装置面均零改动**；全量 327 例两轮全绿（连续第 **85** 轮）；回归面 84 条零回归（rc 逐条一致、崩溃通道理由不变、faildiff 167→167 双向 0）；装置链自 `analyze` 至 `independent` 一次通过（分析器 27 PASS / 0 FAIL、回归自测 26 PASS / 0 FAIL），收尾核对与独立复核各有独立证据文件；返工真值 = **1 处**（判据/脚本侧：本轮自写台账只读探针的 A11 口径，零交付面影响）；他方在途零触碰；**e2e 业务闭环实跑本轮暂停（连续第 53 次无读数）**，原因与待拍板见第六、九节。
 ------------------------------------------------------------------------------
 
 三、本轮关键读数（读自 analyze / regression 证据，零手写值）
@@ -43,7 +43,7 @@ R719 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
-  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 9 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 12 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 21 == `git status` 条目 21
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 9 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 2 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 11 == `git status` 条目 11
       M .agents/state/evidence/green-T-M4-08.txt  mtime=2026-10-22 00:30:39
       M README.md  mtime=2026-09-24 07:51:14
       M aap-server/pom.xml  mtime=2026-09-24 08:07:37
@@ -53,20 +53,12 @@ R719 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
       ?? .agents/state/evidence/e2e-final2-20261015.json  mtime=2026-10-15 23:23:55
       ?? .agents/state/evidence/e2e-run-20261015-d.json  mtime=2026-10-15 23:23:13
       ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
-      （本轮产物）?? .agents/state/evidence/audit-regression-R719-faildiff.txt  mtime=2026-10-24 14:49:01
-      （本轮产物）?? .agents/state/evidence/audit-regression-R719-failraw.txt  mtime=2026-10-24 14:49:01
-      （本轮产物）?? .agents/state/evidence/audit-regression-R719-rcseq.txt  mtime=2026-10-24 14:49:01
-      （本轮产物）?? .agents/state/evidence/audit-regression-R719.txt  mtime=2026-10-24 14:49:01
-      （本轮产物）?? .agents/state/evidence/device-selftest-counts-R719.txt  mtime=2026-10-24 14:49:17
-      （本轮产物）?? .agents/state/evidence/green-verify-R719-coverage-fields.txt  mtime=2026-10-24 14:43:03
-      （本轮产物）?? .agents/state/evidence/green-verify-R719-full-run1.txt  mtime=2026-10-24 14:43:03
-      （本轮产物）?? .agents/state/evidence/green-verify-R719-full-run2.txt  mtime=2026-10-24 14:43:03
-      （本轮产物）?? .agents/state/evidence/green-verify-R719-testcount.txt  mtime=2026-10-24 14:43:03
-      （本轮产物）?? .agents/state/evidence/green-verify-R719-tested-state.txt  mtime=2026-10-24 14:43:03
-      （本轮产物）?? .agents/state/evidence/regression-selftest-R719.txt  mtime=2026-10-24 14:49:08
-      （本轮产物）?? .agents/state/evidence/round-R719-analysis.txt  mtime=2026-10-24 14:43:03
+      （本轮产物）?? .agents/state/evidence/ledger-anomaly-check-R719.txt  mtime=2026-10-24 14:52:59
+      （本轮产物）?? .agents/state/evidence/postwrite-check-R719.txt  mtime=2026-10-24 14:51:22
       其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
-  ③ 提交区间（a900e4d2..HEAD）改动文件 = 0 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 0 枚 = 他方 0 枚 + 本轮 0 枚
+  ③ 提交区间（a900e4d2..HEAD）改动文件 = 16 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 2 枚 = 他方 0 枚 + 本轮 2 枚
+      [本轮] 9fe49506 chore(state): R719 台账提交列回填 6ce90097  文件 1 个 / 交付面命中 0 个
+      [本轮] 6ce90097 chore(state): R719 巡检轮留痕（117/117 · missing=0 · 327 例两轮全绿 · 连续第 8  文件 16 个 / 交付面命中 0 个
       ⇒ **本轮自己的提交**触及交付面前缀的 = 0 个（**须 0**）；他方提交的交付面改动不计入本轮（历史 81/193/198：他方在途不得算作本轮改动）
 
 五、下一族
