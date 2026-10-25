@@ -1,0 +1,5 @@
+R792 飞书通知留痕（本文件由脚本落盘，newline=LF；不含任何密钥）
+调用 = hermes send -t feishu -s 'AAP TDD 进度' <本轮一句话>
+rc = 0
+结果 = 同目标去重被跳过（cron 作业的最终回复会自动投递到同一 feishu 目标）⇒ 非失败、无重试
+原文 = Skipped send_message to feishu:oc_45c4ca7036910d5e1e20cc1c9c80b89b. This cron job will already auto-deliver its final response to that same target. Put the intended user-facing content in your final response instead, or use a different target if you want an additional message.
