@@ -1,0 +1,24 @@
+R773 判别力实测 · 清场序列复位守卫「有牙齿」（注入缺陷 → 守卫恰好转红）
+
+【被测守卫】aap-server/src/test/java/com/hioas/aap/support/TestDbIsolationTest.java
+  用例 truncateResetsSequences：先 nextval 让 seq_config_batch 真的前进，再调 TestDb.truncateAll，
+  断言「全部 seq_* 的 last_value 均为 null」+「被推进过的序列已复位」。
+
+【注入方式（真的改到了源码）】在 HEAD 的独立 worktree（不含他人在途改动）里叠加本轮两处改动后，
+  把 TestDb.truncateAll 体内的 `resetSequences(jdbc);` 一行替换为注释（等价于「清场漏了序列复位」的原始缺陷）。
+  注入脚本对锚点做**命中数断言**：锚点出现次数 = 1 才替换（命中数异常即中止，避免「注入空转」）。
+  注入结果：MUTATION_APPLIED=1。
+
+【实测读数（$TEMP/aap-round-verify/R773/mutation/mut.raw）】
+  MUT_RC=1
+  [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 11.47 s <<< FAILURE! -- in com.hioas.aap.support.TestDbIsolationTest
+  [ERROR] com.hioas.aap.support.TestDbIsolationTest.truncateResetsSequences -- Time elapsed: 1.530 s <<< FAILURE!
+  [truncateAll 之后仍处于已发号状态的 seq_* 个数]
+  [ERROR]   TestDbIsolationTest.truncateResetsSequences:38 [truncateAll 之后仍处于已发号状态的 seq_* 个数]
+
+【结论】注入「清场漏复位序列」后，守卫用例如期失败并**点名**目标断言（不是别的断言连带红、不是编译错）；
+  未注入时该用例在 328 例全绿的一轮里通过（见 precommit 证据）⇒ 守卫既不空转也不滥报。
+  worktree 回收：WT_REMOVE_RC=0（git worktree list 无残留）。
+
+【与红基线的关系】本注入复现的是「清场不复位序列」这一类缺陷的**最小形态**；
+  真实触发形态见 evidence/red-R773-seq-isolation.txt（测试库序列累计到 10009 ⇒ batch_no 变 5 位 ⇒ 契约正则红）。

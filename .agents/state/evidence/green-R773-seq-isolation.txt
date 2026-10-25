@@ -1,0 +1,39 @@
+R773 绿基线 · 修复后全量两轮全绿（测试隔离缺陷已消除）
+
+【被测状态】HEAD = 9f0a72c5（R772 收尾一致性核对）＋ 本轮两处测试面改动
+  改动 1：aap-server/src/test/java/com/hioas/aap/support/TestDb.java
+          truncateAll() 清表后调用 resetSequences()：把全部 seq_* 独立序列 `alter sequence ... restart with 1`；
+          新增 businessSequences()/resetSequences()（单一出口，ApiTestBase / DbTestBase 共用同一清场口径）。
+  改动 2：aap-server/src/test/java/com/hioas/aap/support/TestDbIsolationTest.java（新增守卫用例 1 例）
+  交付代码（main/）零改动；docs 零改动；冻结清单生成物零改动；契约断言**未改**（`^CFG-B\d{6}-\d{4}$` 保留）。
+
+【取证方式】HEAD 的独立 detached worktree（不触碰他方在途改动）内只叠加上述两处改动，串行跑两轮全量。
+  工作树相对 HEAD 的改动行数 = 2（git diff --stat 行数，恰为两个文件）
+  facts：$TEMP/aap-round-verify/R773/precommit/facts-precommit.log
+
+【两轮读数（规范命令：../tools/with-env.sh aap-server mvn -B -ntp test）】
+  run1 13:00:35 → 13:03:49  rc=0  `[INFO] Tests run: 328, Failures: 0, Errors: 0, Skipped: 0`  BUILD SUCCESS  Total time 03:12 min
+  run2 13:03:49 → 13:06:45  rc=0  `[INFO] Tests run: 328, Failures: 0, Errors: 0, Skipped: 0`  BUILD SUCCESS  Total time 02:53 min
+  逐类比对：run1 54 类 / run2 54 类，已剥 `Time elapsed` 后排序，diff 行数 = 0（两轮逐类一致）
+  用例数变化：327 → **328**（+1 = 本轮新增的守卫用例 TestDbIsolationTest.truncateResetsSequences）
+
+【与红基线的关系（同一缺陷同一判据）】
+  红：run1 rc=0 / run2 rc=1，`SupplyUnitAdminContractTest.reconfigure:213` 实测 "CFG-B202610-10009"
+      不匹配 `^CFG-B\d{6}-\d{4}$`（测试库 seq_config_batch 累计到 10009，清场未复位）。
+  绿：同一批用例、同一个被测提交 + 本次修复，run1/run2 双绿，且**第二轮不再红**
+      ⇒ 「绿→红」的根因是依赖累计历史的清场口径，修复直接消除了该漂移（不是靠重跑躲过去）。
+  判别力实测：注入「删除 resetSequences 调用」→ TestDbIsolationTest 恰好转红并点名目标断言
+      （见 evidence/mutation-R773-seq-guard.txt）。
+
+【未削弱测试的证据】
+  本轮**没有**改任何断言、没有删/skip 用例：契约正则原样保留；新增用例是**加强**（把「清场漏序列」变成机器可发现）；
+  红基线里的失败断言原封不动地保留，靠修夹具（清场）转绿，属「先怀疑夹具、再怀疑实现」那一族。
+
+【残留与观察】
+  1. 系统级（待拍板）：所有单号（DJ/RP/HT/ST/TPL/CFG-B）用**全局序列 + 4 位零填充**，
+     序列过万后 `%04d` 自然变 5 位；测试库实测 seq_detection_job=95111、seq_report=75335 早已超四位，
+     而这两类单号的用例只断言前缀（`startsWith("DJ"/"HT"/"ST")`），只有批次号钉死 4 位 —— 属**契约口径不统一**，
+     需要人拍板「4 位是固定位数还是最小宽度」（固定位数 ⇒ 需按月/按口径重置或换号段；最小宽度 ⇒ 放宽正则并在文档写明）。
+  2. 本轮为**缺陷修复轮**（非纯巡检轮）：装置链里的 device-report / closeout 判据写死「交付面零改动」，
+     对交付面有改动的轮次会响亮 FAIL ⇒ 本轮不走该链，改用 TDD 红/绿 + 判别力实测 + 逐项机器核对（原始日志读数）；
+     「装置是否支持修复轮模式」列入待拍板。
