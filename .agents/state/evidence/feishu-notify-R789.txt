@@ -1,0 +1,27 @@
+R789 飞书通知留痕（据实记录，不掩盖运行时行为）
+==============================================================================
+时机：R789 巡检轮收尾相位（两轮全量 + 装置链 ②–⑧ + 独立复核之后、最终回复之前）
+命令：hermes send -t feishu -s 'AAP TDD 进度' '<本轮一句话进度：清单 117/117、328 例两轮全绿连续第 155 轮、回归面 84 条零回归、独立复核 43 项 PASS、主提交 71116f34>'
+退出码：0
+运行时输出（原文）：
+  Skipped send_message to feishu:oc_45c4ca7036910d5e1e20cc1c9c80b89b. This cron job will already auto-deliver its final response to that same target. Put the intended user-facing content in your final response instead, or use a different target if you want an additional message.
+
+判定与对下一轮的解释：
+  运行时输出为「Skipped send_message to feishu:…This cron job will already auto-deliver its final
+  response to that same target.」⇒ 这**不是发送失败、也不是目标未绑定**，而是运行时的「重复投递抑制」
+  按设计生效：本 cron 作业的最终回复会**自动投递**到同一飞书目标，因此额外的一次 send 被抑制以避免
+  同一内容投递两遍。此时「进度已通知」的实现方式 = **最终回复正文**（结论段 + 覆盖进度 + 证据清单 +
+  待拍板），本条证据的作用是让「通知是否发出」这件事有据可查，避免下一轮误判成「飞书断了」。
+  与 R788 同形态（同一 target 的抑制行为可重复观察，非偶发）。
+  若退出码非 0 或输出为连接/授权类错误 ⇒ 按作业要求**不停工**，把原因记在
+  .agents/state/evidence/feishu-notify-failures.txt 并在最终回复里说明。
+
+本轮批次说明：本轮 missing == 0 ⇒ **无端点落地、无批次提交**（纯校验轮），按作业「每完成一个批次」的
+口径本不产生批次通知；此条仍按既有轮次约定留痕一次，以维持「通知行为可追溯」的连续性。
+
+计数口径说明（避免与台账自述互相打脸，历史 12/95/222）：
+  台账描述列里的「证据 16 条」= **收尾（⑤）相位**口径 = 磁盘 13 条（含 device-round）+ 已登记的 3 条收尾后证据
+  （postwrite-check / independent / final-check）。本文件产生于 final-check **之后**，属第 **17** 条，
+  按 R788 先例**不改写**台账描述列（改写需 `--rewrite` 并重跑 ④⑥⑧，属装置变更、无必要风险）。
+  因此「16」与「磁盘上 17 个含 R789 的文件」并不矛盾：前者是收尾相位口径，后者含本条收尾后留痕。
+对下一轮的影响：无需改配置、无需重新绑定目标；若某轮真的需要**额外**一条独立消息，须换一个 target。
