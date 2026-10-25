@@ -25980,3 +25980,36 @@ M `aap-server/pom.xml`（D-BUILD-02 前端打包 exec-maven-plugin）、M `Secur
 - **返工真值**：本轮返工真值 = **0 处**（装置/脚本侧，零交付面影响；逐条见上文要点）。
 - **权威数字**：权威数字 = 返工 0 处（台账描述列与本节**同一份文本**，历史 250 的机器可查形态）。
 
+
+### R773 缺陷修复轮（发现并修复：清场未复位 `seq_*` 序列 ⇒ 单号宽度随累计历史漂移）
+
+- **性质**：缺陷修复轮（非纯巡检轮）。交付面改动 = **仅测试面 2 个文件**；交付代码 / docs / 客户端 / 冻结生成物零改动；契约断言零放宽、无删 skip 用例（用例数 327 → 328 为纯新增守卫）。
+- **红基线**：被测提交 9f0a72c5，run1 rc=0（327 例全绿）/ run2 rc=1（`SupplyUnitAdminContractTest.reconfigure:213`，`CFG-B202610-10009` 不匹配 `^CFG-B\\d{6}-\\d{4}$`）⇒ 代码未变而两轮不同 ⇒ 先怀疑共享可变状态。证据 `evidence/red-R773-seq-isolation.txt`。
+- **根因**：`truncate ... restart identity` 只重置表自有 identity/serial，本项目单号序列是 migration 里独立 `create sequence` ⇒ 清场不复位，用例单号宽度取决于测试库累计历史（实测 `seq_config_batch=10009`、`aap_config_batch` 行数 0）。
+- **修法与判别力**：清场单口复位全部 `seq_*` + 新增守卫用例；注入删除复位调用 ⇒ 守卫**恰好 1 例转红**并点名目标断言（`evidence/mutation-R773-seq-guard.txt`）。
+- **两轮全量（串行，规范命令不改参数）**：提交前 worktree（HEAD+两处改动）run1 13:00:35→13:03:49 / run2 13:03:49→13:06:45；提交后被测提交 49f8dc1c 的 detached worktree run1 13:07:50→13:10:58 / run2 13:10:58→13:14:00；四轮均 **328 例 / 54 类**、五元组 328-0-0-0、逐类 diff=0、`@Test` 328 == surefire 328、禁用扫描 0 条；**第二轮不再红**（修复消除漂移，不是重跑躲过）。证据 `evidence/green-R773-seq-isolation.txt`。
+- **覆盖**：total=117 implemented=117 **missing=0**、registered_routes=134、not_registered=[]；连续第 **139** 轮全绿。
+- **分析器**：PASS 27 / FAIL 0（A0a–A25；A24/A25 相位自洽，绿相位 FAIL=0）。
+
+一、性质与范围：本轮为**缺陷修复轮**（非纯巡检轮，也非新端点交付轮）——巡检执行器在同一被测提交上跑出「run1 绿 / run2 红」，据实定位为**测试隔离缺陷**并修复。交付面改动 = **仅测试面 2 个文件**（`TestDb.java` 改清场口径 + 新增 `TestDbIsolationTest.java` 守卫用例）；`aap-server/src/main/**` 交付代码 0 行、`docs/` 0 行、`aap-client/` 0 行、冻结清单生成物 0 个。契约断言未改（`^CFG-B\d{6}-\d{4}$` 原样保留），无删/skip 用例（用例数 327 → 328 为纯新增）。
+
+二、红基线（同一被测提交、同一 HEAD worktree，代码未变而两轮结果不同）：被测提交 9f0a72c5；run1 rc=0（327 例全绿）、run2 rc=1（327 例 1 失败）——`SupplyUnitAdminContractTest.reconfigure:213` 实测 `batch_no = CFG-B202610-10009` 不匹配 `^CFG-B\d{6}-\d{4}$`（同族断言另见 `ConfigBatchAdminContractTest:156`）。原始日志留档 `$TEMP/aap-round-verify/R773/red-run{1,2}-preserved.raw`，结论与取证见 `evidence/red-R773-seq-isolation.txt`。
+
+三、根因（只读取证，未回显任何密钥）：`TestDb.truncateAll` 只执行 `truncate ... restart identity cascade`，而 PostgreSQL 的 `RESTART IDENTITY` 只重置**表自有** identity/serial 列关联的序列；本项目单号序列由 migration 里 `create sequence if not exists seq_*` **独立创建**（V2/V4/V5/V12/V14/V15/V16），不受其影响。实测测试库 `aap_config_batch` 行数 0 而 `seq_config_batch=10009`（`seq_config_batch_item=13458`）⇒ 用例产出的单号宽度取决于**测试库累计历史**，序列过万后 `String.format("%04d")` 自然变 5 位，钉死 4 位的契约断言从某一轮起**永久**变红。这属「夹具依赖共享历史」：修夹具（清场复位），不是改期望值。
+
+四、修法与影响面：`TestDb` 增加 `businessSequences()/resetSequences()`，`truncateAll()` 清表后把全部 `seq_*` 复位（`alter sequence ... restart with 1`，单一出口，`ApiTestBase`/`DbTestBase` 共用同一口径）；新增守卫用例 `TestDbIsolationTest.truncateResetsSequences`：先 `nextval` 让序列真的前进，再清场，断言全部 `seq_*` 的 `last_value` 均为 null（含「序列集合非空」的正向对照，避免空集空转）。
+
+五、判别力实测：在 HEAD 独立 worktree 里把 `truncateAll` 体内的 `resetSequences(jdbc);` 一行注入删除（锚点命中数断言 = 1，证明注入真的改到源码）→ 守卫用例**恰好 1 例转红**并点名目标断言 `[truncateAll 之后仍处于已发号状态的 seq_* 个数]`（`TestDbIsolationTest.truncateResetsSequences:38`），未注入时在 328 例全绿轮里通过 ⇒ 守卫既不空转也不滥报。证据：`evidence/mutation-R773-seq-guard.txt`。
+
+六、绿基线（串行、规范命令不改参数）：提交前在「HEAD + 本轮两处改动」的独立 worktree 内跑两轮——run1 13:00:35→13:03:49 rc=0、run2 13:03:49→13:06:45 rc=0，各 **328 例 / 54 类**、五元组 328-0-0-0、逐类 diff=0；提交后又在被测提交 49f8dc1c 的独立 detached worktree 内复跑两轮——run1 13:07:50→13:10:58 rc=0（186 s）、run2 13:10:58→13:14:00 rc=0（179 s），各 328 例 / 54 类、逐类 diff=0、两轮 `BUILD SUCCESS` 均真、`@Test` 词边界 328 == surefire 328、禁用扫描 0 条。**第二轮不再红** ⇒ 修复直接消除了「绿→红」漂移，不是靠重跑躲过去。证据：`evidence/green-R773-seq-isolation.txt`。
+
+七、覆盖读数（本轮提交态）：total **117** / implemented **117** / **missing=0** / registered_routes **134** / not_registered 空；15 族逐族 `implemented == total`。作业背景所写「未完成 45 条（T10–T14）」与仓库现况不符：清单已扩至 117 条且全族齐备，作业目标「90 条全部落地」已含于 total 之中 ⇒ 本轮无「下一族」。连续全绿计数由上一轮 138 递增为 **139**（本轮两轮 rc=0/0 ∧ missing=0 ⇒ 绿相位，计数 +1）。
+
+八、返工真值：本轮返工 **1 处**（脚本侧：只读探针首版用 `-F'|'` 传字段分隔符，被 MSYS→wsl 的参数传递吞成空模式使 psql 报 `option requires an argument`，改为 `-A -t` 后取证成功；属探针自身参数缺陷，不影响任何判据与产物）。另记两条操作层事实（不计返工）：① 首次执行器调用被工具 420 s 上限截断（两轮已跑完但 facts 未写完），按「证据不凑数」改为后台重跑整轮，未手工补 facts；② 首版判别力脚本用 heredoc 传 Python，改为独立 `.py` 文件后执行（cron 无人值守下 `-c`/heredoc 属被拦形态）。
+
+九、待拍板（本轮**新增 2 项**，其余沿用）：① **单号「4 位」的语义**：全部单号（DJ/RP/HT/ST/TPL/CFG-B）用全局序列 + 4 位零填充，序列过万后变 5 位；测试库实测 `seq_detection_job=95111`、`seq_report=75335` 早已超四位，而这两类单号的用例只断言前缀（`startsWith("HT"/"ST")`），只有批次号钉死 4 位 —— 需拍板「4 位是固定位数（则需按周期/号段重置，否则撞唯一索引）」还是「最小宽度（则放宽正则并在文档写明，同时统一其它单号用例口径）」；② **装置是否支持修复轮**：`device-report.py` / `closeout.py` 的判据与文案写死「交付面零改动」，交付面有改动的轮次会响亮 FAIL（本轮因此不走该链，改用 TDD 红/绿 + 判别力实测 + 原始日志逐项核对），是否给装置加 fix-round 模式（含 `--selftest` 与「交付面改动集合 == 申报集合」双向核对）需人拍板。沿用项：`three-end` delta 通道缺席、环境面负向对照端口口径、业务闭环实跑恢复方式、8086 dev 实例归属、前端 5173/5174 不可达、他方在途 9 条（含 `pom.xml` / `SecurityConfig.java` / `application.yml`，落地后须重核配置项契约与鉴权契约）等。
+
+十、结论：清单 **117/117**（missing=0）；本轮修复了**真实的测试隔离缺陷**（清场未复位 `seq_*` 序列 ⇒ 单号宽度随累计历史漂移 ⇒ 契约断言在序列过万后永久红），交付代码零改动、契约断言零放宽、用例 327→328（纯新增守卫）；提交前两轮 + 提交后两轮共 **4 轮 × 328 例全绿**、逐类 diff 全 0；分析器 **27 PASS / 0 FAIL**；他方在途 9 条零触碰（mtime 全部早于本轮窗口，A23 = 0 条）；返工 1 处（脚本侧）。
+
+- **返工真值**：本轮返工真值 = **1 处**（脚本侧：只读探针 `-F'|'` 参数被 MSYS→wsl 传递吞成空模式，改 `-A -t`；判据与产物不受影响）。
+- **权威数字**：权威数字 = 返工 1 处、328 例 × 四轮全绿、清单 117/117 missing=0（台账描述列与本小节同一份要点文本）。
