@@ -1,0 +1,82 @@
+R774 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动三判据）
+==============================================================================
+生成方式：本文件由 `tools/round-verify/device-report.py` 从 git / facts / 证据的**真实输出**取值（数字零手写值），不接触交付面。
+轮次 = R774；被测提交（HEAD 的独立 worktree 内检出）= 3ef3435e；窗口 = 2026-10-25 13:23:22 -> 2026-10-25 13:30:22（facts 落盘）
+
+一、装置面改动（机器推导，零手写）
+  被测提交的 `tools/round-verify` 文件 = 16 个 / 工作区同名文件 = 16 个（新增 0 / 删除 0）
+  工作区未提交的 tools/ 条目 = 2 条： M tools/round-verify/README.md |  M tools/round-verify/regression.py
+  「被测提交..HEAD」触及 tools/ 的提交 = 0 枚（本文件生成于主提交之前）
+  逐文件 numstat（工作区 vs HEAD，`插入/删除/路径`）：1	1	tools/round-verify/README.md; 105	2	tools/round-verify/regression.py
+  轮次无关性守卫：装置脚本（14 个 .py/.sh）内当前轮次号命中 = **0**（须 0
+    = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
+
+二、本轮返工真值 = **3 处**（零交付面影响；条目文本来自单一事实源 `note-R774.md`，与台账描述列 / 状态文件小节共用）
+------------------------------------------------------------------------------
+一、性质与范围：巡检轮 + **装置判据修正**。清单 `missing == 0` ∧ 两轮 `rc=0/0` ⇒ 按作业第 4 步「不改代码、只校验并报告」执行，**交付面零改动**（未改 `aap-server` / `aap-client` / `docs` / 测试面 / 冻结清单生成物任何一行）。**装置面改动 = 2 个文件**：`tools/round-verify/regression.py`（比对基轮选择改为「最近一个有 rcseq 留档的上一轮」+ 输入面前提判据 + 6 例自测）与 `tools/round-verify/README.md`（自测条数自述由 `selftest-counts.py` 机器更正 26 → 32）。**本轮完成端点 = 0 条；新增用例 = 0**（无 batch 提交）。作业背景所写「已实现 T03–T09、未完成 45 条（T10–T14）」与仓库现况不符：清单已扩至 **117** 条且逐族 `implemented == total`，作业目标「90 条全部落地」已含于 total 之中；连续全绿计数由上一轮的 139 递增为 **140**（绿相位 ⇒ 计数 +1）。两轮仍在 HEAD 的独立 detached worktree 内跑测，验证的是**提交态**而非他方在途改动。
+
+二、两轮全量（串行，被测提交的独立 detached worktree 内）：窗口 2026-10-25 13:23:22 → 13:30:22（**未跨午夜**；仍按绝对时刻解算，A5 / J1g / J2g 串行判据 PASS）；run1 13:23:44→13:27:14、run2 13:27:14→13:30:16（首尾相接、衔接差 0 s），maven 耗时 run1 = 207 s（`03:27 min`）、run2 = 179 s（`02:59 min`）（**两轮都落在 `mm:ss min` 写法分支** ⇒ `s` 写法分支本轮仍未复现，仅由常驻合成对照 2/2 证明解析器有牙齿；历史 175/176 的分档纪律：目标输入未出现只能写「未复现」）。每轮 **328 例 / 54 类**、**rc=0/0**、五元组 328-0-0-0、两轮 `BUILD SUCCESS` 均真、**逐类 diff = 0**（已剥 `Time elapsed` 再排序）；`@Test` 词边界 **328 == surefire 328**（裸子串 330 作对照，差 2 ⇒ 属 `@TestConfiguration` / `@TestPropertySource` 一类子串误计）；归档测试源 **60** 个 `.java`；禁用扫描 **0 条**（无 `@Disabled` / `assumeTrue`，未削弱测试）；worktree add/remove rc=0（重试 0 次、残骸扫描 rc=0、`WT_DIRTY_LINES=0`）。被测提交 = **3ef3435e**（= 窗口起点 HEAD = 终点 HEAD，`FACTS_HEAD_ADVANCED_COUNT=0`）。
+
+三、覆盖读数：total **117** / implemented **117** / **missing=0** / registered_routes **134** / not_registered 空；15 族全齐（族和 117 = total：(空任务号) 18 · T03 6 · T04 5 · T05 7 · T06 6 · T07 4 · T08 11 · T09 6 · T10 5 · T11 11 · T12 4 · T13 3 · T14 22 · T15 3 · T17 6）。**下一族 = 无**（missing=0 ⇒ 无待推进族，作业里的 T12→T10→T11→T13→T14 顺序已全部完成）；逐端点真实 HTTP 用例由回归面 `endpoint-tests`（rc=0）与 328 例集成用例背书，本轮读数无变化。
+
+四、回归面（命令表 = 仓库内单一事实源 `tools/round-verify/manifest.json`，**84 条** = 43 审计 + 41 负向自测）与本轮**真实发现**：命令表存在性预检 84 → 磁盘存在 84 / 缺失 0。首跑暴露出一个**结构性判据缺陷**：跨轮比对基是**位置式**的 `PREVR = ROUND-1`，而上一轮 **R773 是缺陷修复轮、按设计未走装置链**（`device-report`/`closeout` 的「交付面零改动」判据对修复轮必红，该限制已在 R773 待拍板项②登记）⇒ 没有 `audit-regression-R773-rcseq.txt` / `-failraw.txt`，于是**①逐条 rc ②崩溃通道理由行集 ③跨轮 faildiff 三判据同时「不可用」**，faildiff 还把全部 84 个 tag 报成「新增」、FAIL 明细报出 **167 条假新增**（上一轮 0 行 vs 本轮 167 行）；同一缺陷在 `closeout.py` 的解析侧二次发作（「回归面存在差异：新增 84」）。**修法（结构性消除，不是放宽判据）**：新增两个纯函数 —— `pick_base()`（基轮 = 最近一个**真的有 rcseq 留档**的上一轮，缺留档的轮次记入 skipped）与 `surface_changed()`（基轮下移的**成立前提**：跳过轮次不得改动回归面的**输入面** `tools/` / `docs/backend/` / `aap-server/src/main/` / `aap-client/` / `pom.xml`；证明不了就仍判「不可用」、不得判绿），前提由 `git diff --name-only <基轮被测提交> <本轮被测提交>` 机器判定，两侧 SHA 分别取自 facts 与该轮 `green-verify-<轮次>-tested-state.txt`。修正后复跑整轮 84 条：`-- 比对基轮选择：位置式上一轮 = R773；最近有留档的基轮 = R772；跳过 = ['R773']；输入面改动 0 个（区间总改动 31 个）`、`R772 rcseq 解析到 84 条`、**rc 变化 0 条 / 新增 0 / 未复跑 0**、**FAIL 明细 167 → 167（新增 0 / 消失 0）**、崩溃通道 2 条（`gap-coverage-gap` 与其自测）**理由行集 sha256 与基轮逐字节相同**、**判定 = 零回归**。另有一份**独立实现**的只读探针 `base-fallback-R774.txt`（住在 `$TEMP/aap-aux/`，不进产物目录；7 条判据 7 PASS / 0 FAIL）先于装置修正产出、其后追记装置口径的复跑读数，两处读数逐项一致 ⇒ 互证而非同码自证。零写副作用：生成物 size+md5 运行前后变化 0 个；归仓三方一致读数见 `audit-regression-R774.txt`。
+
+五、装置链（逐条以各自证据文件为准）：`analyze` **27 PASS / 0 FAIL**（A0a–A25）；`regression --selftest` **32 PASS / 0 FAIL**（原 26 例 + 本轮新增 S18 家族 6 例：基轮下移、位置式旧写法反证、输入面前提正/反例、无留档方向、基轮严格早于本轮的含正向对照）；`selftest-counts` 六工具自述条数 `[32,28,66,20,13,15]` 与 README 逐条一致（**更正 1 项**：`regression.py` 26 → 32；只读守卫为真、证据 34 行 / CR=0 / 结束标记唯一）；`device-report` / `closeout` / `postwrite` / `backfill-c7` / `final-check` 的判定行同样分处本轮同名证据文件，不复述为「一次通过」以免构成未经验证的自述（历史 12/95）。操作层事实（诚实登记）：两轮全量与两遍回归面均为**串行**执行、全程无并发测试；`regression.py` 以**后台**方式一次完整运行（84 条一遍跑完、无中止），终端轮询只是**等待方式**。
+
+六、环境面读数（**只做可达性 / 存在性陈述，不构成「三端联调已打通」的证据**，本轮现场探测，`curl` 全部带 `--noproxy '*'` 以避开系统代理造成的 502 假象）：后端类端口在听 = **8086**（pid 28232；`GET /actuator/health` = **200**）；**8080 本轮不再在听**（探测 = 000；上一轮为 `127.0.0.1:8080` LISTENING、pid 2156、探测 404）⇒ 该他方进程已退出，**只登记、不追因**；**8081 与 8082 仍是例外（观察项，沿用）**：Windows `netstat` 对两者均无 LISTENING 行，但 `GET http://127.0.0.1:8081/` 与 `http://127.0.0.1:8082/` 均返回 `404` ⇒ 疑为 WSL2 `localhostForwarding` 或他方实例的转发形态，**归属未取证**，本轮只读探测、零触碰；前端 dev = **5175** 在听（pid 24908，http 200）；5173 / 5174 **仍未监听**（探测 = 000）。**负向对照端口 5199 沿用双向口径**：本轮 `netstat` 显示 **`[::1]:5199` LISTENING（pid 9972）**、IPv4 探测 = 000、**IPv6 探测 `http://[::1]:5199/` = 200** ⇒ 该端口仍被他方绑定在 **IPv6 环回**上，**不作「空闲」使用**（口径本身是否固化进装置仍待拍板）；9223（**另一项目** hioas-aim 的 CDP）未监听（`/json/version` = 000）—— 只读探测、未 attach / 未 close / 未 kill（多项目共存硬规则）；全机 LISTENING **64** 行（正向对照 > 0；上一轮同口径读数 65 行，**差 -1 行**，属他方/系统进程波动，只登记、不追因）。我方本轮未起实例、未起桩、未打包 ⇒ 业务闭环**无本轮新读数**，不沿用上一轮读数作为本轮结论。
+
+七、他方并发活动（只登记、零触碰）：窗口内 HEAD 推进 **0 枚** ⇒ 据实**不作** `--external-commit` 申报；主工作区在途 **9 条**（5 `M`：`README.md` / `aap-server/pom.xml` / `SecurityConfig.java` / `application.yml` / 证据文件 `green-T-M4-08.txt`；4 `??`：`aap-server/src/main/webapp/` 与 3 份他方 e2e 未跟踪自述）；`analyze` A23 = 落窗 **0** 条（在途条目 mtime 最早 2026-09-24 07:51:14、最新 2026-10-22 00:30:39，全部早于本轮窗口 13:23:22）；独立复核 J5h「我方改动集合 ∩ 在途集合」应为 0 条。并发前置实况：执行器 preflight 双向对照 pos=2/2、neg=0/2、第 1 个 tick 即 `BUSY_TEST_JVM=0`，`PREFLIGHT_RESULT=CLEAR` 后才起跑；JPS 可达性 `ENV_JPS_REACHABLE=Y`（历史 238/251 的「门槛必须真的执行过」本轮有正向读数，而非仅写在文件里）。
+
+八、返工真值：本轮返工 3 处（全部**脚本侧**，零交付面影响）：① 只读探针首版把 rcseq 行解析正则写成 `^(\S+)\s+(-?\d+)$`，而真实写法是 `tag rc=N` ⇒ 两侧各解析到 0 条、报出「判据不可用」的**假失败**，被 `B0a 两侧 rcseq 均解析到 > 0 条` 正向对照当场拦下；② 新增的输入面前缀常量初版定义在 `--selftest` 调用点之后 ⇒ 自测首跑 `NameError`，响亮失败；③ 一次补丁误删 `durability()` 的 docstring 首行 ⇒ 产物语法错误，lint 当场报出并立即修回。三处都在产物落盘前被拦下，**没有一处进入台账或证据结论**。
+
+九、待拍板（**本轮无新增决策项**；一项已落地，供确认）：① 已落地：`regression.py` 的跨轮比对基由「位置式 `ROUND-1`」改为「最近一个有 rcseq 留档的轮次 + 跳过轮输入面零改动前提」，S18 家族 6 例判别力自测背书（含位置式旧写法反证与「无留档 ⇒ 不得判绿」方向）；请确认该口径是否也需推广到其它位置式轮次引用（本轮只改 rcseq 相关两处；`analyze` 的连续全绿计数与 `independent` 的上轮引用按语义不需要改）。其余沿用：**装置是否支持修复轮**（`device-report`/`closeout` 的「交付面零改动」判据对修复轮必红，正是本轮缺陷的成因，两者应一并拍板）；`three-end` 跨轮 delta 通道自 R708 起缺席（现 66 轮）；环境面负向对照端口是否改 IPv4+IPv6 双向并固化进装置；业务闭环实跑的恢复方式与用哪个库（自 R696 起至本轮 78 轮未再实跑，缺口在**恢复实跑**而非「闭环未通」）；8086 他方 dev 实例是否长期占用；前端 5173/5174 仍不可达；他方在途 9 条（含 `pom.xml` / `SecurityConfig.java` / `application.yml`）落地后须重核**配置项契约**与**鉴权契约**；8081/8082 的 404 响应归属登记口径；`J5e` 冻结快照判据本体缺陷、`ADM-CB01` APPLY 语义、台账 `A1b`/`A1c` 长期 FAIL 的根因等全部沿用。
+
+十、结论：清单 **117/117** 全注册（missing=0，作业目标「90 条全部落地」已含于 total 之中）；**交付面零改动、装置面 2 个文件**（`regression.py` 判据修正 + README 条数更正）；全量 **328 例两轮全绿（连续第 140 轮）**；回归面 **84 条零回归**（修正后基轮 = R772、跳过 R773 且输入面改动 0：rc 变化 0 / 新增 0 / 未复跑 0、FAIL 明细 167→167 双向 0、崩溃通道理由 sha256 不变）；分析器 **27 PASS / 0 FAIL**、回归自测 **32 PASS / 0 FAIL**、自测条数核对 **1 项更正**（26→32）；返工 3 处（脚本侧）；他方在途零触碰；业务闭环**本轮现场无新读数**（我方未起实例 / 未打包），缺口在**恢复实跑**而非「闭环未通」。
+------------------------------------------------------------------------------
+
+三、本轮关键读数（读自 analyze / regression 证据，零手写值）
+  相位 = green（两轮 rc=0/0 ∧ missing=0 的合取，判据见 tools/round-verify/phase.py）
+  分析器判据 PASS 27 / FAIL 0；覆盖 total=117 implemented=117 **missing=0** registered_routes=134；连续第 140 轮全绿
+  回归面：复跑 84 条（上一轮 R772 = 84 条）；rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行
+  零写副作用：生成物 size+md5 变化 0 个（须 0）；跨轮 faildiff 上一轮 167 行 / 本轮 167 行、新增 0 / 消失 0
+  崩溃通道：rc!=0 条目 45 条，其中 FAIL 通道不可见（rc!=0 ∧ FAIL 0 行）= 2 条
+
+四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
+  ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 9 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 17 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 26 == `git status` 条目 26
+      M .agents/state/evidence/green-T-M4-08.txt  mtime=2026-10-22 00:30:39
+      M README.md  mtime=2026-09-24 07:51:14
+      M aap-server/pom.xml  mtime=2026-09-24 08:07:37
+      M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
+      M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
+      ?? .agents/state/evidence/e2e-final-20261015.json  mtime=2026-10-15 23:22:05
+      ?? .agents/state/evidence/e2e-final2-20261015.json  mtime=2026-10-15 23:23:55
+      ?? .agents/state/evidence/e2e-run-20261015-d.json  mtime=2026-10-15 23:23:13
+      ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
+      （本轮产物）M .agents/state/evidence/endpoint-test-audit.txt  mtime=2026-10-25 13:49:57
+      （本轮产物）M tools/round-verify/README.md  mtime=2026-10-25 13:57:31
+      （本轮产物）M tools/round-verify/regression.py  mtime=2026-10-25 13:49:42
+      （本轮产物）?? .agents/state/evidence/audit-regression-R774-faildiff.txt  mtime=2026-10-25 13:55:03
+      （本轮产物）?? .agents/state/evidence/audit-regression-R774-failraw.txt  mtime=2026-10-25 13:55:03
+      （本轮产物）?? .agents/state/evidence/audit-regression-R774-rcseq.txt  mtime=2026-10-25 13:55:03
+      （本轮产物）?? .agents/state/evidence/audit-regression-R774.txt  mtime=2026-10-25 13:55:03
+      （本轮产物）?? .agents/state/evidence/base-fallback-R774.txt  mtime=2026-10-25 13:57:43
+      （本轮产物）?? .agents/state/evidence/device-round-R774.txt  mtime=2026-10-25 13:47:11
+      （本轮产物）?? .agents/state/evidence/device-selftest-counts-R774.txt  mtime=2026-10-25 13:57:31
+      （本轮产物）?? .agents/state/evidence/green-verify-R774-coverage-fields.txt  mtime=2026-10-25 13:35:54
+      （本轮产物）?? .agents/state/evidence/green-verify-R774-full-run1.txt  mtime=2026-10-25 13:35:54
+      （本轮产物）?? .agents/state/evidence/green-verify-R774-full-run2.txt  mtime=2026-10-25 13:35:54
+      （本轮产物）?? .agents/state/evidence/green-verify-R774-testcount.txt  mtime=2026-10-25 13:35:54
+      （本轮产物）?? .agents/state/evidence/green-verify-R774-tested-state.txt  mtime=2026-10-25 13:35:54
+      （本轮产物）?? .agents/state/evidence/regression-selftest-R774.txt  mtime=2026-10-25 13:57:22
+      （本轮产物）?? .agents/state/evidence/round-R774-analysis.txt  mtime=2026-10-25 13:35:54
+      其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
+  ③ 提交区间（3ef3435e..HEAD）改动文件 = 0 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 0 枚 = 他方 0 枚 + 本轮 0 枚
+      ⇒ **本轮自己的提交**触及交付面前缀的 = 0 个（**须 0**）；他方提交的交付面改动不计入本轮（历史 81/193/198：他方在途不得算作本轮改动）
+
+五、下一族
+  **无**（清单 117/117、missing=0）—— 本轮完成端点 0 条 / 新增用例 0 条、无红基线。
+
+六、留痕
+  本文件 = .agents/state/evidence/device-round-R774.txt（由本工具直接落盘，`newline="\n"`；文件名与 closeout.py 的消费名机器核对一致；行数下限判据与 CR=0 判据见下）
+DEVICE_REPORT_END=1

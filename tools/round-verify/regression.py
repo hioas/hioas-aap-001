@@ -60,6 +60,10 @@ if not SELFTEST:
     W.mkdir(parents=True, exist_ok=True)
 PY = sys.executable
 ARCH_KEY = "tools/regression/archive"
+# 回归面**输入面**（审计/抽查脚本读的东西）：基轮下移的成立前提判据（`surface_changed()`）在此**唯一定义**，
+# `--selftest` 与生产路径共用（历史 191：同一口径不要留两处副本）。
+SURFACE_PREFIXES = ("tools/", "docs/backend/", "aap-server/src/main/", "aap-client/",
+                    "aap-server/pom.xml")
 
 
 def sha256_of(path):
@@ -123,6 +127,35 @@ def crash_diff(prev, cur):
     gone = sorted(set(prev) - set(cur))
     usable = bool(prev) or not cur
     return changed, added, gone, usable
+
+
+def pick_base(cur, avail):
+    """跨轮比对的**基轮选择**（纯函数，`--selftest` 与生产路径同源，历史 230）。
+
+    为什么不能位置式取 `ROUND-1`（历史 172 的机器化）：上一轮若是**修复轮**、按设计未走装置链
+    （`device-report`/`closeout` 的「交付面零改动」判据对修复轮必红），该轮就没有 `rcseq` / `failraw`
+    留档 ⇒ 三个跨轮判据（逐条 rc / 崩溃通道理由 / faildiff）全部「不可用」，且 faildiff 会把**全部 tag**
+    报成「新增」（本仓实测：167 条假新增，而 rc 逐条其实一条没变）。
+    规则：基轮 = 最近一个**真的有留档**的上一轮；中间缺留档的轮次记为 `skipped`，其输入面是否被动过
+    由 `surface_changed()` 另行判定（不满足即仍判「不可用」、不得判绿）。
+    返回 (base 或 None, skipped 列表)。
+    """
+    prev = [r for r in avail if int(r[1:]) < int(cur[1:])]
+    if not prev:
+        return None, []
+    base = max(prev, key=lambda r: int(r[1:]))
+    skipped = ["R%d" % n for n in range(int(base[1:]) + 1, int(cur[1:]))]
+    return base, skipped
+
+
+def surface_changed(changed, prefixes):
+    """基轮下移的**成立前提**（纯函数）：跳过的轮次不得改动回归面的**输入面**。
+
+    输入面 = 审计/抽查脚本读的东西（`tools/`、`docs/backend/`、`aap-server/src/main/`、`aap-client/`、`pom.xml`）。
+    只改测试源/留痕文件不影响审计读数（测试源由 `endpoint-tests` 一族单独点名核对）。
+    返回命中前缀的路径列表（空 = 前提成立）。
+    """
+    return [x for x in changed if str(x).startswith(tuple(prefixes))]
 
 
 def durability(allx, arch_dir, index_path):
@@ -302,6 +335,27 @@ def run_selftest():
     case("S17n 旧写法（不归一）在同一夹具上必然报变化 ⇒ 证明归一确实修掉了假 FAIL",
          crash_diff({"endpoint-tests": "none"}, {"endpoint-tests": ""})[0] == ["endpoint-tests"])
 
+    # ---- S18 家族：比对基轮选择（位置式 ROUND-1 缺留档 ⇒ 基轮下移 + 输入面前提；历史 172 的机器化） ----
+    # 轮次号由 ROUND 派生（**不写死历史轮次**，否则撞装置目录轮次无关性守卫，历史 201/206）
+    _n = max(4, int(ROUND[1:]) if ROUND[1:].isdigit() else 4)
+    cur_r = "R%d" % _n
+    avail = ["R%d" % (_n - 3), "R%d" % (_n - 2)]        # 上一轮（_n-1）**故意无留档**（模拟修复轮）
+    b1, sk1 = pick_base(cur_r, avail)
+    case("S18 上一轮无留档 → 基轮下移到最近有留档的 R%d ∧ 跳过 = [R%d]（历史 172）" % (_n - 2, _n - 1),
+         (b1, sk1) == ("R%d" % (_n - 2), ["R%d" % (_n - 1)]), "base=%r skipped=%r" % (b1, sk1))
+    case("S18n 旧写法（位置式 ROUND-1）在同一夹具上会选到无留档的 R%d ⇒ 反证基轮下移是必需的" % (_n - 1),
+         ("R%d" % (_n - 1)) not in avail, "位置式 = R%d；留档轮次 = %s" % (_n - 1, avail))
+    case("S18b 注入「跳过轮改了回归面输入面」→ 前提不成立（恰好点名该路径）",
+         surface_changed(["tools/round-verify/regression.py", ".agents/state/x.md"],
+                         SURFACE_PREFIXES) == ["tools/round-verify/regression.py"])
+    case("S18c 只改测试源/留痕 → 前提成立（不得误报）",
+         surface_changed(["aap-server/src/test/java/A.java", ".agents/state/x.md"],
+                         SURFACE_PREFIXES) == [])
+    case("S18d 无任何更早留档 → base=None（判据不可用方向，不得判绿）",
+         pick_base(cur_r, []) == (None, []) and pick_base(cur_r, [cur_r]) == (None, []))
+    case("S18e 正向对照：留档轮次数 %d > 0 ∧ 基轮严格早于本轮" % len(avail),
+         len(avail) > 0 and int(b1[1:]) < _n, "base=%s vs cur=%s" % (b1, cur_r))
+
     print("=" * 78)
     print("%s 装置判据判别力实测（合成夹具；判据与生产路径同源 = durability() / crash_reason() / crash_diff()）" % ROUND)
     print("=" * 78)
@@ -373,6 +427,54 @@ if arch_bad:
 if DUR["orphan"]:
     p("[FAIL] 归仓索引含本轮命令表之外的归档（索引膨胀或 tag 被改名，历史 169/177/182）：%s" % DUR["orphan"])
 
+# ---------- 比对基轮：**最近一个有 rcseq 留档的上一轮**（历史 172 的机器化；纯函数 `pick_base` 与自测共用） ----------
+# 位置式 `ROUND-1` 在「上一轮是修复轮、按设计未走装置链」时没有留档 ⇒ 三个跨轮判据全部不可用，
+# 且 faildiff 会把全部 tag 报成「新增」（本仓实测 167 条假新增）。基轮下移必须**机器证明成立前提**：
+# 跳过的轮次不得改动回归面的输入面（`surface_changed()`），证明不了就仍判「不可用」、不得判绿。
+AVAIL = sorted(m.group(1) for f in EV.glob("audit-regression-R*-rcseq.txt")
+               for m in [re.match(r"audit-regression-(R\d+)-rcseq\.txt$", f.name)] if m)
+BASE, SKIPPED = pick_base(ROUND, AVAIL)
+
+
+def tested_sha(round_):
+    """该轮**被测提交**的全 SHA：优先 facts，其次该轮的 tested-state 证据（两处都是机器落盘）。"""
+    f = T / "aap-round-verify" / round_ / ("facts-%s.log" % round_)
+    if f.exists():
+        m = re.search(r"^FACTS_TESTED_COMMIT_FULL=([0-9a-f]{40})$",
+                      f.read_text(encoding="utf-8", errors="replace"), re.M)
+        if m:
+            return m.group(1)
+    g = EV / ("green-verify-%s-tested-state.txt" % round_)
+    if g.exists():
+        m = re.search(r"^被测提交全 SHA = ([0-9a-f]{40})$",
+                      g.read_text(encoding="utf-8", errors="replace"), re.M)
+        if m:
+            return m.group(1)
+    return ""
+
+
+SURFACE_HITS, SURFACE_NOTE = [], "无跳过轮次（位置式基轮本身可用）"
+if BASE and SKIPPED:
+    sb, sc = tested_sha(BASE), tested_sha(ROUND)
+    if not (sb and sc):
+        SURFACE_NOTE = "基轮/本轮的被测提交 SHA 解析不到（%r/%r）⇒ 前提不可证" % (sb, sc)
+        SURFACE_HITS = ["<sha-unavailable>"]
+    else:
+        _r = subprocess.run(["git", "-C", str(ROOT), "diff", "--name-only", sb, sc],
+                            capture_output=True)
+        _ch = [x for x in _r.stdout.decode("utf-8", "replace").splitlines() if x.strip()]
+        SURFACE_HITS = surface_changed(_ch, SURFACE_PREFIXES)
+        SURFACE_NOTE = ("跳过 %s；输入面改动 %d 个（区间总改动 %d 个）"
+                        % (SKIPPED, len(SURFACE_HITS), len(_ch)))
+BASE_OK = bool(BASE) and not SURFACE_HITS
+p("-- 比对基轮选择：位置式上一轮 = %s；最近有留档的基轮 = %s；跳过 = %s；%s --"
+  % (PREVR, BASE or "（无）", SKIPPED or "无", SURFACE_NOTE))
+p("   有 rcseq 留档的轮次（> 0 正向对照）= %d 条；基轮可用 = %s" % (len(AVAIL), BASE_OK))
+if BASE and SURFACE_HITS:
+    p("[FAIL] 基轮下移前提不成立：跳过轮次改动了回归面输入面 %s ⇒ 跨轮判据不可用（不得判绿）"
+      % SURFACE_HITS[:5])
+
+PREVR = BASE or PREVR  # 下游一律用「实际比对基轮」；无基轮时保持位置式（文件不存在 ⇒ 判据不可用）
 PREV = {}
 PREVF = EV / ("audit-regression-%s-rcseq.txt" % PREVR)
 if PREVF.exists():
@@ -380,10 +482,11 @@ if PREVF.exists():
         m = re.match(r"^(\S+)\s+rc=(-?\d+)$", ln.strip())
         if m:
             PREV[m.group(1)] = int(m.group(2))
-RCSEQ_EMPTY = (len(PREV) == 0)
+RCSEQ_EMPTY = (len(PREV) == 0) or (not BASE_OK)
 p("%s rcseq 解析到 %d 条（> 0 正向对照，历史 46/98；判据可用 = %s）" % (PREVR, len(PREV), not RCSEQ_EMPTY))
 if RCSEQ_EMPTY:
-    p("[FAIL] 上一轮 rcseq 解析到 0 条 -> 「逐条 rc 比对」判据不可用（历史 98/141）")
+    p("[FAIL] 基轮 rcseq 不可用（解析到 %d 条 / 基轮可用 = %s）-> 「逐条 rc 比对」判据不可用（历史 98/141）"
+      % (len(PREV), BASE_OK))
 
 cur_tags = sorted(t for t, _ in ALL)
 TAGDIFF = (sorted(PREV) != cur_tags)
