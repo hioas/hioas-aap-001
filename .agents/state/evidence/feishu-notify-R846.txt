@@ -1,0 +1,14 @@
+R846 飞书通知留痕（作业「每完成一个批次即通知」的执行读数；本轮为纯巡检轮，无 batch 端点提交）
+==============================================================================
+命令：hermes send -t feishu -s 'AAP TDD 进度' '<本轮一句话>'
+退出码：0
+stdout 原文（唯一一行）：
+  Skipped send_message to feishu:oc_45c4ca7036910d5e1e20cc1c9c80b89b.
+  This cron job will already auto-deliver its final response to that same target.
+  Put the intended user-facing content in your final response instead, or use a different
+  target if you want an additional message.
+判定：**SKIPPED（同目标去重）—— 非失败**。原因 = 本 cron 作业的最终回复会自动投递到同一
+  feishu 目标，运行时为避免重复投递而跳过显式 send；投递路径本身可用（rc=0，未报绑定错误）。
+处置：按运行时要求，用户可见内容写入本次 cron 的**最终回复**（结论段 + 覆盖进度 + 证据 + 待拍板）。
+  不据此修改任何装置（是否保留显式 send 属调用层形态，须人拍板）。
+END=1
