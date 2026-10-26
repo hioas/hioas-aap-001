@@ -1,0 +1,21 @@
+R820 校验轮（两轮 rc=0 ∧ missing==0 ⇒ 交付面零改动）；全部读数由 tools/round-verify/analyze.py 从 facts / run{1,2}.raw / wt-arch 解析，无手写值
+==============================================================================
+被测状态（worktree 实际检出） = 60d6acee
+被测提交全 SHA = 60d6acee24f8f230b4df22f09752a9fe16832944
+被测提交主题 = chore(state): R819 收尾核对证据（20 PASS / 0 FAIL；核对时 HEAD = 5426ccfd）
+run1 = 09:36:06 -> 09:39:15 rc=0 / run2 = 09:39:15 -> 09:42:08 rc=0（串行：run1_end <= run2_start = True，按绝对时刻解算）
+窗口 = 09:35:43 -> 09:42:13（1792978543 -> 1792978933，由执行器落盘、消费方只读，历史 243-3）
+HEAD 起点 = 60d6acee / 终点 = 60d6acee；窗口内他方推进提交数 = 0
+worktree 与 HEAD 差异行数 = 0（0 才说明两轮跑的是提交态）
+主体仓库在途改动（只登记、不触碰）= 9 条
+    M .agents/state/evidence/green-T-M4-08.txt
+    M README.md
+    M aap-server/pom.xml
+    M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java
+    M aap-server/src/main/resources/application.yml
+   ?? .agents/state/evidence/e2e-final-20261015.json
+   ?? .agents/state/evidence/e2e-final2-20261015.json
+   ?? .agents/state/evidence/e2e-run-20261015-d.json
+   ?? aap-server/src/main/webapp/
+窗口内（按 mtime 读于分析时刻）落在窗口的条数 = 0 （无）
+环境指纹：bash=/usr/bin/bash uname=MSYS_NT-10.0-26200 mvn=/c/Users/laitz/bin/mvn java=/e/workspaces/jdk/temurin-25.0.4/bin/java jps=/e/workspaces/jdk/temurin-25.0.4/bin/jps（可达=Y）
