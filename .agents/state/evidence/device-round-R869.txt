@@ -13,7 +13,7 @@ R869 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 二、本轮返工真值 = **0 处**（零交付面影响；条目文本来自单一事实源 `note-R869.md`，与台账描述列 / 状态文件小节共用）
 ------------------------------------------------------------------------------
-一、性质与范围：**纯巡检轮（校验轮）**。清单 `missing == 0` ∧ 两轮 `rc=0/0` ⇒ 按作业第 4 步「不改代码、只校验并报告」执行，**未写一行交付代码、未改任何断言、未删/skip 任何用例**。**交付面零改动**（`aap-server` / `aap-client` / `docs` / 测试面 / 冻结清单生成物零改动，`WT_DIRTY_LINES=0`；两轮全量均在 HEAD 的独立 detached worktree（`aap-round-wt-R869-050651`）内串行执行，验证的是**提交态**，不受主工作区他方在途改动影响）；**装置面亦零改动**（`git status --porcelain -- tools/` = 0 条；`被测提交..HEAD` 区间内提交 **0 枚**）。本轮完成端点 = **0 条**、新增用例 = **0**（无 batch，故作业要求的 `red-<Txx>` / `green-<Txx>` 两类留痕在本轮**无对象**；红/绿相位的替代留痕 = 执行器两轮原始日志解析出的 `green-verify-R869-*` 五条证据）。作业背景所写「清单 90 条、已实现 T03–T09、未完成 45 条（T12→T10→T11→T13→T14）」与仓库现况**不符**：清单已扩至 **117** 条且 15 个任务号逐族 `implemented == total`（含 T10 5 / T11 11 / T12 4 / T13 3 / T14 22 / T15 3 / T17 6）⇒ **无「下一族」**、本轮无可推进的 missing 项，亦不存在「至少让 missing 减少 4 条」的可执行空间（missing 已为 0）。连续全绿由上一轮 234 递增为 **235**（绿相位 ⇒ 计数 +1；上一轮 R868 同为绿相位）。
+一、性质与范围：**纯巡检轮（校验轮）**。清单 `missing == 0` ∧ 两轮 `rc=0/0` ⇒ 按作业第 4 步「不改代码、只校验并报告」执行，**未写一行交付代码、未改任何断言、未删/skip 任何用例**。**交付面零改动**（`aap-server` / `aap-client` / `docs` / 测试面 / 冻结清单生成物零改动，`WT_DIRTY_LINES=0`；两轮全量均在 HEAD 的独立 detached worktree（`aap-round-wt-R869-050651`）内串行执行，验证的是**提交态**，不受主工作区他方在途改动影响）；**装置面亦零改动**（`git status --porcelain -- tools/` = 0 条；`被测提交..HEAD` 区间内**触及 `tools/` 的提交 0 枚** —— 区间内本轮留痕提交的逐枚归属见 `device-round-R869.txt` 第四-③ 段，其中交付面命中 0 个）。本轮完成端点 = **0 条**、新增用例 = **0**（无 batch，故作业要求的 `red-<Txx>` / `green-<Txx>` 两类留痕在本轮**无对象**；红/绿相位的替代留痕 = 执行器两轮原始日志解析出的 `green-verify-R869-*` 五条证据）。作业背景所写「清单 90 条、已实现 T03–T09、未完成 45 条（T12→T10→T11→T13→T14）」与仓库现况**不符**：清单已扩至 **117** 条且 15 个任务号逐族 `implemented == total`（含 T10 5 / T11 11 / T12 4 / T13 3 / T14 22 / T15 3 / T17 6）⇒ **无「下一族」**、本轮无可推进的 missing 项，亦不存在「至少让 missing 减少 4 条」的可执行空间（missing 已为 0）。连续全绿由上一轮 234 递增为 **235**（绿相位 ⇒ 计数 +1；上一轮 R868 同为绿相位）。
 
 二、两轮全量（串行，被测提交的独立 detached worktree 内）：窗口 **2026-10-27 05:06:52 → 05:13:29**（**397 s**，未跨午夜）；run1 05:07:17→05:10:27、run2 05:10:27→05:13:24，两轮 maven 耗时 **03:07 min / 02:54 min**，**均落在 `mm:ss min` 分支**（A6 双写法解析器的 `s` 分支本轮**仍未复现**；该分支只由常驻合成对照 2/2 证明解析器有牙齿 ⇒ 按历史分档纪律只写「未复现」，不写「修复有效」）。每轮 **328 例 / 54 类**、**rc=0/0**、合计行五元组 328-0-0-0（两轮逐值相同）、两轮 `BUILD SUCCESS` 均真、类级 tests 相加 == 合计（328/328）、**逐类 diff = 0**（已剥 `Time elapsed` 再排序）；`@Test` 词边界 **328 == surefire 328**（裸子串 330 作对照，差 2 来自 `@TestConfiguration` / `@TestPropertySource`）；归档测试源 **60 个 `.java`**；禁用扫描 **0 条**（无 `@Disabled` / `assumeTrue`，未削弱测试）；`WORKTREE_ADD_RC=0` / `WORKTREE_REMOVE_RC=0`（重试 0 次、残骸兜底 rc=0）。被测提交 = **edd1dee3**（`chore(state): R868 收尾一致性核对（20 PASS / 0 FAIL）`）= 窗口起点 HEAD = 终点 HEAD，`FACTS_HEAD_ADVANCED_COUNT=0`。串行判据读数：`run1_end=05:10:27` <= `run2_start=05:10:27`（A5 按绝对时刻解算，判定 True）。
 
@@ -27,7 +27,7 @@ R869 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 七、他方并发活动（只登记、零触碰）：窗口内 HEAD 推进 **0 枚** ⇒ 据实**不作** `--external-commit` 申报。主工作区在途 **10 条**（`ROOT_STATUS_LINES_BEFORE=10`；6 `M`：`README.md` / `aap-server/pom.xml` / `SecurityConfig.java` / `application.yml` / 证据 `green-T-M4-08.txt` / 历史收尾产物 `final-check-R836.txt`；4 `??`：`aap-server/src/main/webapp/` 与 3 份他方 e2e 未跟踪自述），mtime 最早 2026-09-24 07:51:14、最新 **2026-10-26 15:47:52**，**全部早于本轮窗口 05:06:52** ⇒ `analyze` A23 = 落窗 **0 条**；执行器落盘的 `root-status-before.txt` 与 `root-status-after.txt` 本轮**逐行相同**（`diff` 空 ⇒ 在途集合零变化，正向对照 10 行 > 0）；我方改动集合（本轮证据 / 台账 / 状态文件）与在途集合交集 **0 条**。在途 `pom.xml` 含前端打包（exec-maven-plugin 调 npm，HEAD 0 次 → 工作区 1 次）、`application.yml` 新增 settlement / cycle / amount-basis / fee-basis 四键（HEAD 0 次 → 工作区各 1 次）、`SecurityConfig.java` 92 → 97 行（静态资源 / SPA 放行，读数取自 aux 台账核对 B1/B2/B3 段）⇒ 两轮全量刻意在 HEAD 的 detached worktree 内执行，**不受**该在途改动影响（`WT_DIRTY_LINES=0` 佐证）。
 
-八、返工真值：本轮返工 0 处（判据/脚本侧）。装置链 ①②③③b 与两条常驻只读通道（环境探针 / 台账核对）本轮**首跑即按各自既定语义通过**：`analyze` 27/0、`regression` 84 条零回归且 rc / FAIL 明细 / 崩溃通道理由逐条与基轮对齐、`regression --selftest` 32/0、`selftest-counts` 六工具一致且更正 0 项、`PROBE_END=1`、aux 台账核对收尾前 22 PASS / 4 FAIL（4 条均已知或收尾前预期）。本轮无锚点过期、无判据返工、无机械派生（装置已轮次无关，轮次号由参数给出）。调用层读数（如实登记、**不计入返工**）：两轮 maven 耗时均落在 `mm:ss min` 分支 ⇒ `s` 写法分支本轮**未复现**（不写出「修复有效」）。
+八、返工真值：本轮返工 0 处（判据/脚本侧）。装置链 ①②③③b 与两条常驻只读通道（环境探针 / 台账核对）本轮**首跑即按各自既定语义通过**：`analyze` 27/0、`regression` 84 条零回归且 rc / FAIL 明细 / 崩溃通道理由逐条与基轮对齐、`regression --selftest` 32/0、`selftest-counts` 六工具一致且更正 0 项、`PROBE_END=1`、aux 台账核对收尾前 22 PASS / 4 FAIL（4 条均已知或收尾前预期）。本轮无锚点过期、无判据返工、无机械派生（装置已轮次无关，轮次号由参数给出）。调用层读数（如实登记、**不计入返工**）：两轮 maven 耗时均落在 `mm:ss min` 分支 ⇒ `s` 写法分支本轮**未复现**（不写出「修复有效」）；另一条**证据落盘侧**读数：`hermes send` 的输出经 shell 重定向落盘时带行内 CR 字节，落盘后已按字节级归一（`tr -dc` 计数复验 = 0；`independent` J7b 逐字节检查 11 条核心证据 CR=0 通过）—— 属调用层（证据落盘形态）读数、**不计入返工**（装置与判据零改动，`device-report` 的装置面零改动判据佐证）。
 
 九、待拍板（①–⑭ 全部沿用上一轮，**本轮无新增**）：① 装置是否支持「修复轮」（`device-report` / `closeout` 的「交付面零改动」判据对修复轮必红）；② `three-end` 跨轮 delta 通道自 R708 起缺席（沿用登记；本轮未复核该通道，故不递增）；③ 环境面负向对照端口是否改 IPv4+IPv6 **双向**并固化进装置（5199 即典型：IPv4 000 / IPv6 在听，本轮 pid 9972）；④ 业务闭环实跑的恢复方式与用哪个库（缺口在**恢复实跑**而非「闭环未通」）；⑤ 8086 已取证为本仓 aap-server dev 实例 ⇒ 是否长期保留、是否纳入「环境面基线」登记；⑥ 前端 5173 / 5174 仍不可达；⑦ 他方在途 10 条（含 `pom.xml` / `SecurityConfig.java` / `application.yml` 的 settlement 四键）落地后须重核**配置项契约**与**鉴权契约**并重跑两轮全量；⑧ 8081 / 8082 的响应归属登记口径（连续多轮无该两口 LISTENING 行 ⇒ 归属仍未取证）；⑨ 单号「4 位」语义（固定位数 vs 最小宽度）；⑩ `J5e` 冻结快照判据本体缺陷、`ADM-CB01` APPLY 语义、台账 `A1b` / `A1c` 长期 FAIL 的根因（本轮 A1b/A1c 仍 FAIL：轮次行 843 条、首 R27 末 R868、存在重复）；⑪ 并发前置判据对「别处的 `mvn test`」不可判别（`jps -l` 不输出命令行实参 ⇒ 他方同时在跑 `mvn test` 时前置会判绿放行；改判据属装置变更、须人拍板，本轮不改）；⑫ 全机 LISTENING 行数的跨轮 delta 通道是否固化进装置（只存行数无法归因）；⑬ `regression.py` 退出码信号：`silent_red`（= 2 条常驻崩溃通道）使退出码恒 1，「rc≠0」不再能区分「有回归」与「稳态」，是否改为「仅跨轮条件触发非 0、常驻通道另行告警」须人拍板（本轮按「不改判据」登记）；⑭ 环境面基线是否改为记录「逐端口明细 + `jps` 成员清单」而非仅 LISTENING 行数（属装置扩面，须人拍板；本轮 `jps` 6 行里 4 行成员清单未取证即该缺口实例）。
 
@@ -43,7 +43,7 @@ R869 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
-  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 10 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 12 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 22 == `git status` 条目 22
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 10 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 1 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 11 == `git status` 条目 11
       M .agents/state/evidence/final-check-R836.txt  mtime=2026-10-26 15:47:52
       M .agents/state/evidence/green-T-M4-08.txt  mtime=2026-10-22 00:30:39
       M README.md  mtime=2026-09-24 07:51:14
@@ -54,20 +54,12 @@ R869 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
       ?? .agents/state/evidence/e2e-final2-20261015.json  mtime=2026-10-15 23:23:55
       ?? .agents/state/evidence/e2e-run-20261015-d.json  mtime=2026-10-15 23:23:13
       ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
-      （本轮产物）?? .agents/state/evidence/audit-regression-R869-faildiff.txt  mtime=2026-10-27 05:18:33
-      （本轮产物）?? .agents/state/evidence/audit-regression-R869-failraw.txt  mtime=2026-10-27 05:18:33
-      （本轮产物）?? .agents/state/evidence/audit-regression-R869-rcseq.txt  mtime=2026-10-27 05:18:33
-      （本轮产物）?? .agents/state/evidence/audit-regression-R869.txt  mtime=2026-10-27 05:18:33
-      （本轮产物）?? .agents/state/evidence/device-selftest-counts-R869.txt  mtime=2026-10-27 05:18:42
-      （本轮产物）?? .agents/state/evidence/green-verify-R869-coverage-fields.txt  mtime=2026-10-27 05:13:35
-      （本轮产物）?? .agents/state/evidence/green-verify-R869-full-run1.txt  mtime=2026-10-27 05:13:35
-      （本轮产物）?? .agents/state/evidence/green-verify-R869-full-run2.txt  mtime=2026-10-27 05:13:35
-      （本轮产物）?? .agents/state/evidence/green-verify-R869-testcount.txt  mtime=2026-10-27 05:13:35
-      （本轮产物）?? .agents/state/evidence/green-verify-R869-tested-state.txt  mtime=2026-10-27 05:13:35
-      （本轮产物）?? .agents/state/evidence/regression-selftest-R869.txt  mtime=2026-10-27 05:18:36
-      （本轮产物）?? .agents/state/evidence/round-R869-analysis.txt  mtime=2026-10-27 05:13:35
+      （本轮产物）M .agents/state/evidence/device-round-R869.txt  mtime=2026-10-27 05:22:06
       其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
-  ③ 提交区间（edd1dee3..HEAD）改动文件 = 0 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 0 枚 = 他方 0 枚 + 本轮 0 枚
+  ③ 提交区间（edd1dee3..HEAD）改动文件 = 20 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 3 枚 = 他方 0 枚 + 本轮 3 枚
+      [本轮] 2d9f449e chore(state): R869 收尾一致性核对（20 PASS / 0 FAIL）  文件 1 个 / 交付面命中 0 个
+      [本轮] 7d7d50f2 chore(state): R869 台账提交列回填（c7=cf18e8a6）与主提交落地核对 / 独立复核 / 飞书留痕证据  文件 4 个 / 交付面命中 0 个
+      [本轮] cf18e8a6 chore(state): R869 巡检轮台账与证据（117/117 missing=0，328 例两轮全绿，连续第 235   文件 16 个 / 交付面命中 0 个
       ⇒ **本轮自己的提交**触及交付面前缀的 = 0 个（**须 0**）；他方提交的交付面改动不计入本轮（历史 81/193/198：他方在途不得算作本轮改动）
 
 五、下一族
