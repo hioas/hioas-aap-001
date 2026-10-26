@@ -11,7 +11,7 @@ R838 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
   轮次无关性守卫：装置脚本（14 个 .py/.sh）内当前轮次号命中 = **0**（须 0
     = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
 
-二、本轮返工真值 = **0 处**（零交付面影响；条目文本来自单一事实源 `note-R838.md`，与台账描述列 / 状态文件小节共用）
+二、本轮返工真值 = **1 处**（零交付面影响；条目文本来自单一事实源 `note-R838.md`，与台账描述列 / 状态文件小节共用）
 ------------------------------------------------------------------------------
 一、性质与范围：**纯巡检轮（校验轮）**。清单 `missing == 0` ∧ 两轮 `rc=0/0` ⇒ 按作业第 4 步「不改代码、只校验并报告」执行。**交付面零改动**（未改 `aap-server` / `aap-client` / `docs` / 测试面 / 冻结清单生成物任何一行，`WT_DIRTY_LINES=0`；两轮均在 HEAD 的独立 detached worktree 内跑测，验证的是**提交态**而非他方在途改动）；**装置面亦零改动**（`tools/` 工作区改动 0 条；`被测提交..HEAD` 区间内触及 `tools/` 的提交 0 枚 —— 本轮 HEAD 与被测提交同为 92cbb69e；`selftest-counts` 的 README 更正项 = 无）。本轮完成端点 = **0 条**、新增用例 = **0**（无 batch 提交，故作业要求的 `red-<Txx>` / `green-<Txx>` 两类留痕在本轮**无对象**；红/绿留痕在本轮的替代物是执行器两轮原始日志的 `green-verify-R838-*` 五条证据）。作业背景所写「已实现 T03–T09、未完成 45 条（T12→T10→T11→T13→T14）」与仓库现况不符：清单已扩至 **117** 条且 15 个任务号逐族 `implemented == total`（含 T10 5 / T11 11 / T12 4 / T13 3 / T14 22），作业目标「90 条全部落地」已含于 total 之中 ⇒ **无「下一族」**、本轮无可推进的 missing 项。连续全绿计数由上一轮 203 递增为 **204**（绿相位 ⇒ 计数 +1；上一轮 R837 同为绿相位）。
 
@@ -27,11 +27,11 @@ R838 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 七、他方并发活动（只登记、零触碰）：窗口内 HEAD 推进 **0 枚** ⇒ 据实**不作** `--external-commit` 申报；主工作区在途 **10 条**（`ROOT_STATUS_LINES_BEFORE=10`；6 `M`：`README.md` / `aap-server/pom.xml` / `SecurityConfig.java` / `application.yml` / 证据文件 `green-T-M4-08.txt` / 上一轮收尾核对产物 `final-check-R836.txt`（其工作区版本 mtime 15:47:52，晚于上一轮窗口但早于本轮窗口）；4 `??`：`aap-server/src/main/webapp/` 与 3 份他方 e2e 未跟踪自述），mtime 最早 2026-09-24 07:51:14、最新 **2026-10-26 15:47:52**，**全部早于本轮窗口 16:18:01** ⇒ `analyze` A23 = 落窗 **0 条**；执行器落盘的 `root-status-before.txt` 与 `root-status-after.txt` **逐行相同**（在途集合本轮零变化，正向对照 10 行 > 0）；本轮我方改动集合 = 台账 / 状态 / 证据 三类，与在途集合交集 **0** 条（含上一轮收尾产物也未被本轮触碰）。在途 `pom.xml` 含前端打包（exec-maven-plugin 调 npm）、`application.yml` 新增 settlement / cycle / amount-basis / fee-basis 四个键（`ledger-audit` B 段读数：HEAD 0 次 → 工作区各 1 次；`pom.xml` 的 exec-maven-plugin 同为 HEAD 0 → 工作区 1）、`SecurityConfig.java` 92 → 97 行（静态资源 / SPA 放行），故两轮全量刻意在 HEAD 的 detached worktree 内执行，**不受**该在途改动影响（`WT_DIRTY_LINES=0` 佐证）。
 
-八、返工真值：**返工 0 处**（判据 / 脚本侧）。装置链 ①②③③b 各步**首次执行即通过**：`analyze` 27/0、`regression` 84 条零回归且 rc/FAIL 逐条与基轮对齐、`regression --selftest` 32/0、`selftest-counts` 六工具一致且更正 0 项、常驻环境探针与常驻台账核对通道亦一次跑通（`PROBE_END=1`、`AUX_END=1`，退出码 0/1 均按既定语义：aux 收尾前相位含 4 条预期 FAIL）。**调用层读数**（不自造返工、也不隐瞒读数）：本轮执行器以 `timeout=900` 调用**超出前台单次等待上限（600 s）** ⇒ 按工具要求自动转 `background=true` 启动并被轮询至退出（facts 末行 `FACTS_WRITTEN=1`，**未重跑、未改参数**）；回归面 84 条同以前台长等待跑至 `REGRESSION_END=1`（rc=1 属既定 `silent_red` 语义）⇒ 该通道据实登记 1 条读数（属调用层形态，不是判据/脚本返工，不计入返工真值）。另据实登记一条**无因果结论**的读数：两轮 maven 耗时（183 / 172 s）均落在 `mm:ss min` 分支 ⇒ `s` 分支本轮仍未复现。
+八、返工真值：**返工 1 处**（判据 / 脚本侧，**收尾阶段才暴露**）。**第 1 项 = 自撰核对脚本的路径分隔符判据缺陷**：收尾后用一次性 aux 脚本核对「本轮证据是否被 git 跟踪 / 是否在 HEAD 树」时，判据把 `str(Path(dir) / name)`（Windows 反斜杠）与 `git ls-files` / `git ls-tree`（正斜杠）直接做集合差 ⇒ 差集把**全部** 17 条已提交证据判成「未跟踪 / 不在 HEAD 树」，而 `git status` 干净、`git ls-files` 里明明有（历史 40/57：0 命中先怀疑判据）。修法 = 两侧先过同一归一并打印「另一侧解析到 N 条」正向对照（`git ls-files` 13786 条 ⇒ 一眼区分「仓库空」与「判据错」）；修正后复跑 17/17 已跟踪且在 HEAD 树、0 缺失、台账行逐列相等。该缺陷**未进入任何证据文件或既有结论**（一次性脚本位于独立 aux 目录，且与装置工具冲突时以装置工具为准），但按「返工真值 = 判据 / 脚本侧缺陷数」的定义据实计入，并按历史 209 以独立收尾提交更正（不改主提交 message）。装置链 ①②③③b 各步**首次执行即通过**：`analyze` 27/0、`regression` 84 条零回归且 rc/FAIL 逐条与基轮对齐、`regression --selftest` 32/0、`selftest-counts` 六工具一致且更正 0 项、常驻环境探针与常驻台账核对通道亦一次跑通（`PROBE_END=1`、`AUX_END=1`，退出码 0/1 均按既定语义：aux 收尾前相位含 4 条预期 FAIL）。**调用层读数**（不自造返工、也不隐瞒读数）：本轮执行器以 `timeout=900` 调用**超出前台单次等待上限（600 s）** ⇒ 按工具要求自动转 `background=true` 启动并被轮询至退出（facts 末行 `FACTS_WRITTEN=1`，**未重跑、未改参数**）；回归面 84 条同以前台长等待跑至 `REGRESSION_END=1`（rc=1 属既定 `silent_red` 语义）⇒ 该通道据实登记 1 条读数（属调用层形态，不是判据/脚本返工，不计入返工真值）。另据实登记一条**无因果结论**的读数：两轮 maven 耗时（183 / 172 s）均落在 `mm:ss min` 分支 ⇒ `s` 分支本轮仍未复现。
 
 九、待拍板（①–⑭ 全部沿用上一轮，**本轮无新增**）：① **装置是否支持「修复轮」**（`device-report` / `closeout` 的「交付面零改动」判据对修复轮必红）；② `three-end` 跨轮 delta 通道自 R708 起缺席（现 129 轮）；③ 环境面负向对照端口是否改 IPv4+IPv6 **双向**并固化进装置（5199 即典型：IPv4 000 / IPv6 在听）；④ 业务闭环实跑的恢复方式与用哪个库（缺口在**恢复实跑**而非「闭环未通」）；⑤ **8086 已取证为本仓 aap-server 的 dev profile 实例** ⇒ 该实例是否长期保留、我方巡检是否应把它纳入「环境面基线」登记；⑥ 前端 5173 / 5174 仍不可达；⑦ 他方在途 10 条（含 `pom.xml` / `SecurityConfig.java` / `application.yml`，后者新增 settlement / cycle / amount-basis / fee-basis 四键）落地后须重核**配置项契约**与**鉴权契约**，并重跑两轮全量；⑧ 8081 / 8082 的响应归属登记口径（本机 `netstat` 连续多轮无该两口 LISTENING 行 ⇒ 归属仍未取证）；⑨ 单号「4 位」语义（固定位数 vs 最小宽度）；⑩ `J5e` 冻结快照判据本体缺陷、`ADM-CB01` APPLY 语义、台账 `A1b` / `A1c` 长期 FAIL 的根因（本轮 A1b/A1c 仍 FAIL：轮次行 812 条、首 R27 末 R837、存在重复）；⑪ 并发前置判据对「别处的 `mvn test`」不可判别（`jps -l` 不输出命令行实参 ⇒ 他方同时在跑 `mvn test` 时前置会判绿放行；改判据属装置变更、须人拍板，本轮不改）；⑫ 全机 LISTENING 行数的跨轮 delta 通道是否固化进装置（只存行数无法归因）；⑬ `regression.py` 的退出码信号：`silent_red`（= 2 条常驻崩溃通道）使退出码恒 1，「rc≠0」不再能区分「有回归」与「稳态」，是否改为「仅跨轮条件触发非 0、常驻通道另行告警」须人拍板（本轮按「不改判据」登记）；⑭ **环境面基线是否改为记录「逐端口明细 + `jps` 成员清单」而非仅 LISTENING 行数**（属装置扩面，须人拍板）。
 
-十、结论：清单 **117/117** 全注册（missing=0，作业目标「90 条全部落地」已含于 total 之中）；**交付面与装置面（仓库 `tools/`）双零改动**；全量 **328 例 × 两轮全绿（连续第 204 轮）**、逐类 diff 0、`@Test` 与 surefire 对账一致、禁用扫描 0；回归面 **84 条零回归**（rc 变化 0 / 新增 0 / 未复跑 0、FAIL 明细 167→167 双向 0、崩溃通道理由 sha256 不变、零写副作用 103/103、归仓三方一致 54/54）；逐端点真实 HTTP 用例 **exact 117 / prefix 0 / none 0**；分析器 **27 PASS / 0 FAIL**、回归自测 **32 PASS / 0 FAIL**、自测条数六工具与 README 一致（更正 0 项）、aux 台账核对收尾前 22 PASS / 4 FAIL（4 条均已知/预期）；返工真值 = **返工 0 处**（判据 / 脚本侧）；他方在途 10 条零触碰（落窗 0 条、before/after 逐行相同），两轮在 HEAD 的 worktree 内跑测故不受其影响；环境面读数逐项登记（8086 200 / pid 28232、5175 200 / pid 24908、5199 仍被他方 IPv6-only 占用、9223 本轮未在监听且零触碰、LISTENING 47 行、8081/8082 归属未取证、`jps` 4 行含他方常驻进程零触碰）；业务闭环**本轮现场无新读数**（我方未起实例 / 未打包），缺口在**恢复实跑**而非「闭环未通」。
+十、结论：清单 **117/117** 全注册（missing=0，作业目标「90 条全部落地」已含于 total 之中）；**交付面与装置面（仓库 `tools/`）双零改动**；全量 **328 例 × 两轮全绿（连续第 204 轮）**、逐类 diff 0、`@Test` 与 surefire 对账一致、禁用扫描 0；回归面 **84 条零回归**（rc 变化 0 / 新增 0 / 未复跑 0、FAIL 明细 167→167 双向 0、崩溃通道理由 sha256 不变、零写副作用 103/103、归仓三方一致 54/54）；逐端点真实 HTTP 用例 **exact 117 / prefix 0 / none 0**；分析器 **27 PASS / 0 FAIL**、回归自测 **32 PASS / 0 FAIL**、自测条数六工具与 README 一致（更正 0 项）、aux 台账核对收尾前 22 PASS / 4 FAIL（4 条均已知/预期）；返工真值 = **返工 1 处**（判据 / 脚本侧，收尾阶段暴露的自撰核对脚本分隔符判据缺陷，见第八节；以独立收尾提交据实更正，历史 209）；他方在途 10 条零触碰（落窗 0 条、before/after 逐行相同），两轮在 HEAD 的 worktree 内跑测故不受其影响；环境面读数逐项登记（8086 200 / pid 28232、5175 200 / pid 24908、5199 仍被他方 IPv6-only 占用、9223 本轮未在监听且零触碰、LISTENING 47 行、8081/8082 归属未取证、`jps` 4 行含他方常驻进程零触碰）；业务闭环**本轮现场无新读数**（我方未起实例 / 未打包），缺口在**恢复实跑**而非「闭环未通」。
 ------------------------------------------------------------------------------
 
 三、本轮关键读数（读自 analyze / regression 证据，零手写值）
@@ -43,7 +43,7 @@ R838 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
-  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 10 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 12 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 22 == `git status` 条目 22
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 10 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 4 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 14 == `git status` 条目 14
       M .agents/state/evidence/final-check-R836.txt  mtime=2026-10-26 15:47:52
       M .agents/state/evidence/green-T-M4-08.txt  mtime=2026-10-22 00:30:39
       M README.md  mtime=2026-09-24 07:51:14
@@ -54,20 +54,17 @@ R838 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
       ?? .agents/state/evidence/e2e-final2-20261015.json  mtime=2026-10-15 23:23:55
       ?? .agents/state/evidence/e2e-run-20261015-d.json  mtime=2026-10-15 23:23:13
       ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
-      （本轮产物）?? .agents/state/evidence/audit-regression-R838-faildiff.txt  mtime=2026-10-26 16:29:31
-      （本轮产物）?? .agents/state/evidence/audit-regression-R838-failraw.txt  mtime=2026-10-26 16:29:31
-      （本轮产物）?? .agents/state/evidence/audit-regression-R838-rcseq.txt  mtime=2026-10-26 16:29:31
-      （本轮产物）?? .agents/state/evidence/audit-regression-R838.txt  mtime=2026-10-26 16:29:31
-      （本轮产物）?? .agents/state/evidence/device-selftest-counts-R838.txt  mtime=2026-10-26 16:29:43
-      （本轮产物）?? .agents/state/evidence/green-verify-R838-coverage-fields.txt  mtime=2026-10-26 16:24:29
-      （本轮产物）?? .agents/state/evidence/green-verify-R838-full-run1.txt  mtime=2026-10-26 16:24:29
-      （本轮产物）?? .agents/state/evidence/green-verify-R838-full-run2.txt  mtime=2026-10-26 16:24:29
-      （本轮产物）?? .agents/state/evidence/green-verify-R838-testcount.txt  mtime=2026-10-26 16:24:29
-      （本轮产物）?? .agents/state/evidence/green-verify-R838-tested-state.txt  mtime=2026-10-26 16:24:29
-      （本轮产物）?? .agents/state/evidence/regression-selftest-R838.txt  mtime=2026-10-26 16:29:34
-      （本轮产物）?? .agents/state/evidence/round-R838-analysis.txt  mtime=2026-10-26 16:24:29
+      （本轮产物）M .agents/state/aap-server-feature-status.csv  mtime=2026-10-26 16:36:38
+      （本轮产物）M .agents/state/aap-server-tdd-state.md  mtime=2026-10-26 16:36:38
+      （本轮产物）M .agents/state/evidence/coverage-history.txt  mtime=2026-10-26 16:36:38
+      （本轮产物）M .agents/state/evidence/device-round-R838.txt  mtime=2026-10-26 16:36:27
       其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
-  ③ 提交区间（92cbb69e..HEAD）改动文件 = 0 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 0 枚 = 他方 0 枚 + 本轮 0 枚
+  ③ 提交区间（92cbb69e..HEAD）改动文件 = 21 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 5 枚 = 他方 0 枚 + 本轮 5 枚
+      [本轮] 887ffdf2 chore(state): R838 飞书通知留痕（同目标去重、非失败）  文件 2 个 / 交付面命中 0 个
+      [本轮] 1fb398fd chore(state): R838 收尾一致性核对证据（20 PASS / 0 FAIL）  文件 1 个 / 交付面命中 0 个
+      [本轮] 178a3084 chore(state): R838 独立复核证据（43 PASS / 0 FAIL）  文件 1 个 / 交付面命中 0 个
+      [本轮] 99a613c9 chore(state): R838 台账提交列回填 + 主提交落地核对（PASS / 0 FAIL）  文件 2 个 / 交付面命中 0 个
+      [本轮] 38aa008e chore(state): R838 巡检轮证据与台账（117/117 全注册 · 328 例两轮全绿 · 连续第 204 轮   文件 16 个 / 交付面命中 0 个
       ⇒ **本轮自己的提交**触及交付面前缀的 = 0 个（**须 0**）；他方提交的交付面改动不计入本轮（历史 81/193/198：他方在途不得算作本轮改动）
 
 五、下一族
