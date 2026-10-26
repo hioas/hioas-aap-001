@@ -1,0 +1,27 @@
+R824 被测状态取证（坑 27/28/193：同机他方在途改动不得影响本轮结论）
+worktree 提交（实际检出的被测状态）= b0b9fa82
+证据写入时主工作区 HEAD = b0b9fa82
+二者相同 = True
+两轮全量在 detached worktree 内执行（git worktree add --detach），主工作区在途改动不参与编译
+
+一、他方在途改动（**不含**本轮我方写的证据文件）条数 = 9；★ 标记 mtime 落在测试窗口 11:13:11–11:19:11 内
+   M .agents/state/evidence/green-T-M4-08.txt :: mtime=2026-10-22 00:30:39
+   M README.md :: mtime=2026-09-24 07:51:14
+   M aap-server/pom.xml :: mtime=2026-09-24 08:07:37
+   M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java :: mtime=2026-09-24 19:12:39
+   M aap-server/src/main/resources/application.yml :: mtime=2026-09-25 05:13:53
+  ?? .agents/state/evidence/e2e-final-20261015.json :: mtime=2026-10-15 23:22:05
+  ?? .agents/state/evidence/e2e-final2-20261015.json :: mtime=2026-10-15 23:23:55
+  ?? .agents/state/evidence/e2e-run-20261015-d.json :: mtime=2026-10-15 23:23:13
+  ?? aap-server/src/main/webapp/ :: mtime=2026-09-24 08:07:43
+落在测试窗口内的他方条目数 = 0 （0 ⇒ 本轮两轮跑的确实是提交态源码，不受他方在途改动影响）
+
+二、本轮我方新增证据文件（**按语义与上述在途改动分开列**，坑 236：目录分类 ≠ 语义分类）= 6 条，其中
+   `.agents/state/evidence/green-verify-R824-tested-state.txt` 为**本文件自身**（落盘时产生，故不在 status 快照里、清单条数由 len() 推出）
+  .agents/state/evidence/green-verify-R824-class-diff.txt
+  .agents/state/evidence/green-verify-R824-coverage-fields.txt
+  .agents/state/evidence/green-verify-R824-full-run1.txt
+  .agents/state/evidence/green-verify-R824-full-run2.txt
+  .agents/state/evidence/green-verify-R824-testcount.txt
+  .agents/state/evidence/green-verify-R824-tested-state.txt
+零触碰声明：本轮未修改 / 未暂存 / 未提交上述任何他方在途文件（提交仅含 .agents/state 下本轮证据与台账/状态行）
