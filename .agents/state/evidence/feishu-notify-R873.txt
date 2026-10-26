@@ -1,0 +1,8 @@
+hermes send -t feishu -s 'AAP TDD 进度' '<一句话进度>'
+退出码 = 0
+--- stdout ---
+Skipped send_message to feishu:oc_45c4ca7036910d5e1e20cc1c9c80b89b. This cron job will already auto-deliver its final response to that same target. Put the intended user-facing content in your final response instead, or use a different target if you want an additional message.
+--- stderr ---
+（空）
+
+判读：上行为 cron 会话的「Skipped send_message」显式抑制（本作业最终回复自动投递同一目标）⇒ 本轮「进度通知」由最终回复承载，**不构成通知失败**；本文件如实记录该事实，不改判据、不重试、不换目标。读数：清单 117/117（missing=0）、328 例 × 两轮全绿（连续第 239 轮）、回归面 84 条零回归（FAIL 明细 167→167、崩溃通道理由 sha256 不变）、分析器 27/0、回归自测 32/0、自测条数六工具一致（更正 0 项）、被测提交 22b5edb7、返工真值 0 处（判据 / 脚本侧）；独立复核与收尾核对读数以 `independent-R873.txt` / `final-check-R873.txt` 为准（本文件落盘时尚未执行，不作预先自述）。
