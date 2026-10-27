@@ -1,0 +1,66 @@
+R878 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动三判据）
+==============================================================================
+生成方式：本文件由 `tools/round-verify/device-report.py` 从 git / facts / 证据的**真实输出**取值（数字零手写值），不接触交付面。
+轮次 = R878；被测提交（HEAD 的独立 worktree 内检出）= 3b4b58d4；窗口 = 2026-10-27 08:59:34 -> 2026-10-27 09:14:06（facts 落盘）
+
+一、装置面改动（机器推导，零手写）
+  被测提交的 `tools/round-verify` 文件 = 16 个 / 工作区同名文件 = 16 个（新增 0 / 删除 0）
+  工作区未提交的 tools/ 条目 = 0 条（无）
+  「被测提交..HEAD」触及 tools/ 的提交 = 0 枚（本文件生成于主提交之前）
+  逐文件 numstat（工作区 vs HEAD，`插入/删除/路径`）：无
+  轮次无关性守卫：装置脚本（14 个 .py/.sh）内当前轮次号命中 = **0**（须 0
+    = 本轮的产物**不得**把当前轮次号写进装置源码，历史 201/205/217）；判别力对照 = 1（须 1，证明守卫非空转，历史 75/98）
+
+二、本轮返工真值 = **0 处**（零交付面影响；条目文本来自单一事实源 `note-R878.md`，与台账描述列 / 状态文件小节共用）
+------------------------------------------------------------------------------
+纯巡检轮（missing=0 ⇒ 校验轮，交付面零改动）：作业背景「未完成 45 条」已过期 —— 清单 117/117、registered_routes=134、not_registered=[]，本轮不推进任何族、不改 aap-server / docs / 冻结清单生成物任何一个字节。
+
+装置链 ①–③ 首跑即全部通过：两轮全量 328 例 / 60 类全绿（连续第 244 轮，run1 09:00:32→09:09:01、run2 09:09:02→09:13:56，两轮 rc=0/0、逐类 diff=0、@Test 词边界计数与 surefire 合计一致、禁用扫描 0 条）；分析器 27 条判据 PASS / 0 FAIL；回归面 84 条 rc 变化 0 条 / 新增 0 / 未复跑 0，FAIL 明细 43 脚本 167 行且跨轮 faildiff 新增 0 / 消失 0，崩溃通道 2 条理由集与上一轮 sha256 逐字节一致；回归自测 32 PASS；自测条数与 README 自述逐工具一致（更正 0 处）；耐久性守卫 54 条仓库外脚本三方逐字节一致 / 索引孤儿 0。
+
+返工 0 处（装置侧、判据/脚本侧 —— 本轮无任何判据修正、无锚点重钉）。
+
+观察项：① 崩溃通道 2 条（gap-coverage-gap、gap-coverage-gap-selftest：rc=1 ∧ FAIL 明细 0 行）属常驻历史通道，理由集跨轮字节一致，故判零回归而非新缺陷；② 主体仓库 10 条他方在途改动（README / pom.xml / SecurityConfig / application.yml / 两份历史证据 / 3 份 e2e json / webapp 目录，最老 mtime 2026-09-24、最近 2026-10-26 15:47）全部只登记不触碰，其中 mtime 落在本轮窗口内 0 条；③ 本轮窗口内他方推进提交 0 枚（HEAD 起点 = 终点 = 3b4b58d4）。
+------------------------------------------------------------------------------
+
+三、本轮关键读数（读自 analyze / regression 证据，零手写值）
+  相位 = green（两轮 rc=0/0 ∧ missing=0 的合取，判据见 tools/round-verify/phase.py）
+  分析器判据 PASS 27 / FAIL 0；覆盖 total=117 implemented=117 **missing=0** registered_routes=134；连续第 244 轮全绿
+  回归面：复跑 84 条（上一轮 R877 = 84 条）；rc 变化 0 / 新增 0 / 未复跑 0；FAIL 明细 43 脚本 167 行
+  零写副作用：生成物 size+md5 变化 0 个（须 0）；跨轮 faildiff 上一轮 167 行 / 本轮 167 行、新增 0 / 消失 0
+  崩溃通道：rc!=0 条目 45 条，其中 FAIL 通道不可见（rc!=0 ∧ FAIL 0 行）= 2 条
+
+四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
+  ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 10 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 12 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 22 == `git status` 条目 22
+      M .agents/state/evidence/final-check-R836.txt  mtime=2026-10-26 15:47:52
+      M .agents/state/evidence/green-T-M4-08.txt  mtime=2026-10-22 00:30:39
+      M README.md  mtime=2026-09-24 07:51:14
+      M aap-server/pom.xml  mtime=2026-09-24 08:07:37
+      M aap-server/src/main/java/com/hioas/aap/config/SecurityConfig.java  mtime=2026-09-24 19:12:39
+      M aap-server/src/main/resources/application.yml  mtime=2026-09-25 05:13:53
+      ?? .agents/state/evidence/e2e-final-20261015.json  mtime=2026-10-15 23:22:05
+      ?? .agents/state/evidence/e2e-final2-20261015.json  mtime=2026-10-15 23:23:55
+      ?? .agents/state/evidence/e2e-run-20261015-d.json  mtime=2026-10-15 23:23:13
+      ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
+      （本轮产物）?? .agents/state/evidence/audit-regression-R878-faildiff.txt  mtime=2026-10-27 09:20:22
+      （本轮产物）?? .agents/state/evidence/audit-regression-R878-failraw.txt  mtime=2026-10-27 09:20:22
+      （本轮产物）?? .agents/state/evidence/audit-regression-R878-rcseq.txt  mtime=2026-10-27 09:20:22
+      （本轮产物）?? .agents/state/evidence/audit-regression-R878.txt  mtime=2026-10-27 09:20:22
+      （本轮产物）?? .agents/state/evidence/device-selftest-counts-R878.txt  mtime=2026-10-27 09:20:45
+      （本轮产物）?? .agents/state/evidence/green-verify-R878-coverage-fields.txt  mtime=2026-10-27 09:14:10
+      （本轮产物）?? .agents/state/evidence/green-verify-R878-full-run1.txt  mtime=2026-10-27 09:14:10
+      （本轮产物）?? .agents/state/evidence/green-verify-R878-full-run2.txt  mtime=2026-10-27 09:14:10
+      （本轮产物）?? .agents/state/evidence/green-verify-R878-testcount.txt  mtime=2026-10-27 09:14:10
+      （本轮产物）?? .agents/state/evidence/green-verify-R878-tested-state.txt  mtime=2026-10-27 09:14:10
+      （本轮产物）?? .agents/state/evidence/regression-selftest-R878.txt  mtime=2026-10-27 09:20:27
+      （本轮产物）?? .agents/state/evidence/round-R878-analysis.txt  mtime=2026-10-27 09:14:10
+      其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
+  ③ 提交区间（3b4b58d4..HEAD）改动文件 = 0 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 0 枚 = 他方 0 枚 + 本轮 0 枚
+      ⇒ **本轮自己的提交**触及交付面前缀的 = 0 个（**须 0**）；他方提交的交付面改动不计入本轮（历史 81/193/198：他方在途不得算作本轮改动）
+
+五、下一族
+  **无**（清单 117/117、missing=0）—— 本轮完成端点 0 条 / 新增用例 0 条、无红基线。
+
+六、留痕
+  本文件 = .agents/state/evidence/device-round-R878.txt（由本工具直接落盘，`newline="\n"`；文件名与 closeout.py 的消费名机器核对一致；行数下限判据与 CR=0 判据见下）
+DEVICE_REPORT_END=1
