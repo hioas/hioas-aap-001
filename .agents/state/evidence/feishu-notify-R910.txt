@@ -1,0 +1,5 @@
+R910 飞书通知通道读数（非失败，按设计去重）
+尝试：hermes send -t feishu -s 'AAP TDD 进度' 'R910 巡检轮完成：清单 117/117（missing=0）、全量 328 例两轮全绿（连续第 276 轮）、回归面 84 条零回归；主提交 ddba4c01'
+返回：Skipped send_message to feishu:oc_...（cron 作业的最终回复本身会自动投递到同一目标）rc=0
+判定：通道按设计去重，**不是发送失败**；不写入 feishu-notify-failures.txt。
+面向用户的内容（结论 / 覆盖进度 / 证据文件名 / 两轮全绿读数 / 待拍板事项）全部放在本轮最终回复里投递。
