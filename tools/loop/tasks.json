@@ -1,18 +1,80 @@
 {
   "feature": "001-intake-automation",
-  "note": "命令按 cmd.exe 语法（loop.py 用 Windows shell）。判 DONE 只用 green + gate。",
+  "note": "命令按 cmd.exe 语法。require_diff=false 用于回归/验证类任务（跑既有实现，不该产生改动）。",
   "tasks": [
     {
-      "id": "T-M4-08",
-      "title": "限速计划 ConfigApplyRateLimiter（R-57）",
-      "ac": ["R-57"],
-      "red": "echo red baseline: evidence/red-M4-0809.txt (11/11 UnsupportedOperation)",
-      "green": "cd /d aap-server && E:\\workspaces\\maven\\apache-maven-3.8.6\\bin\\mvn.cmd -B -ntp test -Dtest=ConfigApplyRateLimiterTest,ReadbackComparatorTest",
+      "id": "T-M4-07",
+      "title": "渠道配置规划器（展开+差异，纯函数）",
+      "ac": [
+        "R-54",
+        "R-56",
+        "R-59"
+      ],
+      "green": "cd /d aap-server && E:\\\\workspaces\\\\maven\\\\apache-maven-3.8.6\\\\bin\\\\mvn.cmd -B -ntp test -Dtest=ChannelConfigPlannerTest",
       "gate": [],
-      "watch": ["aap-server/src/main/java/com/hioas/aap/supply", "aap-server/src/test/java/com/hioas/aap/supply"],
+      "watch": [
+        "aap-server/src/main/java/com/hioas/aap/supply",
+        "aap-server/src/test/java/com/hioas/aap/supply"
+      ],
+      "require_diff": false,
       "evidence_dir": ".agents/state/evidence",
       "max_attempts": 3,
-      "budget_minutes": 20
+      "env_file": "E:/env/aap-server.env"
+    },
+    {
+      "id": "T-M4-08",
+      "title": "限速计划 + 写后回读比较（R-57/R-58）",
+      "ac": [
+        "R-57",
+        "R-58"
+      ],
+      "green": "cd /d aap-server && E:\\\\workspaces\\\\maven\\\\apache-maven-3.8.6\\\\bin\\\\mvn.cmd -B -ntp test -Dtest=ConfigApplyRateLimiterTest,ReadbackComparatorTest",
+      "gate": [
+        "cd /d aap-server && E:\\\\workspaces\\\\maven\\\\apache-maven-3.8.6\\\\bin\\\\mvn.cmd -B -ntp test -Dtest=EndpointCoverageTest"
+      ],
+      "watch": [
+        "aap-server/src/main/java/com/hioas/aap/supply",
+        "aap-server/src/test/java/com/hioas/aap/supply"
+      ],
+      "require_diff": false,
+      "evidence_dir": ".agents/state/evidence",
+      "max_attempts": 3,
+      "env_file": "E:/env/aap-server.env"
+    },
+    {
+      "id": "T-M4-12",
+      "title": "供给单元/配置批次端点（117 端点契约冻结）",
+      "ac": [
+        "FR-2",
+        "FR-6"
+      ],
+      "green": "cd /d aap-server && E:\\\\workspaces\\\\maven\\\\apache-maven-3.8.6\\\\bin\\\\mvn.cmd -B -ntp test -Dtest=EndpointCoverageTest",
+      "gate": [],
+      "watch": [
+        "aap-server/src/main/java/com/hioas/aap/supply",
+        "docs/backend/endpoints.json"
+      ],
+      "require_diff": false,
+      "evidence_dir": ".agents/state/evidence",
+      "max_attempts": 3,
+      "env_file": "E:/env/aap-server.env"
+    },
+    {
+      "id": "T-M4-03",
+      "title": "迁移与 ER 文档一致（V15/V16，59 表）",
+      "ac": [
+        "FR-2"
+      ],
+      "green": "cd /d aap-server && E:\\\\workspaces\\\\maven\\\\apache-maven-3.8.6\\\\bin\\\\mvn.cmd -B -ntp test -Dtest=MigrationTest",
+      "gate": [],
+      "watch": [
+        "aap-server/src/main/resources/db/migration",
+        "docs/backend/01-ER数据模型.md"
+      ],
+      "require_diff": false,
+      "evidence_dir": ".agents/state/evidence",
+      "max_attempts": 3,
+      "env_file": "E:/env/aap-server.env"
     }
   ]
 }

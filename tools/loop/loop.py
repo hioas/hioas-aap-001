@@ -38,19 +38,35 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def sh(cmd: str, cwd: str, timeout: int = 2400):
-    """跑一条命令，返回 (rc, 合并输出, 耗时秒)。"""
+def load_env(path: str):
+    """读取 KEY=VALUE 环境文件（**值只注入、绝不打印**）。"""
+    env = {}
+    if not path or not os.path.exists(path):
+        return env
+    with open(path, encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            k, v = line.split("=", 1)
+            env[k.strip()] = v.strip().strip('"').strip("'")
+    return env
+
+
+def sh(cmd: str, cwd: str, timeout: int = 2400, env=None):
+    """跑一条命令，返回 (rc, 合并输出, 耗时秒)。env 会与当前进程环境合并。"""
     t0 = time.time()
+    run_env = {**os.environ, **(env or {})}
     try:
         # 用 cmd.exe（Maven/Java 是 Windows 程序）：命令须写 cmd 语法，勿用 export 等 bash 内建。
-        p = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, timeout=timeout)
+        p = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, timeout=timeout, env=run_env)
         out = (p.stdout or b"") + (p.stderr or b"")
         return p.returncode, out.decode("utf-8", "replace"), time.time() - t0
     except subprocess.TimeoutExpired:
         return 124, "TIMEOUT after %ss: %s" % (timeout, cmd), time.time() - t0
 
 
-def git_dirty(repo: str, paths=None):
+def git_dirty(repo: str, paths=None, env=None):
     """工作区是否有改动。paths 非空时**只看这些路径**（含未跟踪文件）。
 
     为什么需要 paths：多会话并发写同一仓库时，`git status` 会被他方在制品点亮 —— 那样
@@ -65,13 +81,13 @@ def git_dirty(repo: str, paths=None):
     return (rc == 0 and out.strip() != ""), out
 
 
-def fingerprint(repo: str, watch) -> str:
+def fingerprint(repo: str, watch, env=None) -> str:
     """工作区指纹：**被监视路径**的 git 变更 + mtime/size。
 
     注意 git 部分也要按 watch 收敛：并发仓库里他方的未提交改动会让全仓库 `git status`
     每 tick 都不同 → 指纹永远"在变" → 永远判不出 DONE（实测过这个坑）。
     """
-    parts = [git_dirty(repo, watch if watch else None)[1]]
+    parts = [git_dirty(repo, watch if watch else None, env)[1]]
     for rel in watch:
         p = os.path.join(repo, rel)
         if os.path.isfile(p):
@@ -90,7 +106,7 @@ def fingerprint(repo: str, watch) -> str:
     return hashlib.sha256("\n".join(parts).encode("utf-8")).hexdigest()[:16]
 
 
-def run_gate(task, repo: str):
+def run_gate(task, repo: str, env=None):
     """跑 green + gate 命令，证据落盘。返回 {key: (rc, evidence_path)}。"""
     ev_dir = os.path.join(repo, task.get("evidence_dir", ".agents/state/evidence"))
     os.makedirs(ev_dir, exist_ok=True)
@@ -101,7 +117,7 @@ def run_gate(task, repo: str):
     for i, cmd in enumerate(task.get("gate", [])):
         commands.append(("gate%d" % i, cmd))
     for key, cmd in commands:
-        rc, out, secs = sh(cmd, repo)
+        rc, out, secs = sh(cmd, repo, env=env)
         path = os.path.join(ev_dir, "%s-%s.txt" % (key, task["id"]))
         with open(path, "w", encoding="utf-8", newline="\n") as fh:
             fh.write("# task=%s key=%s rc=%d secs=%.1f at=%s\n" % (task["id"], key, rc, secs, now_iso()))
@@ -112,7 +128,7 @@ def run_gate(task, repo: str):
     return results
 
 
-def judge_done(task, results, start_ts: float, repo: str):
+def judge_done(task, results, start_ts: float, repo: str, env=None):
     """DONE 四条件。返回 (done, 原因)。"""
     if not results:
         return False, "无门禁结果"
@@ -124,7 +140,12 @@ def judge_done(task, results, start_ts: float, repo: str):
             return False, "证据不新鲜(%s 早于任务开始，疑似历史报告)" % key
     # 第 4 条反作弊：**本任务 watch 范围内**有改动（不是全仓库 —— 并发仓库里他方改动会使该条失效）
     watch = task.get("watch") or []
-    dirty, _ = git_dirty(repo, watch if watch else None)
+    # require_diff=False 用于**回归/验证类任务**：它们跑的是既有实现，本就不该产生改动。
+    # 若死守「必须有改动」，已完成的任务会被永久误判为 NOT_DONE（反作弊条款的适用边界）。
+    if task.get("require_diff", True):
+        dirty, _ = git_dirty(repo, watch if watch else None, env)
+    else:
+        dirty = True
     if not dirty:
         scope = ("（范围：%s）" % ", ".join(watch)) if watch else "（全仓库）"
         return False, "watch 范围内无改动%s —— 说完成但没干活" % scope
@@ -145,13 +166,14 @@ def run_task(task, repo: str, args) -> str:
     print("  red : %s" % task.get("red", "(未定义)"))
     print("  green: %s" % task.get("green", "(未定义)"))
 
+    env = load_env(task.get("env_file"))
     start_ts = time.time()
-    last_fp = fingerprint(repo, watch)
+    last_fp = fingerprint(repo, watch, env)
     last_change = time.time()
     attempts = 0
 
     while True:
-        fp = fingerprint(repo, watch)
+        fp = fingerprint(repo, watch, env)
         if fp != last_fp:
             last_fp = fp
             last_change = time.time()
@@ -160,8 +182,8 @@ def run_task(task, repo: str, args) -> str:
             continue
 
         # 静默：跑门禁判 DONE / STALLED
-        results = run_gate(task, repo)
-        done, why = judge_done(task, results, start_ts, repo)
+        results = run_gate(task, repo, env)
+        done, why = judge_done(task, results, start_ts, repo, env)
         if done:
             print("  [%s] DONE — %s" % (now_iso(), why))
             append_ledger(repo, {"ts": now_iso(), "task": tid, "state": "DONE", "reason": why,
@@ -216,8 +238,9 @@ def main() -> int:
     for task in tasks:
         if args.once:
             start_ts = time.time() - 1
-            results = run_gate(task, repo)
-            done, why = judge_done(task, results, start_ts, repo)
+            env = load_env(task.get("env_file"))
+            results = run_gate(task, repo, env)
+            done, why = judge_done(task, results, start_ts, repo, env)
             print("%s -> %s（%s）" % (task["id"], "DONE" if done else "NOT_DONE", why))
             states[task["id"]] = "DONE" if done else "NOT_DONE"
             continue
