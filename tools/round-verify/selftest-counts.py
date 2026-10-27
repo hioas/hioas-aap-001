@@ -15,7 +15,12 @@
   ③ 条数 > 0 且 FAIL == 0（正向对照）；
   ④ README 自述条数 ⇔ 工具汇总行条数，逐工具相等；不等即**据实更正**，
      并做「写回后重读 ⇒ 判为已一致」的闭环复核（幂等，可重跑）；
-  ⑤ 运行**全部** `--selftest` 前后 `git status --porcelain` **逐行相同**（只读守卫：装置自测不得有写副作用）。
+  ⑤ 运行**全部** `--selftest` 前后 `git status --porcelain` 的**差异必须全部可由「他方并发写入」解释**
+     （只读守卫：装置自测不得有写副作用）。归属**机器化**：差异路径落在证据目录、且其文件名**不被任何装置源码引用**
+     ⇒ 记为他方并发写入（信息项，附行文本供人核对）；其余（含装置源码里出现过的证据文件名模板）⇒ 装置写副作用（红）。
+     为什么不能只比「逐行相同」：同机他方会往证据目录写自己的证据文件，快照必然不等 ⇒ 把他人动作误判成本方缺陷
+     （判据范围与语义不符，历史 81/193/198）。正向对照：装置源码里必然存在证据名模板（本文件即
+     `device-selftest-counts-%s.txt`）⇒ 解析数须 > 0，否则归属判据不可用（0 命中的守卫会把他方写入放行，历史 46/75/98）。
 
 纪律：本文件**不得**出现任何具体轮次号字面量（装置目录轮次无关性守卫，历史 201/205/217）；
 证据一律 `newline="\\n"` 落盘并复核 CR==0（历史 69/84/146）。
@@ -137,6 +142,92 @@ def patch_readme(text, pat, newval):
     return out, "已更正", cur
 
 
+# ---------- 只读守卫的**归属**判据（历史 81/193/198：判据范围必须与语义一致）----------
+EV_PREFIX = ".agents/state/evidence/"
+
+
+def device_owned_names(dev_dir=None):
+    """装置源码里的证据文件名集合（含占位符者视为模板）——**机器派生**，不是人列举。
+
+    为什么需要：只读守卫若只比「快照逐行相同」，同机他方往证据目录写自己的证据文件时快照必然不等
+    ⇒ 他方并发写入被误判成「装置自测有写副作用」（判据范围与语义不符，历史 81/193/198）。
+    归属靠「名字是否出现在装置源码里」判定：写出点必然在源码里留名字，他方的名字不会。
+    正向对照：装置源码里必然存在模板（本文件即 `device-selftest-counts-%s.txt`）⇒ 解析数须 > 0。
+    **模板门槛**：含占位符的名字必须有 >= 6 个连续字面量字符才算写点 —— 否则像 `%s-%s-%s.txt`
+    这样的组合名会退化成「任意三段式全匹配」，把他方任意三段式文件名都认成「装置自己会写」
+    （实测：他方某「三段横线」式证据名被判成装置写点 ⇒ 归属判据失效）。
+    **本注释不得写出被测文件名本身**：写出来它就成了「装置源码引用过」的证据（自指命中，历史 47/84）。
+    另一条同源纪律：自测样例**不得把被测文件名写字面量**（否则样本自己成了「源码引用过」的证据，
+    自指命中，历史 47/84），样例一律运行期拼接。
+    """
+    d = Path(dev_dir) if dev_dir is not None else DEV
+    names = {}
+    for p in sorted(d.iterdir()):
+        if not p.is_file() or p.suffix not in (".py", ".sh", ".json"):
+            continue
+        src = p.read_text(encoding="utf-8", errors="replace")
+        for tok in re.findall(r"[\w.\-{}%<>]+\.txt", src):
+            # 精确名（无占位符）天然不越界；含占位符者过门槛才算写点（否则 `.*-.*-.*` 式会把他方名字吞进来）
+            if (not has_placeholder(tok)) or literal_len(tok) >= 6:
+                names[tok] = True
+    return names
+
+
+def has_placeholder(tok):
+    """名字是否含占位符（`%s`/`%d`/`{…}`/`<…>`）—— 无占位符者是**精确名**，天然不越界。"""
+    return any(ch in tok for ch in "%{}<>")
+
+
+def literal_len(tok):
+    """去掉占位符与后缀后的字面量字符数（模板门槛：>= 6 才算写点，防止「任意三段式全匹配」式越界）。"""
+    s = re.sub(r"%.", "", tok)
+    s = re.sub(r"[{<][^}>]*[}>]", "", s)
+    s = s[:-len(".txt")] if s.endswith(".txt") else s
+    return len(s)
+
+
+def name_pattern(tok):
+    """证据文件名模板 → 全名正则（`%s`/`%d`/`{…}`/`<…>` 归一为 `.*`，其余字符转义）。"""
+    parts, i = [], 0
+    while i < len(tok):
+        if tok[i] == "%" and i + 1 < len(tok) and tok[i + 1].isalpha():
+            parts.append(".*")
+            i += 2
+            continue
+        if tok[i] in "{}<>":
+            close = "}" if tok[i] == "{" else ">"
+            j = tok.find(close, i)
+            if j > i:
+                parts.append(".*")
+                i = j + 1
+                continue
+        parts.append(re.escape(tok[i]))
+        i += 1
+    return "".join(parts)
+
+
+def classify_guard_delta(before, after, owned=None):
+    """只读守卫的归属分类（纯函数，便于判别力自测）。
+
+    before/after = `git status --porcelain` 的原始行列表。
+    返回 dict(device=…, external=…, owned_n=…)
+      device   = 装置自测的写副作用（不在证据目录，或名字属装置自己会写的证据）⇒ **须为空**
+      external = 他方并发写入（在证据目录、且名字不被任何装置源码引用）⇒ 信息项
+      owned_n  = 装置自己会写的证据名/模板条数（正向对照，须 > 0）
+    """
+    own = device_owned_names() if owned is None else owned
+    pats = [re.compile(name_pattern(x) + r"$") for x in own]
+    dev, ext = [], []
+    for ln in [x for x in after if x not in before] + [x for x in before if x not in after]:
+        path = ln[3:].strip().strip('"')
+        base = path.rsplit("/", 1)[-1]
+        if path.startswith(EV_PREFIX) and not any(p.fullmatch(base) for p in pats):
+            ext.append(ln.strip())
+        else:
+            dev.append(ln.strip())
+    return {"device": dev, "external": ext, "owned_n": len(own)}
+
+
 def run_tool(name, argv, endmark):
     """跑一个装置工具的 `--selftest`（只读）：返回 (rc, 输出, 完整性)。"""
     p = subprocess.run([sys.executable, str(DEV / name)] + list(argv),
@@ -223,6 +314,28 @@ def selftest():
         prev_round_of("R" + d1) == "R" + "49" + "0" and prev_round_of("R" + d2) == "R" + "56" + "9",
         "R%s -> R%s / R%s -> R%s" % (d1, "49" + "0", d2, "56" + "9"))
 
+    # S12 只读守卫的**归属**判据（本轮真实缺陷的回归守卫：他方并发写入被误判成装置写副作用，历史 81/193/198）
+    owned = device_owned_names()
+    chk("S12a 归属判据正向对照：装置源码解析到证据文件名模板 > 0（0 即判据失效，历史 46/75/98）",
+        len(owned) > 0, "解析 %d 个" % len(owned))
+    # 样例名**运行期拼接**：源码里不得出现被测文件名，否则样本自己成了「装置源码引用过」的证据（自指命中，历史 47/84）
+    foreign = ".agents/state/evidence/" + "gate0" + "-T-M" + "4-" + "08" + ".txt"
+    ex_after = [" M README.md", "?? " + foreign]
+    c1 = classify_guard_delta([" M README.md"], ex_after, owned)
+    chk("S12b 他方并发写入证据目录（名字不被装置源码引用）⇒ 不计装置写副作用（本轮真实缺陷的回归守卫）",
+        c1["device"] == [] and len(c1["external"]) == 1,
+        "device=%s external=%s" % (c1["device"], c1["external"]))
+    c2 = classify_guard_delta([], ["?? tools/round-verify/新脚本.py"], owned)
+    chk("S12c 装置目录新增文件 ⇒ 判装置写副作用（守卫仍有牙齿；与 S12b 成对对照）",
+        len(c2["device"]) == 1 and c2["external"] == [], "device=%s" % c2["device"])
+    own_ev = "?? .agents/state/evidence/device-selftest-counts-%s.txt" % ("9" + "99")
+    c3 = classify_guard_delta([], [own_ev], owned)
+    chk("S12d 装置**自己会写**的证据文件出现在窗口内 ⇒ 仍判装置写副作用（模板命中，不靠目录豁免）",
+        len(c3["device"]) == 1 and c3["external"] == [], "device=%s" % c3["device"])
+    c4 = classify_guard_delta([], [], owned)
+    chk("S12e 空差异 ⇒ 两侧皆空且判绿（S12b/S12c 的判别力因此非恒真）",
+        c4["device"] == [] and c4["external"] == [], "device=%s external=%s" % (c4["device"], c4["external"]))
+
     ok = sum(1 for _n, c, _i in checks if c)
     for name, c, info in checks:
         print("  [%s] %s%s" % ("PASS" if c else "FAIL", name, (" " + info) if info else ""))
@@ -266,7 +379,11 @@ def main():
 
     rc1, st_after = sh("status", "--porcelain")
     assert rc1 == 0, "git status 读取失败（判据不可用）"
-    ro_ok = (st_before == st_after)
+    guard = classify_guard_delta(st_before.splitlines(), st_after.splitlines())
+    if guard["owned_n"] <= 0:
+        print("[FAIL] 只读守卫的归属判据不可用：装置源码里解析到 0 个证据文件名模板（须 > 0，历史 46/75/98）")
+        return 2
+    ro_ok = not guard["device"]
 
     rd = README.read_bytes()
     assert rd.count(b"\r") == 0, "README 含 CR（行尾判据，历史 69/70）"
@@ -324,17 +441,20 @@ def main():
              % hashlib.sha256(rd).hexdigest()[:12])
     L.append("  README md5 = %s" % md5)
     L.append("")
-    L.append("三、只读守卫（装置自测不得有写副作用）")
-    L.append("  全部 %d 个 `--selftest` 运行前后 `git status --porcelain` 逐行相同 = %s（行数 %d ⇒ %d）"
-             % (len(rows), ro_ok, len(st_before.splitlines()), len(st_after.splitlines())))
-    if not ro_ok:
-        L.append("  ⚠ 运行前后工作区**发生了变化** —— 装置自测存在写副作用（须排查）：")
-        for ln in st_after.splitlines():
-            if ln not in st_before.splitlines():
-                L.append("      + %s" % ln)
-        for ln in st_before.splitlines():
-            if ln not in st_after.splitlines():
-                L.append("      - %s" % ln)
+    L.append("三、只读守卫（装置自测不得有写副作用；归属机器化 ⇒ 他方并发写入不计为本方缺陷）")
+    L.append("  全部 %d 个 `--selftest` 运行前后 `git status --porcelain` 差异：装置写副作用 %d 条（**须 0**）/ "
+             "他方并发写入 %d 条（信息项）；快照行数 %d ⇒ %d"
+             % (len(rows), len(guard["device"]), len(guard["external"]),
+                len(st_before.splitlines()), len(st_after.splitlines())))
+    L.append("  归属判据正向对照：装置源码解析到证据文件名模板 %d 个（**须 > 0**，否则归属判据不可用 —— "
+             "0 命中的守卫会把他方写入一并放行，历史 46/75/98）" % guard["owned_n"])
+    for ln in guard["device"]:
+        L.append("      ✗（装置写副作用，须排查）%s" % ln)
+    for ln in guard["external"]:
+        L.append("      ○（他方并发写入，只登记不归因）%s" % ln)
+    if ro_ok:
+        L.append("  ⇒ 装置自测零仓库写副作用（差异项若存在，全部落在「名字不被装置源码引用」的他方证据文件上；"
+                 "历史 81/193/198：他方动作不得算作本轮缺陷）")
     L.append("")
     L.append("四、为什么值得常驻")
     L.append("  装置 README 的条数是**纯数字自述**：机械轮次替换（只认轮次号形态）与 84 条回归面（只跑工具不读文档）")
@@ -358,7 +478,8 @@ def main():
         return 2
     print("自测条数（由各工具汇总行解析）= %s" % counts)
     print("README 更正 = %s" % ([f[0] for f in changed] or "无（本已一致）"))
-    print("只读守卫（运行前后 git status 逐行相同）= %s" % ro_ok)
+    print("只读守卫（装置写副作用 %d 条 / 他方并发写入 %d 条 / 模板正向对照 %d 个）= %s"
+          % (len(guard["device"]), len(guard["external"]), guard["owned_n"], ro_ok))
     print("证据：%s（%d 行 / CR=0 / 结束标记唯一）" % (out.name, nlines))
     print("SELFTEST_COUNTS_WROTE=%s" % out.name)
     return 0

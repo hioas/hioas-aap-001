@@ -145,17 +145,38 @@ _gc = subprocess.run(["git", "-C", str(ROOT), "rev-list", facts["FACTS_TESTED_CO
                       "--", "tools/"], capture_output=True)
 assert _gc.returncode == 0, "git rev-list 读 tools/ 提交链失败（判据不可用）"
 TOOLS_COMMITTED = [ln for ln in _gc.stdout.decode("utf-8", "replace").splitlines() if ln.strip()]
+# 他方在本轮窗口后推进的提交必须**显式申报**、且逐枚可核：须在区间内 ∧ 主题不含本轮轮次号。
+# 归属不分的后果：他方触及 tools/ 的提交会被算成「本轮装置改动」，台账描述列即为不实自述（历史 12/95/81）。
+EXT_COMMITS = [args[i + 1] for i, a in enumerate(args) if a == "--external-commit"]
+TOOLS_COMMITTED_ALL = list(TOOLS_COMMITTED)
+if EXT_COMMITS:
+    _ge = subprocess.run(["git", "-C", str(ROOT), "log", "--format=%h%x1f%s",
+                          facts["FACTS_TESTED_COMMIT"] + "..HEAD"],
+                         capture_output=True)
+    assert _ge.returncode == 0, "git log 读提交区间失败（判据不可用）"
+    _rows = [ln.split(chr(31), 1) for ln in _ge.stdout.decode("utf-8", "replace").splitlines() if ln.strip()]
+    _pairs = [(r[0], r[1]) for r in _rows if len(r) == 2]
+    _ranged = set(s for s, _ in _pairs)
+    _miss = [s for s in EXT_COMMITS if s not in _ranged]
+    assert not _miss,         "--external-commit 申报的提交不在 %s..HEAD 区间内：%s（申报不实 / 判据失效）" % (
+            facts["FACTS_TESTED_COMMIT"], _miss)
+    _own = [s for s, subj in _pairs if s in set(EXT_COMMITS) and ROUND in subj]
+    assert not _own,         "--external-commit 申报的提交主题含本轮轮次号 %s —— 这不是他方提交（自述不实）" % ROUND
+    TOOLS_COMMITTED = [s for s in TOOLS_COMMITTED
+                       if not any(s.startswith(x) or x.startswith(s) for x in EXT_COMMITS)]
 if DEVCHANGES:
     assert TOOLS_DIRTY or TOOLS_COMMITTED, (
         "--device-change 已申报 %s 但工作区与「被测提交..HEAD」的提交链都没有 tools/ 改动（自述不实 / 判据失效）"
         % DEVCHANGES)
     DEVLINE = ("本轮另含**装置侧改动**（%s —— 轮次无关的轮次校验装置（只读审计 + 留痕写入器），不触碰交付面；证据：工作区未提交 %d 条 / "
-               "提交链自 %s 起 %d 枚提交触及 tools/）"
-               % ("、".join(DEVCHANGES), len(TOOLS_DIRTY), facts["FACTS_TESTED_COMMIT"], len(TOOLS_COMMITTED)))
+               "提交链自 %s 起 %d 枚**本轮**提交触及 tools/%s）"
+               % ("、".join(DEVCHANGES), len(TOOLS_DIRTY), facts["FACTS_TESTED_COMMIT"], len(TOOLS_COMMITTED),
+                  ("（另有他方 %d 枚已申报、不计入）" % (len(TOOLS_COMMITTED_ALL) - len(TOOLS_COMMITTED)))
+                  if EXT_COMMITS else ""))
 else:
     assert not TOOLS_DIRTY and not TOOLS_COMMITTED, (
-        "tools/ 存在未申报的改动（工作区 %s / 提交链 %s）—— 请显式 --device-change，否则描述列会说假话"
-        % (TOOLS_DIRTY, TOOLS_COMMITTED))
+        "tools/ 存在未申报的改动（工作区 %s / 本轮提交链 %s；他方已申报 %s）—— 请显式 --device-change，"
+        "否则描述列会说假话" % (TOOLS_DIRTY, TOOLS_COMMITTED, EXT_COMMITS or "无"))
     DEVLINE = "本轮**装置面与交付面均零改动**（`git status -- tools/` 空 且 被测提交..HEAD 无触及 tools/ 的提交）"
 DEVEV = "device-round-%s.txt" % ROUND
 assert (EV / DEVEV).exists() or not DEVCHANGES, \
