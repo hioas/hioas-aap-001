@@ -19,7 +19,7 @@ R891 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 覆盖读数：total **117** / implemented **117** / **missing=0**、15 个任务号逐族 `implemented == total`、按族相加 117 == total；逐端点「真实 HTTP 用例」**exact 117 / prefix 0 / none 0**（读数取自本轮回归面 `regression/endpoint-tests.log`）⇒ **无「下一族」**、本轮无可推进的 missing 项。
 
-本轮返工 0 处（判据/脚本侧）：装置链六步与两条只读通道**一次通过**（无自测点名失败、无守卫拦下、6 个装置工具的负向自测条数与 README 自述逐条一致）。按分档纪律如实登记：两轮 maven 耗时 04:12 min / 03:16 min 均落在 `mm:ss min` 分支 ⇒ 分析器耗时解析器的 `s` 写法分支本轮**仍未复现**（不写「修复有效」，历史 176/179）。另据实登记 **agent 侧操作失误 1 次**（零产物影响、不计入装置返工）：一条 `sleep` 等待命令撞上终端 180 s 上限被回收（`exit 124`），改用带 `timeout=` 的只读取证命令后通过，无任何产物受影响。本条要点文本不含收尾自动追加的两行（返工真值 / 权威数字由 `closeout.py` 单一生成），以保持「装置证据 ↔ 状态小节 ↔ 描述列结尾」三处同源（历史 12/95/215）。
+本轮返工 0 处（判据/脚本侧）：装置链六步与两条只读通道**一次通过**（无自测点名失败、无守卫拦下、6 个装置工具的负向自测条数与 README 自述逐条一致）。按分档纪律如实登记：两轮 maven 耗时 04:12 min / 03:14 min 均落在 `mm:ss min` 分支 ⇒ 分析器耗时解析器的 `s` 写法分支本轮**仍未复现**（不写「修复有效」，历史 176/179）。另据实登记 **agent 侧操作失误 2 次**（均零交付面影响、不计入装置返工）：① 一条 `sleep` 等待命令撞上终端 180 s 上限被回收（`exit 124`），改用带 `timeout=` 的只读取证命令后通过；② 本条要点首版把 run2 的 maven 耗时写成 03:16 min（原始日志实为 `Total time:  03:14 min`），在收尾核对后复读原始日志时发现，按「据实更正相位」以 `closeout.py --rewrite` 重写描述列与状态小节并重跑收尾核对（历史 209/219-③：不改写已发布的提交信息，以独立收尾提交留痕）。本条要点文本不含收尾自动追加的两行（返工真值 / 权威数字由 `closeout.py` 单一生成），以保持「装置证据 ↔ 状态小节 ↔ 描述列结尾」三处同源（历史 12/95/215）。
 
 环境面读数（**只做可达性/存在性/归属陈述，不构成「三端联调已打通」的证据**；探针为常驻 `probe-env.sh R891`，stdout 落 `$TEMP/aap-round-verify/R891/probe-out.txt` 带 `PROBE_END=1`、探针 rc=0，生成时刻 15:31:10）：8086 **200**（pid 28232）；前端 5175 **200**（pid 24908）；5173 / 5174 探测 000（`curl_rc=7`）；负向对照 5199 netstat 有 pid 9972 在听而 IPv4 探测 **000（`curl_rc=7`）** ⇒ 仍为他方 IPv6-only 占用、**不作空闲端口使用**（待拍板 ③ 沿用）；9223（另一项目 hioas-aim 的 CDP）**未在监听**，未 attach / close / kill（多项目共存硬规则）；`jps -l -m` 打印 3 条：pid 22200 = maven `-o -Dspring-boot.run.profiles=dev spring-boot:run`、pid 28232 = `com.hioas.aap.AapServerApplication --spring.profiles.active=dev`（两者**非我方启动、零触碰**）、pid 19404 = **我方本轮 `run-round.sh` 的 `mvn -B -ntp test`**（随本轮结束已退出，非他方进程），`jps` 行数 7（其余 4 行成员清单本轮未逐条取证 ⇒ 只登记行数、不归因）；全机 LISTENING **56 行**（正向对照 > 0）；`$TEMP` 棘轮 `aap-reqbody-selftest-*` 现存 0 个、落在本轮窗口内的新增残留 0 个；`curl_rc=23` 属原生 curl 对写体的既有形态读数（http_code 已取到 200），不作可达性否定。我方本轮未起业务实例 / 未起桩 / 未打包 ⇒ 业务闭环**本轮现场无新读数**，缺口仍在**恢复实跑**。
 
@@ -39,7 +39,7 @@ R891 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
-  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 9 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 12 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 21 == `git status` 条目 21
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 9 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 4 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 13 == `git status` 条目 13
       M .agents/state/evidence/final-check-R836.txt  mtime=2026-10-26 15:47:52
       M README.md  mtime=2026-09-24 07:51:14
       M aap-server/pom.xml  mtime=2026-09-24 08:07:37
@@ -49,20 +49,16 @@ R891 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
       ?? .agents/state/evidence/e2e-final2-20261015.json  mtime=2026-10-15 23:23:55
       ?? .agents/state/evidence/e2e-run-20261015-d.json  mtime=2026-10-15 23:23:13
       ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
-      （本轮产物）?? .agents/state/evidence/audit-regression-R891-faildiff.txt  mtime=2026-10-27 15:45:56
-      （本轮产物）?? .agents/state/evidence/audit-regression-R891-failraw.txt  mtime=2026-10-27 15:45:56
-      （本轮产物）?? .agents/state/evidence/audit-regression-R891-rcseq.txt  mtime=2026-10-27 15:45:56
-      （本轮产物）?? .agents/state/evidence/audit-regression-R891.txt  mtime=2026-10-27 15:45:56
-      （本轮产物）?? .agents/state/evidence/device-selftest-counts-R891.txt  mtime=2026-10-27 15:46:23
-      （本轮产物）?? .agents/state/evidence/green-verify-R891-coverage-fields.txt  mtime=2026-10-27 15:40:05
-      （本轮产物）?? .agents/state/evidence/green-verify-R891-full-run1.txt  mtime=2026-10-27 15:40:05
-      （本轮产物）?? .agents/state/evidence/green-verify-R891-full-run2.txt  mtime=2026-10-27 15:40:05
-      （本轮产物）?? .agents/state/evidence/green-verify-R891-testcount.txt  mtime=2026-10-27 15:40:05
-      （本轮产物）?? .agents/state/evidence/green-verify-R891-tested-state.txt  mtime=2026-10-27 15:40:05
-      （本轮产物）?? .agents/state/evidence/regression-selftest-R891.txt  mtime=2026-10-27 15:46:05
-      （本轮产物）?? .agents/state/evidence/round-R891-analysis.txt  mtime=2026-10-27 15:40:05
+      （本轮产物）M .agents/state/aap-server-feature-status.csv  mtime=2026-10-27 15:49:04
+      （本轮产物）M .agents/state/aap-server-tdd-state.md  mtime=2026-10-27 15:49:04
+      （本轮产物）M .agents/state/evidence/coverage-history.txt  mtime=2026-10-27 15:49:04
+      （本轮产物）M .agents/state/evidence/final-check-R891.txt  mtime=2026-10-27 15:49:10
       其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
-  ③ 提交区间（73aeac70..HEAD）改动文件 = 0 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 0 枚 = 他方 0 枚 + 本轮 0 枚
+  ③ 提交区间（73aeac70..HEAD）改动文件 = 19 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 4 枚 = 他方 0 枚 + 本轮 4 枚
+      [本轮] 09fafb86 chore(state): R891 收尾一致性核对入账（final-check 20 PASS / 0 FAIL）  文件 1 个 / 交付面命中 0 个
+      [本轮] 34b8eaac chore(state): R891 独立复核证据入账（43 PASS / 0 FAIL；提交后相位）  文件 1 个 / 交付面命中 0 个
+      [本轮] 60412fee chore(state): R891 台账「提交」列回填主提交 785f73a5（postwrite PASS 13 项证据入账  文件 2 个 / 交付面命中 0 个
+      [本轮] 785f73a5 chore(state): R891 巡检轮（117/117、328 例两轮全绿连续第 257 轮、回归面 84 条零回归；交付  文件 16 个 / 交付面命中 0 个
       ⇒ **本轮自己的提交**触及交付面前缀的 = 0 个（**须 0**）；他方提交的交付面改动不计入本轮（历史 81/193/198：他方在途不得算作本轮改动）
 
 五、下一族
