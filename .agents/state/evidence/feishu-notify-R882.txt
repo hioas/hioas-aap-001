@@ -1,0 +1,20 @@
+R882 飞书通知留痕（作业硬要求：每完成一个批次立即通知飞书）
+
+一、调用与结果
+  通道 = 本机 hermes CLI（command -v hermes = C:/Users/laitz/AppData/Local/hermes/hermes-agent/.hermes/bin/hermes）
+  命令形态 = hermes send -t feishu -s 'AAP TDD 进度' '<一句话进度>'
+  正文 = R882 巡检轮：清单 117/117（missing=0）、328 例两轮全绿连续第 248 轮、回归面 84 条零回归；交付面零改动；主提交 b75ba4f2
+  退出码 = 0
+  调度器回执 = Skipped send_message to feishu:oc_45c4…（目标标识已截断，不回显完整会话串）
+  回执原因原文要点 = 「This cron job will already auto-deliver its final response to that same target.
+  Put the intended user-facing content in your final response instead」
+  ⇒ 判定：**被调度器去重策略主动跳过**（同一目标本轮已由 cron 最终回复投递），**不是发送失败、也不是发送报错**；
+  进度内容已按该回执要求放入本轮最终回复正文（结论段 + 覆盖进度 + 证据文件名 + 两轮全绿读数 + 待拍板）。
+
+二、与历史失败的区别（避免误记成已知问题）
+  历史失败形态是 hermes send 返回非 0 / 目标未绑定报错，并记入 evidence/feishu-notify-failures.txt；
+  本轮 rc=0 且回执明确给出「将自动投递」的替代路径 ⇒ **不写入** feishu-notify-failures.txt（写了就是制造假失败记录，历史 12/95）。
+
+三、上限陈述
+  本留痕只陈述「通知通道行为」，不构成业务链路的任何结论。
+FEISHU_NOTIFY_END=1
