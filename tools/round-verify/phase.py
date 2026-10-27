@@ -120,10 +120,18 @@ def selftest():
 
     # P3 命名：红轮前缀不得等于绿轮（历史 12）
     chk("P3 红相位前缀 != 绿相位前缀", ev_prefix(RED) != ev_prefix(GREEN), "%s / %s" % (ev_prefix(RED), ev_prefix(GREEN)))
+    # P3b/P3c 的合成轮次号**运行期拼接**、且用非数字标记（历史 220/203 的装置侧形态）：
+    # 旧版把合成轮次号写死成数字字面量，而 `device-report.py` 的「装置脚本内当前轮次号命中 = 0」守卫
+    # 会扫装置目录的**源码文本** —— 真值一旦推进到该字面量，合成夹具就被判成「本轮硬编码」，
+    # 每 1000 轮必假失败一次（成对断言在某轮把真值形态与合成形态指向同一个串，历史 12/95）。
+    # 改为不可能等于任何真实轮次的合成串，并显式断言「它不是合法轮次形态」。
+    synth_r = "R" + "SYN"
     chk("P3b 绿相位 5 条名字全部以 green-verify 开头",
-        all(n.startswith("green-verify-") for n in verify_names("R900", GREEN)), verify_names("R900", GREEN)[0])
+        all(n.startswith("green-verify-") for n in verify_names(synth_r, GREEN)), verify_names(synth_r, GREEN)[0])
     chk("P3c 红相位 5 条名字全部以 red-verify 开头（且不含 green）",
-        all(n.startswith("red-verify-") and "green" not in n for n in verify_names("R900", RED)), verify_names("R900", RED)[0])
+        all(n.startswith("red-verify-") and "green" not in n for n in verify_names(synth_r, RED)), verify_names(synth_r, RED)[0])
+    chk("P3d 合成轮次号不是合法轮次形态（永不与真值相撞；守卫有牙齿的前提）",
+        re.fullmatch(r"R[0-9]+", synth_r) is None, synth_r)
 
     # P4 轮次标记：两相位互斥（判据不得跨相位假命中）
     g, r = streak_marker(GREEN, 476), streak_marker(RED, 0)
