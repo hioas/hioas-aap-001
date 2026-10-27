@@ -256,13 +256,17 @@ def own_of(all_files, ext_files):
     return sorted(x for x in all_files if x not in ext)
 
 
-def ext_commits_ok(n_advanced, declared, bad):
-    """窗口内 HEAD 推进数 == 已申报他方提交数 ∧ 申报项逐枚可核（纯函数，历史 66/94）。
+def ext_commits_ok(n_advanced, declared, bad=None):
+    """窗口内 HEAD 推进数 **<=** 已申报他方提交数 ∧ 申报项逐枚可核（纯函数，历史 66/94）。
 
-    `bad` = 不可核的申报项（不在 `被测提交..HEAD` 区间内 ∧ 或主题含本轮轮次号）。
-    三态：零推进 + 零申报 = 合法；推进了却未申报 = 红；申报了却不可核 = 红。
+    为什么不是「相等」：他方提交可能落在**窗口结束之后、本轮收尾之前**（实测：窗口 11:42:33→11:50:31，
+    他方在 12:05 / 12:11 各推 1 枚）—— 这类提交同样在 `被测提交..HEAD` 区间内、同样必须申报（否则把
+    他方触及 `tools/` 的改动算成本轮装置改动），而 `FACTS_HEAD_ADVANCED_COUNT` 只统计窗口内推进
+    ⇒ 用「相等」会把**合法申报**判成红（判据范围与语义不符，历史 81/193/198 同族）。
+    牙齿仍在：`bad` = 申报项不在区间内 ∧ 或主题含本轮轮次号（把我方提交谎报成他方 ⇒ 红）。
+    三态：零推进 + 零申报 = 合法；推进数 > 申报数 = 红（存在未申报的他方活动）；申报不可核 = 红。
     """
-    return int(n_advanced or 0) == len(declared) and not bad
+    return int(n_advanced or 0) <= len(declared) and not bad
 
 
 # ========== 装置链自写面（J5f 的**第 4 类**解释项；机器派生，不是人工申报，历史 66/210） ==========
@@ -346,7 +350,7 @@ def evaluate(ctx):
     add("J1b facts 轮次 == 本轮 ∧ 完成标记",
         facts.get("FACTS_ROUND") == R and facts.get("FACTS_WRITTEN") == "1",
         "ROUND=%r WRITTEN=%r" % (facts.get("FACTS_ROUND"), facts.get("FACTS_WRITTEN")))
-    add("J1c 窗口内 HEAD 推进数 == 已申报他方提交数 ∧ 申报项逐枚可核（他方并发活动须显式申报，历史 193/198）",
+    add("J1c 窗口内 HEAD 推进数 <= 已申报他方提交数 ∧ 申报项逐枚可核（他方并发活动须显式申报；窗口后推进的提交也必须申报，历史 193/198）",
         ext_commits_ok(facts.get("FACTS_HEAD_ADVANCED_COUNT"), ctx["external"], ctx["external_bad"]),
         "advanced=%s 申报他方提交=%s 不可核=%s（%s -> %s）"
         % (facts.get("FACTS_HEAD_ADVANCED_COUNT"), ctx["external"] or "无", ctx["external_bad"] or "无",
@@ -1028,8 +1032,9 @@ def selftest():
     chk("T-EXT1 own_of 三态：恒等（空申报）/ 剔除成员 / 非成员不得被剔除（历史 57/68/190）",
         own_of(["a", "b"], []) == ["a", "b"] and own_of(["a", "b"], ["a"]) == ["b"]
         and own_of(["a", "b"], ["zz"]) == ["a", "b"], "见条件")
-    chk("T-EXT2 ext_commits_ok 四态：零/合法/未申报/不可核",
+    chk("T-EXT2 ext_commits_ok 六态：零/合法/窗口后追加申报/多申报均可核/未申报/不可核",
         ext_commits_ok(0, [], []) and ext_commits_ok(1, ["s"], [])
+        and ext_commits_ok(0, ["s"]) and ext_commits_ok(1, ["s", "t"], [])
         and not ext_commits_ok(1, [], []) and not ext_commits_ok(0, ["s"], ["s"]), "见条件")
     # 本轮真实返工的回归守卫：J5f 的豁免必须与 `late` 项**同形**（不可读项存原始路径）。
     chk("T-EXT3 late_unexplained 三态：未解释原样 / 已申报撤下豁免 / **带后缀的对象豁免失效**（旧写法指纹）",
