@@ -1,0 +1,29 @@
+[PASS] A0a 台账非空（9607583 字节）
+[PASS] A0b 台账 CR 字节 = 0（须 0）
+[PASS] A1a 解析到轮次行 = 886 条（正向对照，须 > 0）
+[FAIL] A1b 轮次号单调递增 = False（首 R27、末 R911）
+[FAIL] A1c 轮次号无重复 = False
+[PASS] A2a 窗口内跳号 = [554]（历史豁免：R554 红基线轮未记账）
+[PASS] A2b 台账末轮次行 == 本轮（末 = R911 / 本轮 = R911）
+[PASS] A2c 上一轮 R910 在台账内 = True
+[PASS] A3a CSV 记录数 = 992（含表头；正向对照，须 > 0）
+[PASS] A3b 列数 != 表头列数 的行 = 0 条（表头 8 列）
+[PASS] A3c 记录数 992 + 记录内换行 10860 + 末尾换行 1 == 物理行数 11853（正向对照：内嵌换行 > 0 = True）
+[PASS] A3d 轮次行描述列承载统计：依据(index4)=876 / 状态(index5)=47（正向对照）
+[PASS] A4a coverage-history CR 字节 = 0（须 0）
+[PASS] A4b 行首带完整时间戳且紧跟轮次号的行 = 457 条（正向对照，须 > 0）
+[PASS] A4c 这些行的时间戳单调不减 = True（非单调相邻对 = 0）
+[PASS] A4d history 末条带戳行轮次 = R911（须 R911）
+[PASS] A4e history 中上一轮 R910 的带戳行 = 1 条（须 1）
+[PASS] A4f history 物理行数 = 1294（非空 1227）
+[PASS] B0 两态 yml 均非空（HEAD 2707 字节 / 工作区 3378 字节，正向对照）
+[PASS] B1-settlement yml 键 `settlement`：HEAD = 0 次 / 工作区 = 1 次
+[PASS] B1-cycle yml 键 `cycle`：HEAD = 0 次 / 工作区 = 1 次
+[PASS] B1-amount-basis yml 键 `amount-basis`：HEAD = 0 次 / 工作区 = 1 次
+[PASS] B1-fee-basis yml 键 `fee-basis`：HEAD = 0 次 / 工作区 = 1 次
+[PASS] B2 pom 两态非空；exec-maven-plugin：HEAD = 0 / 工作区 = 1
+[PASS] B3 SecurityConfig 行数：HEAD = 92 / 工作区 = 97（静态资源/SPA 放行是否已落库的读数依据）
+[PASS] Z0 只读守卫：运行前后 git status 逐行相同 = True（11 条）
+==============================================================================
+判据：PASS 24 / FAIL 2
+AUX_END=1
