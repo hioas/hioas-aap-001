@@ -13,7 +13,7 @@ R925 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 二、本轮返工真值 = **0 处**（零交付面影响；条目文本来自单一事实源 `note-R925.md`，与台账描述列 / 状态文件小节共用）
 ------------------------------------------------------------------------------
-纯巡检轮（自述与判定分离：本段只陈述本轮实测读数）：交付代码 / 测试面 / 冻结清单生成物**零改动**（worktree 检出 = 被测提交 f513d523，WT_DIRTY_LINES=0，worktree 与 HEAD 差异 0 行）；装置面同样零改动（各装置工具 `--selftest` 汇总行条数与装置 README 自述本已一致，本轮无更正；取证 `device-selftest-counts-R925.txt` 共 36 行）。两轮全量 328 例 / 54 类串行跑完（run1 08:14:33 起、run2 08:25:11 止，窗口 08:13:58→08:25:18），rc=0/0、逐类 diff=0、BUILD SUCCESS 两轮均为真；`@Test` 词边界计数 328 == surefire 合计 328（裸子串 330 作对照，差 2 即 `@TestConfiguration`/`@TestPropertySource`，坑 35 口径），禁用扫描 0 条。覆盖 total=117 / implemented=117 / missing=0、registered_routes=134 / not_registered=[]，按族相加 15 族 = 117（内容级自洽）。回归面 84 条（43 审计 + 41 负向自测）复跑：rc 变化 0 条、新增 0、未复跑 0，tag 集合与上一轮逐条一致（本轮 84 条）；FAIL 明细 167 行 / 43 个脚本，跨轮 faildiff 167→167 新增 0 / 消失 0；崩溃通道（rc!=0 ∧ FAIL 0 行）2 条理由行集 sha256 跨轮零变化（理由变化 0 条）；归仓耐久性三方逐字节（索引 ⇔ 归档 ⇔ 原文件）54 条一致、索引孤儿 0、原文件已丢失 0；零写副作用：生成物 size+md5 运行前后全等（变化 0 个）。返工 0 处（判据/脚本侧：装置链一次跑通，无判据失效、无锚点 0 命中、无计数分叉）。观察项：主体仓库 9 条他方在途改动（5 `M` + 4 `??`）只登记不触碰，mtime 最新 2026-10-26 15:47:52，全部早于本轮窗口起点 ⇒ 分析器 A23 落窗 0 条；窗口内他方推进提交 0 枚（HEAD 起点 = 终点 = f513d523），故不作他方提交申报。待拍板事项全部沿用上一轮，本轮无新增。
+纯巡检轮（自述与判定分离：本段只陈述本轮实测读数）：交付代码 / 测试面 / 冻结清单生成物**零改动**（worktree 检出 = 被测提交 f513d523，WT_DIRTY_LINES=0，worktree 与 HEAD 差异 0 行）；装置面同样零改动（各装置工具 `--selftest` 汇总行条数与装置 README 自述本已一致，本轮无更正；取证 `device-selftest-counts-R925.txt` 共 36 行）。两轮全量 328 例 / 54 类串行跑完（run1 08:14:33 起、run2 08:25:11 止，窗口 08:13:58→08:25:18），rc=0/0、逐类 diff=0、BUILD SUCCESS 两轮均为真；`@Test` 词边界计数 328 == surefire 合计 328（裸子串 330 作对照，差 2 即 `@TestConfiguration`/`@TestPropertySource`，坑 35 口径），禁用扫描 0 条。覆盖 total=117 / implemented=117 / missing=0、registered_routes=134 / not_registered=[]，按族相加 15 族 = 117（内容级自洽）。回归面 84 条（43 审计 + 41 负向自测）复跑：rc 变化 0 条、新增 0、未复跑 0，tag 集合与上一轮逐条一致（本轮 84 条）；FAIL 明细 167 行 / 43 个脚本，跨轮 faildiff 167→167 新增 0 / 消失 0；崩溃通道（rc!=0 ∧ FAIL 0 行）2 条理由行集 sha256 跨轮零变化（理由变化 0 条）；归仓耐久性三方逐字节（索引 ⇔ 归档 ⇔ 原文件）54 条一致、索引孤儿 0、原文件已丢失 0；零写副作用：生成物 size+md5 运行前后全等（变化 0 个）。返工 0 处（判据/脚本侧：装置链一次跑通，无判据失效、无锚点 0 命中、无计数分叉）。观察项一：主体仓库 9 条他方在途改动（5 `M` + 4 `??`）只登记不触碰，mtime 最新 2026-10-26 15:47:52，全部早于本轮窗口起点 ⇒ 分析器 A23 落窗 0 条；窗口内他方推进提交 0 枚（HEAD 起点 = 终点 = f513d523），故不作他方提交申报。观察项二：独立复核 `independent-R925.txt` 读数 **PASS 40 / FAIL 3**，3 条（J5b / J5d / J5e）全部指向他方在本轮窗口内**新增的未跟踪产品文档**（`docs/product/03` mtime 08:20:55、`docs/product/04` mtime 08:21:18，均落在 08:13:58→08:25:18 窗口内），属他方并发写入、我方零触碰；装置现有申报通道只有 `--external-commit`（提交）与 `--external-withdrawn`（撤下的在途文件），**无「他方新增未跟踪文件」形态的通道**，故据实保留该 3 条 FAIL：不加豁免、不改判据、不触碰他方文件，按「外部归因 + 判据报警（非判据失效、非本轮返工）」登记。待拍板事项：上一轮各项全部沿用；**本轮新增 1 条** —— 是否为「他方新增未跟踪文件」增设申报通道（属装置扩面，须人拍板）。
 ------------------------------------------------------------------------------
 
 三、本轮关键读数（读自 analyze / regression 证据，零手写值）
@@ -25,7 +25,7 @@ R925 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
 
 四、交付面零改动（三判据，避免把他方在途算作本轮改动，历史 81/193/198）
   ① 被测状态 = 提交态：worktree 与 HEAD 在 `aap-server/` 上的差异行数 = 0（facts `WT_DIRTY_LINES`，须 0）
-  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 11 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 12 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 23 == `git status` 条目 23
+  ② 工作区条目按 mtime 与**窗口起点**分三类：窗口前 11 条（他方在途，只登记不触碰）/ 窗口起点后且属留痕·装置目录 0 条（本轮自己的产物）/ 其余（**归属未定**，须 0）0 条；三类相加 = 11 == `git status` 条目 11
       M .agents/state/evidence/final-check-R836.txt  mtime=2026-10-26 15:47:52
       M README.md  mtime=2026-09-24 07:51:14
       M aap-server/pom.xml  mtime=2026-09-24 08:07:37
@@ -37,20 +37,11 @@ R925 装置侧证据（装置面改动 + 本轮返工真值 + 交付面零改动
       ?? aap-server/src/main/webapp/  mtime=2026-09-24 08:07:43
       ?? docs/product/03-\345\274\200\346\272\220\351\241\271\347\233\256\350\260\203\347\240\224\344\270\216\351\200\211\345\236\213.md  mtime=(不可读)
       ?? docs/product/04-\345\225\206\344\270\232\345\210\206\346\236\220\344\270\216\345\210\233\346\226\260\346\226\271\346\241\210.md  mtime=(不可读)
-      （本轮产物）?? .agents/state/evidence/audit-regression-R925-faildiff.txt  mtime=2026-10-28 08:37:32
-      （本轮产物）?? .agents/state/evidence/audit-regression-R925-failraw.txt  mtime=2026-10-28 08:37:32
-      （本轮产物）?? .agents/state/evidence/audit-regression-R925-rcseq.txt  mtime=2026-10-28 08:37:32
-      （本轮产物）?? .agents/state/evidence/audit-regression-R925.txt  mtime=2026-10-28 08:37:32
-      （本轮产物）?? .agents/state/evidence/device-selftest-counts-R925.txt  mtime=2026-10-28 08:44:08
-      （本轮产物）?? .agents/state/evidence/green-verify-R925-coverage-fields.txt  mtime=2026-10-28 08:30:05
-      （本轮产物）?? .agents/state/evidence/green-verify-R925-full-run1.txt  mtime=2026-10-28 08:30:05
-      （本轮产物）?? .agents/state/evidence/green-verify-R925-full-run2.txt  mtime=2026-10-28 08:30:05
-      （本轮产物）?? .agents/state/evidence/green-verify-R925-testcount.txt  mtime=2026-10-28 08:30:05
-      （本轮产物）?? .agents/state/evidence/green-verify-R925-tested-state.txt  mtime=2026-10-28 08:30:05
-      （本轮产物）?? .agents/state/evidence/regression-selftest-R925.txt  mtime=2026-10-28 08:43:58
-      （本轮产物）?? .agents/state/evidence/round-R925-analysis.txt  mtime=2026-10-28 08:30:05
       其中位于交付面前缀（aap-server、docs、aap-client）的窗口后条目 = 0 条（**须 0** ＝ 交付面零改动）
-  ③ 提交区间（f513d523..HEAD）改动文件 = 0 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 0 枚 = 他方 0 枚 + 本轮 0 枚
+  ③ 提交区间（f513d523..HEAD）改动文件 = 19 个；按**提交归属**分区（`--external-commit` 显式申报他方提交；申报须在区间内 ∧ 主题不含本轮轮次号）：区间内提交 3 枚 = 他方 0 枚 + 本轮 3 枚
+      [本轮] 7358be2f chore(state): R925 收尾核对入账（final-check PASS 20 / 0；证据 final-check  文件 1 个 / 交付面命中 0 个
+      [本轮] 6eb334ea chore(state): R925 主提交落地核对与独立复核入账（postwrite PASS；independent PAS  文件 3 个 / 交付面命中 0 个
+      [本轮] 10be652e chore(state): R925 巡检轮入账（328 例两轮全绿，连续第 291 轮；回归面 84 条零回归；missing  文件 16 个 / 交付面命中 0 个
       ⇒ **本轮自己的提交**触及交付面前缀的 = 0 个（**须 0**）；他方提交的交付面改动不计入本轮（历史 81/193/198：他方在途不得算作本轮改动）
 
 五、下一族
