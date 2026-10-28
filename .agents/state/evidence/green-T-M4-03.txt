@@ -1,4 +1,4 @@
-# task=T-M4-03 key=green rc=0 secs=67.9 at=2026-10-27T04:17:00Z
+# task=T-M4-03 key=green rc=0 secs=244.4 at=2026-10-28T01:10:56Z
 # cmd=cd /d aap-server && E:\\workspaces\\maven\\apache-maven-3.8.6\\bin\\mvn.cmd -B -ntp test -Dtest=MigrationTest
 
 [INFO] Scanning for projects...
@@ -47,7 +47,7 @@ dist/assets/index-wtI7vkkF.js            22.90 kB │ gzip:   8.50 kB
 dist/assets/index-BjE8gaON.js            25.14 kB │ gzip:   8.43 kB
 dist/assets/index-CKiwyclx.js         1,044.49 kB │ gzip: 347.86 kB
 dist/assets/index-T9Tu0B0d.js         1,058.16 kB │ gzip: 348.86 kB
-✓ built in 16.09s
+✓ built in 1m 4s
 [INFO] 
 [INFO] --- exec-maven-plugin:3.5.0:exec (build-h5) @ aap-server ---
 
@@ -64,7 +64,7 @@ DONE  Build complete.
 [INFO] 
 [INFO] --- maven-resources-plugin:3.3.1:resources (default-resources) @ aap-server ---
 [INFO] Copying 1 resource from src\main\resources to target\classes
-[INFO] Copying 17 resources from src\main\resources to target\classes
+[INFO] Copying 18 resources from src\main\resources to target\classes
 [INFO] 
 [INFO] --- maven-resources-plugin:3.3.1:copy-resources (copy-admin-dist) @ aap-server ---
 [INFO] Copying 30 resources from ..\aap-admin\dist to target\classes\static
@@ -82,7 +82,12 @@ DONE  Build complete.
 [INFO] Copying 1 resource from src\test\resources to target\test-classes
 [INFO] 
 [INFO] --- maven-compiler-plugin:3.15.0:testCompile (default-testCompile) @ aap-server ---
-[INFO] Nothing to compile - all classes are up to date.
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 60 source files with javac [debug parameters release 25] to target\test-classes
+[WARNING] /E:/workspaces/hioas/hioas-aap-001/aap-server/src/test/java/com/hioas/aap/coverage/EndpointCoverageTest.java:[70,28] org.springframework.web.servlet.mvc.method.RequestMappingInfo 中的 getPatternsCondition() 已过时, 且标记为待删除
+[WARNING] /E:/workspaces/hioas/hioas-aap-001/aap-server/src/test/java/com/hioas/aap/coverage/EndpointCoverageTest.java:[71,37] org.springframework.web.servlet.mvc.method.RequestMappingInfo 中的 getPatternsCondition() 已过时, 且标记为待删除
+[INFO] /E:/workspaces/hioas/hioas-aap-001/aap-server/src/test/java/com/hioas/aap/support/ApiTestBase.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /E:/workspaces/hioas/hioas-aap-001/aap-server/src/test/java/com/hioas/aap/support/ApiTestBase.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
 [INFO] 
 [INFO] --- maven-surefire-plugin:3.5.6:test (default-test) @ aap-server ---
 [INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
@@ -101,25 +106,26 @@ DONE  Build complete.
 
  :: Spring Boot ::                (v4.1.1)
 
-2026-10-27 12:16:42.383 INFO  [main] [] com.hioas.aap.common.MigrationTest - Starting MigrationTest using Java 25.0.4 with PID 30612 (started by laitz in E:\workspaces\hioas\hioas-aap-001\aap-server)
-2026-10-27 12:16:42.391 INFO  [main] [] com.hioas.aap.common.MigrationTest - The following 1 profile is active: "test"
-2026-10-27 12:16:42.661 INFO  [background-preinit] [] org.hibernate.validator.internal.util.Version - HV000001: Hibernate Validator 9.1.3.Final
-2026-10-27 12:16:44.305 INFO  [main] [] com.zaxxer.hikari.HikariDataSource - aap-pool - Starting...
-2026-10-27 12:16:44.474 INFO  [main] [] com.zaxxer.hikari.pool.HikariPool - aap-pool - Added connection org.postgresql.jdbc.PgConnection@13404f75
-2026-10-27 12:16:44.475 INFO  [main] [] com.zaxxer.hikari.HikariDataSource - aap-pool - Start completed.
-2026-10-27 12:16:44.494 INFO  [main] [] org.flywaydb.core.FlywayExecutor - Database: jdbc:postgresql://localhost:5432/aap_server_test (PostgreSQL 18.6)
-2026-10-27 12:16:44.578 INFO  [main] [] org.flywaydb.core.internal.command.DbValidate - Successfully validated 16 migrations (execution time 00:00.038s)
-2026-10-27 12:16:44.628 INFO  [main] [] org.flywaydb.core.internal.command.DbMigrate - Current version of schema "public": 16
-2026-10-27 12:16:44.632 INFO  [main] [] org.flywaydb.core.internal.command.DbMigrate - Schema "public" is up to date. No migration necessary.
-2026-10-27 12:16:46.364 INFO  [main] [] org.springframework.boot.webmvc.autoconfigure.WelcomePageHandlerMapping - Adding welcome page: class path resource [static/index.html]
-2026-10-27 12:16:46.948 INFO  [main] [] org.springframework.boot.actuate.endpoint.web.EndpointLinksResolver - Exposing 3 endpoints beneath base path '/actuator'
-2026-10-27 12:16:47.077 INFO  [main] [] com.hioas.aap.common.MigrationTest - Started MigrationTest in 5.087 seconds (process running for 6.37)
-2026-10-27 12:16:49.881 INFO  [main] [] org.flywaydb.core.FlywayExecutor - Database: jdbc:postgresql://localhost:5432/aap_server_test (PostgreSQL 18.6)
-2026-10-27 12:16:49.912 INFO  [main] [] org.flywaydb.core.internal.command.DbValidate - Successfully validated 16 migrations (execution time 00:00.019s)
-2026-10-27 12:16:49.929 INFO  [main] [] org.flywaydb.core.internal.command.DbMigrate - Current version of schema "public": 16
-2026-10-27 12:16:49.930 INFO  [main] [] org.flywaydb.core.internal.command.DbMigrate - Schema "public" is up to date. No migration necessary.
-2026-10-27 12:16:49.999 INFO  [main] [] org.flywaydb.core.FlywayExecutor - Database: jdbc:postgresql://localhost:5432/aap_server_test (PostgreSQL 18.6)
-[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 18.49 s -- in com.hioas.aap.common.MigrationTest
+2026-10-28 09:10:42.338 INFO  [main] [] com.hioas.aap.common.MigrationTest - Starting MigrationTest using Java 25.0.4 with PID 3768 (started by laitz in E:\workspaces\hioas\hioas-aap-001\aap-server)
+2026-10-28 09:10:42.359 INFO  [main] [] com.hioas.aap.common.MigrationTest - The following 1 profile is active: "test"
+2026-10-28 09:10:43.001 INFO  [background-preinit] [] org.hibernate.validator.internal.util.Version - HV000001: Hibernate Validator 9.1.3.Final
+2026-10-28 09:10:46.279 INFO  [main] [] com.zaxxer.hikari.HikariDataSource - aap-pool - Starting...
+2026-10-28 09:10:46.568 INFO  [main] [] com.zaxxer.hikari.pool.HikariPool - aap-pool - Added connection org.postgresql.jdbc.PgConnection@38ebc866
+2026-10-28 09:10:46.572 INFO  [main] [] com.zaxxer.hikari.HikariDataSource - aap-pool - Start completed.
+2026-10-28 09:10:46.600 INFO  [main] [] org.flywaydb.core.FlywayExecutor - Database: jdbc:postgresql://localhost:5432/aap_server_test (PostgreSQL 18.6)
+2026-10-28 09:10:46.831 INFO  [main] [] org.flywaydb.core.internal.command.DbValidate - Successfully validated 17 migrations (execution time 00:00.177s)
+2026-10-28 09:10:46.853 INFO  [main] [] org.flywaydb.core.internal.command.DbMigrate - Current version of schema "public": 16
+2026-10-28 09:10:46.879 INFO  [main] [] org.flywaydb.core.internal.command.DbMigrate - Migrating schema "public" to version "17 - dual price tables"
+2026-10-28 09:10:47.010 INFO  [main] [] org.flywaydb.core.internal.command.DbMigrate - Successfully applied 1 migration to schema "public", now at version v17 (execution time 00:00.083s)
+2026-10-28 09:10:49.182 INFO  [main] [] org.springframework.boot.webmvc.autoconfigure.WelcomePageHandlerMapping - Adding welcome page: class path resource [static/index.html]
+2026-10-28 09:10:50.556 INFO  [main] [] org.springframework.boot.actuate.endpoint.web.EndpointLinksResolver - Exposing 3 endpoints beneath base path '/actuator'
+2026-10-28 09:10:50.709 INFO  [main] [] com.hioas.aap.common.MigrationTest - Started MigrationTest in 9.235 seconds (process running for 11.844)
+2026-10-28 09:10:53.275 INFO  [main] [] org.flywaydb.core.FlywayExecutor - Database: jdbc:postgresql://localhost:5432/aap_server_test (PostgreSQL 18.6)
+2026-10-28 09:10:53.305 INFO  [main] [] org.flywaydb.core.internal.command.DbValidate - Successfully validated 17 migrations (execution time 00:00.015s)
+2026-10-28 09:10:53.316 INFO  [main] [] org.flywaydb.core.internal.command.DbMigrate - Current version of schema "public": 17
+2026-10-28 09:10:53.318 INFO  [main] [] org.flywaydb.core.internal.command.DbMigrate - Schema "public" is up to date. No migration necessary.
+2026-10-28 09:10:53.416 INFO  [main] [] org.flywaydb.core.FlywayExecutor - Database: jdbc:postgresql://localhost:5432/aap_server_test (PostgreSQL 18.6)
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.27 s -- in com.hioas.aap.common.MigrationTest
 [INFO] 
 [INFO] Results:
 [INFO] 
@@ -128,8 +134,8 @@ DONE  Build complete.
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  01:06 min
-[INFO] Finished at: 2026-10-27T12:17:00+08:00
+[INFO] Total time:  04:02 min
+[INFO] Finished at: 2026-10-28T09:10:56+08:00
 [INFO] ------------------------------------------------------------------------
 WARNING: A restricted method in java.lang.System has been called
 WARNING: java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/E:/workspaces/maven/apache-maven-3.8.6/lib/jansi-2.4.0.jar)
@@ -149,18 +155,6 @@ npm warn Unknown user config "electron_builder_binaries_mirror". This will stop 
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
 npm warn Unknown user config "electron_mirror". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
 npm warn Unknown user config "electron_builder_binaries_mirror". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
-DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
-
-More info: https://sass-lang.com/d/legacy-js-api
-
-DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
-
-More info: https://sass-lang.com/d/legacy-js-api
-
-DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
-
-More info: https://sass-lang.com/d/legacy-js-api
-
 DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
 
 More info: https://sass-lang.com/d/legacy-js-api
@@ -251,9 +245,21 @@ DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be
 
 More info: https://sass-lang.com/d/legacy-js-api
 
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
 Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
-OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
 WARNING: A Java agent has been loaded dynamically (E:\workspaces\maven\repository\net\bytebuddy\byte-buddy-agent\1.18.11\byte-buddy-agent-1.18.11.jar)
 WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
 WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
 WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
